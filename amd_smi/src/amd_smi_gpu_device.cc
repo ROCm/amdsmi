@@ -52,7 +52,7 @@ uint32_t AMDSmiGPUDevice::get_gpu_id() const {
     return gpu_id_;
 }
 
-int AMDSmiGPUDevice::amdgpu_query_info(unsigned info_id,
+amdsmi_status_t AMDSmiGPUDevice::amdgpu_query_info(unsigned info_id,
                     unsigned size, void *value) const {
     int fd = drm_.get_drm_fd_by_index(gpu_id_);
     if (fd == -1) return AMDSMI_STATUS_NOT_SUPPORTED;
@@ -60,21 +60,23 @@ int AMDSmiGPUDevice::amdgpu_query_info(unsigned info_id,
     return drm_.amdgpu_query_info(fd, info_id, size, value);
 }
 
-int AMDSmiGPUDevice::amdgpu_query_hw_ip(unsigned info_id,
+amdsmi_status_t AMDSmiGPUDevice::amdgpu_query_hw_ip(unsigned info_id,
             unsigned hw_ip_type, unsigned size, void *value) const {
     int fd = drm_.get_drm_fd_by_index(gpu_id_);
     if (fd == -1) return AMDSMI_STATUS_NOT_SUPPORTED;
 
     return drm_.amdgpu_query_hw_ip(fd, info_id, hw_ip_type, size, value);
 }
-int AMDSmiGPUDevice::amdgpu_query_fw(unsigned info_id, unsigned fw_type,
-            unsigned size, void *value) const {
+
+amdsmi_status_t AMDSmiGPUDevice::amdgpu_query_fw(unsigned info_id,
+        unsigned fw_type, unsigned size, void *value) const {
     int fd = drm_.get_drm_fd_by_index(gpu_id_);
     if (fd == -1) return AMDSMI_STATUS_NOT_SUPPORTED;
 
     return drm_.amdgpu_query_fw(fd, info_id, fw_type, size, value);
 }
-int AMDSmiGPUDevice::amdgpu_query_vbios(void *info) const {
+
+amdsmi_status_t AMDSmiGPUDevice::amdgpu_query_vbios(void *info) const {
     int fd = drm_.get_drm_fd_by_index(gpu_id_);
     if (fd == -1) return AMDSMI_STATUS_NOT_SUPPORTED;
 

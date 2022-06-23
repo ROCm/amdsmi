@@ -49,6 +49,7 @@
 #include <memory>
 #include <mutex>  // NOLINT
 #include "amd_smi.h"
+#include "impl/amd_smi_lib_loader.h"
 
 namespace amd {
 namespace smi {
@@ -58,16 +59,19 @@ class AMDSmiDrm {
     amdsmi_status_t init();
     amdsmi_status_t cleanup();
     int get_drm_fd_by_index(uint32_t gpu_index) const;
-    int amdgpu_query_info(int fd, unsigned info_id,
+    amdsmi_status_t amdgpu_query_info(int fd, unsigned info_id,
                     unsigned size, void *value);
-    int  amdgpu_query_fw(int fd, unsigned info_id, unsigned fw_type,
+    amdsmi_status_t  amdgpu_query_fw(int fd, unsigned info_id, unsigned fw_type,
                 unsigned size, void *value);
-    int amdgpu_query_hw_ip(int fd, unsigned info_id, unsigned hw_ip_type,
-                unsigned size, void *value);
-    int amdgpu_query_vbios(int fd, void *info);
+    amdsmi_status_t amdgpu_query_hw_ip(int fd, unsigned info_id,
+               unsigned hw_ip_type, unsigned size, void *value);
+    amdsmi_status_t amdgpu_query_vbios(int fd, void *info);
 
  private:
+    using DrmCmdWriteFunc = int (*)(int, unsigned long, void *, unsigned long);
     std::vector<int> drm_fds_;  // drm file descriptor by gpu_index
+    AMDSmiLibraryLoader lib_loader_;  // lazy load libdrm
+    DrmCmdWriteFunc drm_cmd_write_;   // drmCommandWrite
     std::mutex drm_mutex_;
 };
 

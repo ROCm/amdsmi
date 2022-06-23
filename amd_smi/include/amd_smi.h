@@ -124,6 +124,18 @@ typedef enum {
   AMDSMI_STATUS_REFCOUNT_OVERFLOW,          //!< An internal reference counter
                                          //!< exceeded INT32_MAX
 
+  AMDSMI_LIB_START = 1000,  //<! Above is the mapping from rocm-smi error code
+  AMDSMI_STATUS_FAIL_LOAD_MODULE = AMDSMI_LIB_START,  //!< Fail to load lib
+  AMDSMI_STATUS_FAIL_LOAD_SYMBOL,
+  AMDSMI_STATUS_DRM_ERROR,   //!< Error when call libdrm
+
+  AMDSMI_STATUS_GENERIC_ERROR,  //!< Mapping from msi-lib SMI_ERR_GENERIC
+  AMDSMI_STATUS_IO_ERROR,  //!< Mapping from msi-lib SMI_ERR_IO
+  AMDSMI_STATUS_FAULT_ERROR,  //!< Mapping from msi-lib SMI_ERR_FAULT
+  AMDSMI_STATUS_API_FAILED,  //!< Mapping from msi-lib SMI_ERR_API_FAILED
+  AMDSMI_STATUS_TIMEOUT,  //!< Mapping from msi-lib SMI_ERR_TIMEOUT
+  AMDSMI_STATUS_NO_SLOT,  //!< Mapping from msi-lib SMI_ERR_NO_SLOT
+  AMDSMI_STATUS_RETRY_ERROR,  //!< Mapping from msi-lib SMI_ERR_RETRY
   AMDSMI_STATUS_UNKNOWN_ERROR = 0xFFFFFFFF,  //!< An unknown error occurred
 } amdsmi_status_t;
 
@@ -561,7 +573,7 @@ typedef enum {
   AMDSMI_FW_BLOCK_RLC_SRLC,
   AMDSMI_FW_BLOCK_RLC_SRLG,
   AMDSMI_FW_BLOCK_RLC_SRLS,
-  AMDSMI_FW_BLOCK_SDMA,
+  AMDSMI_FW_BLOCK_SDMA1,
   AMDSMI_FW_BLOCK_SDMA2,
   AMDSMI_FW_BLOCK_SMC,
   AMDSMI_FW_BLOCK_SOS,
@@ -571,7 +583,32 @@ typedef enum {
   AMDSMI_FW_BLOCK_VCE,
   AMDSMI_FW_BLOCK_VCN,
 
-  AMDSMI_FW_BLOCK_LAST = AMDSMI_FW_BLOCK_VCN
+  // from libdrm
+  AMDSMI_FW_BLOCK_SMU,
+  AMDSMI_FW_BLOCK_MEC_JT1,
+  AMDSMI_FW_BLOCK_MEC_JT2,
+  AMDSMI_FW_BLOCK_SDMA0,
+  AMDSMI_FW_BLOCK_SDMA3,
+  AMDSMI_FW_BLOCK_SDMA4,
+  AMDSMI_FW_BLOCK_SDMA5,
+  AMDSMI_FW_BLOCK_SDMA6,
+  AMDSMI_FW_BLOCK_SDMA7,
+  AMDSMI_FW_BLOCK_ISP,
+  AMDSMI_FW_BLOCK_DMCU_ERAM,
+  AMDSMI_FW_BLOCK_DMCU_ISR,
+  AMDSMI_FW_BLOCK_RLC_V,
+  AMDSMI_FW_BLOCK_MMSCH,
+  AMDSMI_FW_BLOCK_PSP_SYSDRV,
+  AMDSMI_FW_BLOCK_PSP_SOSDRV,
+  AMDSMI_FW_BLOCK_PSP_TOC,
+  AMDSMI_FW_BLOCK_PSP_KEYDB,
+  AMDSMI_FW_BLOCK_DFC,
+  AMDSMI_FW_BLOCK_PSP_SPL,
+  AMDSMI_FW_BLOCK_DRV_CAP,
+  AMDSMI_FW_BLOCK_PSP_BL,
+  AMDSMI_FW_BLOCK_CP_PM4,
+
+  AMDSMI_FW_BLOCK_LAST = AMDSMI_FW_BLOCK_CP_PM4
 } amdsmi_fw_block_t;
 
 /**
@@ -860,6 +897,11 @@ typedef struct {
   uint16_t      average_socket_power;
   uint64_t      energy_accumulator;      // v1 mod. (32->64)
 
+  /* Voltage (mV) */
+  uint16_t      voltage_soc;
+  uint16_t      voltage_gfx;
+  uint16_t      voltage_mem;
+
 /* Driver attached timestamp (in ns) */
   uint64_t      system_clock_counter;   // v1 mod. (moved from top of struct)
 
@@ -992,7 +1034,7 @@ amdsmi_status_t amdsmi_shut_down(void);
 
 amdsmi_status_t amdsmi_get_socket_handles(uint32_t *socket_count,
                 amdsmi_socket_handle* socket_handles[]);
-amdsmi_status_t amdsmi_get_socket_identifier(
+amdsmi_status_t amdsmi_get_socket_info(
                 amdsmi_socket_handle socket_handle,
                 char *name, size_t len);
 
@@ -1017,6 +1059,18 @@ amdsmi_status_t amdsmi_get_device_type(amdsmi_device_handle device_handle,
  */
 #define SMI_MAX_MM_IP_COUNT       8
 enum smi_mm_ip { MM_UVD, MM_VCE, MM_VCN, MM__MAX };
+#define SMI_MAX_STRING_LENGTH       64
+
+
+typedef struct smi_asic_info {
+    char     market_name[SMI_MAX_STRING_LENGTH];
+    uint32_t family; /**< Has zero value */
+    uint32_t vendor_id;
+    uint32_t device_id;
+    uint32_t rev_id;
+    uint64_t asic_serial;
+} smi_asic_info_t;
+
 
 struct smi_gpu_caps {
     struct {
@@ -1036,6 +1090,19 @@ struct smi_gpu_caps {
     uint32_t dma_ip_count;
 };
 
+typedef struct amdsmi_power_info {
+  uint32_t power_cap;
+  uint32_t dpm_cap;
+} amdsmi_power_info_t;
+
+typedef  struct amdsmi_vbios_info {
+    char     name[SMI_MAX_STRING_LENGTH];
+    uint32_t vbios_version;
+    char     build_date[SMI_MAX_STRING_LENGTH];
+    char     part_number[SMI_MAX_STRING_LENGTH];
+    char     vbios_version_string[SMI_MAX_STRING_LENGTH];
+} amdsmi_vbios_info_t;
+
 
 enum smi_supported_flags {
     XGMI_FLAG           = 1 << 0,
@@ -1047,6 +1114,8 @@ enum smi_supported_flags {
     RESERVED_FLAG1          = 1 << 6,
     MAX_FREQUENCY_TARGET_RANGE_FLAG = 1 << 7,
 };
+
+amdsmi_status_t amdsmi_get_vbios_info(amdsmi_device_handle device_handle, amdsmi_vbios_info *info);
 
 /**
  *  \brief          Returns the device capabilities as currently configured in
@@ -1091,6 +1160,54 @@ amdsmi_status_t amdsmi_get_caps_info(amdsmi_device_handle device_handle,
 // refer to gpuvsmi_get_fb_usage
 amdsmi_status_t amdsmi_fb_usage_get(amdsmi_device_handle device_handle,
                     uint32_t *fb_total, uint32_t *fb_used);
+
+/**
+ *  \brief          Returns the ASIC information for the device.
+ *
+ *  \param [in]     device_handle - device which to query
+ *
+ *  \param [out]    info - Reference to static asic information structure.
+ *                  Must be allocated by user.
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
+ */
+amdsmi_status_t amdsmi_get_asic_info(amdsmi_device_handle device_handle, smi_asic_info_t *info);
+
+
+enum smi_clock_domain {
+    CLOCK_DOMAIN_GFX,
+    CLOCK_DOMAIN_MEM,
+    CLOCK_DOMAIN_MM,
+    CLOCK_DOMAIN_MM1,
+    CLOCK_DOMAIN_MM2,
+    CLOCK_DOMAIN__MAX
+};
+
+typedef struct smi_gpu_clock_measure {
+    uint32_t cur_clk;
+    uint32_t avg_clk;
+    uint32_t max_clk;
+} smi_gpu_clock_measure_t;
+
+/**
+ *  \brief          Returns the measurements of the clocks in the GPU
+ *                  for the GFX and multimedia engines and Memory. This call
+ *                  reports the averages over 1s in MHz.
+ *
+ *  \param [in]     device_handle - device which to query
+ *
+ *  \param [in]     domain - Enum representing the domain to query. It should
+ *          be one on the smi_clk_domain
+ *
+ *  \param [out]    info - Reference to the gpu clock structure.
+ *                  Must be allocated by user.
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
+ */
+amdsmi_status_t amdsmi_get_clock_measure(amdsmi_device_handle device_handle, enum smi_clock_domain domain,
+                  smi_gpu_clock_measure_t *info);
+
+
 
 /** @} */  // end of drm query
 
@@ -1733,7 +1850,7 @@ amdsmi_dev_energy_count_get(amdsmi_device_handle device_handle, uint64_t *power,
  *  @param[in] sensor_ind a 0-based sensor index. Normally, this will be 0.
  *  If a device has more than one sensor, it could be greater than 0.
  *
- *  @param[inout] cap a pointer to a uint64_t that indicates the power cap,
+ *  @param[inout] cap a pointer to a amdsmi_power_info that indicates the power cap,
  *  in microwatts
  *  If this parameter is nullptr, this function will return
  *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
@@ -1746,7 +1863,7 @@ amdsmi_dev_energy_count_get(amdsmi_device_handle device_handle, uint64_t *power,
  *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
  */
 amdsmi_status_t
-amdsmi_dev_power_cap_get(amdsmi_device_handle device_handle, uint32_t sensor_ind, uint64_t *cap);
+amdsmi_dev_power_cap_get(amdsmi_device_handle device_handle, uint32_t sensor_ind, amdsmi_power_info *cap);
 
 /**
  *  @brief Get the default power cap for the device specified by @p device_handle.
@@ -2820,35 +2937,6 @@ amdsmi_version_get(amdsmi_version_t *version);
 amdsmi_status_t
 amdsmi_version_str_get(amdsmi_sw_component_t component, char *ver_str,
                                                                 uint32_t len);
-
-/**
- *  @brief Get the VBIOS identifer string
- *
- *  @details Given a device ID @p device_handle, and a pointer to a char buffer,
- *  @p vbios, this function will write the VBIOS string (up to @p len
- *  characters) for device @p device_handle to @p vbios. The caller must ensure that
- *  it is safe to write at least @p len characters to @p vbios.
- *
- *  @param[in] device_handle a device handle
- *
- *  @param[inout] vbios A pointer to a buffer of char's to which the VBIOS name
- *  will be written
- *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
- *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
- *  provided arguments.
- *
- *  @param[in] len The number of char's pointed to by @p vbios which can safely
- *  be written to by this function.
- *
- *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
- *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
- *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
- *
- */
-amdsmi_status_t
-amdsmi_dev_vbios_version_get(amdsmi_device_handle device_handle, char *vbios, uint32_t len);
 
 /**
  *  @brief Get the firmware versions for a device

@@ -62,6 +62,30 @@ amdsmi_status_t AMDSmiDrm::init() {
     struct dirent *dir = nullptr;
     int fd = -1;
 
+    amdsmi_status_t status = lib_loader_.load("libdrm.so");
+    if (status != AMDSMI_STATUS_SUCCESS) {
+        return status;
+    }
+    // load symbol from libdrm
+    drm_cmd_write_ = nullptr;
+    status = lib_loader_.load_symbol(&drm_cmd_write_, "drmCommandWrite");
+    if (status != AMDSMI_STATUS_SUCCESS) {
+        return status;
+    }
+    using drmGetVersionType = drmVersionPtr (*)(int);   // drmGetVersion
+    using drmFreeVersionType = void (*)(drmVersionPtr);   // drmFreeVersion
+    drmGetVersionType drm_get_version = nullptr;
+    drmFreeVersionType drm_free_version = nullptr;
+    status = lib_loader_.load_symbol(&drm_get_version, "drmGetVersion");
+    if (status != AMDSMI_STATUS_SUCCESS) {
+        return status;
+    }
+    status = lib_loader_.load_symbol(&drm_free_version, "drmFreeVersion");
+    if (status != AMDSMI_STATUS_SUCCESS) {
+        return status;
+    }
+
+
     auto d = dir_ptr(opendir("/dev/dri/"), &closedir);
     if (d == nullptr) return AMDSMI_STATUS_INIT_ERROR;
 
@@ -74,7 +98,7 @@ amdsmi_status_t AMDSmiDrm::init() {
         fd = open(name.get(), O_RDWR | O_CLOEXEC);
         if (fd < 0) continue;
 
-        auto version = drm_version_ptr(drmGetVersion(fd), &drmFreeVersion);
+        auto version = drm_version_ptr(drm_get_version(fd), drm_free_version);
         if (strcmp("amdgpu", version->name) ||
             strstr(name.get(), "render") == nullptr) {
                 close(fd);
@@ -92,11 +116,13 @@ amdsmi_status_t AMDSmiDrm::cleanup() {
         close(drm_fds_[i]);
     }
     drm_fds_.clear();
+    lib_loader_.unload();
     return AMDSMI_STATUS_SUCCESS;
 }
 
-int AMDSmiDrm::amdgpu_query_info(int fd, unsigned info_id,
+amdsmi_status_t AMDSmiDrm::amdgpu_query_info(int fd, unsigned info_id,
             unsigned size, void *value) {
+    if (drm_cmd_write_ == nullptr) return AMDSMI_STATUS_NOT_SUPPORTED;
     std::lock_guard<std::mutex> guard(drm_mutex_);
 
     struct drm_amdgpu_info request;
@@ -104,12 +130,16 @@ int AMDSmiDrm::amdgpu_query_info(int fd, unsigned info_id,
     request.return_pointer = (uintptr_t)value;
     request.return_size = size;
     request.query = info_id;
-    return drmCommandWrite(fd, DRM_AMDGPU_INFO,
+    int status = drm_cmd_write_(fd, DRM_AMDGPU_INFO,
             &request, sizeof(struct drm_amdgpu_info));
+    if (status == 0) return AMDSMI_STATUS_SUCCESS;
+    return AMDSMI_STATUS_DRM_ERROR;
 }
 
-int AMDSmiDrm::amdgpu_query_fw(int fd, unsigned info_id, unsigned fw_type,
-            unsigned size, void *value) {
+amdsmi_status_t AMDSmiDrm::amdgpu_query_fw(int fd, unsigned info_id,
+        unsigned fw_type, unsigned size, void *value) {
+    if (drm_cmd_write_ == nullptr) return AMDSMI_STATUS_NOT_SUPPORTED;
+
     std::lock_guard<std::mutex> guard(drm_mutex_);
 
     struct drm_amdgpu_info request;
@@ -118,12 +148,16 @@ int AMDSmiDrm::amdgpu_query_fw(int fd, unsigned info_id, unsigned fw_type,
     request.return_size = size;
     request.query = info_id;
     request.query_fw.fw_type = fw_type;
-    return drmCommandWrite(fd, DRM_AMDGPU_INFO, &request,
+    int status = drm_cmd_write_(fd, DRM_AMDGPU_INFO, &request,
                     sizeof(struct drm_amdgpu_info));
+    if (status == 0) return AMDSMI_STATUS_SUCCESS;
+    return AMDSMI_STATUS_DRM_ERROR;
 }
 
-int AMDSmiDrm::amdgpu_query_hw_ip(int fd, unsigned info_id, unsigned hw_ip_type,
-            unsigned size, void *value) {
+amdsmi_status_t AMDSmiDrm::amdgpu_query_hw_ip(int fd, unsigned info_id,
+        unsigned hw_ip_type, unsigned size, void *value) {
+    if (drm_cmd_write_ == nullptr) return AMDSMI_STATUS_NOT_SUPPORTED;
+
     std::lock_guard<std::mutex> guard(drm_mutex_);
 
     struct drm_amdgpu_info request;
@@ -132,11 +166,15 @@ int AMDSmiDrm::amdgpu_query_hw_ip(int fd, unsigned info_id, unsigned hw_ip_type,
     request.return_size = size;
     request.query = info_id;
     request.query_hw_ip.type = hw_ip_type;
-    return drmCommandWrite(fd, DRM_AMDGPU_INFO, &request,
+    int status = drm_cmd_write_(fd, DRM_AMDGPU_INFO, &request,
                 sizeof(struct drm_amdgpu_info));
+    if (status == 0) return AMDSMI_STATUS_SUCCESS;
+    return AMDSMI_STATUS_DRM_ERROR;
 }
 
-int AMDSmiDrm::amdgpu_query_vbios(int fd, void *info) {
+amdsmi_status_t AMDSmiDrm::amdgpu_query_vbios(int fd, void *info) {
+    if (drm_cmd_write_ == nullptr) return AMDSMI_STATUS_NOT_SUPPORTED;
+
     std::lock_guard<std::mutex> guard(drm_mutex_);
 
     struct drm_amdgpu_info request;
@@ -145,8 +183,10 @@ int AMDSmiDrm::amdgpu_query_vbios(int fd, void *info) {
     request.return_size = sizeof(drm_amdgpu_info_vbios);
     request.query = AMDGPU_INFO_VBIOS;
     request.vbios_info.type = AMDGPU_INFO_VBIOS_INFO;
-    return drmCommandWrite(fd, DRM_AMDGPU_INFO, &request,
+    int status = drm_cmd_write_(fd, DRM_AMDGPU_INFO, &request,
                     sizeof(struct drm_amdgpu_info));
+    if (status == 0) return AMDSMI_STATUS_SUCCESS;
+    return AMDSMI_STATUS_DRM_ERROR;
 }
 
 

@@ -97,8 +97,25 @@ amdsmi_shut_down() {
 
 amdsmi_status_t
 amdsmi_status_string(amdsmi_status_t status, const char **status_string) {
-    return static_cast<amdsmi_status_t>(
+    if (status <= AMDSMI_LIB_START) {
+      return static_cast<amdsmi_status_t>(
         rsmi_status_string(static_cast<rsmi_status_t>(status), status_string));
+    }
+    switch (status) {
+        case AMDSMI_STATUS_FAIL_LOAD_MODULE:
+            *status_string = "FAIL_LOAD_MODULE: Fail to load module.";
+            break;
+        case AMDSMI_STATUS_FAIL_LOAD_SYMBOL:
+            *status_string = "FAIL_LOAD_SYMOBL: Fail to load symobl.";
+            break;
+        case AMDSMI_STATUS_DRM_ERROR:
+            *status_string = "DRM_ERROR: Fail to run function in libdrm.";
+            break;
+        default:
+            *status_string = "An unknown error occurred";
+            return AMDSMI_STATUS_UNKNOWN_ERROR;
+    }
+    return AMDSMI_STATUS_SUCCESS;
 }
 
 amdsmi_status_t amdsmi_get_socket_handles(uint32_t *socket_count,
@@ -114,7 +131,7 @@ amdsmi_status_t amdsmi_get_socket_handles(uint32_t *socket_count,
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_socket_identifier(
+amdsmi_status_t amdsmi_get_socket_info(
                 amdsmi_socket_handle socket_handle,
                 char *name, size_t len) {
     if (socket_handle == nullptr || name == nullptr) {
@@ -202,23 +219,18 @@ amdsmi_status_t amdsmi_fb_usage_get(amdsmi_device_handle device_handle,
     amd::smi::AMDSmiGPUDevice* gpu_device =
                 static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
 
-    int ret = 0;
     struct drm_amdgpu_info_vram_gtt gtt;
     uint64_t vram_used = 0;
 
-    ret = gpu_device->amdgpu_query_info(AMDGPU_INFO_VRAM_GTT,
+    r = gpu_device->amdgpu_query_info(AMDGPU_INFO_VRAM_GTT,
                 sizeof(struct drm_amdgpu_memory_info), &gtt);
-    if (ret) {
-        return AMDSMI_STATUS_INTERNAL_EXCEPTION;
-    }
+    if (r != AMDSMI_STATUS_SUCCESS)  return r;
 
     *fb_total = static_cast<uint32_t>(gtt.vram_size / (1024 * 1024));
 
-    ret = gpu_device->amdgpu_query_info(AMDGPU_INFO_VRAM_USAGE,
+    r = gpu_device->amdgpu_query_info(AMDGPU_INFO_VRAM_USAGE,
                 sizeof(vram_used), &vram_used);
-    if (ret) {
-        return AMDSMI_STATUS_INTERNAL_EXCEPTION;
-    }
+    if (r != AMDSMI_STATUS_SUCCESS)  return r;
 
     *fb_used = static_cast<uint32_t>(vram_used / (1024 * 1024));
 
@@ -247,74 +259,58 @@ amdsmi_status_t amdsmi_get_caps_info(amdsmi_device_handle device_handle,
     struct drm_amdgpu_info_device device;
     unsigned count, j;
 
-    int ret = gpu_device->amdgpu_query_info(AMDGPU_INFO_DEV_INFO,
+    r = gpu_device->amdgpu_query_info(AMDGPU_INFO_DEV_INFO,
             sizeof(struct drm_amdgpu_info_device), &device);
-    if (ret) {
-        return AMDSMI_STATUS_INTERNAL_EXCEPTION;
-    }
+    if (r != AMDSMI_STATUS_SUCCESS)  return r;
 
     info->gfx.gfxip_cu_count = device.cu_active_number;
 
-    ret = gpu_device->amdgpu_query_hw_ip(AMDGPU_INFO_HW_IP_INFO,
+    r = gpu_device->amdgpu_query_hw_ip(AMDGPU_INFO_HW_IP_INFO,
         AMDGPU_HW_IP_GFX, sizeof(ip), &ip);
-    if (ret) {
-        return AMDSMI_STATUS_INTERNAL_EXCEPTION;
-    }
+    if (r != AMDSMI_STATUS_SUCCESS)  return r;
 
     info->gfx.gfxip_major = ip.hw_ip_version_major;
     info->gfx.gfxip_minor = ip.hw_ip_version_minor;
 
-    ret = gpu_device->amdgpu_query_hw_ip(AMDGPU_INFO_HW_IP_COUNT,
+    r = gpu_device->amdgpu_query_hw_ip(AMDGPU_INFO_HW_IP_COUNT,
             AMDGPU_HW_IP_GFX, sizeof(unsigned), &count);
-    if (ret) {
-        return AMDSMI_STATUS_INTERNAL_EXCEPTION;
-    }
+    if (r != AMDSMI_STATUS_SUCCESS)  return r;
     info->gfx_ip_count = count;
 
-    ret = gpu_device->amdgpu_query_hw_ip(AMDGPU_INFO_HW_IP_COUNT,
+    r = gpu_device->amdgpu_query_hw_ip(AMDGPU_INFO_HW_IP_COUNT,
         AMDGPU_HW_IP_DMA, sizeof(unsigned), &count);
-    if (ret) {
-        return AMDSMI_STATUS_INTERNAL_EXCEPTION;
-    }
+    if (r != AMDSMI_STATUS_SUCCESS)  return r;
     info->dma_ip_count = count;
 
 
     count = 0;
     /* Count multimedia engines */
-    ret = gpu_device->amdgpu_query_hw_ip(AMDGPU_INFO_HW_IP_COUNT,
+    r = gpu_device->amdgpu_query_hw_ip(AMDGPU_INFO_HW_IP_COUNT,
         AMDGPU_HW_IP_UVD, sizeof(struct drm_amdgpu_info_device), &uvd);
-    if (ret) {
-        return AMDSMI_STATUS_INTERNAL_EXCEPTION;
-    }
+    if (r != AMDSMI_STATUS_SUCCESS)  return r;
 
     for (j = 0; j < uvd; j++)
         info->mm.mm_ip_list[count++] = MM_UVD;
 
-    ret = gpu_device->amdgpu_query_hw_ip(AMDGPU_INFO_HW_IP_COUNT,
+    r = gpu_device->amdgpu_query_hw_ip(AMDGPU_INFO_HW_IP_COUNT,
         AMDGPU_HW_IP_UVD_ENC, sizeof(struct drm_amdgpu_info_device), &uvd_enc);
-    if (ret) {
-        return AMDSMI_STATUS_INTERNAL_EXCEPTION;
-    }
+    if (r != AMDSMI_STATUS_SUCCESS)  return r;
 
     for (j = 0; j < uvd_enc; j++)
         info->mm.mm_ip_list[count++] = MM_UVD;
 
-    ret = gpu_device->amdgpu_query_hw_ip(AMDGPU_INFO_HW_IP_COUNT,
+    r = gpu_device->amdgpu_query_hw_ip(AMDGPU_INFO_HW_IP_COUNT,
         AMDGPU_HW_IP_VCE, sizeof(struct drm_amdgpu_info_device), &vce);
-    if (ret) {
-        return AMDSMI_STATUS_INTERNAL_EXCEPTION;
-    }
+    if (r != AMDSMI_STATUS_SUCCESS)  return r;
 
     for (j = 0; j < vce; j++)
         info->mm.mm_ip_list[count++] = MM_VCE;
 
     /* VCN is shared DEC/ENC check only ENC */
-    ret = gpu_device->amdgpu_query_hw_ip(AMDGPU_INFO_HW_IP_COUNT,
+    r = gpu_device->amdgpu_query_hw_ip(AMDGPU_INFO_HW_IP_COUNT,
             AMDGPU_HW_IP_VCN_ENC, sizeof(struct drm_amdgpu_info_device),
             &vcn_enc);
-    if (ret) {
-        return AMDSMI_STATUS_INTERNAL_EXCEPTION;
-    }
+    if (r != AMDSMI_STATUS_SUCCESS)  return r;
 
     for (j = 0; j < vcn_enc; j++)
         info->mm.mm_ip_list[count++] = MM_VCN;

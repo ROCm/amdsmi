@@ -41,36 +41,47 @@
  *
  */
 
-#ifndef AMD_SMI_INCLUDE_IMPL_AMD_SMI_GPU_DEVICE_H_
-#define AMD_SMI_INCLUDE_IMPL_AMD_SMI_GPU_DEVICE_H_
-
-#include "amd_smi.h"
-#include "impl/amd_smi_device.h"
-#include "impl/amd_smi_drm.h"
+#include "impl/amd_smi_lib_loader.h"
+#include <iostream>
 
 namespace amd {
 namespace smi {
 
-class AMDSmiGPUDevice: public AMDSmiDevice {
- public:
-    explicit AMDSmiGPUDevice(uint32_t gpu_id, AMDSmiDrm& drm):
-            AMDSmiDevice(AMD_GPU), gpu_id_(gpu_id), drm_(drm) {}
+AMDSmiLibraryLoader::AMDSmiLibraryLoader(): libHandler_(nullptr) {
+}
 
-    uint32_t get_gpu_id() const;
-    amdsmi_status_t amdgpu_query_info(unsigned info_id,
-                    unsigned size, void *value) const;
-    amdsmi_status_t amdgpu_query_hw_ip(unsigned info_id, unsigned hw_ip_type,
-            unsigned size, void *value) const;
-    amdsmi_status_t amdgpu_query_fw(unsigned info_id, unsigned fw_type,
-            unsigned size, void *value) const;
-    amdsmi_status_t amdgpu_query_vbios(void *info) const;
- private:
-    uint32_t gpu_id_;
-    AMDSmiDrm& drm_;
-};
+amdsmi_status_t AMDSmiLibraryLoader::load(const char* filename) {
+    if (filename == nullptr) {
+        return AMDSMI_STATUS_FAIL_LOAD_MODULE;
+    }
+    if (libHandler_) {
+        unload();
+    }
 
+    std::lock_guard<std::mutex> guard(library_mutex_);
+    libHandler_ = dlopen(filename, RTLD_LAZY);
+    if (!libHandler_) {
+        char* error = dlerror();
+        std::cerr << "Fail to open " << filename <<": " << error
+                << std::endl;
+        return AMDSMI_STATUS_FAIL_LOAD_MODULE;
+    }
 
-}  // namespace smi
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t AMDSmiLibraryLoader::unload() {
+        std::lock_guard<std::mutex> guard(library_mutex_);
+        if (libHandler_) {
+            dlclose(libHandler_);
+            libHandler_ = nullptr;
+        }
+        return AMDSMI_STATUS_SUCCESS;
+}
+
+AMDSmiLibraryLoader::~AMDSmiLibraryLoader() {
+        unload();
+}
+
+}  // namespace rdc
 }  // namespace amd
-
-#endif  // AMD_SMI_INCLUDE_IMPL_AMD_SMI_GPU_DEVICE_H_
