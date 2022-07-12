@@ -103,11 +103,11 @@ int main() {
       }
 
       // Get device name
-      char name[128];
-      ret = amdsmi_dev_name_get(device_handles[j], name, 128);
+      amdsmi_board_info board_info;
+      ret = amdsmi_get_board_info(device_handles[j], &board_info);
       CHK_AMDSMI_RET(ret)
       std::cout << "\tdevice "
-                  << j <<"\n\t\tName:" << name << std::endl;
+                  << j <<"\n\t\tName:" << board_info.product_name << std::endl;
 
       // Get temperature
       int64_t val_i64 = 0;
@@ -117,15 +117,14 @@ int main() {
       std::cout << "\t\tTemperature: " << val_i64/1000 << "C" << std::endl;
 
       // Get frame buffer
-      uint32_t fb_total = 0;
-      uint32_t fb_used = 0;
-      ret = amdsmi_fb_usage_get(device_handles[j], &fb_total, &fb_used);
+      amdsmi_vram_info_t vram_usage;
+      ret = amdsmi_get_vram_usage(device_handles[j], &vram_usage);
       CHK_AMDSMI_RET(ret)
-      std::cout << "\t\tFrame buffer usage (MB): " << fb_used << "/"
-              << fb_total << std::endl;
+      std::cout << "\t\tFrame buffer usage (MB): " << vram_usage.vram_used << "/"
+              << vram_usage.vram_total << std::endl;
 
       // Get Cap info
-      struct smi_gpu_caps caps_info = {};
+      amdsmi_gpu_caps_t caps_info = {};
       ret = amdsmi_get_caps_info(device_handles[j], &caps_info);
       CHK_AMDSMI_RET(ret)
       std::cout << "\t\tGFX IP Major: " << caps_info.gfx.gfxip_major << "\n";
@@ -134,12 +133,6 @@ int main() {
       std::cout << "\t\tDMA IP Count: " << caps_info.dma_ip_count << "\n";
       std::cout << "\t\tGFX IP Count: " << caps_info.gfx_ip_count << "\n";
       std::cout << "\t\tMM IP Count: " << int(caps_info.mm.mm_ip_count) << "\n";
-
-      std::cout << "\t\tXGMI supported: " << (caps_info.supported_fields_flags
-          & XGMI_FLAG  ? "TRUE" : "FALSE") << "\n";
-      std::cout << "\t\tMM METRICS supported: " <<
-      (caps_info.supported_fields_flags & MM_METRICS_FLAG ? "TRUE" : "FALSE")
-        << "\n";
     }
   }
 

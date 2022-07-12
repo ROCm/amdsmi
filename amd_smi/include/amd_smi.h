@@ -53,92 +53,6 @@ extern "C" {
 #endif  // __cplusplus
 #include "rocm_smi/kfd_ioctl.h"
 
-typedef enum device_type {
-  UNKNOWN = 0,
-  AMD_GPU,
-  AMD_CPU,
-  NON_AMD_GPU,
-  NON_AMD_CPU
-} device_type_t;
-
-//! opaque handler point to underlying implementation
-typedef void *amdsmi_device_handle;
-typedef void *amdsmi_socket_handle;
-
-
-//! Guaranteed maximum possible number of supported frequencies
-#define AMDSMI_MAX_NUM_FREQUENCIES 32
-
-//! Maximum possible value for fan speed. Should be used as the denominator
-//! when determining fan speed percentage.
-#define AMDSMI_MAX_FAN_SPEED 255
-
-//! The number of points that make up a voltage-frequency curve definition
-#define AMDSMI_NUM_VOLTAGE_CURVE_POINTS 3
-
-/**
- * @brief Error codes retured by amd_smi_lib functions
- */
-typedef enum {
-  AMDSMI_STATUS_SUCCESS = 0x0,             //!< Operation was successful
-  AMDSMI_STATUS_INVALID_ARGS,              //!< Passed in arguments are not valid
-  AMDSMI_STATUS_NOT_SUPPORTED,             //!< The requested information or
-                                         //!< action is not available for the
-                                         //!< given input, on the given system
-  AMDSMI_STATUS_FILE_ERROR,                //!< Problem accessing a file. This
-                                         //!< may because the operation is not
-                                         //!< supported by the Linux kernel
-                                         //!< version running on the executing
-                                         //!< machine
-  AMDSMI_STATUS_PERMISSION,                //!< Permission denied/EACCESS file
-                                         //!< error. Many functions require
-                                         //!< root access to run.
-  AMDSMI_STATUS_OUT_OF_RESOURCES,        //!< Unable to acquire memory or other
-                                         //!< resource
-  AMDSMI_STATUS_INTERNAL_EXCEPTION,        //!< An internal exception was caught
-  AMDSMI_STATUS_INPUT_OUT_OF_BOUNDS,       //!< The provided input is out of
-                                         //!< allowable or safe range
-  AMDSMI_STATUS_INIT_ERROR,                //!< An error occurred when rsmi
-                                         //!< initializing internal data
-                                         //!< structures
-  AMDSMI_INITIALIZATION_ERROR = AMDSMI_STATUS_INIT_ERROR,
-  AMDSMI_STATUS_NOT_YET_IMPLEMENTED,       //!< The requested function has not
-                                         //!< yet been implemented in the
-                                         //!< current system for the current
-                                         //!< devices
-  AMDSMI_STATUS_NOT_FOUND,                 //!< An item was searched for but not
-                                         //!< found
-  AMDSMI_STATUS_INSUFFICIENT_SIZE,         //!< Not enough resources were
-                                         //!< available for the operation
-  AMDSMI_STATUS_INTERRUPT,                 //!< An interrupt occurred during
-                                         //!< execution of function
-  AMDSMI_STATUS_UNEXPECTED_SIZE,           //!< An unexpected amount of data
-                                         //!< was read
-  AMDSMI_STATUS_NO_DATA,                   //!< No data was found for a given
-                                         //!< input
-  AMDSMI_STATUS_UNEXPECTED_DATA,           //!< The data read or provided to
-                                         //!< function is not what was expected
-  AMDSMI_STATUS_BUSY,                      //!< A resource or mutex could not be
-                                         //!< acquired because it is already
-                                         //!< being used
-  AMDSMI_STATUS_REFCOUNT_OVERFLOW,          //!< An internal reference counter
-                                         //!< exceeded INT32_MAX
-
-  AMDSMI_LIB_START = 1000,  //<! Above is the mapping from rocm-smi error code
-  AMDSMI_STATUS_FAIL_LOAD_MODULE = AMDSMI_LIB_START,  //!< Fail to load lib
-  AMDSMI_STATUS_FAIL_LOAD_SYMBOL,
-  AMDSMI_STATUS_DRM_ERROR,   //!< Error when call libdrm
-
-  AMDSMI_STATUS_GENERIC_ERROR,  //!< Mapping from msi-lib SMI_ERR_GENERIC
-  AMDSMI_STATUS_IO_ERROR,  //!< Mapping from msi-lib SMI_ERR_IO
-  AMDSMI_STATUS_FAULT_ERROR,  //!< Mapping from msi-lib SMI_ERR_FAULT
-  AMDSMI_STATUS_API_FAILED,  //!< Mapping from msi-lib SMI_ERR_API_FAILED
-  AMDSMI_STATUS_TIMEOUT,  //!< Mapping from msi-lib SMI_ERR_TIMEOUT
-  AMDSMI_STATUS_NO_SLOT,  //!< Mapping from msi-lib SMI_ERR_NO_SLOT
-  AMDSMI_STATUS_RETRY_ERROR,  //!< Mapping from msi-lib SMI_ERR_RETRY
-  AMDSMI_STATUS_UNKNOWN_ERROR = 0xFFFFFFFF,  //!< An unknown error occurred
-} amdsmi_status_t;
-
 /**
  * @brief Initialization flags
  *
@@ -151,6 +65,321 @@ typedef enum {
 #define  AMD_SMI_INIT_NON_AMD_CPUS      (1 << 2)
 #define  AMD_SMI_INIT_NON_AMD_GPUS      (1 << 3)
 
+/* Maximum size definitions GPUVSMI */
+#define AMDSMI_MAX_MM_IP_COUNT	      8
+#define AMDSMI_MAX_DATE_LENGTH	      32 /**< YYYY-MM-DD:HH:MM:SS.MSC */
+#define AMDSMI_MAX_STRING_LENGTH	      64
+#define AMDSMI_NORMAL_STRING_LENGTH      32
+#define AMDSMI_MAX_DEVICES		      32
+#define AMDSMI_MAX_NAME		      32
+#define AMDSMI_MAX_DRIVER_VERSION_LENGTH 80
+#define AMDSMI_MAX_CONTAINER_TYPE    2
+
+#define AMDSMI_GPU_UUID_SIZE 38
+
+/* string format */
+#define AMDSMI_TIME_FORMAT "%02d:%02d:%02d.%03d"
+#define AMDSMI_DATE_FORMAT "%04d-%02d-%02d:%02d:%02d:%02d.%03d"
+
+typedef enum amdsmi_mm_ip { MM_UVD, MM_VCE, MM_VCN, MM__MAX } amdsmi_mm_ip_t;
+
+typedef enum amdsmi_container_types {
+	CONTAINER_LXC,
+	CONTAINER_DOCKER,
+} amdsmi_container_types_t;
+
+//! opaque handler point to underlying implementation
+typedef void *amdsmi_device_handle;
+typedef void *amdsmi_socket_handle;
+
+typedef enum device_type {
+  UNKNOWN = 0,
+  AMD_GPU,
+  AMD_CPU,
+  NON_AMD_GPU,
+  NON_AMD_CPU
+} device_type_t;
+
+/**
+ * @brief Error codes retured by amd_smi_lib functions
+ */
+typedef enum amdsmi_status {
+    AMDSMI_STATUS_SUCCESS = 0,  /**< Call succeeded */
+    AMDSMI_STATUS_INVAL,  /**< Invalid parameters */
+    AMDSMI_STATUS_OUT_OF_RESOURCES,  /**< Not enough memory */
+    AMDSMI_STATUS_NOT_SUPPORTED,  /**< Command not supported */
+    AMDSMI_STATUS_NO_PERM,  /**< Permission Denied */
+    AMDSMI_STATUS_BUSY,  /**< Device busy */
+    AMDSMI_STATUS_NOT_FOUND,  /**< Device Not found */
+    AMDSMI_STATUS_IO,  /**< I/O Error */
+    AMDSMI_STATUS_FAULT,  /**< Bad address */
+    AMDSMI_STATUS_API_FAILED, /**< API call failed */
+    AMDSMI_STATUS_TIMEOUT, /**< Timeout in API call */
+    AMDSMI_STATUS_NO_SLOT, /**< No more free slot */
+    AMDSMI_STATUS_RETRY, /**< Retry operation */
+    AMDSMI_STATUS_NOT_INIT, /**< Device not initialized */
+    AMDSMI_STATUS_INTERNAL_EXCEPTION, /**< An internal exception was caught */
+    AMDSMI_STATUS_INPUT_OUT_OF_BOUNDS, /**< The provided input is out of */
+    AMDSMI_STATUS_NOT_YET_IMPLEMENTED, /**< The requested function has not
+                                            yet been implemented in the
+                                            current system for the current devices */
+    AMDSMI_STATUS_INSUFFICIENT_SIZE, /**< Not enough resources were available for the operation */
+    AMDSMI_STATUS_INTERRUPT, /**< An interrupt occurred during execution of function */
+    AMDSMI_STATUS_UNEXPECTED_SIZE, /**< An unexpected amount of data was read */
+    AMDSMI_STATUS_NO_DATA, /**< No data was found for a given input */
+    AMDSMI_STATUS_UNEXPECTED_DATA, /**< The data read or provided to function is not what was expected */
+    AMDSMI_STATUS_REFCOUNT_OVERFLOW, /**< An internal reference counter exceeded INT32_MAX */
+    AMDSMI_LIB_START = 1000,
+    AMDSMI_STATUS_FAIL_LOAD_MODULE = AMDSMI_LIB_START,  //!< Fail to load lib
+    AMDSMI_STATUS_FAIL_LOAD_SYMBOL,
+    AMDSMI_STATUS_DRM_ERROR,   //!< Error when call libdrm
+    AMDSMI_STATUS_UNKNOWN_ERROR = 0xFFFFFFFF,  //!< An unknown error occurred
+} amdsmi_status_t;
+
+/**
+ * Clock types
+ */
+typedef enum amdsmi_clk_type {
+    CLOCK_TYPE_GFX,
+    CLOCK_TYPE_MEM,
+    CLOCK_TYPE_VCLK0,
+    CLOCK_TYPE_VCLK1,
+    CLOCK_TYPE_DCLK0,
+    CLOCK_TYPE_DCLK1,
+    CLOCK_TYPE_SYS,
+    CLOCK_TYPE_DF,
+    CLOCK_TYPE_SOC,
+    CLOCK_TYPE_PCIE,
+    CLOCK_TYPE__MAX
+} amdsmi_clk_type_t;
+/// \cond Ignore in docs.
+typedef amdsmi_clk_type_t amdsmi_clk_type;
+/// \endcond
+
+/**
+ * @brief This enumeration is used to indicate from which part of the device a
+ * temperature reading should be obtained.
+ */
+typedef enum amdsmi_temperature_type {
+    TEMPERATURE_TYPE_EDGE,
+    TEMPERATURE_TYPE_JUNCTION,
+    TEMPERATURE_TYPE_VRAM,
+    TEMPERATURE_TYPE_PLX,
+    TEMPERATURE_TYPE_HBM_0,
+    TEMPERATURE_TYPE_HBM_1,
+    TEMPERATURE_TYPE_HBM_2,
+    TEMPERATURE_TYPE_HBM_3,
+    TEMPERATURE_TYPE__MAX,
+} amdsmi_temperature_type_t;
+
+/**
+ * @brief The values of this enum are used to identify the various firmware
+ * blocks.
+ */
+typedef enum amdsmi_fw_block {
+    FW_ID_SMU = 1,
+    FW_ID_CP_CE,
+    FW_ID_CP_PFP,
+    FW_ID_CP_ME,
+    FW_ID_CP_MEC_JT1,
+    FW_ID_CP_MEC_JT2,
+    FW_ID_CP_MEC1,
+    FW_ID_CP_MEC2,
+    FW_ID_RLC,
+    FW_ID_SDMA0,
+    FW_ID_SDMA1,
+    FW_ID_SDMA2,
+    FW_ID_SDMA3,
+    FW_ID_SDMA4,
+    FW_ID_SDMA5,
+    FW_ID_SDMA6,
+    FW_ID_SDMA7,
+    FW_ID_VCN,
+    FW_ID_UVD,
+    FW_ID_VCE,
+    FW_ID_ISP,
+    FW_ID_DMCU_ERAM, /*eRAM*/
+    FW_ID_DMCU_ISR,  /*ISR*/
+    FW_ID_RLC_RESTORE_LIST_GPM_MEM,
+    FW_ID_RLC_RESTORE_LIST_SRM_MEM,
+    FW_ID_RLC_RESTORE_LIST_CNTL,
+    FW_ID_RLC_V,
+    FW_ID_MMSCH,
+    FW_ID_PSP_SYSDRV,
+    FW_ID_PSP_SOSDRV,
+    FW_ID_PSP_TOC,
+    FW_ID_PSP_KEYDB,
+    FW_ID_DFC,
+    FW_ID_PSP_SPL,
+    FW_ID_DRV_CAP,
+    FW_ID_MC,
+    FW_ID_PSP_BL,
+    FW_ID_CP_PM4,
+    FW_ID_ASD,
+    FW_ID_TA_RAS,
+    FW_ID_XGMI,
+    FW_ID__MAX
+} amdsmi_fw_block_t;
+
+/**
+ * @brief This structure represents a range (e.g., frequencies or voltages).
+ */
+typedef struct {
+    uint64_t lower_bound;      //!< Lower bound of range
+    uint64_t upper_bound;      //!< Upper bound of range
+} amdsmi_range_t;
+/// \cond Ignore in docs.
+typedef amdsmi_range_t amdsmi_range;
+/// \endcond
+
+typedef struct amdsmi_xgmi_info {
+	uint8_t	 xgmi_lanes;
+	uint64_t xgmi_hive_id;
+	uint64_t xgmi_node_id;
+	uint32_t index;
+} amdsmi_xgmi_info_t;
+
+/**
+ * GPU Capability info
+ */
+typedef struct amdsmi_gpu_caps {
+	struct {
+		uint32_t gfxip_major;
+		uint32_t gfxip_minor;
+		uint16_t gfxip_cu_count;
+	} gfx;
+	struct {
+		uint8_t mm_ip_count;
+		uint8_t mm_ip_list[AMDSMI_MAX_MM_IP_COUNT];
+	} mm;
+
+	bool	 ras_supported;
+	uint8_t	 max_vf_num;
+	uint32_t gfx_ip_count;
+	uint32_t dma_ip_count;
+} amdsmi_gpu_caps_t;
+
+typedef struct amdsmi_vram_info {
+	uint32_t vram_total;
+	uint32_t vram_used;
+} amdsmi_vram_info_t;
+
+typedef struct amdsmi_frequency_range {
+	amdsmi_range_t supported_freq_range;
+	amdsmi_range_t current_freq_range;
+} amdsmi_frequency_range_t;
+typedef union amdsmi_bdf {
+	struct {
+		uint64_t function_number : 6;
+		uint64_t device_number : 10;
+		uint64_t bus_number : 16;
+		uint64_t domain_number : 32;
+	};
+	uint64_t as_uint;
+} amdsmi_bdf_t;
+
+typedef struct amdsmi_power_cap_info {
+	uint32_t power_cap;
+	uint32_t default_power_cap;
+	uint32_t dpm_cap;
+	uint32_t min_power_cap;
+	uint32_t max_power_cap;
+} amdsmi_power_cap_info_t;
+
+typedef struct amdsmi_vbios_info {
+	char	 name[AMDSMI_MAX_STRING_LENGTH];
+	uint32_t vbios_version;
+	char	 build_date[AMDSMI_MAX_DATE_LENGTH];
+	char     part_number[AMDSMI_MAX_STRING_LENGTH];
+	char     vbios_version_string[AMDSMI_NORMAL_STRING_LENGTH];
+} amdsmi_vbios_info_t;
+
+typedef struct amdsmi_fw_info {
+	uint8_t num_fw_info;
+	struct {
+		amdsmi_fw_block_t fw_id;
+		uint32_t fw_version;
+	} fw_info_list[FW_ID__MAX];
+} amdsmi_fw_info_t;
+
+typedef struct amdsmi_asic_info {
+	char	 market_name[AMDSMI_MAX_STRING_LENGTH];
+	uint32_t family; /**< Has zero value */
+	uint32_t vendor_id;
+	uint32_t subvendor_id;
+	uint32_t device_id;
+	uint32_t rev_id;
+	uint64_t asic_serial;
+} amdsmi_asic_info_t;
+
+typedef struct amdsmi_board_info {
+	uint64_t serial_number;
+	bool	 is_master;
+	char	 model_number[AMDSMI_NORMAL_STRING_LENGTH];
+	char	 product_serial[AMDSMI_NORMAL_STRING_LENGTH];
+	char	 fru_id[AMDSMI_NORMAL_STRING_LENGTH];
+	char	 product_name[AMDSMI_NORMAL_STRING_LENGTH];
+	char	 manufacturer_name[AMDSMI_NORMAL_STRING_LENGTH];
+} amdsmi_board_info_t;
+
+typedef struct amdsmi_temperature {
+	uint16_t      cur_temp;
+} amdsmi_temperature_t;
+
+typedef struct amdsmi_temperature_limit {
+	uint16_t      limit;
+} amdsmi_temperature_limit_t;
+
+typedef struct amdsmi_power_limit {
+	uint16_t      limit;
+} amdsmi_power_limit_t;
+
+typedef struct amdsmi_power_measure {
+	uint16_t average_socket_power;
+ 	uint64_t energy_accumulator;      // v1 mod. (32->64)
+	uint32_t voltage_gfx;  //GFX voltage measurement in mV
+	uint32_t voltage_soc; // SOC voltage measurement in mV
+	uint32_t voltage_mem; // MEM voltage measurement in mV
+} amdsmi_power_measure_t;
+
+typedef struct amdsmi_clock_measure {
+  	uint32_t cur_clk;
+	uint32_t avg_clk;
+	uint32_t min_clk;
+	uint32_t max_clk;
+} amdsmi_clock_measure_t;
+
+typedef struct amdsmi_engine_usage {
+	uint32_t average_gfx_activity;
+	uint32_t average_umc_activity;
+	uint32_t average_mm_activity[AMDSMI_MAX_MM_IP_COUNT];
+} amdsmi_engine_usage_t;
+
+typedef uint32_t amdsmi_process_handle;
+
+typedef struct amdsmi_process_info {
+	char                  name[AMDSMI_NORMAL_STRING_LENGTH];
+	amdsmi_process_handle pid;
+	uint64_t              mem; /** in bytes */
+	struct {
+		uint16_t gfx[AMDSMI_MAX_MM_IP_COUNT];
+		uint16_t compute[AMDSMI_MAX_MM_IP_COUNT];
+		uint16_t sdma[AMDSMI_MAX_MM_IP_COUNT];
+		uint16_t enc[AMDSMI_MAX_MM_IP_COUNT];
+		uint16_t dec[AMDSMI_MAX_MM_IP_COUNT];
+	} usage; /** percentage 0-100% times 100 */
+	char container_name[AMDSMI_NORMAL_STRING_LENGTH];
+} amdsmi_proc_info_t;
+
+//! Guaranteed maximum possible number of supported frequencies
+#define AMDSMI_MAX_NUM_FREQUENCIES 32
+
+//! Maximum possible value for fan speed. Should be used as the denominator
+//! when determining fan speed percentage.
+#define AMDSMI_MAX_FAN_SPEED 255
+
+//! The number of points that make up a voltage-frequency curve definition
+#define AMDSMI_NUM_VOLTAGE_CURVE_POINTS 3
 /**
  * @brief PowerPlay performance levels
  */
@@ -336,28 +565,6 @@ typedef struct {
 } amdsmi_evt_notification_data_t;
 
 /**
- * Clock types
- */
-typedef enum {
-  AMDSMI_CLK_TYPE_SYS = 0x0,            //!< System clock
-  AMDSMI_CLK_TYPE_FIRST = AMDSMI_CLK_TYPE_SYS,
-  AMDSMI_CLK_TYPE_DF,                   //!< Data Fabric clock (for ASICs
-                                      //!< running on a separate clock)
-  AMDSMI_CLK_TYPE_DCEF,                 //!< Display Controller Engine clock
-  AMDSMI_CLK_TYPE_SOC,                  //!< SOC clock
-  AMDSMI_CLK_TYPE_MEM,                  //!< Memory clock
-  AMDSMI_CLK_TYPE_PCIE,                 //!< PCIE clock
-
-  // Add new clocks to the end (not in the middle) and update
-  // AMDSMI_CLK_TYPE_LAST
-  AMDSMI_CLK_TYPE_LAST = AMDSMI_CLK_TYPE_MEM,
-  AMDSMI_CLK_INVALID = 0xFFFFFFFF
-} amdsmi_clk_type_t;
-/// \cond Ignore in docs.
-typedef amdsmi_clk_type_t amdsmi_clk_type;
-/// \endcond
-
-/**
  * @brief Temperature Metrics.  This enum is used to identify various
  * temperature metrics. Corresponding values will be in millidegress
  * Celcius.
@@ -402,25 +609,6 @@ typedef enum {
 /// \cond Ignore in docs.
 typedef amdsmi_temperature_metric_t amdsmi_temperature_metric;
 /// \endcond
-
-/**
- * @brief This enumeration is used to indicate from which part of the device a
- * temperature reading should be obtained.
- */
-typedef enum {
-  AMDSMI_TEMP_TYPE_FIRST = 0,
-
-  AMDSMI_TEMP_TYPE_EDGE = AMDSMI_TEMP_TYPE_FIRST,  //!< Edge GPU temperature
-  AMDSMI_TEMP_TYPE_JUNCTION,                     //!< Junction/hotspot
-                                               //!< temperature
-  AMDSMI_TEMP_TYPE_MEMORY,                       //!< VRAM temperature
-  AMDSMI_TEMP_TYPE_HBM_0,                        //!< HBM temperature instance 0
-  AMDSMI_TEMP_TYPE_HBM_1,                        //!< HBM temperature instance 1
-  AMDSMI_TEMP_TYPE_HBM_2,                        //!< HBM temperature instance 2
-  AMDSMI_TEMP_TYPE_HBM_3,                        //!< HBM temperature instance 3
-  AMDSMI_TEMP_TYPE_LAST = AMDSMI_TEMP_TYPE_HBM_3,
-  AMDSMI_TEMP_TYPE_INVALID = 0xFFFFFFFF          //!< Invalid type
-} amdsmi_temperature_type_t;
 
 /**
  * @brief Voltage Metrics.  This enum is used to identify various
@@ -552,64 +740,6 @@ typedef enum {
 /// \cond Ignore in docs.
 typedef amdsmi_freq_ind_t amdsmi_freq_ind;
 /// \endcond
-
-
-/**
- * @brief The values of this enum are used to identify the various firmware
- * blocks.
- */
-typedef enum {
-  AMDSMI_FW_BLOCK_FIRST = 0,
-
-  AMDSMI_FW_BLOCK_ASD = AMDSMI_FW_BLOCK_FIRST,
-  AMDSMI_FW_BLOCK_CE,
-  AMDSMI_FW_BLOCK_DMCU,
-  AMDSMI_FW_BLOCK_MC,
-  AMDSMI_FW_BLOCK_ME,
-  AMDSMI_FW_BLOCK_MEC,
-  AMDSMI_FW_BLOCK_MEC2,
-  AMDSMI_FW_BLOCK_PFP,
-  AMDSMI_FW_BLOCK_RLC,
-  AMDSMI_FW_BLOCK_RLC_SRLC,
-  AMDSMI_FW_BLOCK_RLC_SRLG,
-  AMDSMI_FW_BLOCK_RLC_SRLS,
-  AMDSMI_FW_BLOCK_SDMA1,
-  AMDSMI_FW_BLOCK_SDMA2,
-  AMDSMI_FW_BLOCK_SMC,
-  AMDSMI_FW_BLOCK_SOS,
-  AMDSMI_FW_BLOCK_TA_RAS,
-  AMDSMI_FW_BLOCK_TA_XGMI,
-  AMDSMI_FW_BLOCK_UVD,
-  AMDSMI_FW_BLOCK_VCE,
-  AMDSMI_FW_BLOCK_VCN,
-
-  // from libdrm
-  AMDSMI_FW_BLOCK_SMU,
-  AMDSMI_FW_BLOCK_MEC_JT1,
-  AMDSMI_FW_BLOCK_MEC_JT2,
-  AMDSMI_FW_BLOCK_SDMA0,
-  AMDSMI_FW_BLOCK_SDMA3,
-  AMDSMI_FW_BLOCK_SDMA4,
-  AMDSMI_FW_BLOCK_SDMA5,
-  AMDSMI_FW_BLOCK_SDMA6,
-  AMDSMI_FW_BLOCK_SDMA7,
-  AMDSMI_FW_BLOCK_ISP,
-  AMDSMI_FW_BLOCK_DMCU_ERAM,
-  AMDSMI_FW_BLOCK_DMCU_ISR,
-  AMDSMI_FW_BLOCK_RLC_V,
-  AMDSMI_FW_BLOCK_MMSCH,
-  AMDSMI_FW_BLOCK_PSP_SYSDRV,
-  AMDSMI_FW_BLOCK_PSP_SOSDRV,
-  AMDSMI_FW_BLOCK_PSP_TOC,
-  AMDSMI_FW_BLOCK_PSP_KEYDB,
-  AMDSMI_FW_BLOCK_DFC,
-  AMDSMI_FW_BLOCK_PSP_SPL,
-  AMDSMI_FW_BLOCK_DRV_CAP,
-  AMDSMI_FW_BLOCK_PSP_BL,
-  AMDSMI_FW_BLOCK_CP_PM4,
-
-  AMDSMI_FW_BLOCK_LAST = AMDSMI_FW_BLOCK_CP_PM4
-} amdsmi_fw_block_t;
 
 /**
  * @brief XGMI Status
@@ -767,16 +897,6 @@ typedef struct {
 /// \cond Ignore in docs.
 typedef amdsmi_version_t amdsmi_version;
 /// \endcond
-/**
- * @brief This structure represents a range (e.g., frequencies or voltages).
- */
-typedef struct {
-    uint64_t lower_bound;      //!< Lower bound of range
-    uint64_t upper_bound;      //!< Upper bound of range
-} amdsmi_range_t;
-/// \cond Ignore in docs.
-typedef amdsmi_range_t amdsmi_range;
-/// \endcond
 
 /**
  * @brief This structure represents a point on the frequency-voltage plane.
@@ -876,7 +996,7 @@ struct amd_metrics_table_header_t {
 #define CENTRIGRADE_TO_MILLI_CENTIGRADE 1000
 
 typedef struct {
-  // TODO(amd) Doxygen documents
+// TODO(amd) Doxygen documents
   /// \cond Ignore in docs.
   struct amd_metrics_table_header_t common_header;
 
@@ -896,11 +1016,6 @@ typedef struct {
 /* Power/Energy */
   uint16_t      average_socket_power;
   uint64_t      energy_accumulator;      // v1 mod. (32->64)
-
-  /* Voltage (mV) */
-  uint16_t      voltage_soc;
-  uint16_t      voltage_gfx;
-  uint16_t      voltage_mem;
 
 /* Driver attached timestamp (in ns) */
   uint64_t      system_clock_counter;   // v1 mod. (moved from top of struct)
@@ -959,7 +1074,6 @@ typedef struct {
     uint64_t sdma_usage;      //!< SDMA usage in microseconds
     uint32_t cu_occupancy;    //!< Compute Unit usage in percent
 } amdsmi_process_info_t;
-
 
 /**
  * @brief Opaque handle to function-support object
@@ -1048,168 +1162,6 @@ amdsmi_status_t amdsmi_get_device_type(amdsmi_device_handle device_handle,
 
 /** @} */  // end of Discovery
 
-/*****************************************************************************/
-/** @defgroup drm Queries
- *  These functions requires libdrm.
- *  @{
- */
-
-/**
- * GPU Capability info
- */
-#define SMI_MAX_MM_IP_COUNT       8
-enum smi_mm_ip { MM_UVD, MM_VCE, MM_VCN, MM__MAX };
-#define SMI_MAX_STRING_LENGTH       64
-
-
-typedef struct smi_asic_info {
-    char     market_name[SMI_MAX_STRING_LENGTH];
-    uint32_t family; /**< Has zero value */
-    uint32_t vendor_id;
-    uint32_t device_id;
-    uint32_t rev_id;
-    uint64_t asic_serial;
-} smi_asic_info_t;
-
-
-struct smi_gpu_caps {
-    struct {
-        uint32_t gfxip_major;
-        uint32_t gfxip_minor;
-        uint16_t gfxip_cu_count;
-    } gfx;
-    struct {
-        uint8_t mm_ip_count;
-        uint8_t mm_ip_list[SMI_MAX_MM_IP_COUNT];
-    } mm;
-
-    bool     ras_supported;
-    uint8_t  reserved0;
-    uint32_t supported_fields_flags; /**< Supported data (xgmi, mm metrics...) flags */
-    uint32_t gfx_ip_count;
-    uint32_t dma_ip_count;
-};
-
-typedef struct amdsmi_power_info {
-  uint32_t power_cap;
-  uint32_t dpm_cap;
-} amdsmi_power_info_t;
-
-typedef  struct amdsmi_vbios_info {
-    char     name[SMI_MAX_STRING_LENGTH];
-    uint32_t vbios_version;
-    char     build_date[SMI_MAX_STRING_LENGTH];
-    char     part_number[SMI_MAX_STRING_LENGTH];
-    char     vbios_version_string[SMI_MAX_STRING_LENGTH];
-} amdsmi_vbios_info_t;
-
-
-enum smi_supported_flags {
-    XGMI_FLAG           = 1 << 0,
-    MM_METRICS_FLAG         = 1 << 1,
-    POWER_GFX_VOLTAGE_FLAG      = 1 << 2,
-    POWER_DPM_FLAG          = 1 << 3,
-    MEM_USAGE_FLAG          = 1 << 4,
-    RESERVED_FLAG0          = 1 << 5,
-    RESERVED_FLAG1          = 1 << 6,
-    MAX_FREQUENCY_TARGET_RANGE_FLAG = 1 << 7,
-};
-
-amdsmi_status_t amdsmi_get_vbios_info(amdsmi_device_handle device_handle, amdsmi_vbios_info *info);
-
-/**
- *  \brief          Returns the device capabilities as currently configured in
- *                  the system
- *
- *  \param [in]     device_handle - device which to query
- *
- *  \param [out]    info - Reference to caps information structure. Must be
- *                  allocated by user.
- *
- *  \return
- *                  *  ::SMI_SUCCESS - Successful
- *                  * -::SMI_ERR_NO_PERM - Library was not initialized
- *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
- *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
- *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
- *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
- *                  * -::SMI_ERR_API_FAILED - Other errors
- */
-amdsmi_status_t amdsmi_get_caps_info(amdsmi_device_handle device_handle,
-      struct smi_gpu_caps *info);
-
-
-/**
- *  \brief          Returns the framebuffer usage (both total and used memory)
- *                  in MegaBytes.
- *
- *  \param [in]     device_handle - device which to query
- *
- *  \param [out]    fb_total - Returned total framebuffer size in MegaBytes.
- *                  Must be allocated by user.
- *
- *  \param [out]    fb_used - Returned used framebuffer memory in MegaBytes.
- *                  Must be allocated by user.
- *
- *  \return
- *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
- *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
- *   support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
- */
-// refer to gpuvsmi_get_fb_usage
-amdsmi_status_t amdsmi_fb_usage_get(amdsmi_device_handle device_handle,
-                    uint32_t *fb_total, uint32_t *fb_used);
-
-/**
- *  \brief          Returns the ASIC information for the device.
- *
- *  \param [in]     device_handle - device which to query
- *
- *  \param [out]    info - Reference to static asic information structure.
- *                  Must be allocated by user.
- *
- *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
- */
-amdsmi_status_t amdsmi_get_asic_info(amdsmi_device_handle device_handle, smi_asic_info_t *info);
-
-
-enum smi_clock_domain {
-    CLOCK_DOMAIN_GFX,
-    CLOCK_DOMAIN_MEM,
-    CLOCK_DOMAIN_MM,
-    CLOCK_DOMAIN_MM1,
-    CLOCK_DOMAIN_MM2,
-    CLOCK_DOMAIN__MAX
-};
-
-typedef struct smi_gpu_clock_measure {
-    uint32_t cur_clk;
-    uint32_t avg_clk;
-    uint32_t max_clk;
-} smi_gpu_clock_measure_t;
-
-/**
- *  \brief          Returns the measurements of the clocks in the GPU
- *                  for the GFX and multimedia engines and Memory. This call
- *                  reports the averages over 1s in MHz.
- *
- *  \param [in]     device_handle - device which to query
- *
- *  \param [in]     domain - Enum representing the domain to query. It should
- *          be one on the smi_clk_domain
- *
- *  \param [out]    info - Reference to the gpu clock structure.
- *                  Must be allocated by user.
- *
- *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
- */
-amdsmi_status_t amdsmi_get_clock_measure(amdsmi_device_handle device_handle, enum smi_clock_domain domain,
-                  smi_gpu_clock_measure_t *info);
-
-
-
-/** @} */  // end of drm query
 
 /*****************************************************************************/
 /** @defgroup IDQuer Identifier Queries
@@ -1246,128 +1198,6 @@ amdsmi_status_t amdsmi_get_clock_measure(amdsmi_device_handle device_handle, enu
  *
  */
 amdsmi_status_t amdsmi_dev_id_get(amdsmi_device_handle device_handle, uint16_t *id);
-
-
-/**
- *  @brief Get the SKU for a desired device associated with the device with
- *  provided device handle.
- *
- *  @details Given a device handle @p device_handle and a pointer to a char @p sku,
- *  this function will attempt to obtain the SKU from the Product Information
- *  FRU chip, present on server ASICs. It will write the sku value to the
- *  char array pointed to by @p sku.
- *
- *  @param[in] device_handle a device handle
- *
- *  @param[inout] sku a pointer to char to which the sku will be written
- *
- *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
- *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
- *  provided arguments.
- *
- *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
- *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
- *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
- *
- */
-amdsmi_status_t amdsmi_dev_sku_get(amdsmi_device_handle device_handle, char *sku);
-
-/**
- *  @brief Get the device vendor id associated with the device with provided
- *  device handle.
- *
- *  @details Given a device handle @p device_handle and a pointer to a uint32_t @p id,
- *  this function will write the device vendor id value to the uint64_t pointed
- *  to by @p id.
- *
- *  @param[in] device_handle a device handle
- *
- *  @param[inout] id a pointer to uint64_t to which the device vendor id will
- *  be written
- *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
- *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
- *  provided arguments.
- *
- *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
- *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
- *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
- *
- */
-amdsmi_status_t amdsmi_dev_vendor_id_get(amdsmi_device_handle device_handle, uint16_t *id);
-
-/**
- *  @brief Get the name string of a gpu device.
- *
- *  @details Given a device handle @p device_handle, a pointer to a caller provided
- *  char buffer @p name, and a length of this buffer @p len, this function
- *  will write the name of the device (up to @p len characters) to the buffer
- *  @p name.
- *
- *  If the integer ID associated with the device is not found in one of the
- *  system files containing device name information (e.g.
- *  /usr/share/misc/pci.ids), then this function will return the hex device ID
- *  as a string. Updating the system name files can be accompplished with
- *  "sudo update-pciids".
- *
- *  @param[in] device_handle a device handle
- *
- *  @param[inout] name a pointer to a caller provided char buffer to which the
- *  name will be written
- *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
- *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
- *  provided arguments.
- *
- *  @param[in] len the length of the caller provided buffer @p name.
- *
- *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
- *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
- *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
- *  @retval ::AMDSMI_STATUS_INSUFFICIENT_SIZE is returned if @p len bytes is not
- *  large enough to hold the entire name. In this case, only @p len bytes will
- *  be written.
- *
- */
-amdsmi_status_t amdsmi_dev_name_get(amdsmi_device_handle device_handle, char *name, size_t len);
-
-/**
- *  @brief Get the brand string of a gpu device.
- *
- *  @details Given a device handle @p device_handle, a pointer to a caller provided
- *  char buffer @p brand, and a length of this buffer @p len, this function
- *  will write the brand of the device (up to @p len characters) to the buffer
- *  @p brand.
- *
- *  If the sku associated with the device is not found as one of the values
- *  contained within amdsmi_dev_brand_get, then this function will return the
- *  device marketing name as a string instead of the brand name.
- *
- *  @param[in] device_handle a device handle
- *
- *  @param[inout] brand a pointer to a caller provided char buffer to which the
- *  brand will be written
- *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
- *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
- *  provided arguments.
- *
- *  @param[in] len the length of the caller provided buffer @p brand.
- *
- *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
- *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
- *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
- *  @retval ::AMDSMI_STATUS_INSUFFICIENT_SIZE is returned if @p len bytes is not
- *  large enough to hold the entire name. In this case, only @p len bytes will
- *  be written.
- *
- */
-amdsmi_status_t amdsmi_dev_brand_get(amdsmi_device_handle device_handle, char *brand, uint32_t len);
 
 /**
  *  @brief Get the name string for a give vendor ID
@@ -1431,36 +1261,6 @@ amdsmi_status_t amdsmi_dev_vendor_name_get(amdsmi_device_handle device_handle, c
 amdsmi_status_t amdsmi_dev_vram_vendor_get(amdsmi_device_handle device_handle, char *brand,
                                                                 uint32_t len);
 
-/**
- * @brief Get the serial number string for a device
- *
- * @details Given a device handle @p device_handle, a pointer to a buffer of chars
- * @p serial_num, and the length of the provided buffer @p len, this function
- * will write the serial number string (up to @p len characters) to the buffer
- * pointed to by @p serial_num.
- *
- *  @param[in] device_handle a device handle
- *
- *  @param[inout] serial_num a pointer to caller-provided memory to which the
- *  serial number will be written
- *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
- *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
- *  provided arguments.
-
- *  @param[in] len the length of the caller provided buffer @p serial_num.
- *
- *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
- *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
- *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
- *  @retval ::AMDSMI_STATUS_INSUFFICIENT_SIZE is returned if @p len bytes is not
- *  large enough to hold the entire name. In this case, only @p len bytes will
- *  be written.
- *
- */
-amdsmi_status_t amdsmi_dev_serial_number_get(amdsmi_device_handle device_handle,
-                                              char *serial_num, uint32_t len);
 /**
  *  @brief Get the subsystem device id associated with the device with
  *  provided device handle.
@@ -1566,29 +1366,6 @@ amdsmi_dev_drm_render_minor_get(amdsmi_device_handle device_handle, uint32_t *mi
  *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
  */
 amdsmi_status_t amdsmi_dev_subsystem_vendor_id_get(amdsmi_device_handle device_handle, uint16_t *id);
-
-/**
- *  @brief Get Unique ID
- *
- *  @details Given a device handle @p device_handle and a pointer to a uint64_t @p
- *  id, this function will write the unique ID of the GPU pointed to @p
- *  id.
- *
- *  @param[in] device_handle a device handle
- *
- *  @param[inout] id a pointer to uint64_t to which the unique ID of the GPU
- *  is written
- *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
- *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
- *  provided arguments.
- *
- *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
- *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
- *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
- */
-amdsmi_status_t amdsmi_dev_unique_id_get(amdsmi_device_handle device_handle, uint64_t *id);
 
 /** @} */  // end of IDQuer
 
@@ -1836,93 +1613,6 @@ amdsmi_dev_power_ave_get(amdsmi_device_handle device_handle, uint32_t sensor_ind
 amdsmi_status_t
 amdsmi_dev_energy_count_get(amdsmi_device_handle device_handle, uint64_t *power,
                           float *counter_resolution, uint64_t *timestamp);
-
-/**
- *  @brief Get the cap on power which, when reached, causes the system to take
- *  action to reduce power.
- *
- *  @details When power use rises above the value @p power, the system will
- *  take action to reduce power use. The power level returned through
- *  @p power will be in microWatts.
- *
- *  @param[in] device_handle a device handle
- *
- *  @param[in] sensor_ind a 0-based sensor index. Normally, this will be 0.
- *  If a device has more than one sensor, it could be greater than 0.
- *
- *  @param[inout] cap a pointer to a amdsmi_power_info that indicates the power cap,
- *  in microwatts
- *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
- *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
- *  provided arguments.
- *
- *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
- *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
- *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
- */
-amdsmi_status_t
-amdsmi_dev_power_cap_get(amdsmi_device_handle device_handle, uint32_t sensor_ind, amdsmi_power_info *cap);
-
-/**
- *  @brief Get the default power cap for the device specified by @p device_handle.
- *
- *  @details The maximum power cap be temporarily changed by the user. However,
- *  this function always returns the default reset power cap. The power level
- *  returned through @p power will be in microWatts.
- *
- *  @param[in] device_handle a device handle
- *
- *  @param[inout] default_cap a pointer to a uint64_t that indicates the default
- *  power cap, in microwatts
- *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
- *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
- *  provided arguments.
- *
- *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
- *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
- *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
- */
-amdsmi_status_t
-amdsmi_dev_power_cap_default_get(amdsmi_device_handle device_handle, uint64_t *default_cap);
-
-/**
- *  @brief Get the range of valid values for the power cap
- *
- *  @details This function will return the maximum possible valid power cap
- *  @p max and the minimum possible valid power cap @p min
- *
- *  @param[in] device_handle a device handle
- *
- *  @param[in] sensor_ind a 0-based sensor index. Normally, this will be 0.
- *  If a device has more than one sensor, it could be greater than 0.
- *
- *  @param[inout] max a pointer to a uint64_t that indicates the maximum
- *  possible power cap, in microwatts
- *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
- *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
- *  provided arguments.
- *
- *  @param[inout] min a pointer to a uint64_t that indicates the minimum
- *  possible power cap, in microwatts
- *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
- *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
- *  provided arguments.
- *
- *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
- *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
- *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
- *
- */
-amdsmi_status_t
-amdsmi_dev_power_cap_range_get(amdsmi_device_handle device_handle, uint32_t sensor_ind,
-                                                uint64_t *max, uint64_t *min);
 
 /** @} */  // end of PowerQuer
 
@@ -2938,34 +2628,6 @@ amdsmi_status_t
 amdsmi_version_str_get(amdsmi_sw_component_t component, char *ver_str,
                                                                 uint32_t len);
 
-/**
- *  @brief Get the firmware versions for a device
- *
- *  @details Given a device ID @p device_handle, and a pointer to a uint64_t,
- *  @p fw_version, this function will write the FW Versions as a string (up to @p len
- *  characters) for device @p device_handle to @p vbios. The caller must ensure that
- *  it is safe to write at least @p len characters to @p vbios.
- *
- *  @param[in] device_handle a device handle
- *
- *  @param[in] block The firmware block for which the version is being requested
- *
- *  @param[inout] fw_version The version for the firmware block
- *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
- *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
- *  provided arguments.
- *
- *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
- *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
- *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
- *
- */
-amdsmi_status_t
-amdsmi_dev_firmware_version_get(amdsmi_device_handle device_handle, amdsmi_fw_block_t block,
-                                                        uint64_t *fw_version);
-
 /** @} */  // end of VersQuer
 
 /*****************************************************************************/
@@ -3469,27 +3131,6 @@ amdsmi_dev_xgmi_error_status(amdsmi_device_handle device_handle, amdsmi_xgmi_sta
 amdsmi_status_t
 amdsmi_dev_xgmi_error_reset(amdsmi_device_handle device_handle);
 
-/**
- *  @brief Retrieve the XGMI hive id for a device
- *
- *  @details Given a device handle @p device_handle, and a pointer to an
- *  uint64_t @p hive_id, this function will write the current XGMI
- *  hive id for the device @p device_handle to the memory pointed to by @p hive_id.
- *
- *  @param[in] device_handle a device handle
- *
- *  @param[inout] hive_id A pointer to an uint64_t to which the XGMI hive id
- *  should be written
- *
- *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
- *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
- *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
- *
- */
-amdsmi_status_t
-amdsmi_dev_xgmi_hive_id_get(amdsmi_device_handle device_handle, uint64_t *hive_id);
-
 /** @} */  // end of SysInfo
 
 /*****************************************************************************/
@@ -3963,6 +3604,501 @@ amdsmi_event_notification_get(int timeout_ms,
 amdsmi_status_t amdsmi_event_notification_stop(amdsmi_device_handle device_handle);
 
 /** @} */  // end of EvntNotif
+
+/**
+ *  \brief          Returns BDF of the given device
+ *
+ *  \param [in]     dev - device which to query
+ *
+ *  \param [out]    bdf - Reference to BDF. Must be allocated by user.
+ *
+ *  \return
+ *                  *  ::SMI_SUCCESS - Successful
+ *                  * -::SMI_ERR_NO_PERM - Library was not initialized
+ *                  * -::SMI_ERR_INVAL - Parameters are invalid
+ *                  * -::SMI_ERR_NOT_FOUND - Device cannot be found
+ *                  * -::SMI_ERR_API_FAILED - Other errors
+ */
+amdsmi_status_t
+amdsmi_get_device_bdf(amdsmi_device_handle dev, amdsmi_bdf_t *bdf);
+
+/**
+ *  \brief          Returns the UUID of the device
+ *
+ *  \param [in]     dev - device which to query
+ *
+ *  \param [in,out] uuid_length - Length of the uuid string. As input, must be
+ *                  equal or greater than SMI_GPU_UUID_SIZE and be allocated by
+ *                  user. As output it is the length of the uuid string.
+ *
+ *  \param [out]    uuid - Pointer to string to store the UUID. Must be
+ *                  allocated by user.
+ *
+ *  \return
+ *                  *  ::SMI_SUCCESS - Successful
+ *                  * -::SMI_ERR_NO_PERM - Library was not initialized
+ *                  * -::SMI_ERR_INVAL - Parameters are invalid
+ *                  * -::SMI_ERR_NOT_FOUND - Device cannot be found
+ *                  * -::SMI_ERR_API_FAILED - Other errors
+ */
+amdsmi_status
+amdsmi_get_device_uuid(amdsmi_device_handle dev, unsigned int *uuid_length, char *uuid);
+
+/** @}  */
+/*---------------------------------------------------------------------------*/
+/** @defgroup swversion     SW Version Information                           */
+/*---------------------------------------------------------------------------*/
+/** @{  */
+
+/**
+ *  \brief          Returns the driver version information
+ *
+ *  \param [in]     dev - device which to query
+ *
+ *  \param [in,out] length - As input parameter length of the user allocated
+ *                  string buffer. As output parameter length of the returned
+ *                  string buffer.
+ *
+ *  \param [out]    version - Version information in string format. Must be
+ *                  allocated by user.
+ *
+ *  \return
+ *                  *  ::SMI_SUCCESS - Successful
+ *                  * -::SMI_ERR_NOT_FOUND - Device cannot be found
+ *                  * -::SMI_ERR_NO_PERM - Library was not initialized
+ *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
+ *                  * -::SMI_ERR_API_FAILED - Other errors
+ */
+amdsmi_status
+amdsmi_get_driver_version(amdsmi_device_handle dev, int *length, char *version);
+
+/** @}  */
+/*---------------------------------------------------------------------------*/
+/** @defgroup asicinfo     ASIC & Board Static Information                   */
+/*---------------------------------------------------------------------------*/
+/** @{  */
+
+/**
+ *  \brief          Returns the ASIC information for the device.
+ *
+ *  \param [in]     dev - device which to query
+ *
+ *  \param [out]    info - Reference to static asic information structure.
+ *                  Must be allocated by user.
+ *
+ *  \return
+ *                  *  ::SMI_SUCCESS - Successful
+ *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
+ *                  * -::SMI_ERR_NO_PERM - Library was not initialized
+ *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
+ *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
+ *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
+ *                  * -::SMI_ERR_API_FAILED - Other errors
+ */
+amdsmi_status
+amdsmi_get_asic_info(amdsmi_device_handle dev, amdsmi_asic_info_t *info);
+
+/**
+ *  \brief          Returns the board part number and board information for the requested device
+ *
+ *  \param [in]     dev - device which to query
+ *
+ *  \param [out]    info - Reference to board info structure.
+ *                  Must be allocated by user.
+ *
+ *  \return
+ *                  *  ::SMI_SUCCESS - Successful
+ *                  * -::SMI_ERR_NO_PERM - Library was not initialize
+ *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
+ *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
+ *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
+ *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
+ *                  * -::SMI_ERR_API_FAILED - Other errors
+ */
+amdsmi_status
+amdsmi_get_board_info(amdsmi_device_handle dev, amdsmi_board_info_t *info);
+
+/**
+ *  \brief          Returns the power caps as currently configured in the
+ *                  system.
+ *
+ *  \param [in]     dev - device which to query
+ *
+ *  \param [out]    info - Reference to power caps information structure. Must be
+ *                  allocated by user.
+ *
+ *  \return
+ *                  *  ::SMI_SUCCESS - Successful
+ *                  * -::SMI_ERR_NO_PERM - Library was not initialized
+ *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
+ *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
+ *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
+ *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
+ *                  * -::SMI_ERR_API_FAILED - Other errors
+ */
+amdsmi_status
+amdsmi_get_power_cap_info(amdsmi_device_handle dev, amdsmi_power_cap_info_t *info);
+
+/**
+ *  \brief          Returns XGMI information for the GPU.
+ *
+ *  \param [in]     dev - device which to query
+ *
+ *  \param [out]    info - Reference to xgmi information structure. Must be
+ *                  allocated by user.
+ *
+ *
+ *  \return
+ *                  *  ::SMI_SUCCESS - Successful
+ *                  * -::SMI_ERR_NO_PERM - Library was not initialized
+ *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
+ *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
+ *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
+ *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
+ *                  * -::SMI_ERR_API_FAILED - Other errors
+ */
+amdsmi_status
+amdsmi_get_xgmi_info(amdsmi_device_handle dev, amdsmi_xgmi_info_t *info);
+
+/**
+ *  \brief          Returns the device capabilities as currently configured in
+ *                  the system
+ *
+ *  \param [in]     dev - device which to query
+ *
+ *  \param [out]    info - Reference to caps information structure. Must be
+ *                  allocated by user.
+ *
+ *  \return
+ *                  *  ::SMI_SUCCESS - Successful
+ *                  * -::SMI_ERR_NO_PERM - Library was not initialized
+ *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
+ *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
+ *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
+ *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
+ *                  * -::SMI_ERR_API_FAILED - Other errors
+ */
+amdsmi_status
+amdsmi_get_caps_info(amdsmi_device_handle dev, amdsmi_gpu_caps_t *info);
+
+/** @}  */
+/*---------------------------------------------------------------------------*/
+/** @defgroup firmwareinfo     Firmware & VBIOS queries                        */
+/*---------------------------------------------------------------------------*/
+/** @{  */
+
+/**
+ *  \brief          Returns the firmware versions running on the device.
+ *
+ *  \param [in]     dev - device which to query
+ *
+ *  \param [out]    info - Reference to the fw info. Must be allocated by user.
+ *
+ *  \return
+ *                  *  ::SMI_SUCCESS - Successful
+ *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
+ *                  * -::SMI_ERR_NO_PERM - Library was not initialized
+ *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
+ *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
+ *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
+ *                  * -::SMI_ERR_API_FAILED - Other errors
+ */
+amdsmi_status
+amdsmi_get_fw_info(amdsmi_device_handle dev, amdsmi_fw_info_t *info);
+
+/**
+ *  \brief          Returns the static information for the vBIOS on the device.
+ *
+ *  \param [in]     dev - device which to query
+ *
+ *  \param [out]    info - Reference to static vBIOS information.
+ *                  Must be allocated by user.
+ *
+ *  \return
+ *                  *  ::SMI_SUCCESS - Successful
+ *                  * -::SMI_ERR_NO_PERM - Library was not initialized
+ *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
+ *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
+ *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
+ *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
+ *                  * -::SMI_ERR_API_FAILED - Other errors
+ */
+amdsmi_status
+amdsmi_get_vbios_info(amdsmi_device_handle dev, amdsmi_vbios_info_t *info);
+
+/** @}  */
+/*---------------------------------------------------------------------------*/
+/** @defgroup gpumon     GPU Monitoring                                      */
+/*---------------------------------------------------------------------------*/
+/** @{  */
+
+/**
+ *  \brief          Returns the current usage of the GPU engines (GFX, MM and MEM).
+ *                  Each usage is reported as a percentage from 0-100%.
+ *
+ *  \param [in]     dev - device which to query
+ *
+ *  \param [out]    info - Reference to the gpu engine usage structure. Must be allocated by user.
+ *
+ *  \return
+ *                  *  ::SMI_SUCCESS - Successful
+ *                  * -::SMI_ERR_NO_PERM - Library was not initialized
+ *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
+ *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
+ *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
+ *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
+ *                  * -::SMI_ERR_API_FAILED - Other errors
+ */
+amdsmi_status
+amdsmi_get_gpu_activity(amdsmi_device_handle dev, amdsmi_engine_usage_t *info);
+
+/**
+ *  \brief          Returns the current power and voltage of the GPU.
+ *                  The voltage is in units of mV and the power in units of W.
+ *
+ *  \param [in]     dev - device which to query
+ *
+ *  \param [out]    info - Reference to the gpu power structure. Must be allocated by user.
+ *
+ *  \return
+ *                  *  ::SMI_SUCCESS - Successful
+ *                  * -::SMI_ERR_NO_PERM - Library was not initialized
+ *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
+ *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
+ *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
+ *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
+ *                  * -::SMI_ERR_API_FAILED - Other errors
+ */
+amdsmi_status
+amdsmi_get_power_measure(amdsmi_device_handle dev, amdsmi_power_measure_t *info);
+
+/**
+ *  \brief          Returns the measurements of the clocks in the GPU
+ *                  for the GFX and multimedia engines and Memory. This call
+ *                  reports the averages over 1s in MHz.
+ *
+ *  \param [in]     dev - device which to query
+ *
+ *  \param [in]     clk_type - Enum representing the clock type to query.
+ *
+ *  \param [out]    info - Reference to the gpu clock structure.
+ *                  Must be allocated by user.
+ *
+ *  \return
+ *                  *  ::SMI_SUCCESS - Successful
+ *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
+ *                  * -::SMI_ERR_NO_PERM - Library was not initialized
+ *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
+ *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
+ *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
+ *                  * -::SMI_ERR_API_FAILED - Other errors
+ */
+amdsmi_status
+amdsmi_get_clock_measure(amdsmi_device_handle dev, amdsmi_clk_type_t clk_type, amdsmi_clock_measure_t *info);
+
+/**
+ *  \brief          Returns temperature measurements of the GPU.
+ *                  The results are in °C.
+ *
+ *  \param [in]     dev - device which to query
+ *
+ *  \param [in]     temp_type - Enum representing the temperature type to query.
+ *
+ *  \param [out]    info - Reference to the temperature measured.
+ *                  Must be allocated by user.
+ *
+ *  \return
+ *                  *  ::SMI_SUCCESS - Successful
+ *                  * -::SMI_ERR_NO_PERM - Library was not initialized
+ *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
+ *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
+ *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
+ *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
+ *                  * -::SMI_ERR_API_FAILED - Other errors
+ */
+amdsmi_status
+amdsmi_get_temperature_measure(amdsmi_device_handle dev, amdsmi_temperature_type_t temp_type, amdsmi_temperature_t *info);
+
+/**
+ *  \brief          Returns temperature limit of the GPU.
+ *                  The results are in °C.
+ *
+ *  \param [in]     dev - device which to query
+ *
+ *  \param [in]     temp_type - Enum representing the temperature type to query.
+ *
+ *  \param [out]    limit - Reference to the temperature limit.
+ *                  Must be allocated by user.
+ *
+ *  \return
+ *                  *  ::SMI_SUCCESS - Successful
+ *                  * -::SMI_ERR_NO_PERM - Library was not initialized
+ *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
+ *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
+ *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
+ *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
+ *                  * -::SMI_ERR_API_FAILED - Other errors
+ */
+amdsmi_status
+amdsmi_get_temperature_limit(amdsmi_device_handle dev, amdsmi_temperature_t temp_type, amdsmi_temperature_limit_t *limit);
+
+/**
+ *  \brief          Returns power limit of the GPU.
+ *                  The results are in W.
+ *
+ *  \param [in]     dev - device which to query
+ *
+ *  \param [out]    limit - Reference to the power limit.
+ *                  Must be allocated by user.
+ *
+ *  \return
+ *                  *  ::SMI_SUCCESS - Successful
+ *                  * -::SMI_ERR_NO_PERM - Library was not initialized
+ *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
+ *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
+ *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
+ *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
+ *                  * -::SMI_ERR_API_FAILED - Other errors
+ */
+amdsmi_status
+amdsmi_get_power_limit(amdsmi_device_handle dev, amdsmi_power_limit_t *limit);
+
+/**
+ *  \brief          Returns the VRAM usage (both total and used memory)
+ *                  in MegaBytes.
+ *
+ *  \param [in]     dev - device which to query
+ *
+ *
+ *  \param [out]    info - Reference to vram information.
+ *                  Must be allocated by user.
+ *
+ *  \return
+ *                  *  ::SMI_SUCCESS - Successful
+ *                  * -::SMI_ERR_NO_PERM - Library was not initialized
+ *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
+ *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
+ *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
+ *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
+ *                  * -::SMI_ERR_API_FAILED - Other errors
+ */
+amdsmi_status
+amdsmi_get_vram_usage(amdsmi_device_handle dev, amdsmi_vram_info_t *info);
+
+/** @}  */
+/*---------------------------------------------------------------------------*/
+/** @defgroup gpumon     Power Management                                    */
+/*---------------------------------------------------------------------------*/
+/** @{  */
+
+/**
+ *  \brief          Returns current and supported frequency range
+ *                  for the specified clock type.
+ *
+ *  \param [in]     dev - device which to query
+ *
+ *
+ *  \param [in]     clk_type - Clock type for which to get current and supported
+ *                  frequency range.
+ *
+ *
+ *  \param [out]    range - Reference to frequency range structure.
+ *                  Must be allocated by user.
+ *
+ *
+ *  \return
+ *                  *  ::SMI_SUCCESS - Successful
+ *                  * -::SMI_ERR_NO_PERM - Library was not initialize
+ *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
+ *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
+ *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
+ *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
+ *                  * -::SMI_ERR_API_FAILED - Other errors
+ */
+amdsmi_status
+amdsmi_get_target_frequency_range(amdsmi_device_handle dev, amdsmi_clk_type_t clk_type, amdsmi_frequency_range_t *range);
+
+/** @}  */
+/*---------------------------------------------------------------------------*/
+/**  @defgroup processinfo     Process information                           */
+/*---------------------------------------------------------------------------*/
+/** @{  */
+
+/**
+ *  \brief          Returns the list of processes running on a given GPU including itself.
+ *
+ *  \note           The user provides a buffer to store the list and the
+ *                  maximum number of processes that can be returned. If the user
+ *                  sets max_processes to 0, the total number of processes will be
+ *                  returned.
+ *
+ *  \param [in]     dev - device which to query
+ *
+ *  \param [out]    list - Reference to a user-provided buffer where the process
+ *                  list will be returned. This buffer must contain at least
+ *                  max_processes entries of type smi_process_handle. Must be allocated
+ *                  by user.
+ *
+ *  \param [in,out] max_processes - Reference to the size of the list buffer in
+ *                  number of elements. Returns the return number of elements
+ *                  in list or the number of running processes if equal to 0.
+ *
+ *  \return
+ *                  *  ::SMI_SUCCESS - Successful
+ *                  * -::SMI_ERR_NO_PERM - Library was not initialized
+ *                  * -::SMI_ERR_INVAL - The parameters are not valid or NULL
+ *                  * -::SMI_ERR_NOMEM - Provided buffer is not large enough
+ *                  * -::SMI_ERR_NOT_SUPPORTED - API not supported
+ */
+amdsmi_status
+amdsmi_get_process_list(amdsmi_device_handle dev, amdsmi_process_handle *list, uint32_t *max_processes);
+
+/**
+ *  \brief          Returns the process information of a given process.
+ *
+ *  \param [in]     dev - device which to query
+ *
+ *  \param [in]     process - handle of process to query.
+ *
+ *  \param [out]    info - Reference to a process information structure where to return
+ *                  information. Must be allocated by user.
+ *
+ *  \return
+ *                  *  ::SMI_SUCCESS - Successful
+ *                  * -::SMI_ERR_NO_PERM - Library was not initialized
+ *                  * -::SMI_ERR_INVAL - The parameters are not valid or NULL
+ *                  * -::SMI_ERR_NOT_SUPPORTED - API not supported
+ */
+amdsmi_status
+amdsmi_get_process_info(amdsmi_device_handle dev, amdsmi_process_handle process, amdsmi_proc_info_t *info);
+
+/** @}  */
+/*---------------------------------------------------------------------------*/
+/**  @defgroup eccinfo     ECC information                                   */
+/*---------------------------------------------------------------------------*/
+/** @{  */
+
+/**
+ *  \brief          Returns the number of ECC errors (correctable and
+ *                  uncorrectable) in the given GPU.
+ *
+ *  \param [in]     dev - device which to query
+ *
+ *
+ *  \param [out]    ec - Reference to ecc error count structure.
+ *                  Must be allocated by user.
+ *
+ *  \return
+ *                  *  ::SMI_SUCCESS - Successful
+ *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
+ *                  * -::SMI_ERR_NO_PERM - Library was not initialized
+ *                  * -::SMI_ERR_INVAL - The parameters are not valid or NULL
+ *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
+ *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
+ *                  * -::SMI_ERR_API_FAILED - Other errors
+ */
+amdsmi_status
+amdsmi_get_ecc_error_count(amdsmi_device_handle dev, amdsmi_error_count_t *ec);
 
 #ifdef __cplusplus
 }

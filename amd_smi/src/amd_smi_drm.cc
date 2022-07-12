@@ -87,7 +87,7 @@ amdsmi_status_t AMDSmiDrm::init() {
 
 
     auto d = dir_ptr(opendir("/dev/dri/"), &closedir);
-    if (d == nullptr) return AMDSMI_STATUS_INIT_ERROR;
+    if (d == nullptr) return AMDSMI_STATUS_NOT_INIT;
 
     while ((dir = readdir(d.get())) != NULL) {
         char* name_cstr = new char[sizeof(dir->d_name) + 10];

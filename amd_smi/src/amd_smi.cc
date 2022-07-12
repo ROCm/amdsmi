@@ -66,7 +66,7 @@
 template <typename F, typename ...Args>
 amdsmi_status_t rsmi_wrapper(F && f,
             amdsmi_device_handle device_handle, Args &&... args) {
-    if (device_handle == nullptr) return AMDSMI_STATUS_INVALID_ARGS;
+    if (device_handle == nullptr) return AMDSMI_STATUS_INVAL;
 
     amd::smi::AMDSmiDevice* device = nullptr;
     amdsmi_status_t r = amd::smi::AMDSmiSystem::getInstance()
@@ -121,7 +121,7 @@ amdsmi_status_string(amdsmi_status_t status, const char **status_string) {
 amdsmi_status_t amdsmi_get_socket_handles(uint32_t *socket_count,
                 amdsmi_socket_handle* socket_handles[]) {
     if (socket_count == nullptr || socket_handles == nullptr) {
-        return AMDSMI_STATUS_INVALID_ARGS;
+        return AMDSMI_STATUS_INVAL;
     }
 
     std::vector<amd::smi::AMDSmiSocket*>& sockets
@@ -135,7 +135,7 @@ amdsmi_status_t amdsmi_get_socket_info(
                 amdsmi_socket_handle socket_handle,
                 char *name, size_t len) {
     if (socket_handle == nullptr || name == nullptr) {
-        return AMDSMI_STATUS_INVALID_ARGS;
+        return AMDSMI_STATUS_INVAL;
     }
 
 
@@ -154,7 +154,7 @@ amdsmi_status_t amdsmi_get_device_handles(amdsmi_socket_handle socket_handle,
                                     uint32_t *device_count,
                                     amdsmi_device_handle* device_handles[]) {
     if (device_count == nullptr) {
-        return AMDSMI_STATUS_INVALID_ARGS;
+        return AMDSMI_STATUS_INVAL;
     }
 
     amd::smi::AMDSmiSocket* socket = nullptr;
@@ -171,7 +171,7 @@ amdsmi_status_t amdsmi_get_device_handles(amdsmi_socket_handle socket_handle,
 amdsmi_status_t amdsmi_get_device_type(amdsmi_device_handle device_handle ,
               device_type_t* device_type) {
     if (device_type == nullptr) {
-        return AMDSMI_STATUS_INVALID_ARGS;
+        return AMDSMI_STATUS_INVAL;
     }
     amd::smi::AMDSmiDevice* device = nullptr;
     amdsmi_status_t r = amd::smi::AMDSmiSystem::getInstance()
@@ -182,30 +182,28 @@ amdsmi_status_t amdsmi_get_device_type(amdsmi_device_handle device_handle ,
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_dev_name_get(amdsmi_device_handle device_handle,
-                char *name, size_t len) {
-    if (name == nullptr || len == 0) {
-        return AMDSMI_STATUS_INVALID_ARGS;
+amdsmi_status_t amdsmi_get_board_info(amdsmi_device_handle device_handle, amdsmi_board_info_t *board_info) {
+    if (board_info == NULL) {
+        return AMDSMI_STATUS_INVAL;
     }
 
-    return rsmi_wrapper(rsmi_dev_name_get, device_handle, name, len);
+    return rsmi_wrapper(rsmi_dev_name_get, device_handle, board_info->product_name, AMDSMI_NORMAL_STRING_LENGTH);
 }
 
 amdsmi_status_t amdsmi_dev_temp_metric_get(amdsmi_device_handle device_handle,
                     uint32_t sensor_type,
                     amdsmi_temperature_metric_t metric, int64_t *temperature) {
     if (temperature == nullptr) {
-        return AMDSMI_STATUS_INVALID_ARGS;
+        return AMDSMI_STATUS_INVAL;
     }
 
     return rsmi_wrapper(rsmi_dev_temp_metric_get, device_handle, sensor_type,
             static_cast<rsmi_temperature_metric_t>(metric), temperature);
 }
 
-amdsmi_status_t amdsmi_fb_usage_get(amdsmi_device_handle device_handle,
-                    uint32_t *fb_total, uint32_t *fb_used) {
-    if (fb_total == nullptr || fb_used == nullptr) {
-        return AMDSMI_STATUS_INVALID_ARGS;
+amdsmi_status_t amdsmi_get_vram_usage(amdsmi_device_handle device_handle, amdsmi_vram_info_t *vram_info) {
+    if (vram_info == NULL) {
+        return AMDSMI_STATUS_INVAL;
     }
 
     amd::smi::AMDSmiDevice* device = nullptr;
@@ -226,21 +224,21 @@ amdsmi_status_t amdsmi_fb_usage_get(amdsmi_device_handle device_handle,
                 sizeof(struct drm_amdgpu_memory_info), &gtt);
     if (r != AMDSMI_STATUS_SUCCESS)  return r;
 
-    *fb_total = static_cast<uint32_t>(gtt.vram_size / (1024 * 1024));
+    vram_info->vram_total = static_cast<uint32_t>(gtt.vram_size / (1024 * 1024));
 
     r = gpu_device->amdgpu_query_info(AMDGPU_INFO_VRAM_USAGE,
                 sizeof(vram_used), &vram_used);
     if (r != AMDSMI_STATUS_SUCCESS)  return r;
 
-    *fb_used = static_cast<uint32_t>(vram_used / (1024 * 1024));
+    vram_info->vram_used = static_cast<uint32_t>(vram_used / (1024 * 1024));
 
     return AMDSMI_STATUS_SUCCESS;
 }
 
 amdsmi_status_t amdsmi_get_caps_info(amdsmi_device_handle device_handle,
-      struct smi_gpu_caps *info) {
+      struct amdsmi_gpu_caps *info) {
     if (info == nullptr) {
-        return AMDSMI_STATUS_INVALID_ARGS;
+        return AMDSMI_STATUS_INVAL;
     }
 
     amd::smi::AMDSmiDevice* amd_device = nullptr;
@@ -316,11 +314,6 @@ amdsmi_status_t amdsmi_get_caps_info(amdsmi_device_handle device_handle,
         info->mm.mm_ip_list[count++] = MM_VCN;
 
     info->mm.mm_ip_count = static_cast<uint8_t>(count);
-
-    info->supported_fields_flags = 0;
-    info->supported_fields_flags |= POWER_GFX_VOLTAGE_FLAG;
-    info->supported_fields_flags |= MEM_USAGE_FLAG;
-    info->supported_fields_flags |= MM_METRICS_FLAG;
 
     info->ras_supported = false;
 
