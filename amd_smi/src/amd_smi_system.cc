@@ -128,7 +128,7 @@ amdsmi_status_t AMDSmiSystem::handle_to_socket(
             amdsmi_socket_handle socket_handle,
             AMDSmiSocket** socket) {
     if (socket_handle == nullptr || socket == nullptr) {
-        return AMDSMI_STATUS_INVALID_ARGS;
+        return AMDSMI_STATUS_INVAL;
     }
     *socket = static_cast<AMDSmiSocket*>(socket_handle);
 
@@ -137,14 +137,14 @@ amdsmi_status_t AMDSmiSystem::handle_to_socket(
                 != sockets_.end()) {
         return AMDSMI_STATUS_SUCCESS;
     }
-    return AMDSMI_STATUS_INVALID_ARGS;
+    return AMDSMI_STATUS_INVAL;
     }
 
 amdsmi_status_t AMDSmiSystem::handle_to_device(
             amdsmi_device_handle device_handle,
             AMDSmiDevice** device) {
     if (device_handle == nullptr || device == nullptr) {
-        return AMDSMI_STATUS_INVALID_ARGS;
+        return AMDSMI_STATUS_INVAL;
     }
     *device = static_cast<AMDSmiDevice*>(device_handle);
 
@@ -153,7 +153,7 @@ amdsmi_status_t AMDSmiSystem::handle_to_device(
             != devices_.end()) {
         return AMDSMI_STATUS_SUCCESS;
     }
-    return AMDSMI_STATUS_INVALID_ARGS;
+    return AMDSMI_STATUS_INVAL;
 }
 
 
