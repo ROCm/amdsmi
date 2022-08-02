@@ -106,7 +106,7 @@ amdsmi_status_string(amdsmi_status_t status, const char **status_string) {
             *status_string = "FAIL_LOAD_MODULE: Fail to load module.";
             break;
         case AMDSMI_STATUS_FAIL_LOAD_SYMBOL:
-            *status_string = "FAIL_LOAD_SYMOBL: Fail to load symobl.";
+            *status_string = "FAIL_LOAD_SYMOBL: Fail to load symbol.";
             break;
         case AMDSMI_STATUS_DRM_ERROR:
             *status_string = "DRM_ERROR: Fail to run function in libdrm.";
@@ -187,7 +187,7 @@ amdsmi_status_t amdsmi_get_board_info(amdsmi_device_handle device_handle, amdsmi
         return AMDSMI_STATUS_INVAL;
     }
 
-    return rsmi_wrapper(rsmi_dev_name_get, device_handle, board_info->product_name, AMDSMI_NORMAL_STRING_LENGTH);
+    return rsmi_wrapper(rsmi_dev_name_get, device_handle, board_info->product_name, AMDSMI_PRODUCT_NAME_LENGTH);
 }
 
 amdsmi_status_t amdsmi_dev_temp_metric_get(amdsmi_device_handle device_handle,
@@ -319,4 +319,62 @@ amdsmi_status_t amdsmi_get_caps_info(amdsmi_device_handle device_handle,
 
     return AMDSMI_STATUS_SUCCESS;
 }
+
+
+amdsmi_status_t amdsmi_dev_fan_rpms_get(amdsmi_device_handle device_handle,
+                            uint32_t sensor_ind, int64_t *speed) {
+    return rsmi_wrapper(rsmi_dev_fan_rpms_get, device_handle, sensor_ind,
+            speed);
+}
+
+amdsmi_status_t amdsmi_dev_fan_speed_get(amdsmi_device_handle device_handle,
+                                        uint32_t sensor_ind, int64_t *speed) {
+    return rsmi_wrapper(rsmi_dev_fan_speed_get, device_handle,
+                        sensor_ind, speed);
+}
+
+amdsmi_status_t amdsmi_dev_fan_speed_max_get(amdsmi_device_handle device_handle,
+                                    uint32_t sensor_ind, uint64_t *max_speed) {
+    return rsmi_wrapper(rsmi_dev_fan_speed_max_get, device_handle,
+                sensor_ind, max_speed);
+}
+
+amdsmi_status_t amdsmi_dev_fan_reset(amdsmi_device_handle device_handle,
+                                    uint32_t sensor_ind) {
+    return rsmi_wrapper(rsmi_dev_fan_reset, device_handle, sensor_ind);
+}
+
+amdsmi_status_t amdsmi_dev_fan_speed_set(amdsmi_device_handle device_handle,
+                                uint32_t sensor_ind, uint64_t speed) {
+    return rsmi_wrapper(rsmi_dev_fan_speed_set, device_handle,
+                            sensor_ind, speed);
+}
+
+amdsmi_status_t amdsmi_dev_id_get(amdsmi_device_handle device_handle,
+                                uint16_t *id) {
+    return rsmi_wrapper(rsmi_dev_id_get, device_handle, id);
+}
+
+// TODO(bliu) : add other asic info
+amdsmi_status
+amdsmi_get_asic_info(amdsmi_device_handle dev, amdsmi_asic_info_t *info) {
+    if (info == nullptr)  return AMDSMI_STATUS_INVAL;
+    uint16_t vendor_id = 0;
+    amdsmi_status status = rsmi_wrapper(rsmi_dev_vendor_id_get, dev,
+                            &vendor_id);
+    if (status == AMDSMI_STATUS_SUCCESS) info->vendor_id = vendor_id;
+    return status;
+}
+
+
+amdsmi_status_t amdsmi_dev_subsystem_id_get(amdsmi_device_handle device_handle,
+                                uint16_t *id) {
+    return rsmi_wrapper(rsmi_dev_subsystem_id_get, device_handle, id);
+}
+
+amdsmi_status_t amdsmi_dev_subsystem_vendor_id_get(
+                        amdsmi_device_handle device_handle, uint16_t *id) {
+    return rsmi_wrapper(rsmi_dev_subsystem_vendor_id_get, device_handle, id);
+}
+
 

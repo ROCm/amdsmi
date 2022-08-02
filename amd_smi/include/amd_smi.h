@@ -73,6 +73,7 @@ extern "C" {
 #define AMDSMI_MAX_DEVICES		      32
 #define AMDSMI_MAX_NAME		      32
 #define AMDSMI_MAX_DRIVER_VERSION_LENGTH 80
+#define AMDSMI_PRODUCT_NAME_LENGTH 128
 #define AMDSMI_MAX_CONTAINER_TYPE    2
 
 #define AMDSMI_GPU_UUID_SIZE 38
@@ -140,17 +141,19 @@ typedef enum amdsmi_status {
  * Clock types
  */
 typedef enum amdsmi_clk_type {
-    CLOCK_TYPE_GFX,
+     CLOCK_TYPE_SYS,   //!< System clock
+    CLOCK_TYPE_DF,  //!< Data Fabric clock (for ASICs
+                    //!< running on a separate clock)
+    CLOCK_TYPE_DCEF,   //!< Display Controller Engine clock
+    CLOCK_TYPE_SOC,
     CLOCK_TYPE_MEM,
+    CLOCK_TYPE_PCIE,
+    CLOCK_TYPE_GFX,
     CLOCK_TYPE_VCLK0,
     CLOCK_TYPE_VCLK1,
     CLOCK_TYPE_DCLK0,
     CLOCK_TYPE_DCLK1,
-    CLOCK_TYPE_SYS,
-    CLOCK_TYPE_DF,
-    CLOCK_TYPE_SOC,
-    CLOCK_TYPE_PCIE,
-    CLOCK_TYPE__MAX
+    CLOCK_TYPE__MAX = CLOCK_TYPE_DCLK1
 } amdsmi_clk_type_t;
 /// \cond Ignore in docs.
 typedef amdsmi_clk_type_t amdsmi_clk_type;
@@ -218,6 +221,9 @@ typedef enum amdsmi_fw_block {
     FW_ID_ASD,
     FW_ID_TA_RAS,
     FW_ID_XGMI,
+    FW_ID_RLC_SRLG,
+    FW_ID_RLC_SRLS,
+    FW_ID_SMC,
     FW_ID__MAX
 } amdsmi_fw_block_t;
 
@@ -305,7 +311,7 @@ typedef struct amdsmi_fw_info {
 typedef struct amdsmi_asic_info {
 	char	 market_name[AMDSMI_MAX_STRING_LENGTH];
 	uint32_t family; /**< Has zero value */
-	uint32_t vendor_id;
+	uint32_t vendor_id;   //< Use 32 bit to be compatible with other platform.
 	uint32_t subvendor_id;
 	uint32_t device_id;
 	uint32_t rev_id;
@@ -314,11 +320,11 @@ typedef struct amdsmi_asic_info {
 
 typedef struct amdsmi_board_info {
 	uint64_t serial_number;
-	bool	 is_master;
+  bool	 is_master;
 	char	 model_number[AMDSMI_NORMAL_STRING_LENGTH];
 	char	 product_serial[AMDSMI_NORMAL_STRING_LENGTH];
 	char	 fru_id[AMDSMI_NORMAL_STRING_LENGTH];
-	char	 product_name[AMDSMI_NORMAL_STRING_LENGTH];
+	char	 product_name[AMDSMI_PRODUCT_NAME_LENGTH];
 	char	 manufacturer_name[AMDSMI_NORMAL_STRING_LENGTH];
 } amdsmi_board_info_t;
 
