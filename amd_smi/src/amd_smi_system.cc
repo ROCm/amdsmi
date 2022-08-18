@@ -156,6 +156,27 @@ amdsmi_status_t AMDSmiSystem::handle_to_device(
     return AMDSMI_STATUS_INVAL;
 }
 
+amdsmi_status_t AMDSmiSystem::gpu_index_to_handle(uint32_t gpu_index,
+                    amdsmi_device_handle* device_handle) {
+    if (device_handle == nullptr)
+        return AMDSMI_STATUS_INVAL;
+
+    auto iter = devices_.begin();
+    for (; iter != devices_.end(); iter++) {
+        auto cur_device = (*iter);
+        if (cur_device->get_device_type() != AMD_GPU)
+            continue;
+        amd::smi::AMDSmiGPUDevice* gpu_device =
+                static_cast<amd::smi::AMDSmiGPUDevice*>(cur_device);
+        uint32_t cur_gpu_index = gpu_device->get_gpu_id();
+        if (gpu_index == cur_gpu_index) {
+            *device_handle = cur_device;
+            return AMDSMI_STATUS_SUCCESS;
+        }
+    }
+    return AMDSMI_STATUS_INVAL;
+}
+
 
 }  // namespace smi
 }  // namespace amd
