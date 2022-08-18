@@ -62,6 +62,11 @@
 #include "rocm_smi/rocm_smi.h"
 #include "impl/amdgpu_drm.h"
 
+// TODO(bliu): One to one map to all status code
+static amdsmi_status_t rsmi_to_amdsmi_status(rsmi_status_t status) {
+    if (status == RSMI_STATUS_NO_DATA) return AMDSMI_STATUS_NO_DATA;
+    return static_cast<amdsmi_status_t>(status);
+}
 
 template <typename F, typename ...Args>
 amdsmi_status_t rsmi_wrapper(F && f,
@@ -79,7 +84,7 @@ amdsmi_status_t rsmi_wrapper(F && f,
          uint32_t gpu_index = gpu_device->get_gpu_id();
         auto r = std::forward<F>(f)(gpu_index,
                     std::forward<Args>(args)...);
-        return static_cast<amdsmi_status_t>(r);
+        return rsmi_to_amdsmi_status(r);
     }
 
     return AMDSMI_STATUS_NOT_SUPPORTED;
@@ -98,7 +103,7 @@ amdsmi_shut_down() {
 amdsmi_status_t
 amdsmi_status_string(amdsmi_status_t status, const char **status_string) {
     if (status <= AMDSMI_LIB_START) {
-      return static_cast<amdsmi_status_t>(
+      return rsmi_to_amdsmi_status(
         rsmi_status_string(static_cast<rsmi_status_t>(status), status_string));
     }
     switch (status) {
@@ -182,12 +187,14 @@ amdsmi_status_t amdsmi_get_device_type(amdsmi_device_handle device_handle ,
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_board_info(amdsmi_device_handle device_handle, amdsmi_board_info_t *board_info) {
+amdsmi_status_t amdsmi_get_board_info(amdsmi_device_handle device_handle,
+            amdsmi_board_info_t *board_info) {
     if (board_info == NULL) {
         return AMDSMI_STATUS_INVAL;
     }
 
-    return rsmi_wrapper(rsmi_dev_name_get, device_handle, board_info->product_name, AMDSMI_PRODUCT_NAME_LENGTH);
+    return rsmi_wrapper(rsmi_dev_name_get, device_handle,
+            board_info->product_name, AMDSMI_PRODUCT_NAME_LENGTH);
 }
 
 amdsmi_status_t amdsmi_dev_temp_metric_get(amdsmi_device_handle device_handle,
@@ -201,7 +208,8 @@ amdsmi_status_t amdsmi_dev_temp_metric_get(amdsmi_device_handle device_handle,
             static_cast<rsmi_temperature_metric_t>(metric), temperature);
 }
 
-amdsmi_status_t amdsmi_get_vram_usage(amdsmi_device_handle device_handle, amdsmi_vram_info_t *vram_info) {
+amdsmi_status_t amdsmi_get_vram_usage(amdsmi_device_handle device_handle,
+            amdsmi_vram_info_t *vram_info) {
     if (vram_info == NULL) {
         return AMDSMI_STATUS_INVAL;
     }
@@ -377,4 +385,48 @@ amdsmi_status_t amdsmi_dev_subsystem_vendor_id_get(
     return rsmi_wrapper(rsmi_dev_subsystem_vendor_id_get, device_handle, id);
 }
 
+amdsmi_status_t
+amdsmi_event_notification_init(amdsmi_device_handle device_handle) {
+    return rsmi_wrapper(rsmi_event_notification_init, device_handle);
+}
 
+amdsmi_status_t
+amdsmi_event_notification_mask_set(amdsmi_device_handle device_handle,
+            uint64_t mask) {
+    return rsmi_wrapper(rsmi_event_notification_mask_set, device_handle, mask);
+}
+
+amdsmi_status_t
+amdsmi_event_notification_get(int timeout_ms,
+                     uint32_t *num_elem, amdsmi_evt_notification_data_t *data) {
+    if (num_elem == nullptr || data == nullptr) {
+        return AMDSMI_STATUS_INVAL;
+    }
+
+    // Get the rsmi data
+    std::vector<rsmi_evt_notification_data_t> r_data(*num_elem);
+    rsmi_status_t r = rsmi_event_notification_get(
+                        timeout_ms, num_elem, &r_data[0]);
+    if (r != RSMI_STATUS_SUCCESS)
+        return rsmi_to_amdsmi_status(r);
+
+    // convert output
+    for (uint32_t i=0; i < *num_elem; i++) {
+        rsmi_evt_notification_data_t rsmi_data = r_data[i];
+        data[i].event = static_cast<amdsmi_evt_notification_type_t>(
+                rsmi_data.event);
+        strncpy(data[i].message, rsmi_data.message,
+                MAX_EVENT_NOTIFICATION_MSG_SIZE);
+        amdsmi_status_t r = amd::smi::AMDSmiSystem::getInstance()
+            .gpu_index_to_handle(rsmi_data.dv_ind, &(data[i].device_handle));
+        if (r != AMDSMI_STATUS_SUCCESS)
+            return r;
+    }
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_event_notification_stop(
+                amdsmi_device_handle device_handle) {
+    return rsmi_wrapper(rsmi_event_notification_stop, device_handle);
+}

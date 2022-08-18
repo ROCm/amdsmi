@@ -55,6 +55,7 @@
 
 #include "functional/fan_read.h"
 #include "functional/fan_read_write.h"
+#include "functional/evt_notif_read_write.h"
 /*
 #include "functional/temp_read.h"
 #include "functional/volt_read.h"
@@ -81,7 +82,6 @@
 #include "functional/mem_page_info_read.h"
 #include "functional/api_support_read.h"
 #include "functional/mutual_exclusion.h"
-#include "functional/evt_notif_read_write.h"
 #include "functional/init_shutdown_refcount.h"
 #include "amd_smi_test/functional/hw_topology_read.h"
 #include "amd_smi_test/functional/gpu_metrics_read.h"
@@ -151,6 +151,10 @@ TEST(amdsmitstReadOnly, FanRead) {
 }
 TEST(amdsmitstReadWrite, FanReadWrite) {
   TestFanReadWrite tst;
+  RunGenericTest(&tst);
+}
+TEST(amdsmitstReadWrite, TestEvtNotifReadWrite) {
+  TestEvtNotifReadWrite tst;
   RunGenericTest(&tst);
 }
 /*
@@ -269,10 +273,6 @@ TEST(amdsmitstReadOnly, TestMutualExclusion) {
   tst.SetUp();
   tst.Run();
   RunCustomTestEpilog(&tst);
-}
-TEST(amdsmitstReadWrite, TestEvtNotifReadWrite) {
-  TestEvtNotifReadWrite tst;
-  RunGenericTest(&tst);
 }
 TEST(amdsmitstReadOnly, TestConcurrentInit) {
   TestConcurrentInit tst;
