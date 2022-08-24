@@ -107,11 +107,26 @@ typedef enum device_type {
 typedef enum amdsmi_status {
     AMDSMI_STATUS_SUCCESS = 0,  /**< Call succeeded */
     AMDSMI_STATUS_INVAL,  /**< Invalid parameters */
-    AMDSMI_STATUS_OUT_OF_RESOURCES,  /**< Not enough memory */
     AMDSMI_STATUS_NOT_SUPPORTED,  /**< Command not supported */
+    AMDSMI_STATUS_FILE_ERROR, /**< Problem accessing a file. */
     AMDSMI_STATUS_NO_PERM,  /**< Permission Denied */
-    AMDSMI_STATUS_BUSY,  /**< Device busy */
+    AMDSMI_STATUS_OUT_OF_RESOURCES,  /**< Not enough memory */
+    AMDSMI_STATUS_INTERNAL_EXCEPTION,  /**< An internal exception was caught */
+    AMDSMI_STATUS_INPUT_OUT_OF_BOUNDS, /**< The provided input is out of allowable or safe range */
+    AMDSMI_STATUS_INIT_ERROR, /**< An error occurred when initializing internal data structures */
+    AMDSMI_STATUS_NOT_YET_IMPLEMENTED, /**< Not implemented yet */
     AMDSMI_STATUS_NOT_FOUND,  /**< Device Not found */
+    AMDSMI_STATUS_INSUFFICIENT_SIZE, /**< Not enough resources were available for the operation */
+    AMDSMI_STATUS_INTERRUPT, /**< An interrupt occurred during execution of function */
+    AMDSMI_STATUS_UNEXPECTED_SIZE, /**< An unexpected amount of data was read */
+    AMDSMI_STATUS_NO_DATA, /**< No data was found for a given input */
+    AMDSMI_STATUS_UNEXPECTED_DATA, /**< The data read or provided to function is not what was expected */
+    AMDSMI_STATUS_BUSY,  /**< Device busy */
+    AMDSMI_STATUS_REFCOUNT_OVERFLOW, /**< An internal reference counter exceeded INT32_MAX */
+    AMDSMI_LIB_START = 1000,
+    AMDSMI_STATUS_FAIL_LOAD_MODULE = AMDSMI_LIB_START,  //!< Fail to load lib
+    AMDSMI_STATUS_FAIL_LOAD_SYMBOL,
+    AMDSMI_STATUS_DRM_ERROR,   //!< Error when call libdrm
     AMDSMI_STATUS_IO,  /**< I/O Error */
     AMDSMI_STATUS_FAULT,  /**< Bad address */
     AMDSMI_STATUS_API_FAILED, /**< API call failed */
@@ -119,21 +134,6 @@ typedef enum amdsmi_status {
     AMDSMI_STATUS_NO_SLOT, /**< No more free slot */
     AMDSMI_STATUS_RETRY, /**< Retry operation */
     AMDSMI_STATUS_NOT_INIT, /**< Device not initialized */
-    AMDSMI_STATUS_INTERNAL_EXCEPTION, /**< An internal exception was caught */
-    AMDSMI_STATUS_INPUT_OUT_OF_BOUNDS, /**< The provided input is out of */
-    AMDSMI_STATUS_NOT_YET_IMPLEMENTED, /**< The requested function has not
-                                            yet been implemented in the
-                                            current system for the current devices */
-    AMDSMI_STATUS_INSUFFICIENT_SIZE, /**< Not enough resources were available for the operation */
-    AMDSMI_STATUS_INTERRUPT, /**< An interrupt occurred during execution of function */
-    AMDSMI_STATUS_UNEXPECTED_SIZE, /**< An unexpected amount of data was read */
-    AMDSMI_STATUS_NO_DATA, /**< No data was found for a given input */
-    AMDSMI_STATUS_UNEXPECTED_DATA, /**< The data read or provided to function is not what was expected */
-    AMDSMI_STATUS_REFCOUNT_OVERFLOW, /**< An internal reference counter exceeded INT32_MAX */
-    AMDSMI_LIB_START = 1000,
-    AMDSMI_STATUS_FAIL_LOAD_MODULE = AMDSMI_LIB_START,  //!< Fail to load lib
-    AMDSMI_STATUS_FAIL_LOAD_SYMBOL,
-    AMDSMI_STATUS_DRM_ERROR,   //!< Error when call libdrm
     AMDSMI_STATUS_UNKNOWN_ERROR = 0xFFFFFFFF,  //!< An unknown error occurred
 } amdsmi_status_t;
 

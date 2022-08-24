@@ -94,7 +94,8 @@ void TestEvtNotifReadWrite::Run(void) {
 
   if (setup_failed_) {
      IF_VERB(STANDARD) {
-        std::cout << "** SetUp Failed for this test. Skipping.**" << std::endl;
+        std::cout << "** SetUp Failed for this test. Skipping.**" <<
+                                                                    std::endl;
      }
     return;
   }
@@ -112,7 +113,8 @@ void TestEvtNotifReadWrite::Run(void) {
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
       IF_VERB(STANDARD) {
         std::cout <<
-          "Event notification is not supported for this driver version." << std::endl;
+          "Event notification is not supported for this driver version." <<
+                                                                    std::endl;
       }
       return;
     }
@@ -121,8 +123,8 @@ void TestEvtNotifReadWrite::Run(void) {
     ASSERT_EQ(ret, AMDSMI_STATUS_SUCCESS);
   }
 
+  amdsmi_evt_notification_data_t data[10];
   uint32_t num_elem = 10;
-  amdsmi_evt_notification_data_t data[num_elem];
   bool read_again = false;
 
   ret = amdsmi_event_notification_get(10000, &num_elem, data);
