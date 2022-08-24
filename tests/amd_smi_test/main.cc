@@ -5,7 +5,7 @@
  * The University of Illinois/NCSA
  * Open Source License (NCSA)
  *
- * Copyright (c) 2018, Advanced Micro Devices, Inc.
+ * Copyright (c) 2022, Advanced Micro Devices, Inc.
  * All rights reserved.
  *
  * Developed by:
@@ -56,6 +56,11 @@
 #include "functional/fan_read.h"
 #include "functional/fan_read_write.h"
 #include "functional/evt_notif_read_write.h"
+#include "functional/perf_cntr_read_write.h"
+#include "amd_smi_test/functional/hw_topology_read.h"
+#include "functional/xgmi_read_write.h"
+#include "functional/api_support_read.h"
+#include "functional/process_info_read.h"
 /*
 #include "functional/temp_read.h"
 #include "functional/volt_read.h"
@@ -76,14 +81,9 @@
 #include "functional/err_cnt_read.h"
 #include "functional/mem_util_read.h"
 #include "functional/id_info_read.h"
-#include "functional/perf_cntr_read_write.h"
-#include "functional/process_info_read.h"
-#include "functional/xgmi_read_write.h"
 #include "functional/mem_page_info_read.h"
-#include "functional/api_support_read.h"
 #include "functional/mutual_exclusion.h"
 #include "functional/init_shutdown_refcount.h"
-#include "amd_smi_test/functional/hw_topology_read.h"
 #include "amd_smi_test/functional/gpu_metrics_read.h"
 #include "amd_smi_test/functional/metrics_counter_read.h"
 #include "amd_smi_test/functional/perf_determinism.h"
@@ -155,6 +155,26 @@ TEST(amdsmitstReadWrite, FanReadWrite) {
 }
 TEST(amdsmitstReadWrite, TestEvtNotifReadWrite) {
   TestEvtNotifReadWrite tst;
+  RunGenericTest(&tst);
+}
+TEST(amdsmitstReadWrite, TestPerfCntrReadWrite) {
+  TestPerfCntrReadWrite tst;
+  RunGenericTest(&tst);
+}
+TEST(amdsmitstReadWrite, TestXGMIReadWrite) {
+  TestXGMIReadWrite tst;
+  RunGenericTest(&tst);
+}
+TEST(amdsmitstReadOnly, TestAPISupportRead) {
+  TestAPISupportRead tst;
+  RunGenericTest(&tst);
+}
+TEST(amdsmitstReadOnly, TestHWTopologyRead) {
+  TestHWTopologyRead tst;
+  RunGenericTest(&tst);
+}
+TEST(amdsmitstReadOnly, TestProcInfoRead) {
+  TestProcInfoRead tst;
   RunGenericTest(&tst);
 }
 /*
@@ -230,18 +250,6 @@ TEST(amdsmitstReadOnly, TestIdInfoRead) {
   TestIdInfoRead tst;
   RunGenericTest(&tst);
 }
-TEST(amdsmitstReadWrite, TestPerfCntrReadWrite) {
-  TestPerfCntrReadWrite tst;
-  RunGenericTest(&tst);
-}
-TEST(amdsmitstReadOnly, TestProcInfoRead) {
-  TestProcInfoRead tst;
-  RunGenericTest(&tst);
-}
-TEST(amdsmitstReadOnly, TestHWTopologyRead) {
-  TestHWTopologyRead tst;
-  RunGenericTest(&tst);
-}
 TEST(amdsmitstReadOnly, TestGpuMetricsRead) {
   TestGpuMetricsRead tst;
   RunGenericTest(&tst);
@@ -254,18 +262,11 @@ TEST(amdsmitstReadWrite, TestPerfDeterminism) {
   TestPerfDeterminism tst;
   RunGenericTest(&tst);
 }
-TEST(amdsmitstReadWrite, TestXGMIReadWrite) {
-  TestXGMIReadWrite tst;
-  RunGenericTest(&tst);
-}
 TEST(amdsmitstReadOnly, TestMemPageInfoRead) {
   TestMemPageInfoRead tst;
   RunGenericTest(&tst);
 }
-TEST(amdsmitstReadOnly, TestAPISupportRead) {
-  TestAPISupportRead tst;
-  RunGenericTest(&tst);
-}
+
 TEST(amdsmitstReadOnly, TestMutualExclusion) {
   TestMutualExclusion tst;
   SetFlags(&tst);
@@ -274,6 +275,7 @@ TEST(amdsmitstReadOnly, TestMutualExclusion) {
   tst.Run();
   RunCustomTestEpilog(&tst);
 }
+
 TEST(amdsmitstReadOnly, TestConcurrentInit) {
   TestConcurrentInit tst;
   SetFlags(&tst);
