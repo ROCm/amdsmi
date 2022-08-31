@@ -1,5 +1,7 @@
 /*
  * =============================================================================
+ *   ROC Runtime Conformance Release License
+ * =============================================================================
  * The University of Illinois/NCSA
  * Open Source License (NCSA)
  *
@@ -40,52 +42,32 @@
  * DEALINGS WITH THE SOFTWARE.
  *
  */
+#ifndef TESTS_AMD_SMI_TEST_FUNCTIONAL_PERF_LEVEL_READ_H_
+#define TESTS_AMD_SMI_TEST_FUNCTIONAL_PERF_LEVEL_READ_H_
 
-#ifndef AMD_SMI_INCLUDE_AMD_SMI_SYSTEM_H_
-#define AMD_SMI_INCLUDE_AMD_SMI_SYSTEM_H_
+#include "amd_smi_test/test_base.h"
 
-#include <vector>
-#include <set>
-#include "amd_smi.h"
-#include "impl/amd_smi_socket.h"
-#include "impl/amd_smi_device.h"
-#include "impl/amd_smi_drm.h"
-
-namespace amd {
-namespace smi {
-
-// Singleton: Only one system in an application
-class AMDSmiSystem {
+class TestPerfLevelRead : public TestBase {
  public:
-    static AMDSmiSystem& getInstance() {
-        static AMDSmiSystem instance;
-        return instance;
-    }
-    amdsmi_status_t init(uint64_t flags);
-    amdsmi_status_t cleanup();
+    TestPerfLevelRead();
 
-    std::vector<AMDSmiSocket*>& get_sockets() {return sockets_;}
+  // @Brief: Destructor for test case of TestPerfLevelRead
+  virtual ~TestPerfLevelRead();
 
-    amdsmi_status_t handle_to_socket(amdsmi_socket_handle socket_handle,
-            AMDSmiSocket** socket);
+  // @Brief: Setup the environment for measurement
+  virtual void SetUp();
 
-    amdsmi_status_t handle_to_device(amdsmi_device_handle device_handle,
-            AMDSmiDevice** device);
+  // @Brief: Core measurement execution
+  virtual void Run();
 
-    amdsmi_status_t gpu_index_to_handle(uint32_t gpu_index,
-                    amdsmi_device_handle* device_handle);
+  // @Brief: Clean up and retrive the resource
+  virtual void Close();
 
- private:
-    AMDSmiSystem() : init_flag_(AMDSMI_INIT_ALL_DEVICES) {}
-    uint64_t init_flag_;
-    AMDSmiDrm drm_;
-    std::vector<AMDSmiSocket*> sockets_;
-    std::set<AMDSmiDevice*> devices_;     // Track valid devices
+  // @Brief: Display  results
+  virtual void DisplayResults() const;
+
+  // @Brief: Display information about what this test does
+  virtual void DisplayTestInfo(void);
 };
 
-
-
-}  // namespace smi
-}  // namespace amd
-
-#endif  // AMD_SMI_INCLUDE_AMD_SMI_SYSTEM_H_
+#endif  // TESTS_AMD_SMI_TEST_FUNCTIONAL_PERF_LEVEL_READ_H_

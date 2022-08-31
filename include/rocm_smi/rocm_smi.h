@@ -334,7 +334,7 @@ typedef struct {
  * Clock types
  */
 typedef enum {
-  RSMI_CLK_TYPE_SYS = 0x0,            //!< System clock
+  RSMI_CLK_TYPE_SYS  = 0x0,           //!< System clock
   RSMI_CLK_TYPE_FIRST = RSMI_CLK_TYPE_SYS,
   RSMI_CLK_TYPE_DF,                   //!< Data Fabric clock (for ASICs
                                       //!< running on a separate clock)
@@ -1064,7 +1064,7 @@ rsmi_status_t rsmi_dev_id_get(uint32_t dv_ind, uint16_t *id);
  *  @retval ::RSMI_STATUS_INVALID_ARGS the provided arguments are not valid
  *
  */
-rsmi_status_t rsmi_dev_sku_get(uint32_t dv_ind, char *sku);
+rsmi_status_t rsmi_dev_sku_get(uint32_t dv_ind, uint16_t *sku);
 
 /**
  *  @brief Get the device vendor id associated with the device with provided

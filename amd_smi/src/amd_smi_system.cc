@@ -50,10 +50,12 @@
 namespace amd {
 namespace smi {
 
+#define  AMD_SMI_INIT_FLAG_RESRV_TEST1 0x800000000000000  //!< Reserved for test
+
 amdsmi_status_t AMDSmiSystem::init(uint64_t flags) {
     init_flag_ = flags;
     // populate sockets and devices
-    if (flags & AMD_SMI_INIT_AMD_GPUS) {
+    if (flags & AMDSMI_INIT_AMD_GPUS) {
         drm_.init();
         // init rsmi
         rsmi_status_t ret = rsmi_init(flags);
@@ -114,7 +116,7 @@ amdsmi_status_t AMDSmiSystem::cleanup() {
     }
     devices_.clear();
     sockets_.clear();
-    init_flag_ = AMD_SMI_INIT_ALL_DEVICES;
+    init_flag_ = AMDSMI_INIT_ALL_DEVICES;
     rsmi_status_t ret = rsmi_shut_down();
     if (ret != RSMI_STATUS_SUCCESS) {
         return static_cast<amdsmi_status_t>(ret);

@@ -81,7 +81,7 @@ void TestBase::MakeHeaderStr(const char *inStr,
 }
 
 void TestBase::SetUp(void) {
-  SetUp(AMD_SMI_INIT_AMD_GPUS);
+  SetUp(AMDSMI_INIT_AMD_GPUS);
 }
 
 void TestBase::SetUp(uint64_t init_flags) {

@@ -61,33 +61,31 @@
 #include "functional/xgmi_read_write.h"
 #include "functional/api_support_read.h"
 #include "functional/process_info_read.h"
-/*
+#include "functional/gpu_busy_read.h"
+#include "amd_smi_test/functional/gpu_metrics_read.h"
+#include "functional/err_cnt_read.h"
+#include "functional/power_read.h"
+#include "functional/power_read_write.h"
+#include "functional/power_cap_read_write.h"
+#include "functional/mem_util_read.h"
+#include "functional/mem_page_info_read.h"
+#include "functional/frequencies_read.h"
+#include "functional/frequencies_read_write.h"
+#include "functional/overdrive_read.h"
+#include "functional/overdrive_read_write.h"
 #include "functional/temp_read.h"
 #include "functional/volt_read.h"
 #include "functional/volt_freq_curv_read.h"
 #include "functional/perf_level_read.h"
-#include "functional/overdrive_read.h"
-#include "functional/frequencies_read.h"
-#include "functional/sys_info_read.h"
-#include "functional/gpu_busy_read.h"
-#include "functional/power_read.h"
-#include "functional/overdrive_read_write.h"
 #include "functional/perf_level_read_write.h"
-#include "functional/frequencies_read_write.h"
 #include "functional/pci_read_write.h"
-#include "functional/power_read_write.h"
-#include "functional/power_cap_read_write.h"
-#include "functional/version_read.h"
-#include "functional/err_cnt_read.h"
-#include "functional/mem_util_read.h"
+#include "amd_smi_test/functional/perf_determinism.h"
+#include "functional/sys_info_read.h"
 #include "functional/id_info_read.h"
-#include "functional/mem_page_info_read.h"
+#include "amd_smi_test/functional/metrics_counter_read.h"
+#include "functional/version_read.h"
 #include "functional/mutual_exclusion.h"
 #include "functional/init_shutdown_refcount.h"
-#include "amd_smi_test/functional/gpu_metrics_read.h"
-#include "amd_smi_test/functional/metrics_counter_read.h"
-#include "amd_smi_test/functional/perf_determinism.h"
-*/
 
 static AMDSMITstGlobals *sRSMIGlvalues = nullptr;
 
@@ -130,6 +128,7 @@ static void RunGenericTest(TestBase *test) {
   return;
 }
 
+
 // TEST ENTRY TEMPLATE:
 // TEST(rocrtst, Perf_<test name>) {
 //  <Test Implementation class> <test_obj>;
@@ -138,13 +137,10 @@ static void RunGenericTest(TestBase *test) {
 //  // from the standard pattern implemented there.
 //  RunGenericTest(&<test_obj>);
 // }
-
-/*
 TEST(amdsmitstReadOnly, TestVersionRead) {
   TestVersionRead tst;
   RunGenericTest(&tst);
 }
-*/
 TEST(amdsmitstReadOnly, FanRead) {
   TestFanRead tst;
   RunGenericTest(&tst);
@@ -153,31 +149,6 @@ TEST(amdsmitstReadWrite, FanReadWrite) {
   TestFanReadWrite tst;
   RunGenericTest(&tst);
 }
-TEST(amdsmitstReadWrite, TestEvtNotifReadWrite) {
-  TestEvtNotifReadWrite tst;
-  RunGenericTest(&tst);
-}
-TEST(amdsmitstReadWrite, TestPerfCntrReadWrite) {
-  TestPerfCntrReadWrite tst;
-  RunGenericTest(&tst);
-}
-TEST(amdsmitstReadWrite, TestXGMIReadWrite) {
-  TestXGMIReadWrite tst;
-  RunGenericTest(&tst);
-}
-TEST(amdsmitstReadOnly, TestAPISupportRead) {
-  TestAPISupportRead tst;
-  RunGenericTest(&tst);
-}
-TEST(amdsmitstReadOnly, TestHWTopologyRead) {
-  TestHWTopologyRead tst;
-  RunGenericTest(&tst);
-}
-TEST(amdsmitstReadOnly, TestProcInfoRead) {
-  TestProcInfoRead tst;
-  RunGenericTest(&tst);
-}
-/*
 TEST(amdsmitstReadOnly, TempRead) {
   TestTempRead tst;
   RunGenericTest(&tst);
@@ -250,6 +221,18 @@ TEST(amdsmitstReadOnly, TestIdInfoRead) {
   TestIdInfoRead tst;
   RunGenericTest(&tst);
 }
+TEST(amdsmitstReadWrite, TestPerfCntrReadWrite) {
+  TestPerfCntrReadWrite tst;
+  RunGenericTest(&tst);
+}
+TEST(amdsmitstReadOnly, TestProcInfoRead) {
+  TestProcInfoRead tst;
+  RunGenericTest(&tst);
+}
+TEST(amdsmitstReadOnly, TestHWTopologyRead) {
+  TestHWTopologyRead tst;
+  RunGenericTest(&tst);
+}
 TEST(amdsmitstReadOnly, TestGpuMetricsRead) {
   TestGpuMetricsRead tst;
   RunGenericTest(&tst);
@@ -262,11 +245,19 @@ TEST(amdsmitstReadWrite, TestPerfDeterminism) {
   TestPerfDeterminism tst;
   RunGenericTest(&tst);
 }
+TEST(amdsmitstReadWrite, TestXGMIReadWrite) {
+  TestXGMIReadWrite tst;
+  RunGenericTest(&tst);
+}
 TEST(amdsmitstReadOnly, TestMemPageInfoRead) {
   TestMemPageInfoRead tst;
   RunGenericTest(&tst);
 }
-
+TEST(amdsmitstReadOnly, TestAPISupportRead) {
+  TestAPISupportRead tst;
+  RunGenericTest(&tst);
+}
+/*
 TEST(amdsmitstReadOnly, TestMutualExclusion) {
   TestMutualExclusion tst;
   SetFlags(&tst);
@@ -275,7 +266,12 @@ TEST(amdsmitstReadOnly, TestMutualExclusion) {
   tst.Run();
   RunCustomTestEpilog(&tst);
 }
-
+*/
+TEST(amdsmitstReadWrite, TestEvtNotifReadWrite) {
+  TestEvtNotifReadWrite tst;
+  RunGenericTest(&tst);
+}
+/*
 TEST(amdsmitstReadOnly, TestConcurrentInit) {
   TestConcurrentInit tst;
   SetFlags(&tst);
@@ -286,6 +282,7 @@ TEST(amdsmitstReadOnly, TestConcurrentInit) {
   tst.DisplayResults();
 }
 */
+
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
 

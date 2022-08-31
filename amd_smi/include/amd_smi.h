@@ -58,12 +58,13 @@ extern "C" {
  *
  * Initialization flags may be OR'd together and passed to ::amdsmi_init().
  */
-
-#define  AMD_SMI_INIT_ALL_DEVICES       0x0             // Default option
-#define  AMD_SMI_INIT_AMD_CPUS          (1 << 0)
-#define  AMD_SMI_INIT_AMD_GPUS          (1 << 1)
-#define  AMD_SMI_INIT_NON_AMD_CPUS      (1 << 2)
-#define  AMD_SMI_INIT_NON_AMD_GPUS      (1 << 3)
+typedef enum amdsmi_init_flags {
+  AMDSMI_INIT_ALL_DEVICES = 0x0,           // Default option
+  AMDSMI_INIT_AMD_CPUS = (1 << 0),
+  AMDSMI_INIT_AMD_GPUS = (1 << 1),
+  AMDSMI_INIT_NON_AMD_CPUS = (1 << 2),
+  AMDSMI_INIT_NON_AMD_GPUS = (1 << 3)
+} amdsmi_init_flags_t;
 
 /* Maximum size definitions GPUVSMI */
 #define AMDSMI_MAX_MM_IP_COUNT	      8
@@ -141,14 +142,15 @@ typedef enum amdsmi_status {
  * Clock types
  */
 typedef enum amdsmi_clk_type {
-     CLOCK_TYPE_SYS,   //!< System clock
+    CLOCK_TYPE_SYS = 0x0,   //!< System clock
+    CLOCK_TYPE_FIRST = CLOCK_TYPE_SYS,
+    CLOCK_TYPE_GFX = CLOCK_TYPE_SYS,
     CLOCK_TYPE_DF,  //!< Data Fabric clock (for ASICs
                     //!< running on a separate clock)
     CLOCK_TYPE_DCEF,   //!< Display Controller Engine clock
     CLOCK_TYPE_SOC,
     CLOCK_TYPE_MEM,
     CLOCK_TYPE_PCIE,
-    CLOCK_TYPE_GFX,
     CLOCK_TYPE_VCLK0,
     CLOCK_TYPE_VCLK1,
     CLOCK_TYPE_DCLK0,
@@ -165,14 +167,15 @@ typedef amdsmi_clk_type_t amdsmi_clk_type;
  */
 typedef enum amdsmi_temperature_type {
     TEMPERATURE_TYPE_EDGE,
+    TEMPERATURE_TYPE_FIRST = TEMPERATURE_TYPE_EDGE,
     TEMPERATURE_TYPE_JUNCTION,
     TEMPERATURE_TYPE_VRAM,
-    TEMPERATURE_TYPE_PLX,
     TEMPERATURE_TYPE_HBM_0,
     TEMPERATURE_TYPE_HBM_1,
     TEMPERATURE_TYPE_HBM_2,
     TEMPERATURE_TYPE_HBM_3,
-    TEMPERATURE_TYPE__MAX,
+    TEMPERATURE_TYPE_PLX,
+    TEMPERATURE_TYPE__MAX = TEMPERATURE_TYPE_PLX
 } amdsmi_temperature_type_t;
 
 /**
@@ -181,6 +184,7 @@ typedef enum amdsmi_temperature_type {
  */
 typedef enum amdsmi_fw_block {
     FW_ID_SMU = 1,
+    FW_ID_FIRST = FW_ID_SMU,
     FW_ID_CP_CE,
     FW_ID_CP_PFP,
     FW_ID_CP_ME,
@@ -239,142 +243,143 @@ typedef amdsmi_range_t amdsmi_range;
 /// \endcond
 
 typedef struct amdsmi_xgmi_info {
-	uint8_t	 xgmi_lanes;
-	uint64_t xgmi_hive_id;
-	uint64_t xgmi_node_id;
-	uint32_t index;
+  uint8_t xgmi_lanes;
+  uint64_t xgmi_hive_id;
+  uint64_t xgmi_node_id;
+  uint32_t index;
 } amdsmi_xgmi_info_t;
 
 /**
  * GPU Capability info
  */
 typedef struct amdsmi_gpu_caps {
-	struct {
-		uint32_t gfxip_major;
-		uint32_t gfxip_minor;
-		uint16_t gfxip_cu_count;
-	} gfx;
-	struct {
-		uint8_t mm_ip_count;
-		uint8_t mm_ip_list[AMDSMI_MAX_MM_IP_COUNT];
-	} mm;
+  struct {
+    uint32_t gfxip_major;
+    uint32_t gfxip_minor;
+    uint16_t gfxip_cu_count;
+  } gfx;
+  struct {
+    uint8_t mm_ip_count;
+    uint8_t mm_ip_list[AMDSMI_MAX_MM_IP_COUNT];
+  } mm;
 
-	bool	 ras_supported;
-	uint8_t	 max_vf_num;
-	uint32_t gfx_ip_count;
-	uint32_t dma_ip_count;
+  bool ras_supported;
+  uint8_t max_vf_num;
+  uint32_t gfx_ip_count;
+  uint32_t dma_ip_count;
 } amdsmi_gpu_caps_t;
 
 typedef struct amdsmi_vram_info {
-	uint32_t vram_total;
-	uint32_t vram_used;
+  uint32_t vram_total;
+  uint32_t vram_used;
 } amdsmi_vram_info_t;
 
 typedef struct amdsmi_frequency_range {
 	amdsmi_range_t supported_freq_range;
 	amdsmi_range_t current_freq_range;
 } amdsmi_frequency_range_t;
+
 typedef union amdsmi_bdf {
-	struct {
-		uint64_t function_number : 6;
-		uint64_t device_number : 10;
-		uint64_t bus_number : 16;
-		uint64_t domain_number : 32;
-	};
-	uint64_t as_uint;
+  struct {
+    uint64_t function_number : 3;
+    uint64_t device_number : 5;
+    uint64_t bus_number : 8;
+    uint64_t domain_number : 48;
+  };
+  uint64_t as_uint;
 } amdsmi_bdf_t;
 
 typedef struct amdsmi_power_cap_info {
-	uint32_t power_cap;
-	uint32_t default_power_cap;
-	uint32_t dpm_cap;
-	uint32_t min_power_cap;
-	uint32_t max_power_cap;
+  uint64_t power_cap;
+  uint64_t default_power_cap;
+  uint64_t dpm_cap;
+  uint64_t min_power_cap;
+  uint64_t max_power_cap;
 } amdsmi_power_cap_info_t;
 
 typedef struct amdsmi_vbios_info {
-	char	 name[AMDSMI_MAX_STRING_LENGTH];
-	uint32_t vbios_version;
-	char	 build_date[AMDSMI_MAX_DATE_LENGTH];
-	char     part_number[AMDSMI_MAX_STRING_LENGTH];
-	char     vbios_version_string[AMDSMI_NORMAL_STRING_LENGTH];
+  char    name[AMDSMI_MAX_STRING_LENGTH];
+  uint32_t vbios_version;
+  char    build_date[AMDSMI_MAX_DATE_LENGTH];
+  char    part_number[AMDSMI_MAX_STRING_LENGTH];
+  char    vbios_version_string[AMDSMI_NORMAL_STRING_LENGTH];
 } amdsmi_vbios_info_t;
 
 typedef struct amdsmi_fw_info {
-	uint8_t num_fw_info;
-	struct {
-		amdsmi_fw_block_t fw_id;
-		uint32_t fw_version;
-	} fw_info_list[FW_ID__MAX];
+  uint8_t num_fw_info;
+  struct {
+    amdsmi_fw_block_t fw_id;
+    uint32_t fw_version;
+  } fw_info_list[FW_ID__MAX];
 } amdsmi_fw_info_t;
 
 typedef struct amdsmi_asic_info {
-	char	 market_name[AMDSMI_MAX_STRING_LENGTH];
-	uint32_t family; /**< Has zero value */
-	uint32_t vendor_id;   //< Use 32 bit to be compatible with other platform.
-	uint32_t subvendor_id;
-	uint32_t device_id;
-	uint32_t rev_id;
-	uint64_t asic_serial;
+  char  market_name[AMDSMI_MAX_STRING_LENGTH];
+  uint32_t family; /**< Has zero value */
+  uint32_t vendor_id;   //< Use 32 bit to be compatible with other platform.
+  uint32_t subvendor_id;
+  uint32_t device_id;
+  uint32_t rev_id;
+  uint64_t asic_serial;
 } amdsmi_asic_info_t;
 
 typedef struct amdsmi_board_info {
-	uint64_t serial_number;
-  bool	 is_master;
-	char	 model_number[AMDSMI_NORMAL_STRING_LENGTH];
-	char	 product_serial[AMDSMI_NORMAL_STRING_LENGTH];
-	char	 fru_id[AMDSMI_NORMAL_STRING_LENGTH];
-	char	 product_name[AMDSMI_PRODUCT_NAME_LENGTH];
-	char	 manufacturer_name[AMDSMI_NORMAL_STRING_LENGTH];
+  uint64_t serial_number;
+  bool  is_master;
+  char  model_number[AMDSMI_NORMAL_STRING_LENGTH];
+  char  product_serial[AMDSMI_NORMAL_STRING_LENGTH];
+  char  fru_id[AMDSMI_NORMAL_STRING_LENGTH];
+  char  product_name[AMDSMI_PRODUCT_NAME_LENGTH];
+  char  manufacturer_name[AMDSMI_NORMAL_STRING_LENGTH];
 } amdsmi_board_info_t;
 
 typedef struct amdsmi_temperature {
-	uint16_t      cur_temp;
+  uint16_t  cur_temp;
 } amdsmi_temperature_t;
 
 typedef struct amdsmi_temperature_limit {
-	uint16_t      limit;
+  uint16_t  limit;
 } amdsmi_temperature_limit_t;
 
 typedef struct amdsmi_power_limit {
-	uint16_t      limit;
+  uint16_t  limit;
 } amdsmi_power_limit_t;
 
 typedef struct amdsmi_power_measure {
-	uint16_t average_socket_power;
- 	uint64_t energy_accumulator;      // v1 mod. (32->64)
-	uint32_t voltage_gfx;  //GFX voltage measurement in mV
-	uint32_t voltage_soc; // SOC voltage measurement in mV
-	uint32_t voltage_mem; // MEM voltage measurement in mV
+  uint16_t average_socket_power;
+  uint64_t energy_accumulator;      // v1 mod. (32->64)
+  uint32_t voltage_gfx;   // GFX voltage measurement in mV
+  uint32_t voltage_soc;  // SOC voltage measurement in mV
+  uint32_t voltage_mem;  // MEM voltage measurement in mV
 } amdsmi_power_measure_t;
 
 typedef struct amdsmi_clock_measure {
-  	uint32_t cur_clk;
-	uint32_t avg_clk;
-	uint32_t min_clk;
-	uint32_t max_clk;
+  uint32_t cur_clk;
+  uint32_t avg_clk;
+  uint32_t min_clk;
+  uint32_t max_clk;
 } amdsmi_clock_measure_t;
 
 typedef struct amdsmi_engine_usage {
-	uint32_t average_gfx_activity;
-	uint32_t average_umc_activity;
-	uint32_t average_mm_activity[AMDSMI_MAX_MM_IP_COUNT];
+  uint32_t average_gfx_activity;
+  uint32_t average_umc_activity;
+  uint32_t average_mm_activity[AMDSMI_MAX_MM_IP_COUNT];
 } amdsmi_engine_usage_t;
 
 typedef uint32_t amdsmi_process_handle;
 
 typedef struct amdsmi_process_info {
-	char                  name[AMDSMI_NORMAL_STRING_LENGTH];
-	amdsmi_process_handle pid;
-	uint64_t              mem; /** in bytes */
-	struct {
-		uint16_t gfx[AMDSMI_MAX_MM_IP_COUNT];
-		uint16_t compute[AMDSMI_MAX_MM_IP_COUNT];
-		uint16_t sdma[AMDSMI_MAX_MM_IP_COUNT];
-		uint16_t enc[AMDSMI_MAX_MM_IP_COUNT];
-		uint16_t dec[AMDSMI_MAX_MM_IP_COUNT];
-	} usage; /** percentage 0-100% times 100 */
-	char container_name[AMDSMI_NORMAL_STRING_LENGTH];
+  char                  name[AMDSMI_NORMAL_STRING_LENGTH];
+  amdsmi_process_handle pid;
+  uint64_t              mem; /** in bytes */
+  struct {
+    uint16_t gfx[AMDSMI_MAX_MM_IP_COUNT];
+    uint16_t compute[AMDSMI_MAX_MM_IP_COUNT];
+    uint16_t sdma[AMDSMI_MAX_MM_IP_COUNT];
+    uint16_t enc[AMDSMI_MAX_MM_IP_COUNT];
+    uint16_t dec[AMDSMI_MAX_MM_IP_COUNT];
+  } usage; /** percentage 0-100% times 100 */
+  char container_name[AMDSMI_NORMAL_STRING_LENGTH];
 } amdsmi_proc_info_t;
 
 //! Guaranteed maximum possible number of supported frequencies
@@ -2201,7 +2206,7 @@ amdsmi_status_t amdsmi_dev_gpu_clk_freq_get(amdsmi_device_handle device_handle,
  *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
  *
  */
-amdsmi_status_t amdsmi_dev_gpu_reset(int32_t dv_ind);
+amdsmi_status_t amdsmi_dev_gpu_reset(amdsmi_device_handle device_handle);
 
 /**
  *  @brief This function retrieves the voltage/frequency curve information
@@ -2435,7 +2440,7 @@ amdsmi_dev_power_profile_presets_get(amdsmi_device_handle device_handle, uint32_
  *
  */
 amdsmi_status_t
-amdsmi_dev_perf_level_set(int32_t dv_ind, amdsmi_dev_perf_level_t perf_lvl);
+amdsmi_dev_perf_level_set(amdsmi_device_handle device_handle, amdsmi_dev_perf_level_t perf_lvl);
 
 /**
  *  @brief Set the PowerPlay performance level associated with the device with
@@ -2501,7 +2506,7 @@ amdsmi_dev_perf_level_set_v1(amdsmi_device_handle device_handle, amdsmi_dev_perf
  *  @retval ::AMDSMI_STATUS_PERMISSION function requires root access
  *
  */
-amdsmi_status_t amdsmi_dev_overdrive_level_set(int32_t dv_ind, uint32_t od);
+amdsmi_status_t amdsmi_dev_overdrive_level_set(amdsmi_device_handle device_handle, uint32_t od);
 
 /**
  *  @brief Set the overdrive percent associated with the device with provided
@@ -3240,7 +3245,8 @@ amdsmi_minmax_bandwidth_get(amdsmi_device_handle device_handle_src, amdsmi_devic
  *
  */
 amdsmi_status_t
-amdsmi_topo_get_link_type(amdsmi_device_handle device_handle_src, amdsmi_device_handle device_handle_dst,
+amdsmi_topo_get_link_type(amdsmi_device_handle device_handle_src,
+                        amdsmi_device_handle device_handle_dst,
                         uint64_t *hops, AMDSMI_IO_LINK_TYPE *type);
 
 /**
@@ -3729,7 +3735,8 @@ amdsmi_get_board_info(amdsmi_device_handle dev, amdsmi_board_info_t *info);
  *                  system.
  *
  *  \param [in]     dev - device which to query
- *
+ *  \param [in]     sensor_ind a 0-based sensor index. Normally, this will be 0.
+ *                  If a device has more than one sensor, it could be greater than 0.
  *  \param [out]    info - Reference to power caps information structure. Must be
  *                  allocated by user.
  *
@@ -3743,7 +3750,8 @@ amdsmi_get_board_info(amdsmi_device_handle dev, amdsmi_board_info_t *info);
  *                  * -::SMI_ERR_API_FAILED - Other errors
  */
 amdsmi_status
-amdsmi_get_power_cap_info(amdsmi_device_handle dev, amdsmi_power_cap_info_t *info);
+amdsmi_get_power_cap_info(amdsmi_device_handle dev, uint32_t sensor_ind,
+          amdsmi_power_cap_info_t *info);
 
 /**
  *  \brief          Returns XGMI information for the GPU.
