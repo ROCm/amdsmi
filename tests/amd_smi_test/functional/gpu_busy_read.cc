@@ -5,7 +5,7 @@
  * The University of Illinois/NCSA
  * Open Source License (NCSA)
  *
- * Copyright (c) 2018, Advanced Micro Devices, Inc.
+ * Copyright (c) 2022, Advanced Micro Devices, Inc.
  * All rights reserved.
  *
  * Developed by:
@@ -43,59 +43,78 @@
  *
  */
 
-#ifndef TESTS_AMD_SMI_TEST_TEST_COMMON_H_
-#define TESTS_AMD_SMI_TEST_TEST_COMMON_H_
+#include <stdint.h>
+#include <stddef.h>
 
-#include <memory>
-#include <vector>
+#include <iostream>
 #include <string>
 
+#include "gtest/gtest.h"
 #include "amd_smi.h"
+#include "amd_smi_test/functional/gpu_busy_read.h"
+#include "amd_smi_test/test_common.h"
 
-struct AMDSMITstGlobals {
-  uint32_t verbosity;
-  uint32_t monitor_verbosity;
-  uint32_t num_iterations;
-  uint64_t init_options;
-  bool dont_fail;
-};
-
-uint32_t ProcessCmdline(AMDSMITstGlobals* test, int arg_cnt, char** arg_list);
-
-void PrintTestHeader(uint32_t dv_ind);
-const char *GetPerfLevelStr(amdsmi_dev_perf_level_t lvl);
-const char *GetBlockNameStr(amdsmi_gpu_block_t id);
-const char *GetErrStateNameStr(amdsmi_ras_err_state_t st);
-const char *FreqEnumToStr(amdsmi_clk_type amdsmi_clk);
-const std::string GetVoltSensorNameStr(amdsmi_voltage_type_t st);
-
-#if ENABLE_SMI
-void DumpMonitorInfo(const TestBase *test);
-#endif
-
-#define DISPLAY_AMDSMI_ERR(RET) { \
-  if (RET != AMDSMI_STATUS_SUCCESS) { \
-    const char *err_str; \
-    std::cout << "\t===> ERROR: AMDSMI call returned " << (RET) << std::endl; \
-    amdsmi_status_string((RET), &err_str); \
-    std::cout << "\t===> (" << err_str << ")" << std::endl; \
-    std::cout << "\t===> at " << __FILE__ << ":" << std::dec << __LINE__ << \
-                                                                  std::endl; \
-  } \
+TestGPUBusyRead::TestGPUBusyRead() : TestBase() {
+  set_title("AMDSMI GPU Busy Read Test");
+  set_description("The GPU Busy Read tests verifies that the gpu busy "
+                   "percentage can be read properly.");
 }
 
-#define CHK_ERR_RET(RET) { \
-  DISPLAY_AMDSMI_ERR(RET) \
-  if ((RET) != AMDSMI_STATUS_SUCCESS) { \
-    return (RET); \
-  } \
-}
-#define CHK_AMDSMI_PERM_ERR(RET) { \
-    if (RET == AMDSMI_STATUS_NO_PERM) { \
-      std::cout << "This command requires root access." << std::endl; \
-    } else { \
-      DISPLAY_AMDSMI_ERR(RET) \
-    } \
+TestGPUBusyRead::~TestGPUBusyRead(void) {
 }
 
-#endif  // TESTS_AMD_SMI_TEST_TEST_COMMON_H_
+void TestGPUBusyRead::SetUp(void) {
+  TestBase::SetUp();
+
+  return;
+}
+
+void TestGPUBusyRead::DisplayTestInfo(void) {
+  TestBase::DisplayTestInfo();
+}
+
+void TestGPUBusyRead::DisplayResults(void) const {
+  TestBase::DisplayResults();
+  return;
+}
+
+void TestGPUBusyRead::Close() {
+  // This will close handles opened within amdsmitst utility calls and call
+  // amdsmi_shut_down(), so it should be done after other hsa cleanup
+  TestBase::Close();
+}
+
+
+void TestGPUBusyRead::Run(void) {
+  amdsmi_status_t err;
+  uint32_t val_ui32;
+
+  TestBase::Run();
+  if (setup_failed_) {
+    std::cout << "** SetUp Failed for this test. Skipping.**" << std::endl;
+    return;
+  }
+
+  for (uint32_t x = 0; x < num_iterations(); ++x) {
+    for (uint32_t i = 0; i < num_monitor_devs(); ++i) {
+      PrintDeviceHeader(device_handles_[i]);
+
+      err = amdsmi_dev_busy_percent_get(device_handles_[i], &val_ui32);
+      if (err != AMDSMI_STATUS_SUCCESS) {
+        if (err == AMDSMI_STATUS_FILE_ERROR) {
+          IF_VERB(STANDARD) {
+            std::cout << "\t**GPU Busy Percent: Not supported on this machine"
+                                                                 << std::endl;
+          }
+        } else {
+          CHK_ERR_ASRT(err)
+        }
+      } else {
+        IF_VERB(STANDARD) {
+          std::cout << "\t**GPU Busy Percent (Percent Idle):" << std::dec <<
+                       val_ui32 << " (" << 100 - val_ui32 << ")" << std::endl;
+        }
+      }
+    }
+  }
+}

@@ -65,7 +65,7 @@ int main() {
 
   // Init amdsmi for sockets and devices.
   // Here we are only interested in AMD_GPUS.
-  ret = amdsmi_init(AMD_SMI_INIT_AMD_GPUS);
+  ret = amdsmi_init(AMDSMI_INIT_AMD_GPUS);
   CHK_AMDSMI_RET(ret)
 
   // Get all sockets
@@ -93,7 +93,7 @@ int main() {
     // For each device of the socket, get name and temperature.
     for (uint32_t j=0; j < device_count; j++) {
       // Get device type. Since the amdsmi is initialized with
-      // AMD_SMI_INIT_AMD_GPUS, the device_type must be AMD_GPU.
+      // AMDSMI_INIT_AMD_GPUS, the device_type must be AMD_GPU.
       device_type_t device_type;
       ret = amdsmi_get_device_type(device_handles[j], &device_type);
       CHK_AMDSMI_RET(ret)

@@ -1,5 +1,7 @@
 /*
  * =============================================================================
+ *   ROC Runtime Conformance Release License
+ * =============================================================================
  * The University of Illinois/NCSA
  * Open Source License (NCSA)
  *
@@ -41,51 +43,68 @@
  *
  */
 
-#ifndef AMD_SMI_INCLUDE_AMD_SMI_SYSTEM_H_
-#define AMD_SMI_INCLUDE_AMD_SMI_SYSTEM_H_
+#include <stdint.h>
+#include <stddef.h>
 
-#include <vector>
-#include <set>
+#include <iostream>
+#include <string>
+
+#include "gtest/gtest.h"
 #include "amd_smi.h"
-#include "impl/amd_smi_socket.h"
-#include "impl/amd_smi_device.h"
-#include "impl/amd_smi_drm.h"
+#include "amd_smi_test/functional/overdrive_read.h"
+#include "amd_smi_test/test_common.h"
 
-namespace amd {
-namespace smi {
+TestOverdriveRead::TestOverdriveRead() : TestBase() {
+  set_title("AMDSMI Overdrive Read Test");
+  set_description("The Overdrive Read tests verifies that the "
+                             "current overdrive level can be read properly.");
+}
 
-// Singleton: Only one system in an application
-class AMDSmiSystem {
- public:
-    static AMDSmiSystem& getInstance() {
-        static AMDSmiSystem instance;
-        return instance;
+TestOverdriveRead::~TestOverdriveRead(void) {
+}
+
+void TestOverdriveRead::SetUp(void) {
+  TestBase::SetUp();
+
+  return;
+}
+
+void TestOverdriveRead::DisplayTestInfo(void) {
+  TestBase::DisplayTestInfo();
+}
+
+void TestOverdriveRead::DisplayResults(void) const {
+  TestBase::DisplayResults();
+  return;
+}
+
+void TestOverdriveRead::Close() {
+  // This will close handles opened within rsmitst utility calls and call
+  // amdsmi_shut_down(), so it should be done after other hsa cleanup
+  TestBase::Close();
+}
+
+
+void TestOverdriveRead::Run(void) {
+  amdsmi_status_t err;
+  uint32_t val_ui32;
+
+  TestBase::Run();
+  if (setup_failed_) {
+    std::cout << "** SetUp Failed for this test. Skipping.**" << std::endl;
+    return;
+  }
+
+  for (uint32_t i = 0; i < num_monitor_devs(); ++i) {
+    PrintDeviceHeader(device_handles_[i]);
+
+    err = amdsmi_dev_overdrive_level_get(device_handles_[i], &val_ui32);
+    CHK_ERR_ASRT(err)
+    IF_VERB(STANDARD) {
+    std::cout << "\t**OverDrive Level:" << val_ui32 << std::endl;
+    // Verify api support checking functionality is working
+    err = amdsmi_dev_overdrive_level_get(device_handles_[i], nullptr);
+    ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
     }
-    amdsmi_status_t init(uint64_t flags);
-    amdsmi_status_t cleanup();
-
-    std::vector<AMDSmiSocket*>& get_sockets() {return sockets_;}
-
-    amdsmi_status_t handle_to_socket(amdsmi_socket_handle socket_handle,
-            AMDSmiSocket** socket);
-
-    amdsmi_status_t handle_to_device(amdsmi_device_handle device_handle,
-            AMDSmiDevice** device);
-
-    amdsmi_status_t gpu_index_to_handle(uint32_t gpu_index,
-                    amdsmi_device_handle* device_handle);
-
- private:
-    AMDSmiSystem() : init_flag_(AMDSMI_INIT_ALL_DEVICES) {}
-    uint64_t init_flag_;
-    AMDSmiDrm drm_;
-    std::vector<AMDSmiSocket*> sockets_;
-    std::set<AMDSmiDevice*> devices_;     // Track valid devices
-};
-
-
-
-}  // namespace smi
-}  // namespace amd
-
-#endif  // AMD_SMI_INCLUDE_AMD_SMI_SYSTEM_H_
+  }
+}

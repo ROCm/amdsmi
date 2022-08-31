@@ -223,6 +223,11 @@ const char *FreqEnumToStr(amdsmi_clk_type amdsmi_clk) {
     case CLOCK_TYPE_DCEF: return "Display Controller Engine clock";
     case CLOCK_TYPE_SOC:  return "SOC clock";
     case CLOCK_TYPE_MEM:  return "Memory clock";
+    case CLOCK_TYPE_PCIE:  return "PCIE clock";
+    case CLOCK_TYPE_VCLK0:  return "VCLK0 clock";
+    case CLOCK_TYPE_VCLK1:  return "VCLK1 clock";
+    case CLOCK_TYPE_DCLK0:  return "DCLK0 clock";
+    case CLOCK_TYPE_DCLK1:  return "DCLK1 clock";
     default: return "Invalid Clock ID";
   }
 }
