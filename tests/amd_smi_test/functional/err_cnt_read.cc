@@ -160,7 +160,7 @@ void TestErrCntRead::Run(void) {
                                                                    << std::endl;
               std::cout << "\t\tCorrectable errors: " << ec.correctable_err
                                                                    << std::endl;
-              std::cout << "\t\tUncorrectable errors: " << ec.uncorrectable_err
+              std::cout << "\t\tUncorrectable errors: " << ec.uncorrectable_count
                                                                    << std::endl;
             }
             // Verify api support checking functionality is working

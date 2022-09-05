@@ -47,16 +47,32 @@
 #include "amd_smi/amd_smi.h"
 #include "amd_smi/impl/amd_smi_device.h"
 #include "amd_smi/impl/amd_smi_drm.h"
+#include "shared_mutex.h"  // NOLINT
 
 namespace amd {
 namespace smi {
 
 class AMDSmiGPUDevice: public AMDSmiDevice {
  public:
-    explicit AMDSmiGPUDevice(uint32_t gpu_id, AMDSmiDrm& drm):
-            AMDSmiDevice(AMD_GPU), gpu_id_(gpu_id), drm_(drm) {}
+    AMDSmiGPUDevice(uint32_t gpu_id, uint32_t fd, std::string path, amdsmi_bdf_t bdf, AMDSmiDrm& drm):
+            AMDSmiDevice(AMD_GPU), gpu_id_(gpu_id), fd_(fd), path_(path), bdf_(bdf), drm_(drm) {}
 
+    AMDSmiGPUDevice(uint32_t gpu_id, AMDSmiDrm& drm):
+            AMDSmiDevice(AMD_GPU), gpu_id_(gpu_id), drm_(drm) {
+                if (check_if_drm_is_supported()) this->get_drm_data();
+            }
+    ~AMDSmiGPUDevice() {
+        if (check_if_drm_is_supported()) shared_mutex_close(mutex_);
+    }
+
+    amdsmi_status_t get_drm_data();
+    pthread_mutex_t* get_mutex();
     uint32_t get_gpu_id() const;
+    uint32_t get_gpu_fd() const;
+    std::string& get_gpu_path();
+    amdsmi_bdf_t  get_bdf();
+    bool check_if_drm_is_supported() { return drm_.check_if_drm_is_supported(); }
+
     amdsmi_status_t amdgpu_query_info(unsigned info_id,
                     unsigned size, void *value) const;
     amdsmi_status_t amdgpu_query_hw_ip(unsigned info_id, unsigned hw_ip_type,
@@ -66,7 +82,11 @@ class AMDSmiGPUDevice: public AMDSmiDevice {
     amdsmi_status_t amdgpu_query_vbios(void *info) const;
  private:
     uint32_t gpu_id_;
+    uint32_t fd_;
+    std::string path_;
+    amdsmi_bdf_t bdf_;
     AMDSmiDrm& drm_;
+    shared_mutex_t mutex_;
 };
 
 

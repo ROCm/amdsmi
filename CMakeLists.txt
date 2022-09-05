@@ -141,6 +141,8 @@ set(CMN_SRC_LIST ${CMN_SRC_LIST} "${AMDSMI_SRC_DIR}/amd_smi_socket.cc")
 set(CMN_SRC_LIST ${CMN_SRC_LIST} "${AMDSMI_SRC_DIR}/amd_smi_system.cc")
 set(CMN_SRC_LIST ${CMN_SRC_LIST} "${AMDSMI_SRC_DIR}/amd_smi_drm.cc")
 set(CMN_SRC_LIST ${CMN_SRC_LIST} "${AMDSMI_SRC_DIR}/amd_smi_lib_loader.cc")
+set(CMN_SRC_LIST ${CMN_SRC_LIST} "${AMDSMI_SRC_DIR}/amd_smi_utils.cc")
+set(CMN_SRC_LIST ${CMN_SRC_LIST} "${AMDSMI_SRC_DIR}/fdinfo.cc")
 
 set(CMN_INC_LIST "${ROCM_INC_DIR}/rocm_smi_device.h")
 set(CMN_INC_LIST ${CMN_INC_LIST} "${ROCM_INC_DIR}/rocm_smi_main.h")
@@ -166,10 +168,15 @@ set(CMN_SRC_LIST ${CMN_SRC_LIST} "${COMMON_INC_DIR}/impl/amd_smi_lib_loader.h")
 add_subdirectory("rocm_smi")
 
 # Examples and docs
-set(SMI_EXAMPLE_EXE "amd_smi_ex")
-add_executable(${SMI_EXAMPLE_EXE} "example/amd_smi_example.cc")
+set(SMI_EXAMPLE_EXE "amd_smi_drm_ex")
+add_executable(${SMI_EXAMPLE_EXE} "example/amd_smi_drm_example.cc")
 target_link_libraries(${SMI_EXAMPLE_EXE} ${ROCM_SMI_TARGET})
 add_dependencies(${SMI_EXAMPLE_EXE} ${ROCM_SMI_TARGET})
+
+set(SMI_NODRM_EXAMPLE_EXE "amd_smi_nodrm_ex")
+add_executable(${SMI_NODRM_EXAMPLE_EXE} "example/amd_smi_nodrm_example.cc")
+target_link_libraries(${SMI_NODRM_EXAMPLE_EXE} ${ROCM_SMI_TARGET})
+add_dependencies(${SMI_NODRM_EXAMPLE_EXE} ${ROCM_SMI_TARGET})
 
 # Generate Doxygen documentation
 find_package(Doxygen)

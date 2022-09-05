@@ -55,6 +55,11 @@ AMDSmiSocket::~AMDSmiSocket() {
     devices_.clear();
 }
 
+amdsmi_status_t AMDSmiSocket::get_device_count(uint32_t* device_count) const {
+    *device_count = static_cast<uint32_t>(devices_.size());
+    return AMDSMI_STATUS_SUCCESS;
+}
+
 }  // namespace smi
 }  // namespace amd
 
