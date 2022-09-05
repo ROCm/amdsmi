@@ -52,33 +52,78 @@ uint32_t AMDSmiGPUDevice::get_gpu_id() const {
     return gpu_id_;
 }
 
+uint32_t AMDSmiGPUDevice::get_gpu_fd() const {
+    return fd_;
+}
+
+std::string& AMDSmiGPUDevice::get_gpu_path() {
+    return path_;
+}
+
+amdsmi_bdf_t AMDSmiGPUDevice::get_bdf() {
+    return bdf_;
+}
+amdsmi_status_t AMDSmiGPUDevice::get_drm_data() {
+    amdsmi_status_t ret;
+    uint32_t fd = 0;
+    std::string path;
+    amdsmi_bdf_t bdf;
+    ret = drm_.get_drm_fd_by_index(gpu_id_, &fd);
+    if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
+    ret = drm_.get_drm_path_by_index(gpu_id_, &path);
+    if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
+    ret = drm_.get_bdf_by_index(gpu_id_, &bdf);
+    if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
+
+    mutex_ = shared_mutex_init(path.c_str(), 0777);
+    if (mutex_.ptr == nullptr) {
+        printf("Failed to create shared mem. mutex.");
+        return AMDSMI_STATUS_INIT_ERROR;
+    }
+    bdf_ = bdf, path_ = path, fd_ = fd;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+pthread_mutex_t* AMDSmiGPUDevice::get_mutex() {
+    return mutex_.ptr;
+}
+
 amdsmi_status_t AMDSmiGPUDevice::amdgpu_query_info(unsigned info_id,
                     unsigned size, void *value) const {
-    int fd = drm_.get_drm_fd_by_index(gpu_id_);
-    if (fd == -1) return AMDSMI_STATUS_NOT_SUPPORTED;
+    amdsmi_status_t ret;
+    uint32_t fd = 0;
+    ret = drm_.get_drm_fd_by_index(gpu_id_, &fd);
+    if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
 
     return drm_.amdgpu_query_info(fd, info_id, size, value);
 }
 
 amdsmi_status_t AMDSmiGPUDevice::amdgpu_query_hw_ip(unsigned info_id,
             unsigned hw_ip_type, unsigned size, void *value) const {
-    int fd = drm_.get_drm_fd_by_index(gpu_id_);
-    if (fd == -1) return AMDSMI_STATUS_NOT_SUPPORTED;
+    amdsmi_status_t ret;
+    uint32_t fd = 0;
+    ret = drm_.get_drm_fd_by_index(gpu_id_, &fd);
+    if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
 
     return drm_.amdgpu_query_hw_ip(fd, info_id, hw_ip_type, size, value);
 }
 
 amdsmi_status_t AMDSmiGPUDevice::amdgpu_query_fw(unsigned info_id,
         unsigned fw_type, unsigned size, void *value) const {
-    int fd = drm_.get_drm_fd_by_index(gpu_id_);
-    if (fd == -1) return AMDSMI_STATUS_NOT_SUPPORTED;
+    amdsmi_status_t ret;
+    uint32_t fd = 0;
+    ret = drm_.get_drm_fd_by_index(gpu_id_, &fd);
+    if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
 
     return drm_.amdgpu_query_fw(fd, info_id, fw_type, size, value);
 }
 
 amdsmi_status_t AMDSmiGPUDevice::amdgpu_query_vbios(void *info) const {
-    int fd = drm_.get_drm_fd_by_index(gpu_id_);
-    if (fd == -1) return AMDSMI_STATUS_NOT_SUPPORTED;
+    amdsmi_status_t ret;
+    uint32_t fd = 0;
+    ret = drm_.get_drm_fd_by_index(gpu_id_, &fd);
+    if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;;
 
     return drm_.amdgpu_query_vbios(fd, info);
 }

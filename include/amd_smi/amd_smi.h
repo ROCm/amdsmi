@@ -104,7 +104,7 @@ typedef enum device_type {
 /**
  * @brief Error codes retured by amd_smi_lib functions
  */
-typedef enum amdsmi_status {
+typedef enum amdsmi_status_t {
     AMDSMI_STATUS_SUCCESS = 0,  /**< Call succeeded */
     AMDSMI_STATUS_INVAL,  /**< Invalid parameters */
     AMDSMI_STATUS_NOT_SUPPORTED,  /**< Command not supported */
@@ -334,15 +334,15 @@ typedef struct amdsmi_board_info {
 } amdsmi_board_info_t;
 
 typedef struct amdsmi_temperature {
-  uint16_t  cur_temp;
+  uint32_t  cur_temp;
 } amdsmi_temperature_t;
 
 typedef struct amdsmi_temperature_limit {
-  uint16_t  limit;
+  uint32_t  limit;
 } amdsmi_temperature_limit_t;
 
 typedef struct amdsmi_power_limit {
-  uint16_t  limit;
+  uint32_t  limit;
 } amdsmi_power_limit_t;
 
 typedef struct amdsmi_power_measure {
@@ -369,17 +369,22 @@ typedef struct amdsmi_engine_usage {
 typedef uint32_t amdsmi_process_handle;
 
 typedef struct amdsmi_process_info {
-  char                  name[AMDSMI_NORMAL_STRING_LENGTH];
-  amdsmi_process_handle pid;
-  uint64_t              mem; /** in bytes */
+	char                  name[AMDSMI_NORMAL_STRING_LENGTH];
+	amdsmi_process_handle pid;
+	uint64_t              mem; /** in bytes */
+	struct {
+		uint16_t gfx[AMDSMI_MAX_MM_IP_COUNT];
+		uint16_t compute[AMDSMI_MAX_MM_IP_COUNT];
+		uint16_t sdma[AMDSMI_MAX_MM_IP_COUNT];
+		uint16_t enc[AMDSMI_MAX_MM_IP_COUNT];
+		uint16_t dec[AMDSMI_MAX_MM_IP_COUNT];
+	} engine_usage; /** percentage 0-100% times 100 */
   struct {
-    uint16_t gfx[AMDSMI_MAX_MM_IP_COUNT];
-    uint16_t compute[AMDSMI_MAX_MM_IP_COUNT];
-    uint16_t sdma[AMDSMI_MAX_MM_IP_COUNT];
-    uint16_t enc[AMDSMI_MAX_MM_IP_COUNT];
-    uint16_t dec[AMDSMI_MAX_MM_IP_COUNT];
-  } usage; /** percentage 0-100% times 100 */
-  char container_name[AMDSMI_NORMAL_STRING_LENGTH];
+    uint64_t gtt_mem;
+    uint64_t cpu_mem;
+    uint64_t vram_mem;
+  } memory_usage; /** in bytes */
+	char container_name[AMDSMI_NORMAL_STRING_LENGTH];
 } amdsmi_proc_info_t;
 
 //! Guaranteed maximum possible number of supported frequencies
@@ -1071,8 +1076,8 @@ typedef struct {
  * @brief This structure holds error counts.
  */
 typedef struct {
-    uint64_t correctable_err;            //!< Accumulated correctable errors
-    uint64_t uncorrectable_err;          //!< Accumulated uncorrectable errors
+    uint64_t correctable_count;            //!< Accumulated correctable errors
+    uint64_t uncorrectable_count;          //!< Accumulated uncorrectable errors
 } amdsmi_error_count_t;
 
 /**
@@ -1795,7 +1800,50 @@ amdsmi_dev_memory_total_get(amdsmi_device_handle device_handle, amdsmi_memory_ty
 amdsmi_status_t
 amdsmi_dev_memory_usage_get(amdsmi_device_handle device_handle, amdsmi_memory_type_t mem_type,
                                                               uint64_t *used);
-
+/**
+ * @brief The first call to this API returns the number of bad pages which
+ * should be used to allocate the buffer that should contain the bad page
+ * records.
+ * @details This call will query the device @p device_handle for the
+ * number of bad pages (written to @p num_pages address). The results are
+ * written to address held by the @p info pointer.
+ * @param[in] device_handle a device handle
+ * @param[out] num_pages Number of bad page records.
+ * @param[out] info Pointer to amdsmi_retired_page_record_t to which the
+ * results will be written to.
+ * @retval ::AMDSMI_STATUS_SUCCESS call was successful
+ * @retval ::AMDSMI_STATUS_INVAL the parameters are not valid or nullptr
+ * @retval ::AMDSMI_STATUS_NOT_SUPPORTED API not supported
+ */
+amdsmi_status_t
+amdsmi_get_bad_page_info(amdsmi_device_handle device_handle, uint32_t *num_pages, amdsmi_retired_page_record_t *info);
+/**
+ * @brief Returns if RAS features are enabled or disabled for given block
+ *
+ * @details Given a device handle @p device_handle, this function queries the
+ * state of RAS features for a specific block @p block. Result will be written
+ * to address held by pointer @p state.
+ *
+ * @param[in] device_handle Device handle which to query
+ *
+ * @param[in] block Block which to query
+ *
+ * @param[inout] state A pointer to amdsmi_ras_err_state_t to which the state
+ * of block will be written.
+ * If this parameter is nullptr, this function will return
+ * ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided
+ * arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
+ * provided arguments.
+ *
+ * @retval ::AMDSMI_STATUS_SUCCESS call was successful
+ * @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
+ * support this function with the given arguments.
+ * @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *
+ */
+amdsmi_status_t
+amdsmi_get_ras_features_enabled(amdsmi_device_handle device_handle, amdsmi_gpu_block block,
+                                                                  amdsmi_ras_err_state_t *state);
 /**
  *  @brief Get percentage of time any device memory is being used
  *
@@ -3676,11 +3724,11 @@ amdsmi_status_t amdsmi_event_notification_stop(amdsmi_device_handle device_handl
  *  \param [out]    bdf - Reference to BDF. Must be allocated by user.
  *
  *  \return
- *                  *  ::SMI_SUCCESS - Successful
- *                  * -::SMI_ERR_NO_PERM - Library was not initialized
- *                  * -::SMI_ERR_INVAL - Parameters are invalid
- *                  * -::SMI_ERR_NOT_FOUND - Device cannot be found
- *                  * -::SMI_ERR_API_FAILED - Other errors
+ *                  *  ::AMDSMI_STATUS_SUCCESS - Successful
+ *                  * -::AMDSMI_STATUS_NO_PERM - Library was not initialized
+ *                  * -::AMDSMI_STATUS_INVAL - Parameters are invalid
+ *                  * -::AMDSMI_STATUS_NOT_FOUND - Device cannot be found
+ *                  * -::AMDSMI_STATUS_API_FAILED - Other errors
  */
 amdsmi_status_t
 amdsmi_get_device_bdf(amdsmi_device_handle dev, amdsmi_bdf_t *bdf);
@@ -3698,13 +3746,13 @@ amdsmi_get_device_bdf(amdsmi_device_handle dev, amdsmi_bdf_t *bdf);
  *                  allocated by user.
  *
  *  \return
- *                  *  ::SMI_SUCCESS - Successful
- *                  * -::SMI_ERR_NO_PERM - Library was not initialized
- *                  * -::SMI_ERR_INVAL - Parameters are invalid
- *                  * -::SMI_ERR_NOT_FOUND - Device cannot be found
- *                  * -::SMI_ERR_API_FAILED - Other errors
+ *                  *  ::AMDSMI_STATUS_SUCCESS - Successful
+ *                  * -::AMDSMI_STATUS_NO_PERM - Library was not initialized
+ *                  * -::AMDSMI_STATUS_INVAL - Parameters are invalid
+ *                  * -::AMDSMI_STATUS_NOT_FOUND - Device cannot be found
+ *                  * -::AMDSMI_STATUS_API_FAILED - Other errors
  */
-amdsmi_status
+amdsmi_status_t
 amdsmi_get_device_uuid(amdsmi_device_handle dev, unsigned int *uuid_length, char *uuid);
 
 /** @}  */
@@ -3726,13 +3774,13 @@ amdsmi_get_device_uuid(amdsmi_device_handle dev, unsigned int *uuid_length, char
  *                  allocated by user.
  *
  *  \return
- *                  *  ::SMI_SUCCESS - Successful
- *                  * -::SMI_ERR_NOT_FOUND - Device cannot be found
- *                  * -::SMI_ERR_NO_PERM - Library was not initialized
- *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
- *                  * -::SMI_ERR_API_FAILED - Other errors
+ *                  *  ::AMDSMI_STATUS_SUCCESS - Successful
+ *                  * -::AMDSMI_STATUS_NOT_FOUND - Device cannot be found
+ *                  * -::AMDSMI_STATUS_NO_PERM - Library was not initialized
+ *                  * -::AMDSMI_STATUS_INVAL - Parameters are not valid or NULL
+ *                  * -::AMDSMI_STATUS_API_FAILED - Other errors
  */
-amdsmi_status
+amdsmi_status_t
 amdsmi_get_driver_version(amdsmi_device_handle dev, int *length, char *version);
 
 /** @}  */
@@ -3750,15 +3798,15 @@ amdsmi_get_driver_version(amdsmi_device_handle dev, int *length, char *version);
  *                  Must be allocated by user.
  *
  *  \return
- *                  *  ::SMI_SUCCESS - Successful
- *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
- *                  * -::SMI_ERR_NO_PERM - Library was not initialized
- *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
- *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
- *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
- *                  * -::SMI_ERR_API_FAILED - Other errors
+ *                  *  ::AMDSMI_STATUS_SUCCESS - Successful
+ *                  * -::AMDSMI_STATUS_RETRY - Device is busy. Please retry
+ *                  * -::AMDSMI_STATUS_NO_PERM - Library was not initialized
+ *                  * -::AMDSMI_STATUS_INVAL - Parameters are not valid or NULL
+ *                  * -::AMDSMI_STATUS_IO - Device is in an unrecoverable state
+ *                  * -::AMDSMI_STATUS_NOT_INIT - Device is uninitialized
+ *                  * -::AMDSMI_STATUS_API_FAILED - Other errors
  */
-amdsmi_status
+amdsmi_status_t
 amdsmi_get_asic_info(amdsmi_device_handle dev, amdsmi_asic_info_t *info);
 
 /**
@@ -3770,15 +3818,15 @@ amdsmi_get_asic_info(amdsmi_device_handle dev, amdsmi_asic_info_t *info);
  *                  Must be allocated by user.
  *
  *  \return
- *                  *  ::SMI_SUCCESS - Successful
- *                  * -::SMI_ERR_NO_PERM - Library was not initialize
- *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
- *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
- *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
- *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
- *                  * -::SMI_ERR_API_FAILED - Other errors
+ *                  *  ::AMDSMI_STATUS_SUCCESS - Successful
+ *                  * -::AMDSMI_STATUS_NO_PERM - Library was not initialize
+ *                  * -::AMDSMI_STATUS_RETRY - Device is busy. Please retry
+ *                  * -::AMDSMI_STATUS_INVAL - Parameters are not valid or NULL
+ *                  * -::AMDSMI_STATUS_IO - Device is in an unrecoverable state
+ *                  * -::AMDSMI_STATUS_NOT_INIT - Device is uninitialized
+ *                  * -::AMDSMI_STATUS_API_FAILED - Other errors
  */
-amdsmi_status
+amdsmi_status_t
 amdsmi_get_board_info(amdsmi_device_handle dev, amdsmi_board_info_t *info);
 
 /**
@@ -3792,15 +3840,15 @@ amdsmi_get_board_info(amdsmi_device_handle dev, amdsmi_board_info_t *info);
  *                  allocated by user.
  *
  *  \return
- *                  *  ::SMI_SUCCESS - Successful
- *                  * -::SMI_ERR_NO_PERM - Library was not initialized
- *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
- *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
- *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
- *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
- *                  * -::SMI_ERR_API_FAILED - Other errors
+ *                  *  ::AMDSMI_STATUS_SUCCESS - Successful
+ *                  * -::AMDSMI_STATUS_NO_PERM - Library was not initialized
+ *                  * -::AMDSMI_STATUS_RETRY - Device is busy. Please retry
+ *                  * -::AMDSMI_STATUS_INVAL - Parameters are not valid or NULL
+ *                  * -::AMDSMI_STATUS_IO - Device is in an unrecoverable state
+ *                  * -::AMDSMI_STATUS_NOT_INIT - Device is uninitialized
+ *                  * -::AMDSMI_STATUS_API_FAILED - Other errors
  */
-amdsmi_status
+amdsmi_status_t
 amdsmi_get_power_cap_info(amdsmi_device_handle dev, uint32_t sensor_ind,
           amdsmi_power_cap_info_t *info);
 
@@ -3814,15 +3862,15 @@ amdsmi_get_power_cap_info(amdsmi_device_handle dev, uint32_t sensor_ind,
  *
  *
  *  \return
- *                  *  ::SMI_SUCCESS - Successful
- *                  * -::SMI_ERR_NO_PERM - Library was not initialized
- *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
- *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
- *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
- *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
- *                  * -::SMI_ERR_API_FAILED - Other errors
+ *                  *  ::AMDSMI_STATUS_SUCCESS - Successful
+ *                  * -::AMDSMI_STATUS_NO_PERM - Library was not initialized
+ *                  * -::AMDSMI_STATUS_RETRY - Device is busy. Please retry
+ *                  * -::AMDSMI_STATUS_INVAL - Parameters are not valid or NULL
+ *                  * -::AMDSMI_STATUS_IO - Device is in an unrecoverable state
+ *                  * -::AMDSMI_STATUS_NOT_INIT - Device is uninitialized
+ *                  * -::AMDSMI_STATUS_API_FAILED - Other errors
  */
-amdsmi_status
+amdsmi_status_t
 amdsmi_get_xgmi_info(amdsmi_device_handle dev, amdsmi_xgmi_info_t *info);
 
 /**
@@ -3835,15 +3883,15 @@ amdsmi_get_xgmi_info(amdsmi_device_handle dev, amdsmi_xgmi_info_t *info);
  *                  allocated by user.
  *
  *  \return
- *                  *  ::SMI_SUCCESS - Successful
- *                  * -::SMI_ERR_NO_PERM - Library was not initialized
- *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
- *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
- *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
- *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
- *                  * -::SMI_ERR_API_FAILED - Other errors
+ *                  *  ::AMDSMI_STATUS_SUCCESS - Successful
+ *                  * -::AMDSMI_STATUS_NO_PERM - Library was not initialized
+ *                  * -::AMDSMI_STATUS_RETRY - Device is busy. Please retry
+ *                  * -::AMDSMI_STATUS_INVAL - Parameters are not valid or NULL
+ *                  * -::AMDSMI_STATUS_IO - Device is in an unrecoverable state
+ *                  * -::AMDSMI_STATUS_NOT_INIT - Device is uninitialized
+ *                  * -::AMDSMI_STATUS_API_FAILED - Other errors
  */
-amdsmi_status
+amdsmi_status_t
 amdsmi_get_caps_info(amdsmi_device_handle dev, amdsmi_gpu_caps_t *info);
 
 /** @}  */
@@ -3860,15 +3908,15 @@ amdsmi_get_caps_info(amdsmi_device_handle dev, amdsmi_gpu_caps_t *info);
  *  \param [out]    info - Reference to the fw info. Must be allocated by user.
  *
  *  \return
- *                  *  ::SMI_SUCCESS - Successful
- *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
- *                  * -::SMI_ERR_NO_PERM - Library was not initialized
- *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
- *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
- *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
- *                  * -::SMI_ERR_API_FAILED - Other errors
+ *                  *  ::AMDSMI_STATUS_SUCCESS - Successful
+ *                  * -::AMDSMI_STATUS_RETRY - Device is busy. Please retry
+ *                  * -::AMDSMI_STATUS_NO_PERM - Library was not initialized
+ *                  * -::AMDSMI_STATUS_INVAL - Parameters are not valid or NULL
+ *                  * -::AMDSMI_STATUS_IO - Device is in an unrecoverable state
+ *                  * -::AMDSMI_STATUS_NOT_INIT - Device is uninitialized
+ *                  * -::AMDSMI_STATUS_API_FAILED - Other errors
  */
-amdsmi_status
+amdsmi_status_t
 amdsmi_get_fw_info(amdsmi_device_handle dev, amdsmi_fw_info_t *info);
 
 /**
@@ -3880,15 +3928,15 @@ amdsmi_get_fw_info(amdsmi_device_handle dev, amdsmi_fw_info_t *info);
  *                  Must be allocated by user.
  *
  *  \return
- *                  *  ::SMI_SUCCESS - Successful
- *                  * -::SMI_ERR_NO_PERM - Library was not initialized
- *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
- *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
- *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
- *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
- *                  * -::SMI_ERR_API_FAILED - Other errors
+ *                  *  ::AMDSMI_STATUS_SUCCESS - Successful
+ *                  * -::AMDSMI_STATUS_NO_PERM - Library was not initialized
+ *                  * -::AMDSMI_STATUS_RETRY - Device is busy. Please retry
+ *                  * -::AMDSMI_STATUS_INVAL - Parameters are not valid or NULL
+ *                  * -::AMDSMI_STATUS_IO - Device is in an unrecoverable state
+ *                  * -::AMDSMI_STATUS_NOT_INIT - Device is uninitialized
+ *                  * -::AMDSMI_STATUS_API_FAILED - Other errors
  */
-amdsmi_status
+amdsmi_status_t
 amdsmi_get_vbios_info(amdsmi_device_handle dev, amdsmi_vbios_info_t *info);
 
 /** @}  */
@@ -3906,15 +3954,15 @@ amdsmi_get_vbios_info(amdsmi_device_handle dev, amdsmi_vbios_info_t *info);
  *  \param [out]    info - Reference to the gpu engine usage structure. Must be allocated by user.
  *
  *  \return
- *                  *  ::SMI_SUCCESS - Successful
- *                  * -::SMI_ERR_NO_PERM - Library was not initialized
- *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
- *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
- *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
- *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
- *                  * -::SMI_ERR_API_FAILED - Other errors
+ *                  *  ::AMDSMI_STATUS_SUCCESS - Successful
+ *                  * -::AMDSMI_STATUS_NO_PERM - Library was not initialized
+ *                  * -::AMDSMI_STATUS_RETRY - Device is busy. Please retry
+ *                  * -::AMDSMI_STATUS_INVAL - Parameters are not valid or NULL
+ *                  * -::AMDSMI_STATUS_IO - Device is in an unrecoverable state
+ *                  * -::AMDSMI_STATUS_NOT_INIT - Device is uninitialized
+ *                  * -::AMDSMI_STATUS_API_FAILED - Other errors
  */
-amdsmi_status
+amdsmi_status_t
 amdsmi_get_gpu_activity(amdsmi_device_handle dev, amdsmi_engine_usage_t *info);
 
 /**
@@ -3926,15 +3974,15 @@ amdsmi_get_gpu_activity(amdsmi_device_handle dev, amdsmi_engine_usage_t *info);
  *  \param [out]    info - Reference to the gpu power structure. Must be allocated by user.
  *
  *  \return
- *                  *  ::SMI_SUCCESS - Successful
- *                  * -::SMI_ERR_NO_PERM - Library was not initialized
- *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
- *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
- *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
- *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
- *                  * -::SMI_ERR_API_FAILED - Other errors
+ *                  *  ::AMDSMI_STATUS_SUCCESS - Successful
+ *                  * -::AMDSMI_STATUS_NO_PERM - Library was not initialized
+ *                  * -::AMDSMI_STATUS_RETRY - Device is busy. Please retry
+ *                  * -::AMDSMI_STATUS_INVAL - Parameters are not valid or NULL
+ *                  * -::AMDSMI_STATUS_IO - Device is in an unrecoverable state
+ *                  * -::AMDSMI_STATUS_NOT_INIT - Device is uninitialized
+ *                  * -::AMDSMI_STATUS_API_FAILED - Other errors
  */
-amdsmi_status
+amdsmi_status_t
 amdsmi_get_power_measure(amdsmi_device_handle dev, amdsmi_power_measure_t *info);
 
 /**
@@ -3950,15 +3998,15 @@ amdsmi_get_power_measure(amdsmi_device_handle dev, amdsmi_power_measure_t *info)
  *                  Must be allocated by user.
  *
  *  \return
- *                  *  ::SMI_SUCCESS - Successful
- *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
- *                  * -::SMI_ERR_NO_PERM - Library was not initialized
- *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
- *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
- *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
- *                  * -::SMI_ERR_API_FAILED - Other errors
+ *                  *  ::AMDSMI_STATUS_SUCCESS - Successful
+ *                  * -::AMDSMI_STATUS_RETRY - Device is busy. Please retry
+ *                  * -::AMDSMI_STATUS_NO_PERM - Library was not initialized
+ *                  * -::AMDSMI_STATUS_INVAL - Parameters are not valid or NULL
+ *                  * -::AMDSMI_STATUS_IO - Device is in an unrecoverable state
+ *                  * -::AMDSMI_STATUS_NOT_INIT - Device is uninitialized
+ *                  * -::AMDSMI_STATUS_API_FAILED - Other errors
  */
-amdsmi_status
+amdsmi_status_t
 amdsmi_get_clock_measure(amdsmi_device_handle dev, amdsmi_clk_type_t clk_type, amdsmi_clock_measure_t *info);
 
 /**
@@ -3973,15 +4021,15 @@ amdsmi_get_clock_measure(amdsmi_device_handle dev, amdsmi_clk_type_t clk_type, a
  *                  Must be allocated by user.
  *
  *  \return
- *                  *  ::SMI_SUCCESS - Successful
- *                  * -::SMI_ERR_NO_PERM - Library was not initialized
- *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
- *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
- *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
- *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
- *                  * -::SMI_ERR_API_FAILED - Other errors
+ *                  *  ::AMDSMI_STATUS_SUCCESS - Successful
+ *                  * -::AMDSMI_STATUS_NO_PERM - Library was not initialized
+ *                  * -::AMDSMI_STATUS_RETRY - Device is busy. Please retry
+ *                  * -::AMDSMI_STATUS_INVAL - Parameters are not valid or NULL
+ *                  * -::AMDSMI_STATUS_IO - Device is in an unrecoverable state
+ *                  * -::AMDSMI_STATUS_NOT_INIT - Device is uninitialized
+ *                  * -::AMDSMI_STATUS_API_FAILED - Other errors
  */
-amdsmi_status
+amdsmi_status_t
 amdsmi_get_temperature_measure(amdsmi_device_handle dev, amdsmi_temperature_type_t temp_type, amdsmi_temperature_t *info);
 
 /**
@@ -3996,16 +4044,16 @@ amdsmi_get_temperature_measure(amdsmi_device_handle dev, amdsmi_temperature_type
  *                  Must be allocated by user.
  *
  *  \return
- *                  *  ::SMI_SUCCESS - Successful
- *                  * -::SMI_ERR_NO_PERM - Library was not initialized
- *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
- *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
- *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
- *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
- *                  * -::SMI_ERR_API_FAILED - Other errors
+ *                  *  ::AMDSMI_STATUS_SUCCESS - Successful
+ *                  * -::AMDSMI_STATUS_NO_PERM - Library was not initialized
+ *                  * -::AMDSMI_STATUS_RETRY - Device is busy. Please retry
+ *                  * -::AMDSMI_STATUS_INVAL - Parameters are not valid or NULL
+ *                  * -::AMDSMI_STATUS_IO - Device is in an unrecoverable state
+ *                  * -::AMDSMI_STATUS_NOT_INIT - Device is uninitialized
+ *                  * -::AMDSMI_STATUS_API_FAILED - Other errors
  */
-amdsmi_status
-amdsmi_get_temperature_limit(amdsmi_device_handle dev, amdsmi_temperature_t temp_type, amdsmi_temperature_limit_t *limit);
+amdsmi_status_t
+amdsmi_get_temperature_limit(amdsmi_device_handle dev, amdsmi_temperature_type_t temp_type, amdsmi_temperature_limit_t *limit);
 
 /**
  *  \brief          Returns power limit of the GPU.
@@ -4017,15 +4065,15 @@ amdsmi_get_temperature_limit(amdsmi_device_handle dev, amdsmi_temperature_t temp
  *                  Must be allocated by user.
  *
  *  \return
- *                  *  ::SMI_SUCCESS - Successful
- *                  * -::SMI_ERR_NO_PERM - Library was not initialized
- *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
- *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
- *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
- *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
- *                  * -::SMI_ERR_API_FAILED - Other errors
+ *                  *  ::AMDSMI_STATUS_SUCCESS - Successful
+ *                  * -::AMDSMI_STATUS_NO_PERM - Library was not initialized
+ *                  * -::AMDSMI_STATUS_RETRY - Device is busy. Please retry
+ *                  * -::AMDSMI_STATUS_INVAL - Parameters are not valid or NULL
+ *                  * -::AMDSMI_STATUS_IO - Device is in an unrecoverable state
+ *                  * -::AMDSMI_STATUS_NOT_INIT - Device is uninitialized
+ *                  * -::AMDSMI_STATUS_API_FAILED - Other errors
  */
-amdsmi_status
+amdsmi_status_t
 amdsmi_get_power_limit(amdsmi_device_handle dev, amdsmi_power_limit_t *limit);
 
 /**
@@ -4039,15 +4087,15 @@ amdsmi_get_power_limit(amdsmi_device_handle dev, amdsmi_power_limit_t *limit);
  *                  Must be allocated by user.
  *
  *  \return
- *                  *  ::SMI_SUCCESS - Successful
- *                  * -::SMI_ERR_NO_PERM - Library was not initialized
- *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
- *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
- *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
- *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
- *                  * -::SMI_ERR_API_FAILED - Other errors
+ *                  *  ::AMDSMI_STATUS_SUCCESS - Successful
+ *                  * -::AMDSMI_STATUS_NO_PERM - Library was not initialized
+ *                  * -::AMDSMI_STATUS_RETRY - Device is busy. Please retry
+ *                  * -::AMDSMI_STATUS_INVAL - Parameters are not valid or NULL
+ *                  * -::AMDSMI_STATUS_IO - Device is in an unrecoverable state
+ *                  * -::AMDSMI_STATUS_NOT_INIT - Device is uninitialized
+ *                  * -::AMDSMI_STATUS_API_FAILED - Other errors
  */
-amdsmi_status
+amdsmi_status_t
 amdsmi_get_vram_usage(amdsmi_device_handle dev, amdsmi_vram_info_t *info);
 
 /** @}  */
@@ -4072,15 +4120,15 @@ amdsmi_get_vram_usage(amdsmi_device_handle dev, amdsmi_vram_info_t *info);
  *
  *
  *  \return
- *                  *  ::SMI_SUCCESS - Successful
- *                  * -::SMI_ERR_NO_PERM - Library was not initialize
- *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
- *                  * -::SMI_ERR_INVAL - Parameters are not valid or NULL
- *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
- *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
- *                  * -::SMI_ERR_API_FAILED - Other errors
+ *                  *  ::AMDSMI_STATUS_SUCCESS - Successful
+ *                  * -::AMDSMI_STATUS_NO_PERM - Library was not initialize
+ *                  * -::AMDSMI_STATUS_RETRY - Device is busy. Please retry
+ *                  * -::AMDSMI_STATUS_INVAL - Parameters are not valid or NULL
+ *                  * -::AMDSMI_STATUS_IO - Device is in an unrecoverable state
+ *                  * -::AMDSMI_STATUS_NOT_INIT - Device is uninitialized
+ *                  * -::AMDSMI_STATUS_API_FAILED - Other errors
  */
-amdsmi_status
+amdsmi_status_t
 amdsmi_get_target_frequency_range(amdsmi_device_handle dev, amdsmi_clk_type_t clk_type, amdsmi_frequency_range_t *range);
 
 /** @}  */
@@ -4109,13 +4157,13 @@ amdsmi_get_target_frequency_range(amdsmi_device_handle dev, amdsmi_clk_type_t cl
  *                  in list or the number of running processes if equal to 0.
  *
  *  \return
- *                  *  ::SMI_SUCCESS - Successful
- *                  * -::SMI_ERR_NO_PERM - Library was not initialized
- *                  * -::SMI_ERR_INVAL - The parameters are not valid or NULL
- *                  * -::SMI_ERR_NOMEM - Provided buffer is not large enough
- *                  * -::SMI_ERR_NOT_SUPPORTED - API not supported
+ *                  *  ::AMDSMI_STATUS_SUCCESS - Successful
+ *                  * -::AMDSMI_STATUS_NO_PERM - Library was not initialized
+ *                  * -::AMDSMI_STATUS_INVAL - The parameters are not valid or NULL
+ *                  * -::AMDSMI_STATUS_NOMEM - Provided buffer is not large enough
+ *                  * -::AMDSMI_STATUS_NOT_SUPPORTED - API not supported
  */
-amdsmi_status
+amdsmi_status_t
 amdsmi_get_process_list(amdsmi_device_handle dev, amdsmi_process_handle *list, uint32_t *max_processes);
 
 /**
@@ -4129,12 +4177,12 @@ amdsmi_get_process_list(amdsmi_device_handle dev, amdsmi_process_handle *list, u
  *                  information. Must be allocated by user.
  *
  *  \return
- *                  *  ::SMI_SUCCESS - Successful
- *                  * -::SMI_ERR_NO_PERM - Library was not initialized
- *                  * -::SMI_ERR_INVAL - The parameters are not valid or NULL
- *                  * -::SMI_ERR_NOT_SUPPORTED - API not supported
+ *                  *  ::AMDSMI_STATUS_SUCCESS - Successful
+ *                  * -::AMDSMI_STATUS_NO_PERM - Library was not initialized
+ *                  * -::AMDSMI_STATUS_INVAL - The parameters are not valid or NULL
+ *                  * -::AMDSMI_STATUS_NOT_SUPPORTED - API not supported
  */
-amdsmi_status
+amdsmi_status_t
 amdsmi_get_process_info(amdsmi_device_handle dev, amdsmi_process_handle process, amdsmi_proc_info_t *info);
 
 /** @}  */
@@ -4154,15 +4202,15 @@ amdsmi_get_process_info(amdsmi_device_handle dev, amdsmi_process_handle process,
  *                  Must be allocated by user.
  *
  *  \return
- *                  *  ::SMI_SUCCESS - Successful
- *                  * -::SMI_ERR_RETRY - Device is busy. Please retry
- *                  * -::SMI_ERR_NO_PERM - Library was not initialized
- *                  * -::SMI_ERR_INVAL - The parameters are not valid or NULL
- *                  * -::SMI_ERR_IO - Device is in an unrecoverable state
- *                  * -::SMI_ERR_NOT_INIT - Device is uninitialized
- *                  * -::SMI_ERR_API_FAILED - Other errors
+ *                  *  ::AMDSMI_STATUS_SUCCESS - Successful
+ *                  * -::AMDSMI_STATUS_RETRY - Device is busy. Please retry
+ *                  * -::AMDSMI_STATUS_NO_PERM - Library was not initialized
+ *                  * -::AMDSMI_STATUS_INVAL - The parameters are not valid or NULL
+ *                  * -::AMDSMI_STATUS_IO - Device is in an unrecoverable state
+ *                  * -::AMDSMI_STATUS_NOT_INIT - Device is uninitialized
+ *                  * -::AMDSMI_STATUS_API_FAILED - Other errors
  */
-amdsmi_status
+amdsmi_status_t
 amdsmi_get_ecc_error_count(amdsmi_device_handle dev, amdsmi_error_count_t *ec);
 
 #ifdef __cplusplus

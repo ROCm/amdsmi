@@ -58,7 +58,13 @@ class AMDSmiDrm {
  public:
     amdsmi_status_t init();
     amdsmi_status_t cleanup();
-    int get_drm_fd_by_index(uint32_t gpu_index) const;
+    amdsmi_status_t get_drm_fd_by_index(uint32_t gpu_index, uint32_t *fd_info) const;
+    amdsmi_status_t get_bdf_by_index(uint32_t gpu_index, amdsmi_bdf_t *bdf_info) const;
+    amdsmi_status_t get_drm_path_by_index(uint32_t gpu_index, std::string *drm_path) const;
+    std::vector<amdsmi_bdf_t> get_bdfs();
+    std::vector<std::string>& get_drm_paths();
+    bool check_if_drm_is_supported();
+
     amdsmi_status_t amdgpu_query_info(int fd, unsigned info_id,
                     unsigned size, void *value);
     amdsmi_status_t  amdgpu_query_fw(int fd, unsigned info_id, unsigned fw_type,
@@ -70,6 +76,9 @@ class AMDSmiDrm {
  private:
     using DrmCmdWriteFunc = int (*)(int, unsigned long, void *, unsigned long);
     std::vector<int> drm_fds_;  // drm file descriptor by gpu_index
+    std::vector<std::string> drm_paths_; // drm path (renderD128 for example)
+    std::vector<amdsmi_bdf_t> drm_bdfs_; // bdf
+
     AMDSmiLibraryLoader lib_loader_;  // lazy load libdrm
     DrmCmdWriteFunc drm_cmd_write_;   // drmCommandWrite
     std::mutex drm_mutex_;

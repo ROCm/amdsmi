@@ -60,6 +60,7 @@ class AMDSmiSocket {
     const std::string& get_socket_id() const { return socket_identifier_;}
     void add_device(AMDSmiDevice* device) { devices_.push_back(device); }
     std::vector<AMDSmiDevice*>& get_devices() { return devices_;}
+    amdsmi_status_t get_device_count(uint32_t* device_count) const;
  private:
     std::string socket_identifier_;
     std::vector<AMDSmiDevice*> devices_;
