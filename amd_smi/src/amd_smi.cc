@@ -52,6 +52,7 @@
 #include <iostream>
 #include <vector>
 #include <set>
+#include <map>
 #include <memory>
 #include <xf86drm.h>
 #include "amd_smi.h"
@@ -60,6 +61,7 @@
 #include "impl/amd_smi_socket.h"
 #include "impl/amd_smi_gpu_device.h"
 #include "rocm_smi/rocm_smi.h"
+#include "rocm_smi/rocm_smi_common.h"
 #include "impl/amdgpu_drm.h"
 
 // TODO(bliu): One to one map to all status code
@@ -197,34 +199,53 @@ amdsmi_status_t amdsmi_get_device_type(amdsmi_device_handle device_handle ,
 }
 
 amdsmi_status_t amdsmi_get_board_info(amdsmi_device_handle device_handle,
-            amdsmi_board_info_t *board_info) {
-    if (board_info == NULL) {
+            amdsmi_board_info_t *info) {
+    if (info == NULL) {
         return AMDSMI_STATUS_INVAL;
     }
 
+    memset(info, 0, sizeof(amdsmi_board_info_t));
+
+    // ignore errors so that if the function is not supported,
+    // it will continue to add other info.
     auto r  = rsmi_wrapper(rsmi_dev_name_get, device_handle,
-            board_info->product_name, AMDSMI_PRODUCT_NAME_LENGTH);
-    if (r != AMDSMI_STATUS_SUCCESS)
-        return r;
-    // TODO(bliu) : rsmi_dev_serial_number_get, rsmi_dev_brand_get,
-    // rsmi_dev_sku_get, Do we include in the board_info or different data structure
-    /*
+        info->product_name, AMDSMI_PRODUCT_NAME_LENGTH);
+
     r = rsmi_wrapper(rsmi_dev_serial_number_get, device_handle,
-            board_info->serial_number, AMDSMI_NORMAL_STRING_LENGTH);
-    if (r != AMDSMI_STATUS_SUCCESS)
-        return r;
+            info->product_serial, AMDSMI_NORMAL_STRING_LENGTH);
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+// TODO(bliu) : add other asic info
+amdsmi_status amdsmi_get_asic_info(amdsmi_device_handle device_handle,
+            amdsmi_asic_info_t *info) {
+    if (info == nullptr)
+        return AMDSMI_STATUS_INVAL;
+    memset(info, 0, sizeof(amdsmi_asic_info_t));
+
+    auto r = rsmi_wrapper(rsmi_dev_serial_number_get, device_handle,
+            info->asic_serial, AMDSMI_NORMAL_STRING_LENGTH);
 
     r = rsmi_wrapper(rsmi_dev_brand_get, device_handle,
-            board_info->brand, AMDSMI_NORMAL_STRING_LENGTH);
-    if (r != AMDSMI_STATUS_SUCCESS)
-        return r;
+            info->market_name, AMDSMI_NORMAL_STRING_LENGTH);
 
-    r = rsmi_wrapper(rsmi_dev_sku_get, device_handle,
-            &(board_info->sku));
-    if (r != AMDSMI_STATUS_SUCCESS)
-        return r;
-*/
-    return r;
+    uint16_t vendor_id = 0;
+    r = rsmi_wrapper(rsmi_dev_vendor_id_get, device_handle,
+                            &vendor_id);
+    if ( r == AMDSMI_STATUS_SUCCESS)
+        info->vendor_id = static_cast<uint32_t>(vendor_id);
+
+    r = rsmi_wrapper(rsmi_dev_unique_id_get, device_handle,
+                &(info->device_id));
+
+    vendor_id = 0;
+    r =  rsmi_wrapper(rsmi_dev_subsystem_vendor_id_get, device_handle,
+                &vendor_id);
+    if ( r == AMDSMI_STATUS_SUCCESS)
+        info->subvendor_id = static_cast<uint32_t>(vendor_id);
+
+    return AMDSMI_STATUS_SUCCESS;
 }
 
 amdsmi_status_t amdsmi_dev_temp_metric_get(amdsmi_device_handle device_handle,
@@ -274,7 +295,8 @@ amdsmi_status_t amdsmi_get_vram_usage(amdsmi_device_handle device_handle,
                 sizeof(struct drm_amdgpu_memory_info), &gtt);
     if (r != AMDSMI_STATUS_SUCCESS)  return r;
 
-    vram_info->vram_total = static_cast<uint32_t>(gtt.vram_size / (1024 * 1024));
+    vram_info->vram_total = static_cast<uint32_t>(
+        gtt.vram_size / (1024 * 1024));
 
     r = gpu_device->amdgpu_query_info(AMDGPU_INFO_VRAM_USAGE,
                 sizeof(vram_used), &vram_used);
@@ -414,36 +436,49 @@ amdsmi_status_t amdsmi_dev_id_get(amdsmi_device_handle device_handle,
     return rsmi_wrapper(rsmi_dev_id_get, device_handle, id);
 }
 
-// TODO(bliu) : add other asic info
-amdsmi_status
-amdsmi_get_asic_info(amdsmi_device_handle dev, amdsmi_asic_info_t *info) {
-    if (info == nullptr)
-        return AMDSMI_STATUS_INVAL;
-
-    // Set init value
-    memset(info, 0, sizeof(amdsmi_asic_info_t));
-
-    // ignore errors to set multiple properties
-    uint16_t vendor_id = 0;
-    amdsmi_status status = rsmi_wrapper(rsmi_dev_vendor_id_get, dev,
-                            &vendor_id);
-    if (status == AMDSMI_STATUS_SUCCESS)
-        info->vendor_id = vendor_id;
-
-    // TODO(bliu) : get unique_id from rocm-smi and then covert to string
-    // status = rsmi_wrapper(rsmi_dev_unique_id_get, dev, &(info->unique_id));
-
-    return AMDSMI_STATUS_SUCCESS;
-}
-
-// TODO(bliu) : get  all fw info
+// TODO(bliu) : add fw info from libdrm
 amdsmi_status amdsmi_get_fw_info(amdsmi_device_handle dev,
         amdsmi_fw_info_t *info) {
+    const std::map<amdsmi_fw_block, rsmi_fw_block_t> fw_in_rsmi = {
+        { FW_ID_ASD, RSMI_FW_BLOCK_ASD},
+        { FW_ID_CP_CE, RSMI_FW_BLOCK_CE},
+        { FW_ID_DMCU, RSMI_FW_BLOCK_DMCU},
+        { FW_ID_MC, RSMI_FW_BLOCK_MC},
+        { FW_ID_CP_ME, RSMI_FW_BLOCK_ME},
+        { FW_ID_CP_MEC1, RSMI_FW_BLOCK_MEC},
+        { FW_ID_CP_MEC2, RSMI_FW_BLOCK_MEC2},
+        { FW_ID_CP_PFP, RSMI_FW_BLOCK_PFP},
+        { FW_ID_RLC, RSMI_FW_BLOCK_RLC},
+        { FW_ID_RLC_RESTORE_LIST_CNTL, RSMI_FW_BLOCK_RLC_SRLC},
+        { FW_ID_RLC_RESTORE_LIST_GPM_MEM, RSMI_FW_BLOCK_RLC_SRLG},
+        { FW_ID_RLC_RESTORE_LIST_SRM_MEM, RSMI_FW_BLOCK_RLC_SRLS},
+        { FW_ID_SDMA0, RSMI_FW_BLOCK_SDMA},
+        { FW_ID_SDMA1, RSMI_FW_BLOCK_SDMA2},
+        { FW_ID_SMC, RSMI_FW_BLOCK_SMC},
+        { FW_ID_PSP_SOSDRV, RSMI_FW_BLOCK_SOS},
+        { FW_ID_TA_RAS, RSMI_FW_BLOCK_TA_RAS},
+        { FW_ID_XGMI, RSMI_FW_BLOCK_TA_XGMI},
+        { FW_ID_UVD, RSMI_FW_BLOCK_UVD},
+        { FW_ID_VCE, RSMI_FW_BLOCK_VCE},
+        { FW_ID_VCN, RSMI_FW_BLOCK_VCN}
+    };
+
     if (info == nullptr)
         return AMDSMI_STATUS_INVAL;
-    auto status = AMDSMI_STATUS_SUCCESS;
-    // rsmi_wrapper(rsmi_dev_firmware_version_get, dev, &(info->unique_id));
-    return status;
+    memset(info, 0, sizeof(amdsmi_fw_info_t));
+
+    // collect all rsmi supported fw block
+    for (auto ite = fw_in_rsmi.begin(); ite != fw_in_rsmi.end(); ite ++) {
+        auto status = rsmi_wrapper(rsmi_dev_firmware_version_get, dev,
+                (*ite).second,
+                &(info->fw_info_list[info->num_fw_info].fw_version));
+        if (status == AMDSMI_STATUS_SUCCESS) {
+            info->fw_info_list[info->num_fw_info].fw_id = (*ite).first;
+            info->num_fw_info++;
+        }
+    }
+
+    return AMDSMI_STATUS_SUCCESS;
 }
 
 
@@ -461,11 +496,6 @@ amdsmi_status_t amdsmi_dev_subsystem_name_get(
 amdsmi_status_t amdsmi_dev_vendor_name_get(
             amdsmi_device_handle device_handle, char *name, size_t len) {
     return rsmi_wrapper(rsmi_dev_vendor_name_get, device_handle, name, len);
-}
-
-amdsmi_status_t amdsmi_dev_subsystem_vendor_id_get(
-                        amdsmi_device_handle device_handle, uint16_t *id) {
-    return rsmi_wrapper(rsmi_dev_subsystem_vendor_id_get, device_handle, id);
 }
 
 amdsmi_status_t amdsmi_dev_vram_vendor_get(amdsmi_device_handle device_handle,
@@ -694,9 +724,91 @@ amdsmi_func_iter_value_get(amdsmi_func_id_iter_handle_t handle,
                             amdsmi_func_id_value_t *value) {
     if (value == nullptr)
         return AMDSMI_STATUS_INVAL;
+
+    static const std::map<std::string, const char*> rsmi_2_amdsmi = {
+        {"rsmi_dev_vram_vendor_get", "amdsmi_dev_vram_vendor_get"},
+        {"rsmi_dev_id_get", "amdsmi_dev_id_get"},
+        {"rsmi_dev_vendor_id_get", "amdsmi_get_asic_info"},
+        {"rsmi_dev_name_get", "amdsmi_get_board_info"},
+        {"rsmi_dev_sku_get", "amdsmi_get_board_info"},
+        {"rsmi_dev_brand_get", "amdsmi_get_asic_info"},
+        {"rsmi_dev_vendor_name_get", "amdsmi_dev_vendor_name_get"},
+        {"rsmi_dev_serial_number_get", "amdsmi_get_asic_info"},
+        {"rsmi_dev_subsystem_id_get", "amdsmi_dev_subsystem_id_get"},
+        {"rsmi_dev_subsystem_name_get", "amdsmi_dev_subsystem_name_get"},
+        {"rsmi_dev_drm_render_minor_get", "amdsmi_dev_drm_render_minor_get"},
+        {"rsmi_dev_subsystem_vendor_id_get", "amdsmi_get_asic_info"},
+        {"rsmi_dev_unique_id_get", "amdsmi_get_board_info"},
+        {"rsmi_dev_pci_bandwidth_get", "amdsmi_dev_pci_bandwidth_get"},
+        {"rsmi_dev_pci_id_get", "amdsmi_dev_pci_id_get"},
+        {"rsmi_dev_pci_throughput_get", "amdsmi_dev_pci_throughput_get"},
+        {"rsmi_dev_pci_replay_counter_get", "amdsmi_dev_pci_replay_counter_get"},
+        {"rsmi_dev_pci_bandwidth_set", "amdsmi_dev_pci_bandwidth_set"},
+        {"rsmi_dev_power_profile_set", "amdsmi_dev_power_profile_set"},
+        {"rsmi_dev_memory_busy_percent_get", "amdsmi_dev_memory_busy_percent_get"},
+        {"rsmi_dev_busy_percent_get", "amdsmi_dev_busy_percent_get"},
+        {"rsmi_dev_memory_reserved_pages_get", "amdsmi_dev_memory_reserved_pages_get"},
+        {"rsmi_dev_overdrive_level_get", "amdsmi_dev_overdrive_level_get"},
+        {"rsmi_dev_power_profile_presets_get", "amdsmi_dev_power_profile_presets_get"},
+        {"rsmi_dev_perf_level_set", "amdsmi_dev_perf_level_set"},
+        {"rsmi_dev_perf_level_set_v1", "amdsmi_dev_perf_level_set_v1"},
+        {"rsmi_dev_perf_level_get", "amdsmi_dev_perf_level_get"},
+        {"rsmi_perf_determinism_mode_set", "amdsmi_perf_determinism_mode_set"},
+        {"rsmi_dev_overdrive_level_set", "amdsmi_dev_overdrive_level_set"},
+        {"rsmi_dev_vbios_version_get", "amdsmi_get_vbios_info"},
+        {"rsmi_dev_od_volt_info_get", "amdsmi_dev_od_volt_info_get"},
+        {"rsmi_dev_od_volt_info_set", "amdsmi_dev_od_volt_info_set"},
+        {"rsmi_dev_od_volt_curve_regions_get", "amdsmi_dev_od_volt_curve_regions_get"},
+        {"rsmi_dev_ecc_enabled_get", "amdsmi_dev_ecc_enabled_get"},
+        {"rsmi_dev_ecc_status_get", "amdsmi_dev_ecc_status_get"},
+        {"rsmi_dev_counter_group_supported", "amdsmi_dev_counter_group_supported"},
+        {"rsmi_dev_counter_create", "amdsmi_dev_counter_create"},
+        {"rsmi_dev_xgmi_error_status", "amdsmi_dev_xgmi_error_status"},
+        {"rsmi_dev_xgmi_error_reset", "amdsmi_dev_xgmi_error_reset"},
+        {"rsmi_dev_memory_reserved_pages_get", "amdsmi_dev_memory_reserved_pages_get"},
+        {"rsmi_topo_numa_affinity_get", "amdsmi_topo_numa_affinity_get"},
+        {"rsmi_dev_gpu_metrics_info_get", "amdsmi_dev_gpu_metrics_info_get"},
+        {"rsmi_dev_gpu_reset", "amdsmi_dev_gpu_reset"},
+        {"rsmi_dev_memory_total_get", "amdsmi_dev_memory_total_get"},
+        {"rsmi_dev_memory_usage_get", "amdsmi_dev_memory_usage_get"},
+        {"rsmi_dev_gpu_clk_freq_get", "amdsmi_dev_gpu_clk_freq_get"},
+        {"rsmi_dev_gpu_clk_freq_set", "amdsmi_dev_gpu_clk_freq_set"},
+        {"rsmi_dev_firmware_version_get", "amdsmi_get_fw_info"},
+        {"rsmi_dev_ecc_count_get", "amdsmi_dev_ecc_count_get"},
+        {"rsmi_counter_available_counters_get", "amdsmi_counter_available_counters_get"},
+        {"rsmi_dev_power_ave_get", "amdsmi_dev_power_ave_get"},
+        {"rsmi_dev_power_cap_get", "amdsmi_get_power_cap_info"},
+        {"rsmi_dev_power_cap_default_get", "amdsmi_get_power_cap_info"},
+        {"rsmi_dev_power_cap_range_get", "amdsmi_get_power_cap_info"},
+        {"rsmi_dev_power_cap_set", "amdsmi_dev_power_cap_set"},
+        {"rsmi_dev_fan_rpms_get", "amdsmi_dev_fan_rpms_get"},
+        {"rsmi_dev_fan_speed_get", "amdsmi_dev_fan_speed_get"},
+        {"rsmi_dev_fan_speed_max_get", "amdsmi_dev_fan_speed_max_get"},
+        {"rsmi_dev_temp_metric_get", "amdsmi_dev_temp_metric_get"},
+        {"rsmi_dev_fan_reset", "amdsmi_dev_fan_reset"},
+        {"rsmi_dev_fan_speed_set", "amdsmi_dev_fan_speed_set"},
+        {"rsmi_dev_volt_metric_get", "amdsmi_dev_volt_metric_get"}
+    };
+
+    auto rocm_func_handle =
+        reinterpret_cast<rsmi_func_id_iter_handle_t>(handle);
+
     auto r = rsmi_func_iter_value_get(
-        reinterpret_cast<rsmi_func_id_iter_handle_t>(handle),
+        rocm_func_handle,
         reinterpret_cast<rsmi_func_id_value_t*>(value));
+
+    if ( r != RSMI_STATUS_SUCCESS )
+        return rsmi_to_amdsmi_status(r);
+
+    // Only change the function name, FUNC_ITER == 0
+    if (rocm_func_handle->id_type != 0)
+        return rsmi_to_amdsmi_status(r);
+
+    auto iter = rsmi_2_amdsmi.find(value->name);
+    if (iter != rsmi_2_amdsmi.end()) {
+        value->name = (*iter).second;
+    }
+
     return rsmi_to_amdsmi_status(r);
 }
 
@@ -770,7 +882,7 @@ amdsmi_status_t amdsmi_dev_gpu_metrics_info_get(
                     reinterpret_cast<rsmi_gpu_metrics_t*>(pgpu_metrics));
 }
 
-//  TODO(bliu): read from libdrm
+// TODO(bliu): read from libdrm
 amdsmi_status
 amdsmi_get_power_cap_info(amdsmi_device_handle device_handle,
                     uint32_t sensor_ind,
@@ -1080,3 +1192,19 @@ amdsmi_status_t amdsmi_version_str_get(amdsmi_sw_component_t component,
     return rsmi_to_amdsmi_status(status);
 }
 
+amdsmi_status amdsmi_get_gpu_activity(amdsmi_device_handle dev,
+        amdsmi_engine_usage_t *info) {
+    if (info == nullptr)
+        return AMDSMI_STATUS_INVAL;
+
+    // Get gpu activity from the gpu_metrics table
+    amdsmi_gpu_metrics_t gpu_metrics_info;
+    auto r = amdsmi_dev_gpu_metrics_info_get(dev, &gpu_metrics_info);
+    if ( r == AMDSMI_STATUS_SUCCESS ) {
+        info->average_gfx_activity = gpu_metrics_info.average_gfx_activity;
+        info->average_umc_activity = gpu_metrics_info.average_umc_activity;
+        info->average_mm_activity[0] = gpu_metrics_info.average_mm_activity;
+    }
+
+    return r;
+}

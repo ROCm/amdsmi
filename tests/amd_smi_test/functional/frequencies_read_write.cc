@@ -112,7 +112,7 @@ void TestFrequenciesReadWrite::Run(void) {
         // Skip CLOCK_TYPE_PCIE, which does not supported in rocm-smi.
         std::cout << amdsmi_clk << std::endl;
         if (amdsmi_clk == CLOCK_TYPE_PCIE)
-          return true;
+          return false;
         ret = amdsmi_dev_gpu_clk_freq_get(device_handles_[dv_ind], amdsmi_clk, &f);
         std::cout << ret << std::endl;
 
@@ -154,6 +154,11 @@ void TestFrequenciesReadWrite::Run(void) {
         //Certain ASICs does not allow to set particular clocks. If set function for a clock returns
         //permission error despite root access, manually set ret value to success and return
         if (ret == AMDSMI_STATUS_NO_PERM && geteuid() == 0) {
+          std::cout << "\t**Set " << FreqEnumToStr(amdsmi_clk) <<
+                              ": Not supported on this machine. Skipping..." << std::endl;
+          ret = AMDSMI_STATUS_SUCCESS;
+          return;
+        } else if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
           std::cout << "\t**Set " << FreqEnumToStr(amdsmi_clk) <<
                               ": Not supported on this machine. Skipping..." << std::endl;
           ret = AMDSMI_STATUS_SUCCESS;
