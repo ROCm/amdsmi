@@ -163,25 +163,23 @@ void TestBase::PrintDeviceHeader(amdsmi_device_handle dv_ind) {
   CHK_ERR_ASRT(err)
   IF_VERB(STANDARD) {
     std::cout << "\t**Device name: " << board_info.product_name  << std::endl;
+
+    err = amdsmi_get_asic_info(dv_ind, &info);
+    CHK_ERR_ASRT(err)
+    IF_VERB(STANDARD) {
+      std::cout << "\t**Device Vendor ID: 0x" << std::hex <<
+          info.vendor_id << std::endl;
+    }
   }
 
-  err = amdsmi_get_asic_info(dv_ind, &info);
-  CHK_ERR_ASRT(err)
-  IF_VERB(STANDARD) {
-    std::cout << "\t**Device Vendor ID: 0x" << std::hex << info.vendor_id <<
-                                                                     std::endl;
-  }
   err = amdsmi_dev_subsystem_id_get(dv_ind, &val_ui16);
   CHK_ERR_ASRT(err)
   IF_VERB(STANDARD) {
     std::cout << "\t**Subsystem ID: 0x" << std::hex << val_ui16 << std::endl;
+    std::cout << "\t**Subsystem Vendor ID: 0x" << std::hex
+          << info.subvendor_id << std::endl;
   }
-  err = amdsmi_dev_subsystem_vendor_id_get(dv_ind, &val_ui16);
-  CHK_ERR_ASRT(err)
-  IF_VERB(STANDARD) {
-    std::cout << "\t**Subsystem Vendor ID: 0x" << std::hex << val_ui16 <<
-                                                                     std::endl;
-  }
+
   std::cout << std::setbase(10);
 }
 void TestBase::Run(void) {

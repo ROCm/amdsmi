@@ -228,6 +228,7 @@ typedef enum amdsmi_fw_block {
     FW_ID_RLC_SRLG,
     FW_ID_RLC_SRLS,
     FW_ID_SMC,
+    FW_ID_DMCU,
     FW_ID__MAX
 } amdsmi_fw_block_t;
 
@@ -309,7 +310,7 @@ typedef struct amdsmi_fw_info {
   uint8_t num_fw_info;
   struct {
     amdsmi_fw_block_t fw_id;
-    uint32_t fw_version;
+    uint64_t fw_version;
   } fw_info_list[FW_ID__MAX];
 } amdsmi_fw_info_t;
 
@@ -317,10 +318,10 @@ typedef struct amdsmi_asic_info {
   char  market_name[AMDSMI_MAX_STRING_LENGTH];
   uint32_t family; /**< Has zero value */
   uint32_t vendor_id;   //< Use 32 bit to be compatible with other platform.
-  uint32_t subvendor_id;
-  uint32_t device_id;
+  uint32_t subvendor_id;   //< The subsystem vendor id
+  uint64_t device_id;   //< The unique id of a GPU
   uint32_t rev_id;
-  uint64_t asic_serial;
+  char asic_serial[AMDSMI_NORMAL_STRING_LENGTH];
 } amdsmi_asic_info_t;
 
 typedef struct amdsmi_board_info {
@@ -1129,10 +1130,16 @@ typedef union amd_id {
  *  @{
  */
 /**
- *  @brief Initialize AMD SMI.
- *
+ *  @brief Initialize AMD SMI. 
+ *  
  *  @details When called, this initializes internal data structures,
  *  including those corresponding to sources of information that SMI provides.
+ *
+ *  The @p init_flags decides which type of device
+ *  can be discovered by ::amdsmi_get_socket_handles(). AMDSMI_INIT_AMD_GPUS returns
+ *  sockets with AMD GPUS, and AMDSMI_INIT_AMD_GPUS | AMDSMI_INIT_AMD_CPUS returns
+ *  sockets with either AMD GPUS or CPUS.
+ *  Currently, only AMDSMI_INIT_AMD_GPUS is supported.
  *
  *  @param[in] init_flags Bit flags that tell SMI how to initialze. Values of
  *  ::amdsmi_init_flags_t may be OR'd together and passed through @p init_flags
@@ -1153,23 +1160,90 @@ amdsmi_status_t amdsmi_shut_down(void);
 
 /*****************************************************************************/
 /** @defgroup Discovery Queries
- *  These functions provide discovery of the sockets.
+ *  These functions provide discovery of the sockets. 
  *  @{
  */
 
+/**
+ *  @brief Get the list of socket handles in the system.
+ * 
+ *  @details Depends on what flag is pass to ::amdsmi_init(flags).  AMDSMI_INIT_AMD_GPUS
+ *  returns sockets with AMD GPUS, and AMDSMI_INIT_AMD_GPUS | AMDSMI_INIT_AMD_CPUS returns
+ *  sockets with either AMD GPUS or CPUS.
+ *  The socket handles can be used to query the device handles in that socket, which
+ *  will be used in other APIs to get device detail information or telemtries.
+ *
+ *  @param[out] socket_count The total count of sockets found in the system.
+ *
+ *  @param[out] socket_handles a list of socket handles in the system.
+ *
+ * @retval ::AMDSMI_STATUS_SUCCESS call was successful
+ * @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
+ *
+ */
 amdsmi_status_t amdsmi_get_socket_handles(uint32_t *socket_count,
                 amdsmi_socket_handle* socket_handles[]);
+
+/**
+ *  @brief Get the socket information
+ *
+ *  @details Given a socket handle @p socket_handle, this function will get
+ *  the socket id of the socket.
+ *
+ *  @param[in] socket_handle a socket handle
+ *
+ *  @param[out] name The id of the socket.
+ * 
+ *  @param[in] len the length of the caller provided buffer @p name.
+ *
+ * @retval ::AMDSMI_STATUS_SUCCESS call was successful
+ * @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
+ *
+ */
 amdsmi_status_t amdsmi_get_socket_info(
                 amdsmi_socket_handle socket_handle,
                 char *name, size_t len);
 
+/**
+ *  @brief Get the list of the device handles of a socket.
+ *
+ *  @details Given a socket handle @p socket_handle, this function will get
+ *  the device handles on this socket. One socket may have mulitple different
+ *  type devices: An APU on a socket have both CPUs and GPUs.
+ *  Currently, only AMD GPUs are supported.
+ *
+ *  @param[in] socket_handle The socket to query
+ *
+ *  @param[out] device_count The total count of devices on the socket.
+ *
+ *  @param[out] device_handles a list of devices handles on the socket.
+ *
+ * @retval ::AMDSMI_STATUS_SUCCESS call was successful
+ * @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
+ *
+ *
+ */
 amdsmi_status_t amdsmi_get_device_handles(amdsmi_socket_handle socket_handle,
                                     uint32_t *device_count,
                                     amdsmi_device_handle* device_handles[]);
+/**
+ *  @brief Get the device type
+ *
+ *  @details Given a device handle @p device_handle, this function will get
+ *  its device type.
+ *
+ *  @param[in] device_handle a device handle
+ *
+ *  @param[out] device_type a pointer to device_type_t to which the device type
+ *  will be written. If this parameter is nullptr, this function will return
+ * ::AMDSMI_STATUS_INVAL.
+ *
+ * @retval ::AMDSMI_STATUS_SUCCESS call was successful
+ * @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
+ *
+ */
 amdsmi_status_t amdsmi_get_device_type(amdsmi_device_handle device_handle,
               device_type_t* device_type);
-
-
 
 /** @} */  // end of Discovery
 
@@ -1198,14 +1272,14 @@ amdsmi_status_t amdsmi_get_device_type(amdsmi_device_handle device_handle,
  *  @param[inout] id a pointer to uint64_t to which the device id will be
  *  written
  * If this parameter is nullptr, this function will return
- * ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ * ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  * arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  * provided arguments.
  *
  * @retval ::AMDSMI_STATUS_SUCCESS call was successful
  * @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  * support this function with the given arguments
- * @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ * @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 amdsmi_status_t amdsmi_dev_id_get(amdsmi_device_handle device_handle, uint16_t *id);
@@ -1229,7 +1303,7 @@ amdsmi_status_t amdsmi_dev_id_get(amdsmi_device_handle device_handle, uint16_t *
  *  @param[inout] name a pointer to a caller provided char buffer to which the
  *  name will be written
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
@@ -1238,7 +1312,7 @@ amdsmi_status_t amdsmi_dev_id_get(amdsmi_device_handle device_handle, uint16_t *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *  @retval ::AMDSMI_STATUS_INSUFFICIENT_SIZE is returned if @p len bytes is not
  *  large enough to hold the entire name. In this case, only @p len bytes will
  *  be written.
@@ -1285,14 +1359,14 @@ amdsmi_status_t amdsmi_dev_vram_vendor_get(amdsmi_device_handle device_handle, c
  *  @param[inout] id a pointer to uint64_t to which the subsystem device id
  *  will be written
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 amdsmi_status_t amdsmi_dev_subsystem_id_get(amdsmi_device_handle device_handle, uint16_t *id);
@@ -1316,7 +1390,7 @@ amdsmi_status_t amdsmi_dev_subsystem_id_get(amdsmi_device_handle device_handle, 
  *  @param[inout] name a pointer to a caller provided char buffer to which the
  *  name will be written
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
 
@@ -1325,7 +1399,7 @@ amdsmi_status_t amdsmi_dev_subsystem_id_get(amdsmi_device_handle device_handle, 
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *  @retval ::AMDSMI_STATUS_INSUFFICIENT_SIZE is returned if @p len bytes is not
  *  large enough to hold the entire name. In this case, only @p len bytes will
  *  be written.
@@ -1348,35 +1422,11 @@ amdsmi_dev_subsystem_name_get(amdsmi_device_handle device_handle, char *name, si
  *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
  *  @retval ::AMDSMI_STATUS_INIT_ERROR if failed to get minor number during
  *  initialization.
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 amdsmi_status_t
 amdsmi_dev_drm_render_minor_get(amdsmi_device_handle device_handle, uint32_t *minor);
-
-/**
- *  @brief Get the device subsystem vendor id associated with the device with
- *  provided device handle.
- *
- *  @details Given a device handle @p device_handle and a pointer to a uint32_t @p id,
- *  this function will write the device subsystem vendor id value to the
- *  uint64_t pointed to by @p id.
- *
- *  @param[in] device_handle a device handle
- *
- *  @param[inout] id a pointer to uint64_t to which the device subsystem vendor
- *  id will be written
- *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
- *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
- *  provided arguments.
- *
- *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
- *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
- *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
- */
-amdsmi_status_t amdsmi_dev_subsystem_vendor_id_get(amdsmi_device_handle device_handle, uint16_t *id);
 
 /** @} */  // end of IDQuer
 
@@ -1431,14 +1481,14 @@ amdsmi_dev_pci_bandwidth_get(amdsmi_device_handle device_handle, amdsmi_pcie_ban
  *  @param[inout] bdfid a pointer to uint64_t to which the device bdfid value
  *  will be written
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  */
 amdsmi_status_t amdsmi_dev_pci_id_get(amdsmi_device_handle device_handle, uint64_t *bdfid);
 
@@ -1455,14 +1505,14 @@ amdsmi_status_t amdsmi_dev_pci_id_get(amdsmi_device_handle device_handle, uint64
  *  @param[inout] numa_node pointer to location where NUMA node value will
  *  be written.
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  */
 amdsmi_status_t amdsmi_topo_numa_affinity_get(amdsmi_device_handle device_handle, uint32_t *numa_node);
 
@@ -1506,14 +1556,14 @@ amdsmi_status_t amdsmi_dev_pci_throughput_get(amdsmi_device_handle device_handle
  *  @param[inout] counter a pointer to uint64_t to which the sum of the NAK's
  *  received and generated by the GPU is written
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  */
 amdsmi_status_t amdsmi_dev_pci_replay_counter_get(amdsmi_device_handle device_handle,
                                                            uint64_t *counter);
@@ -1579,14 +1629,14 @@ amdsmi_status_t amdsmi_dev_pci_bandwidth_set(amdsmi_device_handle device_handle,
  *  @param[inout] power a pointer to uint64_t to which the average power
  *  consumption will be written
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  */
 amdsmi_status_t
 amdsmi_dev_power_ave_get(amdsmi_device_handle device_handle, uint32_t sensor_ind, uint64_t *power);
@@ -1609,7 +1659,7 @@ amdsmi_dev_power_ave_get(amdsmi_device_handle device_handle, uint32_t sensor_ind
  *  @param[inout] power a pointer to uint64_t to which the energy
  *  counter will be written
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
@@ -1619,7 +1669,7 @@ amdsmi_dev_power_ave_get(amdsmi_device_handle device_handle, uint32_t sensor_ind
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  */
 amdsmi_status_t
 amdsmi_dev_energy_count_get(amdsmi_device_handle device_handle, uint64_t *power,
@@ -1648,7 +1698,7 @@ amdsmi_dev_energy_count_get(amdsmi_device_handle device_handle, uint64_t *power,
  *  microwatts
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *  @retval ::AMDSMI_STATUS_PERMISSION function requires root access
  *
  */
@@ -1703,14 +1753,14 @@ amdsmi_dev_power_profile_set(amdsmi_device_handle device_handle, uint32_t reserv
  *  @param[inout] total a pointer to uint64_t to which the total amount of
  *  memory will be written
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 amdsmi_status_t
@@ -1733,14 +1783,14 @@ amdsmi_dev_memory_total_get(amdsmi_device_handle device_handle, amdsmi_memory_ty
  *  @param[inout] used a pointer to uint64_t to which the amount of memory
  *  currently being used will be written
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 amdsmi_status_t
@@ -1759,14 +1809,14 @@ amdsmi_dev_memory_usage_get(amdsmi_device_handle device_handle, amdsmi_memory_ty
  *  @param[inout] busy_percent a pointer to the uint32_t to which the busy
  *  percent will be written
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 amdsmi_status_t
@@ -1791,7 +1841,7 @@ amdsmi_dev_memory_busy_percent_get(amdsmi_device_handle device_handle, uint32_t 
  *  number of records that could have been written if enough memory had been
  *  provided.
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
@@ -1803,7 +1853,7 @@ amdsmi_dev_memory_busy_percent_get(amdsmi_device_handle device_handle, uint32_t 
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *  @retval ::AMDSMI_STATUS_INSUFFICIENT_SIZE is returned if more records were available
  *  than allowed by the provided, allocated memory.
  */
@@ -1833,14 +1883,14 @@ amdsmi_dev_memory_reserved_pages_get(amdsmi_device_handle device_handle, uint32_
  *  @param[inout] speed a pointer to uint32_t to which the speed will be
  *  written
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 amdsmi_status_t amdsmi_dev_fan_rpms_get(amdsmi_device_handle device_handle, uint32_t sensor_ind,
@@ -1863,14 +1913,14 @@ amdsmi_status_t amdsmi_dev_fan_rpms_get(amdsmi_device_handle device_handle, uint
  *  @param[inout] speed a pointer to uint32_t to which the speed will be
  *  written
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 amdsmi_status_t amdsmi_dev_fan_speed_get(amdsmi_device_handle device_handle,
@@ -1891,14 +1941,14 @@ amdsmi_status_t amdsmi_dev_fan_speed_get(amdsmi_device_handle device_handle,
  *  @param[inout] max_speed a pointer to uint32_t to which the maximum speed
  *  will be written
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 amdsmi_status_t amdsmi_dev_fan_speed_max_get(amdsmi_device_handle device_handle,
@@ -1924,14 +1974,14 @@ amdsmi_status_t amdsmi_dev_fan_speed_max_get(amdsmi_device_handle device_handle,
  *  @param[inout] temperature a pointer to int64_t to which the temperature
  *  will be written, in millidegrees Celcius.
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 amdsmi_status_t amdsmi_dev_temp_metric_get(amdsmi_device_handle device_handle, uint32_t sensor_type,
@@ -1957,14 +2007,14 @@ amdsmi_status_t amdsmi_dev_temp_metric_get(amdsmi_device_handle device_handle, u
  *  @param[inout] voltage a pointer to int64_t to which the voltage
  *  will be written, in millivolts.
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 amdsmi_status_t amdsmi_dev_volt_metric_get(amdsmi_device_handle device_handle,
@@ -2016,8 +2066,8 @@ amdsmi_status_t amdsmi_dev_fan_reset(amdsmi_device_handle device_handle, uint32_
  *  @retval ::AMDSMI_STATUS_PERMISSION function requires root access
  *
  */
-amdsmi_status_t amdsmi_dev_fan_speed_set(amdsmi_device_handle device_handle, uint32_t sensor_ind,
-                                                              uint64_t speed);
+amdsmi_status_t amdsmi_dev_fan_speed_set(amdsmi_device_handle device_handle,
+      uint32_t sensor_ind, uint64_t speed);
 
 /** @} */  // end of PhysCont
 /*****************************************************************************/
@@ -2040,14 +2090,14 @@ amdsmi_status_t amdsmi_dev_fan_speed_set(amdsmi_device_handle device_handle, uin
  *  @param[inout] busy_percent a pointer to the uint32_t to which the busy
  *  percent will be written
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 amdsmi_status_t
@@ -2079,7 +2129,7 @@ amdsmi_dev_busy_percent_get(amdsmi_device_handle device_handle, uint32_t *busy_p
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 amdsmi_status_t
@@ -2101,14 +2151,14 @@ amdsmi_utilization_count_get(amdsmi_device_handle device_handle,
  *  @param[inout] perf a pointer to ::amdsmi_dev_perf_level_t to which the
  *  performance level will be written
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 amdsmi_status_t amdsmi_dev_perf_level_get(amdsmi_device_handle device_handle,
@@ -2132,11 +2182,12 @@ amdsmi_status_t amdsmi_dev_perf_level_get(amdsmi_device_handle device_handle,
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 
-amdsmi_status_t amdsmi_perf_determinism_mode_set(amdsmi_device_handle device_handle, uint64_t clkvalue);
+amdsmi_status_t
+amdsmi_perf_determinism_mode_set(amdsmi_device_handle device_handle, uint64_t clkvalue);
 /**
  *  @brief Get the overdrive percent associated with the device with provided
  *  device handle.
@@ -2150,14 +2201,14 @@ amdsmi_status_t amdsmi_perf_determinism_mode_set(amdsmi_device_handle device_han
  *  @param[inout] od a pointer to uint32_t to which the overdrive percentage
  *  will be written
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 
@@ -2180,14 +2231,14 @@ amdsmi_status_t amdsmi_dev_overdrive_level_get(amdsmi_device_handle device_handl
  *  to which the frequency information will be written. Frequency values are in
  *  Hz.
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 amdsmi_status_t amdsmi_dev_gpu_clk_freq_get(amdsmi_device_handle device_handle,
@@ -2203,7 +2254,7 @@ amdsmi_status_t amdsmi_dev_gpu_clk_freq_get(amdsmi_device_handle device_handle,
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 amdsmi_status_t amdsmi_dev_gpu_reset(amdsmi_device_handle device_handle);
@@ -2219,14 +2270,14 @@ amdsmi_status_t amdsmi_dev_gpu_reset(amdsmi_device_handle device_handle);
  *
  *  @param[inout] odv a pointer to an ::amdsmi_od_volt_freq_data_t structure
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  */
 amdsmi_status_t amdsmi_dev_od_volt_info_get(amdsmi_device_handle device_handle,
                                                amdsmi_od_volt_freq_data_t *odv);
@@ -2242,14 +2293,14 @@ amdsmi_status_t amdsmi_dev_od_volt_info_get(amdsmi_device_handle device_handle,
  *
  *  @param[inout] pgpu_metrics a pointer to an ::amdsmi_gpu_metrics_t structure
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  */
 amdsmi_status_t amdsmi_dev_gpu_metrics_info_get(amdsmi_device_handle device_handle,
                                             amdsmi_gpu_metrics_t *pgpu_metrics);
@@ -2274,7 +2325,7 @@ amdsmi_status_t amdsmi_dev_gpu_metrics_info_get(amdsmi_device_handle device_hand
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  */
 amdsmi_status_t amdsmi_dev_clk_range_set(amdsmi_device_handle device_handle, uint64_t minclkvalue,
                                        uint64_t maxclkvalue,
@@ -2300,7 +2351,7 @@ amdsmi_status_t amdsmi_dev_clk_range_set(amdsmi_device_handle device_handle, uin
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  */
 amdsmi_status_t amdsmi_dev_od_clk_info_set(amdsmi_device_handle device_handle, amdsmi_freq_ind_t level,
                                        uint64_t clkvalue,
@@ -2325,7 +2376,7 @@ amdsmi_status_t amdsmi_dev_od_clk_info_set(amdsmi_device_handle device_handle, a
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  */
 amdsmi_status_t amdsmi_dev_od_volt_info_set(amdsmi_device_handle device_handle, uint32_t vpoint,
                                         uint64_t clkvalue, uint64_t voltvalue);
@@ -2352,21 +2403,21 @@ amdsmi_status_t amdsmi_dev_od_volt_info_set(amdsmi_device_handle device_handle, 
  *  output, this is the number of ::amdsmi_freq_volt_region_t structures that were
  *  actually written.
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @param[inout] buffer a caller provided buffer to which
  *  ::amdsmi_freq_volt_region_t structures will be written
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  */
 amdsmi_status_t amdsmi_dev_od_volt_curve_regions_get(amdsmi_device_handle device_handle,
                       uint32_t *num_regions, amdsmi_freq_volt_region_t *buffer);
@@ -2396,14 +2447,14 @@ amdsmi_status_t amdsmi_dev_od_volt_curve_regions_get(amdsmi_device_handle device
  *  @param[inout] status a pointer to ::amdsmi_power_profile_status_t that will be
  *  populated by a call to this function
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 amdsmi_status_t
@@ -2630,7 +2681,7 @@ amdsmi_version_get(amdsmi_version_t *version);
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *  @retval ::AMDSMI_STATUS_INSUFFICIENT_SIZE is returned if @p len bytes is not
  *  large enough to hold the entire name. In this case, only @p len bytes will
  *  be written.
@@ -2663,14 +2714,14 @@ amdsmi_version_str_get(amdsmi_sw_component_t component, char *ver_str,
  *  @param[inout] ec A pointer to an ::amdsmi_error_count_t to which the error
  *  counts should be written
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 amdsmi_status_t amdsmi_dev_ecc_count_get(amdsmi_device_handle device_handle,
@@ -2694,14 +2745,14 @@ amdsmi_status_t amdsmi_dev_ecc_count_get(amdsmi_device_handle device_handle,
  *  @param[inout] enabled_blocks A pointer to a uint64_t to which the enabled
  *  blocks bits will be written.
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  */
 amdsmi_status_t amdsmi_dev_ecc_enabled_get(amdsmi_device_handle device_handle,
                                                     uint64_t *enabled_blocks);
@@ -2721,14 +2772,14 @@ amdsmi_status_t amdsmi_dev_ecc_enabled_get(amdsmi_device_handle device_handle,
  *  @param[inout] state A pointer to an ::amdsmi_ras_err_state_t to which the
  *  ECC state should be written
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 amdsmi_status_t amdsmi_dev_ecc_status_get(amdsmi_device_handle device_handle, amdsmi_gpu_block_t block,
@@ -2892,14 +2943,14 @@ amdsmi_dev_counter_group_supported(amdsmi_device_handle device_handle, amdsmi_ev
  *  @param[inout] evnt_handle A pointer to a ::amdsmi_event_handle_t which will be
  *  associated with a newly allocated counter
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *  @retval ::AMDSMI_STATUS_OUT_OF_RESOURCES unable to allocate memory for counter
  *  @retval ::AMDSMI_STATUS_PERMISSION function requires root access
  *
@@ -2917,7 +2968,7 @@ amdsmi_dev_counter_create(amdsmi_device_handle device_handle, amdsmi_event_type_
  *  @param[in] evnt_handle handle to event object to be deallocated
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *  @retval ::AMDSMI_STATUS_PERMISSION function requires root access
  *
  */
@@ -2937,7 +2988,7 @@ amdsmi_dev_counter_destroy(amdsmi_event_handle_t evnt_handle);
  *  @param[inout] cmd_args Currently not used. Should be set to NULL.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *  @retval ::AMDSMI_STATUS_PERMISSION function requires root access
  *
  */
@@ -2958,7 +3009,7 @@ amdsmi_counter_control(amdsmi_event_handle_t evt_handle,
  *  which the counter value will be written
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *  @retval ::AMDSMI_STATUS_PERMISSION function requires root access
  *
  */
@@ -2982,7 +3033,7 @@ amdsmi_counter_read(amdsmi_event_handle_t evt_handle,
  *  available counters will be written
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 amdsmi_status_t
@@ -3023,7 +3074,7 @@ amdsmi_counter_available_counters_get(amdsmi_device_handle device_handle,
  *  processes for which there is information.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *  @retval ::AMDSMI_STATUS_INSUFFICIENT_SIZE is returned if there were more
  *  processes for which information was available, but not enough space was
  *  provided as indicated by @p procs and @p num_items, on input.
@@ -3046,7 +3097,7 @@ amdsmi_compute_process_info_get(amdsmi_process_info_t *procs, uint32_t *num_item
  *  process information for @p pid will be written if it is found.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *  @retval ::AMDSMI_STATUS_NOT_FOUND is returned if there was no process
  *  information
  *  found for the provided @p pid
@@ -3083,7 +3134,7 @@ amdsmi_compute_process_info_by_pid_get(uint32_t pid, amdsmi_process_info_t *proc
  *  NULL, this argument will be updated with the number devices being used.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *  @retval ::AMDSMI_STATUS_INSUFFICIENT_SIZE is returned if there were more
  *  gpu indices that could have been written, but not enough space was
  *  provided as indicated by @p device_handleices and @p num_devices, on input.
@@ -3114,14 +3165,14 @@ amdsmi_compute_process_gpus_get(uint32_t pid, uint32_t *dv_indices,
  *  @param[inout] status A pointer to an ::amdsmi_xgmi_status_t to which the
  *  XGMI error state should be written
  *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 amdsmi_status_t
@@ -3164,7 +3215,7 @@ amdsmi_dev_xgmi_error_reset(amdsmi_device_handle device_handle);
  *  numa node number should be written.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 amdsmi_status_t
@@ -3187,7 +3238,7 @@ amdsmi_topo_get_numa_node_number(amdsmi_device_handle device_handle, uint32_t *n
  *  weight for the connection should be written.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 amdsmi_status_t
@@ -3214,7 +3265,7 @@ amdsmi_topo_get_link_weight(amdsmi_device_handle device_handle_src, amdsmi_devic
  *  maximal bandwidth for the connection should be written.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  */
 amdsmi_status_t
 amdsmi_minmax_bandwidth_get(amdsmi_device_handle device_handle_src, amdsmi_device_handle device_handle_dst,
@@ -3241,7 +3292,7 @@ amdsmi_minmax_bandwidth_get(amdsmi_device_handle device_handle_src, amdsmi_devic
  *  type for the connection should be written.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 amdsmi_status_t
@@ -3266,7 +3317,7 @@ amdsmi_topo_get_link_type(amdsmi_device_handle device_handle_src,
  *  the P2P connection availablity should be written.
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
- *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 amdsmi_status_t
@@ -3319,14 +3370,15 @@ amdsmi_is_P2P_accessible(amdsmi_device_handle device_handle_src, amdsmi_device_h
  *     amdsmi_func_id_iter_handle_t iter_handle, var_iter, sub_var_iter;
  *     amdsmi_func_id_value_t value;
  *     amdsmi_status_t err;
+ *     amdsmi_device_handle device;
  *
- *     for (uint32_t i = 0; i < <number of devices>; ++i) {
- *      std::cout << "Supported AMDSMI Functions:" << std::endl;
- *      std::cout << "\tVariants (Monitors)" << std::endl;
+ *     // Get the device handle via amdsmi_get_device_handles()
+ *     // ... ...
+ * 
+ *     std::cout << "Supported AMDSMI Functions:" << std::endl; *
+ *     err = amdsmi_dev_supported_func_iterator_open(device, &iter_handle);
  *
- *      err = amdsmi_dev_supported_func_iterator_open(i, &iter_handle);
- *
- *      while (1) {
+ *     while (1) {
  *        err = amdsmi_func_iter_value_get(iter_handle, &value);
  *        std::cout << "Function Name: " << value.name << std::endl;
  *
@@ -3607,7 +3659,7 @@ amdsmi_event_notification_get(int timeout_ms,
  * @param[in] dv_ind The device handle of the GPU for which event
  * notification resources will be free
  *
- * @retval ::AMDSMI_STATUS_INVALID_ARGS resources for the given device have
+ * @retval ::AMDSMI_STATUS_INVAL resources for the given device have
  * either already been freed, or were never allocated by
  * ::amdsmi_event_notification_init()
  *

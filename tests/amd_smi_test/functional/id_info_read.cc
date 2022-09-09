@@ -207,21 +207,12 @@ void TestIdInfoRead::Run(void) {
       err = amdsmi_dev_subsystem_name_get(device_handles_[i], nullptr, kBufferLen);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
     }
-    err = amdsmi_dev_subsystem_vendor_id_get(device_handles_[i], &id);
-    if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
-      // Verify api support checking functionality is working
-      err = amdsmi_dev_subsystem_vendor_id_get(device_handles_[i], nullptr);
-      ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
-    } else {
-      CHK_ERR_ASRT(err)
-      IF_VERB(STANDARD) {
+
+    IF_VERB(STANDARD) {
         std::cout << "\t**Sub-system Vendor ID: 0x" << std::hex <<
-                                                              id << std::endl;
-      }
-      // Verify api support checking functionality is working
-      err = amdsmi_dev_subsystem_vendor_id_get(device_handles_[i], nullptr);
-      ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
+                                            asci_info.subvendor_id << std::endl;
     }
+
     err = amdsmi_dev_vendor_name_get(device_handles_[i], buffer, kBufferLen);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       std::cout <<
