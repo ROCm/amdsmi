@@ -53,7 +53,7 @@
 
 #include "amd_smi_test/test_base.h"
 #include "amd_smi_test/test_common.h"
-#include "amd_smi.h"
+#include "amd_smi/amd_smi.h"
 
 static const std::map<amdsmi_dev_perf_level_t, const char *>
    kDevPerfLvlNameMap = {

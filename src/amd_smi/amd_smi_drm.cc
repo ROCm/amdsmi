@@ -47,8 +47,8 @@
 #include <xf86drm.h>
 #include <string.h>
 #include <memory>
-#include "impl/amd_smi_drm.h"
-#include "impl/amdgpu_drm.h"
+#include "amd_smi/impl/amd_smi_drm.h"
+#include "amd_smi/impl/amdgpu_drm.h"
 
 namespace amd {
 namespace smi {

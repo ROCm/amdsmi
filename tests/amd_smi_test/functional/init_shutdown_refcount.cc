@@ -53,7 +53,7 @@
 
 #include "amd_smi_test/functional/init_shutdown_refcount.h"
 #include "gtest/gtest.h"
-#include "amd_smi.h"
+#include "amd_smi/amd_smi.h"
 #include "amd_smi_test/test_common.h"
 
 extern int32_t

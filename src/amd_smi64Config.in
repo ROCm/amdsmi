@@ -1,5 +1,7 @@
 /*
  * =============================================================================
+ *   ROC Runtime Conformance Release License
+ * =============================================================================
  * The University of Illinois/NCSA
  * Open Source License (NCSA)
  *
@@ -41,20 +43,14 @@
  *
  */
 
-#include <functional>
-#include "impl/amd_smi_socket.h"
+#ifndef INCLUDE_AMD_SMI_AMD_SMI64CONFIG_H_
+#define INCLUDE_AMD_SMI_AMD_SMI64CONFIG_H_
 
+// This file is generated on build.
 
-namespace amd {
-namespace smi {
+#define amd_smi_VERSION_MAJOR @amd_smi_VERSION_MAJOR@
+#define amd_smi_VERSION_MINOR @amd_smi_VERSION_MINOR@
+#define amd_smi_VERSION_PATCH @amd_smi_VERSION_PATCH@
+#define amd_smi_VERSION_BUILD "@amd_smi_VERSION_BUILD@"
 
-AMDSmiSocket::~AMDSmiSocket() {
-    for (uint32_t i = 0; i < devices_.size(); i++) {
-        delete devices_[i];
-    }
-    devices_.clear();
-}
-
-}  // namespace smi
-}  // namespace amd
-
+#endif  // INCLUDE_AMD_SMI_AMD_SMI64CONFIG_H_

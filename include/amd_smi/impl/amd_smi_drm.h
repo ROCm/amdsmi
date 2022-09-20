@@ -41,31 +41,42 @@
  *
  */
 
-#ifndef AMD_SMI_INCLUDE_AMD_SMI_SOCKET_H_
-#define AMD_SMI_INCLUDE_AMD_SMI_SOCKET_H_
+#ifndef AMD_SMI_INCLUDE_IMPL_AMD_SMI_DRM_H_
+#define AMD_SMI_INCLUDE_IMPL_AMD_SMI_DRM_H_
 
-#include <string>
-#include <algorithm>
+#include <unistd.h>
 #include <vector>
-#include "amd_smi.h"
-#include "impl/amd_smi_device.h"
+#include <memory>
+#include <mutex>  // NOLINT
+#include "amd_smi/amd_smi.h"
+#include "amd_smi/impl/amd_smi_lib_loader.h"
 
 namespace amd {
 namespace smi {
 
-class AMDSmiSocket {
+class AMDSmiDrm {
  public:
-    explicit AMDSmiSocket(const std::string& id) : socket_identifier_(id) {}
-    ~AMDSmiSocket();
-    const std::string& get_socket_id() const { return socket_identifier_;}
-    void add_device(AMDSmiDevice* device) { devices_.push_back(device); }
-    std::vector<AMDSmiDevice*>& get_devices() { return devices_;}
+    amdsmi_status_t init();
+    amdsmi_status_t cleanup();
+    int get_drm_fd_by_index(uint32_t gpu_index) const;
+    amdsmi_status_t amdgpu_query_info(int fd, unsigned info_id,
+                    unsigned size, void *value);
+    amdsmi_status_t  amdgpu_query_fw(int fd, unsigned info_id, unsigned fw_type,
+                unsigned size, void *value);
+    amdsmi_status_t amdgpu_query_hw_ip(int fd, unsigned info_id,
+               unsigned hw_ip_type, unsigned size, void *value);
+    amdsmi_status_t amdgpu_query_vbios(int fd, void *info);
+
  private:
-    std::string socket_identifier_;
-    std::vector<AMDSmiDevice*> devices_;
+    using DrmCmdWriteFunc = int (*)(int, unsigned long, void *, unsigned long);
+    std::vector<int> drm_fds_;  // drm file descriptor by gpu_index
+    AMDSmiLibraryLoader lib_loader_;  // lazy load libdrm
+    DrmCmdWriteFunc drm_cmd_write_;   // drmCommandWrite
+    std::mutex drm_mutex_;
 };
+
 
 }  // namespace smi
 }  // namespace amd
 
-#endif  // AMD_SMI_INCLUDE_AMD_SMI_SOCKET_H_
+#endif  // AMD_SMI_INCLUDE_IMPL_AMD_SMI_DRM_H_

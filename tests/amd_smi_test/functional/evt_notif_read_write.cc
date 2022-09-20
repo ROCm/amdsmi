@@ -49,7 +49,7 @@
 #include <iostream>
 
 #include "gtest/gtest.h"
-#include "amd_smi.h"
+#include "amd_smi/amd_smi.h"
 #include "amd_smi_test/functional/evt_notif_read_write.h"
 #include "amd_smi_test/test_common.h"
 #include "amd_smi_test/test_utils.h"

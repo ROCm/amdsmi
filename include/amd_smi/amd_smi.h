@@ -51,8 +51,7 @@ extern "C" {
 #else
 #include <stdint.h>
 #endif  // __cplusplus
-#include "rocm_smi/kfd_ioctl.h"
-
+ 
 /**
  * @brief Initialization flags
  *
@@ -550,11 +549,11 @@ typedef struct {
  * Event notification event types
  */
 typedef enum {
-  AMDSMI_EVT_NOTIF_VMFAULT = KFD_SMI_EVENT_VMFAULT,  //!< VM page fault
+  AMDSMI_EVT_NOTIF_VMFAULT = 1,  //!< VM page fault
   AMDSMI_EVT_NOTIF_FIRST = AMDSMI_EVT_NOTIF_VMFAULT,
-  AMDSMI_EVT_NOTIF_THERMAL_THROTTLE = KFD_SMI_EVENT_THERMAL_THROTTLE,
-  AMDSMI_EVT_NOTIF_GPU_PRE_RESET = KFD_SMI_EVENT_GPU_PRE_RESET,
-  AMDSMI_EVT_NOTIF_GPU_POST_RESET = KFD_SMI_EVENT_GPU_POST_RESET,
+  AMDSMI_EVT_NOTIF_THERMAL_THROTTLE = 2,
+  AMDSMI_EVT_NOTIF_GPU_PRE_RESET = 3,
+  AMDSMI_EVT_NOTIF_GPU_POST_RESET = 4,
 
   AMDSMI_EVT_NOTIF_LAST = AMDSMI_EVT_NOTIF_GPU_POST_RESET
 } amdsmi_evt_notification_type_t;

@@ -41,47 +41,48 @@
  *
  */
 
-#include "impl/amd_smi_lib_loader.h"
-#include <iostream>
+#include <functional>
+#include "amd_smi/impl/amd_smi_gpu_device.h"
+
 
 namespace amd {
 namespace smi {
 
-AMDSmiLibraryLoader::AMDSmiLibraryLoader(): libHandler_(nullptr) {
+uint32_t AMDSmiGPUDevice::get_gpu_id() const {
+    return gpu_id_;
 }
 
-amdsmi_status_t AMDSmiLibraryLoader::load(const char* filename) {
-    if (filename == nullptr) {
-        return AMDSMI_STATUS_FAIL_LOAD_MODULE;
-    }
-    if (libHandler_) {
-        unload();
-    }
+amdsmi_status_t AMDSmiGPUDevice::amdgpu_query_info(unsigned info_id,
+                    unsigned size, void *value) const {
+    int fd = drm_.get_drm_fd_by_index(gpu_id_);
+    if (fd == -1) return AMDSMI_STATUS_NOT_SUPPORTED;
 
-    std::lock_guard<std::mutex> guard(library_mutex_);
-    libHandler_ = dlopen(filename, RTLD_LAZY);
-    if (!libHandler_) {
-        char* error = dlerror();
-        std::cerr << "Fail to open " << filename <<": " << error
-                << std::endl;
-        return AMDSMI_STATUS_FAIL_LOAD_MODULE;
-    }
-
-    return AMDSMI_STATUS_SUCCESS;
+    return drm_.amdgpu_query_info(fd, info_id, size, value);
 }
 
-amdsmi_status_t AMDSmiLibraryLoader::unload() {
-        std::lock_guard<std::mutex> guard(library_mutex_);
-        if (libHandler_) {
-            dlclose(libHandler_);
-            libHandler_ = nullptr;
-        }
-        return AMDSMI_STATUS_SUCCESS;
+amdsmi_status_t AMDSmiGPUDevice::amdgpu_query_hw_ip(unsigned info_id,
+            unsigned hw_ip_type, unsigned size, void *value) const {
+    int fd = drm_.get_drm_fd_by_index(gpu_id_);
+    if (fd == -1) return AMDSMI_STATUS_NOT_SUPPORTED;
+
+    return drm_.amdgpu_query_hw_ip(fd, info_id, hw_ip_type, size, value);
 }
 
-AMDSmiLibraryLoader::~AMDSmiLibraryLoader() {
-        unload();
+amdsmi_status_t AMDSmiGPUDevice::amdgpu_query_fw(unsigned info_id,
+        unsigned fw_type, unsigned size, void *value) const {
+    int fd = drm_.get_drm_fd_by_index(gpu_id_);
+    if (fd == -1) return AMDSMI_STATUS_NOT_SUPPORTED;
+
+    return drm_.amdgpu_query_fw(fd, info_id, fw_type, size, value);
 }
 
-}  // namespace rdc
+amdsmi_status_t AMDSmiGPUDevice::amdgpu_query_vbios(void *info) const {
+    int fd = drm_.get_drm_fd_by_index(gpu_id_);
+    if (fd == -1) return AMDSMI_STATUS_NOT_SUPPORTED;
+
+    return drm_.amdgpu_query_vbios(fd, info);
+}
+
+}  // namespace smi
 }  // namespace amd
+

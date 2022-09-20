@@ -41,51 +41,36 @@
  *
  */
 
-#ifndef AMD_SMI_INCLUDE_AMD_SMI_SYSTEM_H_
-#define AMD_SMI_INCLUDE_AMD_SMI_SYSTEM_H_
+#ifndef AMD_SMI_INCLUDE_IMPL_AMD_SMI_GPU_DEVICE_H_
+#define AMD_SMI_INCLUDE_IMPL_AMD_SMI_GPU_DEVICE_H_
 
-#include <vector>
-#include <set>
-#include "amd_smi.h"
-#include "impl/amd_smi_socket.h"
-#include "impl/amd_smi_device.h"
-#include "impl/amd_smi_drm.h"
+#include "amd_smi/amd_smi.h"
+#include "amd_smi/impl/amd_smi_device.h"
+#include "amd_smi/impl/amd_smi_drm.h"
 
 namespace amd {
 namespace smi {
 
-// Singleton: Only one system in an application
-class AMDSmiSystem {
+class AMDSmiGPUDevice: public AMDSmiDevice {
  public:
-    static AMDSmiSystem& getInstance() {
-        static AMDSmiSystem instance;
-        return instance;
-    }
-    amdsmi_status_t init(uint64_t flags);
-    amdsmi_status_t cleanup();
+    explicit AMDSmiGPUDevice(uint32_t gpu_id, AMDSmiDrm& drm):
+            AMDSmiDevice(AMD_GPU), gpu_id_(gpu_id), drm_(drm) {}
 
-    std::vector<AMDSmiSocket*>& get_sockets() {return sockets_;}
-
-    amdsmi_status_t handle_to_socket(amdsmi_socket_handle socket_handle,
-            AMDSmiSocket** socket);
-
-    amdsmi_status_t handle_to_device(amdsmi_device_handle device_handle,
-            AMDSmiDevice** device);
-
-    amdsmi_status_t gpu_index_to_handle(uint32_t gpu_index,
-                    amdsmi_device_handle* device_handle);
-
+    uint32_t get_gpu_id() const;
+    amdsmi_status_t amdgpu_query_info(unsigned info_id,
+                    unsigned size, void *value) const;
+    amdsmi_status_t amdgpu_query_hw_ip(unsigned info_id, unsigned hw_ip_type,
+            unsigned size, void *value) const;
+    amdsmi_status_t amdgpu_query_fw(unsigned info_id, unsigned fw_type,
+            unsigned size, void *value) const;
+    amdsmi_status_t amdgpu_query_vbios(void *info) const;
  private:
-    AMDSmiSystem() : init_flag_(AMDSMI_INIT_ALL_DEVICES) {}
-    uint64_t init_flag_;
-    AMDSmiDrm drm_;
-    std::vector<AMDSmiSocket*> sockets_;
-    std::set<AMDSmiDevice*> devices_;     // Track valid devices
+    uint32_t gpu_id_;
+    AMDSmiDrm& drm_;
 };
-
 
 
 }  // namespace smi
 }  // namespace amd
 
-#endif  // AMD_SMI_INCLUDE_AMD_SMI_SYSTEM_H_
+#endif  // AMD_SMI_INCLUDE_IMPL_AMD_SMI_GPU_DEVICE_H_

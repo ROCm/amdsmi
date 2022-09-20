@@ -46,7 +46,7 @@
 #define TESTS_AMD_SMI_TEST_TEST_BASE_H_
 
 #include <string>
-#include "amd_smi.h"
+#include "amd_smi/amd_smi.h"
 
 // The max devices can be monitored
 #define MAX_MONITOR_DEVICES 128
