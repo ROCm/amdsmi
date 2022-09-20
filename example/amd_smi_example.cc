@@ -47,7 +47,7 @@
 #include <vector>
 #include <iostream>
 #include <bitset>
-#include "amd_smi.h"
+#include "amd_smi/amd_smi.h"
 
 #define CHK_AMDSMI_RET(RET) { \
   if (RET != AMDSMI_STATUS_SUCCESS) { \

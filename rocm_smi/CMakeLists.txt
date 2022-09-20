@@ -24,7 +24,7 @@ message("--------Proj Src Dir: " ${PROJECT_SOURCE_DIR})
 # message("--------RSMI Inc Dir: " ${RSMI_INC_DIR})
 # message("")
 
-set(ROCM_SMI "rocm_smi")
+set(ROCM_SMI "amd_smi")
 set(ROCM_SMI_COMPONENT "lib${ROCM_SMI}")
 set(ROCM_SMI_TARGET "${ROCM_SMI}64")
 
@@ -58,7 +58,7 @@ message("SOVERSION: ${SO_VERSION_STRING}")
 # Create a configure file to get version info from within library
 configure_file(
   "${PROJECT_SOURCE_DIR}/src/${ROCM_SMI_TARGET}Config.in"
-  "${PROJECT_SOURCE_DIR}/include/rocm_smi/${ROCM_SMI_TARGET}Config.h")
+  "${PROJECT_SOURCE_DIR}/include/amd_smi/${ROCM_SMI_TARGET}Config.h")
 
 set(RSMI_SRC_DIR "src")
 set(RSMI_INC_DIR "include")
@@ -102,6 +102,8 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL Release)
           POST_BUILD COMMAND ${CMAKE_STRIP} lib${ROCM_SMI_TARGET}.so.${SO_VERSION_STRING})
   endif()
 endif ()
+
+
 #file reorganization changes
 #rocm_smi.py moved to libexec/rocm_smi. so creating rocm-smi symlink
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
@@ -117,15 +119,15 @@ install(TARGETS ${ROCM_SMI_TARGET}
           ARCHIVE DESTINATION lib
           COMPONENT ${ROCM_SMI_COMPONENT})
 
-install(FILES ${COMMON_SRC_ROOT}/include/rocm_smi/rocm_smi.h
+install(FILES ${COMMON_SRC_ROOT}/include/amd_smi/amd_smi.h
                                         DESTINATION include/rocm_smi)
-install(FILES ${COMMON_SRC_ROOT}/include/rocm_smi/${ROCM_SMI_TARGET}Config.h
+install(FILES ${COMMON_SRC_ROOT}/include/amd_smi/${ROCM_SMI_TARGET}Config.h
                                         DESTINATION include/rocm_smi)
-install(FILES ${COMMON_SRC_ROOT}/include/rocm_smi/kfd_ioctl.h
+install(FILES ${COMMON_SRC_ROOT}/rocm_smi/include/rocm_smi/kfd_ioctl.h
                                         DESTINATION include/rocm_smi)
-install(FILES ${COMMON_SRC_ROOT}/python_smi_tools/rsmiBindings.py
+install(FILES ${COMMON_SRC_ROOT}/rocm_smi/python_smi_tools/rsmiBindings.py
                                         DESTINATION libexec/${ROCM_SMI})
-install(FILES ${COMMON_SRC_ROOT}/python_smi_tools/rocm_smi.py
+install(FILES ${COMMON_SRC_ROOT}/rocm_smi/python_smi_tools/rocm_smi.py
        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ
                          GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
                                         DESTINATION libexec/${ROCM_SMI})
@@ -138,13 +140,13 @@ find_package(LATEX COMPONENTS PDFLATEX)
 
 if (DOXYGEN_FOUND AND LATEX_FOUND)
   set (RSMI_MANUAL_NAME "ROCm_SMI_Manual")
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docs/amd_smi_doxygen.cfg
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docs/rocm_smi_doxygen.cfg
                                    ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.tex
         COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/docs/amd_smi_doxygen.cfg
-                "${COMMON_INC_DIR}/rocm_smi.h"
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/docs/rocm_smi_doxygen.cfg
+                    "${ROCM_INC_DIR}/rocm_smi.h"
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf
          COMMAND make  > /dev/null

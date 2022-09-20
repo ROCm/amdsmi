@@ -55,14 +55,14 @@
 #include <map>
 #include <memory>
 #include <xf86drm.h>
-#include "amd_smi.h"
-#include "impl/amd_smi_common.h"
-#include "impl/amd_smi_system.h"
-#include "impl/amd_smi_socket.h"
-#include "impl/amd_smi_gpu_device.h"
+#include "amd_smi/amd_smi.h"
+#include "amd_smi/impl/amd_smi_common.h"
+#include "amd_smi/impl/amd_smi_system.h"
+#include "amd_smi/impl/amd_smi_socket.h"
+#include "amd_smi/impl/amd_smi_gpu_device.h"
 #include "rocm_smi/rocm_smi.h"
 #include "rocm_smi/rocm_smi_common.h"
-#include "impl/amdgpu_drm.h"
+#include "amd_smi/impl/amdgpu_drm.h"
 
 // TODO(bliu): One to one map to all status code
 static amdsmi_status_t rsmi_to_amdsmi_status(rsmi_status_t status) {

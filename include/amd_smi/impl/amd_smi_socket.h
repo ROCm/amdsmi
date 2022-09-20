@@ -41,36 +41,31 @@
  *
  */
 
-#ifndef AMD_SMI_INCLUDE_IMPL_AMD_SMI_GPU_DEVICE_H_
-#define AMD_SMI_INCLUDE_IMPL_AMD_SMI_GPU_DEVICE_H_
+#ifndef AMD_SMI_INCLUDE_AMD_SMI_SOCKET_H_
+#define AMD_SMI_INCLUDE_AMD_SMI_SOCKET_H_
 
-#include "amd_smi.h"
-#include "impl/amd_smi_device.h"
-#include "impl/amd_smi_drm.h"
+#include <string>
+#include <algorithm>
+#include <vector>
+#include "amd_smi/amd_smi.h"
+#include "amd_smi/impl/amd_smi_device.h"
 
 namespace amd {
 namespace smi {
 
-class AMDSmiGPUDevice: public AMDSmiDevice {
+class AMDSmiSocket {
  public:
-    explicit AMDSmiGPUDevice(uint32_t gpu_id, AMDSmiDrm& drm):
-            AMDSmiDevice(AMD_GPU), gpu_id_(gpu_id), drm_(drm) {}
-
-    uint32_t get_gpu_id() const;
-    amdsmi_status_t amdgpu_query_info(unsigned info_id,
-                    unsigned size, void *value) const;
-    amdsmi_status_t amdgpu_query_hw_ip(unsigned info_id, unsigned hw_ip_type,
-            unsigned size, void *value) const;
-    amdsmi_status_t amdgpu_query_fw(unsigned info_id, unsigned fw_type,
-            unsigned size, void *value) const;
-    amdsmi_status_t amdgpu_query_vbios(void *info) const;
+    explicit AMDSmiSocket(const std::string& id) : socket_identifier_(id) {}
+    ~AMDSmiSocket();
+    const std::string& get_socket_id() const { return socket_identifier_;}
+    void add_device(AMDSmiDevice* device) { devices_.push_back(device); }
+    std::vector<AMDSmiDevice*>& get_devices() { return devices_;}
  private:
-    uint32_t gpu_id_;
-    AMDSmiDrm& drm_;
+    std::string socket_identifier_;
+    std::vector<AMDSmiDevice*> devices_;
 };
-
 
 }  // namespace smi
 }  // namespace amd
 
-#endif  // AMD_SMI_INCLUDE_IMPL_AMD_SMI_GPU_DEVICE_H_
+#endif  // AMD_SMI_INCLUDE_AMD_SMI_SOCKET_H_

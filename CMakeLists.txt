@@ -18,7 +18,7 @@ if (NOT DEFINED CPACK_RESOURCE_FILE_LICENSE)
     set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/License.txt")
 endif()
 
-set(ROCM_SMI "rocm_smi")
+set(ROCM_SMI "amd_smi")
 set(ROCM_SMI_COMPONENT "lib${ROCM_SMI}")
 set(ROCM_SMI_TARGET "${ROCM_SMI}64")
 set(ROCM_SMI_LIB_NAME "lib${ROCM_SMI_TARGET}")
@@ -111,26 +111,28 @@ else ()
 endif ()
 
 set(COMMON_SRC_DIR "${PROJECT_SOURCE_DIR}/src")
-set(COMMON_INC_DIR "${PROJECT_SOURCE_DIR}/include/rocm_smi")
+set(ROCM_SRC_DIR "${PROJECT_SOURCE_DIR}/rocm_smi/src")
+set(AMDSMI_SRC_DIR "${PROJECT_SOURCE_DIR}/src/amd_smi")
+set(COMMON_INC_DIR "${PROJECT_SOURCE_DIR}/include/amd_smi")
+set(AMDSMI_INC_DIR "${PROJECT_SOURCE_DIR}/include/amd_smi")
+set(ROCM_INC_DIR "${PROJECT_SOURCE_DIR}/rocm_smi/include/rocm_smi")
 set(SHR_MUTEX_DIR "${PROJECT_SOURCE_DIR}/third_party/shared_mutex")
-set(AMDSMI_SRC_DIR "${PROJECT_SOURCE_DIR}/amd_smi/src")
-set(AMDSMI_INC_DIR "${PROJECT_SOURCE_DIR}/amd_smi/include")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include
                      ${CMAKE_CURRENT_SOURCE_DIR}/third_party/shared_mutex
                      ${CMAKE_CURRENT_SOURCE_DIR}/amd_smi/include
                      /usr/include/libdrm)
 
-set(CMN_SRC_LIST "${COMMON_SRC_DIR}/rocm_smi_device.cc")
-set(CMN_SRC_LIST ${CMN_SRC_LIST} "${COMMON_SRC_DIR}/rocm_smi_main.cc")
-set(CMN_SRC_LIST ${CMN_SRC_LIST} "${COMMON_SRC_DIR}/rocm_smi_monitor.cc")
-set(CMN_SRC_LIST ${CMN_SRC_LIST} "${COMMON_SRC_DIR}/rocm_smi_power_mon.cc")
-set(CMN_SRC_LIST ${CMN_SRC_LIST} "${COMMON_SRC_DIR}/rocm_smi_utils.cc")
-set(CMN_SRC_LIST ${CMN_SRC_LIST} "${COMMON_SRC_DIR}/rocm_smi_counters.cc")
-set(CMN_SRC_LIST ${CMN_SRC_LIST} "${COMMON_SRC_DIR}/rocm_smi_kfd.cc")
-set(CMN_SRC_LIST ${CMN_SRC_LIST} "${COMMON_SRC_DIR}/rocm_smi_io_link.cc")
-set(CMN_SRC_LIST ${CMN_SRC_LIST} "${COMMON_SRC_DIR}/rocm_smi_gpu_metrics.cc")
-set(CMN_SRC_LIST ${CMN_SRC_LIST} "${COMMON_SRC_DIR}/rocm_smi.cc")
+set(CMN_SRC_LIST "${ROCM_SRC_DIR}/rocm_smi_device.cc")
+set(CMN_SRC_LIST ${CMN_SRC_LIST} "${ROCM_SRC_DIR}/rocm_smi_main.cc")
+set(CMN_SRC_LIST ${CMN_SRC_LIST} "${ROCM_SRC_DIR}/rocm_smi_monitor.cc")
+set(CMN_SRC_LIST ${CMN_SRC_LIST} "${ROCM_SRC_DIR}/rocm_smi_power_mon.cc")
+set(CMN_SRC_LIST ${CMN_SRC_LIST} "${ROCM_SRC_DIR}/rocm_smi_utils.cc")
+set(CMN_SRC_LIST ${CMN_SRC_LIST} "${ROCM_SRC_DIR}/rocm_smi_counters.cc")
+set(CMN_SRC_LIST ${CMN_SRC_LIST} "${ROCM_SRC_DIR}/rocm_smi_kfd.cc")
+set(CMN_SRC_LIST ${CMN_SRC_LIST} "${ROCM_SRC_DIR}/rocm_smi_io_link.cc")
+set(CMN_SRC_LIST ${CMN_SRC_LIST} "${ROCM_SRC_DIR}/rocm_smi_gpu_metrics.cc")
+set(CMN_SRC_LIST ${CMN_SRC_LIST} "${ROCM_SRC_DIR}/rocm_smi.cc")
 set(CMN_SRC_LIST ${CMN_SRC_LIST} "${SHR_MUTEX_DIR}/shared_mutex.cc")
 set(CMN_SRC_LIST ${CMN_SRC_LIST} "${AMDSMI_SRC_DIR}/amd_smi.cc")
 set(CMN_SRC_LIST ${CMN_SRC_LIST} "${AMDSMI_SRC_DIR}/amd_smi_common.cc")
@@ -140,35 +142,68 @@ set(CMN_SRC_LIST ${CMN_SRC_LIST} "${AMDSMI_SRC_DIR}/amd_smi_system.cc")
 set(CMN_SRC_LIST ${CMN_SRC_LIST} "${AMDSMI_SRC_DIR}/amd_smi_drm.cc")
 set(CMN_SRC_LIST ${CMN_SRC_LIST} "${AMDSMI_SRC_DIR}/amd_smi_lib_loader.cc")
 
-set(CMN_INC_LIST "${COMMON_INC_DIR}/rocm_smi_device.h")
-set(CMN_INC_LIST ${CMN_INC_LIST} "${COMMON_INC_DIR}/rocm_smi_main.h")
-set(CMN_INC_LIST ${CMN_INC_LIST} "${COMMON_INC_DIR}/rocm_smi_monitor.h")
-set(CMN_INC_LIST ${CMN_INC_LIST} "${COMMON_INC_DIR}/rocm_smi_power_mon.h")
-set(CMN_INC_LIST ${CMN_INC_LIST} "${COMMON_INC_DIR}/rocm_smi_utils.h")
-set(CMN_INC_LIST ${CMN_INC_LIST} "${COMMON_INC_DIR}/rocm_smi_common.h")
-set(CMN_INC_LIST ${CMN_INC_LIST} "${COMMON_INC_DIR}/rocm_smi_exception.h")
-set(CMN_INC_LIST ${CMN_INC_LIST} "${COMMON_INC_DIR}/rocm_smi_counters.h")
-set(CMN_INC_LIST ${CMN_INC_LIST} "${COMMON_INC_DIR}/rocm_smi_kfd.h")
-set(CMN_INC_LIST ${CMN_INC_LIST} "${COMMON_INC_DIR}/rocm_smi_io_link.h")
-set(CMN_INC_LIST ${CMN_INC_LIST} "${COMMON_INC_DIR}/rocm_smi.h")
+set(CMN_INC_LIST "${ROCM_INC_DIR}/rocm_smi_device.h")
+set(CMN_INC_LIST ${CMN_INC_LIST} "${ROCM_INC_DIR}/rocm_smi_main.h")
+set(CMN_INC_LIST ${CMN_INC_LIST} "${ROCM_INC_DIR}/rocm_smi_monitor.h")
+set(CMN_INC_LIST ${CMN_INC_LIST} "${ROCM_INC_DIR}/rocm_smi_power_mon.h")
+set(CMN_INC_LIST ${CMN_INC_LIST} "${ROCM_INC_DIR}/rocm_smi_utils.h")
+set(CMN_INC_LIST ${CMN_INC_LIST} "${ROCM_INC_DIR}/rocm_smi_common.h")
+set(CMN_INC_LIST ${CMN_INC_LIST} "${ROCM_INC_DIR}/rocm_smi_exception.h")
+set(CMN_INC_LIST ${CMN_INC_LIST} "${ROCM_INC_DIR}/rocm_smi_counters.h")
+set(CMN_INC_LIST ${CMN_INC_LIST} "${ROCM_INC_DIR}/rocm_smi_kfd.h")
+set(CMN_INC_LIST ${CMN_INC_LIST} "${ROCM_INC_DIR}/rocm_smi_io_link.h")
+set(CMN_INC_LIST ${CMN_INC_LIST} "${ROCM_INC_DIR}/rocm_smi.h")
 set(CMN_INC_LIST ${CMN_INC_LIST} "${SHR_MUTEX_DIR}/shared_mutex.h")
-set(CMN_SRC_LIST ${CMN_SRC_LIST} "${AMDSMI_INC_DIR}/amd_smi.h")
-set(CMN_SRC_LIST ${CMN_SRC_LIST} "${AMDSMI_INC_DIR}/impl/amd_smi_common.h")
-set(CMN_SRC_LIST ${CMN_SRC_LIST} "${AMDSMI_INC_DIR}/impl/amd_smi_device.h")
-set(CMN_SRC_LIST ${CMN_SRC_LIST} "${AMDSMI_INC_DIR}/impl/amd_smi_gpu_device.h")
-set(CMN_SRC_LIST ${CMN_SRC_LIST} "${AMDSMI_INC_DIR}/impl/amd_smi_socket.h")
-set(CMN_SRC_LIST ${CMN_SRC_LIST} "${AMDSMI_INC_DIR}/impl/amd_smi_system.h")
-set(CMN_SRC_LIST ${CMN_SRC_LIST} "${AMDSMI_INC_DIR}/impl/amd_smi_drm.h")
-set(CMN_SRC_LIST ${CMN_SRC_LIST} "${AMDSMI_INC_DIR}/impl/amd_smi_lib_loader.h")
+set(CMN_SRC_LIST ${CMN_SRC_LIST} "${COMMON_INC_DIR}/amd_smi.h")
+set(CMN_SRC_LIST ${CMN_SRC_LIST} "${COMMON_INC_DIR}/impl/amd_smi_common.h")
+set(CMN_SRC_LIST ${CMN_SRC_LIST} "${COMMON_INC_DIR}/impl/amd_smi_device.h")
+set(CMN_SRC_LIST ${CMN_SRC_LIST} "${COMMON_INC_DIR}/impl/amd_smi_gpu_device.h")
+set(CMN_SRC_LIST ${CMN_SRC_LIST} "${COMMON_INC_DIR}/impl/amd_smi_socket.h")
+set(CMN_SRC_LIST ${CMN_SRC_LIST} "${COMMON_INC_DIR}/impl/amd_smi_system.h")
+set(CMN_SRC_LIST ${CMN_SRC_LIST} "${COMMON_INC_DIR}/impl/amd_smi_drm.h")
+set(CMN_SRC_LIST ${CMN_SRC_LIST} "${COMMON_INC_DIR}/impl/amd_smi_lib_loader.h")
 
 add_subdirectory("rocm_smi")
-add_subdirectory("amd_smi")
-add_subdirectory("oam")
 
-option(FILE_REORG_BACKWARD_COMPATIBILITY "Enable File Reorg with backward compatibility" ON)
-if(FILE_REORG_BACKWARD_COMPATIBILITY)
-  include(rocm_smi-backward-compat.cmake)
-endif()
+# Examples and docs
+set(SMI_EXAMPLE_EXE "amd_smi_ex")
+add_executable(${SMI_EXAMPLE_EXE} "example/amd_smi_example.cc")
+target_link_libraries(${SMI_EXAMPLE_EXE} ${ROCM_SMI_TARGET})
+add_dependencies(${SMI_EXAMPLE_EXE} ${ROCM_SMI_TARGET})
+
+# Generate Doxygen documentation
+find_package(Doxygen)
+find_package(LATEX COMPONENTS PDFLATEX)
+
+if (DOXYGEN_FOUND AND LATEX_FOUND)
+  set (RSMI_MANUAL_NAME "AMD_SMI_Manual")
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docs/amd_smi_doxygen.cfg
+                                   ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+
+  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.tex
+        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/docs/amd_smi_doxygen.cfg
+                "${AMDSMI_INC_DIR}/amd_smi.h"
+         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf
+         COMMAND make  > /dev/null
+         COMMAND cp  ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf
+                  ${CMAKE_CURRENT_SOURCE_DIR}/docs/${RSMI_MANUAL_NAME}_new.pdf
+         DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.tex
+         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/latex)
+
+  add_custom_target(amdsmi_docs DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf)
+
+  add_dependencies(${ROCM_SMI_TARGET} amdsmi_docs)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf
+                         DESTINATION share/doc/${ROCM_SMI} RENAME ${RSMI_MANUAL_NAME}.pdf)
+  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/README.md
+                          DESTINATION share/doc/${ROCM_SMI}/)
+else()
+  message("Doxygen or Latex is not found. Will not generate documents.")
+endif(DOXYGEN_FOUND AND LATEX_FOUND)
+
+
 #TODO: Should use GNUInstallDirs to match distro standards
 #This need fix in subdirectory CMakefile as well
 #include(GNUInstallDirs)
@@ -179,7 +214,7 @@ set(BIN_INSTALL_DIR  "bin")
 include(CMakePackageConfigHelpers)
 
 configure_package_config_file(
-    rocm_smi-config.cmake.in
+    amd_smi-config.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/rocm_smi-config.cmake
     INSTALL_DESTINATION ${LIB_INSTALL_DIR}/cmake/rocm_smi
     PATH_VARS LIB_INSTALL_DIR INCLUDE_INSTALL_DIR BIN_INSTALL_DIR
@@ -201,7 +236,7 @@ install(
 
 # Create cmake target
 # Add all targets to the build-tree export set
-export(TARGETS ${ROCM_SMI_TARGET} ${OAM_TARGET}
+export(TARGETS ${ROCM_SMI_TARGET}
   FILE "${PROJECT_BINARY_DIR}/rcom_smi_target.cmake")
 
 # Export the package for use from the build-tree

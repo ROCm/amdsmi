@@ -41,42 +41,51 @@
  *
  */
 
-#ifndef AMD_SMI_INCLUDE_IMPL_AMD_SMI_DRM_H_
-#define AMD_SMI_INCLUDE_IMPL_AMD_SMI_DRM_H_
+#ifndef AMD_SMI_INCLUDE_AMD_SMI_SYSTEM_H_
+#define AMD_SMI_INCLUDE_AMD_SMI_SYSTEM_H_
 
-#include <unistd.h>
 #include <vector>
-#include <memory>
-#include <mutex>  // NOLINT
-#include "amd_smi.h"
-#include "impl/amd_smi_lib_loader.h"
+#include <set>
+#include "amd_smi/amd_smi.h"
+#include "amd_smi/impl/amd_smi_socket.h"
+#include "amd_smi/impl/amd_smi_device.h"
+#include "amd_smi/impl/amd_smi_drm.h"
 
 namespace amd {
 namespace smi {
 
-class AMDSmiDrm {
+// Singleton: Only one system in an application
+class AMDSmiSystem {
  public:
-    amdsmi_status_t init();
+    static AMDSmiSystem& getInstance() {
+        static AMDSmiSystem instance;
+        return instance;
+    }
+    amdsmi_status_t init(uint64_t flags);
     amdsmi_status_t cleanup();
-    int get_drm_fd_by_index(uint32_t gpu_index) const;
-    amdsmi_status_t amdgpu_query_info(int fd, unsigned info_id,
-                    unsigned size, void *value);
-    amdsmi_status_t  amdgpu_query_fw(int fd, unsigned info_id, unsigned fw_type,
-                unsigned size, void *value);
-    amdsmi_status_t amdgpu_query_hw_ip(int fd, unsigned info_id,
-               unsigned hw_ip_type, unsigned size, void *value);
-    amdsmi_status_t amdgpu_query_vbios(int fd, void *info);
+
+    std::vector<AMDSmiSocket*>& get_sockets() {return sockets_;}
+
+    amdsmi_status_t handle_to_socket(amdsmi_socket_handle socket_handle,
+            AMDSmiSocket** socket);
+
+    amdsmi_status_t handle_to_device(amdsmi_device_handle device_handle,
+            AMDSmiDevice** device);
+
+    amdsmi_status_t gpu_index_to_handle(uint32_t gpu_index,
+                    amdsmi_device_handle* device_handle);
 
  private:
-    using DrmCmdWriteFunc = int (*)(int, unsigned long, void *, unsigned long);
-    std::vector<int> drm_fds_;  // drm file descriptor by gpu_index
-    AMDSmiLibraryLoader lib_loader_;  // lazy load libdrm
-    DrmCmdWriteFunc drm_cmd_write_;   // drmCommandWrite
-    std::mutex drm_mutex_;
+    AMDSmiSystem() : init_flag_(AMDSMI_INIT_ALL_DEVICES) {}
+    uint64_t init_flag_;
+    AMDSmiDrm drm_;
+    std::vector<AMDSmiSocket*> sockets_;
+    std::set<AMDSmiDevice*> devices_;     // Track valid devices
 };
+
 
 
 }  // namespace smi
 }  // namespace amd
 
-#endif  // AMD_SMI_INCLUDE_IMPL_AMD_SMI_DRM_H_
+#endif  // AMD_SMI_INCLUDE_AMD_SMI_SYSTEM_H_

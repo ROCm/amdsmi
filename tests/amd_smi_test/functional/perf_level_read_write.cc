@@ -50,7 +50,7 @@
 #include <map>
 
 #include "gtest/gtest.h"
-#include "amd_smi.h"
+#include "amd_smi/amd_smi.h"
 #include "amd_smi_test/functional/perf_level_read_write.h"
 #include "amd_smi_test/test_common.h"
 

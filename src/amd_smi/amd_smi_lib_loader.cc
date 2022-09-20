@@ -1,11 +1,9 @@
 /*
  * =============================================================================
- *   ROC Runtime Conformance Release License
- * =============================================================================
  * The University of Illinois/NCSA
  * Open Source License (NCSA)
  *
- * Copyright (c) 2017, Advanced Micro Devices, Inc.
+ * Copyright (c) 2022, Advanced Micro Devices, Inc.
  * All rights reserved.
  *
  * Developed by:
@@ -43,14 +41,47 @@
  *
  */
 
-#ifndef INCLUDE_ROCM_SMI_ROCM_SMI64CONFIG_H_
-#define INCLUDE_ROCM_SMI_ROCM_SMI64CONFIG_H_
+#include "amd_smi/impl/amd_smi_lib_loader.h"
+#include <iostream>
 
-// This file is generated on build.
+namespace amd {
+namespace smi {
 
-#define rocm_smi_VERSION_MAJOR @rocm_smi_VERSION_MAJOR@
-#define rocm_smi_VERSION_MINOR @rocm_smi_VERSION_MINOR@
-#define rocm_smi_VERSION_PATCH @rocm_smi_VERSION_PATCH@
-#define rocm_smi_VERSION_BUILD "@rocm_smi_VERSION_BUILD@"
+AMDSmiLibraryLoader::AMDSmiLibraryLoader(): libHandler_(nullptr) {
+}
 
-#endif  // INCLUDE_ROCM_SMI_ROCM_SMI64CONFIG_H_
+amdsmi_status_t AMDSmiLibraryLoader::load(const char* filename) {
+    if (filename == nullptr) {
+        return AMDSMI_STATUS_FAIL_LOAD_MODULE;
+    }
+    if (libHandler_) {
+        unload();
+    }
+
+    std::lock_guard<std::mutex> guard(library_mutex_);
+    libHandler_ = dlopen(filename, RTLD_LAZY);
+    if (!libHandler_) {
+        char* error = dlerror();
+        std::cerr << "Fail to open " << filename <<": " << error
+                << std::endl;
+        return AMDSMI_STATUS_FAIL_LOAD_MODULE;
+    }
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t AMDSmiLibraryLoader::unload() {
+        std::lock_guard<std::mutex> guard(library_mutex_);
+        if (libHandler_) {
+            dlclose(libHandler_);
+            libHandler_ = nullptr;
+        }
+        return AMDSMI_STATUS_SUCCESS;
+}
+
+AMDSmiLibraryLoader::~AMDSmiLibraryLoader() {
+        unload();
+}
+
+}  // namespace rdc
+}  // namespace amd

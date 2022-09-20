@@ -42,8 +42,8 @@
  */
 #include <sstream>
 #include <iomanip>
-#include "impl/amd_smi_system.h"
-#include "impl/amd_smi_gpu_device.h"
+#include "amd_smi/impl/amd_smi_system.h"
+#include "amd_smi/impl/amd_smi_gpu_device.h"
 #include "rocm_smi/rocm_smi.h"
 
 
