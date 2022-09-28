@@ -58,7 +58,17 @@ message("SOVERSION: ${SO_VERSION_STRING}")
 # Create a configure file to get version info from within library
 configure_file(
   "${PROJECT_SOURCE_DIR}/src/${ROCM_SMI_TARGET}Config.in"
-  "${PROJECT_SOURCE_DIR}/include/amd_smi/${ROCM_SMI_TARGET}Config.h")
+  "${PROJECT_SOURCE_DIR}/include/amd_smi/${ROCM_SMI_TARGET}Config.h"
+  )
+
+set(rocm_smi_VERSION_MAJOR "${VERSION_MAJOR}")
+set(rocm_smi_VERSION_MINOR "${VERSION_MINOR}")
+set(rocm_smi_VERSION_PATCH "0")
+set(rocm_smi_VERSION_BUILD "0")
+configure_file(
+    "${PROJECT_SOURCE_DIR}/rocm_smi/src/rocm_smi64Config.in"
+    "${PROJECT_SOURCE_DIR}/rocm_smi/include/rocm_smi/rocm_smi64Config.h"
+  )
 
 set(RSMI_SRC_DIR "src")
 set(RSMI_INC_DIR "include")
