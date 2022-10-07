@@ -46,6 +46,7 @@
 #define TESTS_AMD_SMI_TEST_TEST_BASE_H_
 
 #include <string>
+#include <vector>
 #include "amd_smi/amd_smi.h"
 
 // The max devices can be monitored
@@ -126,7 +127,7 @@ class TestBase {
   ///< device handles
   amdsmi_device_handle device_handles_[MAX_MONITOR_DEVICES];
   uint32_t socket_count_;  ///< socket count
-  amdsmi_socket_handle* sockets_;  ///< sockets
+  std::vector<amdsmi_socket_handle> sockets_;  ///< sockets
 
  private:
   std::string description_;

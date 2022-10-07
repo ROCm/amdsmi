@@ -138,15 +138,28 @@ amdsmi_status_string(amdsmi_status_t status, const char **status_string) {
 }
 
 amdsmi_status_t amdsmi_get_socket_handles(uint32_t *socket_count,
-                amdsmi_socket_handle* socket_handles[]) {
-    if (socket_count == nullptr || socket_handles == nullptr) {
+                amdsmi_socket_handle* socket_handles) {
+    if (socket_count == nullptr) {
         return AMDSMI_STATUS_INVAL;
     }
 
     std::vector<amd::smi::AMDSmiSocket*>& sockets
             = amd::smi::AMDSmiSystem::getInstance().get_sockets();
-    *socket_count = static_cast<uint32_t>(sockets.size());
-    *socket_handles = reinterpret_cast<amdsmi_socket_handle*>(sockets.data());
+    uint32_t socket_size = static_cast<uint32_t>(sockets.size());
+    // Get the socket size
+    if (socket_handles == nullptr) {
+        *socket_count = socket_size;
+        return AMDSMI_STATUS_SUCCESS;
+    }
+
+    // If the socket_handles can hold all sockets, return all of them.
+    *socket_count = *socket_count >= socket_size ? socket_size : *socket_count;
+
+    // Copy the socket handles
+    for (uint32_t i = 0; i < *socket_count; i++) {
+        socket_handles[i] = reinterpret_cast<amdsmi_socket_handle>(sockets[i]);
+    }
+
     return AMDSMI_STATUS_SUCCESS;
 }
 
@@ -168,24 +181,36 @@ amdsmi_status_t amdsmi_get_socket_info(
     return AMDSMI_STATUS_SUCCESS;
 }
 
-
 amdsmi_status_t amdsmi_get_device_handles(amdsmi_socket_handle socket_handle,
-                                    uint32_t *device_count,
-                                    amdsmi_device_handle* device_handles[]) {
+                                    uint32_t* device_count,
+                                    amdsmi_device_handle* device_handles) {
     if (device_count == nullptr) {
         return AMDSMI_STATUS_INVAL;
     }
 
+    // Get the socket object via socket handle.
     amd::smi::AMDSmiSocket* socket = nullptr;
     amdsmi_status_t r = amd::smi::AMDSmiSystem::getInstance()
                     .handle_to_socket(socket_handle, &socket);
     if (r != AMDSMI_STATUS_SUCCESS) return r;
 
-    r = socket->get_device_count(device_count);
-    if (r != AMDSMI_STATUS_SUCCESS) return r;
 
-    *device_handles = reinterpret_cast<amdsmi_device_handle*>(
-        socket->get_devices().data());
+    std::vector<amd::smi::AMDSmiDevice*>& devices = socket->get_devices();
+    uint32_t device_size = static_cast<uint32_t>(devices.size());
+    // Get the device count only
+    if (device_handles == nullptr) {
+        *device_count = device_size;
+        return AMDSMI_STATUS_SUCCESS;
+    }
+
+    // If the device_handles can hold all devices, return all of them.
+    *device_count = *device_count >= device_size ? device_size : *device_count;
+
+    // Copy the device handles
+    for (uint32_t i = 0; i < *device_count; i++) {
+        device_handles[i] = reinterpret_cast<amdsmi_device_handle>(devices[i]);
+    }
+
     return AMDSMI_STATUS_SUCCESS;
 }
 
@@ -205,7 +230,6 @@ amdsmi_status_t amdsmi_get_device_type(amdsmi_device_handle device_handle ,
 
 amdsmi_status_t
 amdsmi_get_device_bdf(amdsmi_device_handle device_handle, amdsmi_bdf_t *bdf) {
-
     if (bdf == NULL) {
         return AMDSMI_STATUS_INVAL;
     }
@@ -213,12 +237,8 @@ amdsmi_get_device_bdf(amdsmi_device_handle device_handle, amdsmi_bdf_t *bdf) {
     amd::smi::AMDSmiGPUDevice* gpu_device =
                 static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
 
-    if (gpu_device->check_if_drm_is_supported()) {
-        *bdf = gpu_device->get_bdf();
-    }
-    else {
-        //TODO
-    }
+    // get bdf from sysfs file
+    *bdf = gpu_device->get_bdf();
 
     return AMDSMI_STATUS_SUCCESS;
 }
@@ -503,25 +523,23 @@ amdsmi_get_asic_info(amdsmi_device_handle device_handle, amdsmi_asic_info_t *inf
         info->family = dev_info.family;
         info->rev_id = dev_info.pci_rev;
     }
-    else {
-        uint16_t vendor_id = 0;
+    // For other sysfs related information, get from rocm-smi
+    uint16_t vendor_id = 0;
 
-        amdsmi_status_t status = rsmi_wrapper(rsmi_dev_serial_number_get, device_handle,
+    status = rsmi_wrapper(rsmi_dev_serial_number_get, device_handle,
             info->asic_serial, AMDSMI_NORMAL_STRING_LENGTH);
 
-        status = rsmi_wrapper(rsmi_dev_brand_get, device_handle,
+    status = rsmi_wrapper(rsmi_dev_brand_get, device_handle,
             info->market_name, AMDSMI_NORMAL_STRING_LENGTH);
 
-        status = rsmi_wrapper(rsmi_dev_vendor_id_get, device_handle,
+    status = rsmi_wrapper(rsmi_dev_vendor_id_get, device_handle,
                                 &vendor_id);
-        if (status == AMDSMI_STATUS_SUCCESS) info->vendor_id = vendor_id;
-        vendor_id = 0;
+    if (status == AMDSMI_STATUS_SUCCESS) info->vendor_id = vendor_id;
 
-        status =  rsmi_wrapper(rsmi_dev_subsystem_vendor_id_get, device_handle,
+    vendor_id = 0;
+    status =  rsmi_wrapper(rsmi_dev_subsystem_vendor_id_get, device_handle,
                 &vendor_id);
-        if (status == AMDSMI_STATUS_SUCCESS) info->subvendor_id = vendor_id;
-        return status;
-    }
+    if (status == AMDSMI_STATUS_SUCCESS) info->subvendor_id = vendor_id;
 
     return AMDSMI_STATUS_SUCCESS;
 }
@@ -937,37 +955,27 @@ amdsmi_get_power_cap_info(amdsmi_device_handle device_handle,
     amd::smi::AMDSmiGPUDevice* gpudevice =
             static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
     amdsmi_status_t status;
-    if (gpudevice->check_if_drm_is_supported()){
-        int power_cap = 0;
-        int dpm = 0;
 
-        status = smi_amdgpu_get_power_cap(gpudevice, &power_cap);
-        if (status != AMDSMI_STATUS_SUCCESS) {
-            return status;
-        }
-        info->power_cap = power_cap;
+    // Ignore errors to get as much as possible info.
+    memset(info, 0, sizeof(amdsmi_power_cap_info_t));
 
-        status = smi_amdgpu_get_ranges(gpudevice, CLOCK_TYPE_GFX,
+    // Get power_cap and dpm
+    int power_cap = 0;
+    int dpm = 0;
+    status = smi_amdgpu_get_power_cap(gpudevice, &power_cap);
+
+    info->power_cap = power_cap;
+    status = smi_amdgpu_get_ranges(gpudevice, CLOCK_TYPE_GFX,
             NULL, NULL, &dpm);
-        if (status != AMDSMI_STATUS_SUCCESS) {
-            return status;
-        }
-        info->dpm_cap = dpm;
+    info->dpm_cap = dpm;
 
-        return AMDSMI_STATUS_SUCCESS;
-    }
-    else {
-        // Ignore errors to get as much as possible info.
-        memset(info, 0, sizeof(amdsmi_power_cap_info_t));
-        auto rsmi_status = rsmi_dev_power_cap_default_get(gpudevice->get_gpu_id(),
+    // Get other information from rocm-smi
+    auto rsmi_status = rsmi_dev_power_cap_default_get(gpudevice->get_gpu_id(),
                 &(info->default_power_cap));
-        rsmi_status = rsmi_dev_power_cap_range_get(gpudevice->get_gpu_id(),
+    rsmi_status = rsmi_dev_power_cap_range_get(gpudevice->get_gpu_id(),
                 sensor_ind, &(info->max_power_cap), &(info->min_power_cap));
-        rsmi_status = rsmi_dev_power_cap_get(gpudevice->get_gpu_id(),
+    rsmi_status = rsmi_dev_power_cap_get(gpudevice->get_gpu_id(),
                 sensor_ind, &(info->power_cap));
-
-        // TODO(bliu) : dpm_cap
-    }
 
     return AMDSMI_STATUS_SUCCESS;
 }
@@ -1278,7 +1286,8 @@ amdsmi_get_vbios_info(amdsmi_device_handle dev, amdsmi_vbios_info_t *info) {
         info->vbios_version = vbios.version;
     }
     else {
-        // rocm
+        // those information can only get the from libdrm
+        return AMDSMI_STATUS_NOT_SUPPORTED;
     }
 
 	return AMDSMI_STATUS_SUCCESS;

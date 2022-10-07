@@ -73,24 +73,37 @@ int main() {
 
     // Get all sockets
     uint32_t socket_count = 0;
-    amdsmi_socket_handle *sockets = nullptr;
-    ret = amdsmi_get_socket_handles(&socket_count, &sockets);
+
+    // Get the socket count available for the system.
+    ret = amdsmi_get_socket_handles(&socket_count, nullptr);
     CHK_AMDSMI_RET(ret)
+
+    // Allocate the memory for the sockets
+    std::vector<amdsmi_socket_handle> sockets(socket_count);
+    // Get the sockets of the system
+    ret = amdsmi_get_socket_handles(&socket_count, &sockets[0]);
+    CHK_AMDSMI_RET(ret)
+
     std::cout << "Total Socket: " << socket_count << std::endl;
 
     // For each socket, get identifier and devices
     for (uint32_t i = 0; i < socket_count; i++) {
         // Get Socket info
-        char socket_name[128];
-        ret = amdsmi_get_socket_info(sockets[i], socket_name, 128);
+        char socket_info[128];
+        ret = amdsmi_get_socket_info(sockets[i], socket_info, 128);
         CHK_AMDSMI_RET(ret)
-        std::cout << "Socket " << socket_name << std::endl;
+        std::cout << "Socket " << socket_info << std::endl;
 
-        // Get all devices of the socket
+       // Get the device count available for the socket.
         uint32_t device_count = 0;
-        amdsmi_device_handle *device_handles = nullptr;
-        ret = amdsmi_get_device_handles(sockets[i], &device_count,
-                                        &device_handles);
+        ret = amdsmi_get_device_handles(sockets[i], &device_count, nullptr);
+        CHK_AMDSMI_RET(ret)
+
+        // Allocate the memory for the device handlers on the socket
+        std::vector<amdsmi_device_handle> device_handles(device_count);
+        // Get all devices of the socket
+        ret = amdsmi_get_device_handles(sockets[i],
+                                        &device_count, &device_handles[0]);
         CHK_AMDSMI_RET(ret)
 
         // For each device of the socket, get name and temperature.

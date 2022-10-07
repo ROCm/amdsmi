@@ -1170,23 +1170,34 @@ amdsmi_status_t amdsmi_shut_down(void);
 
 /**
  *  @brief Get the list of socket handles in the system.
- * 
+ *
  *  @details Depends on what flag is pass to ::amdsmi_init(flags).  AMDSMI_INIT_AMD_GPUS
  *  returns sockets with AMD GPUS, and AMDSMI_INIT_AMD_GPUS | AMDSMI_INIT_AMD_CPUS returns
  *  sockets with either AMD GPUS or CPUS.
  *  The socket handles can be used to query the device handles in that socket, which
  *  will be used in other APIs to get device detail information or telemtries.
  *
- *  @param[out] socket_count The total count of sockets found in the system.
+ *  @param[inout] socket_count As input, the value passed
+ *  through this parameter is the number of ::amdsmi_socket_handle's that
+ *  may be safely written to the memory pointed to by @p socket_handles. This is the
+ *  limit on how many socket handles will be written to @p socket_handles. On return, @p
+ *  socket_count will contain the number of socket handles written to @p socket_handles,
+ *  or the number of socket handles that could have been written if enough memory had been
+ *  provided.
+ *  If @p socket_handles is NULL, as output, @p socket_count will contain
+ *  how many sockets are available to read in the system.
  *
- *  @param[out] socket_handles a list of socket handles in the system.
+ *  @param[inout] socket_handles A pointer to a block of memory to which the
+ *  ::amdsmi_socket_handle values will be written. This value may be NULL.
+ *  In this case, this function can be used to query how many sockets are
+ *  available to read in the system.
  *
  * @retval ::AMDSMI_STATUS_SUCCESS call was successful
  * @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
  */
 amdsmi_status_t amdsmi_get_socket_handles(uint32_t *socket_count,
-                amdsmi_socket_handle* socket_handles[]);
+                amdsmi_socket_handle* socket_handles);
 
 /**
  *  @brief Get the socket information
@@ -1216,20 +1227,35 @@ amdsmi_status_t amdsmi_get_socket_info(
  *  type devices: An APU on a socket have both CPUs and GPUs.
  *  Currently, only AMD GPUs are supported.
  *
+ *  The number of device count is returned through @p device_count
+ *  if @p device_handles is NULL. Then the number of @p device_count can be pass
+ *  as input to retrieval all devices on the socket to @p device_handles.
+ *
  *  @param[in] socket_handle The socket to query
  *
- *  @param[out] device_count The total count of devices on the socket.
+ *  @param[inout] device_count As input, the value passed
+ *  through this parameter is the number of ::amdsmi_device_handle's that
+ *  may be safely written to the memory pointed to by @p device_handles. This is the
+ *  limit on how many device handles will be written to @p device_handles. On return, @p
+ *  device_count will contain the number of device handles written to @p device_handles,
+ *  or the number of device handles that could have been written if enough memory had been
+ *  provided.
+ *  If @p device_handles is NULL, as output, @p device_count will contain
+ *  how many devices are available to read for the socket.
  *
- *  @param[out] device_handles a list of devices handles on the socket.
+ *  @param[inout] device_handles A pointer to a block of memory to which the
+ *  ::device_handles values will be written. This value may be NULL.
+ *  In this case, this function can be used to query how many devices are
+ *  available to read.
  *
  * @retval ::AMDSMI_STATUS_SUCCESS call was successful
  * @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  *
- *
  */
 amdsmi_status_t amdsmi_get_device_handles(amdsmi_socket_handle socket_handle,
                                     uint32_t *device_count,
-                                    amdsmi_device_handle* device_handles[]);
+                                    amdsmi_device_handle* device_handles);
+
 /**
  *  @brief Get the device type
  *
