@@ -46,9 +46,13 @@ endif()
 #
 
 # Required Defines first:
+if(NOT DEFINED RSMI_INC_DIR)
+  set(RSMI_INC_DIR ${ROCM_DIR}/include)
+endif()
+if(NOT DEFINED RSMI_LIB_DIR)
+  set(RSMI_LIB_DIR ${ROCM_DIR}/lib)
+endif()
 
-set(RSMI_INC_DIR ${ROCM_DIR}/include)
-set(RSMI_LIB_DIR ${ROCM_DIR}/lib)
 #
 # Determine RSMI Header files are present
 #  (no external source dependencies)
@@ -64,14 +68,14 @@ else()
 endif()
 #
 if (${IS64BIT} EQUAL 0)
-  if(NOT EXISTS ${RSMI_LIB_DIR}/librocm_smi32.so)
-    message("ERROR: ${RSMI_LIB_DIR}/librocm_smi32.so doesn't exist. Check value of ROCM_DIR define")
+  if(NOT EXISTS ${RSMI_LIB_DIR}/libamd_smi32.so)
+    message("ERROR: ${RSMI_LIB_DIR}/libamd_smi32.so doesn't exist. Check value of ROCM_DIR define")
     return()
   endif()
 else()
-  if(NOT EXISTS ${RSMI_LIB_DIR}/librocm_smi64.so)
+  if(NOT EXISTS ${RSMI_LIB_DIR}/libamd_smi64.so)
     message("ERROR: Define RSMI_LIB_DIR pointing to RSMI library is not set")
-    message(" missing: ${RSMI_LIB_DIR}/librocm_smi64.so")
+    message(" missing: ${RSMI_LIB_DIR}/libamd_smi64.so")
     return()
   endif()
 endif()
@@ -195,10 +199,10 @@ LINK_DIRECTORIES(${RSMI_LIB_DIR} ${GTEST_LIB_DIR})
 # Extend the list of libraries to be used for linking rsmi apps
 #
 if (IS64BIT)
-  set(RSMITST_LIBS ${RSMITST_LIBS} rocm_smi64)
+  set(RSMITST_LIBS ${RSMITST_LIBS} amd_smi64)
   set(RSMITST "rsmitst64")
 else()
-  set(RSMITST_LIBS ${RSMITST_LIBS} rocm_smi32)
+  set(RSMITST_LIBS ${RSMITST_LIBS} amd_smi32)
   set(RSMITST "rsmitst")
 endif()
 

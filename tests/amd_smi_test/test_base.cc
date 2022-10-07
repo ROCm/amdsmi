@@ -104,8 +104,16 @@ void TestBase::SetUp(uint64_t init_flags) {
   }
   ASSERT_EQ(err, AMDSMI_STATUS_SUCCESS);
 
-  socket_count_ = 0;
-  err = amdsmi_get_socket_handles(&socket_count_, &sockets_);
+
+  err = amdsmi_get_socket_handles(&socket_count_, nullptr);
+  if (err != AMDSMI_STATUS_SUCCESS) {
+    setup_failed_ = true;
+  }
+  ASSERT_EQ(err, AMDSMI_STATUS_SUCCESS);
+
+  // allocate memory
+  sockets_.resize(socket_count_);
+  err = amdsmi_get_socket_handles(&socket_count_, &sockets_[0]);
   if (err != AMDSMI_STATUS_SUCCESS) {
     setup_failed_ = true;
   }
@@ -116,9 +124,16 @@ void TestBase::SetUp(uint64_t init_flags) {
   for (uint32_t i=0; i < socket_count_; i++) {
     // Get all devices of the socket
     uint32_t device_count = 0;
-    amdsmi_device_handle* device_handles = nullptr;
     err = amdsmi_get_device_handles(sockets_[i],
-            &device_count, &device_handles);
+            &device_count, nullptr);
+    if (err != AMDSMI_STATUS_SUCCESS) {
+      setup_failed_ = true;
+    }
+    ASSERT_EQ(err, AMDSMI_STATUS_SUCCESS);
+
+    std::vector<amdsmi_device_handle> device_handles(device_count);
+    err = amdsmi_get_device_handles(sockets_[i],
+            &device_count, &device_handles[0]);
     if (err != AMDSMI_STATUS_SUCCESS) {
       setup_failed_ = true;
     }

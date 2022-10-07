@@ -158,7 +158,7 @@ void TestErrCntRead::Run(void) {
               std::cout << "\t**Error counts for " <<
                  GetBlockNameStr(static_cast<amdsmi_gpu_block_t>(b)) << " block: "
                                                                    << std::endl;
-              std::cout << "\t\tCorrectable errors: " << ec.correctable_err
+              std::cout << "\t\tCorrectable errors: " << ec.correctable_count
                                                                    << std::endl;
               std::cout << "\t\tUncorrectable errors: " << ec.uncorrectable_count
                                                                    << std::endl;

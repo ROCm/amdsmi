@@ -103,7 +103,6 @@ void TestProcInfoRead::Run(void) {
   }
 
   uint32_t num_devices = num_monitor_devs();
-  CHK_ERR_ASRT(err)
 
   err = amdsmi_compute_process_info_get(nullptr, &num_proc_found);
   if (err != AMDSMI_STATUS_SUCCESS) {
