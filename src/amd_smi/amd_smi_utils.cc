@@ -51,18 +51,18 @@ static bool isAMDGPU(std::string dev_path) {
   std::string vend_path = dev_path + "/device/vendor";
   std::string vbios_v_path = dev_path + "/device/vbios_version";
   if (!amd::smi::FileExists(vend_path.c_str())) {
-    return false;
+	return false;
   }
 
   if (!amd::smi::FileExists(vbios_v_path.c_str())) {
-    return false;
+	return false;
   }
 
   std::ifstream fs;
   fs.open(vend_path);
 
   if (!fs.is_open()) {
-      return false;
+	  return false;
   }
 
   uint32_t vendor_id;
@@ -72,7 +72,7 @@ static bool isAMDGPU(std::string dev_path) {
   fs.close();
 
   if (vendor_id == kAmdGpuId) {
-    return true;
+	return true;
   }
   return false;
 }
@@ -199,16 +199,16 @@ amdsmi_status_t smi_amdgpu_get_ranges(amd::smi::AMDSmiGPUDevice* device, amdsmi_
 	unsigned int max, min, dpm;
 
 	switch (domain) {
-	case CLOCK_TYPE_GFX:
+	case CLK_TYPE_GFX:
 		fullpath += "/pp_dpm_sclk";
 		break;
-	case CLOCK_TYPE_MEM:
+	case CLK_TYPE_MEM:
 		fullpath += "/pp_dpm_mclk";
 		break;
-	case CLOCK_TYPE_VCLK0:
+	case CLK_TYPE_VCLK0:
 		fullpath += "/pp_dpm_vclk";
 		break;
-	case CLOCK_TYPE_VCLK1:
+	case CLK_TYPE_VCLK1:
 		fullpath += "/pp_dpm_vclk1";
 		break;
 	default:
@@ -379,4 +379,82 @@ amdsmi_status_t smi_amdgpu_get_ecc_error_count(amd::smi::AMDSmiGPUDevice* device
 	f.close();
 
 	return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t smi_amdgpu_get_driver_version(amd::smi::AMDSmiGPUDevice* device, int *length, char *version) {
+	if (!device->check_if_drm_is_supported()) {
+		return AMDSMI_STATUS_NOT_SUPPORTED;
+	}
+	SMIGPUDEVICE_MUTEX(device->get_mutex())
+	amdsmi_status_t status = AMDSMI_STATUS_SUCCESS;
+	FILE *fp;
+	char *tmp, *ptr, *token;
+	char *ver = NULL;
+	int i = 0;
+	size_t len;
+
+	if (length)
+		len = *length < AMDSMI_MAX_DRIVER_VERSION_LENGTH ? *length :
+		AMDSMI_MAX_DRIVER_VERSION_LENGTH;
+	else
+		len = AMDSMI_MAX_DRIVER_VERSION_LENGTH;
+
+	std::string path = "/sys/module/amdgpu/version";
+
+	fp = fopen(path.c_str(), "r");
+	if (!fp){
+		fp = fopen("/proc/version", "r");
+		if (!fp) {
+			status = AMDSMI_STATUS_IO;
+			return status;
+		}
+
+		len = 0;
+		if (getline(&ver, &len, fp) <= 0) {
+			status = AMDSMI_STATUS_IO;
+			fclose(fp);
+			free(ver);
+			return status;
+		}
+
+		fclose(fp);
+
+		ptr = ver;
+		token = strtok_r(ptr, " ", &tmp);
+
+		if (!token) {
+			free(ver);
+			status = AMDSMI_STATUS_IO;
+			return status;
+		}
+		for (i = 0; i < 2; i++) {
+			ptr = strtok_r(NULL, " ", &tmp);
+			if (!ptr)
+				break;
+		}
+		if (i != 2 || !ptr) {
+			free(ver);
+			status = AMDSMI_STATUS_IO;
+			return status;
+		}
+		if (length)
+			len = *length < AMDSMI_MAX_DRIVER_VERSION_LENGTH ? *length :
+			AMDSMI_MAX_DRIVER_VERSION_LENGTH;
+		else
+			len = AMDSMI_MAX_DRIVER_VERSION_LENGTH;
+
+		strncpy(version, ptr,  len);
+		free(ver);
+	} else {
+		if ((len = getline(&version, &len, fp)) <= 0)
+			status = AMDSMI_STATUS_IO;
+
+		fclose(fp);
+		if (length) {
+			*length = version[len-1] == '\n' ? len - 1 : len;
+		}
+		version[len-1] = version[len-1] == '\n' ? '\0' : version[len-1];
+	}
+
+	return status;
 }

@@ -142,6 +142,7 @@ set(CMN_SRC_LIST ${CMN_SRC_LIST} "${AMDSMI_SRC_DIR}/amd_smi_system.cc")
 set(CMN_SRC_LIST ${CMN_SRC_LIST} "${AMDSMI_SRC_DIR}/amd_smi_drm.cc")
 set(CMN_SRC_LIST ${CMN_SRC_LIST} "${AMDSMI_SRC_DIR}/amd_smi_lib_loader.cc")
 set(CMN_SRC_LIST ${CMN_SRC_LIST} "${AMDSMI_SRC_DIR}/amd_smi_utils.cc")
+set(CMN_SRC_LIST ${CMN_SRC_LIST} "${AMDSMI_SRC_DIR}/amd_smi_uuid.cc")
 set(CMN_SRC_LIST ${CMN_SRC_LIST} "${AMDSMI_SRC_DIR}/fdinfo.cc")
 
 set(CMN_INC_LIST "${ROCM_INC_DIR}/rocm_smi_device.h")
@@ -210,6 +211,45 @@ else()
   message("Doxygen or Latex is not found. Will not generate documents.")
 endif(DOXYGEN_FOUND AND LATEX_FOUND)
 
+# Generate python_wrapper and package targets
+find_program(PYTHON3 "python3")
+find_program(PIP3 "pip3")
+
+if (PYTHON3 AND PIP3)
+  add_custom_command(OUTPUT clang_tools_extract
+        COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper
+        COMMAND pip3 download ctypeslib2==2.3.2 -d ${CMAKE_CURRENT_BINARY_DIR}/dl
+        COMMAND pip3 download clang==10.0.1 -d ${CMAKE_CURRENT_BINARY_DIR}/dl
+        COMMAND unzip -o ${CMAKE_CURRENT_BINARY_DIR}/dl/ctypeslib2-2.3.2-py3-none-any.whl -d ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper
+        COMMAND unzip -o ${CMAKE_CURRENT_BINARY_DIR}/dl/clang-10.0.1-py3-none-any.whl -d ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+  add_custom_target(python_wrapper DEPENDS clang_tools_extract
+        COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper
+        COMMAND cp -r ${CMAKE_CURRENT_SOURCE_DIR}/include/amd_smi/amd_smi.h ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper
+        COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/rocm_smi
+        COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/rocm_smi/include/rocm_smi/kfd_ioctl.h ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/rocm_smi/
+        COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/generator.py ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/amd_smi.h ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/ ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/
+        COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/amdsmi_wrapper.py ${CMAKE_CURRENT_SOURCE_DIR}/py-interface/
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper)
+
+  set (PY_INTERFACE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/py-interface")
+  set (PACKAGE_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/python_package/amdsmi")
+
+  add_custom_target(python_package DEPENDS python_wrapper
+        COMMAND mkdir -p ${PACKAGE_OUTPUT_DIR}
+        COMMAND cp ${PY_INTERFACE_DIR}/__init__.py ${PACKAGE_OUTPUT_DIR}
+        COMMAND cp ${PY_INTERFACE_DIR}/amdsmi_exception.py ${PACKAGE_OUTPUT_DIR}
+        COMMAND cp ${PY_INTERFACE_DIR}/amdsmi_interface.py ${PACKAGE_OUTPUT_DIR}
+        COMMAND cp ${PY_INTERFACE_DIR}/amdsmi_wrapper.py ${PACKAGE_OUTPUT_DIR}
+        COMMAND cp ${PY_INTERFACE_DIR}/README.md ${PACKAGE_OUTPUT_DIR}
+        COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/rocm_smi/libamd_smi64.so ${PACKAGE_OUTPUT_DIR}
+        COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE ${PACKAGE_OUTPUT_DIR}
+        COMMAND echo ${PACKAGE_OUTPUT_DIR})
+
+else()
+  message("Python3 or Pip3 not found.")
+endif(PYTHON3 AND PIP3)
 
 #TODO: Should use GNUInstallDirs to match distro standards
 #This need fix in subdirectory CMakefile as well
