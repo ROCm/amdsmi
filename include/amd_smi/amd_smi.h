@@ -45,13 +45,14 @@
 #define INCLUDE_AMD_SMI_H_
 
 #include <stdlib.h>
+#include <stdbool.h>
 #ifdef __cplusplus
 extern "C" {
 #include <cstdint>
 #else
 #include <stdint.h>
 #endif  // __cplusplus
- 
+
 /**
  * @brief Initialization flags
  *
@@ -141,20 +142,20 @@ typedef enum amdsmi_status_t {
  * Clock types
  */
 typedef enum amdsmi_clk_type {
-    CLOCK_TYPE_SYS = 0x0,   //!< System clock
-    CLOCK_TYPE_FIRST = CLOCK_TYPE_SYS,
-    CLOCK_TYPE_GFX = CLOCK_TYPE_SYS,
-    CLOCK_TYPE_DF,  //!< Data Fabric clock (for ASICs
+    CLK_TYPE_SYS = 0x0,   //!< System clock
+    CLK_TYPE_FIRST = CLK_TYPE_SYS,
+    CLK_TYPE_GFX = CLK_TYPE_SYS,
+    CLK_TYPE_DF,  //!< Data Fabric clock (for ASICs
                     //!< running on a separate clock)
-    CLOCK_TYPE_DCEF,   //!< Display Controller Engine clock
-    CLOCK_TYPE_SOC,
-    CLOCK_TYPE_MEM,
-    CLOCK_TYPE_PCIE,
-    CLOCK_TYPE_VCLK0,
-    CLOCK_TYPE_VCLK1,
-    CLOCK_TYPE_DCLK0,
-    CLOCK_TYPE_DCLK1,
-    CLOCK_TYPE__MAX = CLOCK_TYPE_DCLK1
+    CLK_TYPE_DCEF,   //!< Display Controller Engine clock
+    CLK_TYPE_SOC,
+    CLK_TYPE_MEM,
+    CLK_TYPE_PCIE,
+    CLK_TYPE_VCLK0,
+    CLK_TYPE_VCLK1,
+    CLK_TYPE_DCLK0,
+    CLK_TYPE_DCLK1,
+    CLK_TYPE__MAX = CLK_TYPE_DCLK1
 } amdsmi_clk_type_t;
 /// \cond Ignore in docs.
 typedef amdsmi_clk_type_t amdsmi_clk_type;
@@ -346,19 +347,19 @@ typedef struct amdsmi_power_limit {
 } amdsmi_power_limit_t;
 
 typedef struct amdsmi_power_measure {
-  uint16_t average_socket_power;
+  uint32_t average_socket_power;
   uint64_t energy_accumulator;      // v1 mod. (32->64)
   uint32_t voltage_gfx;   // GFX voltage measurement in mV
   uint32_t voltage_soc;  // SOC voltage measurement in mV
   uint32_t voltage_mem;  // MEM voltage measurement in mV
 } amdsmi_power_measure_t;
 
-typedef struct amdsmi_clock_measure {
+typedef struct amdsmi_clk_measure {
   uint32_t cur_clk;
   uint32_t avg_clk;
   uint32_t min_clk;
   uint32_t max_clk;
-} amdsmi_clock_measure_t;
+} amdsmi_clk_measure_t;
 
 typedef struct amdsmi_engine_usage {
   uint32_t average_gfx_activity;
@@ -1081,6 +1082,13 @@ typedef struct {
 } amdsmi_error_count_t;
 
 /**
+ * @brief This structure holds pcie info.
+ */
+typedef struct amdsmi_pcie_info {
+	uint16_t pcie_lanes;
+	uint16_t pcie_speed;
+} amdsmi_pcie_info_t;
+/**
  * @brief This structure contains information specific to a process.
  */
 typedef struct {
@@ -1134,8 +1142,8 @@ typedef union amd_id {
  *  @{
  */
 /**
- *  @brief Initialize AMD SMI. 
- *  
+ *  @brief Initialize AMD SMI.
+ *
  *  @details When called, this initializes internal data structures,
  *  including those corresponding to sources of information that SMI provides.
  *
@@ -1164,7 +1172,7 @@ amdsmi_status_t amdsmi_shut_down(void);
 
 /*****************************************************************************/
 /** @defgroup Discovery Queries
- *  These functions provide discovery of the sockets. 
+ *  These functions provide discovery of the sockets.
  *  @{
  */
 
@@ -1208,7 +1216,7 @@ amdsmi_status_t amdsmi_get_socket_handles(uint32_t *socket_count,
  *  @param[in] socket_handle a socket handle
  *
  *  @param[out] name The id of the socket.
- * 
+ *
  *  @param[in] len the length of the caller provided buffer @p name.
  *
  * @retval ::AMDSMI_STATUS_SUCCESS call was successful
@@ -1274,6 +1282,28 @@ amdsmi_status_t amdsmi_get_device_handles(amdsmi_socket_handle socket_handle,
  */
 amdsmi_status_t amdsmi_get_device_type(amdsmi_device_handle device_handle,
               device_type_t* device_type);
+
+/**
+ *  @brief Get device handle with the matching bdf.
+ *
+ *  @details Given bdf info @p bdf, this function will get
+ *  the device handle with the matching bdf.
+ *
+ *  @param[in] bdf The bdf to match with corresponding device handle.
+ *
+ *  @param[in] device_handles a list of devices handles on the socket.
+ *
+ *  @param[in] device_count a count of handles in device_handles.
+ *
+ *  @param[out] device_handle device handle with the matching bdf.
+ *
+ * @retval ::AMDSMI_STATUS_SUCCESS call was successful
+ * @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
+ */
+amdsmi_status_t amdsmi_get_device_handle_from_bdf(amdsmi_bdf_t bdf,
+                                    amdsmi_device_handle* device_handles,
+                                    uint32_t device_count,
+                                    amdsmi_device_handle* device_handle);
 
 /** @} */  // end of Discovery
 
@@ -1868,7 +1898,7 @@ amdsmi_get_bad_page_info(amdsmi_device_handle device_handle, uint32_t *num_pages
  *
  */
 amdsmi_status_t
-amdsmi_get_ras_features_enabled(amdsmi_device_handle device_handle, amdsmi_gpu_block block,
+amdsmi_get_ras_block_features_enabled(amdsmi_device_handle device_handle, amdsmi_gpu_block block,
                                                                   amdsmi_ras_err_state_t *state);
 /**
  *  @brief Get percentage of time any device memory is being used
@@ -2210,6 +2240,42 @@ amdsmi_utilization_count_get(amdsmi_device_handle device_handle,
                 amdsmi_utilization_counter_t utilization_counters[],
                 uint32_t count,
                 uint64_t *timestamp);
+
+/**
+ *  @brief Get current PCIE info of the device with provided device handle.
+ *
+ *  @details Given a device handle @p dev, this function returns PCIE info of the
+ *  given device.
+ *
+ *  @param[in] dev a device handle
+ *
+ *  @param[out] info amdsmi_pcie_info_t struct which will hold all the extracted PCIE info data.
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
+ *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
+ *  support this function with the given arguments
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
+ *
+ */
+amdsmi_status_t amdsmi_get_pcie_link_status(amdsmi_device_handle dev, amdsmi_pcie_info_t *info);
+
+/**
+ *  @brief Get max PCIe capabilities of the device with provided device handle.
+ *
+ *  @details Given a device handle @p dev, this function returns PCIe caps info of the
+ *  given device.
+ *
+ *  @param[in] dev a device handle
+ *
+ *  @param[out] info amdsmi_pcie_info_t struct which will hold all the extracted PCIe caps data.
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
+ *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
+ *  support this function with the given arguments
+ *  @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
+ *
+ */
+amdsmi_status_t amdsmi_get_pcie_link_caps(amdsmi_device_handle dev, amdsmi_pcie_info_t *info);
 
 /**
  *  @brief Get the performance level of the device with provided
@@ -3447,7 +3513,7 @@ amdsmi_is_P2P_accessible(amdsmi_device_handle device_handle_src, amdsmi_device_h
  *
  *     // Get the device handle via amdsmi_get_device_handles()
  *     // ... ...
- * 
+ *
  *     std::cout << "Supported AMDSMI Functions:" << std::endl; *
  *     err = amdsmi_dev_supported_func_iterator_open(device, &iter_handle);
  *
@@ -4033,7 +4099,7 @@ amdsmi_get_power_measure(amdsmi_device_handle dev, amdsmi_power_measure_t *info)
  *                  * -::AMDSMI_STATUS_API_FAILED - Other errors
  */
 amdsmi_status_t
-amdsmi_get_clock_measure(amdsmi_device_handle dev, amdsmi_clk_type_t clk_type, amdsmi_clock_measure_t *info);
+amdsmi_get_clock_measure(amdsmi_device_handle dev, amdsmi_clk_type_t clk_type, amdsmi_clk_measure_t *info);
 
 /**
  *  \brief          Returns temperature measurements of the GPU.
