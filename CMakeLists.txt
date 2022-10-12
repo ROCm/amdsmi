@@ -45,10 +45,10 @@ set(PKG_VERSION_PATCH 0)
 set(PKG_VERSION_NUM_COMMIT 0)
 
 ## Define default variable and variables for the optional build target
-##  rocm_smi_lib-dev
+##  amd_smi_lib-dev
 set(CMAKE_INSTALL_PREFIX "/opt/rocm" CACHE STRING "Default installation directory.")
 set(COMMON_SRC_ROOT ${CMAKE_CURRENT_SOURCE_DIR} CACHE STRING "Location source code common root.")
-set(ROCM_SMI_PACKAGE rocm-smi-lib)
+set(ROCM_SMI_PACKAGE amd-smi-lib)
 
 project(${AMD_SMI_LIBS_TARGET})
 
@@ -222,20 +222,20 @@ include(CMakePackageConfigHelpers)
 
 configure_package_config_file(
     amd_smi-config.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/rocm_smi-config.cmake
-    INSTALL_DESTINATION ${LIB_INSTALL_DIR}/cmake/rocm_smi
+    ${CMAKE_CURRENT_BINARY_DIR}/amd_smi-config.cmake
+    INSTALL_DESTINATION ${LIB_INSTALL_DIR}/cmake/amd_smi
     PATH_VARS LIB_INSTALL_DIR INCLUDE_INSTALL_DIR BIN_INSTALL_DIR
     )
 
 write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/rocm_smi-config-version.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/amd_smi-config-version.cmake
     VERSION "${AMD_SMI_LIBS_TARGET_VERSION_MAJOR}.${AMD_SMI_LIBS_TARGET_VERSION_MINOR}.${AMD_SMI_LIBS_TARGET_VERSION_PATCH}"
     COMPATIBILITY SameMajorVersion
     )
 
 install(
     FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/rocm_smi-config.cmake ${CMAKE_CURRENT_BINARY_DIR}/rocm_smi-config-version.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/amd_smi-config.cmake ${CMAKE_CURRENT_BINARY_DIR}/amd_smi-config-version.cmake
     DESTINATION
     lib/cmake/${ROCM_SMI}
     COMPONENT dev
@@ -248,8 +248,8 @@ export(TARGETS ${ROCM_SMI_TARGET}
 
 # Export the package for use from the build-tree
 # (this registers the build-tree with a global CMake-registry)
-export(PACKAGE rocm_smi)
-# Create the rocm_smiConfig.cmake and rocm_smiConfigVersion files
+export(PACKAGE amd_smi)
+# Create the amd_smiConfig.cmake and amd_smiConfigVersion files
 # ... for the build tree
 install(EXPORT rocm_smiTargets DESTINATION
   "lib/cmake/${ROCM_SMI}" COMPONENT dev)

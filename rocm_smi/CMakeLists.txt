@@ -130,38 +130,38 @@ install(TARGETS ${ROCM_SMI_TARGET}
           COMPONENT ${ROCM_SMI_COMPONENT})
 
 install(FILES ${COMMON_SRC_ROOT}/include/amd_smi/amd_smi.h
-                                        DESTINATION include/rocm_smi)
+                                        DESTINATION include/amd_smi)
 install(FILES ${COMMON_SRC_ROOT}/include/amd_smi/${ROCM_SMI_TARGET}Config.h
-                                        DESTINATION include/rocm_smi)
+                                        DESTINATION include/amd_smi)
 install(FILES ${COMMON_SRC_ROOT}/rocm_smi/include/rocm_smi/kfd_ioctl.h
-                                        DESTINATION include/rocm_smi)
-install(FILES ${COMMON_SRC_ROOT}/rocm_smi/python_smi_tools/rsmiBindings.py
-                                        DESTINATION libexec/${ROCM_SMI})
-install(FILES ${COMMON_SRC_ROOT}/rocm_smi/python_smi_tools/rocm_smi.py
-       PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ
-                         GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-                                        DESTINATION libexec/${ROCM_SMI})
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/bin/rocm-smi
-                                        DESTINATION bin)
+                                        DESTINATION include/amd_smi)
+#install(FILES ${COMMON_SRC_ROOT}/rocm_smi/python_smi_tools/rsmiBindings.py
+#                                        DESTINATION libexec/${ROCM_SMI})
+#install(FILES ${COMMON_SRC_ROOT}/rocm_smi/python_smi_tools/rocm_smi.py
+#       PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ
+#                         GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+#                                        DESTINATION libexec/${ROCM_SMI})
+#install(FILES ${CMAKE_CURRENT_BINARY_DIR}/bin/rocm-smi
+#                                        DESTINATION bin)
 
 # Generate Doxygen documentation
 find_package(Doxygen)
 find_package(LATEX COMPONENTS PDFLATEX)
 
 if (DOXYGEN_FOUND AND LATEX_FOUND)
-  set (RSMI_MANUAL_NAME "ROCm_SMI_Manual")
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docs/rocm_smi_doxygen.cfg
+  set (ASMI_MANUAL_NAME "AMD_SMI_Manual")
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../docs/amd_smi_doxygen.cfg
                                    ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.tex
         COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/docs/rocm_smi_doxygen.cfg
-                    "${ROCM_INC_DIR}/rocm_smi.h"
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/../docs/amd_smi_doxygen.cfg
+                    "${COMMON_SRC_ROOT}/include/amd_smi/amd_smi.h"
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf
          COMMAND make  > /dev/null
          COMMAND cp  ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf
-                  ${CMAKE_CURRENT_SOURCE_DIR}/docs/${RSMI_MANUAL_NAME}_new.pdf
+                  ${CMAKE_CURRENT_SOURCE_DIR}/../docs/${ASMI_MANUAL_NAME}_new.pdf
          DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.tex
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/latex)
 
@@ -169,7 +169,7 @@ if (DOXYGEN_FOUND AND LATEX_FOUND)
 
   add_dependencies(${ROCM_SMI_TARGET} docs)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf
-                         DESTINATION share/doc/${ROCM_SMI} RENAME ${RSMI_MANUAL_NAME}.pdf)
+                         DESTINATION share/doc/${ROCM_SMI} RENAME ${ASMI_MANUAL_NAME}.pdf)
   install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../README.md
                           DESTINATION share/doc/${ROCM_SMI}/)
 else()
