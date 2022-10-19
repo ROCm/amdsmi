@@ -1,20 +1,22 @@
 
 
-# ROCm System Management Interface (ROCm SMI) Library
+# AMD System Management Interface (AMD SMI) Library
 
-The ROCm System Management Interface Library, or ROCm SMI library, is part of the Radeon Open Compute [ROCm](https://github.com/RadeonOpenCompute) software stack . It is a C library for Linux that provides a user space interface for applications to monitor and control GPU applications.
+The AMD System Management Interface Library, or AMD SMI library, is a C library for Linux that provides a user space interface for applications to monitor and control AMD devices.
 
-## DISCLAIMER
+## Supported platforms
+At initial release, the AMD SMI library will support Linux bear metal and Linux virtual machine guest for AMD GPUs. In the future release, the library will be extended to support AMD EPYC™ CPUs.
 
-The information contained herein is for informational purposes only, and is subject to change without notice. In addition, any stated support is planned and is also subject to change. While every precaution has been taken in the preparation of this document, it may contain technical inaccuracies, omissions and typographical errors, and AMD is under no obligation to update or otherwise correct this information. Advanced Micro Devices, Inc. makes no representations or warranties with respect to the accuracy or completeness of the contents of this document, and assumes no liability of any kind, including the implied warranties of noninfringement, merchantability or fitness for particular purposes, with respect to the operation or use of AMD hardware, software or other products described herein.
+AMD SMI library can run on AMD ROCm supported platforms, please refer to [List of Supported Operating Systems and GPUs](https://docs.amd.com/bundle/ROCm-Getting-Started-Guide-v5.3/page/Introduction_to_ROCm_Getting_Started_Guide_for_Linux.html)
 
-© 2022 Advanced Micro Devices, Inc. All Rights Reserved.
+To run the AMD SMI library, the amdgpu driver needs to be installed. Optionally, the libdrm can be
+installed to query firmware information and hardware IPs.
 
+# Building AMD SMI
 
-# Building ROCm SMI
+## Additional Required software for building
 
-#### Additional Required software for building
-In order to build the ROCm SMI library, the following components are required. Note that the software versions listed are what was used in development. Earlier versions are not guaranteed to work:
+In order to build the AMD SMI library, the following components are required. Note that the software versions listed are what was used in development. Earlier versions are not guaranteed to work:
 * CMake (v3.5.0)
 * g++ (5.4.0)
 
@@ -22,68 +24,130 @@ In order to build the latest documentation, the following are required:
 * DOxygen (1.8.11)
 * latex (pdfTeX 3.14159265-2.6-1.40.16)
 
-The source code for ROCm SMI is available on [Github](https://github.com/RadeonOpenCompute/rocm_smi_lib).
+The source code for AMD SMI is available on Github.
 
-After the ROCm SMI library git repository has been cloned to a local Linux machine, building the library is achieved by following the typical CMake build sequence. Specifically,
+After the AMD SMI library git repository has been cloned to a local Linux machine, building the library is achieved by following the typical CMake build sequence. Specifically,
 ##### ```$ mkdir -p build```
 ##### ```$ cd build```
-##### ```$ cmake <location of root of ROCm SMI library CMakeLists.txt>```
+##### ```$ cmake <location of root of AMD SMI library CMakeLists.txt>```
 ##### ```$ make```
 ##### ```# Install library file and header; default location is /opt/rocm```
 ##### ```$ make install```
+
 The built library will appear in the `build` folder.
 
 To build the rpm and deb packages follow the above steps with:
 ##### ```$ make package```
 
-#### Documentation
+## Documentation
+
 The reference manual, `refman.pdf` will be in the `latex` directory upon a successful build.
 
-#### Building the Tests
-In order to verify the build and capability of ROCm SMI on your system and to see an example of how ROCm SMI can be used, you may build and run the tests that are available in the repo. To build the tests, follow these steps:
+## Building the Tests
+
+In order to verify the build and capability of AMD SMI on your system and to see an example of how AMD SMI can be used, you may build and run the tests that are available in the repo. To build the tests, follow these steps:
 
 ##### ```# Set environment variables used in CMakeLists.txt file```
-##### ```$ ROCM_DIR=<parent dir. to lib/ and inc/, containing RSMI library and header>```
+##### ```$ AMDSMI_INC_DIR=<include dir, containing amd_smi/amd_smi.h>```
+##### ```$ AMDSMI_LIB_DIR=<the folder containing AMDSMI library>```
 ##### ```$ mkdir <location for test build>```
 ##### ```$ cd <location for test build>```
-##### ```$ cmake -DROCM_DIR=$ROCM_DIR <ROCm SMI source root>/tests/rocm_smi_test```
+##### ```$ cmake -DAMDSMI_INC_DIR=$AMDSMI_INC_DIR -DAMDSMI_LIB_DIR=$AMDSMI_LIB_DIR <AMD SMI source root>/tests/amd_smi_test```
 ##### ```$ make```
 
-To run the test, execute the program `rsmitst` that is built from the steps above.
+## Run the Tests
+
+To run the test, execute the program `amdsmitst` that is built from the steps above.
 
 # Usage Basics
-## Device Indices
-Many of the functions in the library take a "device index". The device index is a number greater than or equal to 0, and less than the number of devices detected, as determined by `rsmi_num_monitor_devices()`. The index is used to distinguish the detected devices from one another. It is important to note that a device may end up with a different index after a reboot, so an index should not be relied upon to be constant over reboots.
 
-# Hello ROCm SMI
-The only required ROCm-SMI call for any program that wants to use ROCm-SMI is the `rsmi_init()` call. This call initializes some internal data structures that will be used by subsequent ROCm-SMI calls. 
+## Device/Socket handles
+Many of the functions in the library take a "socket handle" or "device handle". The socket is an abstraction of hardware physical socket. This will enable amd-smi to provide a better representation of the hardware to user. Although there is always one distinct GPU for a socket, the APU may have both
+GPU device and CPU device on the same socket. Moreover, for MI200, it may have multiple GCDs.
 
-When ROCm-SMI is no longer being used, `rsmi_shut_down()` should be called. This provides a way to do any releasing of resources that ROCm-SMI may have held. In many cases, this may have no effect, but may be necessary in future versions of the library.
+To discover the sockets in the system, `amdsmi_get_device_handles()` is called to get list of sockets
+handles, which in turn can be used to query the devices in that socket using `amdsmi_get_device_handles()`. The device handler is used to distinguish the detected devices from one another. It is important to note that a device may end up with a different device handles after restart application, so a device handle should not be relied upon to be constant over process.
 
-A simple "Hello World" type program that displays the device ID of detected devices would look like this:
+# Hello AMD SMI
+The only required AMD-SMI call for any program that wants to use AMD-SMI is the `amdsmi_init()` call. This call initializes some internal data structures that will be used by subsequent AMD-SMI calls. In the call, a flag can be passed if the application is only interested in a specific device type. 
+
+When AMD-SMI is no longer being used, `amdsmi_shut_down()` should be called. This provides a way to do any releasing of resources that AMD-SMI may have held.
+
+A simple "Hello World" type program that displays the temperature of detected devices would look like this:
 
 ```
-#include <stdint.h>
-#include "rocm_smi/rocm_smi.h"
+#include <iostream>
+#include <vector>
+#include "amd_smi/amd_smi.h"
+
 int main() {
-  rsmi_status_t ret;
-  uint32_t num_devices;
-  uint16_t dev_id;
-
-  // We will skip return code checks for this example, but it
-  // is recommended to always check this as some calls may not
-  // apply for some devices or ROCm releases
-
-  ret = rsmi_init(0);
-  ret = rsmi_num_monitor_devices(&num_devices);
-
-  for (int i=0; i < num_devices; ++i) {
-    ret = rsmi_dev_id_get(i, &dev_id);
-    // dev_id holds the device ID of device i, upon a
-    // successful call
+  amdsmi_status_t ret;
+ 
+  // Init amdsmi for sockets and devices. Here we are only interested in AMD_GPUS.
+  ret = amdsmi_init(AMD_SMI_INIT_AMD_GPUS);
+ 
+  // Get the socket count available in the system.
+  ret = amdsmi_get_socket_handles(&socket_count, nullptr);
+ 
+  // Allocate the memory for the sockets
+  std::vector<amdsmi_socket_handle> sockets(socket_count);
+  // Get the socket handles in the system
+  ret = amdsmi_get_socket_handles(&socket_count, &sockets[0]);
+     
+  std::cout << "Total Socket: " << socket_count << std::endl;
+ 
+  // For each socket, get identifier and devices
+  for (uint32_t i=0; i < socket_count; i++) {
+    // Get Socket info
+    char socket_info[128];
+    ret = amdsmi_get_socket_info(sockets[i], socket_info, 128);
+    std::cout << "Socket " << socket_info<< std::endl;
+ 
+    // Get the device count for the socket.
+    uint32_t device_count = 0;
+    ret = amdsmi_get_device_handles(sockets[i], &device_count, nullptr);
+ 
+    // Allocate the memory for the device handlers on the socket
+    std::vector<amdsmi_device_handle> device_handles(device_count);
+    // Get all devices of the socket
+    ret = amdsmi_get_device_handles(sockets[i],
+              &device_count, &device_handles[0]);
+      
+    // For each device of the socket, get name and temperature.
+    for (uint32_t j=0; j < device_count; j++) {
+      // Get device type. Since the amdsmi is initialized with
+      // AMD_SMI_INIT_AMD_GPUS, the device_type must be AMD_GPU.
+      device_type_t device_type;
+      ret = amdsmi_get_device_type(device_handles[j], &device_type);
+      if (device_type != AMD_GPU) {
+        std::cout << "Expect AMD_GPU device type!\n";
+        return 1;
+      }
+ 
+      // Get device name
+      amdsmi_board_info board_info;      
+      ret = amdsmi_get_board_info(device_handles[j], &board_info);
+      std::cout << "\tdevice "
+                  << j <<"\n\t\tName:" << board_info.product_name << std::endl;
+ 
+      // Get temperature
+      int64_t val_i64 = 0;
+      ret = amdsmi_dev_temp_metric_get(device_handles[j], 0,
+              AMDSMI_TEMP_CURRENT, &val_i64);
+      std::cout << "\t\tTemperature: " << val_i64/1000 << "C" << std::endl;
+    }
   }
-  ret = rsmi_shut_down();
+ 
+  // Clean up resources allocated at amdsmi_init. It will invalidate sockets
+  // and devices pointers
+  ret = amdsmi_shut_down();
+ 
   return 0;
 }
 ```
 
+## DISCLAIMER
+
+The information contained herein is for informational purposes only, and is subject to change without notice. In addition, any stated support is planned and is also subject to change. While every precaution has been taken in the preparation of this document, it may contain technical inaccuracies, omissions and typographical errors, and AMD is under no obligation to update or otherwise correct this information. Advanced Micro Devices, Inc. makes no representations or warranties with respect to the accuracy or completeness of the contents of this document, and assumes no liability of any kind, including the implied warranties of noninfringement, merchantability or fitness for particular purposes, with respect to the operation or use of AMD hardware, software or other products described herein.
+
+© 2022 Advanced Micro Devices, Inc. All Rights Reserved.
