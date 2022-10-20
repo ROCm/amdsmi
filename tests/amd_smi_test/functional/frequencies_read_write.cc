@@ -104,14 +104,14 @@ void TestFrequenciesReadWrite::Run(void) {
   for (uint32_t dv_ind = 0; dv_ind < num_monitor_devs(); ++dv_ind) {
     PrintDeviceHeader(device_handles_[dv_ind]);
 
-    for (uint32_t clk = (uint32_t)CLOCK_TYPE_FIRST;
-                                           clk <= CLOCK_TYPE__MAX; ++clk) {
+    for (uint32_t clk = (uint32_t)CLK_TYPE_FIRST;
+                                           clk <= CLK_TYPE__MAX; ++clk) {
       amdsmi_clk = (amdsmi_clk_type)clk;
 
       auto freq_read = [&]() -> bool {
-        // Skip CLOCK_TYPE_PCIE, which does not supported in rocm-smi.
+        // Skip CLK_TYPE_PCIE, which does not supported in rocm-smi.
         std::cout << amdsmi_clk << std::endl;
-        if (amdsmi_clk == CLOCK_TYPE_PCIE)
+        if (amdsmi_clk == CLK_TYPE_PCIE)
           return false;
         ret = amdsmi_dev_gpu_clk_freq_get(device_handles_[dv_ind], amdsmi_clk, &f);
         std::cout << ret << std::endl;
@@ -133,8 +133,8 @@ void TestFrequenciesReadWrite::Run(void) {
       auto freq_write = [&]() {
         // Set clocks to something other than the usual default of the lowest
         // frequency.
-        // Skip CLOCK_TYPE_PCIE, which does not supported in rocm-smi.
-        if (amdsmi_clk == CLOCK_TYPE_PCIE)
+        // Skip CLK_TYPE_PCIE, which does not supported in rocm-smi.
+        if (amdsmi_clk == CLK_TYPE_PCIE)
           return;
 
         freq_bitmask = 0b01100;  // Try the 3rd and 4th clocks

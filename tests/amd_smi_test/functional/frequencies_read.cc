@@ -138,11 +138,11 @@ void TestFrequenciesRead::Run(void) {
 
       PrintDeviceHeader(device_handles_[i]);
 
-      freq_output(CLOCK_TYPE_MEM, "Supported GPU Memory");
-      freq_output(CLOCK_TYPE_SYS, "Supported GPU");
-      freq_output(CLOCK_TYPE_DF, "Data Fabric Clock");
-      freq_output(CLOCK_TYPE_DCEF, "Display Controller Engine Clock");
-      freq_output(CLOCK_TYPE_SOC, "SOC Clock");
+      freq_output(CLK_TYPE_MEM, "Supported GPU Memory");
+      freq_output(CLK_TYPE_SYS, "Supported GPU");
+      freq_output(CLK_TYPE_DF, "Data Fabric Clock");
+      freq_output(CLK_TYPE_DCEF, "Display Controller Engine Clock");
+      freq_output(CLK_TYPE_SOC, "SOC Clock");
 
       err = amdsmi_dev_pci_bandwidth_get(device_handles_[i], &b);
       if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
