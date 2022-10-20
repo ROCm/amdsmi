@@ -239,7 +239,7 @@ void TestMutualExclusion::Run(void) {
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret = amdsmi_dev_overdrive_level_get(device_handles_[0], &dmy_ui32);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_gpu_clk_freq_get(device_handles_[0], CLOCK_TYPE_SYS, &dmy_freqs);
+    ret = amdsmi_dev_gpu_clk_freq_get(device_handles_[0], CLK_TYPE_SYS, &dmy_freqs);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret = amdsmi_dev_od_volt_info_get(device_handles_[0], &dmy_od_volt);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
@@ -247,7 +247,7 @@ void TestMutualExclusion::Run(void) {
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret = amdsmi_dev_overdrive_level_set_v1(device_handles_[0], dmy_i32);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_gpu_clk_freq_set(device_handles_[0], CLOCK_TYPE_SYS, 0);
+    ret = amdsmi_dev_gpu_clk_freq_set(device_handles_[0], CLK_TYPE_SYS, 0);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret = amdsmi_dev_ecc_count_get(device_handles_[0], AMDSMI_GPU_BLOCK_UMC, &dmy_err_cnt);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
