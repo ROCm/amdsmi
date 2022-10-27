@@ -123,7 +123,8 @@ void TestSysInfoRead::Run(void) {
       }
     } else {
       IF_VERB(STANDARD) {
-        std::cout << "\t**VBIOS Version: " << std::hex << buffer << std::endl;
+        std::cout << "\t**VBIOS Version: "
+                << info.vbios_version_string << std::endl;
       }
     }
 

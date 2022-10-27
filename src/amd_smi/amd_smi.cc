@@ -253,15 +253,20 @@ amdsmi_status_t amdsmi_get_board_info(amdsmi_device_handle device_handle, amdsmi
     amd::smi::AMDSmiGPUDevice* gpu_device =
                 static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
 
-    if (gpu_device->check_if_drm_is_supported()) {
-        status = smi_amdgpu_get_board_info(gpu_device, board_info);
-    }
-    else {
-        status = rsmi_wrapper(rsmi_dev_name_get, device_handle, board_info->product_name, AMDSMI_PRODUCT_NAME_LENGTH);
-        status = rsmi_wrapper(rsmi_dev_serial_number_get, device_handle, board_info->product_serial, AMDSMI_NORMAL_STRING_LENGTH);
+    // Get from sys file
+    status = smi_amdgpu_get_board_info(gpu_device, board_info);
+
+    // ignore the errors so that it can populate as many fields as possible.
+    // call rocm-smi which search multiple places for device name
+    status = rsmi_wrapper(rsmi_dev_name_get, device_handle,
+                    board_info->product_name, AMDSMI_PRODUCT_NAME_LENGTH);
+
+    if (board_info->product_serial[0] == '\0') {
+        status = rsmi_wrapper(rsmi_dev_serial_number_get, device_handle,
+                    board_info->product_serial, AMDSMI_NORMAL_STRING_LENGTH);
     }
 
-    return status;
+    return AMDSMI_STATUS_SUCCESS;
 }
 
 amdsmi_status_t amdsmi_dev_temp_metric_get(amdsmi_device_handle device_handle,
@@ -1275,6 +1280,7 @@ amdsmi_get_vbios_info(amdsmi_device_handle dev, amdsmi_vbios_info_t *info) {
     amd::smi::AMDSmiGPUDevice* gpu_device =
             static_cast<amd::smi::AMDSmiGPUDevice*>(dev);
     amdsmi_status_t status;
+
     if (gpu_device->check_if_drm_is_supported()){
         status = gpu_device->amdgpu_query_vbios(&vbios);
         if (status != AMDSMI_STATUS_SUCCESS) {
@@ -1286,9 +1292,17 @@ amdsmi_get_vbios_info(amdsmi_device_handle dev, amdsmi_vbios_info_t *info) {
         strncpy(info->vbios_version_string, (char *) vbios.vbios_ver_str, AMDSMI_NORMAL_STRING_LENGTH);
         info->vbios_version = vbios.version;
     }
-    else {
-        // those information can only get the from libdrm
-        return AMDSMI_STATUS_NOT_SUPPORTED;
+
+    // get vbios version string from rocm_smi
+    char vbios_version[AMDSMI_NORMAL_STRING_LENGTH];
+    status = rsmi_wrapper(rsmi_dev_vbios_version_get, dev,
+            vbios_version,
+            AMDSMI_NORMAL_STRING_LENGTH);
+
+    // ignore the errors so that it can populate as many fields as possible.
+    if (status == AMDSMI_STATUS_SUCCESS) {
+        strncpy(info->vbios_version_string,
+            vbios_version, AMDSMI_NORMAL_STRING_LENGTH);
     }
 
     return AMDSMI_STATUS_SUCCESS;
