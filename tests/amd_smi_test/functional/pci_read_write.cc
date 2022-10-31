@@ -152,6 +152,9 @@ void TestPciReadWrite::Run(void) {
       ASSERT_EQ(ret, AMDSMI_STATUS_NOT_SUPPORTED);
 
       return;
+    } else if (ret == AMDSMI_STATUS_NOT_YET_IMPLEMENTED) {
+      std::cout << "TEST FAILURE: Current PCIe bandwidth is not implemented.\n";
+      return;
     }
     CHK_ERR_ASRT(ret)
 

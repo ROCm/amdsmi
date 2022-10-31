@@ -123,6 +123,11 @@ void TestPowerReadWrite::Run(void) {
     PrintDeviceHeader(device_handles_[dv_ind]);
 
     ret = amdsmi_dev_power_profile_presets_get(device_handles_[dv_ind], 0, &status);
+    if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
+      std::cout << "The power profile presets settings is not supported. "
+                << std::endl;
+      continue;
+    }
     CHK_ERR_ASRT(ret)
 
     // Verify api support checking functionality is working
