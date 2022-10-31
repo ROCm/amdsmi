@@ -171,7 +171,7 @@ void TestVoltCurvRead::Run(void) {
       CHK_ERR_ASRT(err)
       // Verify api support checking functionality is working
       err = amdsmi_dev_od_volt_info_get(device_handles_[i], nullptr);
-      ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
+      ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
     }
 
     if (err == AMDSMI_STATUS_SUCCESS) {

@@ -116,7 +116,8 @@ void TestFrequenciesReadWrite::Run(void) {
         ret = amdsmi_dev_gpu_clk_freq_get(device_handles_[dv_ind], amdsmi_clk, &f);
         std::cout << ret << std::endl;
 
-        if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
+        if (ret == AMDSMI_STATUS_NOT_SUPPORTED ||
+            ret == AMDSMI_STATUS_NOT_YET_IMPLEMENTED) {
           std::cout << "\t**Set " << FreqEnumToStr(amdsmi_clk) <<
                                ": Not supported on this machine" << std::endl;
           return false;
