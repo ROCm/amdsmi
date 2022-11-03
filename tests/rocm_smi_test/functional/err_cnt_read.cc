@@ -46,7 +46,7 @@
 
 #include <iostream>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "rocm_smi/rocm_smi.h"
 #include "rocm_smi_test/functional/err_cnt_read.h"
 #include "rocm_smi_test/test_common.h"

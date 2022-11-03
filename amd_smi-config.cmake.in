@@ -7,12 +7,12 @@
 @PACKAGE_INIT@
 get_filename_component(ROCM_SMI_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-set_and_check( rocm_smi_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@" )
-set_and_check( ROCM_SMI_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@" )
-set_and_check( ROCM_SMI_INCLUDE_DIRS "@PACKAGE_INCLUDE_INSTALL_DIR@" )
-set_and_check( rocm_smi_LIB_DIR "@PACKAGE_LIB_INSTALL_DIR@" )
-set_and_check( ROCM_SMI_LIB_DIR "@PACKAGE_LIB_INSTALL_DIR@" )
-set_and_check( ROCM_SMI_LIB_DIRS "@PACKAGE_LIB_INSTALL_DIR@" )
+set_and_check( rocm_smi_INCLUDE_DIR "@CMAKE_INSTALL_INCLUDEDIR@" )
+set_and_check( ROCM_SMI_INCLUDE_DIR "@CMAKE_INSTALL_INCLUDEDIR@" )
+set_and_check( ROCM_SMI_INCLUDE_DIRS "@CMAKE_INSTALL_INCLUDEDIR@" )
+set_and_check( rocm_smi_LIB_DIR "@CMAKE_INSTALL_LIBDIR@" )
+set_and_check( ROCM_SMI_LIB_DIR "@CMAKE_INSTALL_LIBDIR@" )
+set_and_check( ROCM_SMI_LIB_DIRS "@PACKAGE_CMAKE_INSTALL_LIBDIR@" )
 
 # Our library dependencies (contains definitions for IMPORTED targets)
 if(NOT TARGET rocm_smi AND NOT rocm_smi_BINARY_DIR)

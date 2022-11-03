@@ -48,7 +48,7 @@
 #include "rocm_smi/rocm_smi.h"
 #include "rocm_smi_test/test_base.h"
 #include "rocm_smi_test/test_common.h"
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 static const int kOutputLineLength = 80;
 static const char kLabelDelimiter[] = "####";

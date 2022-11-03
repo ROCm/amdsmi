@@ -6,11 +6,6 @@ message("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
 message("                    CMake ROCm SMI (Library)                       ")
 message("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
 
-## Verbose output.
-set(CMAKE_VERBOSE_MAKEFILE on)
-
-# Required Defines first:
-
 message("")
 message("Build Configuration:")
 # message("-----------BuildType: " ${CMAKE_BUILD_TYPE})
@@ -42,102 +37,84 @@ message("Package version: ${PKG_VERSION_STR}")
 get_version_from_tag("1.0.0.0" ${SO_VERSION_GIT_TAG_PREFIX} GIT)
 
 # VERSION_* variables should be set by get_version_from_tag
-if ( ${ROCM_PATCH_VERSION} )
-    set ( VERSION_PATCH ${ROCM_PATCH_VERSION})
+if(${ROCM_PATCH_VERSION})
+    set(VERSION_PATCH ${ROCM_PATCH_VERSION})
     set(SO_VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 else()
     set(SO_VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}")
-endif ()
+endif()
 set(${ROCM_SMI}_VERSION_MAJOR "${VERSION_MAJOR}")
 set(${ROCM_SMI}_VERSION_MINOR "${VERSION_MINOR}")
 set(${ROCM_SMI}_VERSION_PATCH "0")
 set(${ROCM_SMI}_VERSION_BUILD "0")
 message("SOVERSION: ${SO_VERSION_STRING}")
 
-
 # Create a configure file to get version info from within library
-configure_file(
-  "${PROJECT_SOURCE_DIR}/src/${ROCM_SMI_TARGET}Config.in"
-  "${PROJECT_SOURCE_DIR}/include/amd_smi/${ROCM_SMI_TARGET}Config.h"
-  )
+configure_file("${PROJECT_SOURCE_DIR}/src/${ROCM_SMI_TARGET}Config.in"
+               "${PROJECT_SOURCE_DIR}/include/amd_smi/${ROCM_SMI_TARGET}Config.h")
 
 set(rocm_smi_VERSION_MAJOR "${VERSION_MAJOR}")
 set(rocm_smi_VERSION_MINOR "${VERSION_MINOR}")
 set(rocm_smi_VERSION_PATCH "0")
 set(rocm_smi_VERSION_BUILD "0")
-configure_file(
-    "${PROJECT_SOURCE_DIR}/rocm_smi/src/rocm_smi64Config.in"
-    "${PROJECT_SOURCE_DIR}/rocm_smi/include/rocm_smi/rocm_smi64Config.h"
-  )
+configure_file("${PROJECT_SOURCE_DIR}/rocm_smi/src/rocm_smi64Config.in"
+               "${PROJECT_SOURCE_DIR}/rocm_smi/include/rocm_smi/rocm_smi64Config.h")
 
 set(RSMI_SRC_DIR "src")
 set(RSMI_INC_DIR "include")
 set(RSMI_DOCS_DIR "docs")
 
-# Add any rocm_smi_lib specific source files here
-set(SMI_SRC_LIST ${CMN_SRC_LIST})
-
-# Add any rocm_smi_lib specific headers here
-set(SMI_INC_LIST "")
-
 set(SMI_EXAMPLE_EXE "rocm_smi_ex")
 
 add_executable(${SMI_EXAMPLE_EXE} "example/rocm_smi_example.cc")
 target_link_libraries(${SMI_EXAMPLE_EXE} ${ROCM_SMI_TARGET})
-add_library(${ROCM_SMI_TARGET}  ${CMN_SRC_LIST} ${SMI_SRC_LIST}
-                                              ${CMN_INC_LIST} ${SMI_INC_LIST})
+add_library(${ROCM_SMI_TARGET} ${CMN_SRC_LIST} ${CMN_INC_LIST})
 target_link_libraries(${ROCM_SMI_TARGET} pthread rt dl)
-target_include_directories(${ROCM_SMI_TARGET} PRIVATE
-          ${CMAKE_CURRENT_SOURCE_DIR} ${COMMON_PROJ_ROOT}/common/shared_mutex)
+target_include_directories(${ROCM_SMI_TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
+                                                      ${PROJECT_SOURCE_DIR}/common/shared_mutex)
 
 # use the target_include_directories() command to specify the include directories for the target
-target_include_directories(${ROCM_SMI_TARGET}
-                           PUBLIC
-                           "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-                           "$<INSTALL_INTERFACE:${ROCM_SMI}/include>"
-)
-
+target_include_directories(${ROCM_SMI_TARGET} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+                                                     "$<INSTALL_INTERFACE:${ROCM_SMI}/include>")
 
 ## Set the VERSION and SOVERSION values
-set_property(TARGET ${ROCM_SMI_TARGET} PROPERTY
-             SOVERSION "${VERSION_MAJOR}")
-set_property(TARGET ${ROCM_SMI_TARGET} PROPERTY
-             VERSION "${SO_VERSION_STRING}")
+set_property(TARGET ${ROCM_SMI_TARGET} PROPERTY SOVERSION "${VERSION_MAJOR}")
+set_property(TARGET ${ROCM_SMI_TARGET} PROPERTY VERSION "${SO_VERSION_STRING}")
 
 ## If the library is a release, strip the target library
-if ("${CMAKE_BUILD_TYPE}" STREQUAL Release)
-  if(${BUILD_SHARED_LIBS}) #stripping only for .so
-    add_custom_command(
-          TARGET ${ROCM_SMI_TARGET}
-          POST_BUILD COMMAND ${CMAKE_STRIP} lib${ROCM_SMI_TARGET}.so.${SO_VERSION_STRING})
-  endif()
-endif ()
-
+if("${CMAKE_BUILD_TYPE}" STREQUAL Release)
+    if(${BUILD_SHARED_LIBS}) #stripping only for .so
+        add_custom_command(
+            TARGET ${ROCM_SMI_TARGET}
+            POST_BUILD
+            COMMAND ${CMAKE_STRIP} lib${ROCM_SMI_TARGET}.so.${SO_VERSION_STRING})
+    endif()
+endif()
 
 #file reorganization changes
 #rocm_smi.py moved to libexec/rocm_smi. so creating rocm-smi symlink
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
-add_custom_target(link-rocm-smi ALL
-                  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-                  COMMAND ${CMAKE_COMMAND} -E create_symlink
-                  ../libexec/${ROCM_SMI}/rocm_smi.py ${CMAKE_CURRENT_BINARY_DIR}/bin/rocm-smi)
+add_custom_target(
+    link-rocm-smi ALL
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ../libexec/${ROCM_SMI}/rocm_smi.py
+            ${CMAKE_CURRENT_BINARY_DIR}/bin/rocm-smi)
 
 ## Add the install directives for the runtime library.
-install(TARGETS ${ROCM_SMI_TARGET}
-          EXPORT rocm_smiTargets
-          LIBRARY DESTINATION lib
-          ARCHIVE DESTINATION lib
-          COMPONENT ${ROCM_SMI_COMPONENT})
+install(
+    TARGETS ${ROCM_SMI_TARGET}
+    EXPORT rocm_smiTargets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT ${ROCM_SMI_COMPONENT})
 
-install(FILES ${COMMON_SRC_ROOT}/include/amd_smi/amd_smi.h
-                                        DESTINATION include/amd_smi)
-install(FILES ${COMMON_SRC_ROOT}/include/amd_smi/${ROCM_SMI_TARGET}Config.h
-                                        DESTINATION include/amd_smi)
-install(FILES ${COMMON_SRC_ROOT}/rocm_smi/include/rocm_smi/kfd_ioctl.h
-                                        DESTINATION include/amd_smi)
-#install(FILES ${COMMON_SRC_ROOT}/rocm_smi/python_smi_tools/rsmiBindings.py
+install(FILES ${PROJECT_SOURCE_DIR}/include/amd_smi/amd_smi.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/amd_smi)
+install(FILES ${PROJECT_SOURCE_DIR}/include/amd_smi/${ROCM_SMI_TARGET}Config.h
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/amd_smi)
+install(FILES ${PROJECT_SOURCE_DIR}/rocm_smi/include/rocm_smi/kfd_ioctl.h
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/amd_smi)
+#install(FILES ${PROJECT_SOURCE_DIR}/rocm_smi/python_smi_tools/rsmiBindings.py
 #                                        DESTINATION libexec/${ROCM_SMI})
-#install(FILES ${COMMON_SRC_ROOT}/rocm_smi/python_smi_tools/rocm_smi.py
+#install(FILES ${PROJECT_SOURCE_DIR}/rocm_smi/python_smi_tools/rocm_smi.py
 #       PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ
 #                         GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
 #                                        DESTINATION libexec/${ROCM_SMI})
@@ -148,31 +125,32 @@ install(FILES ${COMMON_SRC_ROOT}/rocm_smi/include/rocm_smi/kfd_ioctl.h
 find_package(Doxygen)
 find_package(LATEX COMPONENTS PDFLATEX)
 
-if (DOXYGEN_FOUND AND LATEX_FOUND)
-  set (ASMI_MANUAL_NAME "AMD_SMI_Manual")
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../docs/amd_smi_doxygen.cfg
-                                   ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+if(DOXYGEN_FOUND AND LATEX_FOUND)
+    set(ASMI_MANUAL_NAME "AMD_SMI_Manual")
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../docs/amd_smi_doxygen.cfg ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 
-  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.tex
+    add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.tex
         COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/../docs/amd_smi_doxygen.cfg
-                    "${COMMON_SRC_ROOT}/include/amd_smi/amd_smi.h"
-         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf
-         COMMAND make  > /dev/null
-         COMMAND cp  ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf
-                  ${CMAKE_CURRENT_SOURCE_DIR}/../docs/${ASMI_MANUAL_NAME}_new.pdf
-         DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.tex
-         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/latex)
+                "${PROJECT_SOURCE_DIR}/include/amd_smi/amd_smi.h"
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+    add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf
+        COMMAND make > /dev/null
+        COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf
+                ${CMAKE_CURRENT_SOURCE_DIR}/../docs/${ASMI_MANUAL_NAME}_new.pdf
+        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.tex
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/latex)
 
-  add_custom_target(docs DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf)
+    add_custom_target(docs DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf)
 
-  add_dependencies(${ROCM_SMI_TARGET} docs)
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf
-                         DESTINATION share/doc/${ROCM_SMI} RENAME ${ASMI_MANUAL_NAME}.pdf)
-  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../README.md
-                          DESTINATION share/doc/${ROCM_SMI}/)
+    add_dependencies(${ROCM_SMI_TARGET} docs)
+    install(
+        FILES ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf
+        DESTINATION share/doc/${ROCM_SMI}
+        RENAME ${ASMI_MANUAL_NAME}.pdf)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../README.md DESTINATION share/doc/${ROCM_SMI}/)
 else()
-  message("Doxygen or Latex is not found. Will not generate documents.")
+    message("Doxygen or Latex is not found. Will not generate documents.")
 endif(DOXYGEN_FOUND AND LATEX_FOUND)
-
