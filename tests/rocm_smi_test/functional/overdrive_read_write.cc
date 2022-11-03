@@ -50,8 +50,8 @@
 
 #include <gtest/gtest.h>
 #include "rocm_smi/rocm_smi.h"
-#include "rocm_smi_test/functional/overdrive_read_write.h"
-#include "rocm_smi_test/test_common.h"
+#include "overdrive_read_write.h"
+#include "../test_common.h"
 
 TestOverdriveReadWrite::TestOverdriveReadWrite() : TestBase() {
   set_title("RSMI Overdrive Read/Write Test");

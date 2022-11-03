@@ -50,10 +50,10 @@
 #include <string>
 #include <map>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "amd_smi/amd_smi.h"
-#include "amd_smi_test/functional/temp_read.h"
-#include "amd_smi_test/test_common.h"
+#include "temp_read.h"
+#include "../test_common.h"
 
 
 static const std::map<uint32_t, std::string> kTempSensorNameMap = {

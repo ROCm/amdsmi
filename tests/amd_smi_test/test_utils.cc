@@ -46,7 +46,7 @@
 #include <map>
 
 #include "amd_smi/amd_smi.h"
-#include "amd_smi_test/test_utils.h"
+#include "test_utils.h"
 
 static const std::map<amdsmi_fw_block_t, const char *> kDevFWNameMap = {
     {FW_ID_ASD, "asd"},

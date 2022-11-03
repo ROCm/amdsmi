@@ -50,22 +50,21 @@ aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/functional functionalSources)
 
 link_directories(${RSMI_LIB_DIR})
 
-set(RSMITST "rsmitst64")
+set(TEST "rsmitst64")
 
 # Source files
-aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} rsmitstSources)
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} tstSources)
 
 # Header file include path
-include_directories(${RSMI_INC_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 # Build rules
-add_executable(${RSMITST} ${rsmitstSources} ${functionalSources})
+add_executable(${TEST} ${tstSources} ${functionalSources})
 
-target_link_libraries(${RSMITST} amd_smi64 c stdc++ pthread GTest::gtest_main)
+target_link_libraries(${TEST} amd_smi64 c stdc++ pthread GTest::gtest_main)
 
 install(
-    TARGETS ${RSMITST}
+    TARGETS ${TEST}
     ARCHIVE DESTINATION ${PROJECT_BINARY_DIR}/lib
     LIBRARY DESTINATION ${PROJECT_BINARY_DIR}/lib
     RUNTIME DESTINATION ${PROJECT_BINARY_DIR}/bin)

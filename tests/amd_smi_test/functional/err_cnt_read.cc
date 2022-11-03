@@ -46,10 +46,10 @@
 
 #include <iostream>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "amd_smi/amd_smi.h"
-#include "amd_smi_test/functional/err_cnt_read.h"
-#include "amd_smi_test/test_common.h"
+#include "err_cnt_read.h"
+#include "../test_common.h"
 
 TestErrCntRead::TestErrCntRead() : TestBase() {
   set_title("AMDSMI Error Count Read Test");

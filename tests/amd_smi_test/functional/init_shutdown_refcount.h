@@ -46,7 +46,7 @@
 #ifndef TESTS_AMD_SMI_TEST_FUNCTIONAL_INIT_SHUTDOWN_REFCOUNT_H_
 #define TESTS_AMD_SMI_TEST_FUNCTIONAL_INIT_SHUTDOWN_REFCOUNT_H_
 
-#include "amd_smi_test/test_base.h"
+#include "../test_base.h"
 
 class TestConcurrentInit : public TestBase {
  public:

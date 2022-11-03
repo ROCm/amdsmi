@@ -51,8 +51,8 @@
 #include <string>
 #include <map>
 
-#include "rocm_smi_test/test_base.h"
-#include "rocm_smi_test/test_common.h"
+#include "test_base.h"
+#include "test_common.h"
 #include "rocm_smi/rocm_smi.h"
 
 static const std::map<rsmi_dev_perf_level_t, const char *>

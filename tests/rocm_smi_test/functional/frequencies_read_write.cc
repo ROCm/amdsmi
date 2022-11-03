@@ -54,8 +54,8 @@
 
 #include <gtest/gtest.h>
 #include "rocm_smi/rocm_smi.h"
-#include "rocm_smi_test/functional/frequencies_read_write.h"
-#include "rocm_smi_test/test_common.h"
+#include "frequencies_read_write.h"
+#include "../test_common.h"
 
 
 TestFrequenciesReadWrite::TestFrequenciesReadWrite() : TestBase() {

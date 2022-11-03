@@ -50,8 +50,8 @@
 
 #include "rocm_smi/rocm_smi.h"
 #include <gtest/gtest.h>
-#include "rocm_smi_test/test_common.h"
-#include "rocm_smi_test/test_base.h"
+#include "test_common.h"
+#include "test_base.h"
 #include "functional/fan_read.h"
 #include "functional/fan_read_write.h"
 #include "functional/temp_read.h"
@@ -81,10 +81,10 @@
 #include "functional/mutual_exclusion.h"
 #include "functional/evt_notif_read_write.h"
 #include "functional/init_shutdown_refcount.h"
-#include "rocm_smi_test/functional/hw_topology_read.h"
-#include "rocm_smi_test/functional/gpu_metrics_read.h"
-#include "rocm_smi_test/functional/metrics_counter_read.h"
-#include "rocm_smi_test/functional/perf_determinism.h"
+#include "functional/hw_topology_read.h"
+#include "functional/gpu_metrics_read.h"
+#include "functional/metrics_counter_read.h"
+#include "functional/perf_determinism.h"
 
 static RSMITstGlobals *sRSMIGlvalues = nullptr;
 

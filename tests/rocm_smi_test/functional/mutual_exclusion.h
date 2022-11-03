@@ -45,7 +45,7 @@
 #ifndef TESTS_ROCM_SMI_TEST_FUNCTIONAL_MUTUAL_EXCLUSION_H_
 #define TESTS_ROCM_SMI_TEST_FUNCTIONAL_MUTUAL_EXCLUSION_H_
 
-#include "rocm_smi_test/test_base.h"
+#include "../test_base.h"
 
 class TestMutualExclusion : public TestBase {
  public:

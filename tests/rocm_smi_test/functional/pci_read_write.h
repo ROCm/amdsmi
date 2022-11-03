@@ -45,7 +45,7 @@
 #ifndef TESTS_ROCM_SMI_TEST_FUNCTIONAL_PCI_READ_WRITE_H_
 #define TESTS_ROCM_SMI_TEST_FUNCTIONAL_PCI_READ_WRITE_H_
 
-#include "rocm_smi_test/test_base.h"
+#include "../test_base.h"
 
 class TestPciReadWrite : public TestBase {
  public:

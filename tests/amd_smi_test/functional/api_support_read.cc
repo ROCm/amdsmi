@@ -49,11 +49,11 @@
 #include <iostream>
 #include <string>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "amd_smi/amd_smi.h"
-#include "amd_smi_test/functional/api_support_read.h"
-#include "amd_smi_test/test_common.h"
-#include "amd_smi_test/test_utils.h"
+#include "api_support_read.h"
+#include "../test_common.h"
+#include "../test_utils.h"
 
 TestAPISupportRead::TestAPISupportRead() : TestBase() {
   set_title("AMDSMI API Support Read Test");

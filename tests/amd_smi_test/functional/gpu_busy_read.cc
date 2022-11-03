@@ -49,10 +49,10 @@
 #include <iostream>
 #include <string>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "amd_smi/amd_smi.h"
-#include "amd_smi_test/functional/gpu_busy_read.h"
-#include "amd_smi_test/test_common.h"
+#include "gpu_busy_read.h"
+#include "../test_common.h"
 
 TestGPUBusyRead::TestGPUBusyRead() : TestBase() {
   set_title("AMDSMI GPU Busy Read Test");

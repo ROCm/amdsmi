@@ -45,7 +45,7 @@
 #ifndef TESTS_ROCM_SMI_TEST_FUNCTIONAL_VOLT_FREQ_CURV_READ_H_
 #define TESTS_ROCM_SMI_TEST_FUNCTIONAL_VOLT_FREQ_CURV_READ_H_
 
-#include "rocm_smi_test/test_base.h"
+#include "../test_base.h"
 
 class TestVoltCurvRead : public TestBase {
  public:

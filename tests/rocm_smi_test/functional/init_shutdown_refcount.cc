@@ -51,10 +51,10 @@
 #include <random>
 #include <chrono>  // NOLINT
 
-#include "rocm_smi_test/functional/init_shutdown_refcount.h"
+#include "init_shutdown_refcount.h"
 #include <gtest/gtest.h>
 #include "rocm_smi/rocm_smi.h"
-#include "rocm_smi_test/test_common.h"
+#include "../test_common.h"
 
 extern int32_t
 rsmi_test_refcount(uint64_t refcnt_type);

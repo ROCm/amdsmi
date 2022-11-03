@@ -52,8 +52,8 @@
 
 #include <gtest/gtest.h>
 #include "rocm_smi/rocm_smi.h"
-#include "rocm_smi_test/functional/hw_topology_read.h"
-#include "rocm_smi_test/test_common.h"
+#include "hw_topology_read.h"
+#include "../test_common.h"
 
 typedef struct {
   std::string type;

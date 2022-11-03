@@ -47,10 +47,10 @@
 #include <iostream>
 #include <string>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "amd_smi/amd_smi.h"
-#include "amd_smi_test/functional/id_info_read.h"
-#include "amd_smi_test/test_common.h"
+#include "id_info_read.h"
+#include "../test_common.h"
 
 TestIdInfoRead::TestIdInfoRead() : TestBase() {
   set_title("AMDSMI ID Info Read Test");

@@ -51,9 +51,9 @@
 
 #include <gtest/gtest.h>
 #include "rocm_smi/rocm_smi.h"
-#include "rocm_smi_test/functional/api_support_read.h"
-#include "rocm_smi_test/test_common.h"
-#include "rocm_smi_test/test_utils.h"
+#include "api_support_read.h"
+#include "../test_common.h"
+#include "../test_utils.h"
 
 TestAPISupportRead::TestAPISupportRead() : TestBase() {
   set_title("RSMI API Support Read Test");

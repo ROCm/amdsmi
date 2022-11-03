@@ -51,9 +51,9 @@
 
 #include <gtest/gtest.h>
 #include "rocm_smi/rocm_smi.h"
-#include "rocm_smi_test/functional/sys_info_read.h"
-#include "rocm_smi_test/test_common.h"
-#include "rocm_smi_test/test_utils.h"
+#include "sys_info_read.h"
+#include "../test_common.h"
+#include "../test_utils.h"
 
 TestSysInfoRead::TestSysInfoRead() : TestBase() {
   set_title("RSMI System Info Read Test");

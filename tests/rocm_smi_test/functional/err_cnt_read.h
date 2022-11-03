@@ -43,7 +43,7 @@
 #ifndef TESTS_ROCM_SMI_TEST_FUNCTIONAL_ERR_CNT_READ_H_
 #define TESTS_ROCM_SMI_TEST_FUNCTIONAL_ERR_CNT_READ_H_
 
-#include "rocm_smi_test/test_base.h"
+#include "../test_base.h"
 
 class TestErrCntRead : public TestBase {
  public:

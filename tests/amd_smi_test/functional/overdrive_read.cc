@@ -49,10 +49,10 @@
 #include <iostream>
 #include <string>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "amd_smi/amd_smi.h"
-#include "amd_smi_test/functional/overdrive_read.h"
-#include "amd_smi_test/test_common.h"
+#include "overdrive_read.h"
+#include "../test_common.h"
 
 TestOverdriveRead::TestOverdriveRead() : TestBase() {
   set_title("AMDSMI Overdrive Read Test");

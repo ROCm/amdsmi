@@ -45,7 +45,7 @@
 #ifndef TESTS_ROCM_SMI_TEST_FUNCTIONAL_METRICS_COUNTER_READ_H_
 #define TESTS_ROCM_SMI_TEST_FUNCTIONAL_METRICS_COUNTER_READ_H_
 
-#include "rocm_smi_test/test_base.h"
+#include "../test_base.h"
 
 class TestMetricsCounterRead : public TestBase {
  public:

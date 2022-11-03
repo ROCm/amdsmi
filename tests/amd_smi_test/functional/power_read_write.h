@@ -45,7 +45,7 @@
 #ifndef TESTS_AMD_SMI_TEST_FUNCTIONAL_POWER_READ_WRITE_H_
 #define TESTS_AMD_SMI_TEST_FUNCTIONAL_POWER_READ_WRITE_H_
 
-#include "amd_smi_test/test_base.h"
+#include "../test_base.h"
 
 class TestPowerReadWrite : public TestBase {
  public:

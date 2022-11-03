@@ -49,11 +49,11 @@
 #include <iostream>
 #include <string>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "amd_smi/amd_smi.h"
-#include "amd_smi_test/functional/sys_info_read.h"
-#include "amd_smi_test/test_common.h"
-#include "amd_smi_test/test_utils.h"
+#include "sys_info_read.h"
+#include "../test_common.h"
+#include "../test_utils.h"
 
 TestSysInfoRead::TestSysInfoRead() : TestBase() {
   set_title("AMDSMI System Info Read Test");

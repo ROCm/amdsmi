@@ -45,7 +45,7 @@
 #ifndef TESTS_AMDSMI_TEST_FUNCTIONAL_FAN_READ_H_
 #define TESTS_AMDSMI_TEST_FUNCTIONAL_FAN_READ_H_
 
-#include "amd_smi_test/test_base.h"
+#include "../test_base.h"
 
 class TestFanRead : public TestBase {
  public:

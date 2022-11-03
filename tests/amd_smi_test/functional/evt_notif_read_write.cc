@@ -48,11 +48,11 @@
 
 #include <iostream>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "amd_smi/amd_smi.h"
-#include "amd_smi_test/functional/evt_notif_read_write.h"
-#include "amd_smi_test/test_common.h"
-#include "amd_smi_test/test_utils.h"
+#include "evt_notif_read_write.h"
+#include "../test_common.h"
+#include "../test_utils.h"
 
 TestEvtNotifReadWrite::TestEvtNotifReadWrite() : TestBase() {
   set_title("AMDSMI Event Notification Read/Write Test");

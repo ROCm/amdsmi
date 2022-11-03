@@ -51,8 +51,8 @@
 
 #include <gtest/gtest.h>
 #include "rocm_smi/rocm_smi.h"
-#include "rocm_smi_test/functional/power_read.h"
-#include "rocm_smi_test/test_common.h"
+#include "power_read.h"
+#include "../test_common.h"
 
 TestPowerRead::TestPowerRead() : TestBase() {
   set_title("RSMI Power Read Test");

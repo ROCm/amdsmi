@@ -46,7 +46,7 @@
 #include <map>
 
 #include "rocm_smi/rocm_smi.h"
-#include "rocm_smi_test/test_utils.h"
+#include "test_utils.h"
 
 static const std::map<rsmi_fw_block_t, const char *> kDevFWNameMap = {
     {RSMI_FW_BLOCK_ASD, "asd"},

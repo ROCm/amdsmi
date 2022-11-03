@@ -53,8 +53,8 @@
 
 #include <gtest/gtest.h>
 #include "rocm_smi/rocm_smi.h"
-#include "rocm_smi_test/functional/power_cap_read_write.h"
-#include "rocm_smi_test/test_common.h"
+#include "power_cap_read_write.h"
+#include "../test_common.h"
 
 
 TestPowerCapReadWrite::TestPowerCapReadWrite() : TestBase() {

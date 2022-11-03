@@ -52,8 +52,8 @@
 
 #include <gtest/gtest.h>
 #include "rocm_smi/rocm_smi.h"
-#include "rocm_smi_test/functional/metrics_counter_read.h"
-#include "rocm_smi_test/test_common.h"
+#include "metrics_counter_read.h"
+#include "../test_common.h"
 
 
 TestMetricsCounterRead::TestMetricsCounterRead() : TestBase() {
