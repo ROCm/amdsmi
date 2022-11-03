@@ -28,27 +28,22 @@ endif()
 #
 #   Build Src directory
 #   Build Binary directory
-#   Build Type: Debug Vs Release, 32 Vs 64
+#   Build Type: Debug Vs Release
 #   Compiler Version, etc
 #
 message("")
 message("Build Configuration:")
-message("-------------IS64BIT: " ${IS64BIT})
-message("-----------BuildType: " ${BUILD_TYPE})
+message("-----------BuildType: " ${CMAKE_BUILD_TYPE})
 message("------------Compiler: " ${CMAKE_CXX_COMPILER})
 message("-------------Version: " ${CMAKE_CXX_COMPILER_VERSION})
 message("--------Proj Src Dir: " ${PROJECT_SOURCE_DIR})
 message("--------Proj Bld Dir: " ${PROJECT_BINARY_DIR})
 message("--------Proj Lib Dir: " ${PROJECT_BINARY_DIR}/lib)
 message("--------Proj Exe Dir: " ${PROJECT_BINARY_DIR}/bin)
-message("--------RSMI Lib Dir: " ${RSMI_LIB_DIR})
 message("")
-
 
 # Other source directories
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/functional functionalSources)
-
-link_directories(${RSMI_LIB_DIR})
 
 set(TEST "rsmitst64")
 
@@ -61,10 +56,9 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
 # Build rules
 add_executable(${TEST} ${tstSources} ${functionalSources})
 
-target_link_libraries(${TEST} amd_smi64 c stdc++ pthread GTest::gtest_main)
+target_link_libraries(${TEST} rocm_smi64 c stdc++ pthread GTest::gtest_main)
 
-install(
-    TARGETS ${TEST}
-    ARCHIVE DESTINATION ${PROJECT_BINARY_DIR}/lib
-    LIBRARY DESTINATION ${PROJECT_BINARY_DIR}/lib
-    RUNTIME DESTINATION ${PROJECT_BINARY_DIR}/bin)
+#install(
+#    TARGETS ${TEST}
+#    DESTINATION ${SHARE_INSTALL_PREFIX}/tests/amd_smi
+#    COMPONENT tests)
