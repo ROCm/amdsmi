@@ -1,0 +1,23 @@
+cmake_minimum_required(VERSION 3.11)
+
+option(CMAKE_VERBOSE_MAKEFILE "Enable verbose output" ON)
+option(CMAKE_EXPORT_COMPILE_COMMANDS "Export compile commands for linters and autocompleters" ON)
+
+project(main LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD
+    11
+    CACHE STRING "The C++ standard to use")
+
+find_package(amd_smi
+    HINTS
+        "../../../lib/cmake"
+        "../../../lib64/cmake"
+        "${ROCM_DIR}/lib/cmake"
+        "${ROCM_DIR}/lib64/cmake"
+    CONFIG REQUIRED)
+link_libraries(amd_smi)
+
+# compile example files but do not install
+add_executable(amd_smi_drm_ex "amd_smi_drm_example.cc")
+add_executable(amd_smi_nodrm_ex "amd_smi_nodrm_example.cc")

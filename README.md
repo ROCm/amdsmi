@@ -17,7 +17,7 @@ installed to query firmware information and hardware IPs.
 ## Additional Required software for building
 
 In order to build the AMD SMI library, the following components are required. Note that the software versions listed are what was used in development. Earlier versions are not guaranteed to work:
-* CMake (v3.5.0)
+* CMake (v3.11.0)
 * g++ (5.4.0)
 
 In order to build the latest documentation, the following are required:
@@ -27,17 +27,19 @@ In order to build the latest documentation, the following are required:
 The source code for AMD SMI is available on Github.
 
 After the AMD SMI library git repository has been cloned to a local Linux machine, building the library is achieved by following the typical CMake build sequence. Specifically,
-##### ```$ mkdir -p build```
-##### ```$ cd build```
-##### ```$ cmake <location of root of AMD SMI library CMakeLists.txt>```
-##### ```$ make```
-##### ```# Install library file and header; default location is /opt/rocm```
-##### ```$ make install```
+```bash
+mkdir -p build
+cd build
+cmake <location of root of AMD SMI library CMakeLists.txt>
+make -j $(nproc)
+# Install library file and header; default location is /opt/rocm
+make install```
 
 The built library will appear in the `build` folder.
 
 To build the rpm and deb packages follow the above steps with:
-##### ```$ make package```
+```bash
+make package```
 
 ## Documentation
 
@@ -47,13 +49,12 @@ The reference manual, `refman.pdf` will be in the `latex` directory upon a succe
 
 In order to verify the build and capability of AMD SMI on your system and to see an example of how AMD SMI can be used, you may build and run the tests that are available in the repo. To build the tests, follow these steps:
 
-##### ```# Set environment variables used in CMakeLists.txt file```
-##### ```$ AMDSMI_INC_DIR=<include dir, containing amd_smi/amd_smi.h>```
-##### ```$ AMDSMI_LIB_DIR=<the folder containing AMDSMI library>```
-##### ```$ mkdir <location for test build>```
-##### ```$ cd <location for test build>```
-##### ```$ cmake -DAMDSMI_INC_DIR=$AMDSMI_INC_DIR -DAMDSMI_LIB_DIR=$AMDSMI_LIB_DIR <AMD SMI source root>/tests/amd_smi_test```
-##### ```$ make```
+```bash
+mkdir -p build
+cd build
+cmake -DBUILD_TESTS=ON <location of root of AMD SMI library CMakeLists.txt>
+make -j $(nproc)
+```
 
 ## Run the Tests
 
@@ -75,7 +76,7 @@ When AMD-SMI is no longer being used, `amdsmi_shut_down()` should be called. Thi
 
 A simple "Hello World" type program that displays the temperature of detected devices would look like this:
 
-```
+```c++
 #include <iostream>
 #include <vector>
 #include "amd_smi/amd_smi.h"

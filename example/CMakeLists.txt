@@ -1,0 +1,27 @@
+# TODO: Provide a standalone CMakeLists.txt project example
+# that can link against existing amd-smi library
+
+# copy .cc files into install directory
+install(
+    DIRECTORY ./
+    DESTINATION share/example/amd-smi
+    FILES_MATCHING
+    PATTERN "*.cc")
+
+# copy cmake file into install directory
+install(
+    FILES CMakeLists.txt.in
+    RENAME CMakeLists.txt
+    DESTINATION share/example/amd-smi)
+
+# compile example files but do not install
+# this is only useful if running from build directory
+set(SMI_DRM_EXAMPLE_EXE "amd_smi_drm_ex")
+add_executable(${SMI_DRM_EXAMPLE_EXE} "amd_smi_drm_example.cc")
+target_link_libraries(${SMI_DRM_EXAMPLE_EXE} ${AMD_SMI_TARGET})
+add_dependencies(${SMI_DRM_EXAMPLE_EXE} ${AMD_SMI_TARGET})
+
+set(SMI_NODRM_EXAMPLE_EXE "amd_smi_nodrm_ex")
+add_executable(${SMI_NODRM_EXAMPLE_EXE} "amd_smi_nodrm_example.cc")
+target_link_libraries(${SMI_NODRM_EXAMPLE_EXE} ${AMD_SMI_TARGET})
+add_dependencies(${SMI_NODRM_EXAMPLE_EXE} ${AMD_SMI_TARGET})
