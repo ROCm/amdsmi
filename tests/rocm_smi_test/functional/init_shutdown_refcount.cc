@@ -52,7 +52,7 @@
 #include <chrono>  // NOLINT
 
 #include "rocm_smi_test/functional/init_shutdown_refcount.h"
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "rocm_smi/rocm_smi.h"
 #include "rocm_smi_test/test_common.h"
 

@@ -49,7 +49,7 @@
 #include <iostream>
 
 #include "rocm_smi/rocm_smi.h"
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "rocm_smi_test/test_common.h"
 #include "rocm_smi_test/test_base.h"
 #include "functional/fan_read.h"

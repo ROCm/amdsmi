@@ -48,7 +48,7 @@
 #include <string>
 #include <map>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "rocm_smi/rocm_smi.h"
 #include "rocm_smi_test/functional/mem_util_read.h"
 #include "rocm_smi_test/test_common.h"

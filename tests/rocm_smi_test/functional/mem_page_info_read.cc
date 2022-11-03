@@ -47,7 +47,7 @@
 #include <iostream>
 #include <string>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "rocm_smi/rocm_smi.h"
 #include "rocm_smi_test/functional/mem_page_info_read.h"
 #include "rocm_smi_test/test_common.h"
