@@ -50,8 +50,8 @@
 
 #include <gtest/gtest.h>
 #include "rocm_smi/rocm_smi.h"
-#include "rocm_smi_test/functional/fan_read.h"
-#include "rocm_smi_test/test_common.h"
+#include "fan_read.h"
+#include "../test_common.h"
 
 TestFanRead::TestFanRead() : TestBase() {
   set_title("RSMI Fan Read Test");

@@ -51,10 +51,10 @@
 #include <string>
 #include <algorithm>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "amd_smi/amd_smi.h"
-#include "amd_smi_test/functional/power_read_write.h"
-#include "amd_smi_test/test_common.h"
+#include "power_read_write.h"
+#include "../test_common.h"
 
 
 TestPowerReadWrite::TestPowerReadWrite() : TestBase() {

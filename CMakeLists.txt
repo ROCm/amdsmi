@@ -170,6 +170,7 @@ add_subdirectory("rocm_smi")
 
 if(BUILD_TESTS)
     add_subdirectory("tests/rocm_smi_test")
+    add_subdirectory("tests/amd_smi_test")
 endif()
 
 # Examples and docs

@@ -49,10 +49,10 @@
 #include <iostream>
 #include <string>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "amd_smi/amd_smi.h"
-#include "amd_smi_test/functional/volt_freq_curv_read.h"
-#include "amd_smi_test/test_common.h"
+#include "volt_freq_curv_read.h"
+#include "../test_common.h"
 
 TestVoltCurvRead::TestVoltCurvRead() : TestBase() {
   set_title("AMDSMI Voltage-Frequency Curve Read Test");

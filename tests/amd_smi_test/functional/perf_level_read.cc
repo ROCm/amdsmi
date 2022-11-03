@@ -49,10 +49,10 @@
 #include <iostream>
 #include <string>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "amd_smi/amd_smi.h"
-#include "amd_smi_test/functional/perf_level_read.h"
-#include "amd_smi_test/test_common.h"
+#include "perf_level_read.h"
+#include "../test_common.h"
 
 TestPerfLevelRead::TestPerfLevelRead() : TestBase() {
   set_title("AMDSMI Performance Level Read Test");

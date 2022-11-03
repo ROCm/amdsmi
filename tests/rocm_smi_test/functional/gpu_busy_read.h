@@ -45,7 +45,7 @@
 #ifndef TESTS_ROCM_SMI_TEST_FUNCTIONAL_GPU_BUSY_READ_H_
 #define TESTS_ROCM_SMI_TEST_FUNCTIONAL_GPU_BUSY_READ_H_
 
-#include "rocm_smi_test/test_base.h"
+#include "../test_base.h"
 
 class TestGPUBusyRead : public TestBase {
  public:

@@ -51,8 +51,8 @@
 
 #include <gtest/gtest.h>
 #include "rocm_smi/rocm_smi.h"
-#include "rocm_smi_test/functional/gpu_busy_read.h"
-#include "rocm_smi_test/test_common.h"
+#include "gpu_busy_read.h"
+#include "../test_common.h"
 
 TestGPUBusyRead::TestGPUBusyRead() : TestBase() {
   set_title("RSMI GPU Busy Read Test");

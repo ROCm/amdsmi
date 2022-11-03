@@ -51,8 +51,8 @@
 
 #include <gtest/gtest.h>
 #include "rocm_smi/rocm_smi.h"
-#include "rocm_smi_test/functional/perf_level_read.h"
-#include "rocm_smi_test/test_common.h"
+#include "perf_level_read.h"
+#include "../test_common.h"
 
 TestPerfLevelRead::TestPerfLevelRead() : TestBase() {
   set_title("RSMI Performance Level Read Test");

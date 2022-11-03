@@ -45,7 +45,7 @@
 #ifndef TESTS_ROCM_SMI_TEST_FUNCTIONAL_VERSION_READ_H_
 #define TESTS_ROCM_SMI_TEST_FUNCTIONAL_VERSION_READ_H_
 
-#include "rocm_smi_test/test_base.h"
+#include "../test_base.h"
 
 class TestVersionRead : public TestBase {
  public:

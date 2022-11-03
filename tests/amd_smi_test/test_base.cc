@@ -46,9 +46,9 @@
 #include <assert.h>
 
 #include "amd_smi/amd_smi.h"
-#include "amd_smi_test/test_base.h"
-#include "amd_smi_test/test_common.h"
-#include "gtest/gtest.h"
+#include "test_base.h"
+#include "test_common.h"
+#include <gtest/gtest.h>
 
 static const int kOutputLineLength = 80;
 static const char kLabelDelimiter[] = "####";

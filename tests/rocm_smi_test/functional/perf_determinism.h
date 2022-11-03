@@ -45,7 +45,7 @@
 #ifndef TESTS_ROCM_SMI_TEST_FUNCTIONAL_PERF_DETERMINISM_H_
 #define TESTS_ROCM_SMI_TEST_FUNCTIONAL_PERF_DETERMINISM_H_
 
-#include "rocm_smi_test/test_base.h"
+#include "../test_base.h"
 
 class TestPerfDeterminism : public TestBase {
  public:

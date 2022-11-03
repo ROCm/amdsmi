@@ -52,8 +52,8 @@
 
 #include <gtest/gtest.h>
 #include "rocm_smi/rocm_smi.h"
-#include "rocm_smi_test/functional/mutual_exclusion.h"
-#include "rocm_smi_test/test_common.h"
+#include "mutual_exclusion.h"
+#include "../test_common.h"
 
 
 TestMutualExclusion::TestMutualExclusion() : TestBase() {

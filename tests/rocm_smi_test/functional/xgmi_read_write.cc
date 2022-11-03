@@ -50,8 +50,8 @@
 
 #include <gtest/gtest.h>
 #include "rocm_smi/rocm_smi.h"
-#include "rocm_smi_test/functional/xgmi_read_write.h"
-#include "rocm_smi_test/test_common.h"
+#include "xgmi_read_write.h"
+#include "../test_common.h"
 
 TestXGMIReadWrite::TestXGMIReadWrite() : TestBase() {
   set_title("RSMI XGMI Read/Write Test");

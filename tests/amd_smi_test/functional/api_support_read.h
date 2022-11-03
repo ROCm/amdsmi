@@ -45,7 +45,7 @@
 #ifndef TESTS_AMD_SMI_TEST_FUNCTIONAL_API_SUPPORT_READ_H_
 #define TESTS_AMD_SMI_TEST_FUNCTIONAL_API_SUPPORT_READ_H_
 
-#include "amd_smi_test/test_base.h"
+#include "../test_base.h"
 
 class TestAPISupportRead : public TestBase {
  public:

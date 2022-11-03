@@ -50,9 +50,9 @@
 
 #include <gtest/gtest.h>
 #include "rocm_smi/rocm_smi.h"
-#include "rocm_smi_test/functional/evt_notif_read_write.h"
-#include "rocm_smi_test/test_common.h"
-#include "rocm_smi_test/test_utils.h"
+#include "evt_notif_read_write.h"
+#include "../test_common.h"
+#include "../test_utils.h"
 
 TestEvtNotifReadWrite::TestEvtNotifReadWrite() : TestBase() {
   set_title("RSMI Event Notification Read/Write Test");

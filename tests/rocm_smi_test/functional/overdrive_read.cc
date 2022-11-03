@@ -51,8 +51,8 @@
 
 #include <gtest/gtest.h>
 #include "rocm_smi/rocm_smi.h"
-#include "rocm_smi_test/functional/overdrive_read.h"
-#include "rocm_smi_test/test_common.h"
+#include "overdrive_read.h"
+#include "../test_common.h"
 
 TestOverdriveRead::TestOverdriveRead() : TestBase() {
   set_title("RSMI Overdrive Read Test");

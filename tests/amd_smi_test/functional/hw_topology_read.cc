@@ -50,10 +50,10 @@
 #include <string>
 #include <vector>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "amd_smi/amd_smi.h"
-#include "amd_smi_test/functional/hw_topology_read.h"
-#include "amd_smi_test/test_common.h"
+#include "hw_topology_read.h"
+#include "../test_common.h"
 
 typedef struct {
   std::string type;
