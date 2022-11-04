@@ -68,9 +68,41 @@
 #include "amd_smi/impl/amdgpu_drm.h"
 #include "amd_smi/impl/amd_smi_utils.h"
 
-// TODO(bliu): One to one map to all status code
+// Define a map of rsmi status codes to amdsmi status codes
+static const std::map<rsmi_status_t, amdsmi_status_t> rsmi_status_map = {
+    {RSMI_STATUS_SUCCESS, AMDSMI_STATUS_SUCCESS},
+    {RSMI_STATUS_INVALID_ARGS, AMDSMI_STATUS_INVAL},
+    {RSMI_STATUS_NOT_SUPPORTED, AMDSMI_STATUS_NOT_SUPPORTED},
+    {RSMI_STATUS_PERMISSION, AMDSMI_STATUS_NO_PERM},
+    {RSMI_STATUS_OUT_OF_RESOURCES, AMDSMI_STATUS_OUT_OF_RESOURCES},
+    {RSMI_STATUS_INTERNAL_EXCEPTION, AMDSMI_STATUS_INTERNAL_EXCEPTION},
+    {RSMI_STATUS_INPUT_OUT_OF_BOUNDS, AMDSMI_STATUS_INPUT_OUT_OF_BOUNDS},
+    {RSMI_STATUS_INIT_ERROR, AMDSMI_STATUS_INIT_ERROR},
+    {RSMI_INITIALIZATION_ERROR, AMDSMI_STATUS_INIT_ERROR},
+    {RSMI_STATUS_NOT_YET_IMPLEMENTED, AMDSMI_STATUS_NOT_YET_IMPLEMENTED},
+    {RSMI_STATUS_NOT_FOUND, AMDSMI_STATUS_NOT_FOUND},
+    {RSMI_STATUS_INSUFFICIENT_SIZE, AMDSMI_STATUS_INSUFFICIENT_SIZE},
+    {RSMI_STATUS_INTERRUPT, AMDSMI_STATUS_INTERRUPT},
+    {RSMI_STATUS_UNEXPECTED_SIZE, AMDSMI_STATUS_UNEXPECTED_SIZE},
+    {RSMI_STATUS_NO_DATA, AMDSMI_STATUS_NO_DATA},
+    {RSMI_STATUS_UNEXPECTED_DATA, AMDSMI_STATUS_UNEXPECTED_DATA},
+    {RSMI_STATUS_BUSY, AMDSMI_STATUS_BUSY},
+    {RSMI_STATUS_REFCOUNT_OVERFLOW, AMDSMI_STATUS_REFCOUNT_OVERFLOW},
+    {RSMI_STATUS_UNKNOWN_ERROR, AMDSMI_STATUS_UNKNOWN_ERROR},
+};
+
 static amdsmi_status_t rsmi_to_amdsmi_status(rsmi_status_t status) {
-    return static_cast<amdsmi_status_t>(status);
+    amdsmi_status_t amdsmi_status = AMDSMI_STATUS_MAP_ERROR;
+
+    // Look for it in the map
+    // If found: use the mapped value
+    // If not found: return the map error established above
+    auto search = rsmi_status_map.find(status);
+    if (search != rsmi_status_map.end()) {
+        amdsmi_status = search->second;
+    }
+
+    return amdsmi_status;
 }
 
 static amdsmi_status_t get_gpu_device_from_handle(amdsmi_device_handle device_handle,
@@ -117,10 +149,6 @@ amdsmi_shut_down() {
 
 amdsmi_status_t
 amdsmi_status_string(amdsmi_status_t status, const char **status_string) {
-    if (status <= AMDSMI_LIB_START) {
-      return rsmi_to_amdsmi_status(
-        rsmi_status_string(static_cast<rsmi_status_t>(status), status_string));
-    }
     switch (status) {
         case AMDSMI_STATUS_FAIL_LOAD_MODULE:
             *status_string = "FAIL_LOAD_MODULE: Fail to load module.";
@@ -132,6 +160,15 @@ amdsmi_status_string(amdsmi_status_t status, const char **status_string) {
             *status_string = "DRM_ERROR: Fail to run function in libdrm.";
             break;
         default:
+            // The case above didn't have a match, so look up the amdsmi status in the rsmi status map
+            // If found, get the rsmi status string.  If not, return unknown error string
+            for (auto& iter : rsmi_status_map) {
+                if (iter.second == status) {
+                    rsmi_status_string(iter.first, status_string);
+                    return AMDSMI_STATUS_SUCCESS;
+                }
+            }
+            // Not found
             *status_string = "An unknown error occurred";
             return AMDSMI_STATUS_UNKNOWN_ERROR;
     }

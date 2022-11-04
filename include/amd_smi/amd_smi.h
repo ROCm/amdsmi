@@ -103,38 +103,44 @@ typedef enum device_type {
 } device_type_t;
 
 /**
- * @brief Error codes retured by amd_smi_lib functions
+ * @brief Error codes returned by amdsmi functions
  */
+// Please avoid status codes that are multiples of 256 (256, 512, etc..)
+// Return values in the shell get modulo 256 applied, meaning any multiple of 256 ends up as 0
 typedef enum amdsmi_status_t {
-    AMDSMI_STATUS_SUCCESS = 0,  /**< Call succeeded */
-    AMDSMI_STATUS_INVAL,  /**< Invalid parameters */
-    AMDSMI_STATUS_NOT_SUPPORTED,  /**< Command not supported */
-    AMDSMI_STATUS_FILE_ERROR, /**< Problem accessing a file. */
-    AMDSMI_STATUS_NO_PERM,  /**< Permission Denied */
-    AMDSMI_STATUS_OUT_OF_RESOURCES,  /**< Not enough memory */
-    AMDSMI_STATUS_INTERNAL_EXCEPTION,  /**< An internal exception was caught */
-    AMDSMI_STATUS_INPUT_OUT_OF_BOUNDS, /**< The provided input is out of allowable or safe range */
-    AMDSMI_STATUS_INIT_ERROR, /**< An error occurred when initializing internal data structures */
-    AMDSMI_STATUS_NOT_YET_IMPLEMENTED, /**< Not implemented yet */
-    AMDSMI_STATUS_NOT_FOUND,  /**< Device Not found */
-    AMDSMI_STATUS_INSUFFICIENT_SIZE, /**< Not enough resources were available for the operation */
-    AMDSMI_STATUS_INTERRUPT, /**< An interrupt occurred during execution of function */
-    AMDSMI_STATUS_UNEXPECTED_SIZE, /**< An unexpected amount of data was read */
-    AMDSMI_STATUS_NO_DATA, /**< No data was found for a given input */
-    AMDSMI_STATUS_UNEXPECTED_DATA, /**< The data read or provided to function is not what was expected */
-    AMDSMI_STATUS_BUSY,  /**< Device busy */
-    AMDSMI_STATUS_REFCOUNT_OVERFLOW, /**< An internal reference counter exceeded INT32_MAX */
-    AMDSMI_LIB_START = 1000,
-    AMDSMI_STATUS_FAIL_LOAD_MODULE = AMDSMI_LIB_START,  //!< Fail to load lib
-    AMDSMI_STATUS_FAIL_LOAD_SYMBOL,
-    AMDSMI_STATUS_DRM_ERROR,   //!< Error when call libdrm
-    AMDSMI_STATUS_IO,  /**< I/O Error */
-    AMDSMI_STATUS_FAULT,  /**< Bad address */
-    AMDSMI_STATUS_API_FAILED, /**< API call failed */
-    AMDSMI_STATUS_TIMEOUT, /**< Timeout in API call */
-    AMDSMI_STATUS_NO_SLOT, /**< No more free slot */
-    AMDSMI_STATUS_RETRY, /**< Retry operation */
-    AMDSMI_STATUS_NOT_INIT, /**< Device not initialized */
+    AMDSMI_STATUS_SUCCESS = 0,  //!< Call succeeded
+    // Library usage errors
+    AMDSMI_STATUS_INVAL = 1,  //!< Invalid parameters
+    AMDSMI_STATUS_NOT_SUPPORTED = 2,  //!< Command not supported
+    AMDSMI_STATUS_NOT_YET_IMPLEMENTED = 3,  //!< Not implemented yet
+    AMDSMI_STATUS_FAIL_LOAD_MODULE = 4,  //!< Fail to load lib
+    AMDSMI_STATUS_FAIL_LOAD_SYMBOL = 5,  //!< Fail to load symbol
+    AMDSMI_STATUS_DRM_ERROR = 6,  //!< Error when call libdrm
+    AMDSMI_STATUS_API_FAILED = 7,  //!< API call failed
+    AMDSMI_STATUS_TIMEOUT = 8,  //!< Timeout in API call
+    AMDSMI_STATUS_RETRY = 9,  //!< Retry operation
+    AMDSMI_STATUS_NO_PERM = 10,  //!< Permission Denied
+    AMDSMI_STATUS_INTERRUPT = 11,  //!< An interrupt occurred during execution of function
+    AMDSMI_STATUS_IO = 12,  //!< I/O Error
+    AMDSMI_STATUS_ADDRESS_FAULT = 13,  //!< Bad address
+    AMDSMI_STATUS_FILE_ERROR = 14,  //!< Problem accessing a file
+    AMDSMI_STATUS_OUT_OF_RESOURCES = 15,  //!< Not enough memory
+    AMDSMI_STATUS_INTERNAL_EXCEPTION = 16,  //!< An internal exception was caught
+    AMDSMI_STATUS_INPUT_OUT_OF_BOUNDS = 17,  //!< The provided input is out of allowable or safe range
+    AMDSMI_STATUS_INIT_ERROR = 18,  //!< An error occurred when initializing internal data structures
+    AMDSMI_STATUS_REFCOUNT_OVERFLOW = 19,  //!< An internal reference counter exceeded INT32_MAX
+    // Device related errors
+    AMDSMI_STATUS_BUSY = 30,  //!< Device busy
+    AMDSMI_STATUS_NOT_FOUND = 31,  //!< Device Not found
+    AMDSMI_STATUS_NOT_INIT = 32,  //!< Device not initialized
+    AMDSMI_STATUS_NO_SLOT = 33,  //!< No more free slot
+    // Data and size errors
+    AMDSMI_STATUS_NO_DATA = 40,  //!< No data was found for a given input
+    AMDSMI_STATUS_INSUFFICIENT_SIZE = 41,  //!< Not enough resources were available for the operation
+    AMDSMI_STATUS_UNEXPECTED_SIZE = 42,  //!< An unexpected amount of data was read
+    AMDSMI_STATUS_UNEXPECTED_DATA = 43,  //!< The data read or provided to function is not what was expected
+    // General errors
+    AMDSMI_STATUS_MAP_ERROR = 0xFFFFFFFE,  //!< The internal library error did not map to a status code
     AMDSMI_STATUS_UNKNOWN_ERROR = 0xFFFFFFFF,  //!< An unknown error occurred
 } amdsmi_status_t;
 
