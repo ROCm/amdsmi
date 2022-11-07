@@ -76,7 +76,9 @@ class AMDSmiSystem {
                     amdsmi_device_handle* device_handle);
 
  private:
-    AMDSmiSystem() : init_flag_(AMDSMI_INIT_ALL_DEVICES) {}
+    AMDSmiSystem() : init_flag_(AMDSMI_INIT_AMD_GPUS) {}
+    amdsmi_status_t get_gpu_bdf_by_index(uint32_t index, std::string& bdf);
+    amdsmi_status_t populate_amd_gpu_devices();
     uint64_t init_flag_;
     AMDSmiDrm drm_;
     std::vector<AMDSmiSocket*> sockets_;

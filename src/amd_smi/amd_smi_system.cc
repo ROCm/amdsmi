@@ -58,92 +58,76 @@ amdsmi_status_t AMDSmiSystem::init(uint64_t flags) {
     amdsmi_status_t amd_smi_status;
     // populate sockets and devices
     if (flags & AMDSMI_INIT_AMD_GPUS) {
-        amd_smi_status = drm_.init();
-        // init rsmi
-        rsmi_status_t ret = rsmi_init(flags);
-        if (ret != RSMI_STATUS_SUCCESS) {
-            return static_cast<amdsmi_status_t>(ret);
-        }
-
-        // libdrm is supported
-        if (amd_smi_status == AMDSMI_STATUS_SUCCESS) {
-            amd::smi::RocmSMI::getInstance().DiscoverAmdgpuDevices();
-            uint32_t device_count = amd::smi::RocmSMI::getInstance().devices().size();
-            for (uint32_t i=0; i < device_count; i++) {
-                std::stringstream ss;
-                //values for socked id are harcoded
-                ss << std::setfill('0') << std::uppercase << std::hex
-                    << std::setw(4) << drm_.get_bdfs()[i].domain_number << ":"
-                    << std::setw(2) << drm_.get_bdfs()[i].bus_number << ":"
-                    << std::setw(2) << drm_.get_bdfs()[i].device_number << "."
-                    << std::setw(2) << drm_.get_bdfs()[i].function_number;
-
-                // Multiple devices may share the same socket
-                auto socket_id = ss.str();
-                AMDSmiSocket* socket = nullptr;
-                for (unsigned int j=0; j < sockets_.size(); j++) {
-                    if (sockets_[j]->get_socket_id() == socket_id) {
-                        socket = sockets_[j];
-                        break;
-                    }
-                }
-                if (socket == nullptr) {
-                    socket = new AMDSmiSocket(ss.str());
-                    sockets_.push_back(socket);
-                }
-
-                AMDSmiDevice* device = new AMDSmiGPUDevice(i, drm_);
-                socket->add_device(device);
-                devices_.insert(device);
-            }
-
-        }
-        else {
-            uint32_t device_count = 0;
-            ret = rsmi_num_monitor_devices(&device_count);
-            if (ret != RSMI_STATUS_SUCCESS) {
-                return static_cast<amdsmi_status_t>(ret);
-            }
-
-            for (uint32_t i=0; i < device_count; i++) {
-                uint64_t bdfid = 0;
-                ret = rsmi_dev_pci_id_get(i, &bdfid);
-                if (ret != RSMI_STATUS_SUCCESS) {
-                    return static_cast<amdsmi_status_t>(ret);
-                }
-
-                uint64_t domain = (bdfid >> 32) & 0xffffffff;
-                uint64_t bus = (bdfid >> 8) & 0xff;
-                uint64_t device_id = (bdfid >> 3) & 0x1f;
-                uint64_t function = bdfid & 0x7;
-
-                std::stringstream ss;
-                ss << std::setfill('0') << std::uppercase << std::hex
-                    << std::setw(4) << domain << ":" << std::setw(2) << bus << ":"
-                    << std::setw(2) << device_id << "." << std::setw(2) << function;
-
-                // Multiple devices may share the same socket
-                auto socket_id = ss.str();
-                AMDSmiSocket* socket = nullptr;
-                for (unsigned int j=0; j < sockets_.size(); j++) {
-                    if (sockets_[j]->get_socket_id() == socket_id) {
-                        socket = sockets_[j];
-                        break;
-                    }
-                }
-                if (socket == nullptr) {
-                    socket = new AMDSmiSocket(ss.str());
-                    sockets_.push_back(socket);
-                }
-
-                AMDSmiDevice* device = new AMDSmiGPUDevice(i, drm_);
-                socket->add_device(device);
-                devices_.insert(device);
-            }
-        }
-    } else {
+        amd_smi_status = populate_amd_gpu_devices();
+        if (amd_smi_status != AMDSMI_STATUS_SUCCESS)
+            return amd_smi_status;
+    } else {  // Currently only support AMD GPU
         return AMDSMI_STATUS_NOT_SUPPORTED;
     }
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t AMDSmiSystem::populate_amd_gpu_devices() {
+    // libdrm is optional, ignore the error even if init fail.
+    amdsmi_status_t amd_smi_status = drm_.init();
+    // init rsmi
+    rsmi_status_t ret = rsmi_init(0);
+    if (ret != RSMI_STATUS_SUCCESS) {
+        return static_cast<amdsmi_status_t>(ret);
+    }
+
+    uint32_t device_count = 0;
+    ret = rsmi_num_monitor_devices(&device_count);
+    if (ret != RSMI_STATUS_SUCCESS) {
+        return static_cast<amdsmi_status_t>(ret);
+    }
+
+    for (uint32_t i=0; i < device_count; i++) {
+        // GPU device uses the bdf as the socket id
+        std::string socket_id;
+        amd_smi_status = get_gpu_bdf_by_index(i, socket_id);
+        if (amd_smi_status != AMDSMI_STATUS_SUCCESS) {
+            return amd_smi_status;
+        }
+
+        // Multiple devices may share the same socket
+        AMDSmiSocket* socket = nullptr;
+        for (unsigned int j=0; j < sockets_.size(); j++) {
+            if (sockets_[j]->get_socket_id() == socket_id) {
+                socket = sockets_[j];
+                break;
+            }
+        }
+        if (socket == nullptr) {
+            socket = new AMDSmiSocket(socket_id);
+            sockets_.push_back(socket);
+        }
+
+        AMDSmiDevice* device = new AMDSmiGPUDevice(i, drm_);
+        socket->add_device(device);
+        devices_.insert(device);
+    }
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t AMDSmiSystem::get_gpu_bdf_by_index(uint32_t index,
+            std::string& bdf) {
+    uint64_t bdfid = 0;
+    rsmi_status_t ret = rsmi_dev_pci_id_get(index, &bdfid);
+    if (ret != RSMI_STATUS_SUCCESS) {
+        return static_cast<amdsmi_status_t>(ret);
+    }
+
+    uint64_t domain = (bdfid >> 32) & 0xffffffff;
+    uint64_t bus = (bdfid >> 8) & 0xff;
+    uint64_t device_id = (bdfid >> 3) & 0x1f;
+    uint64_t function = bdfid & 0x7;
+
+    std::stringstream ss;
+    ss << std::setfill('0') << std::uppercase << std::hex
+        << std::setw(4) << domain << ":" << std::setw(2) << bus << ":"
+        << std::setw(2) << device_id << "." << std::setw(2) << function;
+    bdf = ss.str();
     return AMDSMI_STATUS_SUCCESS;
 }
 
