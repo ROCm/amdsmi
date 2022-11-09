@@ -22,7 +22,7 @@
 import ctypes
 from typing import Union, Any, Dict, List, Tuple
 from enum import IntEnum
-
+from collections.abc import Iterable
 
 from . import amdsmi_wrapper
 from .amdsmi_exception import *
@@ -289,6 +289,57 @@ class AmdSmiIoLinkType(IntEnum):
 class AmdSmiUtilizationCounterType(IntEnum):
     COARSE_GRAIN_GFX_ACTIVITY = amdsmi_wrapper.AMDSMI_COARSE_GRAIN_GFX_ACTIVITY
     COARSE_GRAIN_MEM_ACTIVITY = amdsmi_wrapper.AMDSMI_COARSE_GRAIN_MEM_ACTIVITY
+
+
+class AmdSmiEventReader:
+    def __init__(self, device_handle: amdsmi_wrapper.amdsmi_device_handle, *event_types):
+        if not isinstance(device_handle, amdsmi_wrapper.amdsmi_device_handle):
+            raise AmdSmiParameterException(
+                device_handle, amdsmi_wrapper.amdsmi_device_handle
+        )
+        if not isinstance(event_types, Iterable):
+            raise AmdSmiParameterException(
+                event_types, Iterable
+        )
+
+        for event_type in event_types:
+            if not isinstance(event_type, AmdSmiEvtNotificationType):
+                raise AmdSmiParameterException(
+                    event_type, AmdSmiEvtNotificationType
+            )
+
+        self.device_handle = device_handle
+        mask = 0
+        for event_type in event_types:
+                mask |= (1 << (int(event_type) - 1))
+
+        _check_res(amdsmi_wrapper.amdsmi_event_notification_init(device_handle))
+        _check_res(amdsmi_wrapper.amdsmi_event_notification_mask_set(device_handle, ctypes.c_uint64(mask)))
+
+    def read(self, timestamp, num_elem = 10):
+        self.event_info = (amdsmi_wrapper.amdsmi_evt_notification_data_t * num_elem)()
+        _check_res(amdsmi_wrapper.amdsmi_event_notification_get(ctypes.c_int(timestamp), ctypes.byref(
+            ctypes.c_uint32(num_elem)), self.event_info))
+
+        ret = list()
+        for i in range(0, num_elem):
+            if self.event_info[i].event in set(event.value for event in AmdSmiEvtNotificationType):
+                ret.append({
+                    'device_handle' : self.event_info[i].device_handle,
+                    'event': AmdSmiEvtNotificationType(self.event_info[i].event).name,
+                    'message': self.event_info[i].message.decode("utf-8")
+                })
+
+        return ret
+
+    def stop(self):
+        _check_res(amdsmi_wrapper.amdsmi_event_notification_stop(self.device_handle))
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.stop()
 
 
 _AMDSMI_MAX_DRIVER_VERSION_LENGTH = 80

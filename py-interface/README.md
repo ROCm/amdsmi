@@ -1089,50 +1089,73 @@ except SmiException as e:
     print(e)
 ```
 
-## EventListen class
+## AmdSmiEventReader class
 
-Description: Providing methods for event monitoring
+Description: Providing methods for event monitoring. This is context manager class.
+Can be used with `with` statement for automatic cleanup.
 
 Methods:
 
 ## Constructor
 
-Description: Allocates a new event reader notifier to monitor different types of events with the multiple GPUs
+Description: Allocates a new event reader notifier to monitor different types of events for the given GPU
 
 Input parameters:
 
-* `event_types` types of events to monitor and react on
+* `device_handle` device handle corresponding to the device on which to listen for events
+* `event_types` list of event types from AmdSmiEvtNotificationType enum. Specifying which events to collect for the given device.
+
+Event Type | Description
+---|------
+`VMFAULT` | VM page fault
+`THERMAL_THROTTLE` | thermal throttle
+`GPU_PRE_RESET`   | gpu pre reset
+`GPU_POST_RESET` | gpu post reset
 
 ## read
 
-Description: Reads events on GPUs. When event is caught, device handle, event id, message, event type and
-             time are returned. Reading events stops when timestamp passes without event reading.
+Description: Reads events on the given device. When event is caught, device handle, message and event type are returned. Reading events stops when timestamp passes without event reading.
 
 Input parameters:
 
-* `timestamp` Amount of miliseconds to wait for event. If event does not happen monitoring is finished
-* `i` GPU index to which we need to listen to events. For example 0,1,2...
+* `timestamp` number of milliseconds to wait for an event to occur. If event does not happen monitoring is finished
+* `num_elem` number of events. This is optional parameter. Default value is 10.
 
-Example:
-```python
-try:
-    devices = gpuvsmi_get_devices()
-    if len(devices) == 0:
-        print("No GPUs on machine")
-    else:
-        device = devices[0]
-        listener = EventListen(SmiEventType.GPU_PRE_RESET)
-        listener.read(10000)
-except SmiException as e:
-    print(e)
-```
+## stop
 
-## Destructor
-
-Description: Detroys event listener object, closes all open files and directories
+Description: Any resources used by event notification for the the given device will be freed with this function. This can be used explicitly or
+automatically using `with` statement, like in the examples below. This should be called either manually or automatically for every created AmdSmiEventReader object.
 
 Input parameters: `None`
 
+Example with manual cleanup of AmdSmiEventReader:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        event = AmdSmiEventReader(device[0], AmdSmiEvtNotificationType.GPU_PRE_RESET, AmdSmiEvtNotificationType.GPU_POST_RESET)
+        event.read(10000)
+except AmdSmiException as e:
+    print(e)
+finally:
+    event.stop()
+```
+
+Example with automatic cleanup using `with` statement:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        with AmdSmiEventReader(device[0], AmdSmiEvtNotificationType.GPU_PRE_RESET, AmdSmiEvtNotificationType.GPU_POST_RESET) as event:
+            event.read(10000)
+except AmdSmiException as e:
+    print(e)
+
+```
 
 ## amdsmi_dev_supported_func_iterator_open
 Description: Get a function name iterator of supported AMDSMI functions for a device
