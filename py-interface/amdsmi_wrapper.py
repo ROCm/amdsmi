@@ -28,7 +28,7 @@ import os
 
 # -*- coding: utf-8 -*-
 #
-# TARGET arch is: ['-I/usr/lib/llvm-14/lib/clang/14.0.0/include/']
+# TARGET arch is: ['-I/usr/lib/llvm-6.0/lib/clang/6.0.0/include/']
 # WORD_SIZE is: 8
 # POINTER_SIZE is: 8
 # LONGDOUBLE_SIZE is: 16
@@ -424,15 +424,6 @@ amdsmi_xgmi_info_t = amdsmi_xgmi_info
 class amdsmi_gpu_caps(Structure):
     pass
 
-class amdsmi_gpu_caps_1(Structure):
-    pass
-
-amdsmi_gpu_caps_1._pack_ = 1 # source:False
-amdsmi_gpu_caps_1._fields_ = [
-    ('mm_ip_count', ctypes.c_ubyte),
-    ('mm_ip_list', ctypes.c_ubyte * 8),
-]
-
 class amdsmi_gpu_caps_0(Structure):
     pass
 
@@ -442,6 +433,15 @@ amdsmi_gpu_caps_0._fields_ = [
     ('gfxip_minor', ctypes.c_uint32),
     ('gfxip_cu_count', ctypes.c_uint16),
     ('PADDING_0', ctypes.c_ubyte * 2),
+]
+
+class amdsmi_gpu_caps_1(Structure):
+    pass
+
+amdsmi_gpu_caps_1._pack_ = 1 # source:False
+amdsmi_gpu_caps_1._fields_ = [
+    ('mm_ip_count', ctypes.c_ubyte),
+    ('mm_ip_list', ctypes.c_ubyte * 8),
 ]
 
 amdsmi_gpu_caps._pack_ = 1 # source:False
@@ -634,25 +634,15 @@ class amdsmi_engine_usage(Structure):
 
 amdsmi_engine_usage._pack_ = 1 # source:False
 amdsmi_engine_usage._fields_ = [
-    ('average_gfx_activity', ctypes.c_uint32),
-    ('average_umc_activity', ctypes.c_uint32),
-    ('average_mm_activity', ctypes.c_uint32 * 8),
+    ('gfx_activity', ctypes.c_uint32),
+    ('umc_activity', ctypes.c_uint32),
+    ('mm_activity', ctypes.c_uint32 * 8),
 ]
 
 amdsmi_engine_usage_t = amdsmi_engine_usage
 amdsmi_process_handle = ctypes.c_uint32
 class amdsmi_process_info(Structure):
     pass
-
-class amdsmi_process_info_1(Structure):
-    pass
-
-amdsmi_process_info_1._pack_ = 1 # source:False
-amdsmi_process_info_1._fields_ = [
-    ('gtt_mem', ctypes.c_uint64),
-    ('cpu_mem', ctypes.c_uint64),
-    ('vram_mem', ctypes.c_uint64),
-]
 
 class amdsmi_process_info_0(Structure):
     pass
@@ -664,6 +654,16 @@ amdsmi_process_info_0._fields_ = [
     ('sdma', ctypes.c_uint16 * 8),
     ('enc', ctypes.c_uint16 * 8),
     ('dec', ctypes.c_uint16 * 8),
+]
+
+class amdsmi_process_info_1(Structure):
+    pass
+
+amdsmi_process_info_1._pack_ = 1 # source:False
+amdsmi_process_info_1._fields_ = [
+    ('gtt_mem', ctypes.c_uint64),
+    ('cpu_mem', ctypes.c_uint64),
+    ('vram_mem', ctypes.c_uint64),
 ]
 
 amdsmi_process_info._pack_ = 1 # source:False

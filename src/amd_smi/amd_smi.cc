@@ -1322,9 +1322,9 @@ amdsmi_get_gpu_activity(amdsmi_device_handle dev, amdsmi_engine_usage_t *info) {
     if (status != AMDSMI_STATUS_SUCCESS) {
         return status;
     }
-    info->average_gfx_activity = metrics.average_gfx_activity;
-    info->average_mm_activity[0] = metrics.average_mm_activity;
-    info->average_umc_activity = metrics.average_umc_activity;
+    info->gfx_activity = metrics.average_gfx_activity;
+    info->mm_activity[0] = metrics.average_mm_activity;
+    info->umc_activity = metrics.average_umc_activity;
 
     return AMDSMI_STATUS_SUCCESS;
 }
