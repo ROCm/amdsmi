@@ -1132,3 +1132,362 @@ except SmiException as e:
 Description: Detroys event listener object, closes all open files and directories
 
 Input parameters: `None`
+
+
+## amdsmi_dev_supported_func_iterator_open
+Description: Get a function name iterator of supported AMDSMI functions for a device
+
+Input parameters:
+
+* `device_handle` device which to query
+
+Output: Handle for a function iterator
+
+Exceptions that can be thrown by `amdsmi_dev_supported_func_iterator_open` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            obj_handle = amdsmi_dev_supported_func_iterator_open(device)
+            print(obj_handle)
+            amdsmi_dev_supported_func_iterator_close(obj_handle)
+except AmdSmiException as e:
+    print(e)
+```
+
+## amdsmi_dev_supported_variant_iterator_open
+Description: Get a variant iterator for a given handle
+
+Input parameters:
+
+* `obj_handle` Object handle for witch to return a variant handle
+
+Output: Variant iterator handle
+
+Exceptions that can be thrown by `amdsmi_dev_supported_variant_iterator_open` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            obj_handle = amdsmi_dev_supported_func_iterator_open(device)
+            var_iter = amdsmi_dev_supported_variant_iterator_open(obj_handle)
+            print(var_iter)
+            amdsmi_dev_supported_func_iterator_close(obj_handle)
+            amdsmi_dev_supported_func_iterator_close(var_iter)
+except AmdSmiException as e:
+    print(e)
+```
+
+## amdsmi_func_iter_next
+Description: Advance an object identifier iterator
+
+Input parameters:
+
+* `obj_handle` Object handle to advance
+
+Output: Next iterator handle
+
+Exceptions that can be thrown by `amdsmi_func_iter_next` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            obj_handle = amdsmi_dev_supported_func_iterator_open(device)
+            print(obj_handle)
+            obj_handle = amdsmi_func_iter_next(obj_handle)
+            print(obj_handle)
+            amdsmi_dev_supported_func_iterator_close(obj_handle)
+except AmdSmiException as e:
+    print(e)
+```
+
+## amdsmi_dev_supported_func_iterator_close
+Description: Close a variant iterator handle
+
+Input parameters:
+
+* `obj_handle` Object handle to be closed
+
+Output: None
+
+Exceptions that can be thrown by `amdsmi_dev_supported_func_iterator_close` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            obj_handle = amdsmi_dev_supported_func_iterator_open(device)
+            amdsmi_dev_supported_func_iterator_close(obj_handle)
+except AmdSmiException as e:
+    print(e)
+```
+
+## amdsmi_func_iter_value_get
+Description: Get the value associated with a function/variant iterator
+
+Input parameters:
+
+* `obj_handle` Object handle to query
+
+Output: Data associated with a function/variant iterator
+
+Field | Description
+---|---
+`id`| Internal ID of the function/variant
+`name`| Descriptive name of the function/variant
+`amd_id_0` | <table>  <thead><tr> <th> Subfield </th> <th> Description</th> </tr></thead><tbody><tr><td>`memory_type`</td><td>Memory type</td></tr><tr><td>`temp_metric`</td><td>Temperature metric</td></tr><tr><td>`evnt_type`</td><td>Event type</td></tr><tr><td>`evnt_group`</td><td>Event group</td></tr><tr><td>`clk_type`</td><td>Clock type</td></tr></tr><tr><td>`fw_block`</td><td>Firmware block</td></tr><tr><td>`gpu_block_type`</td><td>GPU block type</td></tr></tbody></table>
+
+Exceptions that can be thrown by `amdsmi_func_iter_value_get` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            obj_handle = amdsmi_dev_supported_func_iterator_open(device)
+            value = amdsmi_func_iter_value_get(obj_handle)
+            print(value)
+            amdsmi_dev_supported_func_iterator_close(obj_handle)
+except AmdSmiException as e:
+    print(e)
+```
+
+## amdsmi_dev_pci_bandwidth_set
+Description: Control the set of allowed PCIe bandwidths that can be used
+
+Input parameters:
+* `device_handle` handle for the given device
+* `bw_bitmask` A bitmask indicating the indices of the bandwidths that are
+to be enabled (1) and disabled (0)
+
+Output: None
+
+Exceptions that can be thrown by `amdsmi_dev_pci_bandwidth_set` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            amdsmi_dev_pci_bandwidth_set(device, 0)
+except AmdSmiException as e:
+    print(e)
+```
+## amdsmi_dev_power_cap_set
+Description: Set the power cap value
+
+Input parameters:
+* `device_handle` handle for the given device
+* `sensor_ind` a 0-based sensor index. Normally, this will be 0. If a
+device has more than one sensor, it could be greater than 0
+* `cap` int that indicates the desired power cap, in microwatts
+
+Output: None
+
+Exceptions that can be thrown by `amdsmi_dev_power_cap_set` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            power_cap = 250 * 1000000
+            amdsmi_dev_power_cap_set(device, 0, power_cap)
+except AmdSmiException as e:
+    print(e)
+```
+## amdsmi_dev_power_profile_set
+Description: Set the power profile
+
+Input parameters:
+* `device_handle` handle for the given device
+* `reserved` Not currently used, set to 0
+* `profile` a amdsmi_power_profile_preset_masks_t that hold the mask of
+the desired new power profile
+
+Output: None
+
+Exceptions that can be thrown by `amdsmi_dev_power_profile_set` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            profile = ...
+            amdsmi_dev_power_profile_set(device, 0, profile)
+except AmdSmiException as e:
+    print(e)
+```
+## amdsmi_dev_clk_range_set
+Description: This function sets the clock range information
+
+Input parameters:
+* `device_handle` handle for the given device
+* `min_clk_value` minimum clock value for desired clock range
+* `max_clk_value` maximum clock value for desired clock range
+* `clk_type`AMDSMI_CLK_TYPE_SYS | AMDSMI_CLK_TYPE_MEM range type
+
+Output: None
+
+Exceptions that can be thrown by `amdsmi_dev_clk_range_set` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            amdsmi_dev_clk_range_set(device, 0, 1000, AmdSmiClockType.AMDSMI_CLK_TYPE_SYS)
+except AmdSmiException as e:
+    print(e)
+```
+## amdsmi_dev_od_clk_info_set
+Description: This function sets the clock frequency information
+
+Input parameters:
+* `device_handle` handle for the given device
+* `level` AMDSMI_FREQ_IND_MIN|AMDSMI_FREQ_IND_MAX to set the minimum (0)
+or maximum (1) speed
+* `clk_value` value to apply to the clock range
+* `clk_type` AMDSMI_CLK_TYPE_SYS | AMDSMI_CLK_TYPE_MEM range type
+
+Output: None
+
+Exceptions that can be thrown by `amdsmi_dev_od_clk_info_set` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            amdsmi_dev_od_clk_info_set(
+                device,
+                AmdSmiFreqInd.AMDSMI_FREQ_IND_MAX,
+                1000,
+                AmdSmiClockType.AMDSMI_CLK_TYPE_SYS
+            )
+except AmdSmiException as e:
+    print(e)
+```
+## amdsmi_dev_od_volt_info_set
+Description: This function sets  1 of the 3 voltage curve points
+
+Input parameters:
+* `device_handle` handle for the given device
+* `vpoint` voltage point [0|1|2] on the voltage curve
+* `clk_value` clock value component of voltage curve point
+* `volt_value` voltage value component of voltage curve point
+
+Output: None
+
+Exceptions that can be thrown by `amdsmi_dev_od_volt_info_set` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            amdsmi_dev_od_volt_info_set(device, 1, 1000, 980)
+except AmdSmiException as e:
+    print(e)
+```
+## amdsmi_dev_perf_level_set_v1
+Description: Set the PowerPlay performance level associated with the device
+with provided device handle with the provided value
+
+Input parameters:
+* `device_handle` handle for the given device
+* `perf_lvl` the value to which the performance level should be set
+
+Output: None
+
+Exceptions that can be thrown by `amdsmi_dev_perf_level_set_v1` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            amdsmi_dev_perf_level_set_v1(device, AmdSmiDevPerfLevel.AMDSMI_DEV_PERF_LEVEL_HIGH)
+except AmdSmiException as e:
+    print(e)
+```
