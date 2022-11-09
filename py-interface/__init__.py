@@ -71,6 +71,23 @@ from .amdsmi_interface import amdsmi_get_board_info
 # # Ras Information
 from .amdsmi_interface import amdsmi_get_ras_block_features_enabled
 
+# # Supported Function Checks
+from .amdsmi_interface import amdsmi_dev_supported_func_iterator_open
+from .amdsmi_interface import amdsmi_dev_supported_variant_iterator_open
+from .amdsmi_interface import amdsmi_dev_supported_func_iterator_close
+from .amdsmi_interface import amdsmi_func_iter_next
+from .amdsmi_interface import amdsmi_func_iter_value_get
+
+# # Unsupported Functions In Virtual Environment
+from .amdsmi_interface import amdsmi_dev_pci_bandwidth_set
+from .amdsmi_interface import amdsmi_dev_power_cap_set
+from .amdsmi_interface import amdsmi_dev_power_profile_set
+from .amdsmi_interface import amdsmi_dev_clk_range_set
+from .amdsmi_interface import amdsmi_dev_od_clk_info_set
+from .amdsmi_interface import amdsmi_dev_od_volt_info_set
+from .amdsmi_interface import amdsmi_dev_perf_level_set_v1
+
+
 # # Events
 # from .smi_interface import EventListen
 
