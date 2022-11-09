@@ -21,7 +21,7 @@
 
 # Library Initialization
 from .amdsmi_interface import amdsmi_init
-from .amdsmi_interface import amdsmi_fini
+from .amdsmi_interface import amdsmi_shut_down
 
 # Device Descovery
 from .amdsmi_interface import amdsmi_get_device_type
@@ -35,7 +35,7 @@ from .amdsmi_interface import amdsmi_get_driver_version
 
 # # ASIC and Bus Static Information
 from .amdsmi_interface import amdsmi_get_asic_info
-from .amdsmi_interface import amdsmi_get_power_info
+from .amdsmi_interface import amdsmi_get_power_cap_info
 from .amdsmi_interface import amdsmi_get_caps_info
 
 # # Microcode and VBIOS Information

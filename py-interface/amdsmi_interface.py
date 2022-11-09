@@ -359,7 +359,7 @@ def _parse_fw_info(fw_info: amdsmi_wrapper.amdsmi_fw_info_t) -> Dict[str, Any]:
     """
     if not isinstance(fw_info, amdsmi_wrapper.amdsmi_fw_info_t):
         raise AmdSmiParameterException(fw_info, amdsmi_wrapper.amdsmi_fw_info_t)
-    formatted_fw_info = {"num_fw_info": fw_info.num_fw_info}
+    formatted_fw_info = dict()
     for index, value in amdsmi_wrapper.amdsmi_fw_block__enumvalues.items():
         if value == "FW_ID_FIRST":
             value = "FW_ID_SMU"
@@ -503,11 +503,13 @@ def amdsmi_get_device_handles() -> List[amdsmi_wrapper.amdsmi_device_handle]:
     return devices
 
 
-def amdsmi_init():
-    _check_res(amdsmi_wrapper.amdsmi_init(AmdSmiInitFlags.AMD_GPUS))
+def amdsmi_init(flag=AmdSmiInitFlags.AMD_GPUS):
+    if not isinstance(flag, AmdSmiInitFlags):
+        raise AmdSmiParameterException(flag, AmdSmiInitFlags)
+    _check_res(amdsmi_wrapper.amdsmi_init(flag))
 
 
-def amdsmi_fini():
+def amdsmi_shut_down():
     _check_res(amdsmi_wrapper.amdsmi_shut_down())
 
 
@@ -563,7 +565,7 @@ def amdsmi_get_asic_info(
     }
 
 
-def amdsmi_get_power_info(
+def amdsmi_get_power_cap_info(
     device_handle: amdsmi_wrapper.amdsmi_device_handle,
 ) -> Dict[str, Any]:
     if not isinstance(device_handle, amdsmi_wrapper.amdsmi_device_handle):
@@ -645,9 +647,9 @@ def amdsmi_get_gpu_activity(
     )
 
     return {
-        "average_gfx_activity": engine_usage.average_gfx_activity,
-        "average_umc_activity": engine_usage.average_umc_activity,
-        "average_mm_activity": list(engine_usage.average_mm_activity),
+        "gfx_activity": engine_usage.gfx_activity,
+        "umc_activity": engine_usage.umc_activity,
+        "mm_activity": list(engine_usage.mm_activity),
     }
 
 
@@ -888,22 +890,22 @@ def amdsmi_get_process_list(
 
 def amdsmi_get_process_info(
     device_handle: amdsmi_wrapper.amdsmi_device_handle,
-    procces_handle: amdsmi_wrapper.amdsmi_process_handle,
+    process: amdsmi_wrapper.amdsmi_process_handle,
 ) -> Dict[str, Any]:
     if not isinstance(device_handle, amdsmi_wrapper.amdsmi_device_handle):
         raise AmdSmiParameterException(
             device_handle, amdsmi_wrapper.amdsmi_device_handle
         )
 
-    if not isinstance(procces_handle, amdsmi_wrapper.amdsmi_process_handle):
+    if not isinstance(process, amdsmi_wrapper.amdsmi_process_handle):
         raise AmdSmiParameterException(
-            procces_handle, amdsmi_wrapper.amdsmi_process_handle
+            process, amdsmi_wrapper.amdsmi_process_handle
         )
 
     info = amdsmi_wrapper.amdsmi_process_info()
     _check_res(
         amdsmi_wrapper.amdsmi_get_process_info(
-            device_handle, procces_handle, ctypes.byref(info)
+            device_handle, process, ctypes.byref(info)
         )
     )
 
@@ -1055,10 +1057,18 @@ def amdsmi_get_pcie_link_caps(
 
 
 def amdsmi_get_device_handle_from_bdf(
-    bdf_info: amdsmi_wrapper.amdsmi_bdf_t,
+    bdf_info: Union[amdsmi_wrapper.amdsmi_bdf_t, str],
 ) -> amdsmi_wrapper.amdsmi_device_handle:
-    if not isinstance(bdf_info, amdsmi_wrapper.amdsmi_bdf_t):
+    if not isinstance(bdf_info, amdsmi_wrapper.amdsmi_bdf_t) and not isinstance(bdf_info, str):
         raise AmdSmiParameterException(bdf_info, amdsmi_wrapper.amdsmi_bdf_t)
+
+    if isinstance(bdf_info, str):
+        bdf = amdsmi_wrapper.amdsmi_bdf_t()
+        bdf.amdsmi_bdf_0.domain_number = int(bdf_info[:4])
+        bdf.amdsmi_bdf_0.bus_number = int(bdf_info[5:7])
+        bdf.amdsmi_bdf_0.device_number = int(bdf_info[8:10])
+        bdf.amdsmi_bdf_0.function_number = int(bdf_info[11])
+        bdf_info = bdf
 
     device_handles_pylist = amdsmi_get_device_handles()
     device_handles = (amdsmi_wrapper.amdsmi_device_handle * len(device_handles_pylist))(

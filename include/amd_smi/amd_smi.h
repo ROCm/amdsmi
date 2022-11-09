@@ -362,9 +362,9 @@ typedef struct amdsmi_clk_measure {
 } amdsmi_clk_measure_t;
 
 typedef struct amdsmi_engine_usage {
-  uint32_t average_gfx_activity;
-  uint32_t average_umc_activity;
-  uint32_t average_mm_activity[AMDSMI_MAX_MM_IP_COUNT];
+  uint32_t gfx_activity;
+  uint32_t umc_activity;
+  uint32_t mm_activity[AMDSMI_MAX_MM_IP_COUNT];
 } amdsmi_engine_usage_t;
 
 typedef uint32_t amdsmi_process_handle;

@@ -190,11 +190,11 @@ int main() {
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_gpu_activity:\n");
             printf("\tAverage GFX Activity: %d\n",
-                   engine_usage.average_gfx_activity);
+                   engine_usage.gfx_activity);
             printf("\tAverage MM Activity: %d\n",
-                   engine_usage.average_mm_activity[0]);
+                   engine_usage.mm_activity[0]);
             printf("\tAverage UMC Activity: %d\n\n",
-                   engine_usage.average_umc_activity);
+                   engine_usage.umc_activity);
 
             // Get firmware info
             amdsmi_fw_info_t fw_information = {};
