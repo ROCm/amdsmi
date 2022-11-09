@@ -87,6 +87,24 @@ from .amdsmi_interface import amdsmi_dev_od_clk_info_set
 from .amdsmi_interface import amdsmi_dev_od_volt_info_set
 from .amdsmi_interface import amdsmi_dev_perf_level_set_v1
 
+# # Physical State Queries
+from .amdsmi_interface import amdsmi_dev_fan_rpms_get
+from .amdsmi_interface import amdsmi_dev_fan_speed_get
+from .amdsmi_interface import amdsmi_dev_fan_speed_max_get
+from .amdsmi_interface import amdsmi_dev_temp_metric_get
+from .amdsmi_interface import amdsmi_dev_volt_metric_get
+
+# # Clock, Power and Performance Query
+from .amdsmi_interface import amdsmi_dev_busy_percent_get
+from .amdsmi_interface import amdsmi_utilization_count_get
+from .amdsmi_interface import amdsmi_dev_perf_level_get
+from .amdsmi_interface import amdsmi_perf_determinism_mode_set
+from .amdsmi_interface import amdsmi_dev_overdrive_level_get
+from .amdsmi_interface import amdsmi_dev_gpu_clk_freq_get
+from .amdsmi_interface import amdsmi_dev_od_volt_info_get
+from .amdsmi_interface import amdsmi_dev_gpu_metrics_info_get
+from .amdsmi_interface import amdsmi_dev_od_volt_curve_regions_get
+from .amdsmi_interface import amdsmi_dev_power_profile_presets_get
 
 # # Events
 from .amdsmi_interface import AmdSmiEventReader
