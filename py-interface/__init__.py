@@ -89,7 +89,7 @@ from .amdsmi_interface import amdsmi_dev_perf_level_set_v1
 
 
 # # Events
-# from .smi_interface import EventListen
+from .amdsmi_interface import AmdSmiEventReader
 
 # # Enums
 
