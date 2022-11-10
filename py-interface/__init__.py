@@ -136,6 +136,23 @@ from .amdsmi_interface import amdsmi_compute_process_gpus_get
 from .amdsmi_interface import amdsmi_dev_xgmi_error_status
 from .amdsmi_interface import amdsmi_dev_xgmi_error_reset
 
+# # PCIE information
+from .amdsmi_interface import amdsmi_dev_pci_id_get
+from .amdsmi_interface import amdsmi_dev_pci_bandwidth_get
+from .amdsmi_interface import amdsmi_dev_pci_throughput_get
+from .amdsmi_interface import amdsmi_dev_pci_replay_counter_get
+from .amdsmi_interface import amdsmi_topo_numa_affinity_get
+
+# # Power information
+from .amdsmi_interface import amdsmi_dev_power_ave_get
+from .amdsmi_interface import amdsmi_dev_energy_count_get
+
+# # Memory information
+from .amdsmi_interface import amdsmi_dev_memory_total_get
+from .amdsmi_interface import amdsmi_dev_memory_usage_get
+from .amdsmi_interface import amdsmi_dev_memory_busy_percent_get
+from .amdsmi_interface import amdsmi_dev_memory_reserved_pages_get
+
 # # Events
 from .amdsmi_interface import AmdSmiEventReader
 
