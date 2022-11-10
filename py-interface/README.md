@@ -2390,3 +2390,247 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
+
+## amdsmi_dev_ecc_count_get
+Description: Retrieve the error counts for a GPU block
+
+Input parameters:
+* `device_handle` handle for the given device
+* `block` The block for which error counts should be retrieved
+
+Output: Dict containing information about error counts
+
+Field | Description
+---|---
+`correctable_count`| Count of correctable errors
+`uncorrectable_count`| Count of uncorrectable errors
+
+Exceptions that can be thrown by `amdsmi_dev_ecc_count_get` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            ecc_count = amdsmi_dev_ecc_count_get(device, AmdSmiGpuBlock.UMC)
+            print(ecc_count)
+except AmdSmiException as e:
+    print(e)
+```
+
+## amdsmi_dev_ecc_enabled_get
+Description: Retrieve the enabled ECC bit-mask
+
+Input parameters:
+* `device_handle` handle for the given device
+
+Output: Enabled ECC bit-mask
+
+Exceptions that can be thrown by `amdsmi_dev_ecc_enabled_get` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            enabled = amdsmi_dev_ecc_enabled_get(device)
+            print(enabled)
+except AmdSmiException as e:
+    print(e)
+```
+
+## amdsmi_dev_ecc_status_get
+Description: Retrieve the ECC status for a GPU block
+
+Input parameters:
+* `device_handle` handle for the given device
+* `block` The block for which ECC status should be retrieved
+
+Output: ECC status for a requested GPU block
+
+Exceptions that can be thrown by `amdsmi_dev_ecc_status_get` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            status = amdsmi_dev_ecc_status_get(device, AmdSmiGpuBlock.UMC)
+            print(status)
+except AmdSmiException as e:
+    print(e)
+```
+
+## amdsmi_status_string
+Description: Get a description of a provided AMDSMI error status
+
+Input parameters:
+* `status` The error status for which a description is desired
+
+Output: String description of the provided error code
+
+Exceptions that can be thrown by `amdsmi_status_string` function:
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    status_str = amdsmi_status_string(ctypes.c_uint32(0))
+    print(status_str)
+except AmdSmiException as e:
+    print(e)
+```
+
+## amdsmi_compute_process_info_get
+Description: Get process information about processes currently using GPU
+
+Input parameters: None
+
+Output: List of python dicts each containing a process information
+
+Field | Description
+---|---
+`process_id` | Process ID
+`pasid` | PASID
+`vram_usage` | VRAM usage
+`sdma_usage` | SDMA usage in microseconds
+`cu_occupancy` | Compute Unit usage in percents
+
+Exceptions that can be thrown by `amdsmi_compute_process_info_get` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+
+Example:
+```python
+try:
+    procs = amdsmi_compute_process_info_get()
+    for proc in procs:
+        print(proc)
+except AmdSmiException as e:
+    print(e)
+```
+
+## amdsmi_compute_process_info_by_pid_get
+Description: Get process information about processes currently using GPU
+
+Input parameters:
+* `pid` The process ID for which process information is being requested
+
+Output: Dict containing a process information
+
+Field | Description
+---|---
+`process_id` | Process ID
+`pasid` | PASID
+`vram_usage` | VRAM usage
+`sdma_usage` | SDMA usage in microseconds
+`cu_occupancy` | Compute Unit usage in percents
+
+Exceptions that can be thrown by `amdsmi_compute_process_info_by_pid_get` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    pid = 0 # << valid pid here
+    proc = amdsmi_compute_process_info_by_pid_get(pid)
+    print(proc)
+except AmdSmiException as e:
+    print(e)
+```
+
+## amdsmi_compute_process_gpus_get
+Description: Get the device indices currently being used by a process
+
+Input parameters:
+* `pid` The process id of the process for which the number of gpus currently being used is requested
+
+Output: List of indices of devices currently being used by the process
+
+Exceptions that can be thrown by `amdsmi_compute_process_gpus_get` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    pid = 0 # << valid pid here
+    indices = amdsmi_compute_process_gpus_get(pid)
+    print(indices)
+except AmdSmiException as e:
+    print(e)
+```
+
+## amdsmi_dev_xgmi_error_status
+Description: Retrieve the XGMI error status for a device
+
+Input parameters:
+* `device_handle` handle for the given device
+
+Output: XGMI error status for a requested device
+
+Exceptions that can be thrown by `amdsmi_dev_xgmi_error_status` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            status = amdsmi_dev_xgmi_error_status(device)
+            print(status)
+except AmdSmiException as e:
+    print(e)
+```
+
+## amdsmi_dev_xgmi_error_reset
+Description: Reset the XGMI error status for a device
+
+Input parameters:
+* `device_handle` handle for the given device
+
+Output: None
+
+Exceptions that can be thrown by `amdsmi_dev_xgmi_error_reset` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            amdsmi_dev_xgmi_error_reset(device)
+except AmdSmiException as e:
+    print(e)
+```

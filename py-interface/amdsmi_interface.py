@@ -910,9 +910,7 @@ def amdsmi_get_process_info(
         )
 
     if not isinstance(process, amdsmi_wrapper.amdsmi_process_handle):
-        raise AmdSmiParameterException(
-            process, amdsmi_wrapper.amdsmi_process_handle
-        )
+        raise AmdSmiParameterException(process, amdsmi_wrapper.amdsmi_process_handle)
 
     info = amdsmi_wrapper.amdsmi_process_info()
     _check_res(
@@ -1182,7 +1180,7 @@ def amdsmi_counter_read(
     return {
         "value": counter_value.value,
         "time_enabled": counter_value.time_enabled,
-        "time_running": counter_value.time_running
+        "time_running": counter_value.time_running,
     }
 
 
@@ -1243,7 +1241,7 @@ def amdsmi_dev_power_profile_presets_get(
     return {
         "available_profiles": status.available_profiles,
         "current": status.current,
-        "num_profiles": status.num_profiles
+        "num_profiles": status.num_profiles,
     }
 
 
@@ -2010,3 +2008,165 @@ def amdsmi_dev_power_profile_presets_get(
         "current": status.current,
         "num_profiles": status.num_profiles,
     }
+
+
+def amdsmi_dev_ecc_count_get(
+    device_handle: amdsmi_wrapper.amdsmi_device_handle, block: AmdSmiGpuBlock
+) -> Dict[str, int]:
+    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_device_handle):
+        raise AmdSmiParameterException(
+            device_handle, amdsmi_wrapper.amdsmi_device_handle
+        )
+
+    if not isinstance(block, AmdSmiGpuBlock):
+        raise AmdSmiParameterException(block, AmdSmiGpuBlock)
+
+    ec = amdsmi_wrapper.amdsmi_error_count_t()
+    _check_res(
+        amdsmi_wrapper.amdsmi_dev_ecc_count_get(device_handle, block, ctypes.byref(ec))
+    )
+
+    return {
+        "correctable_count": ec.correctable_count,
+        "uncorrectable_count": ec.uncorrectable_count,
+    }
+
+
+def amdsmi_dev_ecc_enabled_get(
+    device_handle: amdsmi_wrapper.amdsmi_device_handle,
+) -> int:
+    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_device_handle):
+        raise AmdSmiParameterException(
+            device_handle, amdsmi_wrapper.amdsmi_device_handle
+        )
+
+    blocks = ctypes.c_uint64(0)
+    _check_res(
+        amdsmi_wrapper.amdsmi_dev_ecc_enabled_get(device_handle, ctypes.byref(blocks))
+    )
+
+    return blocks.value
+
+
+def amdsmi_dev_ecc_status_get(
+    device_handle: amdsmi_wrapper.amdsmi_device_handle, block: AmdSmiGpuBlock
+) -> AmdSmiRasErrState:
+    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_device_handle):
+        raise AmdSmiParameterException(
+            device_handle, amdsmi_wrapper.amdsmi_device_handle
+        )
+
+    if not isinstance(block, AmdSmiGpuBlock):
+        raise AmdSmiParameterException(block, AmdSmiGpuBlock)
+
+    state = amdsmi_wrapper.amdsmi_ras_err_state_t()
+    _check_res(
+        amdsmi_wrapper.amdsmi_dev_ecc_status_get(
+            device_handle, block, ctypes.byref(state)
+        )
+    )
+
+    return AmdSmiRasErrState(state.value)
+
+
+def amdsmi_status_string(status: amdsmi_wrapper.amdsmi_status_t) -> str:
+    if not isinstance(status, amdsmi_wrapper.amdsmi_status_t):
+        raise AmdSmiParameterException(status, amdsmi_wrapper.amdsmi_status_t)
+
+    status_string = ctypes.c_char_p()
+    _check_res(amdsmi_wrapper.amdsmi_status_string(status, ctypes.byref(status_string)))
+
+    return amdsmi_wrapper.string_cast(status_string)
+
+
+def amdsmi_compute_process_info_get() -> List[Dict[str, int]]:
+    num_items = ctypes.c_uint32(0)
+    nullptr = ctypes.POINTER(amdsmi_wrapper.amdsmi_process_info_t)()
+    _check_res(
+        amdsmi_wrapper.amdsmi_compute_process_info_get(nullptr, ctypes.byref(num_items))
+    )
+
+    procs = (amdsmi_wrapper.amdsmi_process_info_t * num_items.value)()
+    _check_res(
+        amdsmi_wrapper.amdsmi_compute_process_info_get(procs, ctypes.byref(num_items))
+    )
+
+    return [
+        {
+            "process_id": proc.process_id,
+            "pasid": proc.pasid,
+            "vram_usage": proc.vram_usage,
+            "sdma_usage": proc.sdma_usage,
+            "cu_occupancy": proc.cu_occupancy,
+        }
+        for proc in procs
+    ]
+
+
+def amdsmi_compute_process_info_by_pid_get(pid: int) -> Dict[str, int]:
+    if not isinstance(pid, int):
+        raise AmdSmiParameterException(pid, int)
+
+    proc = amdsmi_wrapper.amdsmi_process_info_t()
+    _check_res(
+        amdsmi_wrapper.amdsmi_compute_process_info_by_pid_get(
+            ctypes.c_uint32(pid), ctypes.byref(proc)
+        )
+    )
+
+    return {
+        "process_id": proc.process_id,
+        "pasid": proc.pasid,
+        "vram_usage": proc.vram_usage,
+        "sdma_usage": proc.sdma_usage,
+        "cu_occupancy": proc.cu_occupancy,
+    }
+
+
+def amdsmi_compute_process_gpus_get(pid: int) -> List[int]:
+    if not isinstance(pid, int):
+        raise AmdSmiParameterException(pid, int)
+
+    num_devices = ctypes.c_uint32(0)
+    nullptr = ctypes.POINTER(ctypes.c_uint32)()
+    _check_res(
+        amdsmi_wrapper.amdsmi_compute_process_gpus_get(
+            pid, nullptr, ctypes.byref(num_devices)
+        )
+    )
+
+    dv_indices = (ctypes.c_uint32 * num_devices.value)()
+    _check_res(
+        amdsmi_wrapper.amdsmi_compute_process_gpus_get(
+            pid, dv_indices, ctypes.byref(num_devices)
+        )
+    )
+
+    return [dv_index.value for dv_index in dv_indices]
+
+
+def amdsmi_dev_xgmi_error_status(
+    device_handle: amdsmi_wrapper.amdsmi_device_handle,
+) -> AmdSmiXgmiStatus:
+    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_device_handle):
+        raise AmdSmiParameterException(
+            device_handle, amdsmi_wrapper.amdsmi_device_handle
+        )
+
+    status = amdsmi_wrapper.amdsmi_xgmi_status_t()
+    _check_res(
+        amdsmi_wrapper.amdsmi_dev_xgmi_error_status(device_handle, ctypes.byref(status))
+    )
+
+    return AmdSmiXgmiStatus(status.value)
+
+
+def amdsmi_dev_xgmi_error_reset(
+    device_handle: amdsmi_wrapper.amdsmi_device_handle,
+) -> None:
+    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_device_handle):
+        raise AmdSmiParameterException(
+            device_handle, amdsmi_wrapper.amdsmi_device_handle
+        )
+
+    _check_res(amdsmi_wrapper.amdsmi_dev_xgmi_error_reset(device_handle))
