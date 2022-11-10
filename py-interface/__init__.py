@@ -139,6 +139,26 @@ from .amdsmi_interface import amdsmi_dev_xgmi_error_reset
 # # Events
 from .amdsmi_interface import AmdSmiEventReader
 
+# # Device Identification information
+from .amdsmi_interface import amdsmi_dev_vendor_name_get
+from .amdsmi_interface import amdsmi_dev_id_get
+from .amdsmi_interface import amdsmi_dev_vram_vendor_get
+from .amdsmi_interface import amdsmi_dev_drm_render_minor_get
+from .amdsmi_interface import amdsmi_dev_subsystem_id_get
+from .amdsmi_interface import amdsmi_dev_subsystem_name_get
+
+# # Version information
+from .amdsmi_interface import amdsmi_version_get
+from .amdsmi_interface import amdsmi_version_str_get
+
+# # Hardware topology query
+from .amdsmi_interface import amdsmi_topo_get_numa_node_number
+from .amdsmi_interface import amdsmi_topo_get_link_weight
+from .amdsmi_interface import amdsmi_minmax_bandwidth_get
+from .amdsmi_interface import amdsmi_topo_get_link_type
+from .amdsmi_interface import amdsmi_is_P2P_accessible
+from .amdsmi_interface import amdsmi_get_xgmi_info
+
 # # Enums
 
 from .amdsmi_interface import AmdSmiInitFlags
@@ -166,7 +186,8 @@ from .amdsmi_interface import AmdSmiXgmiStatus
 from .amdsmi_interface import AmdSmiMemoryPageStatus
 from .amdsmi_interface import AmdSmiIoLinkType
 from .amdsmi_interface import AmdSmiUtilizationCounterType
-
+from .amdsmi_interface import AmdSmiSwComponent
+from .amdsmi_interface import AmdSmiIoLinkType
 # Exceptions
 
 from .amdsmi_exception import AmdSmiLibraryException

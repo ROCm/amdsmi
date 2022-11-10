@@ -290,6 +290,18 @@ class AmdSmiUtilizationCounterType(IntEnum):
     COARSE_GRAIN_MEM_ACTIVITY = amdsmi_wrapper.AMDSMI_COARSE_GRAIN_MEM_ACTIVITY
 
 
+class AmdSmiSwComponent(IntEnum):
+    DRIVER = amdsmi_wrapper.AMDSMI_SW_COMP_DRIVER
+
+
+class AmdSmiIoLinkType(IntEnum):
+    UNDEFINED = amdsmi_wrapper.AMDSMI_IOLINK_TYPE_UNDEFINED
+    PCIEXPRESS = amdsmi_wrapper.AMDSMI_IOLINK_TYPE_PCIEXPRESS
+    XGMI = amdsmi_wrapper.AMDSMI_IOLINK_TYPE_XGMI
+    NUMIOLINKTYPES = amdsmi_wrapper.AMDSMI_IOLINK_TYPE_NUMIOLINKTYPES
+    SIZE = amdsmi_wrapper.AMDSMI_IOLINK_TYPE_SIZE
+
+
 class AmdSmiEventReader:
     def __init__(
         self, device_handle: amdsmi_wrapper.amdsmi_device_handle, *event_types
@@ -356,6 +368,7 @@ class AmdSmiEventReader:
 
 _AMDSMI_MAX_DRIVER_VERSION_LENGTH = 80
 _AMDSMI_GPU_UUID_SIZE = 38
+_AMDSMI_STRING_LENGTH = 80
 
 
 def _parse_fw_info(fw_info: amdsmi_wrapper.amdsmi_fw_info_t) -> Dict[str, Any]:
@@ -1097,6 +1110,273 @@ def amdsmi_get_device_handle_from_bdf(
     )
 
     return device_handle
+
+
+def amdsmi_dev_vendor_name_get(
+    device_handle: amdsmi_wrapper.amdsmi_device_handle,
+) -> str:
+    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_device_handle):
+        raise AmdSmiParameterException(
+            device_handle, amdsmi_wrapper.amdsmi_device_handle
+        )
+
+    length = ctypes.c_uint64()
+    length.value = _AMDSMI_STRING_LENGTH
+
+    vendor_name = ctypes.create_string_buffer(_AMDSMI_STRING_LENGTH)
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_dev_vendor_name_get(device_handle, vendor_name, length)
+    )
+
+    return vendor_name.value.decode("utf-8")
+
+
+def amdsmi_dev_id_get(device_handle: amdsmi_wrapper.amdsmi_device_handle):
+    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_device_handle):
+        raise AmdSmiParameterException(
+            device_handle, amdsmi_wrapper.amdsmi_device_handle
+        )
+    id = ctypes.c_uint16()
+
+    _check_res(amdsmi_wrapper.amdsmi_dev_id_get(device_handle, ctypes.byref(id)))
+
+    return id.value
+
+
+def amdsmi_dev_vram_vendor_get(device_handle: amdsmi_wrapper.amdsmi_device_handle):
+    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_device_handle):
+        raise AmdSmiParameterException(
+            device_handle, amdsmi_wrapper.amdsmi_device_handle
+        )
+
+    length = ctypes.c_uint32()
+    length.value = _AMDSMI_STRING_LENGTH
+
+    vram_vendor = ctypes.create_string_buffer(_AMDSMI_STRING_LENGTH)
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_dev_vram_vendor_get(device_handle, vram_vendor, length)
+    )
+
+    return vram_vendor.value.decode("utf-8")
+
+
+def amdsmi_dev_drm_render_minor_get(device_handle: amdsmi_wrapper.amdsmi_device_handle):
+    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_device_handle):
+        raise AmdSmiParameterException(
+            device_handle, amdsmi_wrapper.amdsmi_device_handle
+        )
+    minor = ctypes.c_uint32()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_dev_drm_render_minor_get(
+            device_handle, ctypes.byref(minor)
+        )
+    )
+
+    return minor.value
+
+
+def amdsmi_dev_subsystem_id_get(device_handle: amdsmi_wrapper.amdsmi_device_handle):
+    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_device_handle):
+        raise AmdSmiParameterException(
+            device_handle, amdsmi_wrapper.amdsmi_device_handle
+        )
+    id = ctypes.c_uint16()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_dev_subsystem_id_get(device_handle, ctypes.byref(id))
+    )
+
+    return id.value
+
+
+def amdsmi_dev_subsystem_name_get(device_handle: amdsmi_wrapper.amdsmi_device_handle):
+    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_device_handle):
+        raise AmdSmiParameterException(
+            device_handle, amdsmi_wrapper.amdsmi_device_handle
+        )
+
+    length = ctypes.c_uint64()
+    length.value = _AMDSMI_STRING_LENGTH
+
+    name = ctypes.create_string_buffer(_AMDSMI_STRING_LENGTH)
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_dev_subsystem_name_get(device_handle, name, length)
+    )
+
+    return name.value.decode("utf-8")
+
+
+def amdsmi_version_get():
+    version = amdsmi_wrapper.amdsmi_version_t()
+
+    _check_res(amdsmi_wrapper.amdsmi_version_get(ctypes.byref(version)))
+
+    return {
+        "major": version.major,
+        "minor": version.minor,
+        "patch": version.patch,
+        "build": version.build.contents.value.decode("utf-8"),
+    }
+
+
+def amdsmi_version_str_get(sw_component: AmdSmiSwComponent):
+    if not isinstance(sw_component, AmdSmiSwComponent):
+        raise AmdSmiParameterException(sw_component, AmdSmiSwComponent)
+
+    length = ctypes.c_uint32()
+    length.value = _AMDSMI_STRING_LENGTH
+
+    ver_str = ctypes.create_string_buffer(_AMDSMI_STRING_LENGTH)
+
+    _check_res(amdsmi_wrapper.amdsmi_version_str_get(sw_component, ver_str, length))
+
+    return ver_str.value.decode("utf-8")
+
+
+def amdsmi_topo_get_numa_node_number(
+    device_handle: amdsmi_wrapper.amdsmi_device_handle,
+):
+    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_device_handle):
+        raise AmdSmiParameterException(
+            device_handle, amdsmi_wrapper.amdsmi_device_handle
+        )
+
+    numa_node_number = ctypes.c_uint32()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_topo_get_numa_node_number(
+            device_handle, ctypes.byref(numa_node_number)
+        )
+    )
+
+    return numa_node_number.value
+
+
+def amdsmi_topo_get_link_weight(
+    device_handle_src: amdsmi_wrapper.amdsmi_device_handle,
+    device_handle_dst: amdsmi_wrapper.amdsmi_device_handle,
+):
+    if not isinstance(device_handle_src, amdsmi_wrapper.amdsmi_device_handle):
+        raise AmdSmiParameterException(
+            device_handle_src, amdsmi_wrapper.amdsmi_device_handle
+        )
+
+    if not isinstance(device_handle_dst, amdsmi_wrapper.amdsmi_device_handle):
+        raise AmdSmiParameterException(
+            device_handle_dst, amdsmi_wrapper.amdsmi_device_handle
+        )
+
+    weight = ctypes.c_uint64()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_topo_get_link_weight(
+            device_handle_src, device_handle_dst, ctypes.byref(weight)
+        )
+    )
+
+    return weight.value
+
+
+def amdsmi_minmax_bandwidth_get(
+    device_handle_src: amdsmi_wrapper.amdsmi_device_handle,
+    device_handle_dst: amdsmi_wrapper.amdsmi_device_handle,
+):
+    if not isinstance(device_handle_src, amdsmi_wrapper.amdsmi_device_handle):
+        raise AmdSmiParameterException(
+            device_handle_src, amdsmi_wrapper.amdsmi_device_handle
+        )
+
+    if not isinstance(device_handle_dst, amdsmi_wrapper.amdsmi_device_handle):
+        raise AmdSmiParameterException(
+            device_handle_dst, amdsmi_wrapper.amdsmi_device_handle
+        )
+
+    min_bandwidth = ctypes.c_uint64()
+    max_bandwidth = ctypes.c_uint64()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_minmax_bandwidth_get(
+            device_handle_src,
+            device_handle_dst,
+            ctypes.byref(min_bandwidth),
+            ctypes.byref(max_bandwidth),
+        )
+    )
+
+    return {"min_bandwidth": min_bandwidth.value, "max_bandwidth": max_bandwidth.value}
+
+
+def amdsmi_topo_get_link_type(
+    device_handle_src: amdsmi_wrapper.amdsmi_device_handle,
+    device_handle_dst: amdsmi_wrapper.amdsmi_device_handle,
+):
+    if not isinstance(device_handle_src, amdsmi_wrapper.amdsmi_device_handle):
+        raise AmdSmiParameterException(
+            device_handle_src, amdsmi_wrapper.amdsmi_device_handle
+        )
+
+    if not isinstance(device_handle_dst, amdsmi_wrapper.amdsmi_device_handle):
+        raise AmdSmiParameterException(
+            device_handle_dst, amdsmi_wrapper.amdsmi_device_handle
+        )
+
+    hops = ctypes.c_uint64()
+    type = AmdSmiIoLinkType()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_topo_get_link_type(
+            device_handle_src, device_handle_dst, ctypes.byref(hops), type
+        )
+    )
+
+    return {"hops": hops.value, "type": type}
+
+
+def amdsmi_is_P2P_accessible(
+    device_handle_src: amdsmi_wrapper.amdsmi_device_handle,
+    device_handle_dst: amdsmi_wrapper.amdsmi_device_handle,
+):
+    if not isinstance(device_handle_src, amdsmi_wrapper.amdsmi_device_handle):
+        raise AmdSmiParameterException(
+            device_handle_src, amdsmi_wrapper.amdsmi_device_handle
+        )
+
+    if not isinstance(device_handle_dst, amdsmi_wrapper.amdsmi_device_handle):
+        raise AmdSmiParameterException(
+            device_handle_dst, amdsmi_wrapper.amdsmi_device_handle
+        )
+
+    accessible = ctypes.c_bool()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_is_P2P_accessible(
+            device_handle_src, device_handle_dst, ctypes.byref(accessible)
+        )
+    )
+
+    return accessible.value
+
+
+def amdsmi_get_xgmi_info(device_handle: amdsmi_wrapper.amdsmi_device_handle):
+    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_device_handle):
+        raise AmdSmiParameterException(
+            device_handle, amdsmi_wrapper.amdsmi_device_handle
+        )
+
+    xgmi_info = amdsmi_wrapper.amdsmi_xgmi_info_t()
+
+    _check_res(amdsmi_wrapper.amdsmi_get_xgmi_info(device_handle, xgmi_info))
+
+    return {
+        "xgmi_lanes": xgmi_info.xgmi_lanes,
+        "xgmi_hive_id": xgmi_info.xgmi_hive_id,
+        "xgmi_node_id": xgmi_info.xgmi_node_id,
+        "index": xgmi_info.index,
+    }
 
 
 def amdsmi_dev_counter_group_supported(
