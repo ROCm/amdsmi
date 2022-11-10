@@ -86,6 +86,15 @@ from .amdsmi_interface import amdsmi_dev_clk_range_set
 from .amdsmi_interface import amdsmi_dev_od_clk_info_set
 from .amdsmi_interface import amdsmi_dev_od_volt_info_set
 from .amdsmi_interface import amdsmi_dev_perf_level_set_v1
+from .amdsmi_interface import amdsmi_dev_perf_level_set
+from .amdsmi_interface import amdsmi_dev_power_profile_presets_get
+from .amdsmi_interface import amdsmi_dev_gpu_reset
+from .amdsmi_interface import amdsmi_perf_determinism_mode_set
+from .amdsmi_interface import amdsmi_dev_fan_speed_set
+from .amdsmi_interface import amdsmi_dev_fan_reset
+from .amdsmi_interface import amdsmi_dev_gpu_clk_freq_set
+from .amdsmi_interface import amdsmi_dev_overdrive_level_set_v1
+from .amdsmi_interface import amdsmi_dev_overdrive_level_set
 
 # # Physical State Queries
 from .amdsmi_interface import amdsmi_dev_fan_rpms_get
@@ -105,6 +114,13 @@ from .amdsmi_interface import amdsmi_dev_od_volt_info_get
 from .amdsmi_interface import amdsmi_dev_gpu_metrics_info_get
 from .amdsmi_interface import amdsmi_dev_od_volt_curve_regions_get
 from .amdsmi_interface import amdsmi_dev_power_profile_presets_get
+# # Performance Counters
+from .amdsmi_interface import amdsmi_dev_counter_group_supported
+from .amdsmi_interface import amdsmi_dev_counter_create
+from .amdsmi_interface import amdsmi_dev_counter_destroy
+from .amdsmi_interface import amdsmi_counter_control
+from .amdsmi_interface import amdsmi_counter_read
+from .amdsmi_interface import amdsmi_counter_available_counters_get
 
 # # Events
 from .amdsmi_interface import AmdSmiEventReader
