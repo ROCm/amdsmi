@@ -2634,3 +2634,429 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
+## amdsmi_dev_vendor_name_get
+Description: Returns the device vendor name
+
+Input parameters:
+
+* `device_handle` device which to query
+
+Output: device vendor name
+
+Exceptions that can be thrown by `amdsmi_dev_vendor_name_get` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            vendor_name = amdsmi_dev_vendor_name_get(device)
+            print(vendor_name)
+except AmdSmiException as e:
+    print(e)
+```
+
+## amdsmi_dev_id_get
+Description: Get the device id associated with the device with provided device handler
+
+Input parameters:
+
+* `device_handle` device which to query
+
+Output: device id
+
+Exceptions that can be thrown by `amdsmi_dev_id_get` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            dev_id = amdsmi_dev_id_get(device)
+            print(dev_id)
+except AmdSmiException as e:
+    print(e)
+```
+
+## amdsmi_dev_vram_vendor_get
+Description: Get the vram vendor string of a gpu device.
+
+Input parameters:
+
+* `device_handle` device which to query
+
+Output: vram vendor
+
+Exceptions that can be thrown by `amdsmi_dev_vram_vendor_get` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            vram_vendor = amdsmi_dev_vram_vendor_get(device)
+            print(vram_vendor)
+except AmdSmiException as e:
+    print(e)
+```
+
+## amdsmi_dev_drm_render_minor_get
+Description: Get the drm minor number associated with this device.
+
+Input parameters:
+
+* `device_handle` device which to query
+
+Output: drm minor number
+
+Exceptions that can be thrown by `amdsmi_dev_drm_render_minor_get` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            render_minor = amdsmi_dev_drm_render_minor_get(device)
+            print(render_minor)
+except AmdSmiException as e:
+    print(e)
+```
+
+## amdsmi_dev_subsystem_id_get
+Description: Get the subsystem device id associated with the device with provided device handle.
+
+Input parameters:
+
+* `device_handle` device which to query
+
+Output: subsystem device id
+
+Exceptions that can be thrown by `amdsmi_dev_subsystem_id_get` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            id = amdsmi_dev_subsystem_id_get(device)
+            print(id)
+except AmdSmiException as e:
+    print(e)
+```
+
+
+## amdsmi_dev_subsystem_name_get
+Description: Get the name string for the device subsytem
+
+Input parameters:
+
+* `device_handle` device which to query
+
+Output: device subsytem
+
+Exceptions that can be thrown by `amdsmi_dev_subsystem_name_get` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            subsystem_nam = amdsmi_dev_subsystem_name_get(device)
+            print(subsystem_nam)
+except AmdSmiException as e:
+    print(e)
+```
+
+
+## amdsmi_version_get
+Description: Get the build version information for the currently running build of AMDSMI.
+
+Output: amdsmi build version
+
+Exceptions that can be thrown by `amdsmi_version_get` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            version = amdsmi_version_get()
+            print(version)
+except AmdSmiException as e:
+    print(e)
+```
+
+
+## amdsmi_version_str_get
+Description: Get the driver version string for the current system.
+
+Input parameters:
+
+* `sw_component` software component which to query
+
+Output: driver version string
+
+Exceptions that can be thrown by `amdsmi_version_str_get` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            version = amdsmi_version_str_get(AmdSmiSwComponent.DRIVER)
+            print(version)
+except AmdSmiException as e:
+    print(e)
+```
+
+
+## amdsmi_topo_get_numa_node_number
+Description: Retrieve the NUMA CPU node number for a device
+
+Input parameters:
+
+* `device_handle` device which to query
+
+Output: node number of NUMA CPU for the device
+
+Exceptions that can be thrown by `amdsmi_topo_get_numa_node_number` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            node_number = amdsmi_topo_get_numa_node_number()
+            print(node_number)
+except AmdSmiException as e:
+    print(e)
+```
+
+## amdsmi_topo_get_link_weight
+Description: Retrieve the weight for a connection between 2 GPUs.
+
+Input parameters:
+
+* `device_handle_src` the source device handle
+* `device_handle_dest` the destination device handle
+
+Output: the weight for a connection between 2 GPUs
+
+Exceptions that can be thrown by `amdsmi_topo_get_link_weight` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        device_handle_src = devices[0]
+        device_handle_dest = devices[1]
+        weight = amdsmi_topo_get_link_weight(device_handle_src, device_handle_dest)
+        print(weight)
+except AmdSmiException as e:
+    print(e)
+```
+
+
+## amdsmi_minmax_bandwidth_get
+Description: Retreive minimal and maximal io link bandwidth between 2 GPUs.
+
+Input parameters:
+
+* `device_handle_src` the source device handle
+* `device_handle_dest` the destination device handle
+
+Output:  Dictionary with fields:
+
+Field | Description
+---|---
+`min_bandwidth` | minimal bandwidth for the connection
+`max_bandwidth` | maximal bandwidth for the connection
+
+Exceptions that can be thrown by `amdsmi_minmax_bandwidth_get` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        device_handle_src = devices[0]
+        device_handle_dest = devices[1]
+        bandwith = amdsmi_minmax_bandwidth_get(device_handle_src, device_handle_dest)
+        print(bandwith['min_bandwidth'])
+        print(bandwith['max_bandwidth'])
+except AmdSmiException as e:
+    print(e)
+```
+
+
+## amdsmi_topo_get_link_type
+Description: Retrieve the hops and the connection type between 2 GPUs
+
+Input parameters:
+
+* `device_handle_src` the source device handle
+* `device_handle_dest` the destination device handle
+
+Output:  Dictionary with fields:
+
+Field | Description
+---|---
+`hops` | number of hops
+`type` | the connection type
+
+Exceptions that can be thrown by `amdsmi_topo_get_link_type` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        device_handle_src = devices[0]
+        device_handle_dest = devices[1]
+        link_type = amdsmi_topo_get_link_type(device_handle_src, device_handle_dest)
+        print(link_type['hops'])
+        print(link_type['type'])
+except AmdSmiException as e:
+    print(e)
+```
+
+
+## amdsmi_is_P2P_accessible
+Description: Return P2P availability status between 2 GPUs
+
+Input parameters:
+
+* `device_handle_src` the source device handle
+* `device_handle_dest` the destination device handle
+
+Output: P2P availability status between 2 GPUs
+
+Exceptions that can be thrown by `amdsmi_is_P2P_accessible` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        device_handle_src = devices[0]
+        device_handle_dest = devices[1]
+        accessible = amdsmi_is_P2P_accessible(device_handle_src, device_handle_dest)
+        print(accessible)
+except AmdSmiException as e:
+    print(e)
+```
+
+
+## amdsmi_get_xgmi_info
+Description: Returns XGMI information for the GPU.
+
+Input parameters:
+
+* `device_handle`  device handle
+
+Output:  Dictionary with fields:
+
+Field | Description
+---|---
+`xgmi_lanes` |  xgmi lanes
+`xgmi_hive_id` | xgmi hive id
+`xgmi_node_id` | xgmi node id
+`index` | index
+
+
+Exceptions that can be thrown by `amdsmi_get_xgmi_info` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    devices = amdsmi_get_device_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            xgmi_info = amdsmi_get_xgmi_info(device)
+            print(xgmi_info['xgmi_lanes'])
+            print(xgmi_info['xgmi_hive_id'])
+            print(xgmi_info['xgmi_node_id'])
+            print(xgmi_info['index'])
+except AmdSmiException as e:
+    print(e)
+```
