@@ -145,6 +145,52 @@ except AmdSmiException as e:
     print(e)
 ```
 
+## amdsmi_get_socket_handles
+**Note: CURRENTLY HARDCODED TO RETURN DUMMY DATA**
+Description: Returns list of socket device handle objects on current machine
+
+Input parameters: `None`
+
+Output: List of socket device handle objects
+
+Exceptions that can be thrown by `amdsmi_get_socket_handles` function:
+* `AmdSmiLibraryException`
+
+Example:
+```python
+try:
+    sockets = amdsmi_get_socket_handles()
+    print('Socket numbers: {}'.format(len(sockets)))
+except AmdSmiException as e:
+    print(e)
+```
+
+## amdsmi_get_socket_info
+**Note: CURRENTLY HARDCODED TO RETURN EMPTY VALUES**
+Description: Return socket name
+
+Input parameters:
+`socket_handle` socket handle
+
+Output: Socket name
+
+Exceptions that can be thrown by `amdsmi_get_socket_info` function:
+* `AmdSmiLibraryException`
+
+Example:
+```python
+try:
+    socket_handles = amdsmi_get_socket_handles()
+    if len(socket_handles) == 0:
+        print("No sockets on machine")
+    else:
+        for socket in socket_handles:
+            print(amdsmi_get_socket_info(socket))
+except AmdSmiException as e:
+    print(e)
+```
+
+
 ## amdsmi_get_device_handle_from_bdf
 Description: Returns device handle from the given BDF
 
