@@ -478,7 +478,7 @@ def _check_res(ret_code) -> None:
         raise AmdSmiLibraryException(ret_code)
 
 
-def _amdsmi_get_socket_handles() -> List[amdsmi_wrapper.amdsmi_socket_handle]:
+def amdsmi_get_socket_handles() -> List[amdsmi_wrapper.amdsmi_socket_handle]:
     """
     Function that gets socket handles. Wraps the same named function call.
 
@@ -508,9 +508,18 @@ def _amdsmi_get_socket_handles() -> List[amdsmi_wrapper.amdsmi_socket_handle]:
 
     return sockets
 
+def amdsmi_get_socket_info(socket_handle):
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_socket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_socket_handle)
+
+    return {
+        "name": ""
+    }
+
 
 def amdsmi_get_device_handles() -> List[amdsmi_wrapper.amdsmi_device_handle]:
-    socket_handles = _amdsmi_get_socket_handles()
+    socket_handles = amdsmi_get_socket_handles()
     devices = []
     for socket in socket_handles:
         device_count = ctypes.c_uint32()
