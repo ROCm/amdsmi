@@ -20,6 +20,7 @@
 #
 
 import ctypes
+import re
 from typing import Union, Any, Dict, List, Tuple
 from enum import IntEnum
 from collections.abc import Iterable
@@ -456,6 +457,7 @@ def _format_bdf(amdsmi_bdf: amdsmi_wrapper.amdsmi_bdf_t) -> str:
     return domain + ":" + bus + ":" + device + "." + function
 
 
+
 def _check_res(ret_code) -> None:
     """
     Wrapper for amdsmi function calls. Checks the status returned
@@ -476,6 +478,33 @@ def _check_res(ret_code) -> None:
 
     if ret_code != amdsmi_wrapper.AMDSMI_STATUS_SUCCESS:
         raise AmdSmiLibraryException(ret_code)
+
+
+def _parse_bdf(bdf):
+    if bdf is None:
+        return None
+    extended_regex = re.compile(
+        r'^([0-9a-fA-F]{4}):([0-9a-fA-F]{2}):([0-1][0-9a-fA-F])\.([0-7])$')
+    if extended_regex.match(bdf) is None:
+        simple_regex = re.compile(
+            r'^([0-9a-fA-F]{2}):([0-1][0-9a-fA-F])\.([0-7])$')
+        if simple_regex.match(bdf) is None:
+            return None
+        else:
+            return [0] + [int(x, 16) for x in simple_regex.match(bdf).groups()]
+    else:
+        return [int(x, 16) for x in extended_regex.match(bdf).groups()]
+
+
+def _make_amdsmi_bdf_from_list(bdf):
+    if len(bdf) != 4:
+        return None
+    amdsmi_bdf = amdsmi_wrapper.amdsmi_bdf()
+    amdsmi_bdf.amdsmi_bdf_0.function_number = bdf[3]
+    amdsmi_bdf.amdsmi_bdf_0.device_number = bdf[2]
+    amdsmi_bdf.amdsmi_bdf_0.bus_number = bdf[1]
+    amdsmi_bdf.amdsmi_bdf_0.domain_number = bdf[0]
+    return amdsmi_bdf
 
 
 def amdsmi_get_socket_handles() -> List[amdsmi_wrapper.amdsmi_socket_handle]:
@@ -1114,36 +1143,15 @@ def amdsmi_get_pcie_link_caps(
     return {"pcie_lanes": pcie_info.pcie_lanes, "pcie_speed": pcie_info.pcie_speed}
 
 
-def amdsmi_get_device_handle_from_bdf(
-    bdf_info: Union[amdsmi_wrapper.amdsmi_bdf_t, str],
-) -> amdsmi_wrapper.amdsmi_device_handle:
-    if not isinstance(bdf_info, amdsmi_wrapper.amdsmi_bdf_t) and not isinstance(
-        bdf_info, str
-    ):
-        raise AmdSmiParameterException(bdf_info, amdsmi_wrapper.amdsmi_bdf_t)
 
-    if isinstance(bdf_info, str):
-        bdf = amdsmi_wrapper.amdsmi_bdf_t()
-        bdf.amdsmi_bdf_0.domain_number = int(bdf_info[:4])
-        bdf.amdsmi_bdf_0.bus_number = int(bdf_info[5:7])
-        bdf.amdsmi_bdf_0.device_number = int(bdf_info[8:10])
-        bdf.amdsmi_bdf_0.function_number = int(bdf_info[11])
-        bdf_info = bdf
-
-    device_handles_pylist = amdsmi_get_device_handles()
-    device_handles = (amdsmi_wrapper.amdsmi_device_handle * len(device_handles_pylist))(
-        *device_handles_pylist
-    )
+def amdsmi_get_device_handle_from_bdf(bdf):
+    bdf = _parse_bdf(bdf)
+    if bdf is None:
+        raise AmdSmiBdfFormatException(bdf)
+    amdsmi_bdf = _make_amdsmi_bdf_from_list(bdf)
     device_handle = amdsmi_wrapper.amdsmi_device_handle()
-    _check_res(
-        amdsmi_wrapper.amdsmi_get_device_handle_from_bdf(
-            bdf_info,
-            device_handles,
-            ctypes.c_uint32(len(device_handles_pylist)),
-            ctypes.byref(device_handle),
-        )
-    )
-
+    _check_res(amdsmi_wrapper.amdsmi_get_device_handle_from_bdf(
+        amdsmi_bdf, ctypes.byref(device_handle)))
     return device_handle
 
 

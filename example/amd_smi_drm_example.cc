@@ -129,7 +129,7 @@ int main() {
 
             // Get handle from BDF
             amdsmi_device_handle dev_handle;
-            ret = amdsmi_get_device_handle_from_bdf(bdf, &device_handles[0], device_count, &dev_handle);
+            ret = amdsmi_get_device_handle_from_bdf(bdf, &dev_handle);
             CHK_AMDSMI_RET(ret)
 
             // Get ASIC info

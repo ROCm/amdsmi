@@ -1291,19 +1291,12 @@ amdsmi_status_t amdsmi_get_device_type(amdsmi_device_handle device_handle,
  *
  *  @param[in] bdf The bdf to match with corresponding device handle.
  *
- *  @param[in] device_handles a list of devices handles on the socket.
- *
- *  @param[in] device_count a count of handles in device_handles.
- *
  *  @param[out] device_handle device handle with the matching bdf.
  *
  * @retval ::AMDSMI_STATUS_SUCCESS call was successful
  * @retval ::AMDSMI_STATUS_INVAL the provided arguments are not valid
  */
-amdsmi_status_t amdsmi_get_device_handle_from_bdf(amdsmi_bdf_t bdf,
-                                    amdsmi_device_handle* device_handles,
-                                    uint32_t device_count,
-                                    amdsmi_device_handle* device_handle);
+amdsmi_status_t amdsmi_get_device_handle_from_bdf(amdsmi_bdf_t bdf, amdsmi_device_handle* device_handle);
 
 /** @} */  // end of Discovery
 
