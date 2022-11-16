@@ -1831,28 +1831,52 @@ amdsmi_status_t amdsmi_get_pcie_link_caps(amdsmi_device_handle dev, amdsmi_pcie_
 }
 
 amdsmi_status_t amdsmi_get_device_handle_from_bdf(amdsmi_bdf_t bdf,
-                                    amdsmi_device_handle* device_handles,
-                                    uint32_t device_count,
-                                    amdsmi_device_handle* device_handle){
-    if (device_handles == nullptr) {
+                amdsmi_device_handle* device_handle)
+{
+    amdsmi_status_t status;
+    uint32_t socket_count = 0;
+
+    uint32_t device_count = AMDSMI_MAX_DEVICES;
+    amdsmi_device_handle devs[AMDSMI_MAX_DEVICES];
+
+    if (device_handle == nullptr) {
         return AMDSMI_STATUS_INVAL;
     }
-    amdsmi_status_t status = AMDSMI_STATUS_SUCCESS;
 
-    for(auto idx = 0; idx < device_count; idx++) {
-        amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
-        status = get_gpu_device_from_handle(device_handles[idx], &gpu_device);
+    status = amdsmi_get_socket_handles(&socket_count, nullptr);
+    if (status != AMDSMI_STATUS_SUCCESS) {
+        return status;
+    }
+
+    amdsmi_socket_handle sockets[socket_count];
+
+    status = amdsmi_get_socket_handles(&socket_count, &sockets[0]);
+    if (status != AMDSMI_STATUS_SUCCESS) {
+        return status;
+    }
+
+    for (unsigned int i = 0; i < socket_count; i++) {
+        status = amdsmi_get_device_handles(sockets[i], &device_count, devs);
         if (status != AMDSMI_STATUS_SUCCESS) {
             return status;
         }
-        amdsmi_bdf_t found_bdf = gpu_device->get_bdf();
-        if (bdf.bus_number == found_bdf.bus_number &&
-            bdf.device_number == found_bdf.device_number &&
-            bdf.domain_number == found_bdf.domain_number &&
-            bdf.function_number == found_bdf.function_number) {
-                *device_handle = device_handles[idx];
-                return AMDSMI_STATUS_SUCCESS;
+
+        for (auto idx = 0; idx < device_count; idx++) {
+            amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+            status = get_gpu_device_from_handle(devs[idx], &gpu_device);
+            if (status != AMDSMI_STATUS_SUCCESS) {
+                return status;
             }
+            amdsmi_bdf_t found_bdf = gpu_device->get_bdf();
+            if (bdf.bus_number == found_bdf.bus_number &&
+                bdf.device_number == found_bdf.device_number &&
+                bdf.domain_number == found_bdf.domain_number &&
+                bdf.function_number == found_bdf.function_number) {
+                    *device_handle = devs[idx];
+                    return AMDSMI_STATUS_SUCCESS;
+                }
+        }
     }
+
     return AMDSMI_STATUS_API_FAILED;
 }

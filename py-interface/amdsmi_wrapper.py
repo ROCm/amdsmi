@@ -1760,7 +1760,7 @@ _lib.amdsmi_get_device_type.argtypes = [amdsmi_device_handle,POINTER(device_type
 _lib.amdsmi_get_device_type.restype = amdsmi_status_t
 amdsmi_get_device_type = _lib.amdsmi_get_device_type
 
-_lib.amdsmi_get_device_handle_from_bdf.argtypes = [amdsmi_bdf_t,POINTER(amdsmi_device_handle),c_uint32,POINTER(amdsmi_device_handle)]
+_lib.amdsmi_get_device_handle_from_bdf.argtypes = [amdsmi_bdf_t,POINTER(amdsmi_device_handle)]
 _lib.amdsmi_get_device_handle_from_bdf.restype = amdsmi_status_t
 amdsmi_get_device_handle_from_bdf = _lib.amdsmi_get_device_handle_from_bdf
 
