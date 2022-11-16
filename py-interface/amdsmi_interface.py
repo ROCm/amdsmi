@@ -390,8 +390,6 @@ def _parse_fw_info(fw_info: amdsmi_wrapper.amdsmi_fw_info_t) -> Dict[str, Any]:
         raise AmdSmiParameterException(
             fw_info, amdsmi_wrapper.amdsmi_fw_info_t)
     formatted_fw_info = dict()
-    raise AmdSmiParameterException(
-        fw_info, amdsmi_wrapper.amdsmi_fw_info_t)
     formatted_fw_info = {"num_fw_info": fw_info.num_fw_info}
     for index, value in amdsmi_wrapper.amdsmi_fw_block__enumvalues.items():
         if value == "FW_ID_FIRST":
@@ -602,7 +600,7 @@ def amdsmi_get_device_type(
         amdsmi_wrapper.amdsmi_get_device_type(
             device_handle, ctypes.byref(dev_type))
     )
-    return dev_type
+    return dev_type.value
 
 
 def amdsmi_get_device_bdf(device_handle: amdsmi_wrapper.amdsmi_device_handle) -> str:
