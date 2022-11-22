@@ -1381,15 +1381,17 @@ def amdsmi_topo_get_link_type(
         )
 
     hops = ctypes.c_uint64()
-    type = AmdSmiIoLinkType()
+    #type = AmdSmiIoLinkType()
+    type = ctypes.c_uint32()
 
     _check_res(
         amdsmi_wrapper.amdsmi_topo_get_link_type(
-            device_handle_src, device_handle_dst, ctypes.byref(hops), type
+            #device_handle_src, device_handle_dst, ctypes.byref(hops), type
+            device_handle_src, device_handle_dst, ctypes.byref(hops), ctypes.byref(type)
         )
     )
 
-    return {"hops": hops.value, "type": type}
+    return {"hops": hops.value, "type": type.value}
 
 
 def amdsmi_is_P2P_accessible(
