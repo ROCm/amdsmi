@@ -66,7 +66,7 @@ To run the test, execute the program `amdsmitst` that is built from the steps ab
 Many of the functions in the library take a "socket handle" or "device handle". The socket is an abstraction of hardware physical socket. This will enable amd-smi to provide a better representation of the hardware to user. Although there is always one distinct GPU for a socket, the APU may have both
 GPU device and CPU device on the same socket. Moreover, for MI200, it may have multiple GCDs.
 
-To discover the sockets in the system, `amdsmi_get_device_handles()` is called to get list of sockets
+To discover the sockets in the system, `amdsmi_get_socket_handles()` is called to get list of sockets
 handles, which in turn can be used to query the devices in that socket using `amdsmi_get_device_handles()`. The device handler is used to distinguish the detected devices from one another. It is important to note that a device may end up with a different device handles after restart application, so a device handle should not be relied upon to be constant over process.
 
 # Hello AMD SMI
