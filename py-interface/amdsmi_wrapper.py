@@ -193,15 +193,15 @@ amdsmi_init_flags_t__enumvalues = amdsmi_init_flags__enumvalues
 
 # values for enumeration 'amdsmi_mm_ip'
 amdsmi_mm_ip__enumvalues = {
-    0: 'MM_UVD',
-    1: 'MM_VCE',
-    2: 'MM_VCN',
-    3: 'MM__MAX',
+    0: 'AMDSMI_MM_UVD',
+    1: 'AMDSMI_MM_VCE',
+    2: 'AMDSMI_MM_VCN',
+    3: 'AMDSMI_MM__MAX',
 }
-MM_UVD = 0
-MM_VCE = 1
-MM_VCN = 2
-MM__MAX = 3
+AMDSMI_MM_UVD = 0
+AMDSMI_MM_VCE = 1
+AMDSMI_MM_VCN = 2
+AMDSMI_MM__MAX = 3
 amdsmi_mm_ip = ctypes.c_uint32 # enum
 amdsmi_mm_ip_t = amdsmi_mm_ip
 amdsmi_mm_ip_t__enumvalues = amdsmi_mm_ip__enumvalues
@@ -424,6 +424,15 @@ amdsmi_xgmi_info_t = amdsmi_xgmi_info
 class amdsmi_gpu_caps(Structure):
     pass
 
+class amdsmi_gpu_caps_1(Structure):
+    pass
+
+amdsmi_gpu_caps_1._pack_ = 1 # source:False
+amdsmi_gpu_caps_1._fields_ = [
+    ('mm_ip_count', ctypes.c_ubyte),
+    ('mm_ip_list', ctypes.c_ubyte * 8),
+]
+
 class amdsmi_gpu_caps_0(Structure):
     pass
 
@@ -433,15 +442,6 @@ amdsmi_gpu_caps_0._fields_ = [
     ('gfxip_minor', ctypes.c_uint32),
     ('gfxip_cu_count', ctypes.c_uint16),
     ('PADDING_0', ctypes.c_ubyte * 2),
-]
-
-class amdsmi_gpu_caps_1(Structure):
-    pass
-
-amdsmi_gpu_caps_1._pack_ = 1 # source:False
-amdsmi_gpu_caps_1._fields_ = [
-    ('mm_ip_count', ctypes.c_ubyte),
-    ('mm_ip_list', ctypes.c_ubyte * 8),
 ]
 
 amdsmi_gpu_caps._pack_ = 1 # source:False
@@ -644,6 +644,16 @@ amdsmi_process_handle = ctypes.c_uint32
 class amdsmi_process_info(Structure):
     pass
 
+class amdsmi_process_info_1(Structure):
+    pass
+
+amdsmi_process_info_1._pack_ = 1 # source:False
+amdsmi_process_info_1._fields_ = [
+    ('gtt_mem', ctypes.c_uint64),
+    ('cpu_mem', ctypes.c_uint64),
+    ('vram_mem', ctypes.c_uint64),
+]
+
 class amdsmi_process_info_0(Structure):
     pass
 
@@ -654,16 +664,6 @@ amdsmi_process_info_0._fields_ = [
     ('sdma', ctypes.c_uint16 * 8),
     ('enc', ctypes.c_uint16 * 8),
     ('dec', ctypes.c_uint16 * 8),
-]
-
-class amdsmi_process_info_1(Structure):
-    pass
-
-amdsmi_process_info_1._pack_ = 1 # source:False
-amdsmi_process_info_1._fields_ = [
-    ('gtt_mem', ctypes.c_uint64),
-    ('cpu_mem', ctypes.c_uint64),
-    ('vram_mem', ctypes.c_uint64),
 ]
 
 amdsmi_process_info._pack_ = 1 # source:False
@@ -1296,7 +1296,8 @@ class amdsmi_pcie_info(Structure):
 amdsmi_pcie_info._pack_ = 1 # source:False
 amdsmi_pcie_info._fields_ = [
     ('pcie_lanes', ctypes.c_uint16),
-    ('pcie_speed', ctypes.c_uint16),
+    ('PADDING_0', ctypes.c_ubyte * 2),
+    ('pcie_speed', ctypes.c_uint32),
 ]
 
 amdsmi_pcie_info_t = amdsmi_pcie_info
@@ -1391,7 +1392,8 @@ __all__ = \
     'AMDSMI_MEM_PAGE_STATUS_UNRESERVABLE', 'AMDSMI_MEM_TYPE_FIRST',
     'AMDSMI_MEM_TYPE_GTT', 'AMDSMI_MEM_TYPE_LAST',
     'AMDSMI_MEM_TYPE_VIS_VRAM', 'AMDSMI_MEM_TYPE_VRAM',
-    'AMDSMI_PWR_PROF_PRST_3D_FULL_SCR_MASK',
+    'AMDSMI_MM_UVD', 'AMDSMI_MM_VCE', 'AMDSMI_MM_VCN',
+    'AMDSMI_MM__MAX', 'AMDSMI_PWR_PROF_PRST_3D_FULL_SCR_MASK',
     'AMDSMI_PWR_PROF_PRST_BOOTUP_DEFAULT',
     'AMDSMI_PWR_PROF_PRST_COMPUTE_MASK',
     'AMDSMI_PWR_PROF_PRST_CUSTOM_MASK',
@@ -1441,15 +1443,14 @@ __all__ = \
     'FW_ID_SDMA2', 'FW_ID_SDMA3', 'FW_ID_SDMA4', 'FW_ID_SDMA5',
     'FW_ID_SDMA6', 'FW_ID_SDMA7', 'FW_ID_SMC', 'FW_ID_SMU',
     'FW_ID_TA_RAS', 'FW_ID_UVD', 'FW_ID_VCE', 'FW_ID_VCN',
-    'FW_ID_XGMI', 'FW_ID__MAX', 'MM_UVD', 'MM_VCE', 'MM_VCN',
-    'MM__MAX', 'NON_AMD_CPU', 'NON_AMD_GPU', 'TEMPERATURE_TYPE_EDGE',
-    'TEMPERATURE_TYPE_FIRST', 'TEMPERATURE_TYPE_HBM_0',
-    'TEMPERATURE_TYPE_HBM_1', 'TEMPERATURE_TYPE_HBM_2',
-    'TEMPERATURE_TYPE_HBM_3', 'TEMPERATURE_TYPE_JUNCTION',
-    'TEMPERATURE_TYPE_PLX', 'TEMPERATURE_TYPE_VRAM',
-    'TEMPERATURE_TYPE__MAX', 'UNKNOWN', '_AMDSMI_IO_LINK_TYPE',
-    'amdsmi_asic_info_t', 'amdsmi_bdf_t', 'amdsmi_bit_field',
-    'amdsmi_bit_field_t', 'amdsmi_board_info_t',
+    'FW_ID_XGMI', 'FW_ID__MAX', 'NON_AMD_CPU', 'NON_AMD_GPU',
+    'TEMPERATURE_TYPE_EDGE', 'TEMPERATURE_TYPE_FIRST',
+    'TEMPERATURE_TYPE_HBM_0', 'TEMPERATURE_TYPE_HBM_1',
+    'TEMPERATURE_TYPE_HBM_2', 'TEMPERATURE_TYPE_HBM_3',
+    'TEMPERATURE_TYPE_JUNCTION', 'TEMPERATURE_TYPE_PLX',
+    'TEMPERATURE_TYPE_VRAM', 'TEMPERATURE_TYPE__MAX', 'UNKNOWN',
+    '_AMDSMI_IO_LINK_TYPE', 'amdsmi_asic_info_t', 'amdsmi_bdf_t',
+    'amdsmi_bit_field', 'amdsmi_bit_field_t', 'amdsmi_board_info_t',
     'amdsmi_clk_measure_t', 'amdsmi_clk_type', 'amdsmi_clk_type_t',
     'amdsmi_clk_type_t__enumvalues', 'amdsmi_container_types',
     'amdsmi_container_types_t',
@@ -1590,15 +1591,15 @@ amdsmi_init_flags_t__enumvalues = amdsmi_init_flags__enumvalues
 
 # values for enumeration 'amdsmi_mm_ip'
 amdsmi_mm_ip__enumvalues = {
-    0: 'MM_UVD',
-    1: 'MM_VCE',
-    2: 'MM_VCN',
-    3: 'MM__MAX',
+    0: 'AMDSMI_MM_UVD',
+    1: 'AMDSMI_MM_VCE',
+    2: 'AMDSMI_MM_VCN',
+    3: 'AMDSMI_MM__MAX',
 }
-MM_UVD = 0
-MM_VCE = 1
-MM_VCN = 2
-MM__MAX = 3
+AMDSMI_MM_UVD = 0
+AMDSMI_MM_VCE = 1
+AMDSMI_MM_VCN = 2
+AMDSMI_MM__MAX = 3
 amdsmi_mm_ip = ctypes.c_uint32 # enum
 amdsmi_mm_ip_t = amdsmi_mm_ip
 amdsmi_mm_ip_t__enumvalues = amdsmi_mm_ip__enumvalues
@@ -1700,7 +1701,8 @@ amdsmi_status_t = ctypes.c_uint32 # enum
 __all__ += \
     ['AMDSMI_INIT_ALL_DEVICES', 'AMDSMI_INIT_AMD_CPUS',
     'AMDSMI_INIT_AMD_GPUS', 'AMDSMI_INIT_NON_AMD_CPUS',
-    'AMDSMI_INIT_NON_AMD_GPUS', 'AMDSMI_LIB_START',
+    'AMDSMI_INIT_NON_AMD_GPUS', 'AMDSMI_LIB_START', 'AMDSMI_MM_UVD',
+    'AMDSMI_MM_VCE', 'AMDSMI_MM_VCN', 'AMDSMI_MM__MAX',
     'AMDSMI_STATUS_API_FAILED', 'AMDSMI_STATUS_BUSY',
     'AMDSMI_STATUS_DRM_ERROR', 'AMDSMI_STATUS_FAIL_LOAD_MODULE',
     'AMDSMI_STATUS_FAIL_LOAD_SYMBOL', 'AMDSMI_STATUS_FAULT',
@@ -1718,9 +1720,8 @@ __all__ += \
     'AMDSMI_STATUS_SUCCESS', 'AMDSMI_STATUS_TIMEOUT',
     'AMDSMI_STATUS_UNEXPECTED_DATA', 'AMDSMI_STATUS_UNEXPECTED_SIZE',
     'AMDSMI_STATUS_UNKNOWN_ERROR', 'AMD_CPU', 'AMD_GPU',
-    'CONTAINER_DOCKER', 'CONTAINER_LXC', 'MM_UVD', 'MM_VCE', 'MM_VCN',
-    'MM__MAX', 'NON_AMD_CPU', 'NON_AMD_GPU', 'UNKNOWN',
-    'amdsmi_container_types', 'amdsmi_container_types_t',
+    'CONTAINER_DOCKER', 'CONTAINER_LXC', 'NON_AMD_CPU', 'NON_AMD_GPU',
+    'UNKNOWN', 'amdsmi_container_types', 'amdsmi_container_types_t',
     'amdsmi_container_types_t__enumvalues', 'amdsmi_device_handle',
     'amdsmi_init_flags', 'amdsmi_init_flags_t',
     'amdsmi_init_flags_t__enumvalues', 'amdsmi_mm_ip',

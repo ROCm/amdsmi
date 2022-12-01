@@ -21,7 +21,7 @@
 #ifndef AMD_SMI_INCLUDE_AMD_SMI_UTILS_H_
 #define AMD_SMI_INCLUDE_AMD_SMI_UTILS_H_
 
-#include "amd_smi/amd_smi.h"
+#include "amd_smi/amdsmi.h"
 #include "amd_smi/impl/amd_smi_gpu_device.h"
 #include "rocm_smi/rocm_smi_utils.h"
 

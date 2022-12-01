@@ -41,11 +41,11 @@
  *
  */
 
-#ifndef INCLUDE_AMD_SMI_H_
-#define INCLUDE_AMD_SMI_H_
+#ifndef INCLUDE_AMDSMI_H_
+#define INCLUDE_AMDSMI_H_
 
 /**
- * @file amd_smi.h
+ * @file amdsmi.h
  * @brief AMD System Management Interface API
  */
 
@@ -88,7 +88,7 @@ typedef enum amdsmi_init_flags {
 #define AMDSMI_TIME_FORMAT "%02d:%02d:%02d.%03d"
 #define AMDSMI_DATE_FORMAT "%04d-%02d-%02d:%02d:%02d:%02d.%03d"
 
-typedef enum amdsmi_mm_ip { MM_UVD, MM_VCE, MM_VCN, MM__MAX } amdsmi_mm_ip_t;
+typedef enum amdsmi_mm_ip { AMDSMI_MM_UVD, AMDSMI_MM_VCE, AMDSMI_MM_VCN, AMDSMI_MM__MAX } amdsmi_mm_ip_t;
 
 typedef enum amdsmi_container_types {
 	CONTAINER_LXC,
@@ -1100,7 +1100,7 @@ typedef struct {
  */
 typedef struct amdsmi_pcie_info {
 	uint16_t pcie_lanes;
-	uint16_t pcie_speed;
+	uint32_t pcie_speed;
 } amdsmi_pcie_info_t;
 /**
  * @brief This structure contains information specific to a process.
@@ -2151,30 +2151,30 @@ amdsmi_utilization_count_get(amdsmi_device_handle device_handle,
 /**
  *  @brief Get current PCIE info of the device with provided device handle.
  *
- *  @details Given a device handle @p dev, this function returns PCIE info of the
+ *  @details Given a device handle @p device_handle, this function returns PCIE info of the
  *  given device.
  *
- *  @param[in] dev a device handle
+ *  @param[in] device_handle a device handle
  *
  *  @param[out] info amdsmi_pcie_info_t struct which will hold all the extracted PCIE info data.
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_pcie_link_status(amdsmi_device_handle dev, amdsmi_pcie_info_t *info);
+amdsmi_status_t amdsmi_get_pcie_link_status(amdsmi_device_handle device_handle, amdsmi_pcie_info_t *info);
 
 /**
  *  @brief Get max PCIe capabilities of the device with provided device handle.
  *
- *  @details Given a device handle @p dev, this function returns PCIe caps info of the
+ *  @details Given a device handle @p device_handle, this function returns PCIe caps info of the
  *  given device.
  *
- *  @param[in] dev a device handle
+ *  @param[in] device_handle a device handle
  *
  *  @param[out] info amdsmi_pcie_info_t struct which will hold all the extracted PCIe caps data.
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_pcie_link_caps(amdsmi_device_handle dev, amdsmi_pcie_info_t *info);
+amdsmi_status_t amdsmi_get_pcie_link_caps(amdsmi_device_handle device_handle, amdsmi_pcie_info_t *info);
 
 /**
  *  @brief Get the performance level of the device
@@ -3580,19 +3580,19 @@ amdsmi_status_t amdsmi_event_notification_stop(amdsmi_device_handle device_handl
 /**
  *  @brief          Returns BDF of the given device
  *
- *  @param[in]      dev Device which to query
+ *  @param[in]      device_handle Device which to query
  *
  *  @param[out]     bdf Reference to BDF. Must be allocated by user.
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_device_bdf(amdsmi_device_handle dev, amdsmi_bdf_t *bdf);
+amdsmi_get_device_bdf(amdsmi_device_handle device_handle, amdsmi_bdf_t *bdf);
 
 /**
  *  @brief          Returns the UUID of the device
  *
- *  @param[in]      dev Device which to query
+ *  @param[in]      device_handle Device which to query
  *
  *  @param[in,out]  uuid_length Length of the uuid string. As input, must be
  *                  equal or greater than SMI_GPU_UUID_SIZE and be allocated by
@@ -3604,7 +3604,7 @@ amdsmi_get_device_bdf(amdsmi_device_handle dev, amdsmi_bdf_t *bdf);
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_device_uuid(amdsmi_device_handle dev, unsigned int *uuid_length, char *uuid);
+amdsmi_get_device_uuid(amdsmi_device_handle device_handle, unsigned int *uuid_length, char *uuid);
 
 /*****************************************************************************/
 /** @defgroup swversion     SW Version Information
@@ -3614,7 +3614,7 @@ amdsmi_get_device_uuid(amdsmi_device_handle dev, unsigned int *uuid_length, char
 /**
  *  @brief          Returns the driver version information
  *
- *  @param[in]      dev Device which to query
+ *  @param[in]      device_handle Device which to query
  *
  *  @param[in,out]  length As input parameter length of the user allocated
  *                  string buffer. As output parameter length of the returned
@@ -3626,7 +3626,7 @@ amdsmi_get_device_uuid(amdsmi_device_handle dev, unsigned int *uuid_length, char
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_driver_version(amdsmi_device_handle dev, int *length, char *version);
+amdsmi_get_driver_version(amdsmi_device_handle device_handle, int *length, char *version);
 
 /** @} End swversion */
 
@@ -3642,7 +3642,7 @@ amdsmi_get_driver_version(amdsmi_device_handle dev, int *length, char *version);
  *                  the family, the vendor ID, the subvendor ID, the device ID,
  *                  the revision ID and the serial number.
  *
- *  @param[in]      dev Device which to query
+ *  @param[in]      device_handle Device which to query
  *
  *  @param[out]     info Reference to static asic information structure.
  *                  Must be allocated by user.
@@ -3650,12 +3650,12 @@ amdsmi_get_driver_version(amdsmi_device_handle dev, int *length, char *version);
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_asic_info(amdsmi_device_handle dev, amdsmi_asic_info_t *info);
+amdsmi_get_asic_info(amdsmi_device_handle device_handle, amdsmi_asic_info_t *info);
 
 /**
  *  @brief          Returns the board part number and board information for the requested device
  *
- *  @param[in]      dev Device which to query
+ *  @param[in]      device_handle Device which to query
  *
  *  @param[out]     info Reference to board info structure.
  *                  Must be allocated by user.
@@ -3663,13 +3663,13 @@ amdsmi_get_asic_info(amdsmi_device_handle dev, amdsmi_asic_info_t *info);
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_board_info(amdsmi_device_handle dev, amdsmi_board_info_t *info);
+amdsmi_get_board_info(amdsmi_device_handle device_handle, amdsmi_board_info_t *info);
 
 /**
  *  @brief          Returns the power caps as currently configured in the
  *                  system.
  *
- *  @param[in]      dev Device which to query
+ *  @param[in]      device_handle Device which to query
  *  @param[in]      sensor_ind A 0-based sensor index. Normally, this will be 0.
  *                  If a device has more than one sensor, it could be greater than 0.
  *  @param[out]     info Reference to power caps information structure. Must be
@@ -3678,13 +3678,13 @@ amdsmi_get_board_info(amdsmi_device_handle dev, amdsmi_board_info_t *info);
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_power_cap_info(amdsmi_device_handle dev, uint32_t sensor_ind,
+amdsmi_get_power_cap_info(amdsmi_device_handle device_handle, uint32_t sensor_ind,
           amdsmi_power_cap_info_t *info);
 
 /**
  *  @brief          Returns XGMI information for the GPU.
  *
- *  @param[in]      dev Device which to query
+ *  @param[in]      device_handle Device which to query
  *
  *  @param[out]     info Reference to xgmi information structure. Must be
  *                  allocated by user.
@@ -3693,13 +3693,13 @@ amdsmi_get_power_cap_info(amdsmi_device_handle dev, uint32_t sensor_ind,
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_xgmi_info(amdsmi_device_handle dev, amdsmi_xgmi_info_t *info);
+amdsmi_get_xgmi_info(amdsmi_device_handle device_handle, amdsmi_xgmi_info_t *info);
 
 /**
  *  @brief          Returns the device capabilities as currently configured in
  *                  the system
  *
- *  @param[in]      dev Device which to query
+ *  @param[in]      device_handle Device which to query
  *
  *  @param[out]     info Reference to caps information structure. Must be
  *                  allocated by user.
@@ -3707,7 +3707,7 @@ amdsmi_get_xgmi_info(amdsmi_device_handle dev, amdsmi_xgmi_info_t *info);
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_caps_info(amdsmi_device_handle dev, amdsmi_gpu_caps_t *info);
+amdsmi_get_caps_info(amdsmi_device_handle device_handle, amdsmi_gpu_caps_t *info);
 
 /** @} End asicinfo */
 
@@ -3719,19 +3719,19 @@ amdsmi_get_caps_info(amdsmi_device_handle dev, amdsmi_gpu_caps_t *info);
 /**
  *  @brief          Returns the firmware versions running on the device.
  *
- *  @param[in]      dev Device which to query
+ *  @param[in]      device_handle Device which to query
  *
  *  @param[out]     info Reference to the fw info. Must be allocated by user.
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_fw_info(amdsmi_device_handle dev, amdsmi_fw_info_t *info);
+amdsmi_get_fw_info(amdsmi_device_handle device_handle, amdsmi_fw_info_t *info);
 
 /**
  *  @brief          Returns the static information for the vBIOS on the device.
  *
- *  @param[in]      dev Device which to query
+ *  @param[in]      device_handle Device which to query
  *
  *  @param[out]     info Reference to static vBIOS information.
  *                  Must be allocated by user.
@@ -3739,7 +3739,7 @@ amdsmi_get_fw_info(amdsmi_device_handle dev, amdsmi_fw_info_t *info);
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_vbios_info(amdsmi_device_handle dev, amdsmi_vbios_info_t *info);
+amdsmi_get_vbios_info(amdsmi_device_handle device_handle, amdsmi_vbios_info_t *info);
 
 /** @} End fwinfo */
 
@@ -3752,34 +3752,34 @@ amdsmi_get_vbios_info(amdsmi_device_handle dev, amdsmi_vbios_info_t *info);
  *  @brief          Returns the current usage of the GPU engines (GFX, MM and MEM).
  *                  Each usage is reported as a percentage from 0-100%.
  *
- *  @param[in]      dev Device which to query
+ *  @param[in]      device_handle Device which to query
  *
  *  @param[out]     info Reference to the gpu engine usage structure. Must be allocated by user.
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_gpu_activity(amdsmi_device_handle dev, amdsmi_engine_usage_t *info);
+amdsmi_get_gpu_activity(amdsmi_device_handle device_handle, amdsmi_engine_usage_t *info);
 
 /**
  *  @brief          Returns the current power and voltage of the GPU.
  *                  The voltage is in units of mV and the power in units of W.
  *
- *  @param[in]      dev Device which to query
+ *  @param[in]      device_handle Device which to query
  *
  *  @param[out]     info Reference to the gpu power structure. Must be allocated by user.
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_power_measure(amdsmi_device_handle dev, amdsmi_power_measure_t *info);
+amdsmi_get_power_measure(amdsmi_device_handle device_handle, amdsmi_power_measure_t *info);
 
 /**
  *  @brief          Returns the measurements of the clocks in the GPU
  *                  for the GFX and multimedia engines and Memory. This call
  *                  reports the averages over 1s in MHz.
  *
- *  @param[in]      dev Device which to query
+ *  @param[in]      device_handle Device which to query
  *
  *  @param[in]      clk_type Enum representing the clock type to query.
  *
@@ -3789,13 +3789,13 @@ amdsmi_get_power_measure(amdsmi_device_handle dev, amdsmi_power_measure_t *info)
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_clock_measure(amdsmi_device_handle dev, amdsmi_clk_type_t clk_type, amdsmi_clk_measure_t *info);
+amdsmi_get_clock_measure(amdsmi_device_handle device_handle, amdsmi_clk_type_t clk_type, amdsmi_clk_measure_t *info);
 
 /**
  *  @brief          Returns temperature measurements of the GPU.
  *                  The results are in °C.
  *
- *  @param[in]      dev Device which to query
+ *  @param[in]      device_handle Device which to query
  *
  *  @param[in]      temp_type Enum representing the temperature type to query.
  *
@@ -3805,13 +3805,13 @@ amdsmi_get_clock_measure(amdsmi_device_handle dev, amdsmi_clk_type_t clk_type, a
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_temperature_measure(amdsmi_device_handle dev, amdsmi_temperature_type_t temp_type, amdsmi_temperature_t *info);
+amdsmi_get_temperature_measure(amdsmi_device_handle device_handle, amdsmi_temperature_type_t temp_type, amdsmi_temperature_t *info);
 
 /**
  *  @brief          Returns temperature limit of the GPU.
  *                  The results are in °C.
  *
- *  @param[in]      dev Device which to query
+ *  @param[in]      device_handle Device which to query
  *
  *  @param[in]      temp_type Enum representing the temperature type to query.
  *
@@ -3821,13 +3821,13 @@ amdsmi_get_temperature_measure(amdsmi_device_handle dev, amdsmi_temperature_type
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_temperature_limit(amdsmi_device_handle dev, amdsmi_temperature_type_t temp_type, amdsmi_temperature_limit_t *limit);
+amdsmi_get_temperature_limit(amdsmi_device_handle device_handle, amdsmi_temperature_type_t temp_type, amdsmi_temperature_limit_t *limit);
 
 /**
  *  @brief          Returns power limit of the GPU.
  *                  The results are in W.
  *
- *  @param[in]      dev Device which to query
+ *  @param[in]      device_handle Device which to query
  *
  *  @param[out]     limit Reference to the power limit.
  *                  Must be allocated by user.
@@ -3835,13 +3835,13 @@ amdsmi_get_temperature_limit(amdsmi_device_handle dev, amdsmi_temperature_type_t
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_power_limit(amdsmi_device_handle dev, amdsmi_power_limit_t *limit);
+amdsmi_get_power_limit(amdsmi_device_handle device_handle, amdsmi_power_limit_t *power);
 
 /**
  *  @brief          Returns the VRAM usage (both total and used memory)
  *                  in MegaBytes.
  *
- *  @param[in]      dev Device which to query
+ *  @param[in]      device_handle Device which to query
  *
  *
  *  @param[out]     info Reference to vram information.
@@ -3850,7 +3850,7 @@ amdsmi_get_power_limit(amdsmi_device_handle dev, amdsmi_power_limit_t *limit);
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_vram_usage(amdsmi_device_handle dev, amdsmi_vram_info_t *info);
+amdsmi_get_vram_usage(amdsmi_device_handle device_handle, amdsmi_vram_info_t *info);
 
 /** @} End gpumon */
 
@@ -3863,7 +3863,7 @@ amdsmi_get_vram_usage(amdsmi_device_handle dev, amdsmi_vram_info_t *info);
  *  @brief          Returns current and supported frequency range
  *                  for the specified clock type.
  *
- *  @param[in]      dev Device which to query
+ *  @param[in]      device_handle Device which to query
  *
  *  @param[in]      clk_type Clock type for which to get current and supported
  *                  frequency range.
@@ -3874,7 +3874,7 @@ amdsmi_get_vram_usage(amdsmi_device_handle dev, amdsmi_vram_info_t *info);
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_target_frequency_range(amdsmi_device_handle dev, amdsmi_clk_type_t clk_type, amdsmi_frequency_range_t *range);
+amdsmi_get_target_frequency_range(amdsmi_device_handle device_handle, amdsmi_clk_type_t clk_type, amdsmi_frequency_range_t *range);
 
 /** @} End powermon */
 
@@ -3891,7 +3891,7 @@ amdsmi_get_target_frequency_range(amdsmi_device_handle dev, amdsmi_clk_type_t cl
  *                  sets max_processes to 0, the total number of processes will be
  *                  returned.
  *
- *  @param[in]      dev Device which to query
+ *  @param[in]      device_handle Device which to query
  *
  *  @param[out]     list Reference to a user-provided buffer where the process
  *                  list will be returned. This buffer must contain at least
@@ -3905,12 +3905,12 @@ amdsmi_get_target_frequency_range(amdsmi_device_handle dev, amdsmi_clk_type_t cl
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_process_list(amdsmi_device_handle dev, amdsmi_process_handle *list, uint32_t *max_processes);
+amdsmi_get_process_list(amdsmi_device_handle device_handle, amdsmi_process_handle *list, uint32_t *max_processes);
 
 /**
  *  @brief          Returns the process information of a given process.
  *
- *  @param[in]      dev Device which to query
+ *  @param[in]      device_handle Device which to query
  *
  *  @param[in]      process Handle of process to query.
  *
@@ -3920,7 +3920,7 @@ amdsmi_get_process_list(amdsmi_device_handle dev, amdsmi_process_handle *list, u
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_process_info(amdsmi_device_handle dev, amdsmi_process_handle process, amdsmi_proc_info_t *info);
+amdsmi_get_process_info(amdsmi_device_handle device_handle, amdsmi_process_handle process, amdsmi_proc_info_t *info);
 
 /** @} End processinfo */
 
@@ -3933,7 +3933,7 @@ amdsmi_get_process_info(amdsmi_device_handle dev, amdsmi_process_handle process,
  *  @brief          Returns the number of ECC errors (correctable and
  *                  uncorrectable) in the given GPU.
  *
- *  @param[in]      dev Device which to query
+ *  @param[in]      device_handle Device which to query
  *
  *  @param[out]     ec Reference to ecc error count structure.
  *                  Must be allocated by user.
@@ -3941,11 +3941,11 @@ amdsmi_get_process_info(amdsmi_device_handle dev, amdsmi_process_handle process,
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_ecc_error_count(amdsmi_device_handle dev, amdsmi_error_count_t *ec);
+amdsmi_get_ecc_error_count(amdsmi_device_handle device_handle, amdsmi_error_count_t *ec);
 
 /** @} End eccinfo */
 
 #ifdef __cplusplus
 }
 #endif  // __cplusplus
-#endif  // INCLUDE_AMD_SMI_H_
+#endif  // INCLUDE_AMDSMI_H_

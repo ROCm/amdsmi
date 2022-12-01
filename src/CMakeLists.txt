@@ -39,7 +39,7 @@ set(SRC_LIST
     "${SRC_DIR}/fdinfo.cc"
     "${CMN_SRC_LIST}")
 set(INC_LIST
-    "${INC_DIR}/amd_smi.h"
+    "${INC_DIR}/amdsmi.h"
     "${INC_DIR}/impl/amd_smi_common.h"
     "${INC_DIR}/impl/amd_smi_device.h"
     "${INC_DIR}/impl/amd_smi_drm.h"
@@ -113,7 +113,7 @@ install(
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT ${AMD_SMI_COMPONENT})
 
-install(FILES ${PROJECT_SOURCE_DIR}/include/amd_smi/amd_smi.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/amd_smi)
+install(FILES ${PROJECT_SOURCE_DIR}/include/amd_smi/amdsmi.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/amd_smi)
 install(FILES ${PROJECT_SOURCE_DIR}/include/amd_smi/${AMD_SMI_TARGET}Config.h
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/amd_smi)
 install(FILES ${PROJECT_SOURCE_DIR}/rocm_smi/include/rocm_smi/kfd_ioctl.h
@@ -138,7 +138,7 @@ if(DOXYGEN_FOUND AND LATEX_FOUND)
     add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.tex
         COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
-        DEPENDS ${PROJECT_SOURCE_DIR}/docs/amd_smi_doxygen.cfg "${PROJECT_SOURCE_DIR}/include/amd_smi/amd_smi.h"
+        DEPENDS ${PROJECT_SOURCE_DIR}/docs/amd_smi_doxygen.cfg "${PROJECT_SOURCE_DIR}/include/amd_smi/amdsmi.h"
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
     add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf

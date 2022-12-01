@@ -44,7 +44,7 @@
 #include <stdint.h>
 #include <unistd.h>
 
-#include "amd_smi/amd_smi.h"
+#include "amd_smi/amdsmi.h"
 #include <bitset>
 #include <iostream>
 #include <pwd.h>

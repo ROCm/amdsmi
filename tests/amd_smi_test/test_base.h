@@ -47,7 +47,7 @@
 
 #include <string>
 #include <vector>
-#include "amd_smi/amd_smi.h"
+#include "amd_smi/amdsmi.h"
 
 // The max devices can be monitored
 #define MAX_MONITOR_DEVICES 128

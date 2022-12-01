@@ -48,7 +48,7 @@
 #include <vector>
 #include <memory>
 #include <mutex>  // NOLINT
-#include "amd_smi/amd_smi.h"
+#include "amd_smi/amdsmi.h"
 #include "amd_smi/impl/amd_smi_lib_loader.h"
 
 namespace amd {

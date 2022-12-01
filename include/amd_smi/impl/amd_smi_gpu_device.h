@@ -44,7 +44,7 @@
 #ifndef AMD_SMI_INCLUDE_IMPL_AMD_SMI_GPU_DEVICE_H_
 #define AMD_SMI_INCLUDE_IMPL_AMD_SMI_GPU_DEVICE_H_
 
-#include "amd_smi/amd_smi.h"
+#include "amd_smi/amdsmi.h"
 #include "amd_smi/impl/amd_smi_device.h"
 #include "amd_smi/impl/amd_smi_drm.h"
 #include "shared_mutex.h"  // NOLINT

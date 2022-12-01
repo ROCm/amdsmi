@@ -51,7 +51,7 @@
 #include <map>
 
 #include <gtest/gtest.h>
-#include "amd_smi/amd_smi.h"
+#include "amd_smi/amdsmi.h"
 #include "metrics_counter_read.h"
 #include "../test_common.h"
 

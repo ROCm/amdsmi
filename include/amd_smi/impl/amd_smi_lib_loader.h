@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include <map>
 #include <iostream>
 #include <mutex>   //  NOLINT(build/c++11)
-#include "amd_smi/amd_smi.h"
+#include "amd_smi/amdsmi.h"
 
 
 namespace amd {

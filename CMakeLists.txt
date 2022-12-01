@@ -161,12 +161,12 @@ if(PYTHON3 AND PIP3)
         python_wrapper
         DEPENDS clang_tools_extract
         COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper
-        COMMAND cp -r ${CMAKE_CURRENT_SOURCE_DIR}/include/amd_smi/amd_smi.h ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper
+        COMMAND cp -r ${CMAKE_CURRENT_SOURCE_DIR}/include/amd_smi/amdsmi.h ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper
         COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/amd_smi
         COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/rocm_smi/include/rocm_smi/kfd_ioctl.h
                 ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/amd_smi/
         COMMAND
-            python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/generator.py ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/amd_smi.h
+            python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/generator.py ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/amdsmi.h
             ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/ ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/
         COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/amdsmi_wrapper.py
                 ${CMAKE_CURRENT_SOURCE_DIR}/py-interface/

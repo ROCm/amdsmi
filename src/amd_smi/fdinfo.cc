@@ -28,7 +28,7 @@
 #include <algorithm>
 #include <string.h>
 
-#include "amd_smi/amd_smi.h"
+#include "amd_smi/amdsmi.h"
 #include "amd_smi/impl/amd_smi_utils.h"
 
 extern "C" {

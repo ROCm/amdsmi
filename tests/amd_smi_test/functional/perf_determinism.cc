@@ -53,7 +53,7 @@
 #include <algorithm>
 
 #include <gtest/gtest.h>
-#include "amd_smi/amd_smi.h"
+#include "amd_smi/amdsmi.h"
 #include "perf_determinism.h"
 #include "../test_common.h"
 

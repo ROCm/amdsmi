@@ -46,7 +46,7 @@
 
 #include <vector>
 #include <set>
-#include "amd_smi/amd_smi.h"
+#include "amd_smi/amdsmi.h"
 #include "amd_smi/impl/amd_smi_socket.h"
 #include "amd_smi/impl/amd_smi_device.h"
 #include "amd_smi/impl/amd_smi_drm.h"

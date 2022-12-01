@@ -50,7 +50,7 @@
 #include <string>
 
 #include <gtest/gtest.h>
-#include "amd_smi/amd_smi.h"
+#include "amd_smi/amdsmi.h"
 #include "gpu_busy_read.h"
 #include "../test_common.h"
 
