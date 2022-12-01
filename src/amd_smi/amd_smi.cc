@@ -386,7 +386,7 @@ amdsmi_status_t amdsmi_get_vram_usage(amdsmi_device_handle device_handle,
 }
 
 amdsmi_status_t amdsmi_get_caps_info(amdsmi_device_handle device_handle,
-      struct amdsmi_gpu_caps *info) {
+            amdsmi_gpu_caps_t *info) {
 
     AMDSMI_CHECK_INIT();
 
@@ -512,7 +512,7 @@ amdsmi_status_t amdsmi_dev_get_id(amdsmi_device_handle device_handle,
 // TODO(bliu) : add fw info from libdrm
 amdsmi_status_t amdsmi_get_fw_info(amdsmi_device_handle device_handle,
         amdsmi_fw_info_t *info) {
-    const std::map<amdsmi_fw_block, rsmi_fw_block_t> fw_in_rsmi = {
+    const std::map<amdsmi_fw_block_t, rsmi_fw_block_t> fw_in_rsmi = {
         { FW_ID_ASD, RSMI_FW_BLOCK_ASD},
         { FW_ID_CP_CE, RSMI_FW_BLOCK_CE},
         { FW_ID_DMCU, RSMI_FW_BLOCK_DMCU},
@@ -1524,7 +1524,7 @@ amdsmi_get_clock_measure(amdsmi_device_handle device_handle, amdsmi_clk_type_t c
 }
 
 amdsmi_status_t
-amdsmi_get_ras_block_features_enabled(amdsmi_device_handle device_handle, amdsmi_gpu_block block, amdsmi_ras_err_state_t *state) {
+amdsmi_get_ras_block_features_enabled(amdsmi_device_handle device_handle, amdsmi_gpu_block_t block, amdsmi_ras_err_state_t *state) {
     AMDSMI_CHECK_INIT();
 
     if (state == nullptr || block > AMDSMI_GPU_BLOCK_LAST) {

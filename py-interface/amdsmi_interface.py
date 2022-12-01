@@ -421,10 +421,10 @@ def _format_bdf(amdsmi_bdf: amdsmi_wrapper.amdsmi_bdf_t) -> str:
     Returns:
         `str`: String containing BDF data in a readable format.
     """
-    domain = hex(amdsmi_bdf.amdsmi_bdf_0.domain_number)[2:].zfill(4)
-    bus = hex(amdsmi_bdf.amdsmi_bdf_0.bus_number)[2:].zfill(2)
-    device = hex(amdsmi_bdf.amdsmi_bdf_0.device_number)[2:].zfill(2)
-    function = hex(amdsmi_bdf.amdsmi_bdf_0.function_number)[2:]
+    domain = hex(amdsmi_bdf.c__UA_amdsmi_bdf_t_0.domain_number)[2:].zfill(4)
+    bus = hex(amdsmi_bdf.c__UA_amdsmi_bdf_t_0.bus_number)[2:].zfill(2)
+    device = hex(amdsmi_bdf.c__UA_amdsmi_bdf_t_0.device_number)[2:].zfill(2)
+    function = hex(amdsmi_bdf.c__UA_amdsmi_bdf_t_0.function_number)[2:]
 
     return domain + ":" + bus + ":" + device + "." + function
 
@@ -470,11 +470,11 @@ def _parse_bdf(bdf):
 def _make_amdsmi_bdf_from_list(bdf):
     if len(bdf) != 4:
         return None
-    amdsmi_bdf = amdsmi_wrapper.amdsmi_bdf()
-    amdsmi_bdf.amdsmi_bdf_0.function_number = bdf[3]
-    amdsmi_bdf.amdsmi_bdf_0.device_number = bdf[2]
-    amdsmi_bdf.amdsmi_bdf_0.bus_number = bdf[1]
-    amdsmi_bdf.amdsmi_bdf_0.domain_number = bdf[0]
+    amdsmi_bdf = amdsmi_wrapper.amdsmi_bdf_t()
+    amdsmi_bdf.c__UA_amdsmi_bdf_t_0.function_number = bdf[3]
+    amdsmi_bdf.c__UA_amdsmi_bdf_t_0.device_number = bdf[2]
+    amdsmi_bdf.c__UA_amdsmi_bdf_t_0.bus_number = bdf[1]
+    amdsmi_bdf.c__UA_amdsmi_bdf_t_0.domain_number = bdf[0]
     return amdsmi_bdf
 
 
