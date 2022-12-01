@@ -3151,14 +3151,17 @@ rsmi_counter_available_counters_get(uint32_t dv_ind,
   TRY
   CHK_SUPPORT_VAR(available, grp)
   DEVICE_MUTEX
-  uint64_t val;
+  uint64_t val = 0;
 
   switch (grp) {
     case RSMI_EVNT_GRP_XGMI:
     case RSMI_EVNT_GRP_XGMI_DATA_OUT:
 
       ret = get_dev_value_int(amd::smi::kDevDFCountersAvailable, dv_ind, &val);
-      assert(val < UINT32_MAX);
+      if (ret != RSMI_STATUS_SUCCESS)
+        return ret;
+      if (val == UINT32_MAX)
+        return RSMI_STATUS_NOT_SUPPORTED;
       *available = static_cast<uint32_t>(val);
       break;
 
