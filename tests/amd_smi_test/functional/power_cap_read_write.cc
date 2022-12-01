@@ -52,7 +52,7 @@
 #include <algorithm>
 
 #include <gtest/gtest.h>
-#include "amd_smi/amd_smi.h"
+#include "amd_smi/amdsmi.h"
 #include "power_cap_read_write.h"
 #include "../test_common.h"
 

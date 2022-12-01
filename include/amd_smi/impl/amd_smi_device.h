@@ -44,7 +44,7 @@
 #ifndef AMD_SMI_INCLUDE_AMD_SMI_DEVICE_H_
 #define AMD_SMI_INCLUDE_AMD_SMI_DEVICE_H_
 
-#include "amd_smi/amd_smi.h"
+#include "amd_smi/amdsmi.h"
 
 namespace amd {
 namespace smi {

@@ -46,7 +46,7 @@
 #ifndef TESTS_AMD_SMI_TEST_TEST_UTILS_H_
 #define TESTS_AMD_SMI_TEST_TEST_UTILS_H_
 
-#include "amd_smi/amd_smi.h"
+#include "amd_smi/amdsmi.h"
 
 const char *
 NameFromFWEnum(amdsmi_fw_block_t blk);

@@ -48,7 +48,7 @@
 #include <memory>
 #include <iostream>
 
-#include "amd_smi/amd_smi.h"
+#include "amd_smi/amdsmi.h"
 #include <gtest/gtest.h>
 #include "test_common.h"
 #include "test_base.h"

@@ -50,7 +50,7 @@
 #include <vector>
 #include <string>
 
-#include "amd_smi/amd_smi.h"
+#include "amd_smi/amdsmi.h"
 
 struct AMDSMITstGlobals {
   uint32_t verbosity;

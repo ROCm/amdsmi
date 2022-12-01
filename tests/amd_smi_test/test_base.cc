@@ -45,7 +45,7 @@
 
 #include <assert.h>
 
-#include "amd_smi/amd_smi.h"
+#include "amd_smi/amdsmi.h"
 #include "test_base.h"
 #include "test_common.h"
 #include <gtest/gtest.h>

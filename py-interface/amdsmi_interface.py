@@ -51,9 +51,9 @@ class AmdSmiDeviceType(IntEnum):
 
 
 class AmdSmiMmIp(IntEnum):
-    UVD = amdsmi_wrapper.MM_UVD
-    VCE = amdsmi_wrapper.MM_VCE
-    VCN = amdsmi_wrapper.MM_VCN
+    UVD = amdsmi_wrapper.AMDSMI_MM_UVD
+    VCE = amdsmi_wrapper.AMDSMI_MM_VCE
+    VCN = amdsmi_wrapper.AMDSMI_MM_VCN
 
 
 class AmdSmiFWBlock(IntEnum):

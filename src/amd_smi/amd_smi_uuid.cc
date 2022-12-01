@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-#include "amd_smi/amd_smi.h"
+#include "amd_smi/amdsmi.h"
 #include "amd_smi/impl/amd_smi_uuid.h"
 
 #include <string.h>

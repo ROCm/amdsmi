@@ -50,7 +50,7 @@
 #include <string>
 
 #include <gtest/gtest.h>
-#include "amd_smi/amd_smi.h"
+#include "amd_smi/amdsmi.h"
 #include "sys_info_read.h"
 #include "../test_common.h"
 #include "../test_utils.h"

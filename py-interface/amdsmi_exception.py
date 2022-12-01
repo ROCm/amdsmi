@@ -42,12 +42,10 @@ class AmdSmiRetCode(IntEnum):
     UNEXPECTED_DATA = amdsmi_wrapper.AMDSMI_STATUS_UNEXPECTED_DATA
     ERR_BUSY = amdsmi_wrapper.AMDSMI_STATUS_BUSY
     REFCOUNT_OVERFLOW = amdsmi_wrapper.AMDSMI_STATUS_REFCOUNT_OVERFLOW
-    LIB_START = amdsmi_wrapper.AMDSMI_LIB_START
     FAIL_LOAD_MODULE = amdsmi_wrapper.AMDSMI_STATUS_FAIL_LOAD_MODULE
     FAIL_LOAD_SYMBOL = amdsmi_wrapper.AMDSMI_STATUS_FAIL_LOAD_SYMBOL
     DRM_ERROR = amdsmi_wrapper.AMDSMI_STATUS_DRM_ERROR
     ERR_IO = amdsmi_wrapper.AMDSMI_STATUS_IO
-    FAULT = amdsmi_wrapper.AMDSMI_STATUS_FAULT
     API_FAILED = amdsmi_wrapper.AMDSMI_STATUS_API_FAILED
     TIMEOUT = amdsmi_wrapper.AMDSMI_STATUS_TIMEOUT
     NO_SLOT = amdsmi_wrapper.AMDSMI_STATUS_NO_SLOT
@@ -97,11 +95,9 @@ class AmdSmiLibraryException(AmdSmiException):
             AmdSmiRetCode.NO_DATA: "AMDSMI_STATUS_NO_DATA - No data was found for given input",
             AmdSmiRetCode.UNEXPECTED_DATA: "AMDSMI_STATUS_UNEXPECTED_DATA - The data read or provided was unexpected",
             AmdSmiRetCode.REFCOUNT_OVERFLOW: "AMDSMI_STATUS_REFCOUNT_OVERFLOW - Internal reference counter exceeded INT32_MAX",
-            AmdSmiRetCode.LIB_START: "AMDSMI_LIB_START - Lib start status",
             AmdSmiRetCode.FAIL_LOAD_MODULE: "AMDSMI_STATUS_FAIL_LOAD_MODULE - Fail to load lib",
             AmdSmiRetCode.FAIL_LOAD_SYMBOL: "AMDSMI_STATUS_FAIL_LOAD_SYMBOL - Fail to load symbol",
             AmdSmiRetCode.DRM_ERROR: "AMDSMI_STATUS_DRM_ERROR - Error when called libdrm",
-            AmdSmiRetCode.FAULT: "AMDSMI_STATUS_FAULT - Bad address",
             AmdSmiRetCode.API_FAILED: "AMDSMI_STATUS_API_FAILED - API call failed",
             AmdSmiRetCode.TIMEOUT: "AMDSMI_STATUS_TIMEOUT - Timeout in API call",
             AmdSmiRetCode.NO_SLOT: "AMDSMI_STATUS_NO_SLOT - No more free slot",

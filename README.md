@@ -79,7 +79,7 @@ A simple "Hello World" type program that displays the temperature of detected de
 ```c++
 #include <iostream>
 #include <vector>
-#include "amd_smi/amd_smi.h"
+#include "amd_smi/amdsmi.h"
 
 int main() {
   amdsmi_status_t ret;
