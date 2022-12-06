@@ -1166,14 +1166,21 @@ rsmi_status_t rsmi_dev_clk_range_set(uint32_t dv_ind, uint64_t minclkvalue,
   TRY
   rsmi_status_t ret;
 
-  assert(minclkvalue < maxclkvalue);
+  if (minclkvalue >= maxclkvalue) {
+    return RSMI_STATUS_INVALID_ARGS;
+  }
+
+  // Can only set the clock type for sys and mem type
+  if (clkType != RSMI_CLK_TYPE_SYS && clkType != RSMI_CLK_TYPE_MEM) {
+    return RSMI_STATUS_NOT_SUPPORTED;
+  }
+
   std::string min_sysvalue, max_sysvalue;
   std::map<rsmi_clk_type_t, std::string> ClkStateMap = {
     {RSMI_CLK_TYPE_SYS, "s"},
     {RSMI_CLK_TYPE_MEM, "m"},
   };
   DEVICE_MUTEX
-  assert(clkType == RSMI_CLK_TYPE_SYS || clkType == RSMI_CLK_TYPE_MEM);
 
   // Set perf. level to manual so that we can then set the power profile
   ret = rsmi_dev_perf_level_set_v1(dv_ind, RSMI_DEV_PERF_LEVEL_MANUAL);
