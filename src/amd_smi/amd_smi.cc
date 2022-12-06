@@ -1807,7 +1807,7 @@ amdsmi_get_pcie_link_status(amdsmi_device_handle device_handle, amdsmi_pcie_info
         return status;
 
     info->pcie_lanes = metric_info.pcie_link_width;
-    info->pcie_speed = metric_info.pcie_link_speed;
+    info->pcie_speed = metric_info.pcie_link_speed * 100; // convert to MT/s
 
     return status;
 }
