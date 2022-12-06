@@ -482,7 +482,7 @@ import os
 __all__ += {API_EXPOSE}
 __all__ += {TYPEDEF_EXPOSE}
 
-_lib = CDLL(os.path.join(os.path.dirname(__file__), "libamd_smi64.so"))
+_lib = CDLL(os.path.join(os.path.dirname(__file__), "libamd_smi.so"))
 
 {API}
 """.format(
