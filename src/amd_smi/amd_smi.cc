@@ -1318,7 +1318,7 @@ amdsmi_get_vbios_info(amdsmi_device_handle device_handle, amdsmi_vbios_info_t *i
             static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
     amdsmi_status_t status;
 
-    if (gpu_device->check_if_drm_is_supported()){
+    if (gpu_device->check_if_drm_is_supported()) {
         status = gpu_device->amdgpu_query_vbios(&vbios);
         if (status != AMDSMI_STATUS_SUCCESS) {
             return status;
@@ -1329,17 +1329,18 @@ amdsmi_get_vbios_info(amdsmi_device_handle device_handle, amdsmi_vbios_info_t *i
         strncpy(info->vbios_version_string, (char *) vbios.vbios_ver_str, AMDSMI_NORMAL_STRING_LENGTH);
         info->vbios_version = vbios.version;
     }
+    else {
+        // get vbios version string from rocm_smi
+        char vbios_version[AMDSMI_NORMAL_STRING_LENGTH];
+        status = rsmi_wrapper(rsmi_dev_vbios_version_get, device_handle,
+                vbios_version,
+                AMDSMI_NORMAL_STRING_LENGTH);
 
-    // get vbios version string from rocm_smi
-    char vbios_version[AMDSMI_NORMAL_STRING_LENGTH];
-    status = rsmi_wrapper(rsmi_dev_vbios_version_get, device_handle,
-            vbios_version,
-            AMDSMI_NORMAL_STRING_LENGTH);
-
-    // ignore the errors so that it can populate as many fields as possible.
-    if (status == AMDSMI_STATUS_SUCCESS) {
-        strncpy(info->vbios_version_string,
-            vbios_version, AMDSMI_NORMAL_STRING_LENGTH);
+        // ignore the errors so that it can populate as many fields as possible.
+        if (status == AMDSMI_STATUS_SUCCESS) {
+            strncpy(info->vbios_version_string,
+                vbios_version, AMDSMI_NORMAL_STRING_LENGTH);
+        }
     }
 
     return AMDSMI_STATUS_SUCCESS;
