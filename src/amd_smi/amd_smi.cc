@@ -1556,7 +1556,7 @@ amdsmi_get_ras_block_features_enabled(amdsmi_device_handle device_handle, amdsmi
 
 amdsmi_status_t
 amdsmi_get_bad_page_info(amdsmi_device_handle device_handle, uint32_t *num_pages, amdsmi_retired_page_record_t *info) {
-    if (info == nullptr) {
+    if (num_pages == nullptr) {
         return AMDSMI_STATUS_INVAL;
     }
 
