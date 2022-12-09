@@ -403,6 +403,7 @@ c__SA_amdsmi_range_t._pack_ = 1 # source:False
 c__SA_amdsmi_range_t._fields_ = [
     ('lower_bound', ctypes.c_uint64),
     ('upper_bound', ctypes.c_uint64),
+    ('reserved', ctypes.c_uint64 * 2),
 ]
 
 amdsmi_range_t = c__SA_amdsmi_range_t
@@ -417,21 +418,12 @@ amdsmi_xgmi_info._fields_ = [
     ('xgmi_hive_id', ctypes.c_uint64),
     ('xgmi_node_id', ctypes.c_uint64),
     ('index', ctypes.c_uint32),
-    ('PADDING_1', ctypes.c_ubyte * 4),
+    ('reserved', ctypes.c_uint32 * 9),
 ]
 
 amdsmi_xgmi_info_t = amdsmi_xgmi_info
 class amdsmi_gpu_caps(Structure):
     pass
-
-class amdsmi_gpu_caps_1(Structure):
-    pass
-
-amdsmi_gpu_caps_1._pack_ = 1 # source:False
-amdsmi_gpu_caps_1._fields_ = [
-    ('mm_ip_count', ctypes.c_ubyte),
-    ('mm_ip_list', ctypes.c_ubyte * 8),
-]
 
 class amdsmi_gpu_caps_0(Structure):
     pass
@@ -442,6 +434,18 @@ amdsmi_gpu_caps_0._fields_ = [
     ('gfxip_minor', ctypes.c_uint32),
     ('gfxip_cu_count', ctypes.c_uint16),
     ('PADDING_0', ctypes.c_ubyte * 2),
+    ('reserved', ctypes.c_uint32 * 5),
+]
+
+class amdsmi_gpu_caps_1(Structure):
+    pass
+
+amdsmi_gpu_caps_1._pack_ = 1 # source:False
+amdsmi_gpu_caps_1._fields_ = [
+    ('mm_ip_count', ctypes.c_ubyte),
+    ('mm_ip_list', ctypes.c_ubyte * 8),
+    ('PADDING_0', ctypes.c_ubyte * 3),
+    ('reserved', ctypes.c_uint32 * 5),
 ]
 
 amdsmi_gpu_caps._pack_ = 1 # source:False
@@ -450,9 +454,10 @@ amdsmi_gpu_caps._fields_ = [
     ('mm', amdsmi_gpu_caps_1),
     ('ras_supported', ctypes.c_bool),
     ('max_vf_num', ctypes.c_ubyte),
-    ('PADDING_0', ctypes.c_ubyte),
+    ('PADDING_0', ctypes.c_ubyte * 2),
     ('gfx_ip_count', ctypes.c_uint32),
     ('dma_ip_count', ctypes.c_uint32),
+    ('reserved', ctypes.c_uint32 * 5),
 ]
 
 amdsmi_gpu_caps_t = amdsmi_gpu_caps
@@ -467,11 +472,14 @@ amdsmi_vram_info._fields_ = [
 
 amdsmi_vram_info_t = amdsmi_vram_info
 class amdsmi_frequency_range(Structure):
-    _pack_ = 1 # source:False
-    _fields_ = [
+    pass
+
+amdsmi_frequency_range._pack_ = 1 # source:False
+amdsmi_frequency_range._fields_ = [
     ('supported_freq_range', amdsmi_range_t),
     ('current_freq_range', amdsmi_range_t),
-     ]
+    ('reserved', ctypes.c_uint32 * 8),
+]
 
 amdsmi_frequency_range_t = amdsmi_frequency_range
 class amdsmi_bdf(Union):
@@ -505,6 +513,7 @@ amdsmi_power_cap_info._fields_ = [
     ('dpm_cap', ctypes.c_uint64),
     ('min_power_cap', ctypes.c_uint64),
     ('max_power_cap', ctypes.c_uint64),
+    ('reserved', ctypes.c_uint64 * 3),
 ]
 
 amdsmi_power_cap_info_t = amdsmi_power_cap_info
@@ -518,6 +527,7 @@ amdsmi_vbios_info._fields_ = [
     ('build_date', ctypes.c_char * 32),
     ('part_number', ctypes.c_char * 64),
     ('vbios_version_string', ctypes.c_char * 32),
+    ('reserved', ctypes.c_uint32 * 15),
 ]
 
 amdsmi_vbios_info_t = amdsmi_vbios_info
@@ -532,6 +542,7 @@ amdsmi_fw_info_0._fields_ = [
     ('fw_id', amdsmi_fw_block_t),
     ('PADDING_0', ctypes.c_ubyte * 4),
     ('fw_version', ctypes.c_uint64),
+    ('reserved', ctypes.c_uint64 * 2),
 ]
 
 amdsmi_fw_info._pack_ = 1 # source:False
@@ -539,6 +550,8 @@ amdsmi_fw_info._fields_ = [
     ('num_fw_info', ctypes.c_ubyte),
     ('PADDING_0', ctypes.c_ubyte * 7),
     ('fw_info_list', amdsmi_fw_info_0 * 46),
+    ('reserved', ctypes.c_uint32 * 7),
+    ('PADDING_1', ctypes.c_ubyte * 4),
 ]
 
 amdsmi_fw_info_t = amdsmi_fw_info
@@ -581,6 +594,7 @@ class amdsmi_temperature(Structure):
 amdsmi_temperature._pack_ = 1 # source:False
 amdsmi_temperature._fields_ = [
     ('cur_temp', ctypes.c_uint32),
+    ('reserved', ctypes.c_uint32 * 7),
 ]
 
 amdsmi_temperature_t = amdsmi_temperature
@@ -590,6 +604,7 @@ class amdsmi_temperature_limit(Structure):
 amdsmi_temperature_limit._pack_ = 1 # source:False
 amdsmi_temperature_limit._fields_ = [
     ('limit', ctypes.c_uint32),
+    ('reserved', ctypes.c_uint32 * 7),
 ]
 
 amdsmi_temperature_limit_t = amdsmi_temperature_limit
@@ -599,6 +614,7 @@ class amdsmi_power_limit(Structure):
 amdsmi_power_limit._pack_ = 1 # source:False
 amdsmi_power_limit._fields_ = [
     ('limit', ctypes.c_uint32),
+    ('reserved', ctypes.c_uint32 * 7),
 ]
 
 amdsmi_power_limit_t = amdsmi_power_limit
@@ -613,6 +629,7 @@ amdsmi_power_measure._fields_ = [
     ('voltage_gfx', ctypes.c_uint32),
     ('voltage_soc', ctypes.c_uint32),
     ('voltage_mem', ctypes.c_uint32),
+    ('reserved', ctypes.c_uint32 * 10),
     ('PADDING_1', ctypes.c_ubyte * 4),
 ]
 
@@ -626,6 +643,7 @@ amdsmi_clk_measure._fields_ = [
     ('avg_clk', ctypes.c_uint32),
     ('min_clk', ctypes.c_uint32),
     ('max_clk', ctypes.c_uint32),
+    ('reserved', ctypes.c_uint32 * 4),
 ]
 
 amdsmi_clk_measure_t = amdsmi_clk_measure
@@ -637,6 +655,7 @@ amdsmi_engine_usage._fields_ = [
     ('gfx_activity', ctypes.c_uint32),
     ('umc_activity', ctypes.c_uint32),
     ('mm_activity', ctypes.c_uint32 * 8),
+    ('reserved', ctypes.c_uint32 * 6),
 ]
 
 amdsmi_engine_usage_t = amdsmi_engine_usage
@@ -675,6 +694,7 @@ amdsmi_process_info._fields_ = [
     ('engine_usage', amdsmi_process_info_0),
     ('memory_usage', amdsmi_process_info_1),
     ('container_name', ctypes.c_char * 32),
+    ('reserved', ctypes.c_uint32 * 10),
 ]
 
 amdsmi_proc_info_t = amdsmi_process_info
@@ -1179,6 +1199,7 @@ c__SA_amdsmi_version_t._fields_ = [
     ('patch', ctypes.c_uint32),
     ('PADDING_0', ctypes.c_ubyte * 4),
     ('build', ctypes.POINTER(ctypes.c_char)),
+    ('reserved', ctypes.c_uint32 * 4),
 ]
 
 amdsmi_version_t = c__SA_amdsmi_version_t
@@ -1287,6 +1308,7 @@ c__SA_amdsmi_error_count_t._pack_ = 1 # source:False
 c__SA_amdsmi_error_count_t._fields_ = [
     ('correctable_count', ctypes.c_uint64),
     ('uncorrectable_count', ctypes.c_uint64),
+    ('reserved', ctypes.c_uint64 * 2),
 ]
 
 amdsmi_error_count_t = c__SA_amdsmi_error_count_t
@@ -1298,6 +1320,7 @@ amdsmi_pcie_info._fields_ = [
     ('pcie_lanes', ctypes.c_uint16),
     ('PADDING_0', ctypes.c_ubyte * 2),
     ('pcie_speed', ctypes.c_uint32),
+    ('reserved', ctypes.c_uint32 * 6),
 ]
 
 amdsmi_pcie_info_t = amdsmi_pcie_info

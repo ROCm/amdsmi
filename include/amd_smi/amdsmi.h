@@ -71,7 +71,7 @@ typedef enum amdsmi_init_flags {
   AMDSMI_INIT_NON_AMD_GPUS = (1 << 3)
 } amdsmi_init_flags_t;
 
-/* Maximum size definitions GPUVSMI */
+/* Maximum size definitions AMDSMI */
 #define AMDSMI_MAX_MM_IP_COUNT	      8
 #define AMDSMI_MAX_DATE_LENGTH	      32 /**< YYYY-MM-DD:HH:MM:SS.MSC */
 #define AMDSMI_MAX_STRING_LENGTH	      64
@@ -252,6 +252,7 @@ typedef enum amdsmi_fw_block {
 typedef struct {
     uint64_t lower_bound;      //!< Lower bound of range
     uint64_t upper_bound;      //!< Upper bound of range
+    uint64_t reserved[2];
 } amdsmi_range_t;
 /// @cond Ignore in docs.
 typedef amdsmi_range_t amdsmi_range;
@@ -262,6 +263,7 @@ typedef struct amdsmi_xgmi_info {
   uint64_t xgmi_hive_id;
   uint64_t xgmi_node_id;
   uint32_t index;
+  uint32_t reserved[9];
 } amdsmi_xgmi_info_t;
 
 /**
@@ -272,16 +274,19 @@ typedef struct amdsmi_gpu_caps {
     uint32_t gfxip_major;
     uint32_t gfxip_minor;
     uint16_t gfxip_cu_count;
+    uint32_t reserved[5];
   } gfx;
   struct {
     uint8_t mm_ip_count;
     uint8_t mm_ip_list[AMDSMI_MAX_MM_IP_COUNT];
+    uint32_t reserved[5];
   } mm;
 
   bool ras_supported;
   uint8_t max_vf_num;
   uint32_t gfx_ip_count;
   uint32_t dma_ip_count;
+  uint32_t reserved[5];
 } amdsmi_gpu_caps_t;
 
 typedef struct amdsmi_vram_info {
@@ -292,6 +297,7 @@ typedef struct amdsmi_vram_info {
 typedef struct amdsmi_frequency_range {
 	amdsmi_range_t supported_freq_range;
 	amdsmi_range_t current_freq_range;
+	uint32_t reserved[8];
 } amdsmi_frequency_range_t;
 
 typedef union amdsmi_bdf {
@@ -310,6 +316,7 @@ typedef struct amdsmi_power_cap_info {
   uint64_t dpm_cap;
   uint64_t min_power_cap;
   uint64_t max_power_cap;
+  uint64_t reserved[3];
 } amdsmi_power_cap_info_t;
 
 typedef struct amdsmi_vbios_info {
@@ -318,6 +325,7 @@ typedef struct amdsmi_vbios_info {
   char    build_date[AMDSMI_MAX_DATE_LENGTH];
   char    part_number[AMDSMI_MAX_STRING_LENGTH];
   char    vbios_version_string[AMDSMI_NORMAL_STRING_LENGTH];
+  uint32_t reserved[15];
 } amdsmi_vbios_info_t;
 
 typedef struct amdsmi_fw_info {
@@ -325,7 +333,9 @@ typedef struct amdsmi_fw_info {
   struct {
     amdsmi_fw_block_t fw_id;
     uint64_t fw_version;
+    uint64_t reserved[2];
   } fw_info_list[FW_ID__MAX];
+  uint32_t reserved[7];
 } amdsmi_fw_info_t;
 
 typedef struct amdsmi_asic_info {
@@ -350,14 +360,17 @@ typedef struct amdsmi_board_info {
 
 typedef struct amdsmi_temperature {
   uint32_t  cur_temp;
+  uint32_t  reserved[7];
 } amdsmi_temperature_t;
 
 typedef struct amdsmi_temperature_limit {
   uint32_t  limit;
+  uint32_t  reserved[7];
 } amdsmi_temperature_limit_t;
 
 typedef struct amdsmi_power_limit {
   uint32_t  limit;
+  uint32_t  reserved[7];
 } amdsmi_power_limit_t;
 
 typedef struct amdsmi_power_measure {
@@ -366,6 +379,7 @@ typedef struct amdsmi_power_measure {
   uint32_t voltage_gfx;   // GFX voltage measurement in mV
   uint32_t voltage_soc;  // SOC voltage measurement in mV
   uint32_t voltage_mem;  // MEM voltage measurement in mV
+  uint32_t reserved[10];
 } amdsmi_power_measure_t;
 
 typedef struct amdsmi_clk_measure {
@@ -373,12 +387,14 @@ typedef struct amdsmi_clk_measure {
   uint32_t avg_clk;
   uint32_t min_clk;
   uint32_t max_clk;
+  uint32_t reserved[4];
 } amdsmi_clk_measure_t;
 
 typedef struct amdsmi_engine_usage {
   uint32_t gfx_activity;
   uint32_t umc_activity;
   uint32_t mm_activity[AMDSMI_MAX_MM_IP_COUNT];
+  uint32_t reserved[6];
 } amdsmi_engine_usage_t;
 
 typedef uint32_t amdsmi_process_handle;
@@ -399,7 +415,8 @@ typedef struct amdsmi_process_info {
     uint64_t cpu_mem;
     uint64_t vram_mem;
   } memory_usage; /** in bytes */
-	char container_name[AMDSMI_NORMAL_STRING_LENGTH];
+  char container_name[AMDSMI_NORMAL_STRING_LENGTH];
+  uint32_t reserved[10];
 } amdsmi_proc_info_t;
 
 //! Guaranteed maximum possible number of supported frequencies
@@ -924,6 +941,7 @@ typedef struct {
     uint32_t minor;     //!< Minor version
     uint32_t patch;     //!< Patch, build  or stepping version
     const char *build;  //!< Build string
+    uint32_t reserved[4];
 } amdsmi_version_t;
 /// @cond Ignore in docs.
 typedef amdsmi_version_t amdsmi_version;
@@ -1093,6 +1111,7 @@ typedef struct {
 typedef struct {
     uint64_t correctable_count;            //!< Accumulated correctable errors
     uint64_t uncorrectable_count;          //!< Accumulated uncorrectable errors
+    uint64_t reserved[2];
 } amdsmi_error_count_t;
 
 /**
@@ -1101,6 +1120,7 @@ typedef struct {
 typedef struct amdsmi_pcie_info {
 	uint16_t pcie_lanes;
 	uint32_t pcie_speed;
+	uint32_t reserved[6];
 } amdsmi_pcie_info_t;
 /**
  * @brief This structure contains information specific to a process.
