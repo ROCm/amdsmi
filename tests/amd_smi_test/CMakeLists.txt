@@ -1,6 +1,12 @@
 # Required Defines first:
 option(INSTALL_GTEST "Install GTest (only useful if GTest is not already installed)" OFF)
 
+# Help tests find libraries at runtime
+set(CMAKE_EXE_LINKER_FLAGS "-Wl,--enable-new-dtags")
+set(CMAKE_INSTALL_RPATH
+    "\$ORIGIN:\$ORIGIN/../../../lib"
+    CACHE STRING "RUNPATH for tests. Helps find libgtest.so and libamd_smi.so")
+
 # Try to find googletest
 find_package(GTest 1.11.0)
 
@@ -58,7 +64,9 @@ add_executable(${TEST} ${tstSources} ${functionalSources})
 
 target_link_libraries(${TEST} amd_smi c stdc++ pthread GTest::gtest_main)
 
+# Install tests and gtest
+# TODO: Remove GTest from here in the future and rely on INSTALL_GTEST?
 install(
-    TARGETS ${TEST}
+    TARGETS ${TEST} gtest gtest_main
     DESTINATION ${SHARE_INSTALL_PREFIX}/tests/amd_smi
     COMPONENT tests)
