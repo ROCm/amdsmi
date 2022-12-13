@@ -252,9 +252,9 @@ int main() {
             if (!num_pages) {
                 printf("\tNo bad pages found.\n");
             } else {
-                amdsmi_retired_page_record_t bad_page_info[num_pages] = {};
+                std::vector<amdsmi_retired_page_record_t> bad_page_info(num_pages);
                 ret = amdsmi_get_bad_page_info(device_handles[j], &num_pages,
-                                               bad_page_info);
+                                               bad_page_info.data());
                 CHK_AMDSMI_RET(ret)
                 for (uint32_t page_it = 0; page_it < num_pages; page_it += 1) {
                     printf("      Page[%d]\n", page_it);
