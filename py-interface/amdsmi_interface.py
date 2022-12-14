@@ -392,13 +392,18 @@ def _parse_fw_info(fw_info: amdsmi_wrapper.amdsmi_fw_info_t) -> Dict[str, Any]:
             fw_info, amdsmi_wrapper.amdsmi_fw_info_t)
     formatted_fw_info = dict()
     formatted_fw_info = {"num_fw_info": fw_info.num_fw_info}
-    for index, value in amdsmi_wrapper.amdsmi_fw_block__enumvalues.items():
+
+
+    for i in range(0, fw_info.num_fw_info):
+        index = fw_info.fw_info_list[i].fw_id
+        value = amdsmi_wrapper.amdsmi_fw_block__enumvalues.get(index)
         if value == "FW_ID_FIRST":
             value = "FW_ID_SMU"
         if value == "FW_ID__MAX":
             continue
+
         formatted_fw_info.update(
-            {value: fw_info.fw_info_list[index - 1].fw_version})
+            {value: fw_info.fw_info_list[i].fw_version})
 
     return formatted_fw_info
 
