@@ -96,7 +96,7 @@ void TestMemPageInfoRead::Run(void) {
   for (uint32_t i = 0; i < num_monitor_devs(); ++i) {
     PrintDeviceHeader(device_handles_[i]);
 
-    err = amdsmi_dev_memory_reserved_pages_get(device_handles_[i], &num_pages, nullptr);
+    err = amdsmi_dev_get_memory_reserved_pages(device_handles_[i], &num_pages, nullptr);
 
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       std::cout <<
@@ -104,7 +104,7 @@ void TestMemPageInfoRead::Run(void) {
                                                                  << std::endl;
 
       // Verify api support checking functionality is working
-      err = amdsmi_dev_memory_reserved_pages_get(device_handles_[i], nullptr, nullptr);
+      err = amdsmi_dev_get_memory_reserved_pages(device_handles_[i], nullptr, nullptr);
       ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
 
       continue;
@@ -115,7 +115,7 @@ void TestMemPageInfoRead::Run(void) {
                                                                     std::endl;
       }
       // Verify api support checking functionality is working
-      err = amdsmi_dev_memory_reserved_pages_get(device_handles_[i], nullptr, nullptr);
+      err = amdsmi_dev_get_memory_reserved_pages(device_handles_[i], nullptr, nullptr);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
     }
 
@@ -124,7 +124,7 @@ void TestMemPageInfoRead::Run(void) {
 
       assert(records != nullptr);
 
-      err = amdsmi_dev_memory_reserved_pages_get(device_handles_[i], &num_pages, records);
+      err = amdsmi_dev_get_memory_reserved_pages(device_handles_[i], &num_pages, records);
       if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
         std::cout << "\t**Getting Memory Page Retirement Status not "
                                      "supported for this device" << std::endl;

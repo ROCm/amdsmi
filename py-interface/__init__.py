@@ -75,106 +75,106 @@ from .amdsmi_interface import amdsmi_get_board_info
 from .amdsmi_interface import amdsmi_get_ras_block_features_enabled
 
 # # Supported Function Checks
-from .amdsmi_interface import amdsmi_dev_supported_func_iterator_open
-from .amdsmi_interface import amdsmi_dev_supported_variant_iterator_open
-from .amdsmi_interface import amdsmi_dev_supported_func_iterator_close
-from .amdsmi_interface import amdsmi_func_iter_next
-from .amdsmi_interface import amdsmi_func_iter_value_get
+from .amdsmi_interface import amdsmi_dev_open_supported_func_iterator
+from .amdsmi_interface import amdsmi_dev_open_supported_variant_iterator
+from .amdsmi_interface import amdsmi_dev_close_supported_func_iterator
+from .amdsmi_interface import amdsmi_next_func_iter
+from .amdsmi_interface import amdsmi_get_func_iter_value
 
 # # Unsupported Functions In Virtual Environment
-from .amdsmi_interface import amdsmi_dev_pci_bandwidth_set
-from .amdsmi_interface import amdsmi_dev_power_cap_set
-from .amdsmi_interface import amdsmi_dev_power_profile_set
-from .amdsmi_interface import amdsmi_dev_clk_range_set
-from .amdsmi_interface import amdsmi_dev_od_clk_info_set
-from .amdsmi_interface import amdsmi_dev_od_volt_info_set
-from .amdsmi_interface import amdsmi_dev_perf_level_set_v1
-from .amdsmi_interface import amdsmi_dev_perf_level_set
-from .amdsmi_interface import amdsmi_dev_power_profile_presets_get
-from .amdsmi_interface import amdsmi_dev_gpu_reset
-from .amdsmi_interface import amdsmi_perf_determinism_mode_set
-from .amdsmi_interface import amdsmi_dev_fan_speed_set
-from .amdsmi_interface import amdsmi_dev_fan_reset
-from .amdsmi_interface import amdsmi_dev_gpu_clk_freq_set
-from .amdsmi_interface import amdsmi_dev_overdrive_level_set_v1
-from .amdsmi_interface import amdsmi_dev_overdrive_level_set
+from .amdsmi_interface import  amdsmi_dev_set_pci_bandwidth
+from .amdsmi_interface import  amdsmi_dev_set_power_cap
+from .amdsmi_interface import  amdsmi_dev_set_power_profile
+from .amdsmi_interface import amdsmi_dev_set_clk_range
+from .amdsmi_interface import  amdsmi_dev_set_od_clk_info
+from .amdsmi_interface import  amdsmi_dev_set_od_volt_info
+from .amdsmi_interface import  amdsmi_dev_set_perf_level_v1
+from .amdsmi_interface import  amdsmi_dev_set_perf_level
+from .amdsmi_interface import  amdsmi_dev_get_power_profile_presets
+from .amdsmi_interface import amdsmi_dev_reset_gpu
+from .amdsmi_interface import amdsmi_set_perf_determinism_mode
+from .amdsmi_interface import amdsmi_dev_set_fan_speed
+from .amdsmi_interface import amdsmi_dev_reset_fan
+from .amdsmi_interface import  amdsmi_dev_set_clk_freq
+from .amdsmi_interface import  amdsmi_dev_set_overdrive_level_v1
+from .amdsmi_interface import  amdsmi_dev_set_overdrive_level
 
 # # Physical State Queries
-from .amdsmi_interface import amdsmi_dev_fan_rpms_get
-from .amdsmi_interface import amdsmi_dev_fan_speed_get
-from .amdsmi_interface import amdsmi_dev_fan_speed_max_get
-from .amdsmi_interface import amdsmi_dev_temp_metric_get
-from .amdsmi_interface import amdsmi_dev_volt_metric_get
+from .amdsmi_interface import amdsmi_dev_get_fan_rpms
+from .amdsmi_interface import amdsmi_dev_get_fan_speed
+from .amdsmi_interface import amdsmi_dev_get_fan_speed_max
+from .amdsmi_interface import  amdsmi_dev_get_temp_metric
+from .amdsmi_interface import  amdsmi_dev_get_volt_metric
 
 # # Clock, Power and Performance Query
-from .amdsmi_interface import amdsmi_dev_busy_percent_get
-from .amdsmi_interface import amdsmi_utilization_count_get
-from .amdsmi_interface import amdsmi_dev_perf_level_get
-from .amdsmi_interface import amdsmi_perf_determinism_mode_set
-from .amdsmi_interface import amdsmi_dev_overdrive_level_get
-from .amdsmi_interface import amdsmi_dev_gpu_clk_freq_get
-from .amdsmi_interface import amdsmi_dev_od_volt_info_get
-from .amdsmi_interface import amdsmi_dev_gpu_metrics_info_get
-from .amdsmi_interface import amdsmi_dev_od_volt_curve_regions_get
-from .amdsmi_interface import amdsmi_dev_power_profile_presets_get
+from .amdsmi_interface import amdsmi_dev_get_busy_percent
+from .amdsmi_interface import amdsmi_get_utilization_count
+from .amdsmi_interface import amdsmi_dev_get_perf_level
+from .amdsmi_interface import amdsmi_set_perf_determinism_mode
+from .amdsmi_interface import amdsmi_dev_get_overdrive_level
+from .amdsmi_interface import  amdsmi_dev_get_gpu_clk_freq
+from .amdsmi_interface import  amdsmi_dev_get_od_volt_info
+from .amdsmi_interface import  amdsmi_dev_get_gpu_metrics_info
+from .amdsmi_interface import  amdsmi_dev_get_od_volt_curve_regions
+from .amdsmi_interface import  amdsmi_dev_get_power_profile_presets
 
 # # Performance Counters
 from .amdsmi_interface import amdsmi_dev_counter_group_supported
-from .amdsmi_interface import amdsmi_dev_counter_create
-from .amdsmi_interface import amdsmi_dev_counter_destroy
-from .amdsmi_interface import amdsmi_counter_control
-from .amdsmi_interface import amdsmi_counter_read
-from .amdsmi_interface import amdsmi_counter_available_counters_get
+from .amdsmi_interface import amdsmi_dev_create_counter
+from .amdsmi_interface import amdsmi_dev_destroy_counter
+from .amdsmi_interface import amdsmi_control_counter
+from .amdsmi_interface import amdsmi_read_counter
+from .amdsmi_interface import  amdsmi_counter_get_available_counters
 
 # # Error Query
-from .amdsmi_interface import amdsmi_dev_ecc_count_get
-from .amdsmi_interface import amdsmi_dev_ecc_enabled_get
-from .amdsmi_interface import amdsmi_dev_ecc_status_get
+from .amdsmi_interface import  amdsmi_dev_get_ecc_count
+from .amdsmi_interface import  amdsmi_dev_get_ecc_enabled
+from .amdsmi_interface import  amdsmi_dev_get_ecc_status
 from .amdsmi_interface import amdsmi_status_string
 
 # # System Information Query
-from .amdsmi_interface import amdsmi_compute_process_info_get
-from .amdsmi_interface import amdsmi_compute_process_info_by_pid_get
-from .amdsmi_interface import amdsmi_compute_process_gpus_get
+from .amdsmi_interface import amdsmi_get_compute_process_info
+from .amdsmi_interface import amdsmi_get_compute_process_info_by_pid
+from .amdsmi_interface import amdsmi_get_compute_process_gpus
 from .amdsmi_interface import amdsmi_dev_xgmi_error_status
-from .amdsmi_interface import amdsmi_dev_xgmi_error_reset
+from .amdsmi_interface import amdsmi_dev_reset_xgmi_error
 
 # # PCIE information
-from .amdsmi_interface import amdsmi_dev_pci_id_get
-from .amdsmi_interface import amdsmi_dev_pci_bandwidth_get
-from .amdsmi_interface import amdsmi_dev_pci_throughput_get
-from .amdsmi_interface import amdsmi_dev_pci_replay_counter_get
-from .amdsmi_interface import amdsmi_topo_numa_affinity_get
+from .amdsmi_interface import amdsmi_dev_get_pci_id
+from .amdsmi_interface import amdsmi_dev_get_pci_bandwidth
+from .amdsmi_interface import amdsmi_dev_get_pci_throughput
+from .amdsmi_interface import  amdsmi_dev_get_pci_replay_counter
+from .amdsmi_interface import amdsmi_topo_get_numa_affinity
 
 # # Power information
-from .amdsmi_interface import amdsmi_dev_power_ave_get
-from .amdsmi_interface import amdsmi_dev_energy_count_get
+from .amdsmi_interface import amdsmi_dev_get_power_ave
+from .amdsmi_interface import amdsmi_dev_get_energy_count
 
 # # Memory information
-from .amdsmi_interface import amdsmi_dev_memory_total_get
-from .amdsmi_interface import amdsmi_dev_memory_usage_get
-from .amdsmi_interface import amdsmi_dev_memory_busy_percent_get
-from .amdsmi_interface import amdsmi_dev_memory_reserved_pages_get
+from .amdsmi_interface import amdsmi_dev_get_memory_total
+from .amdsmi_interface import amdsmi_dev_get_memory_usage
+from .amdsmi_interface import amdsmi_dev_get_memory_busy_percent
+from .amdsmi_interface import amdsmi_dev_get_memory_reserved_pages
 
 # # Events
 from .amdsmi_interface import AmdSmiEventReader
 
 # # Device Identification information
-from .amdsmi_interface import amdsmi_dev_vendor_name_get
-from .amdsmi_interface import amdsmi_dev_id_get
-from .amdsmi_interface import amdsmi_dev_vram_vendor_get
-from .amdsmi_interface import amdsmi_dev_drm_render_minor_get
-from .amdsmi_interface import amdsmi_dev_subsystem_id_get
-from .amdsmi_interface import amdsmi_dev_subsystem_name_get
+from .amdsmi_interface import amdsmi_dev_get_vendor_name
+from .amdsmi_interface import amdsmi_dev_get_id
+from .amdsmi_interface import amdsmi_dev_get_vram_vendor
+from .amdsmi_interface import amdsmi_dev_get_drm_render_minor
+from .amdsmi_interface import amdsmi_dev_get_subsystem_id
+from .amdsmi_interface import amdsmi_dev_get_subsystem_name
 
 # # Version information
-from .amdsmi_interface import amdsmi_version_get
-from .amdsmi_interface import amdsmi_version_str_get
+from .amdsmi_interface import amdsmi_get_version
+from .amdsmi_interface import amdsmi_get_version_str
 
 # # Hardware topology query
 from .amdsmi_interface import amdsmi_topo_get_numa_node_number
 from .amdsmi_interface import amdsmi_topo_get_link_weight
-from .amdsmi_interface import amdsmi_minmax_bandwidth_get
+from .amdsmi_interface import  amdsmi_get_minmax_bandwidth
 from .amdsmi_interface import amdsmi_topo_get_link_type
 from .amdsmi_interface import amdsmi_is_P2P_accessible
 from .amdsmi_interface import amdsmi_get_xgmi_info
