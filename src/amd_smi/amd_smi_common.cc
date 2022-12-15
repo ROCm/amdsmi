@@ -42,11 +42,26 @@
  */
 
 #include <functional>
+#include "amd_smi/amdsmi.h"
 #include "amd_smi/impl/amd_smi_common.h"
 
 
 namespace amd {
 namespace smi {
+
+amdsmi_status_t rsmi_to_amdsmi_status(rsmi_status_t status) {
+    amdsmi_status_t amdsmi_status = AMDSMI_STATUS_MAP_ERROR;
+
+    // Look for it in the map
+    // If found: use the mapped value
+    // If not found: return the map error established above
+    auto search = amd::smi::rsmi_status_map.find(status);
+    if (search != amd::smi::rsmi_status_map.end()) {
+        amdsmi_status = search->second;
+    }
+
+    return amdsmi_status;
+}
 
 }  // namespace smi
 }  // namespace amd
