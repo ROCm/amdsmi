@@ -44,6 +44,7 @@
 #include <assert.h>
 #include <dirent.h>
 
+#include <cstring>
 #include <fstream>
 #include <string>
 #include <cstdint>
