@@ -122,7 +122,7 @@ void TestPowerReadWrite::Run(void) {
   for (uint32_t dv_ind = 0; dv_ind < num_monitor_devs(); ++dv_ind) {
     PrintDeviceHeader(device_handles_[dv_ind]);
 
-    ret = amdsmi_dev_power_profile_presets_get(device_handles_[dv_ind], 0, &status);
+    ret =  amdsmi_dev_get_power_profile_presets(device_handles_[dv_ind], 0, &status);
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
       std::cout << "The power profile presets settings is not supported. "
                 << std::endl;
@@ -131,7 +131,7 @@ void TestPowerReadWrite::Run(void) {
     CHK_ERR_ASRT(ret)
 
     // Verify api support checking functionality is working
-    ret = amdsmi_dev_power_profile_presets_get(device_handles_[dv_ind], 0, nullptr);
+    ret =  amdsmi_dev_get_power_profile_presets(device_handles_[dv_ind], 0, nullptr);
     ASSERT_EQ(ret, AMDSMI_STATUS_INVAL);
 
     IF_VERB(STANDARD) {
@@ -172,27 +172,27 @@ void TestPowerReadWrite::Run(void) {
       return;
     }
 
-    ret = amdsmi_dev_power_profile_set(device_handles_[dv_ind], 0, new_prof);
+    ret =  amdsmi_dev_set_power_profile(device_handles_[dv_ind], 0, new_prof);
     CHK_ERR_ASRT(ret)
 
     amdsmi_dev_perf_level_t pfl;
-    ret = amdsmi_dev_perf_level_get(device_handles_[dv_ind], &pfl);
+    ret = amdsmi_dev_get_perf_level(device_handles_[dv_ind], &pfl);
     CHK_ERR_ASRT(ret)
     ASSERT_EQ(pfl, AMDSMI_DEV_PERF_LEVEL_MANUAL);
 
-    ret = amdsmi_dev_power_profile_presets_get(device_handles_[dv_ind], 0, &status);
+    ret =  amdsmi_dev_get_power_profile_presets(device_handles_[dv_ind], 0, &status);
     CHK_ERR_ASRT(ret)
 
     ASSERT_EQ(status.current, new_prof);
 
-    ret = amdsmi_dev_perf_level_set(device_handles_[dv_ind], AMDSMI_DEV_PERF_LEVEL_AUTO);
+    ret =  amdsmi_dev_set_perf_level(device_handles_[dv_ind], AMDSMI_DEV_PERF_LEVEL_AUTO);
     CHK_ERR_ASRT(ret)
 
-    ret = amdsmi_dev_perf_level_get(device_handles_[dv_ind], &pfl);
+    ret = amdsmi_dev_get_perf_level(device_handles_[dv_ind], &pfl);
     CHK_ERR_ASRT(ret)
     ASSERT_EQ(pfl, AMDSMI_DEV_PERF_LEVEL_AUTO);
 
-    ret = amdsmi_dev_power_profile_presets_get(device_handles_[dv_ind], 0, &status);
+    ret =  amdsmi_dev_get_power_profile_presets(device_handles_[dv_ind], 0, &status);
     CHK_ERR_ASRT(ret)
 
     ASSERT_EQ(status.current, orig_profile);

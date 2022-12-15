@@ -197,7 +197,7 @@ void TestMutualExclusion::Run(void) {
     std::cout << "at " << __FILE__ << ":" << __LINE__ << std::endl; \
   } \
 }
-    ret = amdsmi_dev_id_get(device_handles_[0], &dmy_ui16);
+    ret = amdsmi_dev_get_id(device_handles_[0], &dmy_ui16);
 
     // vendor_id, unique_id
     amdsmi_asic_info_t asci_info;
@@ -209,105 +209,105 @@ void TestMutualExclusion::Run(void) {
     ret = amdsmi_get_board_info(device_handles_[0], &board_info);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
 
-    ret = amdsmi_dev_vendor_name_get(device_handles_[0], dmy_str, 10);
+    ret = amdsmi_dev_get_vendor_name(device_handles_[0], dmy_str, 10);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_vram_vendor_get(device_handles_[0], dmy_str, 10);
+    ret = amdsmi_dev_get_vram_vendor(device_handles_[0], dmy_str, 10);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_subsystem_id_get(device_handles_[0], &dmy_ui16);
+    ret = amdsmi_dev_get_subsystem_id(device_handles_[0], &dmy_ui16);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_pci_id_get(device_handles_[0], &dmy_ui64);
+    ret = amdsmi_dev_get_pci_id(device_handles_[0], &dmy_ui64);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_pci_throughput_get(device_handles_[0], &dmy_ui64, &dmy_ui64, &dmy_ui64);
+    ret = amdsmi_dev_get_pci_throughput(device_handles_[0], &dmy_ui64, &dmy_ui64, &dmy_ui64);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_pci_replay_counter_get(device_handles_[0], &dmy_ui64);
+    ret =  amdsmi_dev_get_pci_replay_counter(device_handles_[0], &dmy_ui64);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_pci_bandwidth_set(device_handles_[0], 0);
+    ret =  amdsmi_dev_set_pci_bandwidth(device_handles_[0], 0);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_fan_rpms_get(device_handles_[0], dmy_ui32, &dmy_i64);
+    ret = amdsmi_dev_get_fan_rpms(device_handles_[0], dmy_ui32, &dmy_i64);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_fan_speed_get(device_handles_[0], 0, &dmy_i64);
+    ret = amdsmi_dev_get_fan_speed(device_handles_[0], 0, &dmy_i64);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_fan_speed_max_get(device_handles_[0], 0, &dmy_ui64);
+    ret = amdsmi_dev_get_fan_speed_max(device_handles_[0], 0, &dmy_ui64);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_temp_metric_get(device_handles_[0], dmy_ui32, AMDSMI_TEMP_CURRENT, &dmy_i64);
+    ret =  amdsmi_dev_get_temp_metric(device_handles_[0], dmy_ui32, AMDSMI_TEMP_CURRENT, &dmy_i64);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_fan_reset(device_handles_[0], 0);
+    ret = amdsmi_dev_reset_fan(device_handles_[0], 0);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_fan_speed_set(device_handles_[0], dmy_ui32, 0);
+    ret = amdsmi_dev_set_fan_speed(device_handles_[0], dmy_ui32, 0);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_perf_level_get(device_handles_[0], &dmy_perf_lvl);
+    ret = amdsmi_dev_get_perf_level(device_handles_[0], &dmy_perf_lvl);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_overdrive_level_get(device_handles_[0], &dmy_ui32);
+    ret = amdsmi_dev_get_overdrive_level(device_handles_[0], &dmy_ui32);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_gpu_clk_freq_get(device_handles_[0], CLK_TYPE_SYS, &dmy_freqs);
+    ret =  amdsmi_dev_get_gpu_clk_freq(device_handles_[0], CLK_TYPE_SYS, &dmy_freqs);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_od_volt_info_get(device_handles_[0], &dmy_od_volt);
+    ret =  amdsmi_dev_get_od_volt_info(device_handles_[0], &dmy_od_volt);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_od_volt_curve_regions_get(device_handles_[0], &dmy_ui32, &dmy_vlt_reg);
+    ret =  amdsmi_dev_get_od_volt_curve_regions(device_handles_[0], &dmy_ui32, &dmy_vlt_reg);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_overdrive_level_set_v1(device_handles_[0], dmy_i32);
+    ret =  amdsmi_dev_set_overdrive_level_v1(device_handles_[0], dmy_i32);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_gpu_clk_freq_set(device_handles_[0], CLK_TYPE_SYS, 0);
+    ret =  amdsmi_dev_set_clk_freq(device_handles_[0], CLK_TYPE_SYS, 0);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_ecc_count_get(device_handles_[0], AMDSMI_GPU_BLOCK_UMC, &dmy_err_cnt);
+    ret =  amdsmi_dev_get_ecc_count(device_handles_[0], AMDSMI_GPU_BLOCK_UMC, &dmy_err_cnt);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_ecc_enabled_get(device_handles_[0], &dmy_ui64);
+    ret =  amdsmi_dev_get_ecc_enabled(device_handles_[0], &dmy_ui64);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_ecc_status_get(device_handles_[0], AMDSMI_GPU_BLOCK_UMC, &dmy_ras_err_st);
+    ret =  amdsmi_dev_get_ecc_status(device_handles_[0], AMDSMI_GPU_BLOCK_UMC, &dmy_ras_err_st);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
 
     /* Other functions holding device mutexes. Listed for reference.
     amdsmi_dev_sku_get
-    amdsmi_dev_perf_level_set_v1
-    amdsmi_dev_od_clk_info_set
-    amdsmi_dev_od_volt_info_set
+     amdsmi_dev_set_perf_level_v1
+     amdsmi_dev_set_od_clk_info
+     amdsmi_dev_set_od_volt_info
     amdsmi_dev_firmware_version_get
     amdsmi_dev_firmware_version_get
     amdsmi_dev_name_get
     amdsmi_dev_brand_get
-    amdsmi_dev_vram_vendor_get
-    amdsmi_dev_subsystem_name_get
-    amdsmi_dev_drm_render_minor_get
-    amdsmi_dev_vendor_name_get
-    amdsmi_dev_pci_bandwidth_get
-    amdsmi_dev_pci_bandwidth_set
-    amdsmi_dev_pci_throughput_get
-    amdsmi_dev_temp_metric_get
-    amdsmi_dev_volt_metric_get
-    amdsmi_dev_fan_speed_get
-    amdsmi_dev_fan_rpms_get
-    amdsmi_dev_fan_reset
-    amdsmi_dev_fan_speed_set
-    amdsmi_dev_fan_speed_max_get
-    amdsmi_dev_od_volt_info_get
-    amdsmi_dev_gpu_metrics_info_get
-    amdsmi_dev_od_volt_curve_regions_get
+    amdsmi_dev_get_vram_vendor
+    amdsmi_dev_get_subsystem_name
+    amdsmi_dev_get_drm_render_minor
+    amdsmi_dev_get_vendor_name
+    amdsmi_dev_get_pci_bandwidth
+     amdsmi_dev_set_pci_bandwidth
+    amdsmi_dev_get_pci_throughput
+     amdsmi_dev_get_temp_metric
+     amdsmi_dev_get_volt_metric
+    amdsmi_dev_get_fan_speed
+    amdsmi_dev_get_fan_rpms
+    amdsmi_dev_reset_fan
+    amdsmi_dev_set_fan_speed
+    amdsmi_dev_get_fan_speed_max
+     amdsmi_dev_get_od_volt_info
+     amdsmi_dev_get_gpu_metrics_info
+     amdsmi_dev_get_od_volt_curve_regions
     amdsmi_dev_power_max_get
-    amdsmi_dev_power_ave_get
+    amdsmi_dev_get_power_ave
     amdsmi_dev_power_cap_get
     amdsmi_dev_power_cap_range_get
-    amdsmi_dev_power_cap_set
-    amdsmi_dev_power_profile_presets_get
-    amdsmi_dev_power_profile_set
-    amdsmi_dev_memory_total_get
-    amdsmi_dev_memory_usage_get
-    amdsmi_dev_memory_busy_percent_get
-    amdsmi_dev_busy_percent_get
+     amdsmi_dev_set_power_cap
+     amdsmi_dev_get_power_profile_presets
+     amdsmi_dev_set_power_profile
+    amdsmi_dev_get_memory_total
+    amdsmi_dev_get_memory_usage
+    amdsmi_dev_get_memory_busy_percent
+    amdsmi_dev_get_busy_percent
     amdsmi_dev_vbios_version_get
     amdsmi_dev_serial_number_get
-    amdsmi_dev_pci_replay_counter_get
+     amdsmi_dev_get_pci_replay_counter
     amdsmi_dev_unique_id_get
-    amdsmi_dev_counter_create
-    amdsmi_counter_available_counters_get
+    amdsmi_dev_create_counter
+     amdsmi_counter_get_available_counters
     amdsmi_dev_counter_group_supported
-    amdsmi_dev_memory_reserved_pages_get
+    amdsmi_dev_get_memory_reserved_pages
     amdsmi_dev_xgmi_error_status
-    amdsmi_dev_xgmi_error_reset
+    amdsmi_dev_reset_xgmi_error
     amdsmi_dev_xgmi_hive_id_get
     amdsmi_topo_get_link_weight
-    amdsmi_event_notification_mask_set
-    amdsmi_event_notification_init
-    amdsmi_event_notification_stop
+     amdsmi_set_event_notification_mask
+    amdsmi_init_event_notification
+    amdsmi_stop_event_notification
     */
 
     IF_VERB(STANDARD) {

@@ -104,7 +104,7 @@ void TestVoltRead::Run(void) {
 
     auto print_volt_metric = [&](amdsmi_voltage_metric_t met,
                                                         std::string label) {
-      err = amdsmi_dev_volt_metric_get(device_handles_[i], type, met, &val_i64);
+      err =  amdsmi_dev_get_volt_metric(device_handles_[i], type, met, &val_i64);
 
       if (err != AMDSMI_STATUS_SUCCESS) {
         if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
@@ -113,7 +113,7 @@ void TestVoltRead::Run(void) {
                                "Not supported on this machine" << std::endl;
 
             // Verify api support checking functionality is working
-            err = amdsmi_dev_volt_metric_get(device_handles_[i], type, met, nullptr);
+            err =  amdsmi_dev_get_volt_metric(device_handles_[i], type, met, nullptr);
             ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
             return;
           }
@@ -122,7 +122,7 @@ void TestVoltRead::Run(void) {
         }
       }
       // Verify api support checking functionality is working
-      err = amdsmi_dev_volt_metric_get(device_handles_[i], type, met, nullptr);
+      err =  amdsmi_dev_get_volt_metric(device_handles_[i], type, met, nullptr);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
       IF_VERB(STANDARD) {
