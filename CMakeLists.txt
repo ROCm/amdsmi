@@ -165,9 +165,10 @@ if(PYTHON3 AND PIP3)
         COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/amd_smi
         COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/rocm_smi/include/rocm_smi/kfd_ioctl.h
                 ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/amd_smi/
+        COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/tools/generator.py ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/
         COMMAND
-            python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/generator.py ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/amdsmi.h
-            ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/ ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/
+            python3 ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/generator.py -o ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/amdsmi_wrapper.py
+            -i ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/amdsmi.h -l ${CMAKE_CURRENT_BINARY_DIR}/src/libamd_smi.so
         COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/amdsmi_wrapper.py
                 ${CMAKE_CURRENT_SOURCE_DIR}/py-interface/
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper)
