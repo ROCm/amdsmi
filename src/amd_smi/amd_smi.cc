@@ -275,8 +275,10 @@ amdsmi_get_device_bdf(amdsmi_device_handle device_handle, amdsmi_bdf_t *bdf) {
         return AMDSMI_STATUS_INVAL;
     }
 
-    amd::smi::AMDSmiGPUDevice* gpu_device =
-                static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpu_device);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
 
     // get bdf from sysfs file
     *bdf = gpu_device->get_bdf();
@@ -293,8 +295,10 @@ amdsmi_status_t amdsmi_get_board_info(amdsmi_device_handle device_handle, amdsmi
     }
 
     amdsmi_status_t status;
-    amd::smi::AMDSmiGPUDevice* gpu_device =
-                static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpu_device);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
 
     // Get from sys file
     status = smi_amdgpu_get_board_info(gpu_device, board_info);
@@ -348,15 +352,18 @@ amdsmi_status_t amdsmi_get_vram_usage(amdsmi_device_handle device_handle,
     }
 
     amd::smi::AMDSmiDevice* device = nullptr;
-    amdsmi_status_t r = amd::smi::AMDSmiSystem::getInstance()
+    amdsmi_status_t ret = amd::smi::AMDSmiSystem::getInstance()
                     .handle_to_device(device_handle, &device);
-    if (r != AMDSMI_STATUS_SUCCESS) return r;
+    if (ret != AMDSMI_STATUS_SUCCESS) return ret;
 
     if (device->get_device_type() != AMD_GPU) {
         return AMDSMI_STATUS_NOT_SUPPORTED;
     }
-    amd::smi::AMDSmiGPUDevice* gpu_device =
-                static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
+
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpu_device);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
 
     struct drm_amdgpu_info_vram_gtt gtt;
     uint64_t vram_used = 0;
@@ -387,15 +394,17 @@ amdsmi_status_t amdsmi_get_caps_info(amdsmi_device_handle device_handle,
     }
 
     amd::smi::AMDSmiDevice* amd_device = nullptr;
-    amdsmi_status_t r = amd::smi::AMDSmiSystem::getInstance()
+    amdsmi_status_t ret = amd::smi::AMDSmiSystem::getInstance()
                     .handle_to_device(device_handle, &amd_device);
-    if (r != AMDSMI_STATUS_SUCCESS) return r;
+    if (ret != AMDSMI_STATUS_SUCCESS) return ret;
 
     if (amd_device->get_device_type() != AMD_GPU) {
         return AMDSMI_STATUS_NOT_SUPPORTED;
     }
-    amd::smi::AMDSmiGPUDevice* gpu_device =
-                static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpu_device);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
 
     unsigned uvd, vce, uvd_enc, vcn_enc;
     struct drm_amdgpu_info_hw_ip ip;
@@ -560,8 +569,11 @@ amdsmi_get_asic_info(amdsmi_device_handle device_handle, amdsmi_asic_info_t *inf
     char* name;
     char *tmp;
 
-    amd::smi::AMDSmiGPUDevice* gpu_device =
-            static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpu_device);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
     amdsmi_status_t status;
     if (gpu_device->check_if_drm_is_supported()){
         status = gpu_device->amdgpu_query_info(AMDGPU_INFO_DEV_INFO, sizeof(struct drm_amdgpu_info_device), &dev_info);
@@ -1055,8 +1067,11 @@ amdsmi_get_power_cap_info(amdsmi_device_handle device_handle,
     if (info == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiGPUDevice* gpudevice =
-            static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
+    amd::smi::AMDSmiGPUDevice* gpudevice = nullptr;
+    amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpudevice);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
     amdsmi_status_t status;
 
     // Ignore errors to get as much as possible info.
@@ -1388,11 +1403,15 @@ amdsmi_get_vbios_info(amdsmi_device_handle device_handle, amdsmi_vbios_info_t *i
     if (info == nullptr) {
         return AMDSMI_STATUS_INVAL;
     }
-    struct drm_amdgpu_info_vbios vbios = {};
 
-    amd::smi::AMDSmiGPUDevice* gpu_device =
-            static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
+    struct drm_amdgpu_info_vbios vbios = {};
     amdsmi_status_t status;
+
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpu_device);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
 
     if (gpu_device->check_if_drm_is_supported()) {
         status = gpu_device->amdgpu_query_vbios(&vbios);
@@ -1431,8 +1450,10 @@ amdsmi_get_gpu_activity(amdsmi_device_handle device_handle, amdsmi_engine_usage_
     }
 
     amdsmi_gpu_metrics_t metrics = {};
-    amd::smi::AMDSmiGPUDevice* gpu_device =
-            static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpu_device);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
     amdsmi_status_t status;
     status =  amdsmi_dev_get_gpu_metrics_info(device_handle, &metrics);
     if (status != AMDSMI_STATUS_SUCCESS) {
@@ -1453,8 +1474,10 @@ amdsmi_get_power_limit(amdsmi_device_handle device_handle, amdsmi_power_limit_t 
         return AMDSMI_STATUS_INVAL;
     }
 
-    amd::smi::AMDSmiGPUDevice* gpu_device =
-            static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpu_device);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
     amdsmi_status_t status;
     int power_limit;
     status = smi_amdgpu_get_power_cap(gpu_device, &power_limit);
@@ -1479,8 +1502,10 @@ amdsmi_get_clock_measure(amdsmi_device_handle device_handle, amdsmi_clk_type_t c
     }
 
     amdsmi_gpu_metrics_t metrics = {};
-    amd::smi::AMDSmiGPUDevice* gpu_device =
-            static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpu_device);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
     amdsmi_status_t status;
 
     status =  amdsmi_dev_get_gpu_metrics_info(device_handle, &metrics);
@@ -1526,8 +1551,11 @@ amdsmi_get_temperature_limit(amdsmi_device_handle device_handle, amdsmi_temperat
     if (temp == nullptr || temp_type > TEMPERATURE_TYPE__MAX) {
         return AMDSMI_STATUS_INVAL;
     }
-    amd::smi::AMDSmiGPUDevice* gpu_device =
-            static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpu_device);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
     amdsmi_status_t status;
     std::string name;
     std::string path;
@@ -1595,8 +1623,11 @@ amdsmi_get_temperature_measure(amdsmi_device_handle device_handle, amdsmi_temper
     }
 
     amdsmi_gpu_metrics_t metrics;
-    amd::smi::AMDSmiGPUDevice* gpu_device =
-            static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpu_device);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
     amdsmi_status_t status;
     status =  amdsmi_dev_get_gpu_metrics_info(device_handle, &metrics);
     if (status != AMDSMI_STATUS_SUCCESS) {
@@ -1631,8 +1662,11 @@ amdsmi_get_ras_block_features_enabled(amdsmi_device_handle device_handle, amdsmi
     }
 
     uint64_t features_mask = 0;
-    amd::smi::AMDSmiGPUDevice* gpu_device =
-            static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpu_device);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
     amdsmi_status_t status;
     status = smi_amdgpu_get_enabled_blocks(gpu_device, &features_mask);
     if (status != AMDSMI_STATUS_SUCCESS) {
@@ -1651,8 +1685,11 @@ amdsmi_get_bad_page_info(amdsmi_device_handle device_handle, uint32_t *num_pages
         return AMDSMI_STATUS_INVAL;
     }
 
-    amd::smi::AMDSmiGPUDevice* gpu_device =
-            static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpu_device);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
     amdsmi_status_t status;
     if (gpu_device->check_if_drm_is_supported()){
         status = smi_amdgpu_get_bad_page_info(gpu_device, num_pages, info);
@@ -1675,8 +1712,11 @@ amdsmi_get_ecc_error_count(amdsmi_device_handle device_handle, amdsmi_error_coun
         return AMDSMI_STATUS_INVAL;
     }
 
-    amd::smi::AMDSmiGPUDevice* gpu_device =
-            static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpu_device);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
     amdsmi_status_t status;
     if (gpu_device->check_if_drm_is_supported()){
         status = smi_amdgpu_get_ecc_error_count(gpu_device, ec);
@@ -1703,8 +1743,11 @@ amdsmi_get_process_list(amdsmi_device_handle device_handle, amdsmi_process_handl
     uint32_t i = 0;
     uint64_t size = 0;
     amdsmi_status_t status;
-    amd::smi::AMDSmiGPUDevice* gpu_device =
-            static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpu_device);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
     if (gpu_device->check_if_drm_is_supported()){
         amdsmi_bdf_t bdf = gpu_device->get_bdf();
         status = gpuvsmi_get_pids(bdf, pids, &size);
@@ -1744,8 +1787,11 @@ amdsmi_get_process_info(amdsmi_device_handle device_handle, amdsmi_process_handl
         return AMDSMI_STATUS_INVAL;
     }
 
-    amd::smi::AMDSmiGPUDevice* gpu_device =
-            static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpu_device);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
     amdsmi_status_t status;
     if (gpu_device->check_if_drm_is_supported()) {
         status = gpuvsmi_get_pid_info(gpu_device->get_bdf(), process, *info);
@@ -1767,8 +1813,11 @@ amdsmi_get_power_measure(amdsmi_device_handle device_handle, amdsmi_power_measur
     }
 
     amdsmi_gpu_metrics_t metrics = {};
-    amd::smi::AMDSmiGPUDevice* gpu_device =
-            static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpu_device);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
     amdsmi_status_t status;
 
     status =  amdsmi_dev_get_gpu_metrics_info(device_handle, &metrics);
@@ -1800,8 +1849,11 @@ amdsmi_get_target_frequency_range(amdsmi_device_handle device_handle, amdsmi_clk
     }
 
     amdsmi_gpu_metrics_t metrics = {};
-    amd::smi::AMDSmiGPUDevice* gpu_device =
-            static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpu_device);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
     amdsmi_status_t status;
 
     int min = 0, max = 0;
@@ -1847,8 +1899,11 @@ amdsmi_get_driver_version(amdsmi_device_handle device_handle, int *length, char 
         return AMDSMI_STATUS_INVAL;
     }
     amdsmi_status_t status = AMDSMI_STATUS_SUCCESS;
-    amd::smi::AMDSmiGPUDevice* gpu_device =
-            static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpu_device);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
     status = smi_amdgpu_get_driver_version(gpu_device, length, version);
 
     return status;
@@ -1862,8 +1917,11 @@ amdsmi_get_device_uuid(amdsmi_device_handle device_handle, unsigned int *uuid_le
         return AMDSMI_STATUS_INVAL;
     }
 
-    amd::smi::AMDSmiGPUDevice* gpu_device =
-            static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpu_device);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
     amdsmi_status_t status = AMDSMI_STATUS_SUCCESS;
     SMIGPUDEVICE_MUTEX(gpu_device->get_mutex())
 
@@ -1927,8 +1985,10 @@ amdsmi_status_t amdsmi_get_pcie_link_caps(amdsmi_device_handle device_handle, am
     }
 
     amdsmi_status_t status = AMDSMI_STATUS_SUCCESS;
-    amd::smi::AMDSmiGPUDevice* gpu_device =
-            static_cast<amd::smi::AMDSmiGPUDevice*>(device_handle);
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpu_device);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
 
     SMIGPUDEVICE_MUTEX(gpu_device->get_mutex())
 

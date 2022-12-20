@@ -177,7 +177,7 @@ amdsmi_status_t AMDSmiSystem::handle_to_device(
             != devices_.end()) {
         return AMDSMI_STATUS_SUCCESS;
     }
-    return AMDSMI_STATUS_INVAL;
+    return AMDSMI_STATUS_NOT_FOUND;
 }
 
 amdsmi_status_t AMDSmiSystem::gpu_index_to_handle(uint32_t gpu_index,
