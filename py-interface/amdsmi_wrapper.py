@@ -1639,80 +1639,79 @@ amdsmi_status_t__enumvalues = {
     0: 'AMDSMI_STATUS_SUCCESS',
     1: 'AMDSMI_STATUS_INVAL',
     2: 'AMDSMI_STATUS_NOT_SUPPORTED',
-    3: 'AMDSMI_STATUS_FILE_ERROR',
-    4: 'AMDSMI_STATUS_NO_PERM',
-    5: 'AMDSMI_STATUS_OUT_OF_RESOURCES',
-    6: 'AMDSMI_STATUS_INTERNAL_EXCEPTION',
-    7: 'AMDSMI_STATUS_INPUT_OUT_OF_BOUNDS',
-    8: 'AMDSMI_STATUS_INIT_ERROR',
-    9: 'AMDSMI_STATUS_NOT_YET_IMPLEMENTED',
-    10: 'AMDSMI_STATUS_NOT_FOUND',
-    11: 'AMDSMI_STATUS_INSUFFICIENT_SIZE',
-    12: 'AMDSMI_STATUS_INTERRUPT',
-    13: 'AMDSMI_STATUS_UNEXPECTED_SIZE',
-    14: 'AMDSMI_STATUS_NO_DATA',
-    15: 'AMDSMI_STATUS_UNEXPECTED_DATA',
-    16: 'AMDSMI_STATUS_BUSY',
-    17: 'AMDSMI_STATUS_REFCOUNT_OVERFLOW',
-    1000: 'AMDSMI_LIB_START',
-    1000: 'AMDSMI_STATUS_FAIL_LOAD_MODULE',
-    1001: 'AMDSMI_STATUS_FAIL_LOAD_SYMBOL',
-    1002: 'AMDSMI_STATUS_DRM_ERROR',
-    1003: 'AMDSMI_STATUS_IO',
-    1004: 'AMDSMI_STATUS_FAULT',
-    1005: 'AMDSMI_STATUS_API_FAILED',
-    1006: 'AMDSMI_STATUS_TIMEOUT',
-    1007: 'AMDSMI_STATUS_NO_SLOT',
-    1008: 'AMDSMI_STATUS_RETRY',
-    1009: 'AMDSMI_STATUS_NOT_INIT',
+    3: 'AMDSMI_STATUS_NOT_YET_IMPLEMENTED',
+    4: 'AMDSMI_STATUS_FAIL_LOAD_MODULE',
+    5: 'AMDSMI_STATUS_FAIL_LOAD_SYMBOL',
+    6: 'AMDSMI_STATUS_DRM_ERROR',
+    7: 'AMDSMI_STATUS_API_FAILED',
+    8: 'AMDSMI_STATUS_TIMEOUT',
+    9: 'AMDSMI_STATUS_RETRY',
+    10: 'AMDSMI_STATUS_NO_PERM',
+    11: 'AMDSMI_STATUS_INTERRUPT',
+    12: 'AMDSMI_STATUS_IO',
+    13: 'AMDSMI_STATUS_ADDRESS_FAULT',
+    14: 'AMDSMI_STATUS_FILE_ERROR',
+    15: 'AMDSMI_STATUS_OUT_OF_RESOURCES',
+    16: 'AMDSMI_STATUS_INTERNAL_EXCEPTION',
+    17: 'AMDSMI_STATUS_INPUT_OUT_OF_BOUNDS',
+    18: 'AMDSMI_STATUS_INIT_ERROR',
+    19: 'AMDSMI_STATUS_REFCOUNT_OVERFLOW',
+    30: 'AMDSMI_STATUS_BUSY',
+    31: 'AMDSMI_STATUS_NOT_FOUND',
+    32: 'AMDSMI_STATUS_NOT_INIT',
+    33: 'AMDSMI_STATUS_NO_SLOT',
+    40: 'AMDSMI_STATUS_NO_DATA',
+    41: 'AMDSMI_STATUS_INSUFFICIENT_SIZE',
+    42: 'AMDSMI_STATUS_UNEXPECTED_SIZE',
+    43: 'AMDSMI_STATUS_UNEXPECTED_DATA',
+    4294967294: 'AMDSMI_STATUS_MAP_ERROR',
     4294967295: 'AMDSMI_STATUS_UNKNOWN_ERROR',
 }
 AMDSMI_STATUS_SUCCESS = 0
 AMDSMI_STATUS_INVAL = 1
 AMDSMI_STATUS_NOT_SUPPORTED = 2
-AMDSMI_STATUS_FILE_ERROR = 3
-AMDSMI_STATUS_NO_PERM = 4
-AMDSMI_STATUS_OUT_OF_RESOURCES = 5
-AMDSMI_STATUS_INTERNAL_EXCEPTION = 6
-AMDSMI_STATUS_INPUT_OUT_OF_BOUNDS = 7
-AMDSMI_STATUS_INIT_ERROR = 8
-AMDSMI_STATUS_NOT_YET_IMPLEMENTED = 9
-AMDSMI_STATUS_NOT_FOUND = 10
-AMDSMI_STATUS_INSUFFICIENT_SIZE = 11
-AMDSMI_STATUS_INTERRUPT = 12
-AMDSMI_STATUS_UNEXPECTED_SIZE = 13
-AMDSMI_STATUS_NO_DATA = 14
-AMDSMI_STATUS_UNEXPECTED_DATA = 15
-AMDSMI_STATUS_BUSY = 16
-AMDSMI_STATUS_REFCOUNT_OVERFLOW = 17
-AMDSMI_LIB_START = 1000
-AMDSMI_STATUS_FAIL_LOAD_MODULE = 1000
-AMDSMI_STATUS_FAIL_LOAD_SYMBOL = 1001
-AMDSMI_STATUS_DRM_ERROR = 1002
-AMDSMI_STATUS_IO = 1003
-AMDSMI_STATUS_FAULT = 1004
-AMDSMI_STATUS_API_FAILED = 1005
-AMDSMI_STATUS_TIMEOUT = 1006
-AMDSMI_STATUS_NO_SLOT = 1007
-AMDSMI_STATUS_RETRY = 1008
-AMDSMI_STATUS_NOT_INIT = 1009
+AMDSMI_STATUS_NOT_YET_IMPLEMENTED = 3
+AMDSMI_STATUS_FAIL_LOAD_MODULE = 4
+AMDSMI_STATUS_FAIL_LOAD_SYMBOL = 5
+AMDSMI_STATUS_DRM_ERROR = 6
+AMDSMI_STATUS_API_FAILED = 7
+AMDSMI_STATUS_TIMEOUT = 8
+AMDSMI_STATUS_RETRY = 9
+AMDSMI_STATUS_NO_PERM = 10
+AMDSMI_STATUS_INTERRUPT = 11
+AMDSMI_STATUS_IO = 12
+AMDSMI_STATUS_ADDRESS_FAULT = 13
+AMDSMI_STATUS_FILE_ERROR = 14
+AMDSMI_STATUS_OUT_OF_RESOURCES = 15
+AMDSMI_STATUS_INTERNAL_EXCEPTION = 16
+AMDSMI_STATUS_INPUT_OUT_OF_BOUNDS = 17
+AMDSMI_STATUS_INIT_ERROR = 18
+AMDSMI_STATUS_REFCOUNT_OVERFLOW = 19
+AMDSMI_STATUS_BUSY = 30
+AMDSMI_STATUS_NOT_FOUND = 31
+AMDSMI_STATUS_NOT_INIT = 32
+AMDSMI_STATUS_NO_SLOT = 33
+AMDSMI_STATUS_NO_DATA = 40
+AMDSMI_STATUS_INSUFFICIENT_SIZE = 41
+AMDSMI_STATUS_UNEXPECTED_SIZE = 42
+AMDSMI_STATUS_UNEXPECTED_DATA = 43
+AMDSMI_STATUS_MAP_ERROR = 4294967294
 AMDSMI_STATUS_UNKNOWN_ERROR = 4294967295
 amdsmi_status_t = ctypes.c_uint32 # enum
 __all__ += \
     ['AMDSMI_INIT_ALL_DEVICES', 'AMDSMI_INIT_AMD_CPUS',
     'AMDSMI_INIT_AMD_GPUS', 'AMDSMI_INIT_NON_AMD_CPUS',
-    'AMDSMI_INIT_NON_AMD_GPUS', 'AMDSMI_LIB_START', 'AMDSMI_MM_UVD',
-    'AMDSMI_MM_VCE', 'AMDSMI_MM_VCN', 'AMDSMI_MM__MAX',
+    'AMDSMI_INIT_NON_AMD_GPUS', 'AMDSMI_MM_UVD', 'AMDSMI_MM_VCE',
+    'AMDSMI_MM_VCN', 'AMDSMI_MM__MAX', 'AMDSMI_STATUS_ADDRESS_FAULT',
     'AMDSMI_STATUS_API_FAILED', 'AMDSMI_STATUS_BUSY',
     'AMDSMI_STATUS_DRM_ERROR', 'AMDSMI_STATUS_FAIL_LOAD_MODULE',
-    'AMDSMI_STATUS_FAIL_LOAD_SYMBOL', 'AMDSMI_STATUS_FAULT',
-    'AMDSMI_STATUS_FILE_ERROR', 'AMDSMI_STATUS_INIT_ERROR',
-    'AMDSMI_STATUS_INPUT_OUT_OF_BOUNDS',
+    'AMDSMI_STATUS_FAIL_LOAD_SYMBOL', 'AMDSMI_STATUS_FILE_ERROR',
+    'AMDSMI_STATUS_INIT_ERROR', 'AMDSMI_STATUS_INPUT_OUT_OF_BOUNDS',
     'AMDSMI_STATUS_INSUFFICIENT_SIZE',
     'AMDSMI_STATUS_INTERNAL_EXCEPTION', 'AMDSMI_STATUS_INTERRUPT',
     'AMDSMI_STATUS_INVAL', 'AMDSMI_STATUS_IO',
-    'AMDSMI_STATUS_NOT_FOUND', 'AMDSMI_STATUS_NOT_INIT',
-    'AMDSMI_STATUS_NOT_SUPPORTED',
+    'AMDSMI_STATUS_MAP_ERROR', 'AMDSMI_STATUS_NOT_FOUND',
+    'AMDSMI_STATUS_NOT_INIT', 'AMDSMI_STATUS_NOT_SUPPORTED',
     'AMDSMI_STATUS_NOT_YET_IMPLEMENTED', 'AMDSMI_STATUS_NO_DATA',
     'AMDSMI_STATUS_NO_PERM', 'AMDSMI_STATUS_NO_SLOT',
     'AMDSMI_STATUS_OUT_OF_RESOURCES',
@@ -1731,7 +1730,7 @@ __all__ += \
 
 
 
-__all__ += ['amdsmi_init', 'amdsmi_shut_down', 'amdsmi_get_socket_handles', 'amdsmi_get_socket_info', 'amdsmi_get_device_handles', 'amdsmi_get_device_type', 'amdsmi_get_device_handle_from_bdf', 'amdsmi_dev_get_id', 'amdsmi_dev_get_vendor_name', 'amdsmi_dev_get_vram_vendor', 'amdsmi_dev_get_subsystem_id', 'amdsmi_dev_get_subsystem_name', 'amdsmi_dev_get_drm_render_minor', 'amdsmi_dev_get_pci_bandwidth', 'amdsmi_dev_get_pci_id', 'amdsmi_topo_get_numa_affinity', 'amdsmi_dev_get_pci_throughput', ' amdsmi_dev_get_pci_replay_counter', ' amdsmi_dev_set_pci_bandwidth', 'amdsmi_dev_get_power_ave', 'amdsmi_dev_get_energy_count', ' amdsmi_dev_set_power_cap', ' amdsmi_dev_set_power_profile', 'amdsmi_dev_get_memory_total', 'amdsmi_dev_get_memory_usage', 'amdsmi_get_bad_page_info', 'amdsmi_get_ras_block_features_enabled', 'amdsmi_dev_get_memory_busy_percent', 'amdsmi_dev_get_memory_reserved_pages', 'amdsmi_dev_get_fan_rpms', 'amdsmi_dev_get_fan_speed', 'amdsmi_dev_get_fan_speed_max', ' amdsmi_dev_get_temp_metric', ' amdsmi_dev_get_volt_metric', 'amdsmi_dev_reset_fan', 'amdsmi_dev_set_fan_speed', 'amdsmi_dev_get_busy_percent', 'amdsmi_get_utilization_count', 'amdsmi_get_pcie_link_status', 'amdsmi_get_pcie_link_caps', 'amdsmi_dev_get_perf_level', 'amdsmi_set_perf_determinism_mode', 'amdsmi_dev_get_overdrive_level', ' amdsmi_dev_get_gpu_clk_freq', 'amdsmi_dev_reset_gpu', ' amdsmi_dev_get_od_volt_info', ' amdsmi_dev_get_gpu_metrics_info', 'amdsmi_dev_set_clk_range', ' amdsmi_dev_set_od_clk_info', ' amdsmi_dev_set_od_volt_info', ' amdsmi_dev_get_od_volt_curve_regions', ' amdsmi_dev_get_power_profile_presets', ' amdsmi_dev_set_perf_level', ' amdsmi_dev_set_perf_level_v1', ' amdsmi_dev_set_overdrive_level', ' amdsmi_dev_set_overdrive_level_v1', ' amdsmi_dev_set_clk_freq', 'amdsmi_get_version', 'amdsmi_get_version_str', ' amdsmi_dev_get_ecc_count', ' amdsmi_dev_get_ecc_enabled', ' amdsmi_dev_get_ecc_status', 'amdsmi_status_string', 'amdsmi_dev_counter_group_supported', 'amdsmi_dev_create_counter', 'amdsmi_dev_destroy_counter', 'amdsmi_control_counter', 'amdsmi_read_counter', ' amdsmi_counter_get_available_counters', 'amdsmi_get_compute_process_info', 'amdsmi_get_compute_process_info_by_pid', 'amdsmi_get_compute_process_gpus', 'amdsmi_dev_xgmi_error_status', 'amdsmi_dev_reset_xgmi_error', 'amdsmi_topo_get_numa_node_number', 'amdsmi_topo_get_link_weight', ' amdsmi_get_minmax_bandwidth', 'amdsmi_topo_get_link_type', 'amdsmi_is_P2P_accessible', 'amdsmi_dev_open_supported_func_iterator', 'amdsmi_dev_open_supported_variant_iterator', 'amdsmi_next_func_iter', 'amdsmi_dev_close_supported_func_iterator', 'amdsmi_get_func_iter_value', 'amdsmi_init_event_notification', ' amdsmi_set_event_notification_mask', ' amdsmi_get_event_notification', 'amdsmi_stop_event_notification', 'amdsmi_get_device_bdf', 'amdsmi_get_device_uuid', 'amdsmi_get_driver_version', 'amdsmi_get_asic_info', 'amdsmi_get_board_info', 'amdsmi_get_power_cap_info', 'amdsmi_get_xgmi_info', 'amdsmi_get_caps_info', 'amdsmi_get_fw_info', 'amdsmi_get_vbios_info', 'amdsmi_get_gpu_activity', 'amdsmi_get_power_measure', 'amdsmi_get_clock_measure', 'amdsmi_get_temperature_measure', 'amdsmi_get_temperature_limit', 'amdsmi_get_power_limit', 'amdsmi_get_vram_usage', 'amdsmi_get_target_frequency_range', 'amdsmi_get_process_list', 'amdsmi_get_process_info', 'amdsmi_get_ecc_error_count']
+__all__ += ['amdsmi_init', 'amdsmi_shut_down', 'amdsmi_get_socket_handles', 'amdsmi_get_socket_info', 'amdsmi_get_device_handles', 'amdsmi_get_device_type', 'amdsmi_get_device_handle_from_bdf', 'amdsmi_dev_get_id', 'amdsmi_dev_get_vendor_name', 'amdsmi_dev_get_vram_vendor', 'amdsmi_dev_get_subsystem_id', 'amdsmi_dev_get_subsystem_name', 'amdsmi_dev_get_drm_render_minor', 'amdsmi_dev_get_pci_bandwidth', 'amdsmi_dev_get_pci_id', 'amdsmi_topo_get_numa_affinity', 'amdsmi_dev_get_pci_throughput', 'amdsmi_dev_get_pci_replay_counter', 'amdsmi_dev_set_pci_bandwidth', 'amdsmi_dev_get_power_ave', 'amdsmi_dev_get_energy_count', 'amdsmi_dev_set_power_cap', 'amdsmi_dev_set_power_profile', 'amdsmi_dev_get_memory_total', 'amdsmi_dev_get_memory_usage', 'amdsmi_get_bad_page_info', 'amdsmi_get_ras_block_features_enabled', 'amdsmi_dev_get_memory_busy_percent', 'amdsmi_dev_get_memory_reserved_pages', 'amdsmi_dev_get_fan_rpms', 'amdsmi_dev_get_fan_speed', 'amdsmi_dev_get_fan_speed_max', 'amdsmi_dev_get_temp_metric', 'amdsmi_dev_get_volt_metric', 'amdsmi_dev_reset_fan', 'amdsmi_dev_set_fan_speed', 'amdsmi_dev_get_busy_percent', 'amdsmi_get_utilization_count', 'amdsmi_get_pcie_link_status', 'amdsmi_get_pcie_link_caps', 'amdsmi_dev_get_perf_level', 'amdsmi_set_perf_determinism_mode', 'amdsmi_dev_get_overdrive_level', 'amdsmi_dev_get_gpu_clk_freq', 'amdsmi_dev_reset_gpu', 'amdsmi_dev_get_od_volt_info', 'amdsmi_dev_get_gpu_metrics_info', 'amdsmi_dev_set_clk_range', 'amdsmi_dev_set_od_clk_info', 'amdsmi_dev_set_od_volt_info', 'amdsmi_dev_get_od_volt_curve_regions', 'amdsmi_dev_get_power_profile_presets', 'amdsmi_dev_set_perf_level', 'amdsmi_dev_set_perf_level_v1', 'amdsmi_dev_set_overdrive_level', 'amdsmi_dev_set_overdrive_level_v1', 'amdsmi_dev_set_clk_freq', 'amdsmi_get_version', 'amdsmi_get_version_str', 'amdsmi_dev_get_ecc_count', 'amdsmi_dev_get_ecc_enabled', 'amdsmi_dev_get_ecc_status', 'amdsmi_status_string', 'amdsmi_dev_counter_group_supported', 'amdsmi_dev_create_counter', 'amdsmi_dev_destroy_counter', 'amdsmi_control_counter', 'amdsmi_read_counter', 'amdsmi_counter_get_available_counters', 'amdsmi_get_compute_process_info', 'amdsmi_get_compute_process_info_by_pid', 'amdsmi_get_compute_process_gpus', 'amdsmi_dev_xgmi_error_status', 'amdsmi_dev_reset_xgmi_error', 'amdsmi_topo_get_numa_node_number', 'amdsmi_topo_get_link_weight', 'amdsmi_get_minmax_bandwidth', 'amdsmi_topo_get_link_type', 'amdsmi_is_P2P_accessible', 'amdsmi_dev_open_supported_func_iterator', 'amdsmi_dev_open_supported_variant_iterator', 'amdsmi_next_func_iter', 'amdsmi_dev_close_supported_func_iterator', 'amdsmi_get_func_iter_value', 'amdsmi_init_event_notification', 'amdsmi_set_event_notification_mask', 'amdsmi_get_event_notification', 'amdsmi_stop_event_notification', 'amdsmi_get_device_bdf', 'amdsmi_get_device_uuid', 'amdsmi_get_driver_version', 'amdsmi_get_asic_info', 'amdsmi_get_board_info', 'amdsmi_get_power_cap_info', 'amdsmi_get_xgmi_info', 'amdsmi_get_caps_info', 'amdsmi_get_fw_info', 'amdsmi_get_vbios_info', 'amdsmi_get_gpu_activity', 'amdsmi_get_power_measure', 'amdsmi_get_clock_measure', 'amdsmi_get_temperature_measure', 'amdsmi_get_temperature_limit', 'amdsmi_get_power_limit', 'amdsmi_get_vram_usage', 'amdsmi_get_target_frequency_range', 'amdsmi_get_process_list', 'amdsmi_get_process_info', 'amdsmi_get_ecc_error_count']
 __all__ += []
 
 _lib = CDLL(os.path.join(os.path.dirname(__file__), "libamd_smi.so"))
@@ -1805,13 +1804,13 @@ _lib.amdsmi_dev_get_pci_throughput.argtypes = [amdsmi_device_handle,POINTER(c_ui
 _lib.amdsmi_dev_get_pci_throughput.restype = amdsmi_status_t
 amdsmi_dev_get_pci_throughput = _lib.amdsmi_dev_get_pci_throughput
 
-_lib. amdsmi_dev_get_pci_replay_counter.argtypes = [amdsmi_device_handle,POINTER(c_uint64)]
-_lib. amdsmi_dev_get_pci_replay_counter.restype = amdsmi_status_t
- amdsmi_dev_get_pci_replay_counter = _lib. amdsmi_dev_get_pci_replay_counter
+_lib.amdsmi_dev_get_pci_replay_counter.argtypes = [amdsmi_device_handle,POINTER(c_uint64)]
+_lib.amdsmi_dev_get_pci_replay_counter.restype = amdsmi_status_t
+amdsmi_dev_get_pci_replay_counter = _lib.amdsmi_dev_get_pci_replay_counter
 
-_lib. amdsmi_dev_set_pci_bandwidth.argtypes = [amdsmi_device_handle,c_uint64]
-_lib. amdsmi_dev_set_pci_bandwidth.restype = amdsmi_status_t
- amdsmi_dev_set_pci_bandwidth = _lib. amdsmi_dev_set_pci_bandwidth
+_lib.amdsmi_dev_set_pci_bandwidth.argtypes = [amdsmi_device_handle,c_uint64]
+_lib.amdsmi_dev_set_pci_bandwidth.restype = amdsmi_status_t
+amdsmi_dev_set_pci_bandwidth = _lib.amdsmi_dev_set_pci_bandwidth
 
 _lib.amdsmi_dev_get_power_ave.argtypes = [amdsmi_device_handle,c_uint32,POINTER(c_uint64)]
 _lib.amdsmi_dev_get_power_ave.restype = amdsmi_status_t
@@ -1821,13 +1820,13 @@ _lib.amdsmi_dev_get_energy_count.argtypes = [amdsmi_device_handle,POINTER(c_uint
 _lib.amdsmi_dev_get_energy_count.restype = amdsmi_status_t
 amdsmi_dev_get_energy_count = _lib.amdsmi_dev_get_energy_count
 
-_lib. amdsmi_dev_set_power_cap.argtypes = [amdsmi_device_handle,c_uint32,c_uint64]
-_lib. amdsmi_dev_set_power_cap.restype = amdsmi_status_t
- amdsmi_dev_set_power_cap = _lib. amdsmi_dev_set_power_cap
+_lib.amdsmi_dev_set_power_cap.argtypes = [amdsmi_device_handle,c_uint32,c_uint64]
+_lib.amdsmi_dev_set_power_cap.restype = amdsmi_status_t
+amdsmi_dev_set_power_cap = _lib.amdsmi_dev_set_power_cap
 
-_lib. amdsmi_dev_set_power_profile.argtypes = [amdsmi_device_handle,c_uint32,amdsmi_power_profile_preset_masks_t]
-_lib. amdsmi_dev_set_power_profile.restype = amdsmi_status_t
- amdsmi_dev_set_power_profile = _lib. amdsmi_dev_set_power_profile
+_lib.amdsmi_dev_set_power_profile.argtypes = [amdsmi_device_handle,c_uint32,amdsmi_power_profile_preset_masks_t]
+_lib.amdsmi_dev_set_power_profile.restype = amdsmi_status_t
+amdsmi_dev_set_power_profile = _lib.amdsmi_dev_set_power_profile
 
 _lib.amdsmi_dev_get_memory_total.argtypes = [amdsmi_device_handle,amdsmi_memory_type_t,POINTER(c_uint64)]
 _lib.amdsmi_dev_get_memory_total.restype = amdsmi_status_t
@@ -1865,13 +1864,13 @@ _lib.amdsmi_dev_get_fan_speed_max.argtypes = [amdsmi_device_handle,c_uint32,POIN
 _lib.amdsmi_dev_get_fan_speed_max.restype = amdsmi_status_t
 amdsmi_dev_get_fan_speed_max = _lib.amdsmi_dev_get_fan_speed_max
 
-_lib. amdsmi_dev_get_temp_metric.argtypes = [amdsmi_device_handle,c_uint32,amdsmi_temperature_metric_t,POINTER(c_int64)]
-_lib. amdsmi_dev_get_temp_metric.restype = amdsmi_status_t
- amdsmi_dev_get_temp_metric = _lib. amdsmi_dev_get_temp_metric
+_lib.amdsmi_dev_get_temp_metric.argtypes = [amdsmi_device_handle,c_uint32,amdsmi_temperature_metric_t,POINTER(c_int64)]
+_lib.amdsmi_dev_get_temp_metric.restype = amdsmi_status_t
+amdsmi_dev_get_temp_metric = _lib.amdsmi_dev_get_temp_metric
 
-_lib. amdsmi_dev_get_volt_metric.argtypes = [amdsmi_device_handle,amdsmi_voltage_type_t,amdsmi_voltage_metric_t,POINTER(c_int64)]
-_lib. amdsmi_dev_get_volt_metric.restype = amdsmi_status_t
- amdsmi_dev_get_volt_metric = _lib. amdsmi_dev_get_volt_metric
+_lib.amdsmi_dev_get_volt_metric.argtypes = [amdsmi_device_handle,amdsmi_voltage_type_t,amdsmi_voltage_metric_t,POINTER(c_int64)]
+_lib.amdsmi_dev_get_volt_metric.restype = amdsmi_status_t
+amdsmi_dev_get_volt_metric = _lib.amdsmi_dev_get_volt_metric
 
 _lib.amdsmi_dev_reset_fan.argtypes = [amdsmi_device_handle,c_uint32]
 _lib.amdsmi_dev_reset_fan.restype = amdsmi_status_t
@@ -1909,61 +1908,61 @@ _lib.amdsmi_dev_get_overdrive_level.argtypes = [amdsmi_device_handle,POINTER(c_u
 _lib.amdsmi_dev_get_overdrive_level.restype = amdsmi_status_t
 amdsmi_dev_get_overdrive_level = _lib.amdsmi_dev_get_overdrive_level
 
-_lib. amdsmi_dev_get_gpu_clk_freq.argtypes = [amdsmi_device_handle,amdsmi_clk_type_t,POINTER(amdsmi_frequencies_t)]
-_lib. amdsmi_dev_get_gpu_clk_freq.restype = amdsmi_status_t
- amdsmi_dev_get_gpu_clk_freq = _lib. amdsmi_dev_get_gpu_clk_freq
+_lib.amdsmi_dev_get_gpu_clk_freq.argtypes = [amdsmi_device_handle,amdsmi_clk_type_t,POINTER(amdsmi_frequencies_t)]
+_lib.amdsmi_dev_get_gpu_clk_freq.restype = amdsmi_status_t
+amdsmi_dev_get_gpu_clk_freq = _lib.amdsmi_dev_get_gpu_clk_freq
 
 _lib.amdsmi_dev_reset_gpu.argtypes = [amdsmi_device_handle]
 _lib.amdsmi_dev_reset_gpu.restype = amdsmi_status_t
 amdsmi_dev_reset_gpu = _lib.amdsmi_dev_reset_gpu
 
-_lib. amdsmi_dev_get_od_volt_info.argtypes = [amdsmi_device_handle,POINTER(amdsmi_od_volt_freq_data_t)]
-_lib. amdsmi_dev_get_od_volt_info.restype = amdsmi_status_t
- amdsmi_dev_get_od_volt_info = _lib. amdsmi_dev_get_od_volt_info
+_lib.amdsmi_dev_get_od_volt_info.argtypes = [amdsmi_device_handle,POINTER(amdsmi_od_volt_freq_data_t)]
+_lib.amdsmi_dev_get_od_volt_info.restype = amdsmi_status_t
+amdsmi_dev_get_od_volt_info = _lib.amdsmi_dev_get_od_volt_info
 
-_lib. amdsmi_dev_get_gpu_metrics_info.argtypes = [amdsmi_device_handle,POINTER(amdsmi_gpu_metrics_t)]
-_lib. amdsmi_dev_get_gpu_metrics_info.restype = amdsmi_status_t
- amdsmi_dev_get_gpu_metrics_info = _lib. amdsmi_dev_get_gpu_metrics_info
+_lib.amdsmi_dev_get_gpu_metrics_info.argtypes = [amdsmi_device_handle,POINTER(amdsmi_gpu_metrics_t)]
+_lib.amdsmi_dev_get_gpu_metrics_info.restype = amdsmi_status_t
+amdsmi_dev_get_gpu_metrics_info = _lib.amdsmi_dev_get_gpu_metrics_info
 
 _lib.amdsmi_dev_set_clk_range.argtypes = [amdsmi_device_handle,c_uint64,c_uint64,amdsmi_clk_type_t]
 _lib.amdsmi_dev_set_clk_range.restype = amdsmi_status_t
 amdsmi_dev_set_clk_range = _lib.amdsmi_dev_set_clk_range
 
-_lib. amdsmi_dev_set_od_clk_info.argtypes = [amdsmi_device_handle,amdsmi_freq_ind_t,c_uint64,amdsmi_clk_type_t]
-_lib. amdsmi_dev_set_od_clk_info.restype = amdsmi_status_t
- amdsmi_dev_set_od_clk_info = _lib. amdsmi_dev_set_od_clk_info
+_lib.amdsmi_dev_set_od_clk_info.argtypes = [amdsmi_device_handle,amdsmi_freq_ind_t,c_uint64,amdsmi_clk_type_t]
+_lib.amdsmi_dev_set_od_clk_info.restype = amdsmi_status_t
+amdsmi_dev_set_od_clk_info = _lib.amdsmi_dev_set_od_clk_info
 
-_lib. amdsmi_dev_set_od_volt_info.argtypes = [amdsmi_device_handle,c_uint32,c_uint64,c_uint64]
-_lib. amdsmi_dev_set_od_volt_info.restype = amdsmi_status_t
- amdsmi_dev_set_od_volt_info = _lib. amdsmi_dev_set_od_volt_info
+_lib.amdsmi_dev_set_od_volt_info.argtypes = [amdsmi_device_handle,c_uint32,c_uint64,c_uint64]
+_lib.amdsmi_dev_set_od_volt_info.restype = amdsmi_status_t
+amdsmi_dev_set_od_volt_info = _lib.amdsmi_dev_set_od_volt_info
 
-_lib. amdsmi_dev_get_od_volt_curve_regions.argtypes = [amdsmi_device_handle,POINTER(c_uint32),POINTER(amdsmi_freq_volt_region_t)]
-_lib. amdsmi_dev_get_od_volt_curve_regions.restype = amdsmi_status_t
- amdsmi_dev_get_od_volt_curve_regions = _lib. amdsmi_dev_get_od_volt_curve_regions
+_lib.amdsmi_dev_get_od_volt_curve_regions.argtypes = [amdsmi_device_handle,POINTER(c_uint32),POINTER(amdsmi_freq_volt_region_t)]
+_lib.amdsmi_dev_get_od_volt_curve_regions.restype = amdsmi_status_t
+amdsmi_dev_get_od_volt_curve_regions = _lib.amdsmi_dev_get_od_volt_curve_regions
 
-_lib. amdsmi_dev_get_power_profile_presets.argtypes = [amdsmi_device_handle,c_uint32,POINTER(amdsmi_power_profile_status_t)]
-_lib. amdsmi_dev_get_power_profile_presets.restype = amdsmi_status_t
- amdsmi_dev_get_power_profile_presets = _lib. amdsmi_dev_get_power_profile_presets
+_lib.amdsmi_dev_get_power_profile_presets.argtypes = [amdsmi_device_handle,c_uint32,POINTER(amdsmi_power_profile_status_t)]
+_lib.amdsmi_dev_get_power_profile_presets.restype = amdsmi_status_t
+amdsmi_dev_get_power_profile_presets = _lib.amdsmi_dev_get_power_profile_presets
 
-_lib. amdsmi_dev_set_perf_level.argtypes = [amdsmi_device_handle,amdsmi_dev_perf_level_t]
-_lib. amdsmi_dev_set_perf_level.restype = amdsmi_status_t
- amdsmi_dev_set_perf_level = _lib. amdsmi_dev_set_perf_level
+_lib.amdsmi_dev_set_perf_level.argtypes = [amdsmi_device_handle,amdsmi_dev_perf_level_t]
+_lib.amdsmi_dev_set_perf_level.restype = amdsmi_status_t
+amdsmi_dev_set_perf_level = _lib.amdsmi_dev_set_perf_level
 
-_lib. amdsmi_dev_set_perf_level_v1.argtypes = [amdsmi_device_handle,amdsmi_dev_perf_level_t]
-_lib. amdsmi_dev_set_perf_level_v1.restype = amdsmi_status_t
- amdsmi_dev_set_perf_level_v1 = _lib. amdsmi_dev_set_perf_level_v1
+_lib.amdsmi_dev_set_perf_level_v1.argtypes = [amdsmi_device_handle,amdsmi_dev_perf_level_t]
+_lib.amdsmi_dev_set_perf_level_v1.restype = amdsmi_status_t
+amdsmi_dev_set_perf_level_v1 = _lib.amdsmi_dev_set_perf_level_v1
 
-_lib. amdsmi_dev_set_overdrive_level.argtypes = [amdsmi_device_handle,c_uint32]
-_lib. amdsmi_dev_set_overdrive_level.restype = amdsmi_status_t
- amdsmi_dev_set_overdrive_level = _lib. amdsmi_dev_set_overdrive_level
+_lib.amdsmi_dev_set_overdrive_level.argtypes = [amdsmi_device_handle,c_uint32]
+_lib.amdsmi_dev_set_overdrive_level.restype = amdsmi_status_t
+amdsmi_dev_set_overdrive_level = _lib.amdsmi_dev_set_overdrive_level
 
-_lib. amdsmi_dev_set_overdrive_level_v1.argtypes = [amdsmi_device_handle,c_uint32]
-_lib. amdsmi_dev_set_overdrive_level_v1.restype = amdsmi_status_t
- amdsmi_dev_set_overdrive_level_v1 = _lib. amdsmi_dev_set_overdrive_level_v1
+_lib.amdsmi_dev_set_overdrive_level_v1.argtypes = [amdsmi_device_handle,c_uint32]
+_lib.amdsmi_dev_set_overdrive_level_v1.restype = amdsmi_status_t
+amdsmi_dev_set_overdrive_level_v1 = _lib.amdsmi_dev_set_overdrive_level_v1
 
-_lib. amdsmi_dev_set_clk_freq.argtypes = [amdsmi_device_handle,amdsmi_clk_type_t,c_uint64]
-_lib. amdsmi_dev_set_clk_freq.restype = amdsmi_status_t
- amdsmi_dev_set_clk_freq = _lib. amdsmi_dev_set_clk_freq
+_lib.amdsmi_dev_set_clk_freq.argtypes = [amdsmi_device_handle,amdsmi_clk_type_t,c_uint64]
+_lib.amdsmi_dev_set_clk_freq.restype = amdsmi_status_t
+amdsmi_dev_set_clk_freq = _lib.amdsmi_dev_set_clk_freq
 
 _lib.amdsmi_get_version.argtypes = [POINTER(amdsmi_version_t)]
 _lib.amdsmi_get_version.restype = amdsmi_status_t
@@ -1973,17 +1972,17 @@ _lib.amdsmi_get_version_str.argtypes = [amdsmi_sw_component_t,c_char_p,c_uint32]
 _lib.amdsmi_get_version_str.restype = amdsmi_status_t
 amdsmi_get_version_str = _lib.amdsmi_get_version_str
 
-_lib. amdsmi_dev_get_ecc_count.argtypes = [amdsmi_device_handle,amdsmi_gpu_block_t,POINTER(amdsmi_error_count_t)]
-_lib. amdsmi_dev_get_ecc_count.restype = amdsmi_status_t
- amdsmi_dev_get_ecc_count = _lib. amdsmi_dev_get_ecc_count
+_lib.amdsmi_dev_get_ecc_count.argtypes = [amdsmi_device_handle,amdsmi_gpu_block_t,POINTER(amdsmi_error_count_t)]
+_lib.amdsmi_dev_get_ecc_count.restype = amdsmi_status_t
+amdsmi_dev_get_ecc_count = _lib.amdsmi_dev_get_ecc_count
 
-_lib. amdsmi_dev_get_ecc_enabled.argtypes = [amdsmi_device_handle,POINTER(c_uint64)]
-_lib. amdsmi_dev_get_ecc_enabled.restype = amdsmi_status_t
- amdsmi_dev_get_ecc_enabled = _lib. amdsmi_dev_get_ecc_enabled
+_lib.amdsmi_dev_get_ecc_enabled.argtypes = [amdsmi_device_handle,POINTER(c_uint64)]
+_lib.amdsmi_dev_get_ecc_enabled.restype = amdsmi_status_t
+amdsmi_dev_get_ecc_enabled = _lib.amdsmi_dev_get_ecc_enabled
 
-_lib. amdsmi_dev_get_ecc_status.argtypes = [amdsmi_device_handle,amdsmi_gpu_block_t,POINTER(amdsmi_ras_err_state_t)]
-_lib. amdsmi_dev_get_ecc_status.restype = amdsmi_status_t
- amdsmi_dev_get_ecc_status = _lib. amdsmi_dev_get_ecc_status
+_lib.amdsmi_dev_get_ecc_status.argtypes = [amdsmi_device_handle,amdsmi_gpu_block_t,POINTER(amdsmi_ras_err_state_t)]
+_lib.amdsmi_dev_get_ecc_status.restype = amdsmi_status_t
+amdsmi_dev_get_ecc_status = _lib.amdsmi_dev_get_ecc_status
 
 _lib.amdsmi_status_string.argtypes = [amdsmi_status_t,POINTER(c_char_p)]
 _lib.amdsmi_status_string.restype = amdsmi_status_t
@@ -2009,9 +2008,9 @@ _lib.amdsmi_read_counter.argtypes = [amdsmi_event_handle_t,POINTER(amdsmi_counte
 _lib.amdsmi_read_counter.restype = amdsmi_status_t
 amdsmi_read_counter = _lib.amdsmi_read_counter
 
-_lib. amdsmi_counter_get_available_counters.argtypes = [amdsmi_device_handle,amdsmi_event_group_t,POINTER(c_uint32)]
-_lib. amdsmi_counter_get_available_counters.restype = amdsmi_status_t
- amdsmi_counter_get_available_counters = _lib. amdsmi_counter_get_available_counters
+_lib.amdsmi_counter_get_available_counters.argtypes = [amdsmi_device_handle,amdsmi_event_group_t,POINTER(c_uint32)]
+_lib.amdsmi_counter_get_available_counters.restype = amdsmi_status_t
+amdsmi_counter_get_available_counters = _lib.amdsmi_counter_get_available_counters
 
 _lib.amdsmi_get_compute_process_info.argtypes = [POINTER(amdsmi_process_info_t),POINTER(c_uint32)]
 _lib.amdsmi_get_compute_process_info.restype = amdsmi_status_t
@@ -2041,9 +2040,9 @@ _lib.amdsmi_topo_get_link_weight.argtypes = [amdsmi_device_handle,amdsmi_device_
 _lib.amdsmi_topo_get_link_weight.restype = amdsmi_status_t
 amdsmi_topo_get_link_weight = _lib.amdsmi_topo_get_link_weight
 
-_lib. amdsmi_get_minmax_bandwidth.argtypes = [amdsmi_device_handle,amdsmi_device_handle,POINTER(c_uint64),POINTER(c_uint64)]
-_lib. amdsmi_get_minmax_bandwidth.restype = amdsmi_status_t
- amdsmi_get_minmax_bandwidth = _lib. amdsmi_get_minmax_bandwidth
+_lib.amdsmi_get_minmax_bandwidth.argtypes = [amdsmi_device_handle,amdsmi_device_handle,POINTER(c_uint64),POINTER(c_uint64)]
+_lib.amdsmi_get_minmax_bandwidth.restype = amdsmi_status_t
+amdsmi_get_minmax_bandwidth = _lib.amdsmi_get_minmax_bandwidth
 
 _lib.amdsmi_topo_get_link_type.argtypes = [amdsmi_device_handle,amdsmi_device_handle,POINTER(c_uint64),POINTER(AMDSMI_IO_LINK_TYPE)]
 _lib.amdsmi_topo_get_link_type.restype = amdsmi_status_t
@@ -2077,13 +2076,13 @@ _lib.amdsmi_init_event_notification.argtypes = [amdsmi_device_handle]
 _lib.amdsmi_init_event_notification.restype = amdsmi_status_t
 amdsmi_init_event_notification = _lib.amdsmi_init_event_notification
 
-_lib. amdsmi_set_event_notification_mask.argtypes = [amdsmi_device_handle,c_uint64]
-_lib. amdsmi_set_event_notification_mask.restype = amdsmi_status_t
- amdsmi_set_event_notification_mask = _lib. amdsmi_set_event_notification_mask
+_lib.amdsmi_set_event_notification_mask.argtypes = [amdsmi_device_handle,c_uint64]
+_lib.amdsmi_set_event_notification_mask.restype = amdsmi_status_t
+amdsmi_set_event_notification_mask = _lib.amdsmi_set_event_notification_mask
 
-_lib. amdsmi_get_event_notification.argtypes = [c_int,POINTER(c_uint32),POINTER(amdsmi_evt_notification_data_t)]
-_lib. amdsmi_get_event_notification.restype = amdsmi_status_t
- amdsmi_get_event_notification = _lib. amdsmi_get_event_notification
+_lib.amdsmi_get_event_notification.argtypes = [c_int,POINTER(c_uint32),POINTER(amdsmi_evt_notification_data_t)]
+_lib.amdsmi_get_event_notification.restype = amdsmi_status_t
+amdsmi_get_event_notification = _lib.amdsmi_get_event_notification
 
 _lib.amdsmi_stop_event_notification.argtypes = [amdsmi_device_handle]
 _lib.amdsmi_stop_event_notification.restype = amdsmi_status_t
