@@ -119,8 +119,8 @@ void TestMemUtilRead::Run(void) {
       PrintDeviceHeader(device_handles_[i]);
 
 #if 0
-      err = amdsmi_dev_memory_busy_percent_get(i, &mem_busy_percent);
-      err_chk("amdsmi_dev_memory_busy_percent_get()");
+      err = amdsmi_dev_get_memory_busy_percent(i, &mem_busy_percent);
+      err_chk("amdsmi_dev_get_memory_busy_percent()");
       if (err != AMDSMI_STATUS_SUCCESS) {
         return;
       }
@@ -131,16 +131,16 @@ void TestMemUtilRead::Run(void) {
 #endif
       for (uint32_t mem_type = AMDSMI_MEM_TYPE_FIRST;
                                    mem_type <= AMDSMI_MEM_TYPE_LAST; ++mem_type) {
-        err = amdsmi_dev_memory_total_get(device_handles_[i],
+        err = amdsmi_dev_get_memory_total(device_handles_[i],
                              static_cast<amdsmi_memory_type_t>(mem_type), &total);
-        err_chk("amdsmi_dev_memory_total_get()");
+        err_chk("amdsmi_dev_get_memory_total()");
         if (err != AMDSMI_STATUS_SUCCESS) {
           return;
         }
 
-        err = amdsmi_dev_memory_usage_get(device_handles_[i],
+        err = amdsmi_dev_get_memory_usage(device_handles_[i],
                              static_cast<amdsmi_memory_type_t>(mem_type), &usage);
-        err_chk("amdsmi_dev_memory_usage_get()");
+        err_chk("amdsmi_dev_get_memory_usage()");
         if (err != AMDSMI_STATUS_SUCCESS) {
           return;
         }

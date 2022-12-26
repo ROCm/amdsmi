@@ -101,7 +101,7 @@ void TestVersionRead::Run(void) {
     return;
   }
 
-  err = amdsmi_version_get(&ver);
+  err = amdsmi_get_version(&ver);
   CHK_ERR_ASRT(err)
 
   ASSERT_TRUE(ver.major != 0xFFFFFFFF && ver.minor != 0xFFFFFFFF &&
@@ -114,7 +114,7 @@ void TestVersionRead::Run(void) {
   char ver_str[kVerMaxStrLen];
 
   for (uint32_t cmp = AMDSMI_SW_COMP_FIRST; cmp <= AMDSMI_SW_COMP_LAST; ++cmp) {
-    err = amdsmi_version_str_get(static_cast<amdsmi_sw_component_t>(cmp),
+    err = amdsmi_get_version_str(static_cast<amdsmi_sw_component_t>(cmp),
                                                       ver_str, kVerMaxStrLen);
     CHK_ERR_ASRT(err)
 

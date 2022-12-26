@@ -133,7 +133,7 @@ int main() {
  
       // Get temperature
       int64_t val_i64 = 0;
-      ret = amdsmi_dev_temp_metric_get(device_handles[j], 0,
+      ret =  amdsmi_dev_get_temp_metric(device_handles[j], 0,
               AMDSMI_TEMP_CURRENT, &val_i64);
       std::cout << "\t\tTemperature: " << val_i64/1000 << "C" << std::endl;
     }

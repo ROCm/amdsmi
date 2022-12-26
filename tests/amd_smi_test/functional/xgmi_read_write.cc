@@ -140,7 +140,7 @@ void TestXGMIReadWrite::Run(void) {
 
     // TODO(cfree) We need to find a way to generate xgmi errors so this
     // test won't be meaningless
-    err = amdsmi_dev_xgmi_error_reset(device);
+    err = amdsmi_dev_reset_xgmi_error(device);
     CHK_ERR_ASRT(err)
     IF_VERB(STANDARD) {
       std::cout << "\t**Successfully reset XGMI Error Status: " << std::endl;

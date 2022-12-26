@@ -287,85 +287,85 @@ class Formatter:
     |                                                                                                                         |
     |  """ + self.style.header("COMMANDS:") + """                                                                                                              |
     |                                                                                                                         |
-    |     """ + self.style.text(" 1   Get device vendor name.               Api: amdsmi_dev_vendor_name_get             <bdf>") + """                        |
-    |     """ + self.style.text(" 2   Get device id.                        Api: amdsmi_dev_id_get                      <bdf>") + """                        |
-    |     """ + self.style.text(" 3   Get device vram vendor.               Api: amdsmi_dev_vram_vendor_get             <bdf>") + """                        |
-    |     """ + self.style.text(" 4   Get device drm render minor.          Api: amdsmi_dev_drm_render_minor_get        <bdf>") + """                        |
-    |     """ + self.style.text(" 5   Get device subsystem id.              Api: amdsmi_dev_subsystem_id_get            <bdf>") + """                        |
-    |     """ + self.style.text(" 6   Get device subsystem name.            Api: amdsmi_dev_subsystem_name_get          <bdf>") + """                        |
-    |     """ + self.style.text(" 7   Get device pci id.                    Api: amdsmi_dev_pci_id_get                  <bdf>") + """                        |
-    |     """ + self.style.text(" 8   Get device pci bandwidth.             Api: amdsmi_dev_pci_bandwidth_get           <bdf>") + """                        |
-    |     """ + self.style.text(" 9   Get device pci throughput.            Api: amdsmi_dev_pci_throughput_get          <bdf>") + """                        |
-    |     """ + self.style.text("10   Get device pci replay counter.        Api: amdsmi_dev_pci_replay_counter_get      <bdf>") + """                        |
-    |     """ + self.style.text("11   Get topo numa affinity.               Api: amdsmi_topo_numa_affinity_get          <bdf>") + """                        |
-    |     """ + self.style.text("12   Get device power ave.                 Api: amdsmi_dev_power_ave_get               <bdf><sensor_id>") + """             |
-    |     """ + self.style.text("13   Get device energy count.              Api: amdsmi_dev_energy_count_get            <bdf>") + """                        |
-    |     """ + self.style.text("14   Get device memory total.              Api: amdsmi_dev_memory_total_get            <bdf>") + """                        |
-    |     """ + self.style.text("15   Get device memory usage.              Api: amdsmi_dev_memory_usage_get            <bdf>") + """                        |
-    |     """ + self.style.text("16   Get device memory busy percent.       Api: amdsmi_dev_memory_busy_percent_get     <bdf>") + """                        |
-    |     """ + self.style.text("17   Get device memory reserved pages.     Api: amdsmi_dev_memory_reserved_pages_get   <bdf>") + """                        |
-    |     """ + self.style.text("18   Get device fan rpms.                  Api: amdsmi_dev_fan_rpms_get                <bdf><sensor_idx>") + """            |
-    |     """ + self.style.text("19   Get device fan speed.                 Api: amdsmi_dev_fan_speed_get               <bdf><sensor_idx>") + """            |
-    |     """ + self.style.text("20   Get device fan speed max.             Api: amdsmi_dev_fan_speed_max_get           <bdf><sensor_idx>") + """            |
-    |     """ + self.style.text("21   Get device temp metric.               Api: amdsmi_dev_temp_metric_get             <bdf>") + """                        |
-    |     """ + self.style.text("22   Get device volt metric.               Api: amdsmi_dev_volt_metric_get             <bdf>") + """                        |
-    |     """ + self.style.text("23   Get device busy percent.              Api: amdsmi_dev_busy_percent_get            <bdf>") + """                        |
-    |     """ + self.style.text("24   Get utilization count.                Api: amdsmi_utilization_count_get           <bdf>") + """                        |
-    |     """ + self.style.text("25   Get device perf level.                Api: amdsmi_dev_perf_level_get              <bdf>") + """                        |
-    |     """ + self.style.text("26   Set perf determinism mode.            Api: amdsmi_perf_determinism_mode_set       <bdf><clock_value>") + """           |
-    |     """ + self.style.text("27   Get device overdrive level.           Api: amdsmi_dev_overdrive_level_get         <bdf>") + """                        |
-    |     """ + self.style.text("28   Get device gpu clk freq.              Api: amdsmi_dev_gpu_clk_freq_get            <bdf>") + """                        |
-    |     """ + self.style.text("29   Get device od volt.                   Api: amdsmi_dev_od_volt_info_get            <bdf>") + """                        |
-    |     """ + self.style.text("30   Get device gpu metrics.               Api: amdsmi_dev_gpu_metrics_info_get        <bdf>") + """                        |
-    |     """ + self.style.text("31   Get device od volt curve regions.     Api: amdsmi_dev_od_volt_curve_regions_get   <bdf><num_regions>") + """           |
-    |     """ + self.style.text("32   Get device power profile presets.     Api: amdsmi_dev_power_profile_presets_get   <bdf><sensor_idx>") + """            |
-    |     """ + self.style.text("33   Get the build version.                Api: amdsmi_version_get                     <None>") + """                       |
-    |     """ + self.style.text("34   Get version string.                   Api: amdsmi_version_str_get                 <None>") + """                       |
-    |     """ + self.style.text("35   Get device ecc counter.               Api: amdsmi_dev_ecc_count_get               <bdf>") + """                        |
-    |     """ + self.style.text("36   Get device ecc enable.                Api: amdsmi_dev_ecc_enabled_get             <bdf>") + """                        |
-    |     """ + self.style.text("37   Get device ecc status.                Api: amdsmi_dev_ecc_status_get              <bdf>") + """                        |
+    |     """ + self.style.text(" 1   Get device vendor name.               Api: amdsmi_dev_get_vendor_name             <bdf>") + """                        |
+    |     """ + self.style.text(" 2   Get device id.                        Api: amdsmi_dev_get_id                      <bdf>") + """                        |
+    |     """ + self.style.text(" 3   Get device vram vendor.               Api: amdsmi_dev_get_vram_vendor             <bdf>") + """                        |
+    |     """ + self.style.text(" 4   Get device drm render minor.          Api: amdsmi_dev_get_drm_render_minor        <bdf>") + """                        |
+    |     """ + self.style.text(" 5   Get device subsystem id.              Api: amdsmi_dev_get_subsystem_id            <bdf>") + """                        |
+    |     """ + self.style.text(" 6   Get device subsystem name.            Api: amdsmi_dev_get_subsystem_name          <bdf>") + """                        |
+    |     """ + self.style.text(" 7   Get device pci id.                    Api: amdsmi_dev_get_pci_id                  <bdf>") + """                        |
+    |     """ + self.style.text(" 8   Get device pci bandwidth.             Api: amdsmi_dev_get_pci_bandwidth           <bdf>") + """                        |
+    |     """ + self.style.text(" 9   Get device pci throughput.            Api: amdsmi_dev_get_pci_throughput          <bdf>") + """                        |
+    |     """ + self.style.text("10   Get device pci replay counter.        Api:  amdsmi_dev_get_pci_replay_counter      <bdf>") + """                        |
+    |     """ + self.style.text("11   Get topo numa affinity.               Api: amdsmi_topo_get_numa_affinity          <bdf>") + """                        |
+    |     """ + self.style.text("12   Get device power ave.                 Api: amdsmi_dev_get_power_ave               <bdf><sensor_id>") + """             |
+    |     """ + self.style.text("13   Get device energy count.              Api: amdsmi_dev_get_energy_count            <bdf>") + """                        |
+    |     """ + self.style.text("14   Get device memory total.              Api: amdsmi_dev_get_memory_total            <bdf>") + """                        |
+    |     """ + self.style.text("15   Get device memory usage.              Api: amdsmi_dev_get_memory_usage            <bdf>") + """                        |
+    |     """ + self.style.text("16   Get device memory busy percent.       Api: amdsmi_dev_get_memory_busy_percent     <bdf>") + """                        |
+    |     """ + self.style.text("17   Get device memory reserved pages.     Api: amdsmi_dev_get_memory_reserved_pages   <bdf>") + """                        |
+    |     """ + self.style.text("18   Get device fan rpms.                  Api: amdsmi_dev_get_fan_rpms                <bdf><sensor_idx>") + """            |
+    |     """ + self.style.text("19   Get device fan speed.                 Api: amdsmi_dev_get_fan_speed               <bdf><sensor_idx>") + """            |
+    |     """ + self.style.text("20   Get device fan speed max.             Api: amdsmi_dev_get_fan_speed_max           <bdf><sensor_idx>") + """            |
+    |     """ + self.style.text("21   Get device temp metric.               Api:  amdsmi_dev_get_temp_metric             <bdf>") + """                        |
+    |     """ + self.style.text("22   Get device volt metric.               Api:  amdsmi_dev_get_volt_metric             <bdf>") + """                        |
+    |     """ + self.style.text("23   Get device busy percent.              Api: amdsmi_dev_get_busy_percent            <bdf>") + """                        |
+    |     """ + self.style.text("24   Get utilization count.                Api: amdsmi_get_utilization_count           <bdf>") + """                        |
+    |     """ + self.style.text("25   Get device perf level.                Api: amdsmi_dev_get_perf_level              <bdf>") + """                        |
+    |     """ + self.style.text("26   Set perf determinism mode.            Api: amdsmi_set_perf_determinism_mode       <bdf><clock_value>") + """           |
+    |     """ + self.style.text("27   Get device overdrive level.           Api: amdsmi_dev_get_overdrive_level         <bdf>") + """                        |
+    |     """ + self.style.text("28   Get device gpu clk freq.              Api:  amdsmi_dev_get_gpu_clk_freq            <bdf>") + """                        |
+    |     """ + self.style.text("29   Get device od volt.                   Api:  amdsmi_dev_get_od_volt_info            <bdf>") + """                        |
+    |     """ + self.style.text("30   Get device gpu metrics.               Api:  amdsmi_dev_get_gpu_metrics_info        <bdf>") + """                        |
+    |     """ + self.style.text("31   Get device od volt curve regions.     Api:  amdsmi_dev_get_od_volt_curve_regions   <bdf><num_regions>") + """           |
+    |     """ + self.style.text("32   Get device power profile presets.     Api:  amdsmi_dev_get_power_profile_presets   <bdf><sensor_idx>") + """            |
+    |     """ + self.style.text("33   Get the build version.                Api: amdsmi_get_version                     <None>") + """                       |
+    |     """ + self.style.text("34   Get version string.                   Api: amdsmi_get_version_str                 <None>") + """                       |
+    |     """ + self.style.text("35   Get device ecc counter.               Api:  amdsmi_dev_get_ecc_count               <bdf>") + """                        |
+    |     """ + self.style.text("36   Get device ecc enable.                Api:  amdsmi_dev_get_ecc_enabled             <bdf>") + """                        |
+    |     """ + self.style.text("37   Get device ecc status.                Api:  amdsmi_dev_get_ecc_status              <bdf>") + """                        |
     |     """ + self.style.text("38   Get status string.                    Api: amdsmi_status_string                   <status>") + """                     |
-    |     """ + self.style.text("39   Get compute process info.             Api: amdsmi_compute_process_info_get        <None>") + """                       |
-    |     """ + self.style.text("40   Get compute process info by pid.      Api: amdsmi_compute_process_info_by_pid_get <pid>") + """                        |
-    |     """ + self.style.text("41   Get compute process gpus.             Api: amdsmi_compute_process_gpus_get        <pid>") + """                        |
+    |     """ + self.style.text("39   Get compute process info.             Api: amdsmi_get_compute_process_info        <None>") + """                       |
+    |     """ + self.style.text("40   Get compute process info by pid.      Api: amdsmi_get_compute_process_info_by_pid <pid>") + """                        |
+    |     """ + self.style.text("41   Get compute process gpus.             Api: amdsmi_get_compute_process_gpus        <pid>") + """                        |
     |     """ + self.style.text("42   Get device xgmi_error_status.         Api: amdsmi_dev_xgmi_error_status           <bdf>") + """                        |
-    |     """ + self.style.text("43   Get device xgmi error reset.          Api: amdsmi_dev_xgmi_error_reset            <bdf>") + """                        |
+    |     """ + self.style.text("43   Get device xgmi error reset.          Api: amdsmi_dev_reset_xgmi_error            <bdf>") + """                        |
     |     """ + self.style.text("44   Get topo get numa node number.        Api: amdsmi_topo_get_numa_node_number       <bdf>") + """                        |
     |     """ + self.style.text("45   Get topo get link weight.             Api: amdsmi_topo_get_link_weight            <bdf><bdf>") + """                   |
-    |     """ + self.style.text("46   Get minmax_bandwidth_get.             Api: amdsmi_minmax_bandwidth_get            <bdf><bdf>") + """                   |
+    |     """ + self.style.text("46   Get minmax_bandwidth_get.             Api:  amdsmi_get_minmax_bandwidth            <bdf><bdf>") + """                   |
     |     """ + self.style.text("47   Get topo get link type.               Api: amdsmi_topo_get_link_type              <bdf><bdf>") + """                   |
     |     """ + self.style.text("48   Get is P2P accessible.                Api: amdsmi_is_P2P_accessible               <bdf><bdf>") + """                   |
     |     """ + self.style.text("49   Get asic info.                        Api: amdsmi_get_asic_info                   <bdf>") + """                        |
     |     """ + self.style.text("50   Get device_handles.                   Api: amdsmi_get_device_handles              <None>") + """                       |
-    |     """ + self.style.text("51   Get event notification.               Api: amdsmi_event_notification_get          <bdf>") + """                        |
-    |     """ + self.style.text("52   Init event notification.              Api: amdsmi_event_notification_init         <bdf>") + """                        |
-    |     """ + self.style.text("53   Set event notification mask.          Api: amdsmi_event_notification_mask_set     <bdf><mask>") + """                  |
-    |     """ + self.style.text("54   Get event notification.               Api: amdsmi_event_notification_stop         <bdf>") + """                        |
+    |     """ + self.style.text("51   Get event notification.               Api:  amdsmi_get_event_notification          <bdf>") + """                        |
+    |     """ + self.style.text("52   Init event notification.              Api: amdsmi_init_event_notification         <bdf>") + """                        |
+    |     """ + self.style.text("53   Set event notification mask.          Api:  amdsmi_set_event_notification_mask     <bdf><mask>") + """                  |
+    |     """ + self.style.text("54   Get event notification.               Api: amdsmi_stop_event_notification         <bdf>") + """                        |
     |     """ + self.style.text("55   Init.                                 Api: amdsmi_init                            <None>") + """                       |
     |     """ + self.style.text("56   Shut down.                            Api: amdsmi_shut_down                       <None>") + """                       |
     |     """ + self.style.text("57   Get fw info.                          Api: amdsmi_get_fw_info                     <bdf>") + """                        |
     |     """ + self.style.text("58   Get vbios info.                       Api: amdsmi_get_vbios_info                  <bdf>") + """                        |
-    |     """ + self.style.text("59   Get counter available counters.       Api: amdsmi_counter_available_counters_get  <bdf>") + """                        |
-    |     """ + self.style.text("60   Get counter control.                  Api: amdsmi_counter_control                 <bdf>") + """                        |
-    |     """ + self.style.text("61   Get counter read.                     Api: amdsmi_counter_read                    <bdf>") + """                        |
-    |     """ + self.style.text("62   Set dev clk range.                    Api: amdsmi_dev_clk_range_set               <bdf><min_clk><max_clk>") + """      |
+    |     """ + self.style.text("59   Get counter available counters.       Api:  amdsmi_counter_get_available_counters  <bdf>") + """                        |
+    |     """ + self.style.text("60   Get counter control.                  Api: amdsmi_control_counter                 <bdf>") + """                        |
+    |     """ + self.style.text("61   Get counter read.                     Api: amdsmi_read_counter                    <bdf>") + """                        |
+    |     """ + self.style.text("62   Set dev clk range.                    Api: amdsmi_dev_set_clk_range               <bdf><min_clk><max_clk>") + """      |
     |     """ + self.style.text("63   Get dev counter group supported.      Api: amdsmi_dev_counter_group_supported     <bdf>") + """                        |
-    |     """ + self.style.text("64   Reset dev fan.                        Api: amdsmi_dev_fan_reset                   <bdf><sensor_idx>") + """            |
-    |     """ + self.style.text("65   Set dev fan speed.                    Api: amdsmi_dev_fan_speed_set               <bdf><sensor_idx><fan_speed>") + """ |
-    |     """ + self.style.text("66   Set dev gpu clk freq.                 Api: amdsmi_dev_gpu_clk_freq_set            <bdf><freq_bitmask>") + """          |
-    |     """ + self.style.text("67   Reset dev gpu.                        Api: amdsmi_dev_gpu_reset                   <bdf>") + """                        |
-    |     """ + self.style.text("68   Set dev od clk info.                  Api: amdsmi_dev_od_clk_info_set             <bdf><value>") + """                 |
-    |     """ + self.style.text("69   Set dev od volt info.                 Api: amdsmi_dev_od_volt_info_set     <bdf><vpoint><clk_value><volt_value>") + """|
-    |     """ + self.style.text("70   Set dev overdrive level.              Api: amdsmi_dev_overdrive_level_set         <bdf><overdrive_value>") + """       |
-    |     """ + self.style.text("71   Set v1 dev overdrive level.           Api: amdsmi_dev_overdrive_level_set_v1      <bdf><overdrive_value>") + """       |
-    |     """ + self.style.text("72   Set dev pci bandwidth.                Api: amdsmi_dev_pci_bandwidth_set           <bdf><bitmask>") + """               |
-    |     """ + self.style.text("73   Set dev perf level.                   Api: amdsmi_dev_perf_level_set              <bdf>") + """                        |
-    |     """ + self.style.text("74   Set dev perf level v1.                Api: amdsmi_dev_perf_level_set_v1           <bdf>") + """                        |
-    |     """ + self.style.text("75   Set dev power cap.                    Api: amdsmi_dev_power_cap_set               <bdf><sensor_ind><cap>") + """       |
-    |     """ + self.style.text("76   Set dev power profile.                Api: amdsmi_dev_power_profile_set           <bdf><reserved>") + """              |
-    |     """ + self.style.text("77   Close dev supported func iterator.    Api: amdsmi_dev_supported_func_iterator_close    <bdf>") + """                   |
-    |     """ + self.style.text("78   Pen dev supported func iterator.      Api: amdsmi_dev_supported_func_iterator_open     <bdf>") + """                   |
-    |     """ + self.style.text("79   Get func iter next.                   Api: amdsmi_func_iter_next                  <bdf>") + """                        |
+    |     """ + self.style.text("64   Reset dev fan.                        Api: amdsmi_dev_reset_fan                   <bdf><sensor_idx>") + """            |
+    |     """ + self.style.text("65   Set dev fan speed.                    Api: amdsmi_dev_set_fan_speed               <bdf><sensor_idx><fan_speed>") + """ |
+    |     """ + self.style.text("66   Set dev gpu clk freq.                 Api:  amdsmi_dev_set_clk_freq            <bdf><freq_bitmask>") + """          |
+    |     """ + self.style.text("67   Reset dev gpu.                        Api: amdsmi_dev_reset_gpu                   <bdf>") + """                        |
+    |     """ + self.style.text("68   Set dev od clk info.                  Api:  amdsmi_dev_set_od_clk_info             <bdf><value>") + """                 |
+    |     """ + self.style.text("69   Set dev od volt info.                 Api:  amdsmi_dev_set_od_volt_info     <bdf><vpoint><clk_value><volt_value>") + """|
+    |     """ + self.style.text("70   Set dev overdrive level.              Api:  amdsmi_dev_set_overdrive_level         <bdf><overdrive_value>") + """       |
+    |     """ + self.style.text("71   Set v1 dev overdrive level.           Api:  amdsmi_dev_set_overdrive_level_v1      <bdf><overdrive_value>") + """       |
+    |     """ + self.style.text("72   Set dev pci bandwidth.                Api:  amdsmi_dev_set_pci_bandwidth           <bdf><bitmask>") + """               |
+    |     """ + self.style.text("73   Set dev perf level.                   Api:  amdsmi_dev_set_perf_level              <bdf>") + """                        |
+    |     """ + self.style.text("74   Set dev perf level v1.                Api:  amdsmi_dev_set_perf_level_v1           <bdf>") + """                        |
+    |     """ + self.style.text("75   Set dev power cap.                    Api:  amdsmi_dev_set_power_cap               <bdf><sensor_ind><cap>") + """       |
+    |     """ + self.style.text("76   Set dev power profile.                Api:  amdsmi_dev_set_power_profile           <bdf><reserved>") + """              |
+    |     """ + self.style.text("77   Close dev supported func iterator.    Api: amdsmi_dev_close_supported_func_iterator    <bdf>") + """                   |
+    |     """ + self.style.text("78   Pen dev supported func iterator.      Api: amdsmi_dev_open_supported_func_iterator     <bdf>") + """                   |
+    |     """ + self.style.text("79   Get func iter next.                   Api: amdsmi_next_func_iter                  <bdf>") + """                        |
     |     """ + self.style.text("80   Get power cap info.                   Api: amdsmi_get_power_cap_info              <bdf>") + """                        |
     |     """ + self.style.text("81   Get xgmi info.                        Api: amdsmi_get_xgmi_info                   <bdf>") + """                        |
     +=========================================================================================================================+"""
@@ -377,13 +377,13 @@ class Formatter:
 ##############################################
 def amdsmi_tool_dev_power_ave_get(dev, dic):
     sensor_id = dic["sensor_id"]
-    return smi_api.amdsmi_dev_power_ave_get(dev, ctypes.c_uint32(sensor_id))
+    return smi_api.amdsmi_dev_get_power_ave(dev, ctypes.c_uint32(sensor_id))
 
 def amdsmi_tool_dev_memory_total_get(dev):
     result = {}
     for memory_type in smi_api.AmdSmiMemoryType:
         try:
-            value = smi_api.amdsmi_dev_memory_total_get(dev, memory_type)
+            value = smi_api.amdsmi_dev_get_memory_total(dev, memory_type)
             result.update({memory_type.name: value})
         except smi_api.AmdSmiException as e:
             print("{}:\t{}".format(memory_type.name, e))
@@ -394,7 +394,7 @@ def amdsmi_tool_dev_memory_usage_get(dev):
     result = {}
     for memory_type in smi_api.AmdSmiMemoryType:
         try:
-            value = smi_api.amdsmi_dev_memory_usage_get(dev, memory_type)
+            value = smi_api.amdsmi_dev_get_memory_usage(dev, memory_type)
             result.update({memory_type.name: value})
         except smi_api.AmdSmiException as e:
             print("{}:\t{}".format(memory_type.name, e))
@@ -403,22 +403,22 @@ def amdsmi_tool_dev_memory_usage_get(dev):
 
 def amdsmi_tool_dev_fan_rpms_get(dev, dic):
     sensor_idx = dic["sensor_idx"]
-    return smi_api.amdsmi_dev_fan_rpms_get(dev, sensor_idx)
+    return smi_api.amdsmi_dev_get_fan_rpms(dev, sensor_idx)
 
 def amdsmi_tool_dev_fan_speed_get(dev, dic):
     sensor_idx = dic["sensor_idx"]
-    return smi_api.amdsmi_dev_fan_speed_get(dev, sensor_idx)
+    return smi_api.amdsmi_dev_get_fan_speed(dev, sensor_idx)
 
 def amdsmi_tool_dev_fan_speed_max_get(dev, dic):
     sensor_idx = dic["sensor_idx"]
-    return smi_api.amdsmi_dev_fan_speed_max_get(dev, sensor_idx)
+    return smi_api.amdsmi_dev_get_fan_speed_max(dev, sensor_idx)
 
 def amdsmi_tool_dev_temp_metric_get(dev):
     result = {}
     for temperature_type in smi_api.AmdSmiTemperatureType:
         for temperature_metric in smi_api.AmdSmiTemperatureMetric:
             try:
-                value = smi_api.amdsmi_dev_temp_metric_get(dev, temperature_type, temperature_metric)
+                value = smi_api. amdsmi_dev_get_temp_metric(dev, temperature_type, temperature_metric)
                 result.update({"AmdSmiTemperatureType: " + temperature_type.name + ", AmdSmiTemperatureMetric: " + temperature_metric.name: value})
             except smi_api.AmdSmiException as e:
                 print("{},{}:\t{}".format(temperature_type.name,  temperature_metric.name, e))
@@ -430,7 +430,7 @@ def amdsmi_tool_dev_volt_metric_get(dev):
     for voltage_type in smi_api.AmdSmiVoltageType:
         for voltage_metric in smi_api.AmdSmiVoltageMetric:
             try:
-                value = smi_api.amdsmi_dev_volt_metric_get(dev, voltage_type, voltage_metric)
+                value = smi_api. amdsmi_dev_get_volt_metric(dev, voltage_type, voltage_metric)
                 result.update({"AmdSmiVoltageType: " + voltage_type.name + ", AmdSmiVoltageMetric: " + voltage_metric.name: value})
             except smi_api.AmdSmiException as e:
                 print("{},{}:\t{}".format(voltage_type.name,  voltage_metric.name, e))
@@ -441,7 +441,7 @@ def amdsmi_tool_utilization_count_get(dev):
     result = {}
     for counter_type in smi_api.AmdSmiUtilizationCounterType:
         try:
-            value = smi_api.amdsmi_utilization_count_get(dev, counter_type)
+            value = smi_api.amdsmi_get_utilization_count(dev, counter_type)
             result.update({counter_type.name: value})
         except smi_api.AmdSmiException as e:
             print("{}:\t{}".format(counter_type.name, e))
@@ -450,17 +450,17 @@ def amdsmi_tool_utilization_count_get(dev):
 
 def amdsmi_tool_perf_determinism_mode_set(dev, dic):
     clock_value = dic["clock_value"]
-    return smi_api.amdsmi_perf_determinism_mode_set(dev, clock_value)
+    return smi_api.amdsmi_set_perf_determinism_mode(dev, clock_value)
 
 def amdsmi_tool_dev_power_profile_presets_get(dev, dic):
     sensor_idx = dic["sensor_idx"]
-    return smi_api.amdsmi_dev_power_profile_presets_get(dev, sensor_idx)
+    return smi_api. amdsmi_dev_get_power_profile_presets(dev, sensor_idx)
 
 def amdsmi_tool_version_str_get():
     result = {}
     for sw_component in smi_api.AmdSmiSwComponent:
         try:
-            value = smi_api.amdsmi_version_str_get(sw_component)
+            value = smi_api.amdsmi_get_version_str(sw_component)
             result.update({sw_component.name: value})
         except smi_api.AmdSmiException as e:
             print("{}:\t{}".format(sw_component.name, e))
@@ -469,31 +469,31 @@ def amdsmi_tool_version_str_get():
 
 def amdsmi_tool_dev_fan_reset(dev, dic):
     sensor_idx = dic["sensor_idx"]
-    return smi_api.amdsmi_dev_fan_reset(dev, sensor_idx)
+    return smi_api.amdsmi_dev_reset_fan(dev, sensor_idx)
 
 def amdsmi_tool_dev_fan_speed_set(dev, dic):
     sensor_idx = dic["sensor_idx"]
     fan_speed = dic["fan_speed"]
-    return smi_api.amdsmi_dev_fan_speed_set(dev, sensor_idx, fan_speed)
+    return smi_api.amdsmi_dev_set_fan_speed(dev, sensor_idx, fan_speed)
 
 def amdsmi_tool_dev_overdrive_level_set(dev, dic):
     overdrive_value = dic["overdrive_value"]
-    return smi_api.amdsmi_dev_overdrive_level_set(dev, overdrive_value)
+    return smi_api. amdsmi_dev_set_overdrive_level(dev, overdrive_value)
 
 def amdsmi_tool_dev_overdrive_level_set_v1(dev, dic):
     overdrive_value = dic["overdrive_value"]
-    return smi_api.amdsmi_dev_overdrive_level_set(dev, overdrive_value)
+    return smi_api. amdsmi_dev_set_overdrive_level(dev, overdrive_value)
 
 def amdsmi_tool_dev_pci_bandwidth_set(dev, dic):
     bitmask = dic["bitmask"]
-    return smi_api.amdsmi_dev_pci_bandwidth_set(dev, bitmask)
+    return smi_api. amdsmi_dev_set_pci_bandwidth(dev, bitmask)
 
 
 def amdsmi_tool_dev_gpu_clk_freq_get(dev):
     result = {}
     for clock_type in smi_api.AmdSmiClockType:
         try:
-            value = smi_api.amdsmi_dev_gpu_clk_freq_get(dev, clock_type)
+            value = smi_api. amdsmi_dev_get_gpu_clk_freq(dev, clock_type)
             result.update({clock_type.name: value})
         except smi_api.AmdSmiException as e:
             print("{}:\t{}".format(clock_type.name, e))
@@ -502,14 +502,14 @@ def amdsmi_tool_dev_gpu_clk_freq_get(dev):
 
 def amdsmi_tool_dev_od_volt_curve_regions_get(dev, dic):
     num_regions = dic["num_regions"]
-    return smi_api.amdsmi_dev_od_volt_curve_regions_get(dev, num_regions)
+    return smi_api. amdsmi_dev_get_od_volt_curve_regions(dev, num_regions)
 
 
 def amdsmi_tool_dev_ecc_count_get(dev):
     result = {}
     for gpu_block in smi_api.AmdSmiGpuBlock:
         try:
-            value = smi_api.amdsmi_dev_ecc_count_get(dev, gpu_block)
+            value = smi_api. amdsmi_dev_get_ecc_count(dev, gpu_block)
             result.update({gpu_block.name: value})
         except smi_api.AmdSmiException as e:
             print("{}:\t{}".format(gpu_block.name, e))
@@ -520,7 +520,7 @@ def amdsmi_tool_dev_ecc_status_get(dev):
     result = {}
     for gpu_block in smi_api.AmdSmiGpuBlock:
         try:
-            value = smi_api.amdsmi_dev_ecc_status_get(dev, gpu_block)
+            value = smi_api. amdsmi_dev_get_ecc_status(dev, gpu_block)
             result.update({gpu_block.name: value})
         except smi_api.AmdSmiException as e:
             print("{}:\t{}".format(gpu_block.name, e))
@@ -533,17 +533,17 @@ def amdsmi_tool_status_string(dic):
 
 def amdsmi_tool_compute_process_gpus_get(dic):
     pid = dic["pid"]
-    return smi_api.amdsmi_compute_process_gpus_get(pid)
+    return smi_api.amdsmi_get_compute_process_gpus(pid)
 
 def amdsmi_tool_compute_process_info_by_pid_get(dic):
     pid = dic["pid"]
-    return smi_api.amdsmi_compute_process_info_by_pid_get(pid)
+    return smi_api.amdsmi_get_compute_process_info_by_pid(pid)
 
 def amdsmi_tool_topo_get_link_weight(dev):
     return smi_api.amdsmi_topo_get_link_weight(dev[0], dev[1])
 
 def amdsmi_tool_minmax_bandwidth_get(dev):
-    return smi_api.amdsmi_minmax_bandwidth_get(dev[0], dev[1])
+    return smi_api. amdsmi_get_minmax_bandwidth(dev[0], dev[1])
 
 def amdsmi_tool_topo_get_link_type(dev):
     return smi_api.amdsmi_topo_get_link_type(dev[0], dev[1])
@@ -564,14 +564,14 @@ def amdsmi_tool_event_notification_get(dev):
     return result
 
 def amdsmi_tool_event_notification_init(dev):
-    return smi_api.amdsmi_wrapper.amdsmi_event_notification_init(dev)
+    return smi_api.amdsmi_wrapper.amdsmi_init_event_notification(dev)
 
 def amdsmi_tool_event_notification_mask_set(dev, dic):
     mask = dic["mask"]
-    return smi_api.amdsmi_wrapper.amdsmi_event_notification_mask_set(dev, ctypes.c_uint64(mask))
+    return smi_api.amdsmi_wrapper. amdsmi_set_event_notification_mask(dev, ctypes.c_uint64(mask))
 
 def amdsmi_tool_event_notification_stop(dev):
-    return smi_api.amdsmi_wrapper.amdsmi_event_notification_stop(dev)
+    return smi_api.amdsmi_wrapper.amdsmi_stop_event_notification(dev)
 
 def amdsmi_tool_shut_down():
     smi_api.amdsmi_init()
@@ -582,7 +582,7 @@ def amdsmi_tool_counter_available_counters_get(dev):
     result = {}
     for event_group in smi_api.AmdSmiEventGroup:
         try:
-            value = smi_api.amdsmi_counter_available_counters_get(dev, event_group)
+            value = smi_api. amdsmi_counter_get_available_counters(dev, event_group)
             result.update({event_group.name: value})
         except smi_api.AmdSmiException as e:
             print("{}:\t{}".format(event_group.name, e))
@@ -594,8 +594,8 @@ def amdsmi_tool_counter_control(dev):
     for event_type in smi_api.AmdSmiEventType:
         for counter_command in smi_api.AmdSmiCounterCommand:
             try:
-                event_handle = smi_api.amdsmi_dev_counter_create(dev, event_type)
-                value = smi_api.amdsmi_counter_control(event_handle, counter_command)
+                event_handle = smi_api.amdsmi_dev_create_counter(dev, event_type)
+                value = smi_api.amdsmi_control_counter(event_handle, counter_command)
                 result.update({event_type.name: value})
             except smi_api.AmdSmiException as e:
                 print("{}:\t{}".format(event_type.name, e))
@@ -606,8 +606,8 @@ def amdsmi_tool_counter_read(dev):
     result = {}
     for event_type in smi_api.AmdSmiEventType:
         try:
-            event_handle = smi_api.amdsmi_dev_counter_create(dev, event_type)
-            value = smi_api.amdsmi_counter_read(event_handle)
+            event_handle = smi_api.amdsmi_dev_create_counter(dev, event_type)
+            value = smi_api.amdsmi_read_counter(event_handle)
             result.update({event_type.name: value})
         except smi_api.AmdSmiException as e:
             print("{}:\t{}".format(event_type.name, e))
@@ -620,7 +620,7 @@ def amdsmi_tool_dev_clk_range_set(dev, dic):
     max_clk = dic["max_clk"]
     for clock_type in smi_api.AmdSmiClockType:
         try:
-            value = smi_api.amdsmi_dev_clk_range_set(dev, min_clk, max_clk, clock_type)
+            value = smi_api.amdsmi_dev_set_clk_range(dev, min_clk, max_clk, clock_type)
             result.update({clock_type.name: value})
         except smi_api.AmdSmiException as e:
             print("{}:\t{}".format(clock_type.name, e))
@@ -643,7 +643,7 @@ def amdsmi_tool_dev_gpu_clk_freq_set(dev, dic):
     freq_bitmask = dic["freq_bitmask"]
     for clock_type in smi_api.AmdSmiClockType:
         try:
-            value = smi_api.amdsmi_dev_gpu_clk_freq_set(dev, clock_type, freq_bitmask)
+            value = smi_api. amdsmi_dev_set_clk_freq(dev, clock_type, freq_bitmask)
             result.update({clock_type.name: value})
         except smi_api.AmdSmiException as e:
             print("{}:\t{}".format(clock_type.name, e))
@@ -656,7 +656,7 @@ def amdsmi_tool_dev_od_clk_info_set(dev, dic):
     for freq_ind in smi_api.AmdSmiFreqInd:
         for clock_type in smi_api.AmdSmiClockType:
             try:
-                value = smi_api.amdsmi_dev_od_clk_info_set(dev, freq_ind, value, clock_type)
+                value = smi_api. amdsmi_dev_set_od_clk_info(dev, freq_ind, value, clock_type)
                 result.update({"AmdSmiFreqInd: " + freq_ind.name + ", AmdSmiClockType: " + clock_type.name: value})
             except smi_api.AmdSmiException as e:
                 print("{},{}:\t{}".format(freq_ind.name,  clock_type.name, e))
@@ -667,13 +667,13 @@ def amdsmi_tool_dev_od_volt_info_set(dev, dic):
     vpoint = dic["vpoint"]
     clk_value = dic["clk_value"]
     volt_value = dic["volt_value"]
-    return smi_api.amdsmi_dev_od_volt_info_set(dev, vpoint, clk_value, volt_value)
+    return smi_api. amdsmi_dev_set_od_volt_info(dev, vpoint, clk_value, volt_value)
 
 def amdsmi_tool_dev_perf_level_set(dev):
     result = {}
     for dev_perf_level in smi_api.AmdSmiDevPerfLevel:
         try:
-            value = smi_api.amdsmi_dev_perf_level_set(dev, dev_perf_level)
+            value = smi_api. amdsmi_dev_set_perf_level(dev, dev_perf_level)
             result.update({dev_perf_level.name: value})
         except smi_api.AmdSmiException as e:
             print("{}:\t{}".format(dev_perf_level.name, e))
@@ -684,7 +684,7 @@ def amdsmi_tool_dev_perf_level_set_v1(dev):
     result = {}
     for dev_perf_level in smi_api.AmdSmiDevPerfLevel:
         try:
-            value = smi_api.amdsmi_dev_perf_level_set_v1(dev, dev_perf_level)
+            value = smi_api. amdsmi_dev_set_perf_level_v1(dev, dev_perf_level)
             result.update({dev_perf_level.name: value})
         except smi_api.AmdSmiException as e:
             print("{}:\t{}".format(dev_perf_level.name, e))
@@ -694,14 +694,14 @@ def amdsmi_tool_dev_perf_level_set_v1(dev):
 def amdsmi_tool_dev_power_cap_set(dev, dic):
     sensor_ind = dic["sensor_ind"]
     cap = dic["cap"]
-    return smi_api.amdsmi_dev_power_cap_set(dev, sensor_ind, cap)
+    return smi_api. amdsmi_dev_set_power_cap(dev, sensor_ind, cap)
 
 def amdsmi_tool_dev_power_profile_set(dev, dic):
     result = {}
     reserved = dic["reserved"]
     for power_profile_preset_maks in smi_api.AmdSmiPowerProfilePresetMasks:
         try:
-            value = smi_api.amdsmi_dev_power_profile_set(dev, reserved, power_profile_preset_maks)
+            value = smi_api. amdsmi_dev_set_power_profile(dev, reserved, power_profile_preset_maks)
             result.update({power_profile_preset_maks.name: value})
         except smi_api.AmdSmiException as e:
             print("{}:\t{}".format(power_profile_preset_maks.name, e))
@@ -709,12 +709,12 @@ def amdsmi_tool_dev_power_profile_set(dev, dic):
     return result
 
 def amdsmi_tool_dev_supported_func_iterator_close(dev):
-    obj_handle = smi_api.amdsmi_dev_supported_func_iterator_open(dev)
-    return smi_api.amdsmi_dev_supported_func_iterator_close(obj_handle)
+    obj_handle = smi_api.amdsmi_dev_open_supported_func_iterator(dev)
+    return smi_api.amdsmi_dev_close_supported_func_iterator(obj_handle)
 
 def amdsmi_tool_func_iter_next(dev):
-    obj_handle = smi_api.amdsmi_dev_supported_func_iterator_open(dev)
-    return smi_api.amdsmi_func_iter_next(obj_handle)
+    obj_handle = smi_api.amdsmi_dev_open_supported_func_iterator(dev)
+    return smi_api.amdsmi_next_func_iter(obj_handle)
 
 ##############################################
 # command table
@@ -722,44 +722,44 @@ def amdsmi_tool_func_iter_next(dev):
 
 commands = {
     # idx: [func, {arg_name : [arg_type, is_arg_obligatory]}]
-    1: [smi_api.amdsmi_dev_vendor_name_get, {
+    1: [smi_api.amdsmi_dev_get_vendor_name, {
         "device_identifier1": [None, True]
     }],
-    2: [smi_api.amdsmi_dev_id_get, {
+    2: [smi_api.amdsmi_dev_get_id, {
         "device_identifier1": [None, True]
     }],
-    3: [smi_api.amdsmi_dev_vram_vendor_get, {
+    3: [smi_api.amdsmi_dev_get_vram_vendor, {
         "device_identifier1": [None, True]
     }],
-    4: [smi_api.amdsmi_dev_drm_render_minor_get, {
+    4: [smi_api.amdsmi_dev_get_drm_render_minor, {
         "device_identifier1": [None, True]
     }],
-    5: [smi_api.amdsmi_dev_subsystem_id_get, {
+    5: [smi_api.amdsmi_dev_get_subsystem_id, {
         "device_identifier1": [None, True]
     }],
-    6: [smi_api.amdsmi_dev_subsystem_name_get, {
+    6: [smi_api.amdsmi_dev_get_subsystem_name, {
         "device_identifier1": [None, True]
     }],
-    7: [smi_api.amdsmi_dev_pci_id_get, {
+    7: [smi_api.amdsmi_dev_get_pci_id, {
         "device_identifier1": [None, True]
     }],
-    8: [smi_api.amdsmi_dev_pci_bandwidth_get, {
+    8: [smi_api.amdsmi_dev_get_pci_bandwidth, {
         "device_identifier1": [None, True]
     }],
-    9: [smi_api.amdsmi_dev_pci_throughput_get, {
+    9: [smi_api.amdsmi_dev_get_pci_throughput, {
         "device_identifier1": [None, True]
     }],
-    10: [smi_api.amdsmi_dev_pci_replay_counter_get, {
+    10: [smi_api. amdsmi_dev_get_pci_replay_counter, {
         "device_identifier1": [None, True]
     }],
-    11: [smi_api.amdsmi_topo_numa_affinity_get, {
+    11: [smi_api.amdsmi_topo_get_numa_affinity, {
         "device_identifier1": [None, True]
     }],
     12: [amdsmi_tool_dev_power_ave_get, {
         "device_identifier1": [None, True],
         "sensor_id": [int, True]
     }],
-    13: [smi_api.amdsmi_dev_energy_count_get, {
+    13: [smi_api.amdsmi_dev_get_energy_count, {
         "device_identifier1": [None, True]
     }],
     14: [amdsmi_tool_dev_memory_total_get, {
@@ -768,10 +768,10 @@ commands = {
     15: [amdsmi_tool_dev_memory_usage_get, {
         "device_identifier1": [None, True]
     }],
-    16: [smi_api.amdsmi_dev_memory_busy_percent_get, {
+    16: [smi_api.amdsmi_dev_get_memory_busy_percent, {
         "device_identifier1": [None, True]
     }],
-    17: [smi_api.amdsmi_dev_memory_reserved_pages_get, {
+    17: [smi_api.amdsmi_dev_get_memory_reserved_pages, {
         "device_identifier1": [None, True]
     }],
     18: [amdsmi_tool_dev_fan_rpms_get, {
@@ -792,29 +792,29 @@ commands = {
     22: [amdsmi_tool_dev_volt_metric_get, {
         "device_identifier1": [None, True],
     }],
-    23: [smi_api.amdsmi_dev_busy_percent_get, {
+    23: [smi_api.amdsmi_dev_get_busy_percent, {
         "device_identifier1": [None, True]
     }],
     24: [amdsmi_tool_utilization_count_get, {
         "device_identifier1": [None, True],
     }],
-    25: [smi_api.amdsmi_dev_perf_level_get, {
+    25: [smi_api.amdsmi_dev_get_perf_level, {
         "device_identifier1": [None, True]
     }],
     26: [amdsmi_tool_perf_determinism_mode_set, {
         "device_identifier1": [None, True],
         "clock_value": [int, True]
     }],
-    27: [smi_api.amdsmi_dev_overdrive_level_get, {
+    27: [smi_api.amdsmi_dev_get_overdrive_level, {
         "device_identifier1": [None, True]
     }],
     28: [amdsmi_tool_dev_gpu_clk_freq_get, {
         "device_identifier1": [None, True]
     }],
-    29: [smi_api.amdsmi_dev_od_volt_info_get, {
+    29: [smi_api. amdsmi_dev_get_od_volt_info, {
         "device_identifier1": [None, True]
     }],
-    30: [smi_api.amdsmi_dev_gpu_metrics_info_get, {
+    30: [smi_api. amdsmi_dev_get_gpu_metrics_info, {
         "device_identifier1": [None, True]
     }],
     31: [amdsmi_tool_dev_od_volt_curve_regions_get, {
@@ -825,12 +825,12 @@ commands = {
         "device_identifier1": [None, True],
         "sensor_idx": [int, True]
     }],
-    33: [smi_api.amdsmi_version_get, {}],
+    33: [smi_api.amdsmi_get_version, {}],
     34: [amdsmi_tool_version_str_get, {}],
     35: [amdsmi_tool_dev_ecc_count_get, {
         "device_identifier1": [None, True]
     }],
-    36: [smi_api.amdsmi_dev_ecc_enabled_get, {
+    36: [smi_api. amdsmi_dev_get_ecc_enabled, {
         "device_identifier1": [None, True]
     }],
     37: [amdsmi_tool_dev_ecc_status_get, {
@@ -839,7 +839,7 @@ commands = {
     38: [amdsmi_tool_status_string, {
         "status": [int, True]
     }],
-    39: [smi_api.amdsmi_compute_process_info_get, {}],
+    39: [smi_api.amdsmi_get_compute_process_info, {}],
     40: [amdsmi_tool_compute_process_info_by_pid_get, {
         "pid": [int, True]
     }],
@@ -849,7 +849,7 @@ commands = {
     42: [smi_api.amdsmi_dev_xgmi_error_status, {
         "device_identifier1": [None, True]
     }],
-    43: [smi_api.amdsmi_dev_xgmi_error_reset, {
+    43: [smi_api.amdsmi_dev_reset_xgmi_error, {
         "device_identifier1": [None, True]
     }],
     44: [smi_api.amdsmi_topo_get_numa_node_number, {
@@ -926,7 +926,7 @@ commands = {
         "device_identifier1": [None, True],
         "freq_bitmask": [int, True]
     }],
-    67: [smi_api.amdsmi_dev_gpu_reset, {
+    67: [smi_api.amdsmi_dev_reset_gpu, {
         "device_identifier1": [None, True]
     }],
     68: [amdsmi_tool_dev_od_clk_info_set, {
@@ -969,7 +969,7 @@ commands = {
     77: [amdsmi_tool_dev_supported_func_iterator_close, {
         "device_identifier1": [None, True]
     }],
-    78: [smi_api.amdsmi_dev_supported_func_iterator_open, {
+    78: [smi_api.amdsmi_dev_open_supported_func_iterator, {
         "device_identifier1": [None, True]
     }],
     79: [amdsmi_tool_func_iter_next, {
