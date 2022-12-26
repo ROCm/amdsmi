@@ -128,24 +128,24 @@ void TestSysInfoRead::Run(void) {
       }
     }
 
-    err = amdsmi_dev_pci_id_get(device_handles_[i], &val_ui64);
+    err = amdsmi_dev_get_pci_id(device_handles_[i], &val_ui64);
     CHK_ERR_ASRT(err)
     IF_VERB(STANDARD) {
       std::cout << "\t**PCI ID (BDFID): 0x" << std::hex << val_ui64;
       std::cout << " (" << std::dec << val_ui64 << ")" << std::endl;
     }
     // Verify api support checking functionality is working
-    err = amdsmi_dev_pci_id_get(device_handles_[i], nullptr);
+    err = amdsmi_dev_get_pci_id(device_handles_[i], nullptr);
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
-    err = amdsmi_topo_numa_affinity_get(device_handles_[i], &val_ui32);
+    err = amdsmi_topo_get_numa_affinity(device_handles_[i], &val_ui32);
     CHK_ERR_ASRT(err)
     IF_VERB(STANDARD) {
       std::cout << "\t**NUMA NODE: 0x" << std::hex << val_ui32;
       std::cout << " (" << std::dec << val_ui32 << ")" << std::endl;
     }
     // Verify api support checking functionality is working
-    err = amdsmi_topo_numa_affinity_get(device_handles_[i], nullptr);
+    err = amdsmi_topo_get_numa_affinity(device_handles_[i], nullptr);
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
 
@@ -177,7 +177,7 @@ void TestSysInfoRead::Run(void) {
         }
     }
 
-    err = amdsmi_version_get(&ver);
+    err = amdsmi_get_version(&ver);
     CHK_ERR_ASRT(err)
 
     ASSERT_TRUE(ver.major != 0xFFFFFFFF && ver.minor != 0xFFFFFFFF &&

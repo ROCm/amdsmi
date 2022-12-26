@@ -1195,7 +1195,7 @@ except AmdSmiException as e:
 
 ```
 
-## amdsmi_dev_supported_func_iterator_open
+## amdsmi_dev_open_supported_func_iterator
 Description: Get a function name iterator of supported AMDSMI functions for a device
 
 Input parameters:
@@ -1204,7 +1204,7 @@ Input parameters:
 
 Output: Handle for a function iterator
 
-Exceptions that can be thrown by `amdsmi_dev_supported_func_iterator_open` function:
+Exceptions that can be thrown by `amdsmi_dev_open_supported_func_iterator` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1217,14 +1217,14 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            obj_handle = amdsmi_dev_supported_func_iterator_open(device)
+            obj_handle = amdsmi_dev_open_supported_func_iterator(device)
             print(obj_handle)
-            amdsmi_dev_supported_func_iterator_close(obj_handle)
+            amdsmi_dev_close_supported_func_iterator(obj_handle)
 except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_supported_variant_iterator_open
+## amdsmi_dev_open_supported_variant_iterator
 Description: Get a variant iterator for a given handle
 
 Input parameters:
@@ -1233,7 +1233,7 @@ Input parameters:
 
 Output: Variant iterator handle
 
-Exceptions that can be thrown by `amdsmi_dev_supported_variant_iterator_open` function:
+Exceptions that can be thrown by `amdsmi_dev_open_supported_variant_iterator` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1246,16 +1246,16 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            obj_handle = amdsmi_dev_supported_func_iterator_open(device)
-            var_iter = amdsmi_dev_supported_variant_iterator_open(obj_handle)
+            obj_handle = amdsmi_dev_open_supported_func_iterator(device)
+            var_iter = amdsmi_dev_open_supported_variant_iterator(obj_handle)
             print(var_iter)
-            amdsmi_dev_supported_func_iterator_close(obj_handle)
-            amdsmi_dev_supported_func_iterator_close(var_iter)
+            amdsmi_dev_close_supported_func_iterator(obj_handle)
+            amdsmi_dev_close_supported_func_iterator(var_iter)
 except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_func_iter_next
+## amdsmi_next_func_iter
 Description: Advance an object identifier iterator
 
 Input parameters:
@@ -1264,7 +1264,7 @@ Input parameters:
 
 Output: Next iterator handle
 
-Exceptions that can be thrown by `amdsmi_func_iter_next` function:
+Exceptions that can be thrown by `amdsmi_next_func_iter` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1277,16 +1277,16 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            obj_handle = amdsmi_dev_supported_func_iterator_open(device)
+            obj_handle = amdsmi_dev_open_supported_func_iterator(device)
             print(obj_handle)
-            obj_handle = amdsmi_func_iter_next(obj_handle)
+            obj_handle = amdsmi_next_func_iter(obj_handle)
             print(obj_handle)
-            amdsmi_dev_supported_func_iterator_close(obj_handle)
+            amdsmi_dev_close_supported_func_iterator(obj_handle)
 except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_supported_func_iterator_close
+## amdsmi_dev_close_supported_func_iterator
 Description: Close a variant iterator handle
 
 Input parameters:
@@ -1295,7 +1295,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_dev_supported_func_iterator_close` function:
+Exceptions that can be thrown by `amdsmi_dev_close_supported_func_iterator` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1308,13 +1308,13 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            obj_handle = amdsmi_dev_supported_func_iterator_open(device)
-            amdsmi_dev_supported_func_iterator_close(obj_handle)
+            obj_handle = amdsmi_dev_open_supported_func_iterator(device)
+            amdsmi_dev_close_supported_func_iterator(obj_handle)
 except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_func_iter_value_get
+## amdsmi_get_func_iter_value
 Description: Get the value associated with a function/variant iterator
 
 Input parameters:
@@ -1329,7 +1329,7 @@ Field | Description
 `name`| Descriptive name of the function/variant
 `amd_id_0` | <table>  <thead><tr> <th> Subfield </th> <th> Description</th> </tr></thead><tbody><tr><td>`memory_type`</td><td>Memory type</td></tr><tr><td>`temp_metric`</td><td>Temperature metric</td></tr><tr><td>`evnt_type`</td><td>Event type</td></tr><tr><td>`evnt_group`</td><td>Event group</td></tr><tr><td>`clk_type`</td><td>Clock type</td></tr></tr><tr><td>`fw_block`</td><td>Firmware block</td></tr><tr><td>`gpu_block_type`</td><td>GPU block type</td></tr></tbody></table>
 
-Exceptions that can be thrown by `amdsmi_func_iter_value_get` function:
+Exceptions that can be thrown by `amdsmi_get_func_iter_value` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1342,15 +1342,15 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            obj_handle = amdsmi_dev_supported_func_iterator_open(device)
-            value = amdsmi_func_iter_value_get(obj_handle)
+            obj_handle = amdsmi_dev_open_supported_func_iterator(device)
+            value = amdsmi_get_func_iter_value(obj_handle)
             print(value)
-            amdsmi_dev_supported_func_iterator_close(obj_handle)
+            amdsmi_dev_close_supported_func_iterator(obj_handle)
 except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_pci_bandwidth_set
+##  amdsmi_dev_set_pci_bandwidth
 Description: Control the set of allowed PCIe bandwidths that can be used
 
 Input parameters:
@@ -1360,7 +1360,7 @@ to be enabled (1) and disabled (0)
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_dev_pci_bandwidth_set` function:
+Exceptions that can be thrown by ` amdsmi_dev_set_pci_bandwidth` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1373,11 +1373,11 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_dev_pci_bandwidth_set(device, 0)
+             amdsmi_dev_set_pci_bandwidth(device, 0)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_power_cap_set
+##  amdsmi_dev_set_power_cap
 Description: Set the power cap value
 
 Input parameters:
@@ -1388,7 +1388,7 @@ device has more than one sensor, it could be greater than 0
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_dev_power_cap_set` function:
+Exceptions that can be thrown by ` amdsmi_dev_set_power_cap` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1402,11 +1402,11 @@ try:
     else:
         for device in devices:
             power_cap = 250 * 1000000
-            amdsmi_dev_power_cap_set(device, 0, power_cap)
+             amdsmi_dev_set_power_cap(device, 0, power_cap)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_power_profile_set
+##  amdsmi_dev_set_power_profile
 Description: Set the power profile
 
 Input parameters:
@@ -1417,7 +1417,7 @@ the desired new power profile
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_dev_power_profile_set` function:
+Exceptions that can be thrown by ` amdsmi_dev_set_power_profile` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1431,13 +1431,13 @@ try:
     else:
         for device in devices:
             profile = ...
-            amdsmi_dev_power_profile_set(device, 0, profile)
+             amdsmi_dev_set_power_profile(device, 0, profile)
 except AmdSmiException as e:
     print(e)
 ```
 
 
-## amdsmi_dev_clk_range_set
+## amdsmi_dev_set_clk_range
 Description: This function sets the clock range information
 
 Input parameters:
@@ -1448,7 +1448,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_dev_clk_range_set` function:
+Exceptions that can be thrown by `amdsmi_dev_set_clk_range` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1461,13 +1461,13 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_dev_clk_range_set(device, 0, 1000, AmdSmiClockType.AMDSMI_CLK_TYPE_SYS)
+            amdsmi_dev_set_clk_range(device, 0, 1000, AmdSmiClockType.AMDSMI_CLK_TYPE_SYS)
 except AmdSmiException as e:
     print(e)
 ```
 
 
-## amdsmi_dev_pci_id_get
+## amdsmi_dev_get_pci_id
 Description: Get the unique PCI device identifier associated for a device
 
 Input parameters:
@@ -1489,7 +1489,7 @@ BDFID = ((DOMAIN & 0xffffffff) << 32) | ((BUS & 0xff) << 8) |
 | Function | [ 2: 0] |
 
 
-Exceptions that can be thrown by `amdsmi_dev_pci_id_get` function:
+Exceptions that can be thrown by `amdsmi_dev_get_pci_id` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1502,14 +1502,14 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            bdfid = amdsmi_dev_pci_id_get(device)
+            bdfid = amdsmi_dev_get_pci_id(device)
             print(bdfid)
 except AmdSmiException as e:
     print(e)
 ```
 
 
-## amdsmi_dev_pci_bandwidth_get
+## amdsmi_dev_get_pci_bandwidth
 Description: Get the list of possible PCIe bandwidths that are available.
 
 Input parameters:
@@ -1532,7 +1532,7 @@ Field | Content
 `current` | current
 `frequency` | list of frequency
 
-Exceptions that can be thrown by `amdsmi_dev_pci_bandwidth_get` function:
+Exceptions that can be thrown by `amdsmi_dev_get_pci_bandwidth` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1545,13 +1545,13 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            bandwidth = amdsmi_dev_pci_bandwidth_get(device)
+            bandwidth = amdsmi_dev_get_pci_bandwidth(device)
             print(bandwidth)
 except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_pci_throughput_get
+## amdsmi_dev_get_pci_throughput
 Description: Get PCIe traffic information
 
 Input parameters:
@@ -1566,7 +1566,7 @@ Field | Content
 `received` | the number of bytes received
 `max_pkt_sz` | maximum packet size
 
-Exceptions that can be thrown by `amdsmi_dev_pci_throughput_get` function:
+Exceptions that can be thrown by `amdsmi_dev_get_pci_throughput` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1579,13 +1579,13 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            pci = amdsmi_dev_pci_throughput_get(device)
+            pci = amdsmi_dev_get_pci_throughput(device)
             print(pci)
 except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_pci_replay_counter_get
+##  amdsmi_dev_get_pci_replay_counter
 
 Description: Get PCIe replay counter
 
@@ -1596,7 +1596,7 @@ Input parameters:
 Output: counter value
 The sum of the NAK's received and generated by the GPU
 
-Exceptions that can be thrown by `amdsmi_dev_pci_replay_counter_get` function:
+Exceptions that can be thrown by ` amdsmi_dev_get_pci_replay_counter` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1609,13 +1609,13 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            counter = amdsmi_dev_pci_replay_counter_get(device)
+            counter =  amdsmi_dev_get_pci_replay_counter(device)
             print(counter)
 except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_topo_numa_affinity_get
+## amdsmi_topo_get_numa_affinity
 
 Description: Get the NUMA node associated with a device
 
@@ -1625,7 +1625,7 @@ Input parameters:
 
 Output: NUMA node value
 
-Exceptions that can be thrown by `amdsmi_topo_numa_affinity_get` function:
+Exceptions that can be thrown by `amdsmi_topo_get_numa_affinity` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1638,13 +1638,13 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            numa_node = amdsmi_topo_numa_affinity_get(device)
+            numa_node = amdsmi_topo_get_numa_affinity(device)
             print(numa_node)
 except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_power_ave_get
+## amdsmi_dev_get_power_ave
 
 Description: Get the average power consumption of the device 
 
@@ -1656,7 +1656,7 @@ If a device has more than one sensor, it could be greater than 0.
 
 Output: the average power consumption
 
-Exceptions that can be thrown by `amdsmi_dev_power_ave_get` function:
+Exceptions that can be thrown by `amdsmi_dev_get_power_ave` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1669,14 +1669,14 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            power = amdsmi_dev_power_ave_get(device)
+            power = amdsmi_dev_get_power_ave(device)
             print(power)
 except AmdSmiException as e:
     print(e)
 ```
 
 
-## amdsmi_dev_energy_count_get
+## amdsmi_dev_get_energy_count
 
 Description: Get the energy accumulator counter of the device.
 
@@ -1692,7 +1692,7 @@ Field | Content
 `counter_resolution` |  counter resolution
 `timestamp` |  timestamp
 
-Exceptions that can be thrown by `amdsmi_dev_energy_count_get` function:
+Exceptions that can be thrown by `amdsmi_dev_get_energy_count` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1705,14 +1705,14 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            power = amdsmi_dev_energy_count_get(device)
+            power = amdsmi_dev_get_energy_count(device)
             print(power)
 except AmdSmiException as e:
     print(e)
 ```
 
 
-## amdsmi_dev_memory_total_get
+## amdsmi_dev_get_memory_total
 
 Description: Get the total amount of memory that exists
 
@@ -1723,7 +1723,7 @@ Input parameters:
 
 Output: total amount of memory
 
-Exceptions that can be thrown by `amdsmi_dev_memory_total_get` function:
+Exceptions that can be thrown by `amdsmi_dev_get_memory_total` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1736,7 +1736,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            memory = amdsmi_dev_memory_total_get(device)
+            memory = amdsmi_dev_get_memory_total(device)
             print(memory)
 except AmdSmiException as e:
     print(e)
@@ -1745,7 +1745,7 @@ except AmdSmiException as e:
 
 
 
-## amdsmi_dev_od_clk_info_set
+##  amdsmi_dev_set_od_clk_info
 Description: This function sets the clock frequency information
 
 Input parameters:
@@ -1757,7 +1757,7 @@ or maximum (1) speed
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_dev_od_clk_info_set` function:
+Exceptions that can be thrown by ` amdsmi_dev_set_od_clk_info` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1770,7 +1770,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_dev_od_clk_info_set(
+             amdsmi_dev_set_od_clk_info(
                 device,
                 AmdSmiFreqInd.AMDSMI_FREQ_IND_MAX,
                 1000,
@@ -1781,7 +1781,7 @@ except AmdSmiException as e:
 ```
 
 
-## amdsmi_dev_memory_usage_get
+## amdsmi_dev_get_memory_usage
 
 Description: Get the current memory usage
 
@@ -1792,7 +1792,7 @@ Input parameters:
 
 Output: the amount of memory currently being used 
 
-Exceptions that can be thrown by `amdsmi_dev_memory_usage_get` function:
+Exceptions that can be thrown by `amdsmi_dev_get_memory_usage` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1805,14 +1805,14 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            memory = amdsmi_dev_memory_usage_get(device)
+            memory = amdsmi_dev_get_memory_usage(device)
             print(memory)
 except AmdSmiException as e:
     print(e)
 ```
 
 
-## amdsmi_dev_od_volt_info_set
+##  amdsmi_dev_set_od_volt_info
 Description: This function sets  1 of the 3 voltage curve points
 
 Input parameters:
@@ -1823,7 +1823,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_dev_od_volt_info_set` function:
+Exceptions that can be thrown by ` amdsmi_dev_set_od_volt_info` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1836,13 +1836,13 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_dev_od_volt_info_set(device, 1, 1000, 980)
+             amdsmi_dev_set_od_volt_info(device, 1, 1000, 980)
 except AmdSmiException as e:
     print(e)
 ```
 
 
-## amdsmi_dev_memory_busy_percent_get
+## amdsmi_dev_get_memory_busy_percent
 
 Description: Get percentage of time any device memory is being used
 
@@ -1852,7 +1852,7 @@ Input parameters:
 
 Output: percentage of time that any device memory is being used for the specified device.
 
-Exceptions that can be thrown by `amdsmi_dev_memory_busy_percent_get` function:
+Exceptions that can be thrown by `amdsmi_dev_get_memory_busy_percent` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1865,7 +1865,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            busy_percent = amdsmi_dev_memory_busy_percent_get(device)
+            busy_percent = amdsmi_dev_get_memory_busy_percent(device)
             print(busy_percent)
 except AmdSmiException as e:
     print(e)
@@ -1873,7 +1873,7 @@ except AmdSmiException as e:
 
 
 
-## amdsmi_dev_perf_level_set_v1
+##  amdsmi_dev_set_perf_level_v1
 Description: Set the PowerPlay performance level associated with the device
 with provided device handle with the provided value
 
@@ -1883,7 +1883,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_dev_perf_level_set_v1` function:
+Exceptions that can be thrown by ` amdsmi_dev_set_perf_level_v1` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1896,11 +1896,11 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_dev_perf_level_set_v1(device, AmdSmiDevPerfLevel.AMDSMI_DEV_PERF_LEVEL_HIGH)
+             amdsmi_dev_set_perf_level_v1(device, AmdSmiDevPerfLevel.AMDSMI_DEV_PERF_LEVEL_HIGH)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_fan_rpms_get
+## amdsmi_dev_get_fan_rpms
 Description: Get the fan speed in RPMs of the device with the specified device
 handle and 0-based sensor index.
 
@@ -1911,7 +1911,7 @@ more than one sensor, it could be greater than 0.
 
 Output: Fan speed in rpms as integer
 
-Exceptions that can be thrown by `amdsmi_dev_fan_rpms_get` function:
+Exceptions that can be thrown by `amdsmi_dev_get_fan_rpms` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1924,12 +1924,12 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            fan_rpm = amdsmi_dev_fan_rpms_get(device, 0)
+            fan_rpm = amdsmi_dev_get_fan_rpms(device, 0)
             print(fan_rpm)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_fan_speed_get
+## amdsmi_dev_get_fan_speed
 Description: Get the fan speed for the specified device as a value relative to
 AMDSMI_MAX_FAN_SPEED
 
@@ -1940,7 +1940,7 @@ more than one sensor, it could be greater than 0.
 
 Output: Fan speed in relative to MAX
 
-Exceptions that can be thrown by `amdsmi_dev_fan_speed_get` function:
+Exceptions that can be thrown by `amdsmi_dev_get_fan_speed` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1953,12 +1953,12 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            fan_speed = amdsmi_dev_fan_speed_get(device, 0)
+            fan_speed = amdsmi_dev_get_fan_speed(device, 0)
             print(fan_speed)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_fan_speed_max_get
+## amdsmi_dev_get_fan_speed_max
 Description: Get the max fan speed of the device with provided device handle
 
 Input parameters:
@@ -1968,7 +1968,7 @@ more than one sensor, it could be greater than 0.
 
 Output: Max fan speed as integer
 
-Exceptions that can be thrown by `amdsmi_dev_fan_speed_max_get` function:
+Exceptions that can be thrown by `amdsmi_dev_get_fan_speed_max` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1981,12 +1981,12 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            max_fan_speed = amdsmi_dev_fan_speed_max_get(device, 0)
+            max_fan_speed = amdsmi_dev_get_fan_speed_max(device, 0)
             print(max_fan_speed)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_temp_metric_get
+##  amdsmi_dev_get_temp_metric
 Description: Get the temperature metric value for the specified metric, from the
 specified temperature sensor on the specified device
 
@@ -1997,7 +1997,7 @@ Input parameters:
 
 Output: Temperature as integer in millidegrees Celcius
 
-Exceptions that can be thrown by `amdsmi_dev_temp_metric_get` function:
+Exceptions that can be thrown by ` amdsmi_dev_get_temp_metric` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2010,13 +2010,13 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            temp_metric = amdsmi_dev_temp_metric_get(device, AmdSmiTemperatureType.EDGE,
+            temp_metric =  amdsmi_dev_get_temp_metric(device, AmdSmiTemperatureType.EDGE,
                             AmdSmiTemperatureMetric.CURRENT)
             print(temp_metric)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_volt_metric_get
+##  amdsmi_dev_get_volt_metric
 Description: Get the voltage metric value for the specified metric, from the
 specified voltage sensor on the specified device
 
@@ -2027,7 +2027,7 @@ Input parameters:
 
 Output: Voltage as integer in millivolts
 
-Exceptions that can be thrown by `amdsmi_dev_volt_metric_get` function:
+Exceptions that can be thrown by ` amdsmi_dev_get_volt_metric` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2040,13 +2040,13 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            voltage = amdsmi_dev_volt_metric_get(device, AmdSmiVoltageType.VDDGFX,
+            voltage =  amdsmi_dev_get_volt_metric(device, AmdSmiVoltageType.VDDGFX,
                         AmdSmiVoltageMetric.AVERAGE)
             print(voltage)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_busy_percent_get
+## amdsmi_dev_get_busy_percent
 Description: Get percentage of time device is busy doing any processing
 
 Input parameters:
@@ -2054,7 +2054,7 @@ Input parameters:
 
 Output: How busy the device is (as percentage of time)
 
-Exceptions that can be thrown by `amdsmi_dev_busy_percent_get` function:
+Exceptions that can be thrown by `amdsmi_dev_get_busy_percent` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2067,12 +2067,12 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            busy = amdsmi_dev_busy_percent_get(dev)
+            busy = amdsmi_dev_get_busy_percent(dev)
             print(busy)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_utilization_count_get
+## amdsmi_get_utilization_count
 Description: Get coarse grain utilization counter of the specified device
 
 Input parameters:
@@ -2086,7 +2086,7 @@ Field | Description
 `timestamp` | The timestamp when the counter is retreived - Resolution: 1 ns
 `Dictionary for each counter` | <table> <thead><tr><th> Subfield </th><th>Description</th></tr></thead><tbody><tr><td>`type`</td><td>Type of utilization counter</td></tr><tr><td>`value`</td><td>Value gotten for utilization counter</td></tr></tbody></table>
 
-Exceptions that can be thrown by `amdsmi_utilization_count_get` function:
+Exceptions that can be thrown by `amdsmi_get_utilization_count` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2099,12 +2099,12 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            utilization = amdsmi_utilization_count_get(
+            utilization = amdsmi_get_utilization_count(
                             device,
                             AmdSmiUtilizationCounterType.COARSE_GRAIN_GFX_ACTIVITY
                             )
             print(utilization)
-            utilization = amdsmi_utilization_count_get(
+            utilization = amdsmi_get_utilization_count(
                             device,
                             AmdSmiUtilizationCounterType.COARSE_GRAIN_GFX_ACTIVITY,
                             AmdSmiUtilizationCounterType.COARSE_GRAIN_MEM_ACTIVITY
@@ -2113,7 +2113,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_perf_level_get
+## amdsmi_dev_get_perf_level
 Description: Get the performance level of the device with provided device handle
 
 Input parameters:
@@ -2121,7 +2121,7 @@ Input parameters:
 
 Output: Performance level as enum value of dev_perf_level_t
 
-Exceptions that can be thrown by `amdsmi_dev_perf_level_get` function:
+Exceptions that can be thrown by `amdsmi_dev_get_perf_level` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2134,12 +2134,12 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            perf_level = amdsmi_dev_perf_level_get(dev)
+            perf_level = amdsmi_dev_get_perf_level(dev)
             print(perf_level)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_perf_determinism_mode_set
+## amdsmi_set_perf_determinism_mode
 Description: Enter performance determinism mode with provided device handle
 
 Input parameters:
@@ -2148,7 +2148,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_perf_determinism_mode_set` function:
+Exceptions that can be thrown by `amdsmi_set_perf_determinism_mode` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2161,11 +2161,11 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_perf_determinism_mode_set(device, 1333)
+            amdsmi_set_perf_determinism_mode(device, 1333)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_overdrive_level_get
+## amdsmi_dev_get_overdrive_level
 Description: Get the overdrive percent associated with the device with provided
 device handle
 
@@ -2174,7 +2174,7 @@ Input parameters:
 
 Output: Overdrive percentage as integer
 
-Exceptions that can be thrown by `amdsmi_dev_overdrive_level_get` function:
+Exceptions that can be thrown by `amdsmi_dev_get_overdrive_level` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2187,12 +2187,12 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            od_level = amdsmi_dev_overdrive_level_get(dev)
+            od_level = amdsmi_dev_get_overdrive_level(dev)
             print(od_level)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_gpu_clk_freq_get
+##  amdsmi_dev_get_gpu_clk_freq
 Description: Get the list of possible system clock speeds of device for a
 specified clock type
 
@@ -2208,7 +2208,7 @@ Field | Description
 `current`| The current frequency index
 `frequency`| List of frequencies, only the first num_supported frequencies are valid
 
-Exceptions that can be thrown by `amdsmi_dev_gpu_clk_freq_get` function:
+Exceptions that can be thrown by ` amdsmi_dev_get_gpu_clk_freq` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2221,11 +2221,11 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_dev_gpu_clk_freq_get(device, AmdSmiClockType.SYS)
+             amdsmi_dev_get_gpu_clk_freq(device, AmdSmiClockType.SYS)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_od_volt_info_get
+##  amdsmi_dev_get_od_volt_info
 Description: This function retrieves the voltage/frequency curve information
 
 Input parameters:
@@ -2243,7 +2243,7 @@ Field | Description
 `num_regions`| The current frequency index
 
 
-Exceptions that can be thrown by `amdsmi_dev_od_volt_info_get` function:
+Exceptions that can be thrown by ` amdsmi_dev_get_od_volt_info` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2256,11 +2256,11 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_dev_od_volt_info_get(dev)
+             amdsmi_dev_get_od_volt_info(dev)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_gpu_metrics_info_get
+##  amdsmi_dev_get_gpu_metrics_info
 Description: This function retrieves the gpu metrics information
 
 Input parameters:
@@ -2305,7 +2305,7 @@ Field | Description
 `mem_actvity_acc` | mem activity acc
 `temperature_hbm` | hbm temperature
 
-Exceptions that can be thrown by `amdsmi_dev_gpu_metrics_info_get` function:
+Exceptions that can be thrown by ` amdsmi_dev_get_gpu_metrics_info` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2318,11 +2318,11 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_dev_gpu_metrics_info_get(dev)
+             amdsmi_dev_get_gpu_metrics_info(dev)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_od_volt_curve_regions_get
+##  amdsmi_dev_get_od_volt_curve_regions
 Description: This function will retrieve the current valid regions in the
 frequency/voltage space
 
@@ -2337,7 +2337,7 @@ Field | Description
 `freq_range` | <table> <thead><tr><th> Subfield </th><th>Description</th></tr></thead><tbody><tr><td>`lower_bound`</td><td>lower bound freq range</td></tr><tr><td>`upper_bound`</td><td>upper bound freq range</td></tr></tbody></table>
 `volt_range` |  <table> <thead><tr><th> Subfield </th><th>Description</th></tr></thead><tbody><tr><td>`lower_bound`</td><td>lower bound volt range</td></tr><tr><td>`upper_bound`</td><td>upper bound volt range</td></tr></tbody></table>
 
-Exceptions that can be thrown by `amdsmi_dev_od_volt_curve_regions_get` function:
+Exceptions that can be thrown by ` amdsmi_dev_get_od_volt_curve_regions` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2350,11 +2350,11 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_dev_od_volt_curve_regions_get(device, 3)
+             amdsmi_dev_get_od_volt_curve_regions(device, 3)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_power_profile_presets_get
+##  amdsmi_dev_get_power_profile_presets
 Description:  Get the list of available preset power profiles and an indication of
 which profile is currently active
 
@@ -2370,7 +2370,7 @@ Field | Description
 `current`| Which power profile is currently active
 `num_profiles`| How many power profiles are available
 
-Exceptions that can be thrown by `amdsmi_dev_power_profile_presets_get` function:
+Exceptions that can be thrown by ` amdsmi_dev_get_power_profile_presets` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2383,7 +2383,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_dev_power_profile_presets_get(device, 0)
+             amdsmi_dev_get_power_profile_presets(device, 0)
 except AmdSmiException as e:
     print(e)
 ```
@@ -2416,7 +2416,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_counter_create
+## amdsmi_dev_create_counter
 Description: Creates a performance counter object
 
 Input parameters:
@@ -2426,7 +2426,7 @@ Input parameters:
 
 Output: An event handle of the newly created performance counter object
 
-Exceptions that can be thrown by `amdsmi_dev_counter_create` function:
+Exceptions that can be thrown by `amdsmi_dev_create_counter` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2439,11 +2439,11 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            event_handle = amdsmi_dev_counter_create(device, AmdSmiEventGroup.XGMI)
+            event_handle = amdsmi_dev_create_counter(device, AmdSmiEventGroup.XGMI)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_counter_destroy
+## amdsmi_dev_destroy_counter
 Description: Destroys a performance counter object
 
 Input parameters:
@@ -2452,7 +2452,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_dev_counter_destroy` function:
+Exceptions that can be thrown by `amdsmi_dev_destroy_counter` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2465,12 +2465,12 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            event_handle = amdsmi_dev_counter_create(device, AmdSmiEventGroup.XGMI)
-            amdsmi_dev_counter_destroy(event_handle)
+            event_handle = amdsmi_dev_create_counter(device, AmdSmiEventGroup.XGMI)
+            amdsmi_dev_destroy_counter(event_handle)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_counter_control
+## amdsmi_control_counter
 Description: Issue performance counter control commands
 
 Input parameters:
@@ -2480,7 +2480,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_counter_control` function:
+Exceptions that can be thrown by `amdsmi_control_counter` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2493,12 +2493,12 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            event_handle = amdsmi_dev_counter_create(device, AmdSmiEventType.XGMI_1_REQUEST_TX)
-            amdsmi_counter_control(event_handle, AmdSmiCounterCommand.CMD_START)
+            event_handle = amdsmi_dev_create_counter(device, AmdSmiEventType.XGMI_1_REQUEST_TX)
+            amdsmi_control_counter(event_handle, AmdSmiCounterCommand.CMD_START)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_counter_read
+## amdsmi_read_counter
 Description: Read the current value of a performance counter
 
 Input parameters:
@@ -2513,7 +2513,7 @@ Field | Description
 `time_enabled`| Time that the counter was enabled in nanoseconds
 `time_running`| Time that the counter was running in nanoseconds
 
-Exceptions that can be thrown by `amdsmi_counter_read` function:
+Exceptions that can be thrown by `amdsmi_read_counter` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2526,12 +2526,12 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            event_handle = amdsmi_dev_counter_create(device, AmdSmiEventType.XGMI_1_REQUEST_TX)
-            amdsmi_counter_read(event_handle)
+            event_handle = amdsmi_dev_create_counter(device, AmdSmiEventType.XGMI_1_REQUEST_TX)
+            amdsmi_read_counter(event_handle)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_counter_available_counters_get
+##  amdsmi_counter_get_available_counters
 Description: Get the number of currently available counters
 
 Input parameters:
@@ -2541,7 +2541,7 @@ Input parameters:
 
 Output: Number of available counters for the given device of the inputted event group
 
-Exceptions that can be thrown by `amdsmi_counter_available_counters_get` function:
+Exceptions that can be thrown by ` amdsmi_counter_get_available_counters` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2554,12 +2554,12 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            available_counters = amdsmi_counter_available_counters_get(device, AmdSmiEventGroup.XGMI)
+            available_counters =  amdsmi_counter_get_available_counters(device, AmdSmiEventGroup.XGMI)
             print(available_counters)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_perf_level_set
+##  amdsmi_dev_set_perf_level
 Description: Set a desired performance level for given device
 
 Input parameters:
@@ -2568,7 +2568,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_dev_perf_level_set` function:
+Exceptions that can be thrown by ` amdsmi_dev_set_perf_level` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2581,11 +2581,11 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_dev_perf_level_set(device, AmdSmiDevPerfLevel.STABLE_PEAK)
+             amdsmi_dev_set_perf_level(device, AmdSmiDevPerfLevel.STABLE_PEAK)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_power_profile_presets_get
+##  amdsmi_dev_get_power_profile_presets
 Description: Get the list of available preset power profiles and an indication of
 which profile is currently active.
 
@@ -2601,7 +2601,7 @@ Field | Description
 `current`| Which power profile is currently active
 `num_profiles`| How many power profiles are available
 
-Exceptions that can be thrown by `amdsmi_dev_power_profile_presets_get` function:
+Exceptions that can be thrown by ` amdsmi_dev_get_power_profile_presets` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2614,12 +2614,12 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            status = amdsmi_dev_power_profile_presets_get(device, 0)
+            status =  amdsmi_dev_get_power_profile_presets(device, 0)
             print(status)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_gpu_reset
+## amdsmi_dev_reset_gpu
 Description: Reset the gpu associated with the device with provided device handle
 
 Input parameters:
@@ -2627,7 +2627,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_dev_gpu_reset` function:
+Exceptions that can be thrown by `amdsmi_dev_reset_gpu` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2640,11 +2640,11 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_dev_gpu_reset(device)
+            amdsmi_dev_reset_gpu(device)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_fan_speed_set
+## amdsmi_dev_set_fan_speed
 Description: Set the fan speed for the specified device with the provided speed,
 in RPMs
 
@@ -2655,7 +2655,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_dev_fan_speed_set` function:
+Exceptions that can be thrown by `amdsmi_dev_set_fan_speed` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2668,11 +2668,11 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_dev_fan_speed_set(device, 0, 1333)
+            amdsmi_dev_set_fan_speed(device, 0, 1333)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_fan_reset
+## amdsmi_dev_reset_fan
 Description: Reset the fan to automatic driver control
 
 Input parameters:
@@ -2681,7 +2681,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_dev_fan_reset` function:
+Exceptions that can be thrown by `amdsmi_dev_reset_fan` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2694,11 +2694,11 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_dev_fan_reset(device, 0)
+            amdsmi_dev_reset_fan(device, 0)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_gpu_clk_freq_set
+##  amdsmi_dev_set_clk_freq
 Description: Control the set of allowed frequencies that can be used for the
 specified clock
 
@@ -2712,7 +2712,7 @@ bits of this mask are relevant.
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_dev_gpu_clk_freq_set` function:
+Exceptions that can be thrown by ` amdsmi_dev_set_clk_freq` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2726,11 +2726,11 @@ try:
     else:
         for device in devices:
             freq_bitmask = 0
-            amdsmi_dev_gpu_clk_freq_set(device, AmdSmiClockType.GFX, freq_bitmask)
+             amdsmi_dev_set_clk_freq(device, AmdSmiClockType.GFX, freq_bitmask)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_overdrive_level_set_v1
+##  amdsmi_dev_set_overdrive_level_v1
 Description: Set the overdrive percent associated with the device with provided
 device handle with the provided value
 
@@ -2740,7 +2740,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_dev_overdrive_level_set_v1` function:
+Exceptions that can be thrown by ` amdsmi_dev_set_overdrive_level_v1` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2753,11 +2753,11 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_dev_overdrive_level_set_v1(device, 0)
+             amdsmi_dev_set_overdrive_level_v1(device, 0)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_overdrive_level_set
+##  amdsmi_dev_set_overdrive_level
 Description: **deprecated** Set the overdrive percent associated with the
 device with provided device handle with the provided value
 
@@ -2767,7 +2767,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_dev_overdrive_level_set` function:
+Exceptions that can be thrown by ` amdsmi_dev_set_overdrive_level` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2780,12 +2780,12 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_dev_overdrive_level_set(device, 0)
+             amdsmi_dev_set_overdrive_level(device, 0)
 except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_ecc_count_get
+##  amdsmi_dev_get_ecc_count
 Description: Retrieve the error counts for a GPU block
 
 Input parameters:
@@ -2799,7 +2799,7 @@ Field | Description
 `correctable_count`| Count of correctable errors
 `uncorrectable_count`| Count of uncorrectable errors
 
-Exceptions that can be thrown by `amdsmi_dev_ecc_count_get` function:
+Exceptions that can be thrown by ` amdsmi_dev_get_ecc_count` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2812,13 +2812,13 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            ecc_count = amdsmi_dev_ecc_count_get(device, AmdSmiGpuBlock.UMC)
+            ecc_count =  amdsmi_dev_get_ecc_count(device, AmdSmiGpuBlock.UMC)
             print(ecc_count)
 except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_ecc_enabled_get
+##  amdsmi_dev_get_ecc_enabled
 Description: Retrieve the enabled ECC bit-mask
 
 Input parameters:
@@ -2826,7 +2826,7 @@ Input parameters:
 
 Output: Enabled ECC bit-mask
 
-Exceptions that can be thrown by `amdsmi_dev_ecc_enabled_get` function:
+Exceptions that can be thrown by ` amdsmi_dev_get_ecc_enabled` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2839,13 +2839,13 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            enabled = amdsmi_dev_ecc_enabled_get(device)
+            enabled =  amdsmi_dev_get_ecc_enabled(device)
             print(enabled)
 except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_ecc_status_get
+##  amdsmi_dev_get_ecc_status
 Description: Retrieve the ECC status for a GPU block
 
 Input parameters:
@@ -2854,7 +2854,7 @@ Input parameters:
 
 Output: ECC status for a requested GPU block
 
-Exceptions that can be thrown by `amdsmi_dev_ecc_status_get` function:
+Exceptions that can be thrown by ` amdsmi_dev_get_ecc_status` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2867,7 +2867,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            status = amdsmi_dev_ecc_status_get(device, AmdSmiGpuBlock.UMC)
+            status =  amdsmi_dev_get_ecc_status(device, AmdSmiGpuBlock.UMC)
             print(status)
 except AmdSmiException as e:
     print(e)
@@ -2893,7 +2893,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_compute_process_info_get
+## amdsmi_get_compute_process_info
 Description: Get process information about processes currently using GPU
 
 Input parameters: None
@@ -2908,21 +2908,21 @@ Field | Description
 `sdma_usage` | SDMA usage in microseconds
 `cu_occupancy` | Compute Unit usage in percents
 
-Exceptions that can be thrown by `amdsmi_compute_process_info_get` function:
+Exceptions that can be thrown by `amdsmi_get_compute_process_info` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 
 Example:
 ```python
 try:
-    procs = amdsmi_compute_process_info_get()
+    procs = amdsmi_get_compute_process_info()
     for proc in procs:
         print(proc)
 except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_compute_process_info_by_pid_get
+## amdsmi_get_compute_process_info_by_pid
 Description: Get process information about processes currently using GPU
 
 Input parameters:
@@ -2938,7 +2938,7 @@ Field | Description
 `sdma_usage` | SDMA usage in microseconds
 `cu_occupancy` | Compute Unit usage in percents
 
-Exceptions that can be thrown by `amdsmi_compute_process_info_by_pid_get` function:
+Exceptions that can be thrown by `amdsmi_get_compute_process_info_by_pid` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2947,13 +2947,13 @@ Example:
 ```python
 try:
     pid = 0 # << valid pid here
-    proc = amdsmi_compute_process_info_by_pid_get(pid)
+    proc = amdsmi_get_compute_process_info_by_pid(pid)
     print(proc)
 except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_compute_process_gpus_get
+## amdsmi_get_compute_process_gpus
 Description: Get the device indices currently being used by a process
 
 Input parameters:
@@ -2961,7 +2961,7 @@ Input parameters:
 
 Output: List of indices of devices currently being used by the process
 
-Exceptions that can be thrown by `amdsmi_compute_process_gpus_get` function:
+Exceptions that can be thrown by `amdsmi_get_compute_process_gpus` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2970,7 +2970,7 @@ Example:
 ```python
 try:
     pid = 0 # << valid pid here
-    indices = amdsmi_compute_process_gpus_get(pid)
+    indices = amdsmi_get_compute_process_gpus(pid)
     print(indices)
 except AmdSmiException as e:
     print(e)
@@ -3003,7 +3003,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_xgmi_error_reset
+## amdsmi_dev_reset_xgmi_error
 Description: Reset the XGMI error status for a device
 
 Input parameters:
@@ -3011,7 +3011,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_dev_xgmi_error_reset` function:
+Exceptions that can be thrown by `amdsmi_dev_reset_xgmi_error` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -3024,11 +3024,11 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_dev_xgmi_error_reset(device)
+            amdsmi_dev_reset_xgmi_error(device)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_vendor_name_get
+## amdsmi_dev_get_vendor_name
 Description: Returns the device vendor name
 
 Input parameters:
@@ -3037,7 +3037,7 @@ Input parameters:
 
 Output: device vendor name
 
-Exceptions that can be thrown by `amdsmi_dev_vendor_name_get` function:
+Exceptions that can be thrown by `amdsmi_dev_get_vendor_name` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -3050,13 +3050,13 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            vendor_name = amdsmi_dev_vendor_name_get(device)
+            vendor_name = amdsmi_dev_get_vendor_name(device)
             print(vendor_name)
 except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_id_get
+## amdsmi_dev_get_id
 Description: Get the device id associated with the device with provided device handler
 
 Input parameters:
@@ -3065,7 +3065,7 @@ Input parameters:
 
 Output: device id
 
-Exceptions that can be thrown by `amdsmi_dev_id_get` function:
+Exceptions that can be thrown by `amdsmi_dev_get_id` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -3078,13 +3078,13 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            dev_id = amdsmi_dev_id_get(device)
+            dev_id = amdsmi_dev_get_id(device)
             print(dev_id)
 except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_vram_vendor_get
+## amdsmi_dev_get_vram_vendor
 Description: Get the vram vendor string of a gpu device.
 
 Input parameters:
@@ -3093,7 +3093,7 @@ Input parameters:
 
 Output: vram vendor
 
-Exceptions that can be thrown by `amdsmi_dev_vram_vendor_get` function:
+Exceptions that can be thrown by `amdsmi_dev_get_vram_vendor` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -3106,13 +3106,13 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            vram_vendor = amdsmi_dev_vram_vendor_get(device)
+            vram_vendor = amdsmi_dev_get_vram_vendor(device)
             print(vram_vendor)
 except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_drm_render_minor_get
+## amdsmi_dev_get_drm_render_minor
 Description: Get the drm minor number associated with this device.
 
 Input parameters:
@@ -3121,7 +3121,7 @@ Input parameters:
 
 Output: drm minor number
 
-Exceptions that can be thrown by `amdsmi_dev_drm_render_minor_get` function:
+Exceptions that can be thrown by `amdsmi_dev_get_drm_render_minor` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -3134,13 +3134,13 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            render_minor = amdsmi_dev_drm_render_minor_get(device)
+            render_minor = amdsmi_dev_get_drm_render_minor(device)
             print(render_minor)
 except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_subsystem_id_get
+## amdsmi_dev_get_subsystem_id
 Description: Get the subsystem device id associated with the device with provided device handle.
 
 Input parameters:
@@ -3149,7 +3149,7 @@ Input parameters:
 
 Output: subsystem device id
 
-Exceptions that can be thrown by `amdsmi_dev_subsystem_id_get` function:
+Exceptions that can be thrown by `amdsmi_dev_get_subsystem_id` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -3162,14 +3162,14 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            id = amdsmi_dev_subsystem_id_get(device)
+            id = amdsmi_dev_get_subsystem_id(device)
             print(id)
 except AmdSmiException as e:
     print(e)
 ```
 
 
-## amdsmi_dev_subsystem_name_get
+## amdsmi_dev_get_subsystem_name
 Description: Get the name string for the device subsytem
 
 Input parameters:
@@ -3178,7 +3178,7 @@ Input parameters:
 
 Output: device subsytem
 
-Exceptions that can be thrown by `amdsmi_dev_subsystem_name_get` function:
+Exceptions that can be thrown by `amdsmi_dev_get_subsystem_name` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -3191,19 +3191,19 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            subsystem_nam = amdsmi_dev_subsystem_name_get(device)
+            subsystem_nam = amdsmi_dev_get_subsystem_name(device)
             print(subsystem_nam)
 except AmdSmiException as e:
     print(e)
 ```
 
 
-## amdsmi_version_get
+## amdsmi_get_version
 Description: Get the build version information for the currently running build of AMDSMI.
 
 Output: amdsmi build version
 
-Exceptions that can be thrown by `amdsmi_version_get` function:
+Exceptions that can be thrown by `amdsmi_get_version` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -3216,14 +3216,14 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            version = amdsmi_version_get()
+            version = amdsmi_get_version()
             print(version)
 except AmdSmiException as e:
     print(e)
 ```
 
 
-## amdsmi_version_str_get
+## amdsmi_get_version_str
 Description: Get the driver version string for the current system.
 
 Input parameters:
@@ -3232,7 +3232,7 @@ Input parameters:
 
 Output: driver version string
 
-Exceptions that can be thrown by `amdsmi_version_str_get` function:
+Exceptions that can be thrown by `amdsmi_get_version_str` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -3245,7 +3245,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            version = amdsmi_version_str_get(AmdSmiSwComponent.DRIVER)
+            version = amdsmi_get_version_str(AmdSmiSwComponent.DRIVER)
             print(version)
 except AmdSmiException as e:
     print(e)
@@ -3311,7 +3311,7 @@ except AmdSmiException as e:
 ```
 
 
-## amdsmi_minmax_bandwidth_get
+##  amdsmi_get_minmax_bandwidth
 Description: Retreive minimal and maximal io link bandwidth between 2 GPUs.
 
 Input parameters:
@@ -3326,7 +3326,7 @@ Field | Description
 `min_bandwidth` | minimal bandwidth for the connection
 `max_bandwidth` | maximal bandwidth for the connection
 
-Exceptions that can be thrown by `amdsmi_minmax_bandwidth_get` function:
+Exceptions that can be thrown by ` amdsmi_get_minmax_bandwidth` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -3340,7 +3340,7 @@ try:
     else:
         device_handle_src = devices[0]
         device_handle_dest = devices[1]
-        bandwith = amdsmi_minmax_bandwidth_get(device_handle_src, device_handle_dest)
+        bandwith =  amdsmi_get_minmax_bandwidth(device_handle_src, device_handle_dest)
         print(bandwith['min_bandwidth'])
         print(bandwith['max_bandwidth'])
 except AmdSmiException as e:

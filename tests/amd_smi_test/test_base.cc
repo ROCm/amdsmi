@@ -167,7 +167,7 @@ void TestBase::PrintDeviceHeader(amdsmi_device_handle dv_ind) {
   IF_VERB(STANDARD) {
     std::cout << "\t**Device handle: " << dv_ind << std::endl;
   }
-  err = amdsmi_dev_id_get(dv_ind, &val_ui16);
+  err = amdsmi_dev_get_id(dv_ind, &val_ui16);
   CHK_ERR_ASRT(err)
   IF_VERB(STANDARD) {
     std::cout << "\t**Device ID: 0x" << std::hex << val_ui16 << std::endl;
@@ -187,7 +187,7 @@ void TestBase::PrintDeviceHeader(amdsmi_device_handle dv_ind) {
     }
   }
 
-  err = amdsmi_dev_subsystem_id_get(dv_ind, &val_ui16);
+  err = amdsmi_dev_get_subsystem_id(dv_ind, &val_ui16);
   CHK_ERR_ASRT(err)
   IF_VERB(STANDARD) {
     std::cout << "\t**Subsystem ID: 0x" << std::hex << val_ui16 << std::endl;

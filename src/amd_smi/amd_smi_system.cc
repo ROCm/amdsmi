@@ -44,6 +44,7 @@
 #include <iomanip>
 #include "amd_smi/impl/amd_smi_system.h"
 #include "amd_smi/impl/amd_smi_gpu_device.h"
+#include "amd_smi/impl/amd_smi_common.h"
 #include "rocm_smi/rocm_smi.h"
 #include "rocm_smi/rocm_smi_main.h"
 
@@ -73,13 +74,13 @@ amdsmi_status_t AMDSmiSystem::populate_amd_gpu_devices() {
     // init rsmi
     rsmi_status_t ret = rsmi_init(0);
     if (ret != RSMI_STATUS_SUCCESS) {
-        return static_cast<amdsmi_status_t>(ret);
+        return amd::smi::rsmi_to_amdsmi_status(ret);
     }
 
     uint32_t device_count = 0;
     ret = rsmi_num_monitor_devices(&device_count);
     if (ret != RSMI_STATUS_SUCCESS) {
-        return static_cast<amdsmi_status_t>(ret);
+        return amd::smi::rsmi_to_amdsmi_status(ret);
     }
 
     for (uint32_t i=0; i < device_count; i++) {
@@ -115,7 +116,7 @@ amdsmi_status_t AMDSmiSystem::get_gpu_bdf_by_index(uint32_t index,
     uint64_t bdfid = 0;
     rsmi_status_t ret = rsmi_dev_pci_id_get(index, &bdfid);
     if (ret != RSMI_STATUS_SUCCESS) {
-        return static_cast<amdsmi_status_t>(ret);
+        return amd::smi::rsmi_to_amdsmi_status(ret);
     }
 
     uint64_t domain = (bdfid >> 32) & 0xffffffff;
@@ -140,7 +141,7 @@ amdsmi_status_t AMDSmiSystem::cleanup() {
     init_flag_ = AMDSMI_INIT_ALL_DEVICES;
     rsmi_status_t ret = rsmi_shut_down();
     if (ret != RSMI_STATUS_SUCCESS) {
-        return static_cast<amdsmi_status_t>(ret);
+        return amd::smi::rsmi_to_amdsmi_status(ret);
     }
 
     drm_.cleanup();
@@ -176,7 +177,7 @@ amdsmi_status_t AMDSmiSystem::handle_to_device(
             != devices_.end()) {
         return AMDSMI_STATUS_SUCCESS;
     }
-    return AMDSMI_STATUS_INVAL;
+    return AMDSMI_STATUS_NOT_FOUND;
 }
 
 amdsmi_status_t AMDSmiSystem::gpu_index_to_handle(uint32_t gpu_index,

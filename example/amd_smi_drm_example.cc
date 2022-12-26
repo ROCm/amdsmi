@@ -49,7 +49,9 @@
 #include <iostream>
 #include <pwd.h>
 #include <sys/stat.h>
+#include <string.h>
 #include <vector>
+
 
 #define CHK_AMDSMI_RET(RET)                                                    \
     {                                                                          \
@@ -62,6 +64,152 @@
             return RET;                                                        \
         }                                                                      \
     }
+
+
+void getFWNameFromId(int id, char *name)
+{
+	switch (id) {
+	case FW_ID_SMU:
+		strcpy(name, "SMU");
+		break;
+	case FW_ID_CP_CE:
+		strcpy(name, "CP_CE");
+		break;
+	case FW_ID_CP_PFP:
+		strcpy(name, "CP_PFP");
+		break;
+	case FW_ID_CP_ME:
+		strcpy(name, "CP_ME");
+		break;
+	case FW_ID_CP_MEC_JT1:
+		strcpy(name, "CP_MEC_JT1");
+		break;
+	case FW_ID_CP_MEC_JT2:
+		strcpy(name, "CP_MEC_JT2");
+		break;
+	case FW_ID_CP_MEC1:
+		strcpy(name, "CP_MEC1");
+		break;
+	case FW_ID_CP_MEC2:
+		strcpy(name, "CP_MEC2");
+		break;
+	case FW_ID_RLC:
+		strcpy(name, "RLC");
+		break;
+	case FW_ID_SDMA0:
+		strcpy(name, "SDMA0");
+		break;
+	case FW_ID_SDMA1:
+		strcpy(name, "SDMA1");
+		break;
+	case FW_ID_SDMA2:
+		strcpy(name, "SDMA2");
+		break;
+	case FW_ID_SDMA3:
+		strcpy(name, "SDMA3");
+		break;
+	case FW_ID_SDMA4:
+		strcpy(name, "SDMA4");
+		break;
+	case FW_ID_SDMA5:
+		strcpy(name, "SDMA5");
+		break;
+	case FW_ID_SDMA6:
+		strcpy(name, "SDMA6");
+		break;
+	case FW_ID_SDMA7:
+		strcpy(name, "SDMA7");
+		break;
+	case FW_ID_VCN:
+		strcpy(name, "VCN");
+		break;
+	case FW_ID_UVD:
+		strcpy(name, "UVD");
+		break;
+	case FW_ID_VCE:
+		strcpy(name, "VCE");
+		break;
+	case FW_ID_ISP:
+		strcpy(name, "ISP");
+		break;
+	case FW_ID_DMCU_ERAM:
+		strcpy(name, "DMCU_ERAM");
+		break;
+	case FW_ID_DMCU_ISR:
+		strcpy(name, "DMCU_ISR");
+		break;
+	case FW_ID_RLC_RESTORE_LIST_GPM_MEM:
+		strcpy(name, "RLC_RESTORE_LIST_GPM_MEM");
+		break;
+	case FW_ID_RLC_RESTORE_LIST_SRM_MEM:
+		strcpy(name, "RLC_RESTORE_LIST_SRM_MEM");
+		break;
+	case FW_ID_RLC_RESTORE_LIST_CNTL:
+		strcpy(name, "RLC_RESTORE_LIST_CNTL");
+		break;
+	case FW_ID_RLC_V:
+		strcpy(name, "RLC_V");
+		break;
+	case FW_ID_MMSCH:
+		strcpy(name, "MMSCH");
+		break;
+	case FW_ID_PSP_SYSDRV:
+		strcpy(name, "PSP_SYSDRV");
+		break;
+	case FW_ID_PSP_SOSDRV:
+		strcpy(name, "PSP_SOSDRV");
+		break;
+	case FW_ID_PSP_TOC:
+		strcpy(name, "PSP_TOC");
+		break;
+	case FW_ID_PSP_KEYDB:
+		strcpy(name, "PSP_KEYDB");
+		break;
+	case FW_ID_DFC:
+		strcpy(name, "DFC");
+		break;
+	case FW_ID_PSP_SPL:
+		strcpy(name, "PSP_SPL");
+		break;
+	case FW_ID_DRV_CAP:
+		strcpy(name, "DRV_CAP");
+		break;
+	case FW_ID_MC:
+		strcpy(name, "MC");
+		break;
+	case FW_ID_PSP_BL:
+		strcpy(name, "PSP_BL");
+		break;
+	case FW_ID_CP_PM4:
+		strcpy(name, "CP_PM4");
+		break;
+	case FW_ID_ASD:
+		strcpy(name, "ID_ASD");
+		break;
+	case FW_ID_TA_RAS:
+		strcpy(name, "ID_TA_RAS");
+		break;
+	case FW_ID_XGMI:
+		strcpy(name, "ID_XGMI");
+		break;
+	case FW_ID_RLC_SRLG:
+		strcpy(name, "ID_RLC_SRLG");
+		break;
+	case FW_ID_RLC_SRLS:
+		strcpy(name, "ID_RLC_SRLS");
+		break;
+	case FW_ID_SMC:
+		strcpy(name, "ID_SMC");
+		break;
+	case FW_ID_DMCU:
+		strcpy(name, "ID_DMCU");
+		break;
+	default:
+		strcpy(name, "");
+		break;
+	}
+}
+
 
 int main() {
     amdsmi_status_t ret;
@@ -198,62 +346,15 @@ int main() {
 
             // Get firmware info
             amdsmi_fw_info_t fw_information = {};
+            char ucode_name[AMDSMI_MAX_STRING_LENGTH];
             ret = amdsmi_get_fw_info(device_handles[j], &fw_information);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_fw_info:\n");
-            printf("\tFirmware version: %d\n", fw_information.num_fw_info);
-            printf("\tSMU: %ld\n",
-                   fw_information.fw_info_list[amdsmi_fw_block_t::FW_ID_SMU]
-                       .fw_version);
-            printf("\tSMC: %ld\n",
-                   fw_information.fw_info_list[amdsmi_fw_block_t::FW_ID_SMC]
-                       .fw_version);
-            printf("\tVCN: %ld\n",
-                   fw_information.fw_info_list[amdsmi_fw_block_t::FW_ID_VCN]
-                       .fw_version);
-            printf("\tCP_ME: %ld\n",
-                   fw_information.fw_info_list[amdsmi_fw_block_t::FW_ID_CP_ME]
-                       .fw_version);
-            printf("\tCP_PFP: %ld\n",
-                   fw_information.fw_info_list[amdsmi_fw_block_t::FW_ID_CP_PFP]
-                       .fw_version);
-            printf("\tCP_CE: %ld\n",
-                   fw_information.fw_info_list[amdsmi_fw_block_t::FW_ID_CP_CE]
-                       .fw_version);
-            printf("\tRLC: %ld\n",
-                   fw_information.fw_info_list[amdsmi_fw_block_t::FW_ID_RLC]
-                       .fw_version);
-            printf("\tCP_MEC1: %ld\n",
-                   fw_information.fw_info_list[amdsmi_fw_block_t::FW_ID_CP_MEC1]
-                       .fw_version);
-            printf("\tCP_MEC2: %ld\n",
-                   fw_information.fw_info_list[amdsmi_fw_block_t::FW_ID_CP_MEC2]
-                       .fw_version);
-            printf("\tSDMA0: %ld\n",
-                   fw_information.fw_info_list[amdsmi_fw_block_t::FW_ID_SDMA0]
-                       .fw_version);
-            printf("\tMC: %ld\n",
-                   fw_information.fw_info_list[amdsmi_fw_block_t::FW_ID_MC]
-                       .fw_version);
-            printf("\tRLC RESTORE LIST CNTL: %ld\n",
-                   fw_information
-                       .fw_info_list
-                           [amdsmi_fw_block_t::FW_ID_RLC_RESTORE_LIST_CNTL]
-                       .fw_version);
-            printf("\tRLC RESTORE LIST GPM MEM: %ld\n",
-                   fw_information
-                       .fw_info_list
-                           [amdsmi_fw_block_t::FW_ID_RLC_RESTORE_LIST_GPM_MEM]
-                       .fw_version);
-            printf("\tRLC RESTORE LIST SRM MEM: %ld\n",
-                   fw_information
-                       .fw_info_list
-                           [amdsmi_fw_block_t::FW_ID_RLC_RESTORE_LIST_SRM_MEM]
-                       .fw_version);
-            printf(
-                "\tPSP SOSDRV: %ld\n\n",
-                fw_information.fw_info_list[amdsmi_fw_block_t::FW_ID_PSP_SOSDRV]
-                    .fw_version);
+            printf("Number of Microcodes: %d\n", fw_information.num_fw_info);
+            for (int j = 0; j < fw_information.num_fw_info; j++) {
+                getFWNameFromId(fw_information.fw_info_list[j].fw_id, ucode_name);
+                printf("        %s: %d\n", ucode_name, fw_information.fw_info_list[j].fw_version);
+            }
 
             // Get GPU power limit info
             amdsmi_power_limit_t power_limit = {};
@@ -548,10 +649,10 @@ int main() {
 
             // Get temperature
             int64_t val_i64 = 0;
-            ret = amdsmi_dev_temp_metric_get(device_handles[j], 0,
+            ret =  amdsmi_dev_get_temp_metric(device_handles[j], 0,
                                              AMDSMI_TEMP_CURRENT, &val_i64);
             CHK_AMDSMI_RET(ret)
-            printf("    Output of amdsmi_dev_temp_metric_get:\n");
+            printf("    Output of  amdsmi_dev_get_temp_metric:\n");
             std::cout << "\t\tTemperature: " << val_i64 / 1000 << "C"
                       << "\n\n";
 

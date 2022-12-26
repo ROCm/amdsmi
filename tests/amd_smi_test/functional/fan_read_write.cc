@@ -100,7 +100,7 @@ void TestFanReadWrite::Run(void) {
   for (uint32_t dv_ind = 0; dv_ind < num_monitor_devs(); ++dv_ind) {
     PrintDeviceHeader(device_handles_[dv_ind]);
 
-    ret = amdsmi_dev_fan_speed_get(device_handles_[dv_ind], 0, &orig_speed);
+    ret = amdsmi_dev_get_fan_speed(device_handles_[dv_ind], 0, &orig_speed);
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
        IF_VERB(STANDARD) {
           std::cout << "\t**" <<  ": " <<
@@ -120,7 +120,7 @@ void TestFanReadWrite::Run(void) {
       return;
     }
 
-    ret = amdsmi_dev_fan_speed_max_get(device_handles_[dv_ind], 0, &max_speed);
+    ret = amdsmi_dev_get_fan_speed_max(device_handles_[dv_ind], 0, &max_speed);
     CHK_ERR_ASRT(ret)
 
     new_speed = 1.1 * orig_speed;
@@ -136,12 +136,12 @@ void TestFanReadWrite::Run(void) {
       std::cout << "Setting fan speed to " << new_speed << std::endl;
     }
 
-    ret = amdsmi_dev_fan_speed_set(device_handles_[dv_ind], 0, new_speed);
+    ret = amdsmi_dev_set_fan_speed(device_handles_[dv_ind], 0, new_speed);
     CHK_ERR_ASRT(ret)
 
     sleep(4);
 
-    ret = amdsmi_dev_fan_speed_get(device_handles_[dv_ind], 0, &cur_speed);
+    ret = amdsmi_dev_get_fan_speed(device_handles_[dv_ind], 0, &cur_speed);
     CHK_ERR_ASRT(ret)
 
     IF_VERB(STANDARD) {
@@ -163,12 +163,12 @@ void TestFanReadWrite::Run(void) {
       std::cout << "Resetting fan control to auto..." << std::endl;
     }
 
-    ret = amdsmi_dev_fan_reset(device_handles_[dv_ind], 0);
+    ret = amdsmi_dev_reset_fan(device_handles_[dv_ind], 0);
     CHK_ERR_ASRT(ret)
 
     sleep(3);
 
-    ret = amdsmi_dev_fan_speed_get(device_handles_[dv_ind], 0, &cur_speed);
+    ret = amdsmi_dev_get_fan_speed(device_handles_[dv_ind], 0, &cur_speed);
     CHK_ERR_ASRT(ret)
 
     IF_VERB(STANDARD) {
