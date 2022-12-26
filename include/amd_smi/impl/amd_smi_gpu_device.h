@@ -72,6 +72,7 @@ class AMDSmiGPUDevice: public AMDSmiDevice {
     std::string& get_gpu_path();
     amdsmi_bdf_t  get_bdf();
     bool check_if_drm_is_supported() { return drm_.check_if_drm_is_supported(); }
+    uint32_t get_vendor_id();
 
     amdsmi_status_t amdgpu_query_info(unsigned info_id,
                     unsigned size, void *value) const;
@@ -85,6 +86,7 @@ class AMDSmiGPUDevice: public AMDSmiDevice {
     uint32_t fd_;
     std::string path_;
     amdsmi_bdf_t bdf_;
+    uint32_t vendor_id_;
     AMDSmiDrm& drm_;
     shared_mutex_t mutex_;
 };
