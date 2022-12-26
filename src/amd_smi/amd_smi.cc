@@ -555,7 +555,6 @@ amdsmi_status_t amdsmi_get_fw_info(amdsmi_device_handle device_handle,
     return AMDSMI_STATUS_SUCCESS;
 }
 
-// TODO(bliu) : add other asic info
 amdsmi_status_t
 amdsmi_get_asic_info(amdsmi_device_handle device_handle, amdsmi_asic_info_t *info) {
 
@@ -569,6 +568,8 @@ amdsmi_get_asic_info(amdsmi_device_handle device_handle, amdsmi_asic_info_t *inf
     struct drm_amdgpu_info_vbios vbios = {};
     char* name;
     char *tmp;
+    uint16_t vendor_id = 0;
+    uint16_t subvendor_id = 0;
 
     amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
     amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpu_device);
@@ -598,24 +599,24 @@ amdsmi_get_asic_info(amdsmi_device_handle device_handle, amdsmi_asic_info_t *inf
         info->device_id = dev_info.device_id;
         info->family = dev_info.family;
         info->rev_id = dev_info.pci_rev;
+        info->vendor_id = gpu_device->get_vendor_id();
     }
     // For other sysfs related information, get from rocm-smi
-    uint16_t vendor_id = 0;
+    else {
+        status = rsmi_wrapper(rsmi_dev_serial_number_get, device_handle,
+                info->asic_serial, AMDSMI_NORMAL_STRING_LENGTH);
 
-    status = rsmi_wrapper(rsmi_dev_serial_number_get, device_handle,
-            info->asic_serial, AMDSMI_NORMAL_STRING_LENGTH);
+        status = rsmi_wrapper(rsmi_dev_brand_get, device_handle,
+                info->market_name, AMDSMI_NORMAL_STRING_LENGTH);
 
-    status = rsmi_wrapper(rsmi_dev_brand_get, device_handle,
-            info->market_name, AMDSMI_NORMAL_STRING_LENGTH);
+        status = rsmi_wrapper(rsmi_dev_vendor_id_get, device_handle,
+                                    &vendor_id);
+        if (status == AMDSMI_STATUS_SUCCESS) info->vendor_id = vendor_id;
 
-    status = rsmi_wrapper(rsmi_dev_vendor_id_get, device_handle,
-                                &vendor_id);
-    if (status == AMDSMI_STATUS_SUCCESS) info->vendor_id = vendor_id;
-
-    vendor_id = 0;
-    status =  rsmi_wrapper(rsmi_dev_subsystem_vendor_id_get, device_handle,
-                &vendor_id);
-    if (status == AMDSMI_STATUS_SUCCESS) info->subvendor_id = vendor_id;
+        status =  rsmi_wrapper(rsmi_dev_subsystem_vendor_id_get, device_handle,
+                    &subvendor_id);
+        if (status == AMDSMI_STATUS_SUCCESS) info->subvendor_id = subvendor_id;
+    }
 
     return AMDSMI_STATUS_SUCCESS;
 }
