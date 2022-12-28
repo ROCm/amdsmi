@@ -448,51 +448,7 @@ Output: Dictionary with fields
 
 Field | Description
 ---|---
-`FW_ID_SMU` | SMU info
-`FW_ID_CP_CE` | CP_CE info
-`FW_ID_CP_PFP` | CP_PFP info
-`FW_ID_CP_ME` | CP_ME info
-`FW_ID_CP_MEC_JT1` | CP_MEC_JT1 info
-`FW_ID_CP_MEC_JT2` | CP_MEC_JT2 info
-`FW_ID_CP_MEC1` | CP_MEC1 info
-`FW_ID_CP_MEC2` | CP_MEC2 info
-`FW_ID_RLC` | RLC info
-`FW_ID_SDMA0` | SDMA0 info
-`FW_ID_SDMA1` | SDMA1 info
-`FW_ID_SDMA2` | SDMA2 info
-`FW_ID_SDMA3` | SDMA3 info
-`FW_ID_SDMA4` | SDMA4 info
-`FW_ID_SDMA5` | SDMA5 info
-`FW_ID_SDMA6` | SDMA6 info
-`FW_ID_SDMA7` | SDMA7 info
-`FW_ID_VCN` | VCN info
-`FW_ID_UVD` | UVD info
-`FW_ID_VCE` | VCE info
-`FW_ID_ISP` | ISP info
-`FW_ID_DMCU_ERAM` | DMCU_ERAM info
-`FW_ID_DMCU_ISR` | DMCU_ISR info
-`FW_ID_RLC_RESTORE_LIST_GPM_MEM` | RLC_RESTORE_LIST_GPM_MEM info
-`FW_ID_RLC_RESTORE_LIST_SRM_MEM` | RLC_RESTORE_LIST_SRM_MEM info
-`FW_ID_RLC_RESTORE_LIST_CNTL` | RLC_RESTORE_LIST_CNTL info
-`FW_ID_RLC_V` | RLC_V info
-`FW_ID_MMSCH` | MMSCH info
-`FW_ID_PSP_SYSDRV` | PSP_SYSDRV info
-`FW_ID_PSP_SOSDRV` | PSP_SOSDRV info
-`FW_ID_PSP_TOC` | PSP_TOC info
-`FW_ID_PSP_KEYDB` | PSP_KEYDB info
-`FW_ID_DFC` | DFC info
-`FW_ID_PSP_SPL` | PSP_SPL info
-`FW_ID_DRV_CAP` | DRV_CAP info
-`FW_ID_MC` | MC info
-`FW_ID_PSP_BL` | PSP_BL info
-`FW_ID_CP_PM4` | CP_PM4 info
-`FW_ID_ASD` | ASD info
-`FW_ID_TA_RAS` | TA_RAS info
-`FW_ID_XGMI` | XGMI info
-`FW_ID_RLC_SRLG` | RLC_SRLG info
-`FW_ID_RLC_SRLS` | RLC_SRLS info
-`FW_ID_SMC` | SMC info
-`FW_ID_DMCU` | DMCU info
+`fw_list`| List of dictionaries that contain information about a certain firmware block
 
 Exceptions that can be thrown by `amdsmi_get_fw_info` function:
 * `AmdSmiLibraryException`
@@ -507,10 +463,10 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            fw_info = amdsmi_get_fw_info(device)
-            for block_name, block_value in fw_info.items():
-                print(block_name, str(block_value))
-
+            firmware_list = amdsmi_get_fw_info(device)['fw_list']
+            for firmware_block in firmware_list:
+                print(firmware_block['fw_name'])
+                print(firmware_block['fw_version'])
 except AmdSmiException as e:
     print(e)
 ```
