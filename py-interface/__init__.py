@@ -185,7 +185,7 @@ from .amdsmi_interface import AmdSmiInitFlags
 from .amdsmi_interface import AmdSmiContainerTypes
 from .amdsmi_interface import AmdSmiDeviceType
 from .amdsmi_interface import AmdSmiMmIp
-from .amdsmi_interface import AmdSmiFWBlock
+from .amdsmi_interface import AmdSmiFwBlock
 from .amdsmi_interface import AmdSmiClkType
 from .amdsmi_interface import AmdSmiTemperatureType
 from .amdsmi_interface import AmdSmiDevPerfLevel
