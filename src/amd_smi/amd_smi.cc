@@ -300,17 +300,20 @@ amdsmi_status_t amdsmi_get_board_info(amdsmi_device_handle device_handle, amdsmi
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
 
-    // Get from sys file
-    status = smi_amdgpu_get_board_info(gpu_device, board_info);
+    if (gpu_device->check_if_drm_is_supported()) {
+        // Get from sys file
+        status = smi_amdgpu_get_board_info(gpu_device, board_info);
+    }
+    else {
+        // ignore the errors so that it can populate as many fields as possible.
+        // call rocm-smi which search multiple places for device name
+        status = rsmi_wrapper(rsmi_dev_name_get, device_handle,
+                        board_info->product_name, AMDSMI_PRODUCT_NAME_LENGTH);
 
-    // ignore the errors so that it can populate as many fields as possible.
-    // call rocm-smi which search multiple places for device name
-    status = rsmi_wrapper(rsmi_dev_name_get, device_handle,
-                    board_info->product_name, AMDSMI_PRODUCT_NAME_LENGTH);
-
-    if (board_info->product_serial[0] == '\0') {
-        status = rsmi_wrapper(rsmi_dev_serial_number_get, device_handle,
-                    board_info->product_serial, AMDSMI_NORMAL_STRING_LENGTH);
+        if (board_info->product_serial[0] == '\0') {
+            status = rsmi_wrapper(rsmi_dev_serial_number_get, device_handle,
+                        board_info->product_serial, AMDSMI_NORMAL_STRING_LENGTH);
+        }
     }
 
     return AMDSMI_STATUS_SUCCESS;
@@ -1079,23 +1082,26 @@ amdsmi_get_power_cap_info(amdsmi_device_handle device_handle,
     // Ignore errors to get as much as possible info.
     memset(info, 0, sizeof(amdsmi_power_cap_info_t));
 
-    // Get power_cap and dpm
-    int power_cap = 0;
-    int dpm = 0;
-    status = smi_amdgpu_get_power_cap(gpudevice, &power_cap);
+    if (gpu_device->check_if_drm_is_supported()) {
+        // Get power_cap and dpm
+        int power_cap = 0;
+        int dpm = 0;
+        status = smi_amdgpu_get_power_cap(gpudevice, &power_cap);
 
-    info->power_cap = power_cap;
-    status = smi_amdgpu_get_ranges(gpudevice, CLK_TYPE_GFX,
-            NULL, NULL, &dpm);
-    info->dpm_cap = dpm;
-
-    // Get other information from rocm-smi
-    auto rsmi_status = rsmi_dev_power_cap_default_get(gpudevice->get_gpu_id(),
-                &(info->default_power_cap));
-    rsmi_status = rsmi_dev_power_cap_range_get(gpudevice->get_gpu_id(),
-                sensor_ind, &(info->max_power_cap), &(info->min_power_cap));
-    rsmi_status = rsmi_dev_power_cap_get(gpudevice->get_gpu_id(),
-                sensor_ind, &(info->power_cap));
+        info->power_cap = power_cap;
+        status = smi_amdgpu_get_ranges(gpudevice, CLK_TYPE_GFX,
+                NULL, NULL, &dpm);
+        info->dpm_cap = dpm;
+    }
+    else {
+        // Get other information from rocm-smi
+        auto rsmi_status = rsmi_dev_power_cap_default_get(gpudevice->get_gpu_id(),
+                    &(info->default_power_cap));
+        rsmi_status = rsmi_dev_power_cap_range_get(gpudevice->get_gpu_id(),
+                    sensor_ind, &(info->max_power_cap), &(info->min_power_cap));
+        rsmi_status = rsmi_dev_power_cap_get(gpudevice->get_gpu_id(),
+                    sensor_ind, &(info->power_cap));
+    }
 
     return AMDSMI_STATUS_SUCCESS;
 }
