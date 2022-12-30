@@ -104,7 +104,7 @@ class AmdSmiFWBlock(IntEnum):
     FW_ID_DMCU = amdsmi_wrapper.FW_ID_DMCU
 
 
-class AmdSmiClockType(IntEnum):
+class AmdSmiClkType(IntEnum):
     SYS = amdsmi_wrapper.CLK_TYPE_SYS
     GFX = amdsmi_wrapper.CLK_TYPE_GFX
     DF = amdsmi_wrapper.CLK_TYPE_DF
@@ -746,8 +746,8 @@ def amdsmi_get_clock_measure(
         raise AmdSmiParameterException(
             device_handle, amdsmi_wrapper.amdsmi_device_handle
         )
-    if not isinstance(clock_type, AmdSmiClockType):
-        raise AmdSmiParameterException(clock_type, AmdSmiClockType)
+    if not isinstance(clock_type, AmdSmiClkType):
+        raise AmdSmiParameterException(clock_type, AmdSmiClkType)
 
     clock_measure = amdsmi_wrapper.amdsmi_clk_measure_t()
     _check_res(
@@ -862,8 +862,8 @@ def amdsmi_get_target_frequency_range(
         raise AmdSmiParameterException(
             device_handle, amdsmi_wrapper.amdsmi_device_handle
         )
-    if not isinstance(clock_type, AmdSmiClockType):
-        raise AmdSmiParameterException(clock_type, AmdSmiClockType)
+    if not isinstance(clock_type, AmdSmiClkType):
+        raise AmdSmiParameterException(clock_type, AmdSmiClkType)
 
     freq_range = amdsmi_wrapper.amdsmi_frequency_range_t()
     _check_res(
@@ -966,7 +966,7 @@ def amdsmi_get_process_list(
             device_handle, amdsmi_wrapper.amdsmi_device_handle
         )
 
-    max_processes = amdsmi_wrapper.c_uint32(0)
+    max_processes = ctypes.c_uint32(0)
     process_list = (amdsmi_wrapper.amdsmi_process_handle *
                     max_processes.value)()
     _check_res(
@@ -999,7 +999,7 @@ def amdsmi_get_process_info(
         raise AmdSmiParameterException(
             process, amdsmi_wrapper.amdsmi_process_handle)
 
-    info = amdsmi_wrapper.amdsmi_process_info()
+    info = amdsmi_wrapper.amdsmi_proc_info_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_process_info(
             device_handle, process, ctypes.byref(info)
@@ -1539,7 +1539,7 @@ def  amdsmi_counter_get_available_counters(
         )
     if not isinstance(event_group, AmdSmiEventGroup):
         raise AmdSmiParameterException(event_group, AmdSmiEventGroup)
-    available = amdsmi_wrapper.c_uint32()
+    available = ctypes.c_uint32()
 
     _check_res(
         amdsmi_wrapper. amdsmi_counter_get_available_counters(
@@ -1575,7 +1575,7 @@ def  amdsmi_dev_get_power_profile_presets(
     if not isinstance(sensor_idx, int):
         raise AmdSmiParameterException(sensor_idx, int)
 
-    sensor_idx = amdsmi_wrapper.c_uint32(sensor_idx)
+    sensor_idx = ctypes.c_uint32(sensor_idx)
     status = amdsmi_wrapper.amdsmi_power_profile_status_t()
 
     _check_res(
@@ -1609,7 +1609,7 @@ def amdsmi_set_perf_determinism_mode(
         )
     if not isinstance(clock_value, int):
         raise AmdSmiParameterException(clock_value, int)
-    clock_value = amdsmi_wrapper.c_uint64(clock_value)
+    clock_value = ctypes.c_uint64(clock_value)
 
     _check_res(
         amdsmi_wrapper.amdsmi_set_perf_determinism_mode(
@@ -1628,8 +1628,8 @@ def amdsmi_dev_set_fan_speed(
         raise AmdSmiParameterException(sensor_idx, int)
     if not isinstance(fan_speed, int):
         raise AmdSmiParameterException(fan_speed, int)
-    sensor_idx = amdsmi_wrapper.c_uint32(sensor_idx)
-    fan_speed = amdsmi_wrapper.c_uint64(fan_speed)
+    sensor_idx = ctypes.c_uint32(sensor_idx)
+    fan_speed = ctypes.c_uint64(fan_speed)
 
     _check_res(
         amdsmi_wrapper.amdsmi_dev_set_fan_speed(
@@ -1646,25 +1646,25 @@ def amdsmi_dev_reset_fan(
         )
     if not isinstance(sensor_idx, int):
         raise AmdSmiParameterException(sensor_idx, int)
-    sensor_idx = amdsmi_wrapper.c_uint32(sensor_idx)
+    sensor_idx = ctypes.c_uint32(sensor_idx)
 
     _check_res(amdsmi_wrapper.amdsmi_dev_reset_fan(device_handle, sensor_idx))
 
 
 def  amdsmi_dev_set_clk_freq(
     device_handle: amdsmi_wrapper.amdsmi_device_handle,
-    clk_type: AmdSmiClockType,
+    clk_type: AmdSmiClkType,
     freq_bitmask: int,
 ):
     if not isinstance(device_handle, amdsmi_wrapper.amdsmi_device_handle):
         raise AmdSmiParameterException(
             device_handle, amdsmi_wrapper.amdsmi_device_handle
         )
-    if not isinstance(clk_type, AmdSmiClockType):
+    if not isinstance(clk_type, AmdSmiClkType):
         raise AmdSmiParameterException(clk_type, AmdSmiParameterException)
     if not isinstance(freq_bitmask, int):
         raise AmdSmiParameterException(freq_bitmask, int)
-    freq_bitmask = amdsmi_wrapper.c_uint64(freq_bitmask)
+    freq_bitmask = ctypes.c_uint64(freq_bitmask)
     _check_res(
         amdsmi_wrapper. amdsmi_dev_set_clk_freq(
             device_handle, clk_type, freq_bitmask
@@ -1681,7 +1681,7 @@ def  amdsmi_dev_set_overdrive_level_v1(
         )
     if not isinstance(overdrive_value, int):
         raise AmdSmiParameterException(overdrive_value, int)
-    overdrive_value = amdsmi_wrapper.c_uint32(overdrive_value)
+    overdrive_value = ctypes.c_uint32(overdrive_value)
 
     _check_res(
         amdsmi_wrapper. amdsmi_dev_set_overdrive_level_v1(
@@ -1698,7 +1698,7 @@ def  amdsmi_dev_set_overdrive_level(
         )
     if not isinstance(overdrive_value, int):
         raise AmdSmiParameterException(overdrive_value, int)
-    overdrive_value = amdsmi_wrapper.c_uint32(overdrive_value)
+    overdrive_value = ctypes.c_uint32(overdrive_value)
 
     _check_res(
         amdsmi_wrapper. amdsmi_dev_set_overdrive_level(
@@ -2001,7 +2001,7 @@ def amdsmi_dev_set_clk_range(
     device_handle: amdsmi_wrapper.amdsmi_device_handle,
     min_clk_value: int,
     max_clk_value: int,
-    clk_type: AmdSmiClockType,
+    clk_type: AmdSmiClkType,
 ) -> None:
     if not isinstance(device_handle, amdsmi_wrapper.amdsmi_device_handle):
         raise AmdSmiParameterException(
@@ -2014,8 +2014,8 @@ def amdsmi_dev_set_clk_range(
     if not isinstance(max_clk_value, int):
         raise AmdSmiParameterException(min_clk_value, int)
 
-    if not isinstance(clk_type, AmdSmiClockType):
-        raise AmdSmiParameterException(clk_type, AmdSmiClockType)
+    if not isinstance(clk_type, AmdSmiClkType):
+        raise AmdSmiParameterException(clk_type, AmdSmiClkType)
 
     _check_res(
         amdsmi_wrapper.amdsmi_dev_set_clk_range(
@@ -2052,7 +2052,7 @@ def  amdsmi_dev_set_od_clk_info(
     device_handle: amdsmi_wrapper.amdsmi_device_handle,
     level: AmdSmiFreqInd,
     value: int,
-    clk_type: AmdSmiClockType,
+    clk_type: AmdSmiClkType,
 ) -> None:
     if not isinstance(device_handle, amdsmi_wrapper.amdsmi_device_handle):
         raise AmdSmiParameterException(
@@ -2065,8 +2065,8 @@ def  amdsmi_dev_set_od_clk_info(
     if not isinstance(value, int):
         raise AmdSmiParameterException(value, int)
 
-    if not isinstance(clk_type, AmdSmiClockType):
-        raise AmdSmiParameterException(clk_type, AmdSmiClockType)
+    if not isinstance(clk_type, AmdSmiClkType):
+        raise AmdSmiParameterException(clk_type, AmdSmiClkType)
 
     _check_res(
         amdsmi_wrapper. amdsmi_dev_set_od_clk_info(
@@ -2167,7 +2167,7 @@ def amdsmi_dev_get_fan_rpms(
         )
     if not isinstance(sensor_idx, int):
         raise AmdSmiParameterException(sensor_idx, int)
-    fan_speed = amdsmi_wrapper.c_int64()
+    fan_speed = ctypes.c_int64()
     _check_res(
         amdsmi_wrapper.amdsmi_dev_get_fan_rpms(
             device_handle, sensor_idx, ctypes.byref(fan_speed)
@@ -2186,7 +2186,7 @@ def amdsmi_dev_get_fan_speed(
         )
     if not isinstance(sensor_idx, int):
         raise AmdSmiParameterException(sensor_idx, int)
-    fan_speed = amdsmi_wrapper.c_int64()
+    fan_speed = ctypes.c_int64()
     _check_res(
         amdsmi_wrapper.amdsmi_dev_get_fan_speed(
             device_handle, sensor_idx, ctypes.byref(fan_speed)
@@ -2205,7 +2205,7 @@ def amdsmi_dev_get_fan_speed_max(
         )
     if not isinstance(sensor_idx, int):
         raise AmdSmiParameterException(sensor_idx, int)
-    fan_speed = amdsmi_wrapper.c_uint64()
+    fan_speed = ctypes.c_uint64()
     _check_res(
         amdsmi_wrapper.amdsmi_dev_get_fan_speed_max(
             device_handle, sensor_idx, ctypes.byref(fan_speed)
@@ -2229,7 +2229,7 @@ def  amdsmi_dev_get_temp_metric(
     if not isinstance(metric, AmdSmiTemperatureMetric):
         raise AmdSmiParameterException(metric, AmdSmiTemperatureMetric)
 
-    temp_value = amdsmi_wrapper.c_int64()
+    temp_value = ctypes.c_int64()
     _check_res(
         amdsmi_wrapper. amdsmi_dev_get_temp_metric(
             device_handle, sensor_type, metric, ctypes.byref(temp_value)
@@ -2253,7 +2253,7 @@ def  amdsmi_dev_get_volt_metric(
     if not isinstance(metric, AmdSmiVoltageMetric):
         raise AmdSmiParameterException(metric, AmdSmiVoltageMetric)
 
-    voltage = amdsmi_wrapper.c_int64()
+    voltage = ctypes.c_int64()
     _check_res(
         amdsmi_wrapper. amdsmi_dev_get_volt_metric(
             device_handle, sensor_type, metric, ctypes.byref(voltage)
@@ -2271,7 +2271,7 @@ def amdsmi_dev_get_busy_percent(
             device_handle, amdsmi_wrapper.amdsmi_device_handle
         )
 
-    busy_percent = amdsmi_wrapper.c_uint32()
+    busy_percent = ctypes.c_uint32()
     _check_res(
         amdsmi_wrapper.amdsmi_dev_get_busy_percent(
             device_handle, ctypes.byref(busy_percent)
@@ -2300,8 +2300,8 @@ def amdsmi_get_utilization_count(
         counter.type = counter_type
         counters.append(counter)
 
-    count = amdsmi_wrapper.c_uint32(len(counters))
-    timestamp = amdsmi_wrapper.c_uint64()
+    count = ctypes.c_uint32(len(counters))
+    timestamp = ctypes.c_uint64()
     util_counter_list = (amdsmi_wrapper.amdsmi_utilization_counter_t * len(counters))(
         *counters
     )
@@ -2373,7 +2373,7 @@ def amdsmi_dev_get_overdrive_level(
             device_handle, amdsmi_wrapper.amdsmi_device_handle
         )
 
-    od_level = amdsmi_wrapper.c_uint32()
+    od_level = ctypes.c_uint32()
     _check_res(
         amdsmi_wrapper.amdsmi_dev_get_overdrive_level(
             device_handle, ctypes.byref(od_level)
@@ -2384,14 +2384,14 @@ def amdsmi_dev_get_overdrive_level(
 
 
 def  amdsmi_dev_get_gpu_clk_freq(
-    device_handle: amdsmi_wrapper.amdsmi_device_handle, clk_type: AmdSmiClockType
+    device_handle: amdsmi_wrapper.amdsmi_device_handle, clk_type: AmdSmiClkType
 ) -> Dict[str, Any]:
     if not isinstance(device_handle, amdsmi_wrapper.amdsmi_device_handle):
         raise AmdSmiParameterException(
             device_handle, amdsmi_wrapper.amdsmi_device_handle
         )
-    if not isinstance(clk_type, AmdSmiClockType):
-        raise AmdSmiParameterException(clk_type, AmdSmiClockType)
+    if not isinstance(clk_type, AmdSmiClkType):
+        raise AmdSmiParameterException(clk_type, AmdSmiClkType)
 
     freq = amdsmi_wrapper.amdsmi_frequencies_t()
     _check_res(
@@ -2507,7 +2507,7 @@ def  amdsmi_dev_get_od_volt_curve_regions(
     if not isinstance(num_regions, int):
         raise AmdSmiParameterException(num_regions, int)
 
-    region_count = amdsmi_wrapper.c_uint32(num_regions)
+    region_count = ctypes.c_uint32(num_regions)
     buffer = (amdsmi_wrapper.amdsmi_freq_volt_region_t * num_regions)()
     _check_res(
         amdsmi_wrapper. amdsmi_dev_get_od_volt_curve_regions(

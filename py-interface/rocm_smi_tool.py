@@ -491,7 +491,7 @@ def amdsmi_tool_dev_pci_bandwidth_set(dev, dic):
 
 def amdsmi_tool_dev_gpu_clk_freq_get(dev):
     result = {}
-    for clock_type in smi_api.AmdSmiClockType:
+    for clock_type in smi_api.AmdSmiClkType:
         try:
             value = smi_api. amdsmi_dev_get_gpu_clk_freq(dev, clock_type)
             result.update({clock_type.name: value})
@@ -618,7 +618,7 @@ def amdsmi_tool_dev_clk_range_set(dev, dic):
     result = {}
     min_clk = dic["min_clk"]
     max_clk = dic["max_clk"]
-    for clock_type in smi_api.AmdSmiClockType:
+    for clock_type in smi_api.AmdSmiClkType:
         try:
             value = smi_api.amdsmi_dev_set_clk_range(dev, min_clk, max_clk, clock_type)
             result.update({clock_type.name: value})
@@ -641,7 +641,7 @@ def amdsmi_tool_dev_counter_group_supported(dev):
 def amdsmi_tool_dev_gpu_clk_freq_set(dev, dic):
     result = {}
     freq_bitmask = dic["freq_bitmask"]
-    for clock_type in smi_api.AmdSmiClockType:
+    for clock_type in smi_api.AmdSmiClkType:
         try:
             value = smi_api. amdsmi_dev_set_clk_freq(dev, clock_type, freq_bitmask)
             result.update({clock_type.name: value})
@@ -654,10 +654,10 @@ def amdsmi_tool_dev_od_clk_info_set(dev, dic):
     result = {}
     value = dic["value"]
     for freq_ind in smi_api.AmdSmiFreqInd:
-        for clock_type in smi_api.AmdSmiClockType:
+        for clock_type in smi_api.AmdSmiClkType:
             try:
                 value = smi_api. amdsmi_dev_set_od_clk_info(dev, freq_ind, value, clock_type)
-                result.update({"AmdSmiFreqInd: " + freq_ind.name + ", AmdSmiClockType: " + clock_type.name: value})
+                result.update({"AmdSmiFreqInd: " + freq_ind.name + ", AmdSmiClkType: " + clock_type.name: value})
             except smi_api.AmdSmiException as e:
                 print("{},{}:\t{}".format(freq_ind.name,  clock_type.name, e))
 

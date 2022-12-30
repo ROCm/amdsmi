@@ -663,7 +663,7 @@ Description: Returns the clock measure for the given GPU
 
 Input parameters:
 * `device_handle` device which to query
-* `clock_type` one of `AmdSmiClockType` enum values:
+* `clock_type` one of `AmdSmiClkType` enum values:
 
 Field | Description
 ---|---
@@ -701,7 +701,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            clock_measure = amdsmi_get_clock_measure(device, AmdSmiClockType.GFX)
+            clock_measure = amdsmi_get_clock_measure(device, AmdSmiClkType.GFX)
             print(clock_measure['cur_clk'])
             print(clock_measure['avg_clk'])
             print(clock_measure['min_clk'])
@@ -901,7 +901,7 @@ Description: Returns the supported frequency target range for the given GPU
 Input parameters:
 
 * `device_handle` device which to query
-* `clock_type` one of `AmdSmiClockType` enum values:
+* `clock_type` one of `AmdSmiClkType` enum values:
 
 Field | Description
 ---|---
@@ -941,21 +941,21 @@ try:
         for device in devices:
             print("=============== GFX DOMAIN ================")
             freq_range = amdsmi_get_target_frequency_range(device,
-                AmdSmiClockType.GFX)
+                AmdSmiClkType.GFX)
             print(freq_range['supported_upper_bound'])
             print(freq_range['supported_lower_bound'])
             print(freq_range['current_upper_bound'])
             print(freq_range['current_lower_bound'])
             print("=============== MEM DOMAIN ================")
             freq_range = amdsmi_get_target_frequency_range(device,
-                AmdSmiClockType.MEM)
+                AmdSmiClkType.MEM)
             print(freq_range['supported_upper_bound'])
             print(freq_range['supported_lower_bound'])
             print(freq_range['current_upper_bound'])
             print(freq_range['current_lower_bound'])
             print("=============== VCLK0 DOMAIN ================")
             freq_range = amdsmi_get_target_frequency_range(device,
-                AmdSmiClockType.VCLK0)
+                AmdSmiClkType.VCLK0)
             print(freq_range['supported_upper_bound'])
             print(freq_range['supported_lower_bound'])
             print(freq_range['current_upper_bound'])
@@ -1461,7 +1461,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_dev_set_clk_range(device, 0, 1000, AmdSmiClockType.AMDSMI_CLK_TYPE_SYS)
+            amdsmi_dev_set_clk_range(device, 0, 1000, AmdSmiClkType.AMDSMI_CLK_TYPE_SYS)
 except AmdSmiException as e:
     print(e)
 ```
@@ -1774,7 +1774,7 @@ try:
                 device,
                 AmdSmiFreqInd.AMDSMI_FREQ_IND_MAX,
                 1000,
-                AmdSmiClockType.AMDSMI_CLK_TYPE_SYS
+                AmdSmiClkType.AMDSMI_CLK_TYPE_SYS
             )
 except AmdSmiException as e:
     print(e)
@@ -2221,7 +2221,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-             amdsmi_dev_get_gpu_clk_freq(device, AmdSmiClockType.SYS)
+             amdsmi_dev_get_gpu_clk_freq(device, AmdSmiClkType.SYS)
 except AmdSmiException as e:
     print(e)
 ```
@@ -2705,7 +2705,7 @@ specified clock
 Input parameters:
 * `device_handle` handle for the given device
 * `clk_type` the type of clock for which the set of frequencies will be modified
-as AmdSmiClockType
+as AmdSmiClkType
 * `freq_bitmask`  bitmask indicating the indices of the frequencies that are to
 be enabled (1) and disabled (0). Only the lowest ::amdsmi_frequencies_t.num_supported
 bits of this mask are relevant.
@@ -2726,7 +2726,7 @@ try:
     else:
         for device in devices:
             freq_bitmask = 0
-             amdsmi_dev_set_clk_freq(device, AmdSmiClockType.GFX, freq_bitmask)
+             amdsmi_dev_set_clk_freq(device, AmdSmiClkType.GFX, freq_bitmask)
 except AmdSmiException as e:
     print(e)
 ```
