@@ -76,21 +76,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wformat=2 -fno-common -Wstrict-overflow
 # Intentionally leave out -Wsign-promo. It causes spurious warnings.
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Woverloaded-virtual -Wreorder")
 
-## Address Sanitize Flag
-if(${ADDRESS_SANITIZER})
-    if(BUILD_SHARED_LIBS})
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -shared-libsan")
-    else()
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libsan")
-    endif()
-else()
-    ## Security breach mitigation flags
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFORTIFY_SOURCE=2 -fstack-protector-all -Wcast-align")
-    ## More security breach mitigation flags
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,-z,noexecstack -Wl,-znoexecheap -Wl,-z,relro")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wtrampolines -Wl,-z,now -fPIE")
-endif()
-
 set(COMMON_SRC_DIR "${PROJECT_SOURCE_DIR}/src")
 set(ROCM_SRC_DIR "${PROJECT_SOURCE_DIR}/rocm_smi/src")
 set(AMDSMI_SRC_DIR "${PROJECT_SOURCE_DIR}/src/amd_smi")
