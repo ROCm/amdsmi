@@ -229,7 +229,7 @@ void TestMutualExclusion::Run(void) {
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret = amdsmi_dev_get_fan_speed_max(device_handles_[0], 0, &dmy_ui64);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret =  amdsmi_dev_get_temp_metric(device_handles_[0], dmy_ui32, AMDSMI_TEMP_CURRENT, &dmy_i64);
+    ret =  amdsmi_dev_get_temp_metric(device_handles_[0], TEMPERATURE_TYPE_EDGE, AMDSMI_TEMP_CURRENT, &dmy_i64);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret = amdsmi_dev_reset_fan(device_handles_[0], 0);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
