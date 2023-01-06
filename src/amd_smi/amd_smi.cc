@@ -317,7 +317,7 @@ amdsmi_status_t amdsmi_get_board_info(amdsmi_device_handle device_handle, amdsmi
 }
 
 amdsmi_status_t  amdsmi_dev_get_temp_metric(amdsmi_device_handle device_handle,
-                    uint32_t sensor_type,
+                    amdsmi_temperature_type_t sensor_type,
                     amdsmi_temperature_metric_t metric, int64_t *temperature) {
 
     AMDSMI_CHECK_INIT();
@@ -338,7 +338,8 @@ amdsmi_status_t  amdsmi_dev_get_temp_metric(amdsmi_device_handle device_handle,
         return r_status;
     }
 
-    return rsmi_wrapper(rsmi_dev_temp_metric_get, device_handle, sensor_type,
+    return rsmi_wrapper(rsmi_dev_temp_metric_get, device_handle,
+            static_cast<uint32_t>(sensor_type),
             static_cast<rsmi_temperature_metric_t>(metric), temperature);
 }
 

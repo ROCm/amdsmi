@@ -33,17 +33,36 @@ function(generic_package)
     endif()
 
     # Add address sanitizer
+    # derived from:
+    # https://github.com/RadeonOpenCompute/ROCm-OpenCL-Runtime/blob/e176056061bf11fdd98b58dd57deb4ac5625844d/amdocl/CMakeLists.txt#L27
     if(${ADDRESS_SANITIZER})
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -g" PARENT_SCOPE)
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address" PARENT_SCOPE)
-        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -shared-libasan" PARENT_SCOPE)
-        message(STATUS "ADDRESS_SANITIZE: CMAKE_CXX_FLAGS=: ${CMAKE_CXX_FLAGS}")
-        message(STATUS "ADDRESS_SANITIZE: CMAKE_EXE_LINKER_FLAGS=: ${CMAKE_EXE_LINKER_FLAGS}")
+        set(ASAN_COMPILER_FLAGS "-fno-omit-frame-pointer -fsanitize=address")
+        set(ASAN_LINKER_FLAGS "-fsanitize=address")
+
+        if(BUILD_SHARED_LIBS)
+            set(ASAN_COMPILER_FLAGS "${ASAN_COMPILER_FLAGS} -shared-libsan")
+            set(ASAN_LINKER_FLAGS "${ASAN_LINKER_FLAGS} -shared-libsan")
+        else()
+            set(ASAN_LINKER_FLAGS "${ASAN_LINKER_FLAGS} -static-libsan")
+        endif()
+
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ASAN_COMPILER_FLAGS}" PARENT_SCOPE)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ASAN_COMPILER_FLAGS}" PARENT_SCOPE)
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${ASAN_LINKER_FLAGS}" PARENT_SCOPE)
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${ASAN_LINKER_FLAGS}" PARENT_SCOPE)
+    else()
+        ## Security breach mitigation flags
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFORTIFY_SOURCE=2 -fstack-protector-all -Wcast-align" PARENT_SCOPE)
+        ## More security breach mitigation flags
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,-z,noexecstack -Wl,-znoexecheap -Wl,-z,relro" PARENT_SCOPE)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wtrampolines -Wl,-z,now -fPIE" PARENT_SCOPE)
     endif()
 
     # Clang does not set the build-id
+    # similar to if(NOT CMAKE_COMPILER_IS_GNUCC)
     if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--build-id=sha1" PARENT_SCOPE)
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--build-id=sha1" PARENT_SCOPE)
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--build-id=sha1" PARENT_SCOPE)
     endif()
 
     # configure packaging

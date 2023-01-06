@@ -2029,7 +2029,8 @@ amdsmi_status_t amdsmi_dev_get_fan_speed_max(amdsmi_device_handle device_handle,
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_get_temp_metric(amdsmi_device_handle device_handle, uint32_t sensor_type,
+amdsmi_status_t  amdsmi_dev_get_temp_metric(amdsmi_device_handle device_handle,
+                      amdsmi_temperature_type_t sensor_type,
                       amdsmi_temperature_metric_t metric, int64_t *temperature);
 
 /**
