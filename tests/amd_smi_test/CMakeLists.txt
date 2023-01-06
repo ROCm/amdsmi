@@ -2,7 +2,7 @@
 option(INSTALL_GTEST "Install GTest (only useful if GTest is not already installed)" OFF)
 
 # Help tests find libraries at runtime
-set(CMAKE_EXE_LINKER_FLAGS "-Wl,--enable-new-dtags")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--enable-new-dtags")
 set(CMAKE_INSTALL_RPATH
     "\$ORIGIN:\$ORIGIN/../../../lib"
     CACHE STRING "RUNPATH for tests. Helps find libgtest.so and libamd_smi.so")

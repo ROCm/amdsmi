@@ -649,7 +649,7 @@ int main() {
 
             // Get temperature
             int64_t val_i64 = 0;
-            ret =  amdsmi_dev_get_temp_metric(device_handles[j], 0,
+            ret =  amdsmi_dev_get_temp_metric(device_handles[j], TEMPERATURE_TYPE_EDGE,
                                              AMDSMI_TEMP_CURRENT, &val_i64);
             CHK_AMDSMI_RET(ret)
             printf("    Output of  amdsmi_dev_get_temp_metric:\n");
