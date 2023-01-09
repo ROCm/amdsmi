@@ -259,6 +259,8 @@ int main() {
             // Get device type. Since the amdsmi is initialized with
             // AMD_SMI_INIT_AMD_GPUS, the device_type must be AMD_GPU.
             device_type_t device_type = {};
+            std::cout << "Device Handle: " << device_handles[j] << std::endl;
+
             ret = amdsmi_get_device_type(device_handles[j], &device_type);
             CHK_AMDSMI_RET(ret)
             if (device_type != AMD_GPU) {
