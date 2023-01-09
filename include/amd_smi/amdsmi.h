@@ -388,12 +388,12 @@ typedef struct {
 	amdsmi_process_handle pid;
 	uint64_t              mem; /** in bytes */
 	struct {
-		uint16_t gfx[AMDSMI_MAX_MM_IP_COUNT];
-		uint16_t compute[AMDSMI_MAX_MM_IP_COUNT];
-		uint16_t sdma[AMDSMI_MAX_MM_IP_COUNT];
-		uint16_t enc[AMDSMI_MAX_MM_IP_COUNT];
-		uint16_t dec[AMDSMI_MAX_MM_IP_COUNT];
-	} engine_usage; /** percentage 0-100% times 100 */
+		uint64_t gfx;
+		uint64_t compute;
+		uint64_t dma;
+		uint64_t enc;
+		uint64_t dec;
+	} engine_usage; /** How much time the process spend using these engines in ns */
   struct {
     uint64_t gtt_mem;
     uint64_t cpu_mem;
@@ -3825,6 +3825,7 @@ amdsmi_get_process_list(amdsmi_device_handle device_handle, amdsmi_process_handl
 
 /**
  *  @brief          Returns the process information of a given process.
+ *                  Engine usage show how much time the process spend using these engines in ns.
  *
  *  @param[in]      device_handle Device which to query
  *

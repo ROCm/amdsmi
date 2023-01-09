@@ -916,11 +916,11 @@ def amdsmi_get_process_info(
         "pid": info.pid,
         "mem": info.mem,
         "engine_usage": {
-            "gfx": list(info.engine_usage.gfx),
-            "compute": list(info.engine_usage.compute),
-            "sdma": list(info.engine_usage.sdma),
-            "enc": list(info.engine_usage.enc),
-            "dec": list(info.engine_usage.dec),
+            "gfx": info.engine_usage.gfx,
+            "compute": info.engine_usage.compute,
+            "dma": info.engine_usage.dma,
+            "enc": info.engine_usage.enc,
+            "dec": info.engine_usage.dec,
         },
         "memory_usage": {
             "gtt_mem": info.memory_usage.gtt_mem,
