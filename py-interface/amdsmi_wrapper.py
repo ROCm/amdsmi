@@ -697,6 +697,18 @@ amdsmi_process_handle = ctypes.c_uint32
 class struct_c__SA_amdsmi_proc_info_t(Structure):
     pass
 
+class struct_c__SA_amdsmi_proc_info_t_0(Structure):
+    pass
+
+struct_c__SA_amdsmi_proc_info_t_0._pack_ = 1 # source:False
+struct_c__SA_amdsmi_proc_info_t_0._fields_ = [
+    ('gfx', ctypes.c_uint64),
+    ('compute', ctypes.c_uint64),
+    ('dma', ctypes.c_uint64),
+    ('enc', ctypes.c_uint64),
+    ('dec', ctypes.c_uint64),
+]
+
 class struct_c__SA_amdsmi_proc_info_t_1(Structure):
     pass
 
@@ -705,18 +717,6 @@ struct_c__SA_amdsmi_proc_info_t_1._fields_ = [
     ('gtt_mem', ctypes.c_uint64),
     ('cpu_mem', ctypes.c_uint64),
     ('vram_mem', ctypes.c_uint64),
-]
-
-class struct_c__SA_amdsmi_proc_info_t_0(Structure):
-    pass
-
-struct_c__SA_amdsmi_proc_info_t_0._pack_ = 1 # source:False
-struct_c__SA_amdsmi_proc_info_t_0._fields_ = [
-    ('gfx', ctypes.c_uint16 * 8),
-    ('compute', ctypes.c_uint16 * 8),
-    ('sdma', ctypes.c_uint16 * 8),
-    ('enc', ctypes.c_uint16 * 8),
-    ('dec', ctypes.c_uint16 * 8),
 ]
 
 struct_c__SA_amdsmi_proc_info_t._pack_ = 1 # source:False

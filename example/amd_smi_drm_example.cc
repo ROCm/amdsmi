@@ -498,15 +498,6 @@ int main() {
                            : -1;
             };
 
-            auto sum_item = [](uint16_t *a) -> float {
-                float b = 0;
-                for (int iterator = 0; iterator < AMDSMI_MAX_MM_IP_COUNT;
-                     iterator += 1) {
-                    b += (float)a[iterator] / 100.0;
-                }
-                return b;
-            };
-
             // Get frequency ranges
             amdsmi_frequency_range_t freq_ranges = {};
             ret = amdsmi_get_target_frequency_range(
@@ -533,7 +524,7 @@ int main() {
                 amdsmi_proc_info_t info_list[num_process];
                 amdsmi_proc_info_t process = {};
                 uint64_t mem = 0, gtt_mem = 0, cpu_mem = 0, vram_mem = 0;
-                float gfx = 0, comp = 0, dma = 0, enc = 0, dec = 0;
+                uint64_t gfx = 0, comp = 0, dma = 0, enc = 0, dec = 0;
                 char bdf_str[20];
                 sprintf(bdf_str, "%04lx:%02x:%02x.%d", bdf.domain_number,
                         bdf.bus_number, bdf.device_number, bdf.function_number);
@@ -562,7 +553,7 @@ int main() {
                 printf(
                     "| pid   | name             | user       | gpu bdf      | "
                     "fb usage    | gtt memory  | cpu memory  | vram memory  | "
-                    "ring usage (%%)                          |\n");
+                    "engine usage (ns)                       |\n");
                 printf("|       |                  |            |              "
                        "|             |             |             |            "
                        "  | gfx     comp    dma     enc     dec     |\n");
@@ -580,49 +571,49 @@ int main() {
                     pwd = getpwuid(st.st_uid);
                     if (!pwd)
                         printf("| %5d | %16s | %10d | %s | %7ld KiB | %7ld KiB "
-                               "| %7ld KiB | %7ld KiB  | %6.2f  %6.2f  %6.2f  "
-                               "%6.2f  %6.2f  |\n",
+                               "| %7ld KiB | %7ld KiB  | %lu  %lu  %lu  "
+                               "%lu  %lu  |\n",
                                info_list[it].pid, info_list[it].name, st.st_uid,
                                bdf_str, info_list[it].mem / 1024,
                                info_list[it].memory_usage.gtt_mem / 1024,
                                info_list[it].memory_usage.cpu_mem / 1024,
                                info_list[it].memory_usage.vram_mem / 1024,
-                               sum_item(info_list[it].engine_usage.gfx),
-                               sum_item(info_list[it].engine_usage.compute),
-                               sum_item(info_list[it].engine_usage.sdma),
-                               sum_item(info_list[it].engine_usage.enc),
-                               sum_item(info_list[it].engine_usage.dec));
+                               info_list[it].engine_usage.gfx,
+                               info_list[it].engine_usage.compute,
+                               info_list[it].engine_usage.dma,
+                               info_list[it].engine_usage.enc,
+                               info_list[it].engine_usage.dec);
                     else
                         printf("| %5d | %16s | %10s | %s | %7ld KiB | %7ld KiB "
-                               "| %7ld KiB | %7ld KiB  | %6.2f  %6.2f  %6.2f  "
-                               "%6.2f  %6.2f  |\n",
+                               "| %7ld KiB | %7ld KiB  | %lu  %lu  %lu  "
+                               "%lu  %lu  |\n",
                                info_list[it].pid, info_list[it].name,
                                pwd->pw_name, bdf_str, info_list[it].mem / 1024,
                                info_list[it].memory_usage.gtt_mem / 1024,
                                info_list[it].memory_usage.cpu_mem / 1024,
                                info_list[it].memory_usage.vram_mem / 1024,
-                               sum_item(info_list[it].engine_usage.gfx),
-                               sum_item(info_list[it].engine_usage.compute),
-                               sum_item(info_list[it].engine_usage.sdma),
-                               sum_item(info_list[it].engine_usage.enc),
-                               sum_item(info_list[it].engine_usage.dec));
+                               info_list[it].engine_usage.gfx,
+                               info_list[it].engine_usage.compute,
+                               info_list[it].engine_usage.dma,
+                               info_list[it].engine_usage.enc,
+                               info_list[it].engine_usage.dec);
                     mem += info_list[it].mem / 1024;
                     gtt_mem += info_list[it].memory_usage.gtt_mem / 1024;
                     cpu_mem += info_list[it].memory_usage.cpu_mem / 1024;
                     vram_mem += info_list[it].memory_usage.vram_mem / 1024;
-                    gfx += sum_item(info_list[it].engine_usage.gfx);
-                    comp += sum_item(info_list[it].engine_usage.compute);
-                    dma += sum_item(info_list[it].engine_usage.sdma);
-                    enc += sum_item(info_list[it].engine_usage.enc);
-                    dec += sum_item(info_list[it].engine_usage.dec);
+                    gfx = info_list[it].engine_usage.gfx;
+                    comp = info_list[it].engine_usage.compute;
+                    dma = info_list[it].engine_usage.dma;
+                    enc = info_list[it].engine_usage.enc;
+                    dec = info_list[it].engine_usage.dec;
                     printf(
                         "+-------+------------------+------------+-------------"
                         "-+-------------+-------------+-------------+----------"
                         "----+-----------------------------------------+\n");
                 }
                 printf("|                                 TOTAL:| %s | %7ld "
-                       "KiB | %7ld KiB | %7ld KiB | %7ld KiB | %6.2f  %6.2f  "
-                       "%6.2f  %6.2f  %6.2f   |\n",
+                       "KiB | %7ld KiB | %7ld KiB | %7ld KiB | %lu  %lu  "
+                       "%lu  %lu  %lu   |\n",
                        bdf_str, mem, gtt_mem, cpu_mem, vram_mem, gfx, comp, dma,
                        enc, dec);
                 printf("+=======+==================+============+=============="

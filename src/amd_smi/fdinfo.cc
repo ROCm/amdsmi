@@ -33,6 +33,11 @@
 
 extern "C" {
 
+static const char *container_type_name[AMDSMI_MAX_CONTAINER_TYPE] = {
+	[CONTAINER_LXC] = "lxc",
+	[CONTAINER_DOCKER] = "docker",
+};
+
 amdsmi_status_t gpuvsmi_pid_is_gpu(const std::string &path, const char *bdf)
 {
 	DIR *d;
@@ -155,85 +160,65 @@ amdsmi_status_t gpuvsmi_get_pid_info(const amdsmi_bdf_t &bdf, long int pid,
 
 				if (it == pasids.end())
 					pasids.push_back(pasid);
-			} else if (line.find("gtt mem:") != std::string::npos) {
+			} else if (line.find("drm-memory-gtt:") != std::string::npos) {
 				unsigned long mem;
 
-				if (sscanf(line.c_str(), "gtt mem:  %lu", &mem) != 1)
+				if (sscanf(line.c_str(), "drm-memory-gtt:  %lu", &mem) != 1)
 					continue;
 
 				info.mem += mem * 1024;
 				info.memory_usage.gtt_mem += mem * 1024;
-			} else if (line.find("cpu mem:") != std::string::npos) {
+			} else if (line.find("drm-memory-cpu:") != std::string::npos) {
 				unsigned long mem;
 
-				if (sscanf(line.c_str(), "cpu mem:  %lu", &mem) != 1)
+				if (sscanf(line.c_str(), "drm-memory-cpu:  %lu", &mem) != 1)
 					continue;
 
 				info.mem += mem * 1024;
 				info.memory_usage.cpu_mem += mem * 1024;
-			} else if (line.find("vram mem:") != std::string::npos) {
+			} else if (line.find("drm-memory-vram:") != std::string::npos) {
 				unsigned long mem;
 
-				if (sscanf(line.c_str(), "vram mem:  %lu", &mem) != 1)
+				if (sscanf(line.c_str(), "drm-memory-vram:  %lu", &mem) != 1)
 					continue;
 
 				info.mem += mem * 1024;
 				info.memory_usage.vram_mem += mem * 1024;
-			} else if (line.find("gfx") != std::string::npos) {
-				float usage;
-				int ring;
+			} else if (line.find("drm-engine-gfx") != std::string::npos) {
+				uint64_t engine_gfx;
 
-				if (sscanf(line.c_str(), "gfx%d:  %f%%", &ring, &usage) != 2)
+				if (sscanf(line.c_str(), "drm-engine-gfx:  %lu", &engine_gfx) != 1)
 					continue;
 
-				if (ring >= AMDSMI_MAX_MM_IP_COUNT)
+				info.engine_usage.gfx = engine_gfx;
+			} else if (line.find("drm-engine-compute") != std::string::npos) {
+				uint64_t engine_compute;
+
+				if (sscanf(line.c_str(), "drm-engine-compute:  %lu", &engine_compute) != 1)
 					continue;
 
-				info.engine_usage.gfx[ring] += (uint16_t)(usage * 100);
-			} else if (line.find("compute") != std::string::npos) {
-				float usage;
-				int ring;
+				info.engine_usage.compute = engine_compute;
+			} else if (line.find("drm-engine-dma") != std::string::npos) {
+				uint64_t engine_dma;
 
-				if (sscanf(line.c_str(), "compute%d:  %f%%", &ring, &usage) != 2)
+				if (sscanf(line.c_str(), "drm-engine-dma:  %lu", &engine_dma) != 1)
 					continue;
 
-				if (ring >= AMDSMI_MAX_MM_IP_COUNT)
+				info.engine_usage.dma = engine_dma;
+			} else if (line.find("drm-engine-enc") != std::string::npos) {
+				uint64_t engine_enc;
+
+				if (sscanf(line.c_str(), "drm-engine-enc:  %lu", &engine_enc) != 1)
 					continue;
 
-				info.engine_usage.compute[ring] += (uint16_t)(usage * 100);
-			} else if (line.find("dma") != std::string::npos) {
-				float usage;
-				int ring;
+				info.engine_usage.enc = engine_enc;
+			} else if (line.find("drm-engine-dec") != std::string::npos) {
+				uint64_t engine_dec;
 
-				if (sscanf(line.c_str(), "dma%d:  %f%%", &ring, &usage) != 2)
+				if (sscanf(line.c_str(), "drm-engine-dec:  %lu", &engine_dec) != 1)
 					continue;
 
-				if (ring >= AMDSMI_MAX_MM_IP_COUNT)
-					continue;
-
-				info.engine_usage.sdma[ring] += (uint16_t)(usage * 100);
-			} else if (line.find("enc") != std::string::npos) {
-				float usage;
-				int ring;
-
-				if (sscanf(line.c_str(), "enc%d:  %f%%", &ring, &usage) != 2)
-					continue;
-
-				if (ring >= AMDSMI_MAX_MM_IP_COUNT)
-					continue;
-
-				info.engine_usage.enc[ring] += (uint16_t)(usage * 100);
-			} else if (line.find("dec") != std::string::npos) {
-				float usage;
-				int ring;
-
-				if (sscanf(line.c_str(), "dec%d:  %f%%", &ring, &usage) != 2)
-					continue;
-
-				if (ring >= AMDSMI_MAX_MM_IP_COUNT)
-					continue;
-
-				info.engine_usage.dec[ring] += (uint16_t)(usage * 100);
+				info.engine_usage.dec = engine_dec;
 			}
 		}
 	}
@@ -256,9 +241,25 @@ amdsmi_status_t gpuvsmi_get_pid_info(const amdsmi_bdf_t &bdf, long int pid,
 				(unsigned long) AMDSMI_NORMAL_STRING_LENGTH,
 				name.length()));
 
+	for (int i = 0; i < AMDSMI_MAX_CONTAINER_TYPE; i++) {
+		std::ifstream cgroup_info(cgroup_path.c_str());
+		std::string container_id;
+		for (std::string line; getline(cgroup_info, line);) {
+			if (line.find(container_type_name[i]) != std::string::npos) {
+				container_id = line.substr(line.find(container_type_name[i]) +
+						strlen(container_type_name[i]) + 1, 16);
+				strcpy(info.container_name, container_id.c_str());
+				break;
+			}
+		}
+		if (strlen(info.container_name) > 0)
+			break;
+	}
+
 	info.pid = (uint32_t)pid;
 
 	return AMDSMI_STATUS_SUCCESS;
 }
+
 
 } // extern "C"
