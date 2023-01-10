@@ -1468,29 +1468,6 @@ amdsmi_get_gpu_activity(amdsmi_device_handle device_handle, amdsmi_engine_usage_
 }
 
 amdsmi_status_t
-amdsmi_get_power_limit(amdsmi_device_handle device_handle, amdsmi_power_limit_t *power) {
-    AMDSMI_CHECK_INIT();
-
-    if (power == nullptr) {
-        return AMDSMI_STATUS_INVAL;
-    }
-
-    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
-    amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpu_device);
-    if (r != AMDSMI_STATUS_SUCCESS)
-        return r;
-    amdsmi_status_t status;
-    int power_limit;
-    status = smi_amdgpu_get_power_cap(gpu_device, &power_limit);
-    if (status != AMDSMI_STATUS_SUCCESS) {
-        return status;
-    }
-    power->limit = (uint16_t)(power_limit);
-
-    return AMDSMI_STATUS_SUCCESS;
-}
-
-amdsmi_status_t
 amdsmi_get_clock_measure(amdsmi_device_handle device_handle, amdsmi_clk_type_t clk_type, amdsmi_clk_measure_t *info) {
     AMDSMI_CHECK_INIT();
 
@@ -1537,115 +1514,6 @@ amdsmi_get_clock_measure(amdsmi_device_handle device_handle, amdsmi_clk_type_t c
     case CLK_TYPE_VCLK1:
         info->avg_clk = metrics.average_vclk1_frequency;
         info->cur_clk = metrics.current_vclk1;
-        break;
-    default:
-        return AMDSMI_STATUS_INVAL;
-    }
-
-    return AMDSMI_STATUS_SUCCESS;
-}
-
-amdsmi_status_t
-amdsmi_get_temperature_limit(amdsmi_device_handle device_handle, amdsmi_temperature_type_t temp_type, amdsmi_temperature_limit_t *temp) {
-    AMDSMI_CHECK_INIT();
-
-    if (temp == nullptr || temp_type > TEMPERATURE_TYPE__MAX) {
-        return AMDSMI_STATUS_INVAL;
-    }
-    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
-    amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpu_device);
-    if (r != AMDSMI_STATUS_SUCCESS)
-        return r;
-
-    amdsmi_status_t status;
-    std::string name;
-    std::string path;
-    switch (temp_type) {
-        case TEMPERATURE_TYPE_EDGE:
-            name = "edge";
-            break;
-        case TEMPERATURE_TYPE_JUNCTION:
-            name = "junction";
-            break;
-        case TEMPERATURE_TYPE_VRAM:
-            name = "mem";
-            break;
-        default:
-            return AMDSMI_STATUS_INVAL;
-    }
-    status = smi_amdgpu_find_hwmon_dir(gpu_device, &path);
-    if (status != AMDSMI_STATUS_SUCCESS) {
-        return status;
-    }
-    SMIGPUDEVICE_MUTEX(gpu_device->get_mutex())
-
-    for (int count = 1; ; count++) {
-        std::string local_path = path + "/temp" +
-            std::to_string(count);
-        std::string local_temp = local_path + "_label";
-        char f_name[10];
-        std::ifstream file(local_temp.c_str(), std::ifstream::in);
-
-        if (!file.is_open()) {
-            printf("Failed to open file: %s \n", local_temp.c_str());
-            return AMDSMI_STATUS_API_FAILED;
-        }
-
-        file.getline(f_name, 10);
-
-        if (!strstr(name.c_str(), f_name)) {
-            int readTemp = 0;
-            local_temp = local_path + "_crit";
-            std::ifstream file2(local_temp.c_str(), std::ifstream::in);
-
-            if (!file2.is_open()) {
-                printf("Failed to open file: %s \n", local_temp.c_str());
-                return AMDSMI_STATUS_API_FAILED;
-            }
-
-            file2.getline(f_name, 10);
-            if (!sscanf(f_name, "%d", &readTemp)) {
-                return AMDSMI_STATUS_API_FAILED;
-            }
-            temp->limit = (uint16_t)(readTemp / 1000);
-            break;
-        }
-        file.close();
-    }
-
-    return AMDSMI_STATUS_SUCCESS;
-}
-amdsmi_status_t
-amdsmi_get_temperature_measure(amdsmi_device_handle device_handle, amdsmi_temperature_type_t temp_type, amdsmi_temperature_t *info) {
-    AMDSMI_CHECK_INIT();
-
-    if (info == nullptr || temp_type > TEMPERATURE_TYPE__MAX) {
-        return AMDSMI_STATUS_INVAL;
-    }
-
-    amdsmi_gpu_metrics_t metrics;
-    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
-    amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpu_device);
-    if (r != AMDSMI_STATUS_SUCCESS)
-        return r;
-
-    amdsmi_status_t status;
-    status =  amdsmi_dev_get_gpu_metrics_info(device_handle, &metrics);
-    if (status != AMDSMI_STATUS_SUCCESS) {
-        return status;
-    }
-    switch (temp_type) {
-    case TEMPERATURE_TYPE_EDGE:
-        info->cur_temp = metrics.temperature_edge;
-        break;
-    case TEMPERATURE_TYPE_JUNCTION:
-        info->cur_temp = metrics.temperature_hotspot;
-        break;
-    case TEMPERATURE_TYPE_VRAM:
-        info->cur_temp = metrics.temperature_mem;
-        break;
-    case TEMPERATURE_TYPE_PLX:
-        info->cur_temp = metrics.temperature_vrsoc;
         break;
     default:
         return AMDSMI_STATUS_INVAL;
@@ -1832,6 +1700,13 @@ amdsmi_get_power_measure(amdsmi_device_handle device_handle, amdsmi_power_measur
     if (status != AMDSMI_STATUS_SUCCESS) {
         return status;
     }
+
+    int power_limit = 0;
+    status = smi_amdgpu_get_power_cap(gpu_device, &power_limit);
+    if (status != AMDSMI_STATUS_SUCCESS) {
+        return status;
+    }
+    info->power_limit = power_limit;
 
     info->voltage_gfx = voltage_read;
 

@@ -571,49 +571,6 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_get_temperature_measure
-Description: Returns the measurements of temperatures for the given GPU
-
-Input parameters:
-
-* `device_handle` device which to query
-* `temperature_type` one of `AmdSmiTemperatureType` enum values:
-
-Field | Description
----|---
-`EDGE` | edge temperature type
-`JUNCTION` | junction temperature type
-`VRAM` | vram temperature type
-`HBM_0` | HBM_0 temperature type
-`HBM_1` | HBM_1 temperature type
-`HBM_2` | HBM_2 temperature type
-`HBM_3` | HBM_3 temperature type
-`PLX` | PLX temperature type
-
-Output: Dictionary with fields
-
-Field | Description
----|---
-`cur_temp`| temperature value for the given temperature type
-
-Exceptions that can be thrown by `amdsmi_get_temperature_measure` function:
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-```python
-try:
-    devices = amdsmi_get_device_handles()
-    if len(devices) == 0:
-        print("No GPUs on machine")
-    else:
-        for device in devices:
-            temperature_measure = amdsmi_get_temperature_measure(device, AmdSmiTemperatureType.EDGE)
-            print(temperature_measure['cur_temp'])
-except AmdSmiException as e:
-    print(e)
-```
 ## amdsmi_get_clock_measure
 Description: Returns the clock measure for the given GPU
 
@@ -662,81 +619,6 @@ try:
             print(clock_measure['avg_clk'])
             print(clock_measure['min_clk'])
             print(clock_measure['max_clk'])
-except AmdSmiException as e:
-    print(e)
-```
-## amdsmi_get_power_limit
-Description: Returns the power limit for the given GPU
-
-Input parameters:
-* `device_handle` device which to query
-
-Output: Dictionary with fields
-
-Field | Description
----|---
-`limit`| power limit
-
-Exceptions that can be thrown by `amdsmi_get_power_limit` function:
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-```python
-try:
-    devices = amdsmi_get_device_handles()
-    if len(devices) == 0:
-        print("No GPUs on machine")
-    else:
-        for device in devices:
-            power_limit = amdsmi_get_power_limit(device)
-            print(power_limit['limit'])
-
-except AmdSmiException as e:
-    print(e)
-```
-
-## amdsmi_get_temperature_limit
-Description: Returns the temperature limits for the given GPU
-
-Input parameters:
-
-* `device_handle` device which to query
-* `temperature_type` one of `AmdSmiTemperatureType` enum values:
-
-Field | Description
----|---
-`EDGE` | edge temperature type
-`JUNCTION` | junction temperature type
-`VRAM` | vram temperature type
-`HBM_0` | HBM_0 temperature type
-`HBM_1` | HBM_1 temperature type
-`HBM_2` | HBM_2 temperature type
-`HBM_3` | HBM_3 temperature type
-`PLX` | PLX temperature type
-
-Output: Dictionary with fields
-
-Field | Description
----|---
-`limit`| temperature limit for the given thermal domain
-
-Exceptions that can be thrown by `amdsmi_get_temperature_limit` function:
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-```python
-try:
-    devices = amdsmi_get_device_handles()
-    if len(devices) == 0:
-        print("No GPUs on machine")
-    else:
-        for device in devices:
-            temperature_limit = amdsmi_get_temperature_limit(device, AmdSmiTemperatureType.EDGE)
-            print(temperature_limit['limit'])
 except AmdSmiException as e:
     print(e)
 ```
