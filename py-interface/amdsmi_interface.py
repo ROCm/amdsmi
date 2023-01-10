@@ -734,69 +734,6 @@ def amdsmi_get_clock_measure(
     }
 
 
-def amdsmi_get_temperature_measure(
-    device_handle: amdsmi_wrapper.amdsmi_device_handle,
-    temperature_type: amdsmi_wrapper.amdsmi_temperature_type_t,
-) -> Dict[str, Any]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_device_handle):
-        raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_device_handle
-        )
-    if not isinstance(temperature_type, AmdSmiTemperatureType):
-        raise AmdSmiParameterException(temperature_type, AmdSmiTemperatureType)
-
-    temperature_measure = amdsmi_wrapper.amdsmi_temperature_t()
-    _check_res(
-        amdsmi_wrapper.amdsmi_get_temperature_measure(
-            device_handle,
-            amdsmi_wrapper.amdsmi_temperature_type_t(temperature_type),
-            ctypes.byref(temperature_measure),
-        )
-    )
-
-    return {"cur_temp": temperature_measure.cur_temp}
-
-
-def amdsmi_get_power_limit(
-    device_handle: amdsmi_wrapper.amdsmi_device_handle,
-) -> Dict[str, Any]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_device_handle):
-        raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_device_handle
-        )
-
-    power_limit = amdsmi_wrapper.amdsmi_power_limit_t()
-    _check_res(
-        amdsmi_wrapper.amdsmi_get_power_limit(
-            device_handle, ctypes.byref(power_limit))
-    )
-
-    return {"limit": power_limit.limit}
-
-
-def amdsmi_get_temperature_limit(
-    device_handle: amdsmi_wrapper.amdsmi_device_handle,
-    temperature_type: amdsmi_wrapper.amdsmi_temperature_type_t,
-) -> Dict[str, Any]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_device_handle):
-        raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_device_handle
-        )
-    if not isinstance(temperature_type, AmdSmiTemperatureType):
-        raise AmdSmiParameterException(temperature_type, AmdSmiTemperatureType)
-
-    temperature_limit = amdsmi_wrapper.amdsmi_temperature_limit_t()
-    _check_res(
-        amdsmi_wrapper.amdsmi_get_temperature_limit(
-            device_handle,
-            amdsmi_wrapper.amdsmi_temperature_type_t(temperature_type),
-            ctypes.byref(temperature_limit),
-        )
-    )
-
-    return {"limit": temperature_limit.limit}
-
-
 def amdsmi_get_bad_page_info(
     device_handle: amdsmi_wrapper.amdsmi_device_handle,
 ) -> Union[list, str]:
