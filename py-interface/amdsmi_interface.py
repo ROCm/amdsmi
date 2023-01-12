@@ -915,7 +915,7 @@ def amdsmi_get_process_info(
         "name": info.name.decode("utf-8"),
         "pid": info.pid,
         "mem": info.mem,
-        "usage": {
+        "engine_usage": {
             "gfx": list(info.engine_usage.gfx),
             "compute": list(info.engine_usage.compute),
             "sdma": list(info.engine_usage.sdma),
