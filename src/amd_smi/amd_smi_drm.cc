@@ -142,6 +142,8 @@ amdsmi_status_t AMDSmiDrm::init() {
         bdf.bus_number = device->businfo.pci->bus;
         bdf.domain_number = device->businfo.pci->domain;
 
+        vendor_id = device->deviceinfo.pci->vendor_id;
+
         drm_bdfs_.push_back(bdf);
         drm_free_device(&device);
     }
@@ -259,6 +261,10 @@ bool AMDSmiDrm::check_if_drm_is_supported() {
 
 std::vector<amdsmi_bdf_t> AMDSmiDrm::get_bdfs() {
     return drm_bdfs_;
+}
+
+uint32_t AMDSmiDrm::get_vendor_id() {
+    return vendor_id;
 }
 
 }  // namespace smi

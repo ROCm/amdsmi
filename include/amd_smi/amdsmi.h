@@ -358,28 +358,14 @@ typedef struct amdsmi_board_info {
   char  manufacturer_name[AMDSMI_NORMAL_STRING_LENGTH];
 } amdsmi_board_info_t;
 
-typedef struct amdsmi_temperature {
-  uint32_t  cur_temp;
-  uint32_t  reserved[7];
-} amdsmi_temperature_t;
-
-typedef struct amdsmi_temperature_limit {
-  uint32_t  limit;
-  uint32_t  reserved[7];
-} amdsmi_temperature_limit_t;
-
-typedef struct amdsmi_power_limit {
-  uint32_t  limit;
-  uint32_t  reserved[7];
-} amdsmi_power_limit_t;
-
 typedef struct amdsmi_power_measure {
   uint32_t average_socket_power;
   uint64_t energy_accumulator;      // v1 mod. (32->64)
   uint32_t voltage_gfx;   // GFX voltage measurement in mV
   uint32_t voltage_soc;  // SOC voltage measurement in mV
   uint32_t voltage_mem;  // MEM voltage measurement in mV
-  uint32_t reserved[10];
+  uint32_t power_limit;  // The power limit;
+  uint32_t reserved[9];
 } amdsmi_power_measure_t;
 
 typedef struct amdsmi_clk_measure {
@@ -3811,52 +3797,6 @@ amdsmi_get_power_measure(amdsmi_device_handle device_handle, amdsmi_power_measur
  */
 amdsmi_status_t
 amdsmi_get_clock_measure(amdsmi_device_handle device_handle, amdsmi_clk_type_t clk_type, amdsmi_clk_measure_t *info);
-
-/**
- *  @brief          Returns temperature measurements of the GPU.
- *                  The results are in °C.
- *
- *  @param[in]      device_handle Device which to query
- *
- *  @param[in]      temp_type Enum representing the temperature type to query.
- *
- *  @param[out]     info Reference to the temperature measured.
- *                  Must be allocated by user.
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t
-amdsmi_get_temperature_measure(amdsmi_device_handle device_handle, amdsmi_temperature_type_t temp_type, amdsmi_temperature_t *info);
-
-/**
- *  @brief          Returns temperature limit of the GPU.
- *                  The results are in °C.
- *
- *  @param[in]      device_handle Device which to query
- *
- *  @param[in]      temp_type Enum representing the temperature type to query.
- *
- *  @param[out]     limit Reference to the temperature limit.
- *                  Must be allocated by user.
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t
-amdsmi_get_temperature_limit(amdsmi_device_handle device_handle, amdsmi_temperature_type_t temp_type, amdsmi_temperature_limit_t *limit);
-
-/**
- *  @brief          Returns power limit of the GPU.
- *                  The results are in W.
- *
- *  @param[in]      device_handle Device which to query
- *
- *  @param[out]     limit Reference to the power limit.
- *                  Must be allocated by user.
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t
-amdsmi_get_power_limit(amdsmi_device_handle device_handle, amdsmi_power_limit_t *power);
 
 /**
  *  @brief          Returns the VRAM usage (both total and used memory)

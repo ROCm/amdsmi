@@ -50,12 +50,9 @@ from .amdsmi_interface import amdsmi_get_gpu_activity
 from .amdsmi_interface import amdsmi_get_vram_usage
 from .amdsmi_interface import amdsmi_get_power_measure
 from .amdsmi_interface import amdsmi_get_clock_measure
-from .amdsmi_interface import amdsmi_get_temperature_measure
 
 from .amdsmi_interface import amdsmi_get_pcie_link_status
 from .amdsmi_interface import amdsmi_get_pcie_link_caps
-from .amdsmi_interface import amdsmi_get_power_limit
-from .amdsmi_interface import amdsmi_get_temperature_limit
 from .amdsmi_interface import amdsmi_get_bad_page_info
 
 # # Power Management
@@ -185,7 +182,7 @@ from .amdsmi_interface import AmdSmiInitFlags
 from .amdsmi_interface import AmdSmiContainerTypes
 from .amdsmi_interface import AmdSmiDeviceType
 from .amdsmi_interface import AmdSmiMmIp
-from .amdsmi_interface import AmdSmiFWBlock
+from .amdsmi_interface import AmdSmiFwBlock
 from .amdsmi_interface import AmdSmiClkType
 from .amdsmi_interface import AmdSmiTemperatureType
 from .amdsmi_interface import AmdSmiDevPerfLevel

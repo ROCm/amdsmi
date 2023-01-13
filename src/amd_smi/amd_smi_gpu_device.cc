@@ -63,6 +63,11 @@ std::string& AMDSmiGPUDevice::get_gpu_path() {
 amdsmi_bdf_t AMDSmiGPUDevice::get_bdf() {
     return bdf_;
 }
+
+uint32_t AMDSmiGPUDevice::get_vendor_id() {
+    return vendor_id_;
+}
+
 amdsmi_status_t AMDSmiGPUDevice::get_drm_data() {
     amdsmi_status_t ret;
     uint32_t fd = 0;
@@ -81,6 +86,7 @@ amdsmi_status_t AMDSmiGPUDevice::get_drm_data() {
         return AMDSMI_STATUS_INIT_ERROR;
     }
     bdf_ = bdf, path_ = path, fd_ = fd;
+    vendor_id_ = drm_.get_vendor_id();
 
     return AMDSMI_STATUS_SUCCESS;
 }

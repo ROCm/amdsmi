@@ -653,33 +653,6 @@ amdsmi_board_info_t = struct_amdsmi_board_info
 class struct_amdsmi_temperature(Structure):
     pass
 
-struct_amdsmi_temperature._pack_ = 1 # source:False
-struct_amdsmi_temperature._fields_ = [
-    ('cur_temp', ctypes.c_uint32),
-    ('reserved', ctypes.c_uint32 * 7),
-]
-
-amdsmi_temperature_t = struct_amdsmi_temperature
-class struct_amdsmi_temperature_limit(Structure):
-    pass
-
-struct_amdsmi_temperature_limit._pack_ = 1 # source:False
-struct_amdsmi_temperature_limit._fields_ = [
-    ('limit', ctypes.c_uint32),
-    ('reserved', ctypes.c_uint32 * 7),
-]
-
-amdsmi_temperature_limit_t = struct_amdsmi_temperature_limit
-class struct_amdsmi_power_limit(Structure):
-    pass
-
-struct_amdsmi_power_limit._pack_ = 1 # source:False
-struct_amdsmi_power_limit._fields_ = [
-    ('limit', ctypes.c_uint32),
-    ('reserved', ctypes.c_uint32 * 7),
-]
-
-amdsmi_power_limit_t = struct_amdsmi_power_limit
 class struct_amdsmi_power_measure(Structure):
     pass
 
@@ -691,7 +664,8 @@ struct_amdsmi_power_measure._fields_ = [
     ('voltage_gfx', ctypes.c_uint32),
     ('voltage_soc', ctypes.c_uint32),
     ('voltage_mem', ctypes.c_uint32),
-    ('reserved', ctypes.c_uint32 * 10),
+    ('power_limit', ctypes.c_uint32),
+    ('reserved', ctypes.c_uint32 * 9),
     ('PADDING_1', ctypes.c_ubyte * 4),
 ]
 
@@ -1733,15 +1707,6 @@ amdsmi_get_power_measure.argtypes = [amdsmi_device_handle, ctypes.POINTER(struct
 amdsmi_get_clock_measure = _libraries['libamd_smi.so'].amdsmi_get_clock_measure
 amdsmi_get_clock_measure.restype = amdsmi_status_t
 amdsmi_get_clock_measure.argtypes = [amdsmi_device_handle, amdsmi_clk_type_t, ctypes.POINTER(struct_amdsmi_clk_measure)]
-amdsmi_get_temperature_measure = _libraries['libamd_smi.so'].amdsmi_get_temperature_measure
-amdsmi_get_temperature_measure.restype = amdsmi_status_t
-amdsmi_get_temperature_measure.argtypes = [amdsmi_device_handle, amdsmi_temperature_type_t, ctypes.POINTER(struct_amdsmi_temperature)]
-amdsmi_get_temperature_limit = _libraries['libamd_smi.so'].amdsmi_get_temperature_limit
-amdsmi_get_temperature_limit.restype = amdsmi_status_t
-amdsmi_get_temperature_limit.argtypes = [amdsmi_device_handle, amdsmi_temperature_type_t, ctypes.POINTER(struct_amdsmi_temperature_limit)]
-amdsmi_get_power_limit = _libraries['libamd_smi.so'].amdsmi_get_power_limit
-amdsmi_get_power_limit.restype = amdsmi_status_t
-amdsmi_get_power_limit.argtypes = [amdsmi_device_handle, ctypes.POINTER(struct_amdsmi_power_limit)]
 amdsmi_get_vram_usage = _libraries['libamd_smi.so'].amdsmi_get_vram_usage
 amdsmi_get_vram_usage.restype = amdsmi_status_t
 amdsmi_get_vram_usage.argtypes = [amdsmi_device_handle, ctypes.POINTER(struct_amdsmi_vram_info)]
@@ -1949,12 +1914,11 @@ __all__ = \
     'amdsmi_get_fw_info', 'amdsmi_get_gpu_activity',
     'amdsmi_get_minmax_bandwidth', 'amdsmi_get_pcie_link_caps',
     'amdsmi_get_pcie_link_status', 'amdsmi_get_power_cap_info',
-    'amdsmi_get_power_limit', 'amdsmi_get_power_measure',
+    'amdsmi_get_power_measure',
     'amdsmi_get_process_info', 'amdsmi_get_process_list',
     'amdsmi_get_ras_block_features_enabled',
     'amdsmi_get_socket_handles', 'amdsmi_get_socket_info',
     'amdsmi_get_target_frequency_range',
-    'amdsmi_get_temperature_limit', 'amdsmi_get_temperature_measure',
     'amdsmi_get_utilization_count', 'amdsmi_get_vbios_info',
     'amdsmi_get_version', 'amdsmi_get_version_str',
     'amdsmi_get_vram_usage', 'amdsmi_get_xgmi_info',
@@ -1972,7 +1936,7 @@ __all__ = \
     'amdsmi_od_volt_curve_t', 'amdsmi_od_volt_freq_data',
     'amdsmi_od_volt_freq_data_t', 'amdsmi_pcie_bandwidth',
     'amdsmi_pcie_bandwidth_t', 'amdsmi_pcie_info_t',
-    'amdsmi_power_cap_info_t', 'amdsmi_power_limit_t',
+    'amdsmi_power_cap_info_t',
     'amdsmi_power_measure_t', 'amdsmi_power_profile_preset_masks',
     'amdsmi_power_profile_preset_masks__enumvalues',
     'amdsmi_power_profile_preset_masks_t',
@@ -1986,11 +1950,10 @@ __all__ = \
     'amdsmi_set_perf_determinism_mode', 'amdsmi_shut_down',
     'amdsmi_socket_handle', 'amdsmi_status_string', 'amdsmi_status_t',
     'amdsmi_stop_event_notification', 'amdsmi_sw_component_t',
-    'amdsmi_sw_component_t__enumvalues', 'amdsmi_temperature_limit_t',
     'amdsmi_temperature_metric',
     'amdsmi_temperature_metric__enumvalues',
     'amdsmi_temperature_metric_t',
-    'amdsmi_temperature_metric_t__enumvalues', 'amdsmi_temperature_t',
+    'amdsmi_temperature_metric_t__enumvalues',
     'amdsmi_temperature_type', 'amdsmi_temperature_type_t',
     'amdsmi_temperature_type_t__enumvalues',
     'amdsmi_topo_get_link_type', 'amdsmi_topo_get_link_weight',
@@ -2025,7 +1988,7 @@ __all__ = \
     'struct_amdsmi_power_limit', 'struct_amdsmi_power_measure',
     'struct_amdsmi_process_info', 'struct_amdsmi_process_info_0',
     'struct_amdsmi_process_info_1', 'struct_amdsmi_temperature',
-    'struct_amdsmi_temperature_limit', 'struct_amdsmi_vbios_info',
+    'struct_amdsmi_vbios_info',
     'struct_amdsmi_vram_info', 'struct_amdsmi_xgmi_info',
     'struct_c__SA_amdsmi_counter_value_t',
     'struct_c__SA_amdsmi_error_count_t',

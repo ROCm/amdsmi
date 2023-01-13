@@ -315,6 +315,7 @@ int main() {
                    power_measure.average_socket_power);
             printf("\tEnergy accumulator: %d\n\n",
                    power_measure.energy_accumulator);
+            printf("\tGPU Power limit: %d\n\n", power_measure.power_limit);
 
             // Get driver version
             char version[AMDSMI_MAX_DRIVER_VERSION_LENGTH];
@@ -356,13 +357,6 @@ int main() {
                 printf("        %s: %d\n", ucode_name, fw_information.fw_info_list[j].fw_version);
             }
 
-            // Get GPU power limit info
-            amdsmi_power_limit_t power_limit = {};
-            ret = amdsmi_get_power_limit(device_handles[j], &power_limit);
-            CHK_AMDSMI_RET(ret)
-            printf("    Output of amdsmi_get_power_limit:\n");
-            printf("\tGPU Power limit: %d\n\n", power_limit.limit);
-
             // Get GFX clock measurements
             amdsmi_clk_measure_t gfx_clk_values = {};
             ret = amdsmi_get_clock_measure(device_handles[j], CLK_TYPE_GFX,
@@ -399,42 +393,44 @@ int main() {
             printf("\tPCIe max speed: %d\n\n", pcie_caps_info.pcie_speed);
 
             // Get VRAM temperature limit
-            amdsmi_temperature_limit_t mem_temp_limit = {};
-            ret = amdsmi_get_temperature_limit(
-                device_handles[j], TEMPERATURE_TYPE_VRAM, &mem_temp_limit);
+            int64_t temperature = 0;
+            ret = amdsmi_dev_get_temp_metric(
+                device_handles[j], TEMPERATURE_TYPE_VRAM,
+                AMDSMI_TEMP_CRITICAL, &temperature);
             CHK_AMDSMI_RET(ret)
-            printf("    Output of amdsmi_get_temperature_limit:\n");
-            printf("\tGPU VRAM temp limit: %d\n", mem_temp_limit.limit);
+            printf("    Output of amdsmi_dev_get_temp_metric:\n");
+            printf("\tGPU VRAM temp limit: %d\n", temperature);
 
             // Get GFX temperature limit
-            amdsmi_temperature_limit_t gfx_temp_limit = {};
-            ret = amdsmi_get_temperature_limit(
-                device_handles[j], TEMPERATURE_TYPE_EDGE, &gfx_temp_limit);
+            ret = amdsmi_dev_get_temp_metric(
+                device_handles[j], TEMPERATURE_TYPE_EDGE,
+                AMDSMI_TEMP_CRITICAL, &temperature);
             CHK_AMDSMI_RET(ret)
-            printf("\tGPU GFX temp limit: %d\n\n", gfx_temp_limit.limit);
+            printf("\tGPU GFX temp limit: %d\n\n", temperature);
 
             // Get temperature measurements
             // amdsmi_temperature_t edge_temp, junction_temp, vram_temp,
             // plx_temp;
-            amdsmi_temperature_t temp_measurements[4];
+            int64_t temp_measurements[4];
             amdsmi_temperature_type_t temp_types[4] = {
                 TEMPERATURE_TYPE_EDGE, TEMPERATURE_TYPE_JUNCTION,
                 TEMPERATURE_TYPE_VRAM, TEMPERATURE_TYPE_PLX};
             for (const auto &temp_type : temp_types) {
-                ret = amdsmi_get_temperature_measure(
+                ret = amdsmi_dev_get_temp_metric(
                     device_handles[j], temp_type,
+                    AMDSMI_TEMP_CURRENT,
                     &temp_measurements[(int)(temp_type)]);
                 CHK_AMDSMI_RET(ret)
             }
-            printf("    Output of amdsmi_get_temperature_measure:\n");
+            printf("    Output of amdsmi_dev_get_temp_metric:\n");
             printf("\tGPU Edge temp measurement: %d\n",
-                   temp_measurements[TEMPERATURE_TYPE_EDGE].cur_temp);
+                   temp_measurements[TEMPERATURE_TYPE_EDGE]);
             printf("\tGPU Junction temp measurement: %d\n",
-                   temp_measurements[TEMPERATURE_TYPE_JUNCTION].cur_temp);
+                   temp_measurements[TEMPERATURE_TYPE_JUNCTION]);
             printf("\tGPU VRAM temp measurement: %d\n",
-                   temp_measurements[TEMPERATURE_TYPE_VRAM].cur_temp);
+                   temp_measurements[TEMPERATURE_TYPE_VRAM]);
             printf("\tGPU PLX temp measurement: %d\n\n",
-                   temp_measurements[TEMPERATURE_TYPE_PLX].cur_temp);
+                   temp_measurements[TEMPERATURE_TYPE_PLX]);
 
             // Get RAS features enabled
             char block_names[14][10] = {"UMC",   "SDMA",     "GFX", "MMHUB",

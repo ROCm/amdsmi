@@ -221,25 +221,26 @@ int main() {
                     .fw_version);
 
             // Get temperature measurements
-            amdsmi_temperature_t temp_measurements[4];
+            int64_t temp_measurements[4];
             amdsmi_temperature_type_t temp_types[4] = {
                 TEMPERATURE_TYPE_EDGE, TEMPERATURE_TYPE_JUNCTION,
                 TEMPERATURE_TYPE_VRAM, TEMPERATURE_TYPE_PLX};
             for (const auto &temp_type : temp_types) {
-                ret = amdsmi_get_temperature_measure(
+                ret = amdsmi_dev_get_temp_metric(
                     device_handles[j], temp_type,
+                    AMDSMI_TEMP_CURRENT,
                     &temp_measurements[(int)(temp_type)]);
                 CHK_AMDSMI_RET(ret)
             }
-            printf("    Output of amdsmi_get_temperature_measure:\n");
+            printf("    Output of amdsmi_dev_get_temp_metric:\n");
             printf("\tGPU Edge temp measurement: %d\n",
-                   temp_measurements[TEMPERATURE_TYPE_EDGE].cur_temp);
+                   temp_measurements[TEMPERATURE_TYPE_EDGE]);
             printf("\tGPU Junction temp measurement: %d\n",
-                   temp_measurements[TEMPERATURE_TYPE_JUNCTION].cur_temp);
+                   temp_measurements[TEMPERATURE_TYPE_JUNCTION]);
             printf("\tGPU VRAM temp measurement: %d\n",
-                   temp_measurements[TEMPERATURE_TYPE_VRAM].cur_temp);
+                   temp_measurements[TEMPERATURE_TYPE_VRAM]);
             printf("\tGPU PLX temp measurement: %d\n\n",
-                   temp_measurements[TEMPERATURE_TYPE_PLX].cur_temp);
+                   temp_measurements[TEMPERATURE_TYPE_PLX]);
 
             // Get bad pages
             char bad_page_status_names[3][15] = {"RESERVED", "PENDING",

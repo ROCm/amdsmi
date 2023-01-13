@@ -448,51 +448,7 @@ Output: Dictionary with fields
 
 Field | Description
 ---|---
-`FW_ID_SMU` | SMU info
-`FW_ID_CP_CE` | CP_CE info
-`FW_ID_CP_PFP` | CP_PFP info
-`FW_ID_CP_ME` | CP_ME info
-`FW_ID_CP_MEC_JT1` | CP_MEC_JT1 info
-`FW_ID_CP_MEC_JT2` | CP_MEC_JT2 info
-`FW_ID_CP_MEC1` | CP_MEC1 info
-`FW_ID_CP_MEC2` | CP_MEC2 info
-`FW_ID_RLC` | RLC info
-`FW_ID_SDMA0` | SDMA0 info
-`FW_ID_SDMA1` | SDMA1 info
-`FW_ID_SDMA2` | SDMA2 info
-`FW_ID_SDMA3` | SDMA3 info
-`FW_ID_SDMA4` | SDMA4 info
-`FW_ID_SDMA5` | SDMA5 info
-`FW_ID_SDMA6` | SDMA6 info
-`FW_ID_SDMA7` | SDMA7 info
-`FW_ID_VCN` | VCN info
-`FW_ID_UVD` | UVD info
-`FW_ID_VCE` | VCE info
-`FW_ID_ISP` | ISP info
-`FW_ID_DMCU_ERAM` | DMCU_ERAM info
-`FW_ID_DMCU_ISR` | DMCU_ISR info
-`FW_ID_RLC_RESTORE_LIST_GPM_MEM` | RLC_RESTORE_LIST_GPM_MEM info
-`FW_ID_RLC_RESTORE_LIST_SRM_MEM` | RLC_RESTORE_LIST_SRM_MEM info
-`FW_ID_RLC_RESTORE_LIST_CNTL` | RLC_RESTORE_LIST_CNTL info
-`FW_ID_RLC_V` | RLC_V info
-`FW_ID_MMSCH` | MMSCH info
-`FW_ID_PSP_SYSDRV` | PSP_SYSDRV info
-`FW_ID_PSP_SOSDRV` | PSP_SOSDRV info
-`FW_ID_PSP_TOC` | PSP_TOC info
-`FW_ID_PSP_KEYDB` | PSP_KEYDB info
-`FW_ID_DFC` | DFC info
-`FW_ID_PSP_SPL` | PSP_SPL info
-`FW_ID_DRV_CAP` | DRV_CAP info
-`FW_ID_MC` | MC info
-`FW_ID_PSP_BL` | PSP_BL info
-`FW_ID_CP_PM4` | CP_PM4 info
-`FW_ID_ASD` | ASD info
-`FW_ID_TA_RAS` | TA_RAS info
-`FW_ID_XGMI` | XGMI info
-`FW_ID_RLC_SRLG` | RLC_SRLG info
-`FW_ID_RLC_SRLS` | RLC_SRLS info
-`FW_ID_SMC` | SMC info
-`FW_ID_DMCU` | DMCU info
+`fw_list`| List of dictionaries that contain information about a certain firmware block
 
 Exceptions that can be thrown by `amdsmi_get_fw_info` function:
 * `AmdSmiLibraryException`
@@ -507,10 +463,10 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            fw_info = amdsmi_get_fw_info(device)
-            for block_name, block_value in fw_info.items():
-                print(block_name, str(block_value))
-
+            firmware_list = amdsmi_get_fw_info(device)['fw_list']
+            for firmware_block in firmware_list:
+                print(firmware_block['fw_name'])
+                print(firmware_block['fw_version'])
 except AmdSmiException as e:
     print(e)
 ```
@@ -615,49 +571,6 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_get_temperature_measure
-Description: Returns the measurements of temperatures for the given GPU
-
-Input parameters:
-
-* `device_handle` device which to query
-* `temperature_type` one of `AmdSmiTemperatureType` enum values:
-
-Field | Description
----|---
-`EDGE` | edge temperature type
-`JUNCTION` | junction temperature type
-`VRAM` | vram temperature type
-`HBM_0` | HBM_0 temperature type
-`HBM_1` | HBM_1 temperature type
-`HBM_2` | HBM_2 temperature type
-`HBM_3` | HBM_3 temperature type
-`PLX` | PLX temperature type
-
-Output: Dictionary with fields
-
-Field | Description
----|---
-`cur_temp`| temperature value for the given temperature type
-
-Exceptions that can be thrown by `amdsmi_get_temperature_measure` function:
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-```python
-try:
-    devices = amdsmi_get_device_handles()
-    if len(devices) == 0:
-        print("No GPUs on machine")
-    else:
-        for device in devices:
-            temperature_measure = amdsmi_get_temperature_measure(device, AmdSmiTemperatureType.EDGE)
-            print(temperature_measure['cur_temp'])
-except AmdSmiException as e:
-    print(e)
-```
 ## amdsmi_get_clock_measure
 Description: Returns the clock measure for the given GPU
 
@@ -706,81 +619,6 @@ try:
             print(clock_measure['avg_clk'])
             print(clock_measure['min_clk'])
             print(clock_measure['max_clk'])
-except AmdSmiException as e:
-    print(e)
-```
-## amdsmi_get_power_limit
-Description: Returns the power limit for the given GPU
-
-Input parameters:
-* `device_handle` device which to query
-
-Output: Dictionary with fields
-
-Field | Description
----|---
-`limit`| power limit
-
-Exceptions that can be thrown by `amdsmi_get_power_limit` function:
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-```python
-try:
-    devices = amdsmi_get_device_handles()
-    if len(devices) == 0:
-        print("No GPUs on machine")
-    else:
-        for device in devices:
-            power_limit = amdsmi_get_power_limit(device)
-            print(power_limit['limit'])
-
-except AmdSmiException as e:
-    print(e)
-```
-
-## amdsmi_get_temperature_limit
-Description: Returns the temperature limits for the given GPU
-
-Input parameters:
-
-* `device_handle` device which to query
-* `temperature_type` one of `AmdSmiTemperatureType` enum values:
-
-Field | Description
----|---
-`EDGE` | edge temperature type
-`JUNCTION` | junction temperature type
-`VRAM` | vram temperature type
-`HBM_0` | HBM_0 temperature type
-`HBM_1` | HBM_1 temperature type
-`HBM_2` | HBM_2 temperature type
-`HBM_3` | HBM_3 temperature type
-`PLX` | PLX temperature type
-
-Output: Dictionary with fields
-
-Field | Description
----|---
-`limit`| temperature limit for the given thermal domain
-
-Exceptions that can be thrown by `amdsmi_get_temperature_limit` function:
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-```python
-try:
-    devices = amdsmi_get_device_handles()
-    if len(devices) == 0:
-        print("No GPUs on machine")
-    else:
-        for device in devices:
-            temperature_limit = amdsmi_get_temperature_limit(device, AmdSmiTemperatureType.EDGE)
-            print(temperature_limit['limit'])
 except AmdSmiException as e:
     print(e)
 ```
