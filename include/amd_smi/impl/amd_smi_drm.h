@@ -65,6 +65,8 @@ class AMDSmiDrm {
     std::vector<std::string>& get_drm_paths();
     bool check_if_drm_is_supported();
 
+   uint32_t get_vendor_id();
+
     amdsmi_status_t amdgpu_query_info(int fd, unsigned info_id,
                     unsigned size, void *value);
     amdsmi_status_t  amdgpu_query_fw(int fd, unsigned info_id, unsigned fw_type,
@@ -78,6 +80,7 @@ class AMDSmiDrm {
     std::vector<int> drm_fds_;  // drm file descriptor by gpu_index
     std::vector<std::string> drm_paths_; // drm path (renderD128 for example)
     std::vector<amdsmi_bdf_t> drm_bdfs_; // bdf
+    uint32_t vendor_id;
 
     AMDSmiLibraryLoader lib_loader_;  // lazy load libdrm
     DrmCmdWriteFunc drm_cmd_write_;   // drmCommandWrite
