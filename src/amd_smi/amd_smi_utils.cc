@@ -129,21 +129,21 @@ amdsmi_status_t smi_amdgpu_get_board_info(amd::smi::AMDSmiGPUDevice* device, amd
 	FILE *fp;
 
 	fp = fopen(product_name_path.c_str(), "rb");
-	if (!fp) {
+	if (fp) {
 		fgets(info->product_name, sizeof(info->product_name), fp);
 		fclose(fp);
 	}
 
 
 	fp = fopen(product_number_path.c_str(), "rb");
-	if (!fp) {
+	if (fp) {
 		fgets(info->model_number, sizeof(info->model_number), fp);
 		fclose(fp);
 	}
 
 
 	fp = fopen(serial_number_path.c_str(), "rb");
-	if (!fp) {
+	if (fp) {
 		fscanf(fp, "%lx", &info->serial_number);
 		fclose(fp);
 	}
@@ -402,9 +402,9 @@ amdsmi_status_t smi_amdgpu_get_driver_version(amd::smi::AMDSmiGPUDevice* device,
 	std::string path = "/sys/module/amdgpu/version";
 
 	fp = fopen(path.c_str(), "r");
-	if (!fp){
+	if (fp){
 		fp = fopen("/proc/version", "r");
-		if (!fp) {
+		if (fp) {
 			status = AMDSMI_STATUS_IO;
 			return status;
 		}
