@@ -402,9 +402,9 @@ amdsmi_status_t smi_amdgpu_get_driver_version(amd::smi::AMDSmiGPUDevice* device,
 	std::string path = "/sys/module/amdgpu/version";
 
 	fp = fopen(path.c_str(), "r");
-	if (fp){
+	if (fp == nullptr){
 		fp = fopen("/proc/version", "r");
-		if (fp) {
+		if (fp == nullptr) {
 			status = AMDSMI_STATUS_IO;
 			return status;
 		}
