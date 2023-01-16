@@ -50,6 +50,11 @@ set(INC_LIST
     "${PROJECT_SOURCE_DIR}/rocm_smi/include/rocm_smi/rocm_smi.h"
     "${PROJECT_SOURCE_DIR}/rocm_smi/include/rocm_smi/rocm_smi_utils.h")
 
+if(ESMI_AVAILABLE)
+	list(APPEND INC_LIST ${ESMI_INC_DIR}/e_smi/e_smi.h)
+	list(APPEND INC_LIST ${ESMI_INC_DIR}/e_smi/e_smi_monitor.h)
+	list(APPEND INC_LIST ${ESMI_INC_DIR}/e_smi/e_smi_utils.h)
+endif()
 # VERSION_* variables should be set by get_version_from_tag
 message("Package version: ${PKG_VERSION_STR}")
 
