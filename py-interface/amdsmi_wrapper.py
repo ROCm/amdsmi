@@ -487,6 +487,17 @@ amdsmi_xgmi_info_t = struct_amdsmi_xgmi_info
 class struct_amdsmi_gpu_caps(Structure):
     pass
 
+class struct_amdsmi_gpu_caps_1(Structure):
+    pass
+
+struct_amdsmi_gpu_caps_1._pack_ = 1 # source:False
+struct_amdsmi_gpu_caps_1._fields_ = [
+    ('mm_ip_count', ctypes.c_ubyte),
+    ('mm_ip_list', ctypes.c_ubyte * 8),
+    ('PADDING_0', ctypes.c_ubyte * 3),
+    ('reserved', ctypes.c_uint32 * 5),
+]
+
 class struct_amdsmi_gpu_caps_0(Structure):
     pass
 
@@ -496,17 +507,6 @@ struct_amdsmi_gpu_caps_0._fields_ = [
     ('gfxip_minor', ctypes.c_uint32),
     ('gfxip_cu_count', ctypes.c_uint16),
     ('PADDING_0', ctypes.c_ubyte * 2),
-    ('reserved', ctypes.c_uint32 * 5),
-]
-
-class struct_amdsmi_gpu_caps_1(Structure):
-    pass
-
-struct_amdsmi_gpu_caps_1._pack_ = 1 # source:False
-struct_amdsmi_gpu_caps_1._fields_ = [
-    ('mm_ip_count', ctypes.c_ubyte),
-    ('mm_ip_list', ctypes.c_ubyte * 8),
-    ('PADDING_0', ctypes.c_ubyte * 3),
     ('reserved', ctypes.c_uint32 * 5),
 ]
 
@@ -650,9 +650,6 @@ struct_amdsmi_board_info._fields_ = [
 ]
 
 amdsmi_board_info_t = struct_amdsmi_board_info
-class struct_amdsmi_temperature(Structure):
-    pass
-
 class struct_amdsmi_power_measure(Structure):
     pass
 
@@ -1914,8 +1911,8 @@ __all__ = \
     'amdsmi_get_fw_info', 'amdsmi_get_gpu_activity',
     'amdsmi_get_minmax_bandwidth', 'amdsmi_get_pcie_link_caps',
     'amdsmi_get_pcie_link_status', 'amdsmi_get_power_cap_info',
-    'amdsmi_get_power_measure',
-    'amdsmi_get_process_info', 'amdsmi_get_process_list',
+    'amdsmi_get_power_measure', 'amdsmi_get_process_info',
+    'amdsmi_get_process_list',
     'amdsmi_get_ras_block_features_enabled',
     'amdsmi_get_socket_handles', 'amdsmi_get_socket_info',
     'amdsmi_get_target_frequency_range',
@@ -1936,8 +1933,8 @@ __all__ = \
     'amdsmi_od_volt_curve_t', 'amdsmi_od_volt_freq_data',
     'amdsmi_od_volt_freq_data_t', 'amdsmi_pcie_bandwidth',
     'amdsmi_pcie_bandwidth_t', 'amdsmi_pcie_info_t',
-    'amdsmi_power_cap_info_t',
-    'amdsmi_power_measure_t', 'amdsmi_power_profile_preset_masks',
+    'amdsmi_power_cap_info_t', 'amdsmi_power_measure_t',
+    'amdsmi_power_profile_preset_masks',
     'amdsmi_power_profile_preset_masks__enumvalues',
     'amdsmi_power_profile_preset_masks_t',
     'amdsmi_power_profile_preset_masks_t__enumvalues',
@@ -1950,7 +1947,7 @@ __all__ = \
     'amdsmi_set_perf_determinism_mode', 'amdsmi_shut_down',
     'amdsmi_socket_handle', 'amdsmi_status_string', 'amdsmi_status_t',
     'amdsmi_stop_event_notification', 'amdsmi_sw_component_t',
-    'amdsmi_temperature_metric',
+    'amdsmi_sw_component_t__enumvalues', 'amdsmi_temperature_metric',
     'amdsmi_temperature_metric__enumvalues',
     'amdsmi_temperature_metric_t',
     'amdsmi_temperature_metric_t__enumvalues',
@@ -1985,12 +1982,10 @@ __all__ = \
     'struct_amdsmi_fw_info_0', 'struct_amdsmi_gpu_caps',
     'struct_amdsmi_gpu_caps_0', 'struct_amdsmi_gpu_caps_1',
     'struct_amdsmi_pcie_info', 'struct_amdsmi_power_cap_info',
-    'struct_amdsmi_power_limit', 'struct_amdsmi_power_measure',
-    'struct_amdsmi_process_info', 'struct_amdsmi_process_info_0',
-    'struct_amdsmi_process_info_1', 'struct_amdsmi_temperature',
-    'struct_amdsmi_vbios_info',
-    'struct_amdsmi_vram_info', 'struct_amdsmi_xgmi_info',
-    'struct_c__SA_amdsmi_counter_value_t',
+    'struct_amdsmi_power_measure', 'struct_amdsmi_process_info',
+    'struct_amdsmi_process_info_0', 'struct_amdsmi_process_info_1',
+    'struct_amdsmi_vbios_info', 'struct_amdsmi_vram_info',
+    'struct_amdsmi_xgmi_info', 'struct_c__SA_amdsmi_counter_value_t',
     'struct_c__SA_amdsmi_error_count_t',
     'struct_c__SA_amdsmi_evt_notification_data_t',
     'struct_c__SA_amdsmi_freq_volt_region_t',
