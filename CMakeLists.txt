@@ -91,12 +91,21 @@ set(COMMON_INC_DIR "${PROJECT_SOURCE_DIR}/include/amd_smi")
 set(AMDSMI_INC_DIR "${PROJECT_SOURCE_DIR}/include/amd_smi")
 set(ROCM_INC_DIR "${PROJECT_SOURCE_DIR}/rocm_smi/include/rocm_smi")
 set(SHR_MUTEX_DIR "${PROJECT_SOURCE_DIR}/third_party/shared_mutex")
+if(EXISTS ${PROJECT_SOURCE_DIR}/e_smi_library/src)
+	set(ESMI_AVAILABLE TRUE)
+else()
+	message("E-smi source not found. Errors will be encountered during compilation!!!")
+endif()
+if(ESMI_AVAILABLE)
+	set(ESMI_INC_DIR "${PROJECT_SOURCE_DIR}/e_smi_library/include")
+	set(ESMI_SRC_DIR "${PROJECT_SOURCE_DIR}/e_smi_library/src")
+endif()
 
 pkg_check_modules(DRM REQUIRED libdrm)
 pkg_check_modules(AMDGPU_DRM REQUIRED libdrm_amdgpu)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/third_party/shared_mutex
-                    ${CMAKE_CURRENT_SOURCE_DIR}/include/amd_smi ${DRM_INCLUDE_DIRS})
+                    ${CMAKE_CURRENT_SOURCE_DIR}/include/amd_smi ${ESMI_INC_DIR} ${DRM_INCLUDE_DIRS})
 
 set(CMN_SRC_LIST
     "${ROCM_SRC_DIR}/rocm_smi.cc"
@@ -110,6 +119,13 @@ set(CMN_SRC_LIST
     "${ROCM_SRC_DIR}/rocm_smi_power_mon.cc"
     "${ROCM_SRC_DIR}/rocm_smi_utils.cc"
     "${SHR_MUTEX_DIR}/shared_mutex.cc")
+
+if(ESMI_AVAILABLE)
+	list(APPEND CMN_SRC_LIST ${ESMI_SRC_DIR}/e_smi.c)
+	list(APPEND CMN_SRC_LIST ${ESMI_SRC_DIR}/e_smi_monitor.c)
+	list(APPEND CMN_SRC_LIST ${ESMI_SRC_DIR}/e_smi_plat.c)
+	list(APPEND CMN_SRC_LIST ${ESMI_SRC_DIR}/e_smi_utils.c)
+endif()
 
 set(CMN_INC_LIST
     "${ROCM_INC_DIR}/rocm_smi.h"
