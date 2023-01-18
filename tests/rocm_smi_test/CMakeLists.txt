@@ -60,5 +60,5 @@ target_link_libraries(${TEST} rocm_smi64 c stdc++ pthread GTest::gtest_main)
 
 #install(
 #    TARGETS ${TEST}
-#    DESTINATION ${SHARE_INSTALL_PREFIX}/tests/amd_smi
+#    DESTINATION ${SHARE_INSTALL_PREFIX}/tests
 #    COMPONENT tests)

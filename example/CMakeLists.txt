@@ -4,7 +4,7 @@
 # copy .cc files into install directory
 install(
     DIRECTORY ./
-    DESTINATION share/example/amd-smi
+    DESTINATION ${SHARE_INSTALL_PREFIX}/example
     FILES_MATCHING
     PATTERN "*.cc")
 
@@ -12,7 +12,7 @@ install(
 install(
     FILES CMakeLists.txt.in
     RENAME CMakeLists.txt
-    DESTINATION share/example/amd-smi)
+    DESTINATION ${SHARE_INSTALL_PREFIX}/example)
 
 # compile example files but do not install
 # this is only useful if running from build directory

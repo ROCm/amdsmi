@@ -14,13 +14,15 @@ function(generic_add_rocm)
 
     set(CMAKE_INSTALL_PREFIX ${ROCM_DIR} CACHE STRING "Default installation directory.")
     set(CPACK_PACKAGING_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}" CACHE STRING "Default packaging prefix.")
-    set(SHARE_INSTALL_PREFIX "share/${CMAKE_PROJECT_NAME}" CACHE STRING "Tests and Example install directory")
     # add package search paths
     set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} /usr/local PARENT_SCOPE)
     set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} /usr/lib64 /usr/lib/x86_64-linux-gnu PARENT_SCOPE)
 endfunction()
 
 function(generic_package)
+    # Used by test and example CMakeLists
+    set(SHARE_INSTALL_PREFIX "share/${CMAKE_PROJECT_NAME}" CACHE STRING "Tests and Example install directory")
+
     if(CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.4.0)
         message("Compiler version is " ${CMAKE_CXX_COMPILER_VERSION})
         message(FATAL_ERROR "Require at least gcc-5.4.0")
