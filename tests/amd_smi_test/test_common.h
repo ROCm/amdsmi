@@ -66,7 +66,7 @@ void PrintTestHeader(uint32_t dv_ind);
 const char *GetPerfLevelStr(amdsmi_dev_perf_level_t lvl);
 const char *GetBlockNameStr(amdsmi_gpu_block_t id);
 const char *GetErrStateNameStr(amdsmi_ras_err_state_t st);
-const char *FreqEnumToStr(amdsmi_clk_type amdsmi_clk);
+const char *FreqEnumToStr(amdsmi_clk_type_t amdsmi_clk);
 const std::string GetVoltSensorNameStr(amdsmi_voltage_type_t st);
 
 #if ENABLE_SMI
