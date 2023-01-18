@@ -55,6 +55,8 @@ include(GNUInstallDirs)
 option(BUILD_TESTS "Build test suite" OFF)
 option(ENABLE_LDCONFIG "Set library links and caches using ldconfig." ON)
 
+# Set share path here because project name != amd_smi
+set(SHARE_INSTALL_PREFIX "share/${AMD_SMI}" CACHE STRING "Tests and Example install directory")
 # Packaging directives
 set(CPACK_PACKAGE_NAME
     ${AMD_SMI_PACKAGE}
@@ -212,6 +214,7 @@ install(
 
 #License file
 set(CPACK_RPM_PACKAGE_LICENSE "NCSA")
+# docs are installed into different share directory from tests and examples
 install(
     FILES ${CPACK_RESOURCE_FILE_LICENSE}
     DESTINATION share/doc/${AMD_SMI}
