@@ -20,7 +20,7 @@
 #
 
 from enum import IntEnum
-from . import amdsmi_wrapper
+import amdsmi_wrapper
 
 
 class AmdSmiRetCode(IntEnum):

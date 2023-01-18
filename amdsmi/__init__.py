@@ -177,7 +177,6 @@ from .amdsmi_interface import amdsmi_is_P2P_accessible
 from .amdsmi_interface import amdsmi_get_xgmi_info
 
 # # Enums
-
 from .amdsmi_interface import AmdSmiInitFlags
 from .amdsmi_interface import AmdSmiContainerTypes
 from .amdsmi_interface import AmdSmiDeviceType
@@ -205,8 +204,8 @@ from .amdsmi_interface import AmdSmiIoLinkType
 from .amdsmi_interface import AmdSmiUtilizationCounterType
 from .amdsmi_interface import AmdSmiSwComponent
 from .amdsmi_interface import AmdSmiIoLinkType
-# Exceptions
 
+# Exceptions
 from .amdsmi_exception import AmdSmiLibraryException
 from .amdsmi_exception import AmdSmiRetryException
 from .amdsmi_exception import AmdSmiParameterException
