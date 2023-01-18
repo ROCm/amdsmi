@@ -173,7 +173,7 @@ void TestBase::PrintDeviceHeader(amdsmi_device_handle dv_ind) {
     std::cout << "\t**Device ID: 0x" << std::hex << val_ui16 << std::endl;
   }
 
-  amdsmi_board_info board_info;
+  amdsmi_board_info_t board_info;
   err = amdsmi_get_board_info(dv_ind, &board_info);
   CHK_ERR_ASRT(err)
   IF_VERB(STANDARD) {
