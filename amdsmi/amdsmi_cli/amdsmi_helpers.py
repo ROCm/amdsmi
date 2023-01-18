@@ -12,7 +12,7 @@ import logging
 from pathlib import Path
 
 from BDF import BDF
-from amd_smi_init import *
+from amdsmi_init import *
 
 
 class AMD_SMI_Helpers(object):

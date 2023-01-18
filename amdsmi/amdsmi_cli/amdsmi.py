@@ -2,9 +2,8 @@
 
 # from amd_smi_init import *
 
-from amd_smi_commands import AMD_SMI_Commands
-from amd_smi_parser import AMD_SMI_Parser
-
+from amdsmi_commands import AMD_SMI_Commands
+from amdsmi_parser import AMD_SMI_Parser
 
 # sudo /src/out/ubuntu-20.04/20.04/bin/rocm-smi -bc --json | python -m json.tool
 
