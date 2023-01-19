@@ -588,7 +588,7 @@ amdsmi_get_asic_info(amdsmi_device_handle device_handle, amdsmi_asic_info_t *inf
         std::string path = "/sys/class/drm/" + gpu_device->get_gpu_path() + "/device/unique_id";
         FILE *fp = fopen(path.c_str(), "r");
         if (fp) {
-            fscanf(fp, "%s", &info->asic_serial);
+            fscanf(fp, "%s", info->asic_serial);
             fclose(fp);
         }
 
@@ -1945,7 +1945,7 @@ amdsmi_status_t amdsmi_get_device_handle_from_bdf(amdsmi_bdf_t bdf,
             return status;
         }
 
-        for (auto idx = 0; idx < device_count; idx++) {
+        for (uint32_t idx = 0; idx < device_count; idx++) {
             amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
             status = get_gpu_device_from_handle(devs[idx], &gpu_device);
             if (status != AMDSMI_STATUS_SUCCESS) {

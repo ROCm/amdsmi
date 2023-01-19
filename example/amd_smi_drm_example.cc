@@ -271,7 +271,7 @@ int main() {
             ret = amdsmi_get_device_bdf(device_handles[j], &bdf);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_device_bdf:\n");
-            printf("\tDevice[%d] BDF %04x:%02x:%02x.%d\n\n", i,
+            printf("\tDevice[%d] BDF %04lx:%02x:%02x.%d\n\n", i,
                    bdf.domain_number, bdf.bus_number, bdf.device_number,
                    bdf.function_number);
 
@@ -313,7 +313,7 @@ int main() {
                    power_measure.voltage_gfx);
             printf("\tAverage socket power: %d\n",
                    power_measure.average_socket_power);
-            printf("\tEnergy accumulator: %d\n\n",
+            printf("\tEnergy accumulator: %ld\n\n",
                    power_measure.energy_accumulator);
             printf("\tGPU Power limit: %d\n\n", power_measure.power_limit);
 
@@ -354,7 +354,7 @@ int main() {
             printf("Number of Microcodes: %d\n", fw_information.num_fw_info);
             for (int j = 0; j < fw_information.num_fw_info; j++) {
                 getFWNameFromId(fw_information.fw_info_list[j].fw_id, ucode_name);
-                printf("        %s: %d\n", ucode_name, fw_information.fw_info_list[j].fw_version);
+                printf("        %s: %ld\n", ucode_name, fw_information.fw_info_list[j].fw_version);
             }
 
             // Get GFX clock measurements
@@ -399,14 +399,14 @@ int main() {
                 AMDSMI_TEMP_CRITICAL, &temperature);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_dev_get_temp_metric:\n");
-            printf("\tGPU VRAM temp limit: %d\n", temperature);
+            printf("\tGPU VRAM temp limit: %ld\n", temperature);
 
             // Get GFX temperature limit
             ret = amdsmi_dev_get_temp_metric(
                 device_handles[j], TEMPERATURE_TYPE_EDGE,
                 AMDSMI_TEMP_CRITICAL, &temperature);
             CHK_AMDSMI_RET(ret)
-            printf("\tGPU GFX temp limit: %d\n\n", temperature);
+            printf("\tGPU GFX temp limit: %ld\n\n", temperature);
 
             // Get temperature measurements
             // amdsmi_temperature_t edge_temp, junction_temp, vram_temp,
@@ -423,13 +423,13 @@ int main() {
                 CHK_AMDSMI_RET(ret)
             }
             printf("    Output of amdsmi_dev_get_temp_metric:\n");
-            printf("\tGPU Edge temp measurement: %d\n",
+            printf("\tGPU Edge temp measurement: %ld\n",
                    temp_measurements[TEMPERATURE_TYPE_EDGE]);
-            printf("\tGPU Junction temp measurement: %d\n",
+            printf("\tGPU Junction temp measurement: %ld\n",
                    temp_measurements[TEMPERATURE_TYPE_JUNCTION]);
-            printf("\tGPU VRAM temp measurement: %d\n",
+            printf("\tGPU VRAM temp measurement: %ld\n",
                    temp_measurements[TEMPERATURE_TYPE_VRAM]);
-            printf("\tGPU PLX temp measurement: %d\n\n",
+            printf("\tGPU PLX temp measurement: %ld\n\n",
                    temp_measurements[TEMPERATURE_TYPE_PLX]);
 
             // Get RAS features enabled
@@ -535,7 +535,7 @@ int main() {
                 uint64_t mem = 0, gtt_mem = 0, cpu_mem = 0, vram_mem = 0;
                 float gfx = 0, comp = 0, dma = 0, enc = 0, dec = 0;
                 char bdf_str[20];
-                sprintf(bdf_str, "%04x:%02x:%02x.%d", bdf.domain_number,
+                sprintf(bdf_str, "%04lx:%02x:%02x.%d", bdf.domain_number,
                         bdf.bus_number, bdf.device_number, bdf.function_number);
                 int num = 0;
                 ret = amdsmi_get_process_list(device_handles[j], process_list,
