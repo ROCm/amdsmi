@@ -11,8 +11,7 @@ import sys
 from pathlib import Path
 
 # Handle bindings for windows, Hyper-v and KVM seperately
-import amdsmi_interface
-
+from amdsmiBindings import *
 
 # Using basic python logging for user errors and development
 # logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG) # Logging for Development
@@ -20,6 +19,11 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.ERROR) # 
 
 # On initial import set initialized variable
 amd_smi_initialized = False
+
+def check_return(return_code, error_statment): #@TODO would raising an exception be better?
+    if return_code != amdsmi_status.AMDSMI_STATUS_SUCCESS:
+        logging.error(error_statment)
+        sys.exit(return_code)
 
 
 def check_amdgpu_driver(): #@TODO Handle KVM logic
@@ -33,20 +37,29 @@ def check_amdgpu_driver(): #@TODO Handle KVM logic
     return False
 
 
-def init_amd_smi(flag=amdsmi_interface.AmdSmiInitFlags.AMD_GPUS):
+def init_amd_smi(flag=amdsmi_init_flags.AMD_SMI_INIT_AMD_GPUS):
     """ Initializes AMD-SMI """
-    # Check if amdgpu driver is up & Handle error gracefully
+    # Check if amdgpu driver is up
     if check_amdgpu_driver():
         # Only init AMD GPUs for now, waiting for future support for AMD CPUs 
-        amdsmi_interface.amdsmi_init(flag)
-        logging.info('amd-smi initialized successfully') # without errors really
+        init_status = amdsmi.amdsmi_init(flag)
+        check_return(return_code=init_status, error_statment=f'AMD SMI initialization returned {init_status} (the expected value is {amdsmi_status_t.AMDSMI_STATUS_SUCCESS})')
+        logging.info('amd-smi initialized successfully')
     else:
         logging.error('Driver not initialized (amdgpu not found in modules)')
         exit(-1)
 
 
+def amdsmi_shut_down():
+    """ Shutdown AMD-SMI """
+    # Only init AMD GPUs for now, waiting for future support for AMD CPUs 
+    shut_down_status = amdsmi.amdsmi_shut_down()
+    check_return(return_code=shut_down_status, error_statment=f'AMD SMI Shutdown code returned {shut_down_status} (the expected value is {amdsmi_status_t.AMDSMI_STATUS_SUCCESS})')
+    logging.debug('amd-smi shutdown successfully')
+    
+
 def signal_handler(sig, frame):
-    logging.info(f'Handling signal: {sig}')
+    logging.debug(f'Handling signal: {sig}')
     sys.exit(0)
 
 
@@ -55,4 +68,4 @@ if not amd_smi_initialized:
     amd_smi_initialized = True
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
-    atexit.register(amdsmi_interface.amdsmi_shut_down)
+    atexit.register(amdsmi_shut_down)

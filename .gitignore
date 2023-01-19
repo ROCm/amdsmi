@@ -12,8 +12,3 @@ DEBIAN/postinst
 DEBIAN/prerm
 RPM/
 docs/*.pdf
-
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*.egg-*

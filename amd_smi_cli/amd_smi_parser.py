@@ -4,7 +4,7 @@ import argparse
 import platform
 
 from _version import __version__
-from amdsmi_helpers import AMD_SMI_Helpers
+from amd_smi_helpers import AMD_SMI_Helpers
 
 # sudo /src/out/ubuntu-20.04/20.04/bin/rocm-smi -bc --json | python -m json.tool
 
@@ -50,7 +50,7 @@ class AMD_SMI_Parser(argparse.ArgumentParser):
         # self.add_set_value_parser(subparsers, set_value)
         self.add_reset_parser(subparsers, reset)
         self.add_misc_parser(subparsers, misc)
-        # self.add_gpu_v_parser(subparsers, misc)
+        self.add_gpu_v_parser(subparsers, misc)
 
 
     def add_version_parser(self, subparsers, func):

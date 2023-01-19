@@ -155,10 +155,10 @@ if(PYTHON3 AND PIP3)
             python3 ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/generator.py -o ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/amdsmi_wrapper.py
             -i ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/amdsmi.h -l ${CMAKE_CURRENT_BINARY_DIR}/src/libamd_smi.so
         COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/amdsmi_wrapper.py
-                ${CMAKE_CURRENT_SOURCE_DIR}/py_interface/
+                ${CMAKE_CURRENT_SOURCE_DIR}/py-interface/
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper)
 
-    set(PY_INTERFACE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/py_interface")
+    set(PY_INTERFACE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/py-interface")
     set(PACKAGE_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/python_package/amdsmi")
 
     add_custom_target(

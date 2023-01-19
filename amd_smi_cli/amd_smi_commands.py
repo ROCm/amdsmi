@@ -13,8 +13,9 @@ from pathlib import Path
 from BDF import BDF
 from _version import __version__
 
-from amdsmi_logger import AMD_SMI_Logger
-from amdsmi_helpers import *
+from amd_smi_logger import AMD_SMI_Logger
+
+
 
 class AMD_SMI_Commands(object):
     # def __init__(self, amd_smi_logger) -> None:
@@ -29,10 +30,8 @@ class AMD_SMI_Commands(object):
 
     def version(self, args):
         kernel_version = 123
-        amdsmi_lib_version = amdsmi_interface.amdsmi_get_version()
-        {'major': 1, 'minor': 0, 'patch': 0, 'build': '0'}
-        amdsmi_lib_version_str = f'{amdsmi_lib_version["major"]}.{amdsmi_lib_version["minor"]}.{amdsmi_lib_version["patch"]}'
-        print(f'AMD-SMI Tool: {__version__} | AMD-SMI Library version: {amdsmi_lib_version_str} |  Kernel version: {kernel_version}')
+        print(f'AMD-SMI version: {__version__}  |  Kernel version: {kernel_version}')
+
 
     def discovery(self, args):
         print('discovery test')
@@ -47,8 +46,7 @@ class AMD_SMI_Commands(object):
 
 
     def firmware(self, args):
-        for elem in range(100000):
-            time.sleep(1)
+        print('firmware test')
 
 
     def bad_pages(self, args):

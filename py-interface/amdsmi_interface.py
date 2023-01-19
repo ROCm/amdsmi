@@ -25,8 +25,8 @@ from typing import Union, Any, Dict, List, Tuple
 from enum import IntEnum
 from collections.abc import Iterable
 
-import amdsmi_wrapper
-from amdsmi_exception import *
+from . import amdsmi_wrapper
+from .amdsmi_exception import *
 
 
 class AmdSmiInitFlags(IntEnum):
@@ -498,7 +498,8 @@ def amdsmi_get_socket_handles() -> List[amdsmi_wrapper.amdsmi_socket_handle]:
                       socket_count.value)()
     _check_res(
         amdsmi_wrapper.amdsmi_get_socket_handles(
-            ctypes.byref(socket_count), socket_handles)
+            ctypes.byref(socket_count), socket_handles
+        )
     )
     sockets = [
         amdsmi_wrapper.amdsmi_socket_handle(socket_handles[sock_idx])
@@ -512,16 +513,12 @@ def amdsmi_get_socket_info(socket_handle):
     if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_socket_handle):
         raise AmdSmiParameterException(
             socket_handle, amdsmi_wrapper.amdsmi_socket_handle)
-    socket_info = ctypes.create_string_buffer(128)
-    
-    _check_res(
-        amdsmi_wrapper.get_socket_info(
-            socket_handle, ctypes.byref(socket_info), ctypes.c_size_t(128))
-    )
 
-    return socket_info.value.decode()
+    return {
+        "name": ""
+    }
 
-# This input is different, also this List defintion doesn't really work because you never return that, you return a list of lists
+
 def amdsmi_get_device_handles() -> List[amdsmi_wrapper.amdsmi_device_handle]:
     socket_handles = amdsmi_get_socket_handles()
     devices = []

@@ -165,10 +165,11 @@ def char_pointer_cast(string, encoding='utf-8'):
     return ctypes.cast(string, ctypes.POINTER(ctypes.c_char))
 
 
-# Change this to more dynamic later or in /opt/rocm/lib/libamd_smi64.so
+
 _libraries = {}
-amd_smi_lib_so_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../build/src/libamd_smi.so'))
-_libraries['libamd_smi.so'] = ctypes.CDLL(amd_smi_lib_so_path)
+_libraries['libamd_smi.so'] = ctypes.CDLL(os.path.join(os.path.dirname(__file__), 'libamd_smi.so'))
+
+
 
 # values for enumeration 'c__EA_amdsmi_init_flags_t'
 c__EA_amdsmi_init_flags_t__enumvalues = {
