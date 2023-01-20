@@ -286,7 +286,7 @@ int main() {
             };
 
             // Get device name
-            amdsmi_board_info board_info = {};
+            amdsmi_board_info_t board_info = {};
             ret = amdsmi_get_board_info(device_handles[j], &board_info);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_board_info:\n");
@@ -331,7 +331,7 @@ int main() {
                       << "\t\tMM IP Count: " << int(caps_info.mm.mm_ip_count)
                       << "\n\n";
 
-            amdsmi_power_cap_info cap_info = {};
+            amdsmi_power_cap_info_t cap_info = {};
             ret = amdsmi_get_power_cap_info(device_handles[j], 0, &cap_info);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_power_cap_info:\n");
