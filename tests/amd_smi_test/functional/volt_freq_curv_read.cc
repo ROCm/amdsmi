@@ -84,7 +84,7 @@ void TestVoltCurvRead::Close() {
   TestBase::Close();
 }
 
-static void pt_rng_Mhz(std::string title, amdsmi_range *r) {
+static void pt_rng_Mhz(std::string title, amdsmi_range_t *r) {
   assert(r != nullptr);
 
   std::cout << title << std::endl;
@@ -92,7 +92,7 @@ static void pt_rng_Mhz(std::string title, amdsmi_range *r) {
                                 r->upper_bound/1000000 << " MHz" << std::endl;
 }
 
-static void pt_rng_mV(std::string title, amdsmi_range *r) {
+static void pt_rng_mV(std::string title, amdsmi_range_t *r) {
   assert(r != nullptr);
 
   std::cout << title << std::endl;
@@ -105,7 +105,7 @@ static void print_pnt(amdsmi_od_vddc_point_t *pt) {
                                                                     std::endl;
   std::cout << "\t\t** Voltage: " << pt->voltage << "mV" << std::endl;
 }
-static void pt_vddc_curve(amdsmi_od_volt_curve *c) {
+static void pt_vddc_curve(amdsmi_od_volt_curve_t *c) {
   assert(c != nullptr);
 
   for (uint32_t i = 0; i < AMDSMI_NUM_VOLTAGE_CURVE_POINTS; ++i) {

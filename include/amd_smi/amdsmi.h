@@ -40,7 +40,6 @@
  * DEALINGS WITH THE SOFTWARE.
  *
  */
-
 #ifndef INCLUDE_AMDSMI_H_
 #define INCLUDE_AMDSMI_H_
 
@@ -63,7 +62,7 @@ extern "C" {
  *
  * Initialization flags may be OR'd together and passed to ::amdsmi_init().
  */
-typedef enum amdsmi_init_flags {
+typedef enum {
   AMDSMI_INIT_ALL_DEVICES = 0x0,           // Default option
   AMDSMI_INIT_AMD_CPUS = (1 << 0),
   AMDSMI_INIT_AMD_GPUS = (1 << 1),
@@ -88,9 +87,14 @@ typedef enum amdsmi_init_flags {
 #define AMDSMI_TIME_FORMAT "%02d:%02d:%02d.%03d"
 #define AMDSMI_DATE_FORMAT "%04d-%02d-%02d:%02d:%02d:%02d.%03d"
 
-typedef enum amdsmi_mm_ip { AMDSMI_MM_UVD, AMDSMI_MM_VCE, AMDSMI_MM_VCN, AMDSMI_MM__MAX } amdsmi_mm_ip_t;
+typedef enum {
+  AMDSMI_MM_UVD,
+  AMDSMI_MM_VCE,
+  AMDSMI_MM_VCN,
+  AMDSMI_MM__MAX
+} amdsmi_mm_ip_t;
 
-typedef enum amdsmi_container_types {
+typedef enum {
 	CONTAINER_LXC,
 	CONTAINER_DOCKER,
 } amdsmi_container_types_t;
@@ -102,7 +106,7 @@ typedef void *amdsmi_socket_handle;
 /**
  * @brief Device types detectable by AMD SMI
  */
-typedef enum device_type {
+typedef enum {
   UNKNOWN = 0,
   AMD_GPU,
   AMD_CPU,
@@ -115,7 +119,7 @@ typedef enum device_type {
  */
 // Please avoid status codes that are multiples of 256 (256, 512, etc..)
 // Return values in the shell get modulo 256 applied, meaning any multiple of 256 ends up as 0
-typedef enum amdsmi_status_t {
+typedef enum {
     AMDSMI_STATUS_SUCCESS = 0,  //!< Call succeeded
     // Library usage errors
     AMDSMI_STATUS_INVAL = 1,  //!< Invalid parameters
@@ -155,7 +159,7 @@ typedef enum amdsmi_status_t {
 /**
  * Clock types
  */
-typedef enum amdsmi_clk_type {
+typedef enum {
     CLK_TYPE_SYS = 0x0,   //!< System clock
     CLK_TYPE_FIRST = CLK_TYPE_SYS,
     CLK_TYPE_GFX = CLK_TYPE_SYS,
@@ -171,15 +175,12 @@ typedef enum amdsmi_clk_type {
     CLK_TYPE_DCLK1,
     CLK_TYPE__MAX = CLK_TYPE_DCLK1
 } amdsmi_clk_type_t;
-/// @cond Ignore in docs.
-typedef amdsmi_clk_type_t amdsmi_clk_type;
-/// @endcond
 
 /**
  * @brief This enumeration is used to indicate from which part of the device a
  * temperature reading should be obtained.
  */
-typedef enum amdsmi_temperature_type {
+typedef enum {
     TEMPERATURE_TYPE_EDGE,
     TEMPERATURE_TYPE_FIRST = TEMPERATURE_TYPE_EDGE,
     TEMPERATURE_TYPE_JUNCTION,
@@ -196,7 +197,7 @@ typedef enum amdsmi_temperature_type {
  * @brief The values of this enum are used to identify the various firmware
  * blocks.
  */
-typedef enum amdsmi_fw_block {
+typedef enum {
     FW_ID_SMU = 1,
     FW_ID_FIRST = FW_ID_SMU,
     FW_ID_CP_CE,
@@ -254,11 +255,8 @@ typedef struct {
     uint64_t upper_bound;      //!< Upper bound of range
     uint64_t reserved[2];
 } amdsmi_range_t;
-/// @cond Ignore in docs.
-typedef amdsmi_range_t amdsmi_range;
-/// @endcond
 
-typedef struct amdsmi_xgmi_info {
+typedef struct {
   uint8_t xgmi_lanes;
   uint64_t xgmi_hive_id;
   uint64_t xgmi_node_id;
@@ -269,7 +267,7 @@ typedef struct amdsmi_xgmi_info {
 /**
  * GPU Capability info
  */
-typedef struct amdsmi_gpu_caps {
+typedef struct {
   struct {
     uint32_t gfxip_major;
     uint32_t gfxip_minor;
@@ -289,18 +287,18 @@ typedef struct amdsmi_gpu_caps {
   uint32_t reserved[5];
 } amdsmi_gpu_caps_t;
 
-typedef struct amdsmi_vram_info {
+typedef struct {
   uint32_t vram_total;
   uint32_t vram_used;
 } amdsmi_vram_info_t;
 
-typedef struct amdsmi_frequency_range {
+typedef struct {
 	amdsmi_range_t supported_freq_range;
 	amdsmi_range_t current_freq_range;
 	uint32_t reserved[8];
 } amdsmi_frequency_range_t;
 
-typedef union amdsmi_bdf {
+typedef union {
   struct {
     uint64_t function_number : 3;
     uint64_t device_number : 5;
@@ -310,7 +308,7 @@ typedef union amdsmi_bdf {
   uint64_t as_uint;
 } amdsmi_bdf_t;
 
-typedef struct amdsmi_power_cap_info {
+typedef struct {
   uint64_t power_cap;
   uint64_t default_power_cap;
   uint64_t dpm_cap;
@@ -319,7 +317,7 @@ typedef struct amdsmi_power_cap_info {
   uint64_t reserved[3];
 } amdsmi_power_cap_info_t;
 
-typedef struct amdsmi_vbios_info {
+typedef struct {
   char    name[AMDSMI_MAX_STRING_LENGTH];
   uint32_t vbios_version;
   char    build_date[AMDSMI_MAX_DATE_LENGTH];
@@ -328,7 +326,7 @@ typedef struct amdsmi_vbios_info {
   uint32_t reserved[15];
 } amdsmi_vbios_info_t;
 
-typedef struct amdsmi_fw_info {
+typedef struct {
   uint8_t num_fw_info;
   struct {
     amdsmi_fw_block_t fw_id;
@@ -338,7 +336,7 @@ typedef struct amdsmi_fw_info {
   uint32_t reserved[7];
 } amdsmi_fw_info_t;
 
-typedef struct amdsmi_asic_info {
+typedef struct {
   char  market_name[AMDSMI_MAX_STRING_LENGTH];
   uint32_t family; /**< Has zero value */
   uint32_t vendor_id;   //< Use 32 bit to be compatible with other platform.
@@ -348,7 +346,7 @@ typedef struct amdsmi_asic_info {
   char asic_serial[AMDSMI_NORMAL_STRING_LENGTH];
 } amdsmi_asic_info_t;
 
-typedef struct amdsmi_board_info {
+typedef struct {
   uint64_t serial_number;
   bool  is_master;
   char  model_number[AMDSMI_NORMAL_STRING_LENGTH];
@@ -358,7 +356,7 @@ typedef struct amdsmi_board_info {
   char  manufacturer_name[AMDSMI_NORMAL_STRING_LENGTH];
 } amdsmi_board_info_t;
 
-typedef struct amdsmi_power_measure {
+typedef struct {
   uint32_t average_socket_power;
   uint64_t energy_accumulator;      // v1 mod. (32->64)
   uint32_t voltage_gfx;   // GFX voltage measurement in mV
@@ -368,7 +366,7 @@ typedef struct amdsmi_power_measure {
   uint32_t reserved[9];
 } amdsmi_power_measure_t;
 
-typedef struct amdsmi_clk_measure {
+typedef struct {
   uint32_t cur_clk;
   uint32_t avg_clk;
   uint32_t min_clk;
@@ -376,7 +374,7 @@ typedef struct amdsmi_clk_measure {
   uint32_t reserved[4];
 } amdsmi_clk_measure_t;
 
-typedef struct amdsmi_engine_usage {
+typedef struct {
   uint32_t gfx_activity;
   uint32_t umc_activity;
   uint32_t mm_activity[AMDSMI_MAX_MM_IP_COUNT];
@@ -385,7 +383,7 @@ typedef struct amdsmi_engine_usage {
 
 typedef uint32_t amdsmi_process_handle;
 
-typedef struct amdsmi_process_info {
+typedef struct {
 	char                  name[AMDSMI_NORMAL_STRING_LENGTH];
 	amdsmi_process_handle pid;
 	uint64_t              mem; /** in bytes */
@@ -440,9 +438,7 @@ typedef enum {
 
   AMDSMI_DEV_PERF_LEVEL_UNKNOWN = 0x100   //!< Unknown performance level
 } amdsmi_dev_perf_level_t;
-/// @cond Ignore in docs.
-typedef amdsmi_dev_perf_level_t amdsmi_dev_perf_level;
-/// @endcond
+
 /**
  * @brief Available clock types.
  */
@@ -640,9 +636,6 @@ typedef enum {
 
   AMDSMI_TEMP_LAST = AMDSMI_TEMP_HIGHEST
 } amdsmi_temperature_metric_t;
-/// @cond Ignore in docs.
-typedef amdsmi_temperature_metric_t amdsmi_temperature_metric;
-/// @endcond
 
 /**
  * @brief Voltage Metrics.  This enum is used to identify various
@@ -698,9 +691,6 @@ typedef enum {
   //!< Invalid power profile
   AMDSMI_PWR_PROF_PRST_INVALID = 0xFFFFFFFFFFFFFFFF
 } amdsmi_power_profile_preset_masks_t;
-/// @cond Ignore in docs.
-typedef amdsmi_power_profile_preset_masks_t amdsmi_power_profile_preset_masks;
-/// @endcond
 
 /**
  * @brief This enum is used to identify different GPU blocks.
@@ -729,9 +719,6 @@ typedef enum {
                                                   //!< for supported blocks
   AMDSMI_GPU_BLOCK_RESERVED =  0x8000000000000000
 } amdsmi_gpu_block_t;
-/// @cond Ignore in docs.
-typedef amdsmi_gpu_block_t amdsmi_gpu_block;
-/// @endcond
 
 /**
  * @brief The current ECC state
@@ -771,9 +758,6 @@ typedef enum {
   AMDSMI_FREQ_IND_MAX = 1,  //!< Index used for the maximum frequency value
   AMDSMI_FREQ_IND_INVALID = 0xFFFFFFFF  //!< An invalid frequency index
 } amdsmi_freq_ind_t;
-/// @cond Ignore in docs.
-typedef amdsmi_freq_ind_t amdsmi_freq_ind;
-/// @endcond
 
 /**
  * @brief XGMI Status
@@ -788,9 +772,6 @@ typedef enum {
  * @brief Bitfield used in various AMDSMI calls
  */
 typedef uint64_t amdsmi_bit_field_t;
-/// @cond Ignore in docs.
-typedef amdsmi_bit_field_t amdsmi_bit_field;
-/// @endcond
 
 /**
  * @brief Reserved Memory Page States
@@ -807,7 +788,7 @@ typedef enum {
 /**
  * @brief Types for IO Link
  */
-typedef enum _AMDSMI_IO_LINK_TYPE {
+typedef enum {
   AMDSMI_IOLINK_TYPE_UNDEFINED      = 0,          //!< unknown type.
   AMDSMI_IOLINK_TYPE_PCIEXPRESS     = 1,          //!< PCI Express
   AMDSMI_IOLINK_TYPE_XGMI           = 2,          //!< XGMI
@@ -829,7 +810,7 @@ typedef enum {
 /**
  * @brief The utilization counter data
  */
-typedef struct  {
+typedef struct {
   AMDSMI_UTILIZATION_COUNTER_TYPE type;   //!< Utilization counter type
   uint64_t value;                       //!< Utilization counter value
 } amdsmi_utilization_counter_t;
@@ -869,9 +850,6 @@ typedef struct {
     */
     uint32_t num_profiles;
 } amdsmi_power_profile_status_t;
-/// @cond Ignore in docs.
-typedef amdsmi_power_profile_status_t amdsmi_power_profile_status;
-/// @endcond
 
 /**
  * @brief This structure holds information about clock frequencies.
@@ -893,9 +871,6 @@ typedef struct {
      */
     uint64_t frequency[AMDSMI_MAX_NUM_FREQUENCIES];
 } amdsmi_frequencies_t;
-/// @cond Ignore in docs.
-typedef amdsmi_frequencies_t amdsmi_frequencies;
-/// @endcond
 
 /**
  * @brief This structure holds information about the possible PCIe
@@ -915,10 +890,6 @@ typedef struct {
     uint32_t lanes[AMDSMI_MAX_NUM_FREQUENCIES];
 } amdsmi_pcie_bandwidth_t;
 
-/// @cond Ignore in docs.
-typedef amdsmi_pcie_bandwidth_t amdsmi_pcie_bandwidth;
-/// @endcond
-
 /**
  * @brief This structure holds version information.
  */
@@ -929,9 +900,6 @@ typedef struct {
     const char *build;  //!< Build string
     uint32_t reserved[4];
 } amdsmi_version_t;
-/// @cond Ignore in docs.
-typedef amdsmi_version_t amdsmi_version;
-/// @endcond
 
 /**
  * @brief This structure represents a point on the frequency-voltage plane.
@@ -940,9 +908,6 @@ typedef struct {
     uint64_t frequency;      //!< Frequency coordinate (in Hz)
     uint64_t voltage;        //!< Voltage coordinate (in mV)
 } amdsmi_od_vddc_point_t;
-/// @cond Ignore in docs.
-typedef amdsmi_od_vddc_point_t amdsmi_od_vddc_point;
-/// @endcond
 
 /**
  * @brief This structure holds 2 ::amdsmi_range_t's, one for frequency and one for
@@ -953,9 +918,6 @@ typedef struct {
     amdsmi_range_t freq_range;  //!< The frequency range for this VDDC Curve point
     amdsmi_range_t volt_range;  //!< The voltage range for this VDDC Curve point
 } amdsmi_freq_volt_region_t;
-/// @cond Ignore in docs.
-typedef amdsmi_freq_volt_region_t amdsmi_freq_volt_region;
-/// @endcond
 
 /**
  * ::AMDSMI_NUM_VOLTAGE_CURVE_POINTS number of ::amdsmi_od_vddc_point_t's
@@ -967,9 +929,6 @@ typedef struct {
      */
     amdsmi_od_vddc_point_t vc_points[AMDSMI_NUM_VOLTAGE_CURVE_POINTS];
 } amdsmi_od_volt_curve_t;
-/// @cond Ignore in docs.
-typedef amdsmi_od_volt_curve_t amdsmi_od_volt_curve;
-/// @endcond
 
 /**
  * @brief This structure holds the frequency-voltage values for a device.
@@ -987,10 +946,6 @@ typedef struct {
   amdsmi_od_volt_curve_t curve;
   uint32_t num_regions;                //!< The number of voltage curve regions
 } amdsmi_od_volt_freq_data_t;
-/// @cond Ignore in docs.
-typedef amdsmi_od_volt_freq_data_t amdsmi_od_volt_freq_data;
-/// @endcond
-
 
 /**
  * @brief The following structures hold the gpu metrics values for a device.
@@ -999,14 +954,14 @@ typedef amdsmi_od_volt_freq_data_t amdsmi_od_volt_freq_data;
 /**
  * @brief Size and version information of metrics data
  */
-struct amd_metrics_table_header_t {
+typedef struct {
   // TODO(amd) Doxygen documents
   /// @cond Ignore in docs.
   uint16_t      structure_size;
   uint8_t       format_revision;
   uint8_t       content_revision;
   /// @endcond
-};
+} amd_metrics_table_header_t;
 
 /**
  * @brief The following structure holds the gpu metrics values for a device.
@@ -1033,7 +988,7 @@ struct amd_metrics_table_header_t {
 typedef struct {
 // TODO(amd) Doxygen documents
   /// @cond Ignore in docs.
-  struct amd_metrics_table_header_t common_header;
+  amd_metrics_table_header_t common_header;
 
 /* Temperature */
   uint16_t      temperature_edge;
@@ -1103,7 +1058,7 @@ typedef struct {
 /**
  * @brief This structure holds pcie info.
  */
-typedef struct amdsmi_pcie_info {
+typedef struct {
 	uint16_t pcie_lanes;
 	uint32_t pcie_speed;
 	uint32_t reserved[6];
@@ -1133,7 +1088,7 @@ typedef struct amdsmi_func_id_iter_handle * amdsmi_func_id_iter_handle_t;
  * value may be a function name, or an ennumerated variant value of types
  * such as ::amdsmi_memory_type_t, ::amdsmi_temperature_metric_t, etc.
  */
-typedef union amd_id {
+typedef union {
         uint64_t id;           //!< uint64_t representation of value
         const char *name;      //!< name string (applicable to functions only)
         union {
@@ -1848,7 +1803,7 @@ amdsmi_get_bad_page_info(amdsmi_device_handle device_handle, uint32_t *num_pages
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_ras_block_features_enabled(amdsmi_device_handle device_handle, amdsmi_gpu_block block,
+amdsmi_get_ras_block_features_enabled(amdsmi_device_handle device_handle, amdsmi_gpu_block_t block,
                                                                   amdsmi_ras_err_state_t *state);
 
 /**

@@ -93,7 +93,7 @@ void TestFrequenciesReadWrite::Run(void) {
   amdsmi_status_t ret;
   amdsmi_frequencies_t f;
   uint32_t freq_bitmask;
-  amdsmi_clk_type amdsmi_clk;
+  amdsmi_clk_type_t amdsmi_clk;
 
   TestBase::Run();
   if (setup_failed_) {
@@ -106,7 +106,7 @@ void TestFrequenciesReadWrite::Run(void) {
 
     for (uint32_t clk = (uint32_t)CLK_TYPE_FIRST;
                                            clk <= CLK_TYPE__MAX; ++clk) {
-      amdsmi_clk = (amdsmi_clk_type)clk;
+      amdsmi_clk = (amdsmi_clk_type_t)clk;
 
       auto freq_read = [&]() -> bool {
         // Skip CLK_TYPE_PCIE, which does not supported in rocm-smi.

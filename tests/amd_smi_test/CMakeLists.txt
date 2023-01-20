@@ -68,5 +68,5 @@ target_link_libraries(${TEST} amd_smi c stdc++ pthread GTest::gtest_main)
 # TODO: Remove GTest from here in the future and rely on INSTALL_GTEST?
 install(
     TARGETS ${TEST} gtest gtest_main
-    DESTINATION ${SHARE_INSTALL_PREFIX}/tests/amd_smi
+    DESTINATION ${SHARE_INSTALL_PREFIX}/tests
     COMPONENT tests)

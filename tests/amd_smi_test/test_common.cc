@@ -214,7 +214,7 @@ const char *GetErrStateNameStr(amdsmi_ras_err_state_t st) {
 const std::string GetVoltSensorNameStr(amdsmi_voltage_type_t st) {
   return kVoltSensorNameMap.at(st);
 }
-const char *FreqEnumToStr(amdsmi_clk_type amdsmi_clk) {
+const char *FreqEnumToStr(amdsmi_clk_type_t amdsmi_clk) {
   static_assert(CLK_TYPE__MAX == CLK_TYPE_DCLK1,
                                        "FreqEnumToStr() needs to be updated");
   switch (amdsmi_clk) {
