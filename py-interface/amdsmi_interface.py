@@ -991,6 +991,7 @@ def amdsmi_get_power_measure(
         "average_socket_power": power_measure.average_socket_power,
         "voltage_gfx": power_measure.voltage_gfx,
         "energy_accumulator": power_measure.energy_accumulator,
+        "power_limit" : power_measure.power_limit,
     }
 
 
