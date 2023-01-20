@@ -518,6 +518,7 @@ Field | Description
 `average_socket_power`| average socket power
 `voltage_gfx` | voltage gfx
 `energy_accumulator` | energy accumulator
+`power_limit` | power limit
 
 Exceptions that can be thrown by `amdsmi_get_power_measure` function:
 * `AmdSmiLibraryException`
@@ -536,6 +537,7 @@ try:
             print(power_measure['average_socket_power'])
             print(power_measure['voltage_gfx'])
             print(power_measure['energy_accumulator'])
+            print(power_measure['power_limit'])
 except AmdSmiException as e:
     print(e)
 ```
