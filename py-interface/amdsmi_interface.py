@@ -839,7 +839,7 @@ def amdsmi_get_ras_block_features_enabled(
 
     ras_state = amdsmi_wrapper.amdsmi_ras_err_state_t()
     ras_states = []
-    for key, gpu_block in amdsmi_wrapper.amdsmi_gpu_block__enumvalues.items():
+    for key, gpu_block in amdsmi_wrapper.amdsmi_gpu_block_t__enumvalues.items():
         if gpu_block == "AMDSMI_GPU_BLOCK_RESERVED":
             continue
         if gpu_block == "AMDSMI_GPU_BLOCK_LAST":
