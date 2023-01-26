@@ -1082,7 +1082,7 @@ amdsmi_get_power_cap_info(amdsmi_device_handle device_handle,
     // Ignore errors to get as much as possible info.
     memset(info, 0, sizeof(amdsmi_power_cap_info_t));
 
-    if (gpu_device->check_if_drm_is_supported()) {
+    if (gpudevice->check_if_drm_is_supported()) {
         // Get power_cap and dpm
         int power_cap = 0;
         int dpm = 0;
