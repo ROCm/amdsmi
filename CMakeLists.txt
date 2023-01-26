@@ -57,13 +57,16 @@ option(BUILD_TESTS "Build test suite" OFF)
 option(BUILD_WRAPPER "Rebuild AMDSMI-wrapper" OFF)
 option(BUILD_CLI "Build AMDSMI-CLI and install" ON)
 option(ENABLE_LDCONFIG "Set library links and caches using ldconfig." ON)
+option(ENABLE_ASAN_PACKAGING "" OFF)
 
 # Set share path here because project name != amd_smi
 set(SHARE_INSTALL_PREFIX "share/${AMD_SMI}" CACHE STRING "Tests and Example install directory")
+
 # Packaging directives
 set(CPACK_PACKAGE_NAME
     ${AMD_SMI_PACKAGE}
     CACHE STRING "")
+
 set(CPACK_PACKAGE_CONTACT
     "AMD-SMILib Support <amd-smi.support@amd.com>"
     CACHE STRING "")
@@ -147,7 +150,7 @@ configure_package_config_file(
 write_basic_package_version_file(
     ${CMAKE_CURRENT_BINARY_DIR}/amd_smi-config-version.cmake
     VERSION
-        "${AMD_SMI_LIBS_TARGET_VERSION_MAJOR}.${AMD_SMI_LIBS_TARGET_VERSION_MINOR}.${AMD_SMI_LIBS_TARGET_VERSION_PATCH}"
+    "${AMD_SMI_LIBS_TARGET_VERSION_MAJOR}.${AMD_SMI_LIBS_TARGET_VERSION_MINOR}.${AMD_SMI_LIBS_TARGET_VERSION_PATCH}"
     COMPATIBILITY SameMajorVersion)
 
 install(
@@ -162,6 +165,7 @@ export(TARGETS ${AMD_SMI_TARGET} FILE "${PROJECT_BINARY_DIR}/amd_smi_target.cmak
 # Export the package for use from the build-tree
 # (this registers the build-tree with a global CMake-registry)
 export(PACKAGE amd_smi)
+
 # Create the amd_smiConfig.cmake and amd_smiConfigVersion files
 # ... for the build tree
 install(
@@ -171,13 +175,24 @@ install(
 
 #License file
 set(CPACK_RPM_PACKAGE_LICENSE "NCSA")
+# install license file in share/doc/amd_smi-asan folder
+install(
+    FILES ${CPACK_RESOURCE_FILE_LICENSE}
+    DESTINATION share/doc/${AMD_SMI}-asan
+    RENAME LICENSE.txt
+    COMPONENT asan)
 # docs are installed into different share directory from tests and examples
 install(
     FILES ${CPACK_RESOURCE_FILE_LICENSE}
     DESTINATION share/doc/${AMD_SMI}
-    RENAME LICENSE.txt)
+    RENAME LICENSE.txt
+    COMPONENT dev)
+
 #Readme file
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/README.md DESTINATION share/doc/${AMD_SMI})
+install(
+    FILES ${CMAKE_CURRENT_SOURCE_DIR}/README.md
+    DESTINATION share/doc/${AMD_SMI}
+    COMPONENT dev)
 
 #Make proper version for appending
 #Default Value is 99999, setting it first
@@ -189,7 +204,13 @@ endif()
 #Debian package specific variables
 set(CPACK_DEBIAN_PACKAGE_PROVIDES "amd-smi")
 set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "sudo, libdrm-dev")
+set(CPACK_DEBIAN_ASAN_PACKAGE_RECOMMENDS "sudo, libdrm-dev")
+set(CPACK_DEBIAN_DEV_PACKAGE_RECOMMENDS "sudo, libdrm-dev")
+set(CPACK_DEBIAN_ASAN_PACKAGE_PROVIDES "${AMD_SMI_PACKAGE}-asan")
+set(CPACK_DEBIAN_DEV_PACKAGE_PROVIDES "${AMD_SMI_PACKAGE}")
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "python3")
+set(CPACK_DEBIAN_ASAN_PACKAGE_DEPENDS "python3")
+set(CPACK_DEBIAN_DEV_PACKAGE_DEPENDS "python3")
 
 ## Process the Debian install/remove scripts to update the CPACK variables
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/DEBIAN/postinst.in DEBIAN/postinst @ONLY)
@@ -204,14 +225,37 @@ if(CPACK_RPM_PACKAGE_RELEASE)
     set(CPACK_RPM_PACKAGE_RELEASE_DIST ON)
 endif()
 set(CPACK_RPM_PACKAGE_PROVIDES "amd-smi")
+set(CPACK_RPM_DEV_PACKAGE_PROVIDES "${AMD_SMI_PACKAGE}")
+set(CPACK_RPM_ASAN_PACKAGE_PROVIDES "${AMD_SMI_PACKAGE}-asan")
 set(CPACK_RPM_PACKAGE_REQUIRES "python3")
 # don't terminate if bytecompile of python files fails
 set(CPACK_RPM_SPEC_MORE_DEFINE "%define _python_bytecompile_errors_terminate_build 0")
+set(CPACK_RPM_DEV_PACKAGE_REQUIRES "python3")
+set(CPACK_RPM_ASAN_PACKAGE_REQUIRES "python3")
 
 # Add rocm-core dependency if -DROCM_DEP_ROCMCORE=ON is passed
 if(ROCM_DEP_ROCMCORE)
+    string(APPEND CPACK_DEBIAN_ASAN_PACKAGE_DEPENDS ", rocm-core-asan")
+    string(APPEND CPACK_RPM_ASAN_PACKAGE_REQUIRES ", rocm-core-asan")
+    string(APPEND CPACK_DEBIAN_DEV_PACKAGE_DEPENDS ", rocm-core")
+    string(APPEND CPACK_RPM_DEV_PACKAGE_REQUIRES ", rocm-core")
     string(APPEND CPACK_DEBIAN_PACKAGE_DEPENDS ", rocm-core")
     string(APPEND CPACK_RPM_PACKAGE_REQUIRES ", rocm-core")
+endif()
+
+
+## Enable Component Mode and set component specific flags
+set(CPACK_DEB_COMPONENT_INSTALL ON)
+set(CPACK_DEBIAN_DEV_PACKAGE_NAME "${AMD_SMI_PACKAGE}")
+set(CPACK_DEBIAN_ASAN_PACKAGE_NAME "${AMD_SMI_PACKAGE}-asan")
+set(CPACK_RPM_COMPONENT_INSTALL ON)
+set(CPACK_RPM_DEV_PACKAGE_NAME "${AMD_SMI_PACKAGE}")
+set(CPACK_RPM_ASAN_PACKAGE_NAME "${AMD_SMI_PACKAGE}-asan")
+if(ENABLE_ASAN_PACKAGING)
+  # ASAN Package requires only asan component with libraries and license file
+  set(CPACK_COMPONENTS_ALL asan)
+else()
+  set(CPACK_COMPONENTS_ALL dev tests )
 endif()
 
 # The line below doesn't currently work; it may be this issue:
