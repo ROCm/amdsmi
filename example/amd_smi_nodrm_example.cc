@@ -122,7 +122,7 @@ int main() {
             ret = amdsmi_get_device_bdf(device_handles[j], &bdf);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_device_bdf:\n");
-            printf("\tDevice[%d] BDF %04x:%02x:%02x.%d\n\n", i,
+            printf("\tDevice[%d] BDF %04lx:%02x:%02x.%d\n\n", i,
                    bdf.domain_number, bdf.bus_number, bdf.device_number,
                    bdf.function_number);
 
@@ -132,7 +132,7 @@ int main() {
             printf("    Output of amdsmi_get_asic_info:\n");
             printf("\tMarket Name: %s\n", asic_info.market_name);
             printf("\tFamilyID: 0x%x\n", asic_info.family);
-            printf("\tDeviceID: 0x%x\n", asic_info.device_id);
+            printf("\tDeviceID: 0x%lx\n", asic_info.device_id);
             printf("\tVendorID: 0x%x\n", asic_info.vendor_id);
             printf("\tRevisionID: 0x%x\n", asic_info.rev_id);
             printf("\tAsic serial: 0x%s\n\n", asic_info.asic_serial);
@@ -233,13 +233,13 @@ int main() {
                 CHK_AMDSMI_RET(ret)
             }
             printf("    Output of amdsmi_dev_get_temp_metric:\n");
-            printf("\tGPU Edge temp measurement: %d\n",
+            printf("\tGPU Edge temp measurement: %ld\n",
                    temp_measurements[TEMPERATURE_TYPE_EDGE]);
-            printf("\tGPU Junction temp measurement: %d\n",
+            printf("\tGPU Junction temp measurement: %ld\n",
                    temp_measurements[TEMPERATURE_TYPE_JUNCTION]);
-            printf("\tGPU VRAM temp measurement: %d\n",
+            printf("\tGPU VRAM temp measurement: %ld\n",
                    temp_measurements[TEMPERATURE_TYPE_VRAM]);
-            printf("\tGPU PLX temp measurement: %d\n\n",
+            printf("\tGPU PLX temp measurement: %ld\n\n",
                    temp_measurements[TEMPERATURE_TYPE_PLX]);
 
             // Get bad pages
