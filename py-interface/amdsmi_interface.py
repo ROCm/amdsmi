@@ -839,7 +839,7 @@ def amdsmi_get_ras_block_features_enabled(
 
     ras_state = amdsmi_wrapper.amdsmi_ras_err_state_t()
     ras_states = []
-    for key, gpu_block in amdsmi_wrapper.amdsmi_gpu_block__enumvalues.items():
+    for key, gpu_block in amdsmi_wrapper.amdsmi_gpu_block_t__enumvalues.items():
         if gpu_block == "AMDSMI_GPU_BLOCK_RESERVED":
             continue
         if gpu_block == "AMDSMI_GPU_BLOCK_LAST":
@@ -916,11 +916,11 @@ def amdsmi_get_process_info(
         "pid": info.pid,
         "mem": info.mem,
         "engine_usage": {
-            "gfx": list(info.engine_usage.gfx),
-            "compute": list(info.engine_usage.compute),
-            "sdma": list(info.engine_usage.sdma),
-            "enc": list(info.engine_usage.enc),
-            "dec": list(info.engine_usage.dec),
+            "gfx": info.engine_usage.gfx,
+            "compute": info.engine_usage.compute,
+            "dma": info.engine_usage.dma,
+            "enc": info.engine_usage.enc,
+            "dec": info.engine_usage.dec,
         },
         "memory_usage": {
             "gtt_mem": info.memory_usage.gtt_mem,
@@ -991,6 +991,7 @@ def amdsmi_get_power_measure(
         "average_socket_power": power_measure.average_socket_power,
         "voltage_gfx": power_measure.voltage_gfx,
         "energy_accumulator": power_measure.energy_accumulator,
+        "power_limit" : power_measure.power_limit,
     }
 
 

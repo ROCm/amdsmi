@@ -518,6 +518,7 @@ Field | Description
 `average_socket_power`| average socket power
 `voltage_gfx` | voltage gfx
 `energy_accumulator` | energy accumulator
+`power_limit` | power limit
 
 Exceptions that can be thrown by `amdsmi_get_power_measure` function:
 * `AmdSmiLibraryException`
@@ -536,6 +537,7 @@ try:
             print(power_measure['average_socket_power'])
             print(power_measure['voltage_gfx'])
             print(power_measure['energy_accumulator'])
+            print(power_measure['power_limit'])
 except AmdSmiException as e:
     print(e)
 ```
@@ -844,7 +846,7 @@ Field | Description
 `name` | Name of process
 `pid` | Process ID
 `mem` | Process memory usage
-`engine_usage`| <table><thead><tr> <th> Subfield </th> <th> Description</th> </tr></thead><tbody><tr><td>`gfx`</td><td>GFX engine usage</td></tr><tr><td>`compute`</td><td>Compute engine usage</td></tr><tr><td>`sdma`</td><td>DMA engine usage</td></tr><tr><td>`enc`</td><td>Encode engine usage</td></tr><tr><td>`dec`</td><td>Decode engine usage</td></tr></tbody></table>
+`engine_usage`| <table><thead><tr> <th> Subfield </th> <th> Description</th> </tr></thead><tbody><tr><td>`gfx`</td><td>GFX engine usage in ns</td></tr><tr><td>`compute`</td><td>Compute engine usage in ns</td></tr><tr><td>`dma`</td><td>DMA engine usage in ns </td></tr><tr><td>`enc`</td><td>Encode engine usage in ns</td></tr><tr><td>`dec`</td><td>Decode engine usage in ns</td></tr></tbody></table>
 `memory_usage`| <table><thead><tr> <th> Subfield </th> <th> Description</th> </tr></thead><tbody><tr><td>`gtt_mem`</td><td>GTT memory usage</td></tr><tr><td>`cpu_mem`</td><td>CPU memory usage</td></tr><tr><td>`vram_mem`</td><td>VRAM memory usage</td></tr> </tbody></table>
 
 Exceptions that can be thrown by `amdsmi_get_process_info` function:
