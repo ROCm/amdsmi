@@ -336,14 +336,14 @@ amdsmi_status_t  amdsmi_dev_get_temp_metric(amdsmi_device_handle device_handle,
                 device_handle, &metric_info);
         if (r_status != AMDSMI_STATUS_SUCCESS)
             return r_status;
-
         *temperature = metric_info.temperature_vrsoc;
         return r_status;
     }
-
-    return rsmi_wrapper(rsmi_dev_temp_metric_get, device_handle,
+    amdsmi_status_t amdsmi_status = rsmi_wrapper(rsmi_dev_temp_metric_get, device_handle,
             static_cast<uint32_t>(sensor_type),
             static_cast<rsmi_temperature_metric_t>(metric), temperature);
+    *temperature /= 1000;
+    return amdsmi_status;
 }
 
 amdsmi_status_t amdsmi_get_vram_usage(amdsmi_device_handle device_handle,

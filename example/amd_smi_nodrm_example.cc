@@ -304,7 +304,7 @@ int main() {
                                              AMDSMI_TEMP_CURRENT, &val_i64);
             CHK_AMDSMI_RET(ret)
             printf("    Output of  amdsmi_dev_get_temp_metric:\n");
-            std::cout << "\t\tTemperature: " << val_i64 / 1000 << "C"
+            std::cout << "\t\tTemperature: " << val_i64 << "C"
                       << "\n\n";
 
             // Get frame buffer
