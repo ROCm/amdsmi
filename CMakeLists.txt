@@ -231,7 +231,7 @@ endif()
 
 #Debian package specific variables
 set(CPACK_DEBIAN_PACKAGE_PROVIDES "amd-smi")
-set(CPACK_DEBIAN_PACKAGE_SUGGESTS "sudo, libdrm-dev")
+set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "sudo, libdrm-dev")
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "python3")
 
 ## Process the Debian install/remove scripts to update the CPACK variables
