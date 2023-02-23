@@ -839,24 +839,22 @@ def amdsmi_get_ras_block_features_enabled(
 
     ras_state = amdsmi_wrapper.amdsmi_ras_err_state_t()
     ras_states = []
-    for key, gpu_block in amdsmi_wrapper.amdsmi_gpu_block_t__enumvalues.items():
-        if gpu_block == "AMDSMI_GPU_BLOCK_RESERVED":
+    for gpu_block in AmdSmiGpuBlock:
+        if gpu_block.name == "RESERVED":
             continue
-        if gpu_block == "AMDSMI_GPU_BLOCK_LAST":
-            gpu_block = "AMDSMI_GPU_BLOCK_FUSE"
+        if gpu_block.name == "LAST":
+            gpu_block.name = "FUSE"
         _check_res(
             amdsmi_wrapper.amdsmi_get_ras_block_features_enabled(
                 device_handle,
-                amdsmi_wrapper.amdsmi_gpu_block_t(key),
+                amdsmi_wrapper.amdsmi_gpu_block_t(gpu_block.value),
                 ctypes.byref(ras_state),
             )
         )
         ras_states.append(
             {
-                "block": gpu_block,
-                "status": amdsmi_wrapper.amdsmi_ras_err_state_t__enumvalues[
-                    ras_state.value
-                ],
+                "block": gpu_block.name,
+                "status": AmdSmiRasErrState(ras_state.value).name,
             }
         )
 
