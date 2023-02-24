@@ -1027,7 +1027,7 @@ def amdsmi_get_vram_usage(
             device_handle, ctypes.byref(vram_info))
     )
 
-    return {"vram_used": vram_info.vram_used, "vram_total": vram_info.vram_total}
+    return {"vram_total": vram_info.vram_total, "vram_used": vram_info.vram_used}
 
 
 def amdsmi_get_pcie_link_status(
