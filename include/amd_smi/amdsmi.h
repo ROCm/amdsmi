@@ -87,6 +87,26 @@ typedef enum {
 #define AMDSMI_TIME_FORMAT "%02d:%02d:%02d.%03d"
 #define AMDSMI_DATE_FORMAT "%04d-%02d-%02d:%02d:%02d:%02d.%03d"
 
+/**
+ * @brief library versioning
+ */
+
+//! Year should follow the IP driver package version: 22.40/23.10 and similar
+#define AMDSMI_LIB_VERSION_YEAR 23
+
+//! Major version should be changed for every header change (adding/deleting APIs, changing names, fields of structures, etc.)
+#define AMDSMI_LIB_VERSION_MAJOR 1
+
+//! Minor version should be updated for each API change, but without changing headers
+#define AMDSMI_LIB_VERSION_MINOR 1
+
+//! Release version should be set to 0 as default and can be updated by the PMs for each CSP point release
+#define AMDSMI_LIB_VERSION_RELEASE 0
+
+#define AMDSMI_LIB_VERSION_CREATE_STRING(YEAR, MAJOR, MINOR, RELEASE) (#YEAR "." #MAJOR "." #MINOR "." #RELEASE)
+#define AMDSMI_LIB_VERSION_EXPAND_PARTS(YEAR_STR, MAJOR_STR, MINOR_STR, RELEASE_STR) AMDSMI_LIB_VERSION_CREATE_STRING(YEAR_STR, MAJOR_STR, MINOR_STR, RELEASE_STR)
+#define AMDSMI_LIB_VERSION_STRING AMDSMI_LIB_VERSION_EXPAND_PARTS(AMDSMI_LIB_VERSION_YEAR, AMDSMI_LIB_VERSION_MAJOR, AMDSMI_LIB_VERSION_MINOR, AMDSMI_LIB_VERSION_RELEASE)
+
 typedef enum {
   AMDSMI_MM_UVD,
   AMDSMI_MM_VCE,
