@@ -66,7 +66,7 @@ from .amdsmi_interface import amdsmi_get_process_info
 from .amdsmi_interface import amdsmi_get_ecc_error_count
 
 # # Board Information
-from .amdsmi_interface import amdsmi_get_board_info
+from .amdsmi_interface import amdsmi_get_gpu_board_info
 
 # # Ras Information
 from .amdsmi_interface import amdsmi_get_ras_block_features_enabled

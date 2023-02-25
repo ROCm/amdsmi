@@ -206,7 +206,7 @@ void TestMutualExclusion::Run(void) {
 
     // device name, brand, serial_number
     amdsmi_board_info_t board_info;
-    ret = amdsmi_get_board_info(processor_handles_[0], &board_info);
+    ret = amdsmi_get_gpu_board_info(processor_handles_[0], &board_info);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
 
     ret = amdsmi_get_gpu_vendor_name(processor_handles_[0], dmy_str, 10);
