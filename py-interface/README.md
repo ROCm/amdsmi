@@ -1461,7 +1461,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_topo_get_numa_affinity
+## amdsmi_get_gpu_topo_numa_affinity
 
 Description: Get the NUMA node associated with a device
 
@@ -1471,7 +1471,7 @@ Input parameters:
 
 Output: NUMA node value
 
-Exceptions that can be thrown by `amdsmi_topo_get_numa_affinity` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_topo_numa_affinity` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1484,7 +1484,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            numa_node = amdsmi_topo_get_numa_affinity(device)
+            numa_node = amdsmi_get_gpu_topo_numa_affinity(device)
             print(numa_node)
 except AmdSmiException as e:
     print(e)

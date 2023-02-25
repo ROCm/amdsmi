@@ -1529,7 +1529,7 @@ amdsmi_status_t amdsmi_get_gpu_pci_id(amdsmi_processor_handle processor_handle, 
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_topo_get_numa_affinity(amdsmi_processor_handle processor_handle, uint32_t *numa_node);
+amdsmi_status_t amdsmi_get_gpu_topo_numa_affinity(amdsmi_processor_handle processor_handle, uint32_t *numa_node);
 
 /**
  *  @brief Get PCIe traffic information

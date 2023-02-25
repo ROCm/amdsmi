@@ -1445,9 +1445,9 @@ amdsmi_get_gpu_pci_bandwidth.argtypes = [amdsmi_processor_handle, ctypes.POINTER
 amdsmi_get_gpu_pci_id = _libraries['libamd_smi.so'].amdsmi_get_gpu_pci_id
 amdsmi_get_gpu_pci_id.restype = amdsmi_status_t
 amdsmi_get_gpu_pci_id.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint64)]
-amdsmi_topo_get_numa_affinity = _libraries['libamd_smi.so'].amdsmi_topo_get_numa_affinity
-amdsmi_topo_get_numa_affinity.restype = amdsmi_status_t
-amdsmi_topo_get_numa_affinity.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32)]
+amdsmi_get_gpu_topo_numa_affinity = _libraries['libamd_smi.so'].amdsmi_get_gpu_topo_numa_affinity
+amdsmi_get_gpu_topo_numa_affinity.restype = amdsmi_status_t
+amdsmi_get_gpu_topo_numa_affinity.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32)]
 amdsmi_dev_get_pci_throughput = _libraries['libamd_smi.so'].amdsmi_dev_get_pci_throughput
 amdsmi_dev_get_pci_throughput.restype = amdsmi_status_t
 amdsmi_dev_get_pci_throughput.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(ctypes.c_uint64)]
@@ -1942,7 +1942,7 @@ __all__ = \
     'amdsmi_temperature_type_t',
     'amdsmi_temperature_type_t__enumvalues',
     'amdsmi_topo_get_link_type', 'amdsmi_topo_get_link_weight',
-    'amdsmi_topo_get_numa_affinity',
+    'amdsmi_get_gpu_topo_numa_affinity',
     'amdsmi_topo_get_numa_node_number',
     'amdsmi_utilization_counter_t', 'amdsmi_vbios_info_t',
     'amdsmi_version_t', 'amdsmi_voltage_metric_t',
