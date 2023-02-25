@@ -1792,7 +1792,7 @@ amdsmi_get_target_frequency_range(amdsmi_processor_handle processor_handle, amds
 }
 
 amdsmi_status_t
-amdsmi_get_driver_version(amdsmi_processor_handle processor_handle, int *length, char *version) {
+amdsmi_get_gpu_driver_version(amdsmi_processor_handle processor_handle, int *length, char *version) {
     AMDSMI_CHECK_INIT();
 
     if (length == nullptr || version == nullptr) {
