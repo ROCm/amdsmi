@@ -566,7 +566,7 @@ def amdsmi_get_processor_type(
     return dev_type.value
 
 
-def amdsmi_get_device_bdf(processor_handle: amdsmi_wrapper.amdsmi_processor_handle) -> str:
+def amdsmi_get_gpu_device_bdf(processor_handle: amdsmi_wrapper.amdsmi_processor_handle) -> str:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
@@ -574,7 +574,7 @@ def amdsmi_get_device_bdf(processor_handle: amdsmi_wrapper.amdsmi_processor_hand
 
     bdf_info = amdsmi_wrapper.amdsmi_bdf_t()
     _check_res(
-        amdsmi_wrapper.amdsmi_get_device_bdf(
+        amdsmi_wrapper.amdsmi_get_gpu_device_bdf(
             processor_handle, ctypes.byref(bdf_info))
     )
 

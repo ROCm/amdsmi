@@ -268,9 +268,9 @@ int main() {
 
             // Get BDF info
             amdsmi_bdf_t bdf = {};
-            ret = amdsmi_get_device_bdf(processor_handles[j], &bdf);
+            ret = amdsmi_get_gpu_device_bdf(processor_handles[j], &bdf);
             CHK_AMDSMI_RET(ret)
-            printf("    Output of amdsmi_get_device_bdf:\n");
+            printf("    Output of amdsmi_get_gpu_device_bdf:\n");
             printf("\tDevice[%d] BDF %04lx:%02x:%02x.%d\n\n", i,
                    bdf.domain_number, bdf.bus_number, bdf.device_number,
                    bdf.function_number);
