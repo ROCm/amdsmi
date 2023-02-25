@@ -100,10 +100,10 @@ void TestSysInfoRead::Run(void) {
   }
 
   for (uint32_t i = 0; i < num_monitor_devs(); ++i) {
-    PrintDeviceHeader(device_handles_[i]);
+    PrintDeviceHeader(processor_handles_[i]);
 
     amdsmi_vbios_info_t info;
-    err = amdsmi_get_vbios_info(device_handles_[i], &info);
+    err = amdsmi_get_vbios_info(processor_handles_[i], &info);
 
     if (err != AMDSMI_STATUS_SUCCESS) {
       if (err == AMDSMI_STATUS_FILE_ERROR) {
@@ -112,11 +112,11 @@ void TestSysInfoRead::Run(void) {
                                                                 << std::endl;
         }
         // Verify api support checking functionality is working
-        err = amdsmi_get_vbios_info(device_handles_[i], nullptr);
+        err = amdsmi_get_vbios_info(processor_handles_[i], nullptr);
         ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
       } else {
         // Verify api support checking functionality is working
-        err = amdsmi_get_vbios_info(device_handles_[i], nullptr);
+        err = amdsmi_get_vbios_info(processor_handles_[i], nullptr);
         ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
         CHK_ERR_ASRT(err)
@@ -128,36 +128,36 @@ void TestSysInfoRead::Run(void) {
       }
     }
 
-    err = amdsmi_dev_get_pci_id(device_handles_[i], &val_ui64);
+    err = amdsmi_dev_get_pci_id(processor_handles_[i], &val_ui64);
     CHK_ERR_ASRT(err)
     IF_VERB(STANDARD) {
       std::cout << "\t**PCI ID (BDFID): 0x" << std::hex << val_ui64;
       std::cout << " (" << std::dec << val_ui64 << ")" << std::endl;
     }
     // Verify api support checking functionality is working
-    err = amdsmi_dev_get_pci_id(device_handles_[i], nullptr);
+    err = amdsmi_dev_get_pci_id(processor_handles_[i], nullptr);
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
-    err = amdsmi_topo_get_numa_affinity(device_handles_[i], &val_ui32);
+    err = amdsmi_topo_get_numa_affinity(processor_handles_[i], &val_ui32);
     CHK_ERR_ASRT(err)
     IF_VERB(STANDARD) {
       std::cout << "\t**NUMA NODE: 0x" << std::hex << val_ui32;
       std::cout << " (" << std::dec << val_ui32 << ")" << std::endl;
     }
     // Verify api support checking functionality is working
-    err = amdsmi_topo_get_numa_affinity(device_handles_[i], nullptr);
+    err = amdsmi_topo_get_numa_affinity(processor_handles_[i], nullptr);
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
 
        // vendor_id, unique_id
     amdsmi_asic_info_t asci_info;
-    err = amdsmi_get_asic_info(device_handles_[0], &asci_info);
+    err = amdsmi_get_asic_info(processor_handles_[0], &asci_info);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
         std::cout <<
             "\t**amdsmi_dev_unique_id() is not supported"
             " on this machine" << std::endl;
         // Verify api support checking functionality is working
-        err = amdsmi_get_asic_info(device_handles_[i], nullptr);
+        err = amdsmi_get_asic_info(processor_handles_[i], nullptr);
         ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
     } else {
         if (err == AMDSMI_STATUS_SUCCESS) {
@@ -169,7 +169,7 @@ void TestSysInfoRead::Run(void) {
                 */
             }
             // Verify api support checking functionality is working
-            err = amdsmi_get_asic_info(device_handles_[i], nullptr);
+            err = amdsmi_get_asic_info(processor_handles_[i], nullptr);
             ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
         } else {
             std::cout << "amdsmi_dev_unique_id_get() failed with error " <<
@@ -190,11 +190,11 @@ void TestSysInfoRead::Run(void) {
     std::cout << std::setbase(10);
 
     amdsmi_fw_info_t fw_info;
-    err = amdsmi_get_fw_info(device_handles_[i], &fw_info);
+    err = amdsmi_get_fw_info(processor_handles_[i], &fw_info);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
         std::cout << "\t**No FW  " <<
                     " available on this system" << std::endl;
-        err = amdsmi_get_fw_info(device_handles_[i], nullptr);
+        err = amdsmi_get_fw_info(processor_handles_[i], nullptr);
         ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
     } else {
         CHK_ERR_ASRT(err)

@@ -98,9 +98,9 @@ void TestPciReadWrite::Run(void) {
   }
 
   for (uint32_t dv_ind = 0; dv_ind < num_monitor_devs(); ++dv_ind) {
-    PrintDeviceHeader(device_handles_[dv_ind]);
+    PrintDeviceHeader(processor_handles_[dv_ind]);
 
-    ret =  amdsmi_dev_get_pci_replay_counter(device_handles_[dv_ind], &u64int);
+    ret =  amdsmi_dev_get_pci_replay_counter(processor_handles_[dv_ind], &u64int);
 
      if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
         std::cout <<
@@ -108,7 +108,7 @@ void TestPciReadWrite::Run(void) {
             " on this machine" << std::endl;
 
         // Verify api support checking functionality is working
-        ret =  amdsmi_dev_get_pci_replay_counter(device_handles_[dv_ind], nullptr);
+        ret =  amdsmi_dev_get_pci_replay_counter(processor_handles_[dv_ind], nullptr);
         ASSERT_EQ(ret, AMDSMI_STATUS_NOT_SUPPORTED);
       } else {
         CHK_ERR_ASRT(ret)
@@ -116,11 +116,11 @@ void TestPciReadWrite::Run(void) {
           std::cout << "\tPCIe Replay Counter: " << u64int << std::endl;
         }
         // Verify api support checking functionality is working
-        ret =  amdsmi_dev_get_pci_replay_counter(device_handles_[dv_ind], nullptr);
+        ret =  amdsmi_dev_get_pci_replay_counter(processor_handles_[dv_ind], nullptr);
         ASSERT_EQ(ret, AMDSMI_STATUS_INVAL);
       }
 
-    ret = amdsmi_dev_get_pci_throughput(device_handles_[dv_ind], &sent, &received, &max_pkt_sz);
+    ret = amdsmi_dev_get_pci_throughput(processor_handles_[dv_ind], &sent, &received, &max_pkt_sz);
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
       std::cout << "TEST FAILURE: Current PCIe throughput is not detected. "
         "This is likely because it is not indicated in the pcie_bw sysfs "
@@ -141,14 +141,14 @@ void TestPciReadWrite::Run(void) {
       std::cout << std::endl;
     }
 
-    ret = amdsmi_dev_get_pci_bandwidth(device_handles_[dv_ind], &bw);
+    ret = amdsmi_dev_get_pci_bandwidth(processor_handles_[dv_ind], &bw);
 
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
       std::cout << "TEST FAILURE: Current PCIe bandwidth is not detected. "
         "This is likely because it is not indicated in the pp_dpm_pcie sysfs "
          "file. Aborting test." << std::endl;
       // Verify api support checking functionality is working
-      ret = amdsmi_dev_get_pci_bandwidth(device_handles_[dv_ind], nullptr);
+      ret = amdsmi_dev_get_pci_bandwidth(processor_handles_[dv_ind], nullptr);
       ASSERT_EQ(ret, AMDSMI_STATUS_NOT_SUPPORTED);
 
       return;
@@ -163,7 +163,7 @@ void TestPciReadWrite::Run(void) {
                                                                     std::endl;
     }
     // Verify api support checking functionality is working
-    ret = amdsmi_dev_get_pci_bandwidth(device_handles_[dv_ind], nullptr);
+    ret = amdsmi_dev_get_pci_bandwidth(processor_handles_[dv_ind], nullptr);
     ASSERT_EQ(ret, AMDSMI_STATUS_INVAL);
 
     // First set the bitmask to all supported bandwidths
@@ -182,10 +182,10 @@ void TestPciReadWrite::Run(void) {
     std::cout << "\tSetting bandwidth mask to " << "0b" << freq_bm_str <<
                                                             " ..." << std::endl;
     }
-    ret =  amdsmi_dev_set_pci_bandwidth(device_handles_[dv_ind], freq_bitmask);
+    ret =  amdsmi_dev_set_pci_bandwidth(processor_handles_[dv_ind], freq_bitmask);
     CHK_ERR_ASRT(ret)
 
-    ret = amdsmi_dev_get_pci_bandwidth(device_handles_[dv_ind], &bw);
+    ret = amdsmi_dev_get_pci_bandwidth(processor_handles_[dv_ind], &bw);
     CHK_ERR_ASRT(ret)
 
     IF_VERB(STANDARD) {
@@ -193,10 +193,10 @@ void TestPciReadWrite::Run(void) {
                                                                       std::endl;
       std::cout << "\tResetting mask to all bandwidths." << std::endl;
     }
-    ret =  amdsmi_dev_set_pci_bandwidth(device_handles_[dv_ind], 0xFFFFFFFF);
+    ret =  amdsmi_dev_set_pci_bandwidth(processor_handles_[dv_ind], 0xFFFFFFFF);
     CHK_ERR_ASRT(ret)
 
-    ret =  amdsmi_dev_set_perf_level(device_handles_[dv_ind], AMDSMI_DEV_PERF_LEVEL_AUTO);
+    ret =  amdsmi_dev_set_perf_level(processor_handles_[dv_ind], AMDSMI_DEV_PERF_LEVEL_AUTO);
     CHK_ERR_ASRT(ret)
   }
 }

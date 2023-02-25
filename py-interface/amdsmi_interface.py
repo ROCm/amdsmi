@@ -293,11 +293,11 @@ class AmdSmiUtilizationCounterType(IntEnum):
 
 class AmdSmiEventReader:
     def __init__(
-        self, device_handle: amdsmi_wrapper.amdsmi_processor_handle, *event_types
+        self, processor_handle: amdsmi_wrapper.amdsmi_processor_handle, *event_types
     ):
-        if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
             raise AmdSmiParameterException(
-                device_handle, amdsmi_wrapper.amdsmi_processor_handle
+                processor_handle, amdsmi_wrapper.amdsmi_processor_handle
             )
         if not isinstance(event_types, Iterable):
             raise AmdSmiParameterException(
@@ -310,14 +310,14 @@ class AmdSmiEventReader:
                     event_type, AmdSmiEvtNotificationType
                 )
 
-        self.device_handle = device_handle
+        self.processor_handle = processor_handle
         mask = 0
         for event_type in event_types:
             mask |= (1 << (int(event_type) - 1))
 
-        _check_res(amdsmi_wrapper.amdsmi_init_event_notification(device_handle))
+        _check_res(amdsmi_wrapper.amdsmi_init_event_notification(processor_handle))
         _check_res(amdsmi_wrapper. amdsmi_set_event_notification_mask(
-            device_handle, ctypes.c_uint64(mask)))
+            processor_handle, ctypes.c_uint64(mask)))
 
     def read(self, timestamp, num_elem=10):
         self.event_info = (
@@ -337,7 +337,7 @@ class AmdSmiEventReader:
             ):
                 ret.append(
                     {
-                        "device_handle": self.event_info[i].device_handle,
+                        "processor_handle": self.event_info[i].processor_handle,
                         "event": AmdSmiEvtNotificationType(
                             self.event_info[i].event
                         ).name,
@@ -349,7 +349,7 @@ class AmdSmiEventReader:
 
     def stop(self):
         _check_res(amdsmi_wrapper.amdsmi_stop_event_notification(
-            self.device_handle))
+            self.processor_handle))
 
     def __enter__(self):
         return self
@@ -508,31 +508,31 @@ def amdsmi_get_socket_info(socket_handle):
 
     return socket_info.value.decode()
 
-def amdsmi_get_device_handles() -> List[amdsmi_wrapper.amdsmi_processor_handle]:
+def amdsmi_get_processor_handles() -> List[amdsmi_wrapper.amdsmi_processor_handle]:
     socket_handles = amdsmi_get_socket_handles()
     devices = []
     for socket in socket_handles:
         device_count = ctypes.c_uint32()
         null_ptr = ctypes.POINTER(amdsmi_wrapper.amdsmi_processor_handle)()
         _check_res(
-            amdsmi_wrapper.amdsmi_get_device_handles(
+            amdsmi_wrapper.amdsmi_get_processor_handles(
                 socket,
                 ctypes.byref(device_count),
                 null_ptr,
             )
         )
-        device_handles = (
+        processor_handles = (
             amdsmi_wrapper.amdsmi_processor_handle * device_count.value)()
         _check_res(
-            amdsmi_wrapper.amdsmi_get_device_handles(
+            amdsmi_wrapper.amdsmi_get_processor_handles(
                 socket,
                 ctypes.byref(device_count),
-                device_handles,
+                processor_handles,
             )
         )
         devices.extend(
             [
-                amdsmi_wrapper.amdsmi_processor_handle(device_handles[dev_idx])
+                amdsmi_wrapper.amdsmi_processor_handle(processor_handles[dev_idx])
                 for dev_idx in range(device_count.value)
             ]
         )
@@ -551,48 +551,48 @@ def amdsmi_shut_down():
 
 
 def amdsmi_get_device_type(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> ctypes.c_uint32:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     dev_type = amdsmi_wrapper.device_type_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_device_type(
-            device_handle, ctypes.byref(dev_type))
+            processor_handle, ctypes.byref(dev_type))
     )
     return dev_type.value
 
 
-def amdsmi_get_device_bdf(device_handle: amdsmi_wrapper.amdsmi_processor_handle) -> str:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_get_device_bdf(processor_handle: amdsmi_wrapper.amdsmi_processor_handle) -> str:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     bdf_info = amdsmi_wrapper.amdsmi_bdf_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_device_bdf(
-            device_handle, ctypes.byref(bdf_info))
+            processor_handle, ctypes.byref(bdf_info))
     )
 
     return _format_bdf(bdf_info)
 
 
 def amdsmi_get_asic_info(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     asic_info = amdsmi_wrapper.amdsmi_asic_info_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_asic_info(
-            device_handle, ctypes.byref(asic_info))
+            processor_handle, ctypes.byref(asic_info))
     )
 
     return {
@@ -606,17 +606,17 @@ def amdsmi_get_asic_info(
 
 
 def amdsmi_get_power_cap_info(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     power_info = amdsmi_wrapper.amdsmi_power_cap_info_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_power_cap_info(
-            device_handle, ctypes.c_uint32(0), ctypes.byref(power_info)
+            processor_handle, ctypes.c_uint32(0), ctypes.byref(power_info)
         )
     )
 
@@ -627,17 +627,17 @@ def amdsmi_get_power_cap_info(
             "max_power_cap": power_info.max_power_cap}
 
 def amdsmi_get_caps_info(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     gpu_caps = amdsmi_wrapper.amdsmi_gpu_caps_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_caps_info(
-            device_handle, ctypes.byref(gpu_caps))
+            processor_handle, ctypes.byref(gpu_caps))
     )
 
     return {
@@ -654,17 +654,17 @@ def amdsmi_get_caps_info(
 
 
 def amdsmi_get_vbios_info(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     vbios_info = amdsmi_wrapper.amdsmi_vbios_info_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_vbios_info(
-            device_handle, ctypes.byref(vbios_info))
+            processor_handle, ctypes.byref(vbios_info))
     )
 
     return {
@@ -677,17 +677,17 @@ def amdsmi_get_vbios_info(
 
 
 def amdsmi_get_gpu_activity(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     engine_usage = amdsmi_wrapper.amdsmi_engine_usage_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_gpu_activity(
-            device_handle, ctypes.byref(engine_usage)
+            processor_handle, ctypes.byref(engine_usage)
         )
     )
 
@@ -699,12 +699,12 @@ def amdsmi_get_gpu_activity(
 
 
 def amdsmi_get_clock_measure(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     clock_type: amdsmi_wrapper.amdsmi_clk_type_t,
 ) -> Dict[str, Any]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     if not isinstance(clock_type, AmdSmiClkType):
         raise AmdSmiParameterException(clock_type, AmdSmiClkType)
@@ -712,7 +712,7 @@ def amdsmi_get_clock_measure(
     clock_measure = amdsmi_wrapper.amdsmi_clk_measure_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_clock_measure(
-            device_handle,
+            processor_handle,
             amdsmi_wrapper.amdsmi_clk_type_t(clock_type),
             ctypes.byref(clock_measure),
         )
@@ -727,11 +727,11 @@ def amdsmi_get_clock_measure(
 
 
 def amdsmi_get_bad_page_info(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Union[list, str]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     num_pages = ctypes.c_uint32()
@@ -739,7 +739,7 @@ def amdsmi_get_bad_page_info(
         amdsmi_wrapper.amdsmi_retired_page_record_t)()
     _check_res(
         amdsmi_wrapper.amdsmi_get_bad_page_info(
-            device_handle, ctypes.byref(num_pages), retired_page_record
+            processor_handle, ctypes.byref(num_pages), retired_page_record
         )
     )
     table_records = _format_bad_page_info(retired_page_record, num_pages)
@@ -752,12 +752,12 @@ def amdsmi_get_bad_page_info(
 
 
 def amdsmi_get_target_frequency_range(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     clock_type: amdsmi_wrapper.amdsmi_clk_type_t,
 ) -> Dict[str, Any]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     if not isinstance(clock_type, AmdSmiClkType):
         raise AmdSmiParameterException(clock_type, AmdSmiClkType)
@@ -765,7 +765,7 @@ def amdsmi_get_target_frequency_range(
     freq_range = amdsmi_wrapper.amdsmi_frequency_range_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_target_frequency_range(
-            device_handle,
+            processor_handle,
             amdsmi_wrapper.amdsmi_clk_type_t(clock_type),
             ctypes.byref(freq_range),
         )
@@ -780,17 +780,17 @@ def amdsmi_get_target_frequency_range(
 
 
 def amdsmi_get_ecc_error_count(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     error_count = amdsmi_wrapper.amdsmi_error_count_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_ecc_error_count(
-            device_handle, ctypes.byref(error_count)
+            processor_handle, ctypes.byref(error_count)
         )
     )
 
@@ -801,17 +801,17 @@ def amdsmi_get_ecc_error_count(
 
 
 def amdsmi_get_board_info(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     board_info = amdsmi_wrapper.amdsmi_board_info_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_board_info(
-            device_handle, ctypes.byref(board_info))
+            processor_handle, ctypes.byref(board_info))
     )
 
     return {
@@ -822,11 +822,11 @@ def amdsmi_get_board_info(
 
 
 def amdsmi_get_ras_block_features_enabled(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     ras_state = amdsmi_wrapper.amdsmi_ras_err_state_t()
@@ -838,7 +838,7 @@ def amdsmi_get_ras_block_features_enabled(
             gpu_block.name = "FUSE"
         _check_res(
             amdsmi_wrapper.amdsmi_get_ras_block_features_enabled(
-                device_handle,
+                processor_handle,
                 amdsmi_wrapper.amdsmi_gpu_block_t(gpu_block.value),
                 ctypes.byref(ras_state),
             )
@@ -854,11 +854,11 @@ def amdsmi_get_ras_block_features_enabled(
 
 
 def amdsmi_get_process_list(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> List[amdsmi_wrapper.amdsmi_process_handle]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     max_processes = ctypes.c_uint32(0)
@@ -866,7 +866,7 @@ def amdsmi_get_process_list(
                     max_processes.value)()
     _check_res(
         amdsmi_wrapper.amdsmi_get_process_list(
-            device_handle, process_list, ctypes.byref(max_processes)
+            processor_handle, process_list, ctypes.byref(max_processes)
         )
     )
 
@@ -874,7 +874,7 @@ def amdsmi_get_process_list(
                     max_processes.value)()
     _check_res(
         amdsmi_wrapper.amdsmi_get_process_list(
-            device_handle, process_list, ctypes.byref(max_processes)
+            processor_handle, process_list, ctypes.byref(max_processes)
         )
     )
 
@@ -882,12 +882,12 @@ def amdsmi_get_process_list(
 
 
 def amdsmi_get_process_info(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     process: amdsmi_wrapper.amdsmi_process_handle,
 ) -> Dict[str, Any]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     if not isinstance(process, amdsmi_wrapper.amdsmi_process_handle):
@@ -897,7 +897,7 @@ def amdsmi_get_process_info(
     info = amdsmi_wrapper.amdsmi_proc_info_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_process_info(
-            device_handle, process, ctypes.byref(info)
+            processor_handle, process, ctypes.byref(info)
         )
     )
 
@@ -920,10 +920,10 @@ def amdsmi_get_process_info(
     }
 
 
-def amdsmi_get_device_uuid(device_handle: amdsmi_wrapper.amdsmi_processor_handle) -> str:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_get_device_uuid(processor_handle: amdsmi_wrapper.amdsmi_processor_handle) -> str:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     uuid = ctypes.create_string_buffer(_AMDSMI_GPU_UUID_SIZE)
@@ -933,7 +933,7 @@ def amdsmi_get_device_uuid(device_handle: amdsmi_wrapper.amdsmi_processor_handle
 
     _check_res(
         amdsmi_wrapper.amdsmi_get_device_uuid(
-            device_handle, ctypes.byref(uuid_length), uuid
+            processor_handle, ctypes.byref(uuid_length), uuid
         )
     )
 
@@ -941,11 +941,11 @@ def amdsmi_get_device_uuid(device_handle: amdsmi_wrapper.amdsmi_processor_handle
 
 
 def amdsmi_get_driver_version(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> str:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     length = ctypes.c_int()
@@ -955,7 +955,7 @@ def amdsmi_get_driver_version(
 
     _check_res(
         amdsmi_wrapper.amdsmi_get_driver_version(
-            device_handle, ctypes.byref(length), version
+            processor_handle, ctypes.byref(length), version
         )
     )
 
@@ -963,17 +963,17 @@ def amdsmi_get_driver_version(
 
 
 def amdsmi_get_power_measure(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     power_measure = amdsmi_wrapper.amdsmi_power_measure_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_power_measure(
-            device_handle, ctypes.byref(power_measure)
+            processor_handle, ctypes.byref(power_measure)
         )
     )
 
@@ -986,14 +986,14 @@ def amdsmi_get_power_measure(
 
 
 def amdsmi_get_fw_info(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle
 ) -> List[Dict[str, Any]]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle)
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle)
     fw_info = amdsmi_wrapper.amdsmi_fw_info_t()
     _check_res(amdsmi_wrapper.amdsmi_get_fw_info(
-        device_handle, ctypes.byref(fw_info)))
+        processor_handle, ctypes.byref(fw_info)))
     firmwares = list()
     for i in range(0, fw_info.num_fw_info):
         firmwares.append({
@@ -1006,34 +1006,34 @@ def amdsmi_get_fw_info(
 
 
 def amdsmi_get_vram_usage(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     vram_info = amdsmi_wrapper.amdsmi_vram_info_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_vram_usage(
-            device_handle, ctypes.byref(vram_info))
+            processor_handle, ctypes.byref(vram_info))
     )
 
     return {"vram_total": vram_info.vram_total, "vram_used": vram_info.vram_used}
 
 
 def amdsmi_get_pcie_link_status(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     pcie_info = amdsmi_wrapper.amdsmi_pcie_info_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_pcie_link_status(
-            device_handle, ctypes.byref(pcie_info)
+            processor_handle, ctypes.byref(pcie_info)
         )
     )
 
@@ -1041,39 +1041,39 @@ def amdsmi_get_pcie_link_status(
 
 
 def amdsmi_get_pcie_link_caps(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     pcie_info = amdsmi_wrapper.amdsmi_pcie_info_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_pcie_link_caps(
-            device_handle, ctypes.byref(pcie_info))
+            processor_handle, ctypes.byref(pcie_info))
     )
 
     return {"pcie_lanes": pcie_info.pcie_lanes, "pcie_speed": pcie_info.pcie_speed}
 
 
-def amdsmi_get_device_handle_from_bdf(bdf):
+def amdsmi_get_processor_handle_from_bdf(bdf):
     bdf = _parse_bdf(bdf)
     if bdf is None:
         raise AmdSmiBdfFormatException(bdf)
     amdsmi_bdf = _make_amdsmi_bdf_from_list(bdf)
-    device_handle = amdsmi_wrapper.amdsmi_processor_handle()
-    _check_res(amdsmi_wrapper.amdsmi_get_device_handle_from_bdf(
-        amdsmi_bdf, ctypes.byref(device_handle)))
-    return device_handle
+    processor_handle = amdsmi_wrapper.amdsmi_processor_handle()
+    _check_res(amdsmi_wrapper.amdsmi_get_processor_handle_from_bdf(
+        amdsmi_bdf, ctypes.byref(processor_handle)))
+    return processor_handle
 
 
 def amdsmi_dev_get_vendor_name(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> str:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     length = ctypes.c_uint64()
@@ -1083,29 +1083,29 @@ def amdsmi_dev_get_vendor_name(
 
     _check_res(
         amdsmi_wrapper.amdsmi_dev_get_vendor_name(
-            device_handle, vendor_name, length)
+            processor_handle, vendor_name, length)
     )
 
     return vendor_name.value.decode("utf-8")
 
 
-def amdsmi_dev_get_id(device_handle: amdsmi_wrapper.amdsmi_processor_handle):
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_dev_get_id(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     id = ctypes.c_uint16()
 
     _check_res(amdsmi_wrapper.amdsmi_dev_get_id(
-        device_handle, ctypes.byref(id)))
+        processor_handle, ctypes.byref(id)))
 
     return id.value
 
 
-def amdsmi_dev_get_vram_vendor(device_handle: amdsmi_wrapper.amdsmi_processor_handle):
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_dev_get_vram_vendor(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     length = ctypes.c_uint32()
@@ -1115,47 +1115,47 @@ def amdsmi_dev_get_vram_vendor(device_handle: amdsmi_wrapper.amdsmi_processor_ha
 
     _check_res(
         amdsmi_wrapper.amdsmi_dev_get_vram_vendor(
-            device_handle, vram_vendor, length)
+            processor_handle, vram_vendor, length)
     )
 
     return vram_vendor.value.decode("utf-8")
 
 
-def amdsmi_dev_get_drm_render_minor(device_handle: amdsmi_wrapper.amdsmi_processor_handle):
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_dev_get_drm_render_minor(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     minor = ctypes.c_uint32()
 
     _check_res(
         amdsmi_wrapper.amdsmi_dev_get_drm_render_minor(
-            device_handle, ctypes.byref(minor)
+            processor_handle, ctypes.byref(minor)
         )
     )
 
     return minor.value
 
 
-def amdsmi_dev_get_subsystem_id(device_handle: amdsmi_wrapper.amdsmi_processor_handle):
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_dev_get_subsystem_id(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     id = ctypes.c_uint16()
 
     _check_res(
         amdsmi_wrapper.amdsmi_dev_get_subsystem_id(
-            device_handle, ctypes.byref(id))
+            processor_handle, ctypes.byref(id))
     )
 
     return id.value
 
 
-def amdsmi_dev_get_subsystem_name(device_handle: amdsmi_wrapper.amdsmi_processor_handle):
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_dev_get_subsystem_name(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     length = ctypes.c_uint64()
@@ -1165,7 +1165,7 @@ def amdsmi_dev_get_subsystem_name(device_handle: amdsmi_wrapper.amdsmi_processor
 
     _check_res(
         amdsmi_wrapper.amdsmi_dev_get_subsystem_name(
-            device_handle, name, length)
+            processor_handle, name, length)
     )
 
     return name.value.decode("utf-8")
@@ -1200,18 +1200,18 @@ def amdsmi_get_version_str(sw_component: AmdSmiSwComponent):
 
 
 def amdsmi_topo_get_numa_node_number(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ):
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     numa_node_number = ctypes.c_uint32()
 
     _check_res(
         amdsmi_wrapper.amdsmi_topo_get_numa_node_number(
-            device_handle, ctypes.byref(numa_node_number)
+            processor_handle, ctypes.byref(numa_node_number)
         )
     )
 
@@ -1219,24 +1219,24 @@ def amdsmi_topo_get_numa_node_number(
 
 
 def amdsmi_topo_get_link_weight(
-    device_handle_src: amdsmi_wrapper.amdsmi_processor_handle,
-    device_handle_dst: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle_src: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle_dst: amdsmi_wrapper.amdsmi_processor_handle,
 ):
-    if not isinstance(device_handle_src, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle_src, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle_src, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle_src, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    if not isinstance(device_handle_dst, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle_dst, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle_dst, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle_dst, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     weight = ctypes.c_uint64()
 
     _check_res(
         amdsmi_wrapper.amdsmi_topo_get_link_weight(
-            device_handle_src, device_handle_dst, ctypes.byref(weight)
+            processor_handle_src, processor_handle_dst, ctypes.byref(weight)
         )
     )
 
@@ -1244,17 +1244,17 @@ def amdsmi_topo_get_link_weight(
 
 
 def amdsmi_get_minmax_bandwidth(
-    device_handle_src: amdsmi_wrapper.amdsmi_processor_handle,
-    device_handle_dst: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle_src: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle_dst: amdsmi_wrapper.amdsmi_processor_handle,
 ):
-    if not isinstance(device_handle_src, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle_src, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle_src, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle_src, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    if not isinstance(device_handle_dst, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle_dst, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle_dst, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle_dst, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     min_bandwidth = ctypes.c_uint64()
@@ -1262,8 +1262,8 @@ def amdsmi_get_minmax_bandwidth(
 
     _check_res(
         amdsmi_wrapper. amdsmi_get_minmax_bandwidth(
-            device_handle_src,
-            device_handle_dst,
+            processor_handle_src,
+            processor_handle_dst,
             ctypes.byref(min_bandwidth),
             ctypes.byref(max_bandwidth),
         )
@@ -1273,17 +1273,17 @@ def amdsmi_get_minmax_bandwidth(
 
 
 def amdsmi_topo_get_link_type(
-    device_handle_src: amdsmi_wrapper.amdsmi_processor_handle,
-    device_handle_dst: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle_src: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle_dst: amdsmi_wrapper.amdsmi_processor_handle,
 ):
-    if not isinstance(device_handle_src, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle_src, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle_src, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle_src, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    if not isinstance(device_handle_dst, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle_dst, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle_dst, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle_dst, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     hops = ctypes.c_uint64()
@@ -1292,8 +1292,8 @@ def amdsmi_topo_get_link_type(
 
     _check_res(
         amdsmi_wrapper.amdsmi_topo_get_link_type(
-            #device_handle_src, device_handle_dst, ctypes.byref(hops), type
-            device_handle_src, device_handle_dst, ctypes.byref(
+            #processor_handle_src, processor_handle_dst, ctypes.byref(hops), type
+            processor_handle_src, processor_handle_dst, ctypes.byref(
                 hops), ctypes.byref(type)
         )
     )
@@ -1302,39 +1302,39 @@ def amdsmi_topo_get_link_type(
 
 
 def amdsmi_is_P2P_accessible(
-    device_handle_src: amdsmi_wrapper.amdsmi_processor_handle,
-    device_handle_dst: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle_src: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle_dst: amdsmi_wrapper.amdsmi_processor_handle,
 ):
-    if not isinstance(device_handle_src, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle_src, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle_src, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle_src, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    if not isinstance(device_handle_dst, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle_dst, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle_dst, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle_dst, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     accessible = ctypes.c_bool()
 
     _check_res(
         amdsmi_wrapper.amdsmi_is_P2P_accessible(
-            device_handle_src, device_handle_dst, ctypes.byref(accessible)
+            processor_handle_src, processor_handle_dst, ctypes.byref(accessible)
         )
     )
 
     return accessible.value
 
 
-def amdsmi_get_xgmi_info(device_handle: amdsmi_wrapper.amdsmi_processor_handle):
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_get_xgmi_info(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     xgmi_info = amdsmi_wrapper.amdsmi_xgmi_info_t()
 
-    _check_res(amdsmi_wrapper.amdsmi_get_xgmi_info(device_handle, xgmi_info))
+    _check_res(amdsmi_wrapper.amdsmi_get_xgmi_info(processor_handle, xgmi_info))
 
     return {
         "xgmi_lanes": xgmi_info.xgmi_lanes,
@@ -1345,29 +1345,29 @@ def amdsmi_get_xgmi_info(device_handle: amdsmi_wrapper.amdsmi_processor_handle):
 
 
 def amdsmi_dev_counter_group_supported(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     event_group: AmdSmiEventGroup,
 ):
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     if not isinstance(event_group, AmdSmiEventGroup):
         raise AmdSmiParameterException(event_group, AmdSmiEventGroup)
 
     _check_res(
         amdsmi_wrapper.amdsmi_dev_counter_group_supported(
-            device_handle, event_group)
+            processor_handle, event_group)
     )
 
 
 def amdsmi_dev_create_counter(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     event_type: AmdSmiEventType,
 ) -> amdsmi_wrapper.amdsmi_event_handle_t:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     if not isinstance(event_type, AmdSmiEventType):
         raise AmdSmiParameterException(event_type, AmdSmiEventType)
@@ -1375,7 +1375,7 @@ def amdsmi_dev_create_counter(
     event_handle = amdsmi_wrapper.amdsmi_event_handle_t()
     _check_res(
         amdsmi_wrapper.amdsmi_dev_create_counter(
-            device_handle, event_type, ctypes.byref(event_handle)
+            processor_handle, event_type, ctypes.byref(event_handle)
         )
     )
 
@@ -1432,12 +1432,12 @@ def amdsmi_read_counter(
 
 
 def amdsmi_counter_get_available_counters(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     event_group: AmdSmiEventGroup,
 ) -> int:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     if not isinstance(event_group, AmdSmiEventGroup):
         raise AmdSmiParameterException(event_group, AmdSmiEventGroup)
@@ -1445,7 +1445,7 @@ def amdsmi_counter_get_available_counters(
 
     _check_res(
         amdsmi_wrapper. amdsmi_counter_get_available_counters(
-            device_handle, event_group, ctypes.byref(available)
+            processor_handle, event_group, ctypes.byref(available)
         )
     )
 
@@ -1453,26 +1453,26 @@ def amdsmi_counter_get_available_counters(
 
 
 def amdsmi_dev_set_perf_level(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     perf_level: AmdSmiDevPerfLevel,
 ):
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     if not isinstance(perf_level, AmdSmiDevPerfLevel):
         raise AmdSmiParameterException(perf_level, AmdSmiDevPerfLevel)
 
     _check_res(amdsmi_wrapper. amdsmi_dev_set_perf_level(
-        device_handle, perf_level))
+        processor_handle, perf_level))
 
 
 def amdsmi_dev_get_power_profile_presets(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_idx: int
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_idx: int
 ) -> Dict[str, Any]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     if not isinstance(sensor_idx, int):
         raise AmdSmiParameterException(sensor_idx, int)
@@ -1482,7 +1482,7 @@ def amdsmi_dev_get_power_profile_presets(
 
     _check_res(
         amdsmi_wrapper. amdsmi_dev_get_power_profile_presets(
-            device_handle, sensor_idx, ctypes.byref(status)
+            processor_handle, sensor_idx, ctypes.byref(status)
         )
     )
 
@@ -1493,21 +1493,21 @@ def amdsmi_dev_get_power_profile_presets(
     }
 
 
-def amdsmi_dev_reset_gpu(device_handle: amdsmi_wrapper.amdsmi_processor_handle):
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_dev_reset_gpu(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    _check_res(amdsmi_wrapper.amdsmi_dev_reset_gpu(device_handle))
+    _check_res(amdsmi_wrapper.amdsmi_dev_reset_gpu(processor_handle))
 
 
 def amdsmi_set_perf_determinism_mode(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle, clock_value: int
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle, clock_value: int
 ):
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     if not isinstance(clock_value, int):
         raise AmdSmiParameterException(clock_value, int)
@@ -1515,16 +1515,16 @@ def amdsmi_set_perf_determinism_mode(
 
     _check_res(
         amdsmi_wrapper.amdsmi_set_perf_determinism_mode(
-            device_handle, clock_value)
+            processor_handle, clock_value)
     )
 
 
 def amdsmi_dev_set_fan_speed(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_idx: int, fan_speed: int
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_idx: int, fan_speed: int
 ):
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     if not isinstance(sensor_idx, int):
         raise AmdSmiParameterException(sensor_idx, int)
@@ -1535,32 +1535,32 @@ def amdsmi_dev_set_fan_speed(
 
     _check_res(
         amdsmi_wrapper.amdsmi_dev_set_fan_speed(
-            device_handle, sensor_idx, fan_speed)
+            processor_handle, sensor_idx, fan_speed)
     )
 
 
 def amdsmi_dev_reset_fan(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_idx: int
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_idx: int
 ):
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     if not isinstance(sensor_idx, int):
         raise AmdSmiParameterException(sensor_idx, int)
     sensor_idx = ctypes.c_uint32(sensor_idx)
 
-    _check_res(amdsmi_wrapper.amdsmi_dev_reset_fan(device_handle, sensor_idx))
+    _check_res(amdsmi_wrapper.amdsmi_dev_reset_fan(processor_handle, sensor_idx))
 
 
 def amdsmi_dev_set_clk_freq(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     clk_type: AmdSmiClkType,
     freq_bitmask: int,
 ):
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     if not isinstance(clk_type, AmdSmiClkType):
         raise AmdSmiParameterException(clk_type, AmdSmiParameterException)
@@ -1569,17 +1569,17 @@ def amdsmi_dev_set_clk_freq(
     freq_bitmask = ctypes.c_uint64(freq_bitmask)
     _check_res(
         amdsmi_wrapper. amdsmi_dev_set_clk_freq(
-            device_handle, clk_type, freq_bitmask
+            processor_handle, clk_type, freq_bitmask
         )
     )
 
 
 def amdsmi_dev_set_overdrive_level_v1(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle, overdrive_value: int
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle, overdrive_value: int
 ):
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     if not isinstance(overdrive_value, int):
         raise AmdSmiParameterException(overdrive_value, int)
@@ -1587,16 +1587,16 @@ def amdsmi_dev_set_overdrive_level_v1(
 
     _check_res(
         amdsmi_wrapper. amdsmi_dev_set_overdrive_level_v1(
-            device_handle, overdrive_value)
+            processor_handle, overdrive_value)
     )
 
 
 def amdsmi_dev_set_overdrive_level(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle, overdrive_value: int
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle, overdrive_value: int
 ):
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     if not isinstance(overdrive_value, int):
         raise AmdSmiParameterException(overdrive_value, int)
@@ -1604,38 +1604,38 @@ def amdsmi_dev_set_overdrive_level(
 
     _check_res(
         amdsmi_wrapper. amdsmi_dev_set_overdrive_level(
-            device_handle, overdrive_value)
+            processor_handle, overdrive_value)
     )
 
 
 def amdsmi_dev_open_supported_func_iterator(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> amdsmi_wrapper.amdsmi_func_id_iter_handle_t:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     obj_handle = amdsmi_wrapper.amdsmi_func_id_iter_handle_t()
     _check_res(
         amdsmi_wrapper.amdsmi_dev_open_supported_func_iterator(
-            device_handle, ctypes.byref(obj_handle)
+            processor_handle, ctypes.byref(obj_handle)
         )
     )
 
     return obj_handle
 
 
-def amdsmi_dev_get_pci_id(device_handle: amdsmi_wrapper.amdsmi_processor_handle):
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_dev_get_pci_id(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     bdfid = ctypes.c_uint64()
     _check_res(
         amdsmi_wrapper.amdsmi_dev_get_pci_id(
-            device_handle, ctypes.byref(bdfid))
+            processor_handle, ctypes.byref(bdfid))
     )
 
     return bdfid.value
@@ -1717,11 +1717,11 @@ def amdsmi_get_func_iter_value(
 
 
 def amdsmi_dev_set_pci_bandwidth(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle, bitmask: int
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle, bitmask: int
 ) -> None:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     if not isinstance(bitmask, int):
@@ -1729,7 +1729,7 @@ def amdsmi_dev_set_pci_bandwidth(
 
     _check_res(
         amdsmi_wrapper. amdsmi_dev_set_pci_bandwidth(
-            device_handle, ctypes.c_uint64(bitmask)
+            processor_handle, ctypes.c_uint64(bitmask)
         )
     )
 
@@ -1742,17 +1742,17 @@ def _format_transfer_rate(transfer_rate):
     }
 
 
-def amdsmi_dev_get_pci_bandwidth(device_handle: amdsmi_wrapper.amdsmi_processor_handle):
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_dev_get_pci_bandwidth(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     bandwidth = amdsmi_wrapper.amdsmi_pcie_bandwidth_t()
 
     _check_res(
         amdsmi_wrapper.amdsmi_dev_get_pci_bandwidth(
-            device_handle, ctypes.byref(bandwidth))
+            processor_handle, ctypes.byref(bandwidth))
     )
 
     transfer_rate = _format_transfer_rate(bandwidth.transfer_rate)
@@ -1763,10 +1763,10 @@ def amdsmi_dev_get_pci_bandwidth(device_handle: amdsmi_wrapper.amdsmi_processor_
     }
 
 
-def amdsmi_dev_get_pci_throughput(device_handle: amdsmi_wrapper.amdsmi_processor_handle):
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_dev_get_pci_throughput(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     sent = ctypes.c_uint64()
@@ -1774,7 +1774,7 @@ def amdsmi_dev_get_pci_throughput(device_handle: amdsmi_wrapper.amdsmi_processor
     max_pkt_sz = ctypes.c_uint64()
 
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_get_pci_throughput(device_handle, ctypes.byref(
+        amdsmi_wrapper.amdsmi_dev_get_pci_throughput(processor_handle, ctypes.byref(
             sent), ctypes.byref(received), ctypes.byref(max_pkt_sz))
     )
 
@@ -1785,44 +1785,44 @@ def amdsmi_dev_get_pci_throughput(device_handle: amdsmi_wrapper.amdsmi_processor
     }
 
 
-def amdsmi_dev_get_pci_replay_counter(device_handle: amdsmi_wrapper.amdsmi_processor_handle):
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_dev_get_pci_replay_counter(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     counter = ctypes.c_uint64()
 
     _check_res(
         amdsmi_wrapper. amdsmi_dev_get_pci_replay_counter(
-            device_handle, ctypes.byref(counter))
+            processor_handle, ctypes.byref(counter))
     )
 
     return counter.value
 
 
-def amdsmi_topo_get_numa_affinity(device_handle: amdsmi_wrapper.amdsmi_processor_handle):
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_topo_get_numa_affinity(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     numa_node = ctypes.c_uint32()
 
     _check_res(
         amdsmi_wrapper.amdsmi_topo_get_numa_affinity(
-            device_handle, ctypes.byref(numa_node))
+            processor_handle, ctypes.byref(numa_node))
     )
 
     return numa_node.value
 
 
 def amdsmi_dev_set_power_cap(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_ind: int, cap: int
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_ind: int, cap: int
 ) -> None:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     if not isinstance(sensor_ind, int):
@@ -1833,35 +1833,35 @@ def amdsmi_dev_set_power_cap(
 
     _check_res(
         amdsmi_wrapper. amdsmi_dev_set_power_cap(
-            device_handle, ctypes.c_uint32(sensor_ind), ctypes.c_uint64(cap)
+            processor_handle, ctypes.c_uint32(sensor_ind), ctypes.c_uint64(cap)
         )
     )
 
 
-def amdsmi_dev_get_power_ave(device_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_id: ctypes.c_uint32):
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_dev_get_power_ave(processor_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_id: ctypes.c_uint32):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     power = ctypes.c_uint64()
 
     _check_res(
         amdsmi_wrapper.amdsmi_dev_get_power_ave(
-            device_handle, sensor_id, ctypes.byref(power))
+            processor_handle, sensor_id, ctypes.byref(power))
     )
 
     return power.value
 
 
 def amdsmi_dev_set_power_profile(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     reserved: int,
     profile: AmdSmiPowerProfilePresetMasks,
 ) -> None:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     if not isinstance(reserved, int):
@@ -1872,15 +1872,15 @@ def amdsmi_dev_set_power_profile(
 
     _check_res(
         amdsmi_wrapper. amdsmi_dev_set_power_profile(
-            device_handle, ctypes.c_uint32(reserved), profile
+            processor_handle, ctypes.c_uint32(reserved), profile
         )
     )
 
 
-def amdsmi_dev_get_energy_count(device_handle: amdsmi_wrapper.amdsmi_processor_handle):
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_dev_get_energy_count(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     power = ctypes.c_uint64()
@@ -1888,7 +1888,7 @@ def amdsmi_dev_get_energy_count(device_handle: amdsmi_wrapper.amdsmi_processor_h
     timestamp = ctypes.c_uint64()
 
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_get_energy_count(device_handle, ctypes.byref(
+        amdsmi_wrapper.amdsmi_dev_get_energy_count(processor_handle, ctypes.byref(
             power), ctypes.byref(counter_resolution), ctypes.byref(timestamp))
     )
 
@@ -1900,14 +1900,14 @@ def amdsmi_dev_get_energy_count(device_handle: amdsmi_wrapper.amdsmi_processor_h
 
 
 def amdsmi_dev_set_clk_range(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     min_clk_value: int,
     max_clk_value: int,
     clk_type: AmdSmiClkType,
 ) -> None:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     if not isinstance(min_clk_value, int):
@@ -1921,7 +1921,7 @@ def amdsmi_dev_set_clk_range(
 
     _check_res(
         amdsmi_wrapper.amdsmi_dev_set_clk_range(
-            device_handle,
+            processor_handle,
             ctypes.c_uint64(min_clk_value),
             ctypes.c_uint64(max_clk_value),
             clk_type,
@@ -1929,10 +1929,10 @@ def amdsmi_dev_set_clk_range(
     )
 
 
-def amdsmi_dev_get_memory_total(device_handle: amdsmi_wrapper.amdsmi_processor_handle, mem_type: AmdSmiMemoryType):
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_dev_get_memory_total(processor_handle: amdsmi_wrapper.amdsmi_processor_handle, mem_type: AmdSmiMemoryType):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     if not isinstance(mem_type, AmdSmiMemoryType):
@@ -1944,21 +1944,21 @@ def amdsmi_dev_get_memory_total(device_handle: amdsmi_wrapper.amdsmi_processor_h
 
     _check_res(
         amdsmi_wrapper.amdsmi_dev_get_memory_total(
-            device_handle, mem_type, ctypes.byref(total))
+            processor_handle, mem_type, ctypes.byref(total))
     )
 
     return total.value
 
 
 def amdsmi_dev_set_od_clk_info(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     level: AmdSmiFreqInd,
     value: int,
     clk_type: AmdSmiClkType,
 ) -> None:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     if not isinstance(level, AmdSmiFreqInd):
@@ -1972,15 +1972,15 @@ def amdsmi_dev_set_od_clk_info(
 
     _check_res(
         amdsmi_wrapper. amdsmi_dev_set_od_clk_info(
-            device_handle, level, ctypes.c_uint64(value), clk_type
+            processor_handle, level, ctypes.c_uint64(value), clk_type
         )
     )
 
 
-def amdsmi_dev_get_memory_usage(device_handle: amdsmi_wrapper.amdsmi_processor_handle, mem_type: AmdSmiMemoryType):
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_dev_get_memory_usage(processor_handle: amdsmi_wrapper.amdsmi_processor_handle, mem_type: AmdSmiMemoryType):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     if not isinstance(mem_type, AmdSmiMemoryType):
@@ -1992,21 +1992,21 @@ def amdsmi_dev_get_memory_usage(device_handle: amdsmi_wrapper.amdsmi_processor_h
 
     _check_res(
         amdsmi_wrapper.amdsmi_dev_get_memory_usage(
-            device_handle, mem_type, ctypes.byref(used))
+            processor_handle, mem_type, ctypes.byref(used))
     )
 
     return used.value
 
 
 def amdsmi_dev_set_od_volt_info(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     vpoint: int,
     clk_value: int,
     volt_value: int,
 ) -> None:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     if not isinstance(vpoint, int):
@@ -2020,7 +2020,7 @@ def amdsmi_dev_set_od_volt_info(
 
     _check_res(
         amdsmi_wrapper. amdsmi_dev_set_od_volt_info(
-            device_handle,
+            processor_handle,
             ctypes.c_uint32(vpoint),
             ctypes.c_uint64(clk_value),
             ctypes.c_uint64(volt_value),
@@ -2028,51 +2028,51 @@ def amdsmi_dev_set_od_volt_info(
     )
 
 
-def amdsmi_dev_get_memory_busy_percent(device_handle: amdsmi_wrapper.amdsmi_processor_handle):
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_dev_get_memory_busy_percent(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     busy_percent = ctypes.c_uint32()
 
     _check_res(
         amdsmi_wrapper.amdsmi_dev_get_memory_busy_percent(
-            device_handle, ctypes.byref(busy_percent))
+            processor_handle, ctypes.byref(busy_percent))
     )
 
     return busy_percent.value
 
 
 def amdsmi_dev_set_perf_level_v1(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     perf_lvl: AmdSmiDevPerfLevel,
 ) -> None:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     if not isinstance(perf_lvl, AmdSmiDevPerfLevel):
         raise AmdSmiParameterException(perf_lvl, AmdSmiDevPerfLevel)
 
     _check_res(amdsmi_wrapper. amdsmi_dev_set_perf_level_v1(
-        device_handle, perf_lvl))
+        processor_handle, perf_lvl))
 
 
 def amdsmi_dev_get_fan_rpms(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_idx: int
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_idx: int
 ) -> int:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     if not isinstance(sensor_idx, int):
         raise AmdSmiParameterException(sensor_idx, int)
     fan_speed = ctypes.c_int64()
     _check_res(
         amdsmi_wrapper.amdsmi_dev_get_fan_rpms(
-            device_handle, sensor_idx, ctypes.byref(fan_speed)
+            processor_handle, sensor_idx, ctypes.byref(fan_speed)
         )
     )
 
@@ -2080,18 +2080,18 @@ def amdsmi_dev_get_fan_rpms(
 
 
 def amdsmi_dev_get_fan_speed(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_idx: int
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_idx: int
 ) -> int:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     if not isinstance(sensor_idx, int):
         raise AmdSmiParameterException(sensor_idx, int)
     fan_speed = ctypes.c_int64()
     _check_res(
         amdsmi_wrapper.amdsmi_dev_get_fan_speed(
-            device_handle, sensor_idx, ctypes.byref(fan_speed)
+            processor_handle, sensor_idx, ctypes.byref(fan_speed)
         )
     )
 
@@ -2099,18 +2099,18 @@ def amdsmi_dev_get_fan_speed(
 
 
 def amdsmi_dev_get_fan_speed_max(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_idx: int
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_idx: int
 ) -> int:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     if not isinstance(sensor_idx, int):
         raise AmdSmiParameterException(sensor_idx, int)
     fan_speed = ctypes.c_uint64()
     _check_res(
         amdsmi_wrapper.amdsmi_dev_get_fan_speed_max(
-            device_handle, sensor_idx, ctypes.byref(fan_speed)
+            processor_handle, sensor_idx, ctypes.byref(fan_speed)
         )
     )
 
@@ -2118,13 +2118,13 @@ def amdsmi_dev_get_fan_speed_max(
 
 
 def amdsmi_dev_get_temp_metric(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     sensor_type: AmdSmiTemperatureType,
     metric: AmdSmiTemperatureMetric,
 ) -> int:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     if not isinstance(sensor_type, AmdSmiTemperatureType):
         raise AmdSmiParameterException(sensor_type, AmdSmiTemperatureType)
@@ -2134,7 +2134,7 @@ def amdsmi_dev_get_temp_metric(
     temp_value = ctypes.c_int64()
     _check_res(
         amdsmi_wrapper. amdsmi_dev_get_temp_metric(
-            device_handle, sensor_type, metric, ctypes.byref(temp_value)
+            processor_handle, sensor_type, metric, ctypes.byref(temp_value)
         )
     )
 
@@ -2142,13 +2142,13 @@ def amdsmi_dev_get_temp_metric(
 
 
 def amdsmi_dev_get_volt_metric(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     sensor_type: AmdSmiVoltageType,
     metric: AmdSmiVoltageMetric,
 ) -> int:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     if not isinstance(sensor_type, AmdSmiVoltageType):
         raise AmdSmiParameterException(sensor_type, AmdSmiVoltageType)
@@ -2158,7 +2158,7 @@ def amdsmi_dev_get_volt_metric(
     voltage = ctypes.c_int64()
     _check_res(
         amdsmi_wrapper. amdsmi_dev_get_volt_metric(
-            device_handle, sensor_type, metric, ctypes.byref(voltage)
+            processor_handle, sensor_type, metric, ctypes.byref(voltage)
         )
     )
 
@@ -2166,17 +2166,17 @@ def amdsmi_dev_get_volt_metric(
 
 
 def amdsmi_dev_get_busy_percent(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> int:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     busy_percent = ctypes.c_uint32()
     _check_res(
         amdsmi_wrapper.amdsmi_dev_get_busy_percent(
-            device_handle, ctypes.byref(busy_percent)
+            processor_handle, ctypes.byref(busy_percent)
         )
     )
 
@@ -2184,12 +2184,12 @@ def amdsmi_dev_get_busy_percent(
 
 
 def amdsmi_get_utilization_count(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     *counter_types: Tuple[AmdSmiUtilizationCounterType]
 ) -> List[Dict[str, Any]]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     if not len(counter_types):
         raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_INVAL)
@@ -2210,7 +2210,7 @@ def amdsmi_get_utilization_count(
 
     _check_res(
         amdsmi_wrapper.amdsmi_get_utilization_count(
-            device_handle, util_counter_list, count, ctypes.byref(timestamp)
+            processor_handle, util_counter_list, count, ctypes.byref(timestamp)
         )
     )
     if count.value != len(counters):
@@ -2230,18 +2230,18 @@ def amdsmi_get_utilization_count(
 
 
 def amdsmi_dev_get_perf_level(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> str:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     perf = amdsmi_wrapper.amdsmi_dev_perf_level_t()
 
     _check_res(
         amdsmi_wrapper.amdsmi_dev_get_perf_level(
-            device_handle, ctypes.byref(perf))
+            processor_handle, ctypes.byref(perf))
     )
 
     result = amdsmi_wrapper.c__EA_amdsmi_dev_perf_level_t__enumvalues[perf.value]
@@ -2254,31 +2254,31 @@ def amdsmi_dev_get_perf_level(
 
 
 def amdsmi_set_perf_determinism_mode(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle, clkvalue: int
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle, clkvalue: int
 ) -> None:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     if not isinstance(clkvalue, int):
         raise AmdSmiParameterException(clkvalue, int)
 
     _check_res(amdsmi_wrapper.amdsmi_set_perf_determinism_mode(
-        device_handle, clkvalue))
+        processor_handle, clkvalue))
 
 
 def amdsmi_dev_get_overdrive_level(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> int:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     od_level = ctypes.c_uint32()
     _check_res(
         amdsmi_wrapper.amdsmi_dev_get_overdrive_level(
-            device_handle, ctypes.byref(od_level)
+            processor_handle, ctypes.byref(od_level)
         )
     )
 
@@ -2286,11 +2286,11 @@ def amdsmi_dev_get_overdrive_level(
 
 
 def amdsmi_dev_get_gpu_clk_freq(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle, clk_type: AmdSmiClkType
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle, clk_type: AmdSmiClkType
 ) -> Dict[str, Any]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     if not isinstance(clk_type, AmdSmiClkType):
         raise AmdSmiParameterException(clk_type, AmdSmiClkType)
@@ -2298,7 +2298,7 @@ def amdsmi_dev_get_gpu_clk_freq(
     freq = amdsmi_wrapper.amdsmi_frequencies_t()
     _check_res(
         amdsmi_wrapper. amdsmi_dev_get_gpu_clk_freq(
-            device_handle, clk_type, ctypes.byref(freq)
+            processor_handle, clk_type, ctypes.byref(freq)
         )
     )
 
@@ -2310,17 +2310,17 @@ def amdsmi_dev_get_gpu_clk_freq(
 
 
 def amdsmi_dev_get_od_volt_info(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     freq_data = amdsmi_wrapper.amdsmi_od_volt_freq_data_t()
     _check_res(
         amdsmi_wrapper. amdsmi_dev_get_od_volt_info(
-            device_handle, ctypes.byref(freq_data)
+            processor_handle, ctypes.byref(freq_data)
         )
     )
 
@@ -2347,17 +2347,17 @@ def amdsmi_dev_get_od_volt_info(
 
 
 def amdsmi_dev_get_gpu_metrics_info(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     gpu_metrics = amdsmi_wrapper.amdsmi_gpu_metrics_t()
     _check_res(
         amdsmi_wrapper. amdsmi_dev_get_gpu_metrics_info(
-            device_handle, ctypes.byref(gpu_metrics)
+            processor_handle, ctypes.byref(gpu_metrics)
         )
     )
 
@@ -2400,11 +2400,11 @@ def amdsmi_dev_get_gpu_metrics_info(
 
 
 def amdsmi_dev_get_od_volt_curve_regions(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle, num_regions: int
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle, num_regions: int
 ) -> List[Dict[str, Any]]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     if not isinstance(num_regions, int):
         raise AmdSmiParameterException(num_regions, int)
@@ -2413,7 +2413,7 @@ def amdsmi_dev_get_od_volt_curve_regions(
     buffer = (amdsmi_wrapper.amdsmi_freq_volt_region_t * num_regions)()
     _check_res(
         amdsmi_wrapper. amdsmi_dev_get_od_volt_curve_regions(
-            device_handle, ctypes.byref(region_count), buffer
+            processor_handle, ctypes.byref(region_count), buffer
         )
     )
 
@@ -2439,11 +2439,11 @@ def amdsmi_dev_get_od_volt_curve_regions(
 
 
 def amdsmi_dev_get_power_profile_presets(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_idx: int
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_idx: int
 ) -> Dict[str, Any]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     if not isinstance(sensor_idx, int):
         raise AmdSmiParameterException(sensor_idx, int)
@@ -2451,7 +2451,7 @@ def amdsmi_dev_get_power_profile_presets(
     status = amdsmi_wrapper.amdsmi_power_profile_status_t()
     _check_res(
         amdsmi_wrapper. amdsmi_dev_get_power_profile_presets(
-            device_handle, sensor_idx, ctypes.byref(status)
+            processor_handle, sensor_idx, ctypes.byref(status)
         )
     )
 
@@ -2463,11 +2463,11 @@ def amdsmi_dev_get_power_profile_presets(
 
 
 def amdsmi_dev_get_ecc_count(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle, block: AmdSmiGpuBlock
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle, block: AmdSmiGpuBlock
 ) -> Dict[str, int]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     if not isinstance(block, AmdSmiGpuBlock):
@@ -2475,8 +2475,8 @@ def amdsmi_dev_get_ecc_count(
 
     ec = amdsmi_wrapper.amdsmi_error_count_t()
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_get_ecc_count(
-            device_handle, block, ctypes.byref(ec))
+        amdsmi_wrapper. amdsmi_dev_get_ecc_count(
+            processor_handle, block, ctypes.byref(ec))
     )
 
     return {
@@ -2486,28 +2486,28 @@ def amdsmi_dev_get_ecc_count(
 
 
 def amdsmi_dev_get_ecc_enabled(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> int:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     blocks = ctypes.c_uint64(0)
     _check_res(
         amdsmi_wrapper. amdsmi_dev_get_ecc_enabled(
-            device_handle, ctypes.byref(blocks))
+            processor_handle, ctypes.byref(blocks))
     )
 
     return blocks.value
 
 
 def amdsmi_dev_get_ecc_status(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle, block: AmdSmiGpuBlock
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle, block: AmdSmiGpuBlock
 ) -> AmdSmiRasErrState:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     if not isinstance(block, AmdSmiGpuBlock):
@@ -2516,7 +2516,7 @@ def amdsmi_dev_get_ecc_status(
     state = amdsmi_wrapper.amdsmi_ras_err_state_t()
     _check_res(
         amdsmi_wrapper. amdsmi_dev_get_ecc_status(
-            device_handle, block, ctypes.byref(state)
+            processor_handle, block, ctypes.byref(state)
         )
     )
 
@@ -2604,39 +2604,39 @@ def amdsmi_get_compute_process_gpus(pid: int) -> List[int]:
 
 
 def amdsmi_dev_xgmi_error_status(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> AmdSmiXgmiStatus:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     status = amdsmi_wrapper.amdsmi_xgmi_status_t()
     _check_res(
         amdsmi_wrapper.amdsmi_dev_xgmi_error_status(
-            device_handle, ctypes.byref(status))
+            processor_handle, ctypes.byref(status))
     )
 
     return AmdSmiXgmiStatus(status.value)
 
 
 def amdsmi_dev_reset_xgmi_error(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> None:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    _check_res(amdsmi_wrapper.amdsmi_dev_reset_xgmi_error(device_handle))
+    _check_res(amdsmi_wrapper.amdsmi_dev_reset_xgmi_error(processor_handle))
 
 
 def amdsmi_dev_get_memory_reserved_pages(
-    device_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Union[list, str]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_processor_handle
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
     num_pages = ctypes.c_uint32()
@@ -2644,7 +2644,7 @@ def amdsmi_dev_get_memory_reserved_pages(
         amdsmi_wrapper.amdsmi_retired_page_record_t)()
     _check_res(
         amdsmi_wrapper.amdsmi_dev_get_memory_reserved_pages(
-            device_handle, ctypes.byref(num_pages), retired_page_record
+            processor_handle, ctypes.byref(num_pages), retired_page_record
         )
     )
 
