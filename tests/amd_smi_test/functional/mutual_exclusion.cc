@@ -300,7 +300,7 @@ void TestMutualExclusion::Run(void) {
     amdsmi_dev_create_counter
      amdsmi_counter_get_available_counters
     amdsmi_dev_counter_group_supported
-    amdsmi_dev_get_memory_reserved_pages
+    amdsmi_get_gpu_memory_reserved_pages
     amdsmi_dev_xgmi_error_status
     amdsmi_dev_reset_xgmi_error
     amdsmi_dev_xgmi_hive_id_get

@@ -303,7 +303,7 @@ class Formatter:
     |     """ + self.style.text("14   Get device memory total.              Api: amdsmi_get_gpu_memory_total            <bdf>") + """                        |
     |     """ + self.style.text("15   Get device memory usage.              Api: amdsmi_get_gpu_memory_usage            <bdf>") + """                        |
     |     """ + self.style.text("16   Get device memory busy percent.       Api: amdsmi_get_gpu_memory_busy_percent     <bdf>") + """                        |
-    |     """ + self.style.text("17   Get device memory reserved pages.     Api: amdsmi_dev_get_memory_reserved_pages   <bdf>") + """                        |
+    |     """ + self.style.text("17   Get device memory reserved pages.     Api: amdsmi_get_gpu_memory_reserved_pages   <bdf>") + """                        |
     |     """ + self.style.text("18   Get device fan rpms.                  Api: amdsmi_dev_get_fan_rpms                <bdf><sensor_idx>") + """            |
     |     """ + self.style.text("19   Get device fan speed.                 Api: amdsmi_dev_get_fan_speed               <bdf><sensor_idx>") + """            |
     |     """ + self.style.text("20   Get device fan speed max.             Api: amdsmi_dev_get_fan_speed_max           <bdf><sensor_idx>") + """            |
@@ -771,7 +771,7 @@ commands = {
     16: [smi_api.amdsmi_get_gpu_memory_busy_percent, {
         "device_identifier1": [None, True]
     }],
-    17: [smi_api.amdsmi_dev_get_memory_reserved_pages, {
+    17: [smi_api.amdsmi_get_gpu_memory_reserved_pages, {
         "device_identifier1": [None, True]
     }],
     18: [amdsmi_tool_dev_fan_rpms_get, {

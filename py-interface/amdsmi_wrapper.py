@@ -1484,9 +1484,9 @@ amdsmi_get_ras_block_features_enabled.argtypes = [amdsmi_processor_handle, amdsm
 amdsmi_get_gpu_memory_busy_percent = _libraries['libamd_smi.so'].amdsmi_get_gpu_memory_busy_percent
 amdsmi_get_gpu_memory_busy_percent.restype = amdsmi_status_t
 amdsmi_get_gpu_memory_busy_percent.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32)]
-amdsmi_dev_get_memory_reserved_pages = _libraries['libamd_smi.so'].amdsmi_dev_get_memory_reserved_pages
-amdsmi_dev_get_memory_reserved_pages.restype = amdsmi_status_t
-amdsmi_dev_get_memory_reserved_pages.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(struct_c__SA_amdsmi_retired_page_record_t)]
+amdsmi_get_gpu_memory_reserved_pages = _libraries['libamd_smi.so'].amdsmi_get_gpu_memory_reserved_pages
+amdsmi_get_gpu_memory_reserved_pages.restype = amdsmi_status_t
+amdsmi_get_gpu_memory_reserved_pages.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(struct_c__SA_amdsmi_retired_page_record_t)]
 amdsmi_dev_get_fan_rpms = _libraries['libamd_smi.so'].amdsmi_dev_get_fan_rpms
 amdsmi_dev_get_fan_rpms.restype = amdsmi_status_t
 amdsmi_dev_get_fan_rpms.argtypes = [amdsmi_processor_handle, uint32_t, ctypes.POINTER(ctypes.c_int64)]
@@ -1858,7 +1858,7 @@ __all__ = \
     'amdsmi_dev_get_fan_speed', 'amdsmi_dev_get_fan_speed_max',
     'amdsmi_dev_get_gpu_clk_freq', 'amdsmi_dev_get_gpu_metrics_info',
     'amdsmi_get_gpu_id', 'amdsmi_get_gpu_memory_busy_percent',
-    'amdsmi_dev_get_memory_reserved_pages',
+    'amdsmi_get_gpu_memory_reserved_pages',
     'amdsmi_get_gpu_memory_total', 'amdsmi_get_gpu_memory_usage',
     'amdsmi_dev_get_od_volt_curve_regions',
     'amdsmi_dev_get_od_volt_info', 'amdsmi_dev_get_overdrive_level',

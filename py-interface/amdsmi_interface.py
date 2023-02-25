@@ -2631,7 +2631,7 @@ def amdsmi_dev_reset_xgmi_error(
     _check_res(amdsmi_wrapper.amdsmi_dev_reset_xgmi_error(processor_handle))
 
 
-def amdsmi_dev_get_memory_reserved_pages(
+def amdsmi_get_gpu_memory_reserved_pages(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Union[list, str]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -2643,7 +2643,7 @@ def amdsmi_dev_get_memory_reserved_pages(
     retired_page_record = ctypes.POINTER(
         amdsmi_wrapper.amdsmi_retired_page_record_t)()
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_get_memory_reserved_pages(
+        amdsmi_wrapper.amdsmi_get_gpu_memory_reserved_pages(
             processor_handle, ctypes.byref(num_pages), retired_page_record
         )
     )

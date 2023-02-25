@@ -1878,7 +1878,7 @@ amdsmi_get_gpu_memory_busy_percent(amdsmi_processor_handle processor_handle, uin
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_get_memory_reserved_pages(amdsmi_processor_handle processor_handle, uint32_t *num_pages,
+amdsmi_get_gpu_memory_reserved_pages(amdsmi_processor_handle processor_handle, uint32_t *num_pages,
                                          amdsmi_retired_page_record_t *records);
 
 /** @} End MemQuer */
