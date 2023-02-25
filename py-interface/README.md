@@ -2874,7 +2874,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_get_vendor_name
+## amdsmi_get_gpu_vendor_name
 Description: Returns the device vendor name
 
 Input parameters:
@@ -2883,7 +2883,7 @@ Input parameters:
 
 Output: device vendor name
 
-Exceptions that can be thrown by `amdsmi_dev_get_vendor_name` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_vendor_name` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2896,7 +2896,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            vendor_name = amdsmi_dev_get_vendor_name(device)
+            vendor_name = amdsmi_get_gpu_vendor_name(device)
             print(vendor_name)
 except AmdSmiException as e:
     print(e)
