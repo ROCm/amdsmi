@@ -145,10 +145,10 @@ void TestIdInfoRead::Run(void) {
       }
     }
 
-    err = amdsmi_dev_get_drm_render_minor(processor_handles_[i], &drm_render_minor);
+    err = amdsmi_get_gpu_drm_render_minor(processor_handles_[i], &drm_render_minor);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       // Verify api support checking functionality is working
-      err = amdsmi_dev_get_drm_render_minor(processor_handles_[i], nullptr);
+      err = amdsmi_get_gpu_drm_render_minor(processor_handles_[i], nullptr);
       ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
     } else {
       CHK_ERR_ASRT(err)
@@ -156,7 +156,7 @@ void TestIdInfoRead::Run(void) {
         std::cout << "\t**DRM Render Minor: " << drm_render_minor << std::endl;
       }
       // Verify api support checking functionality is working
-      err = amdsmi_dev_get_drm_render_minor(processor_handles_[i], nullptr);
+      err = amdsmi_get_gpu_drm_render_minor(processor_handles_[i], nullptr);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
     }
     err = amdsmi_get_gpu_vendor_name(processor_handles_[i], buffer, kBufferLen);

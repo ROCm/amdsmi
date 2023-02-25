@@ -267,7 +267,7 @@ void TestMutualExclusion::Run(void) {
     amdsmi_dev_brand_get
     amdsmi_get_gpu_vram_vendor
     amdsmi_get_gpu_subsystem_name
-    amdsmi_dev_get_drm_render_minor
+    amdsmi_get_gpu_drm_render_minor
     amdsmi_get_gpu_vendor_name
     amdsmi_dev_get_pci_bandwidth
      amdsmi_dev_set_pci_bandwidth
