@@ -105,7 +105,7 @@ amdsmi_status_t AMDSmiSystem::populate_amd_gpu_devices() {
         }
 
         AMDSmiProcessor* device = new AMDSmiGPUDevice(i, drm_);
-        socket->add_device(device);
+        socket->add_processor(device);
         devices_.insert(device);
     }
     return AMDSMI_STATUS_SUCCESS;

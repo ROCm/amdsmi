@@ -230,7 +230,7 @@ amdsmi_status_t amdsmi_get_processor_handles(amdsmi_socket_handle socket_handle,
     if (r != AMDSMI_STATUS_SUCCESS) return r;
 
 
-    std::vector<amd::smi::AMDSmiProcessor*>& devices = socket->get_devices();
+    std::vector<amd::smi::AMDSmiProcessor*>& devices = socket->get_processors();
     uint32_t device_size = static_cast<uint32_t>(devices.size());
     // Get the device count only
     if (processor_handles == nullptr) {
