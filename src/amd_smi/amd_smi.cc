@@ -501,7 +501,7 @@ amdsmi_status_t amdsmi_reset_gpu_fan(amdsmi_processor_handle processor_handle,
     return rsmi_wrapper(rsmi_dev_fan_reset, processor_handle, sensor_ind);
 }
 
-amdsmi_status_t amdsmi_dev_set_fan_speed(amdsmi_processor_handle processor_handle,
+amdsmi_status_t amdsmi_set_gpu_fan_speed(amdsmi_processor_handle processor_handle,
                                 uint32_t sensor_ind, uint64_t speed) {
     return rsmi_wrapper(rsmi_dev_fan_speed_set, processor_handle,
                             sensor_ind, speed);
@@ -948,7 +948,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_fan_speed_max_get", "amdsmi_get_gpu_fan_speed_max"},
         {"rsmi_dev_temp_metric_get", " amdsmi_get_temp_metric"},
         {"rsmi_dev_fan_reset", "amdsmi_reset_gpu_fan"},
-        {"rsmi_dev_fan_speed_set", "amdsmi_dev_set_fan_speed"},
+        {"rsmi_dev_fan_speed_set", "amdsmi_set_gpu_fan_speed"},
         {"rsmi_dev_volt_metric_get", " amdsmi_get_gpu_volt_metric"}
     };
 

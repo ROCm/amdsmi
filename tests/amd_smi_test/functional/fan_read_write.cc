@@ -136,7 +136,7 @@ void TestFanReadWrite::Run(void) {
       std::cout << "Setting fan speed to " << new_speed << std::endl;
     }
 
-    ret = amdsmi_dev_set_fan_speed(processor_handles_[dv_ind], 0, new_speed);
+    ret = amdsmi_set_gpu_fan_speed(processor_handles_[dv_ind], 0, new_speed);
     CHK_ERR_ASRT(ret)
 
     sleep(4);

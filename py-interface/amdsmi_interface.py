@@ -1519,7 +1519,7 @@ def amdsmi_set_perf_determinism_mode(
     )
 
 
-def amdsmi_dev_set_fan_speed(
+def amdsmi_set_gpu_fan_speed(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_idx: int, fan_speed: int
 ):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -1534,7 +1534,7 @@ def amdsmi_dev_set_fan_speed(
     fan_speed = ctypes.c_uint64(fan_speed)
 
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_set_fan_speed(
+        amdsmi_wrapper.amdsmi_set_gpu_fan_speed(
             processor_handle, sensor_idx, fan_speed)
     )
 
