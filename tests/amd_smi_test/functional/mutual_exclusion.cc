@@ -273,7 +273,7 @@ void TestMutualExclusion::Run(void) {
      amdsmi_set_gpu_pci_bandwidth
     amdsmi_get_gpu_pci_throughput
      amdsmi_get_temp_metric
-     amdsmi_dev_get_volt_metric
+     amdsmi_get_gpu_volt_metric
     amdsmi_get_gpu_fan_speed
     amdsmi_get_gpu_fan_rpms
     amdsmi_dev_reset_fan

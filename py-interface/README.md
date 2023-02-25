@@ -1862,7 +1862,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-##  amdsmi_dev_get_volt_metric
+##  amdsmi_get_gpu_volt_metric
 Description: Get the voltage metric value for the specified metric, from the
 specified voltage sensor on the specified device
 
@@ -1873,7 +1873,7 @@ Input parameters:
 
 Output: Voltage as integer in millivolts
 
-Exceptions that can be thrown by ` amdsmi_dev_get_volt_metric` function:
+Exceptions that can be thrown by ` amdsmi_get_gpu_volt_metric` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1886,7 +1886,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            voltage =  amdsmi_dev_get_volt_metric(device, AmdSmiVoltageType.VDDGFX,
+            voltage =  amdsmi_get_gpu_volt_metric(device, AmdSmiVoltageType.VDDGFX,
                         AmdSmiVoltageMetric.AVERAGE)
             print(voltage)
 except AmdSmiException as e:
