@@ -104,7 +104,7 @@ amdsmi_status_t AMDSmiSystem::populate_amd_gpu_devices() {
             sockets_.push_back(socket);
         }
 
-        AMDSmiDevice* device = new AMDSmiGPUDevice(i, drm_);
+        AMDSmiProcessor* device = new AMDSmiGPUDevice(i, drm_);
         socket->add_device(device);
         devices_.insert(device);
     }
@@ -166,11 +166,11 @@ amdsmi_status_t AMDSmiSystem::handle_to_socket(
 
 amdsmi_status_t AMDSmiSystem::handle_to_device(
             amdsmi_device_handle device_handle,
-            AMDSmiDevice** device) {
+            AMDSmiProcessor** device) {
     if (device_handle == nullptr || device == nullptr) {
         return AMDSMI_STATUS_INVAL;
     }
-    *device = static_cast<AMDSmiDevice*>(device_handle);
+    *device = static_cast<AMDSmiProcessor*>(device_handle);
 
     // double check handlers is here
     if (std::find(devices_.begin(), devices_.end(), *device)

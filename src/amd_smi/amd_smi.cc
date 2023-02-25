@@ -84,7 +84,7 @@ static amdsmi_status_t get_gpu_device_from_handle(amdsmi_device_handle device_ha
     if (device_handle == nullptr || gpudevice == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiDevice* device = nullptr;
+    amd::smi::AMDSmiProcessor* device = nullptr;
     amdsmi_status_t r = amd::smi::AMDSmiSystem::getInstance()
                     .handle_to_device(device_handle, &device);
     if (r != AMDSMI_STATUS_SUCCESS) return r;
@@ -230,7 +230,7 @@ amdsmi_status_t amdsmi_get_device_handles(amdsmi_socket_handle socket_handle,
     if (r != AMDSMI_STATUS_SUCCESS) return r;
 
 
-    std::vector<amd::smi::AMDSmiDevice*>& devices = socket->get_devices();
+    std::vector<amd::smi::AMDSmiProcessor*>& devices = socket->get_devices();
     uint32_t device_size = static_cast<uint32_t>(devices.size());
     // Get the device count only
     if (device_handles == nullptr) {
@@ -257,7 +257,7 @@ amdsmi_status_t amdsmi_get_device_type(amdsmi_device_handle device_handle ,
     if (device_type == nullptr) {
         return AMDSMI_STATUS_INVAL;
     }
-    amd::smi::AMDSmiDevice* device = nullptr;
+    amd::smi::AMDSmiProcessor* device = nullptr;
     amdsmi_status_t r = amd::smi::AMDSmiSystem::getInstance()
                     .handle_to_device(device_handle, &device);
     if (r != AMDSMI_STATUS_SUCCESS) return r;
@@ -355,7 +355,7 @@ amdsmi_status_t amdsmi_get_vram_usage(amdsmi_device_handle device_handle,
         return AMDSMI_STATUS_INVAL;
     }
 
-    amd::smi::AMDSmiDevice* device = nullptr;
+    amd::smi::AMDSmiProcessor* device = nullptr;
     amdsmi_status_t ret = amd::smi::AMDSmiSystem::getInstance()
                     .handle_to_device(device_handle, &device);
     if (ret != AMDSMI_STATUS_SUCCESS) return ret;
@@ -397,7 +397,7 @@ amdsmi_status_t amdsmi_get_caps_info(amdsmi_device_handle device_handle,
         return AMDSMI_STATUS_INVAL;
     }
 
-    amd::smi::AMDSmiDevice* amd_device = nullptr;
+    amd::smi::AMDSmiProcessor* amd_device = nullptr;
     amdsmi_status_t ret = amd::smi::AMDSmiSystem::getInstance()
                     .handle_to_device(device_handle, &amd_device);
     if (ret != AMDSMI_STATUS_SUCCESS) return ret;

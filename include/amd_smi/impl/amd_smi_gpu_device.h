@@ -52,13 +52,13 @@
 namespace amd {
 namespace smi {
 
-class AMDSmiGPUDevice: public AMDSmiDevice {
+class AMDSmiGPUDevice: public AMDSmiProcessor {
  public:
     AMDSmiGPUDevice(uint32_t gpu_id, uint32_t fd, std::string path, amdsmi_bdf_t bdf, AMDSmiDrm& drm):
-            AMDSmiDevice(AMD_GPU), gpu_id_(gpu_id), fd_(fd), path_(path), bdf_(bdf), drm_(drm) {}
+            AMDSmiProcessor(AMD_GPU), gpu_id_(gpu_id), fd_(fd), path_(path), bdf_(bdf), drm_(drm) {}
 
     AMDSmiGPUDevice(uint32_t gpu_id, AMDSmiDrm& drm):
-            AMDSmiDevice(AMD_GPU), gpu_id_(gpu_id), drm_(drm) {
+            AMDSmiProcessor(AMD_GPU), gpu_id_(gpu_id), drm_(drm) {
                 if (check_if_drm_is_supported()) this->get_drm_data();
             }
     ~AMDSmiGPUDevice() {

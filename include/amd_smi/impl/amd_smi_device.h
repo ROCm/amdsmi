@@ -41,18 +41,18 @@
  *
  */
 
-#ifndef AMD_SMI_INCLUDE_AMD_SMI_DEVICE_H_
-#define AMD_SMI_INCLUDE_AMD_SMI_DEVICE_H_
+#ifndef AMD_SMI_INCLUDE_AMD_SMI_PROCESSOR_H_
+#define AMD_SMI_INCLUDE_AMD_SMI_PROCESSOR_H_
 
 #include "amd_smi/amdsmi.h"
 
 namespace amd {
 namespace smi {
 
-class AMDSmiDevice {
+class AMDSmiProcessor {
  public:
-    explicit AMDSmiDevice(device_type_t device) : device_type_(device) {}
-    virtual ~AMDSmiDevice() {}
+    explicit AMDSmiProcessor(device_type_t device) : device_type_(device) {}
+    virtual ~AMDSmiProcessor() {}
     device_type_t get_device_type() const { return device_type_;}
  private:
     device_type_t device_type_;
@@ -62,4 +62,4 @@ class AMDSmiDevice {
 }  // namespace smi
 }  // namespace amd
 
-#endif  // AMD_SMI_INCLUDE_AMD_SMI_DEVICE_H_
+#endif  // AMD_SMI_INCLUDE_AMD_SMI_PROCESSOR_H_

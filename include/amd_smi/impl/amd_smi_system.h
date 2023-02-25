@@ -70,7 +70,7 @@ class AMDSmiSystem {
             AMDSmiSocket** socket);
 
     amdsmi_status_t handle_to_device(amdsmi_device_handle device_handle,
-            AMDSmiDevice** device);
+            AMDSmiProcessor** device);
 
     amdsmi_status_t gpu_index_to_handle(uint32_t gpu_index,
                     amdsmi_device_handle* device_handle);
@@ -82,7 +82,7 @@ class AMDSmiSystem {
     uint64_t init_flag_;
     AMDSmiDrm drm_;
     std::vector<AMDSmiSocket*> sockets_;
-    std::set<AMDSmiDevice*> devices_;     // Track valid devices
+    std::set<AMDSmiProcessor*> devices_;     // Track valid devices
 };
 
 
