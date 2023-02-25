@@ -100,15 +100,15 @@ void TestPciReadWrite::Run(void) {
   for (uint32_t dv_ind = 0; dv_ind < num_monitor_devs(); ++dv_ind) {
     PrintDeviceHeader(processor_handles_[dv_ind]);
 
-    ret =  amdsmi_dev_get_pci_replay_counter(processor_handles_[dv_ind], &u64int);
+    ret =  amdsmi_get_gpu_pci_replay_counter(processor_handles_[dv_ind], &u64int);
 
      if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
         std::cout <<
-            "\t** amdsmi_dev_get_pci_replay_counter() is not supported"
+            "\t** amdsmi_get_gpu_pci_replay_counter() is not supported"
             " on this machine" << std::endl;
 
         // Verify api support checking functionality is working
-        ret =  amdsmi_dev_get_pci_replay_counter(processor_handles_[dv_ind], nullptr);
+        ret =  amdsmi_get_gpu_pci_replay_counter(processor_handles_[dv_ind], nullptr);
         ASSERT_EQ(ret, AMDSMI_STATUS_NOT_SUPPORTED);
       } else {
         CHK_ERR_ASRT(ret)
@@ -116,7 +116,7 @@ void TestPciReadWrite::Run(void) {
           std::cout << "\tPCIe Replay Counter: " << u64int << std::endl;
         }
         // Verify api support checking functionality is working
-        ret =  amdsmi_dev_get_pci_replay_counter(processor_handles_[dv_ind], nullptr);
+        ret =  amdsmi_get_gpu_pci_replay_counter(processor_handles_[dv_ind], nullptr);
         ASSERT_EQ(ret, AMDSMI_STATUS_INVAL);
       }
 
