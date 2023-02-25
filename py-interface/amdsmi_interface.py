@@ -1977,7 +1977,7 @@ def amdsmi_dev_set_od_clk_info(
     )
 
 
-def amdsmi_dev_get_memory_usage(processor_handle: amdsmi_wrapper.amdsmi_processor_handle, mem_type: AmdSmiMemoryType):
+def amdsmi_get_gpu_memory_usage(processor_handle: amdsmi_wrapper.amdsmi_processor_handle, mem_type: AmdSmiMemoryType):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
@@ -1991,7 +1991,7 @@ def amdsmi_dev_get_memory_usage(processor_handle: amdsmi_wrapper.amdsmi_processo
     used = ctypes.c_uint64()
 
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_get_memory_usage(
+        amdsmi_wrapper.amdsmi_get_gpu_memory_usage(
             processor_handle, mem_type, ctypes.byref(used))
     )
 

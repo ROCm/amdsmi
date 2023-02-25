@@ -138,9 +138,9 @@ void TestMemUtilRead::Run(void) {
           return;
         }
 
-        err = amdsmi_dev_get_memory_usage(processor_handles_[i],
+        err = amdsmi_get_gpu_memory_usage(processor_handles_[i],
                              static_cast<amdsmi_memory_type_t>(mem_type), &usage);
-        err_chk("amdsmi_dev_get_memory_usage()");
+        err_chk("amdsmi_get_gpu_memory_usage()");
         if (err != AMDSMI_STATUS_SUCCESS) {
           return;
         }

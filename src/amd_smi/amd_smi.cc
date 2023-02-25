@@ -932,7 +932,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_gpu_metrics_info_get", " amdsmi_dev_get_gpu_metrics_info"},
         {"rsmi_dev_gpu_reset", "amdsmi_dev_reset_gpu"},
         {"rsmi_dev_memory_total_get", "amdsmi_get_gpu_memory_total"},
-        {"rsmi_dev_memory_usage_get", "amdsmi_dev_get_memory_usage"},
+        {"rsmi_dev_memory_usage_get", "amdsmi_get_gpu_memory_usage"},
         {"rsmi_dev_gpu_clk_freq_get", " amdsmi_dev_get_gpu_clk_freq"},
         {"rsmi_dev_gpu_clk_freq_set", " amdsmi_dev_set_clk_freq"},
         {"rsmi_dev_firmware_version_get", "amdsmi_get_fw_info"},
@@ -1274,7 +1274,7 @@ amdsmi_status_t amdsmi_get_gpu_memory_total(amdsmi_processor_handle processor_ha
     return rsmi_wrapper(rsmi_dev_memory_total_get, processor_handle,
                     static_cast<rsmi_memory_type_t>(mem_type), total);
 }
-amdsmi_status_t amdsmi_dev_get_memory_usage(amdsmi_processor_handle processor_handle,
+amdsmi_status_t amdsmi_get_gpu_memory_usage(amdsmi_processor_handle processor_handle,
             amdsmi_memory_type_t mem_type, uint64_t *used) {
     return rsmi_wrapper(rsmi_dev_memory_usage_get, processor_handle,
                     static_cast<rsmi_memory_type_t>(mem_type), used);
