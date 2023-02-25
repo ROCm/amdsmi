@@ -1496,9 +1496,9 @@ amdsmi_get_gpu_fan_speed.argtypes = [amdsmi_processor_handle, uint32_t, ctypes.P
 amdsmi_get_gpu_fan_speed_max = _libraries['libamd_smi.so'].amdsmi_get_gpu_fan_speed_max
 amdsmi_get_gpu_fan_speed_max.restype = amdsmi_status_t
 amdsmi_get_gpu_fan_speed_max.argtypes = [amdsmi_processor_handle, uint32_t, ctypes.POINTER(ctypes.c_uint64)]
-amdsmi_dev_get_temp_metric = _libraries['libamd_smi.so'].amdsmi_dev_get_temp_metric
-amdsmi_dev_get_temp_metric.restype = amdsmi_status_t
-amdsmi_dev_get_temp_metric.argtypes = [amdsmi_processor_handle, amdsmi_temperature_type_t, amdsmi_temperature_metric_t, ctypes.POINTER(ctypes.c_int64)]
+amdsmi_get_temp_metric = _libraries['libamd_smi.so'].amdsmi_get_temp_metric
+amdsmi_get_temp_metric.restype = amdsmi_status_t
+amdsmi_get_temp_metric.argtypes = [amdsmi_processor_handle, amdsmi_temperature_type_t, amdsmi_temperature_metric_t, ctypes.POINTER(ctypes.c_int64)]
 amdsmi_dev_get_volt_metric = _libraries['libamd_smi.so'].amdsmi_dev_get_volt_metric
 amdsmi_dev_get_volt_metric.restype = amdsmi_status_t
 amdsmi_dev_get_volt_metric.argtypes = [amdsmi_processor_handle, amdsmi_voltage_type_t, amdsmi_voltage_metric_t, ctypes.POINTER(ctypes.c_int64)]
@@ -1868,7 +1868,7 @@ __all__ = \
     'amdsmi_get_power_ave',
     'amdsmi_dev_get_power_profile_presets',
     'amdsmi_get_gpu_subsystem_id', 'amdsmi_get_gpu_subsystem_name',
-    'amdsmi_dev_get_temp_metric', 'amdsmi_get_gpu_vendor_name',
+    'amdsmi_get_temp_metric', 'amdsmi_get_gpu_vendor_name',
     'amdsmi_dev_get_volt_metric', 'amdsmi_get_gpu_vram_vendor',
     'amdsmi_dev_open_supported_func_iterator',
     'amdsmi_dev_open_supported_variant_iterator',

@@ -1990,7 +1990,7 @@ amdsmi_status_t amdsmi_get_gpu_fan_speed_max(amdsmi_processor_handle processor_h
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_get_temp_metric(amdsmi_processor_handle processor_handle,
+amdsmi_status_t  amdsmi_get_temp_metric(amdsmi_processor_handle processor_handle,
                       amdsmi_temperature_type_t sensor_type,
                       amdsmi_temperature_metric_t metric, int64_t *temperature);
 
@@ -3244,14 +3244,14 @@ amdsmi_is_P2P_accessible(amdsmi_processor_handle processor_handle_src, amdsmi_pr
  *
  *  Some functions have several variations ("variants") where some variants are
  *  supported and others are not. For example, on a given device,
- *  :: amdsmi_dev_get_temp_metric may support some types of temperature metrics
+ *  :: amdsmi_get_temp_metric may support some types of temperature metrics
  *  (e.g., ::AMDSMI_TEMP_CRITICAL_HYST), but not others
  *  (e.g., ::AMDSMI_TEMP_EMERGENCY).
  *
  *  In addition to a top level of variant support for a function, a function
  *  may have varying support for monitors/sensors. These are considered
  *  "sub-variants" in functions described in this section. Continuing the
- *  :: amdsmi_dev_get_temp_metric example, if variant
+ *  :: amdsmi_get_temp_metric example, if variant
  *  ::AMDSMI_TEMP_CRITICAL_HYST is supported, perhaps
  *  only the sub-variant sensors ::AMDSMI_TEMP_TYPE_EDGE
  *  and ::AMDSMI_TEMP_TYPE_EDGE are supported, but not

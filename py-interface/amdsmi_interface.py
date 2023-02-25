@@ -2117,7 +2117,7 @@ def amdsmi_get_gpu_fan_speed_max(
     return fan_speed.value
 
 
-def amdsmi_dev_get_temp_metric(
+def amdsmi_get_temp_metric(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     sensor_type: AmdSmiTemperatureType,
     metric: AmdSmiTemperatureMetric,
@@ -2133,7 +2133,7 @@ def amdsmi_dev_get_temp_metric(
 
     temp_value = ctypes.c_int64()
     _check_res(
-        amdsmi_wrapper. amdsmi_dev_get_temp_metric(
+        amdsmi_wrapper. amdsmi_get_temp_metric(
             processor_handle, sensor_type, metric, ctypes.byref(temp_value)
         )
     )

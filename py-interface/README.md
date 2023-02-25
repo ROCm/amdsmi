@@ -1832,7 +1832,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-##  amdsmi_dev_get_temp_metric
+##  amdsmi_get_temp_metric
 Description: Get the temperature metric value for the specified metric, from the
 specified temperature sensor on the specified device
 
@@ -1843,7 +1843,7 @@ Input parameters:
 
 Output: Temperature as integer in millidegrees Celcius
 
-Exceptions that can be thrown by ` amdsmi_dev_get_temp_metric` function:
+Exceptions that can be thrown by ` amdsmi_get_temp_metric` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1856,7 +1856,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            temp_metric =  amdsmi_dev_get_temp_metric(device, AmdSmiTemperatureType.EDGE,
+            temp_metric =  amdsmi_get_temp_metric(device, AmdSmiTemperatureType.EDGE,
                             AmdSmiTemperatureMetric.CURRENT)
             print(temp_metric)
 except AmdSmiException as e:
