@@ -106,7 +106,7 @@ void TestMetricsCounterRead::Run(void) {
     uint64_t power;
     uint64_t timestamp;
     float counter_resolution;
-    err = amdsmi_dev_get_energy_count(processor_handles_[i], &power, &counter_resolution, &timestamp);
+    err = amdsmi_get_energy_count(processor_handles_[i], &power, &counter_resolution, &timestamp);
     if (err != AMDSMI_STATUS_SUCCESS) {
       if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
         IF_VERB(STANDARD) {
@@ -128,7 +128,7 @@ void TestMetricsCounterRead::Run(void) {
     }
 
     // Verify api support checking functionality is working
-    err = amdsmi_dev_get_energy_count(processor_handles_[i], nullptr, nullptr, nullptr);
+    err = amdsmi_get_energy_count(processor_handles_[i], nullptr, nullptr, nullptr);
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
     // Coarse Grain counters

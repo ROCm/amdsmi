@@ -1522,7 +1522,7 @@ except AmdSmiException as e:
 ```
 
 
-## amdsmi_dev_get_energy_count
+## amdsmi_get_energy_count
 
 Description: Get the energy accumulator counter of the device.
 
@@ -1538,7 +1538,7 @@ Field | Content
 `counter_resolution` |  counter resolution
 `timestamp` |  timestamp
 
-Exceptions that can be thrown by `amdsmi_dev_get_energy_count` function:
+Exceptions that can be thrown by `amdsmi_get_energy_count` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1551,7 +1551,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            power = amdsmi_dev_get_energy_count(device)
+            power = amdsmi_get_energy_count(device)
             print(power)
 except AmdSmiException as e:
     print(e)

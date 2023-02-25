@@ -145,7 +145,7 @@ from .amdsmi_interface import amdsmi_get_gpu_topo_numa_affinity
 
 # # Power information
 from .amdsmi_interface import amdsmi_get_power_ave
-from .amdsmi_interface import amdsmi_dev_get_energy_count
+from .amdsmi_interface import amdsmi_get_energy_count
 
 # # Memory information
 from .amdsmi_interface import amdsmi_dev_get_memory_total

@@ -299,7 +299,7 @@ class Formatter:
     |     """ + self.style.text("10   Get device pci replay counter.        Api:  amdsmi_get_gpu_pci_replay_counter      <bdf>") + """                        |
     |     """ + self.style.text("11   Get topo numa affinity.               Api: amdsmi_get_gpu_topo_numa_affinity          <bdf>") + """                        |
     |     """ + self.style.text("12   Get device power ave.                 Api: amdsmi_get_power_ave               <bdf><sensor_id>") + """             |
-    |     """ + self.style.text("13   Get device energy count.              Api: amdsmi_dev_get_energy_count            <bdf>") + """                        |
+    |     """ + self.style.text("13   Get device energy count.              Api: amdsmi_get_energy_count            <bdf>") + """                        |
     |     """ + self.style.text("14   Get device memory total.              Api: amdsmi_dev_get_memory_total            <bdf>") + """                        |
     |     """ + self.style.text("15   Get device memory usage.              Api: amdsmi_dev_get_memory_usage            <bdf>") + """                        |
     |     """ + self.style.text("16   Get device memory busy percent.       Api: amdsmi_dev_get_memory_busy_percent     <bdf>") + """                        |
@@ -759,7 +759,7 @@ commands = {
         "device_identifier1": [None, True],
         "sensor_id": [int, True]
     }],
-    13: [smi_api.amdsmi_dev_get_energy_count, {
+    13: [smi_api.amdsmi_get_energy_count, {
         "device_identifier1": [None, True]
     }],
     14: [amdsmi_tool_dev_memory_total_get, {
