@@ -182,7 +182,7 @@ void TestPciReadWrite::Run(void) {
     std::cout << "\tSetting bandwidth mask to " << "0b" << freq_bm_str <<
                                                             " ..." << std::endl;
     }
-    ret =  amdsmi_dev_set_pci_bandwidth(processor_handles_[dv_ind], freq_bitmask);
+    ret =  amdsmi_set_gpu_pci_bandwidth(processor_handles_[dv_ind], freq_bitmask);
     CHK_ERR_ASRT(ret)
 
     ret = amdsmi_get_gpu_pci_bandwidth(processor_handles_[dv_ind], &bw);
@@ -193,7 +193,7 @@ void TestPciReadWrite::Run(void) {
                                                                       std::endl;
       std::cout << "\tResetting mask to all bandwidths." << std::endl;
     }
-    ret =  amdsmi_dev_set_pci_bandwidth(processor_handles_[dv_ind], 0xFFFFFFFF);
+    ret =  amdsmi_set_gpu_pci_bandwidth(processor_handles_[dv_ind], 0xFFFFFFFF);
     CHK_ERR_ASRT(ret)
 
     ret =  amdsmi_dev_set_perf_level(processor_handles_[dv_ind], AMDSMI_DEV_PERF_LEVEL_AUTO);

@@ -1615,7 +1615,7 @@ amdsmi_status_t  amdsmi_get_gpu_pci_replay_counter(amdsmi_processor_handle proce
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_set_pci_bandwidth(amdsmi_processor_handle processor_handle, uint64_t bw_bitmask);
+amdsmi_status_t  amdsmi_set_gpu_pci_bandwidth(amdsmi_processor_handle processor_handle, uint64_t bw_bitmask);
 
 /** @} End PCIeCont */
 

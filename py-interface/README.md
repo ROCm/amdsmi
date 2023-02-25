@@ -1196,7 +1196,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-##  amdsmi_dev_set_pci_bandwidth
+##  amdsmi_set_gpu_pci_bandwidth
 Description: Control the set of allowed PCIe bandwidths that can be used
 
 Input parameters:
@@ -1206,7 +1206,7 @@ to be enabled (1) and disabled (0)
 
 Output: None
 
-Exceptions that can be thrown by ` amdsmi_dev_set_pci_bandwidth` function:
+Exceptions that can be thrown by ` amdsmi_set_gpu_pci_bandwidth` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1219,7 +1219,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-             amdsmi_dev_set_pci_bandwidth(device, 0)
+             amdsmi_set_gpu_pci_bandwidth(device, 0)
 except AmdSmiException as e:
     print(e)
 ```

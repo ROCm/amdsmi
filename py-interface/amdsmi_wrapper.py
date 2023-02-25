@@ -1454,9 +1454,9 @@ amdsmi_get_gpu_pci_throughput.argtypes = [amdsmi_processor_handle, ctypes.POINTE
 amdsmi_get_gpu_pci_replay_counter = _libraries['libamd_smi.so'].amdsmi_get_gpu_pci_replay_counter
 amdsmi_get_gpu_pci_replay_counter.restype = amdsmi_status_t
 amdsmi_get_gpu_pci_replay_counter.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint64)]
-amdsmi_dev_set_pci_bandwidth = _libraries['libamd_smi.so'].amdsmi_dev_set_pci_bandwidth
-amdsmi_dev_set_pci_bandwidth.restype = amdsmi_status_t
-amdsmi_dev_set_pci_bandwidth.argtypes = [amdsmi_processor_handle, uint64_t]
+amdsmi_set_gpu_pci_bandwidth = _libraries['libamd_smi.so'].amdsmi_set_gpu_pci_bandwidth
+amdsmi_set_gpu_pci_bandwidth.restype = amdsmi_status_t
+amdsmi_set_gpu_pci_bandwidth.argtypes = [amdsmi_processor_handle, uint64_t]
 amdsmi_dev_get_power_ave = _libraries['libamd_smi.so'].amdsmi_dev_get_power_ave
 amdsmi_dev_get_power_ave.restype = amdsmi_status_t
 amdsmi_dev_get_power_ave.argtypes = [amdsmi_processor_handle, uint32_t, ctypes.POINTER(ctypes.c_uint64)]
@@ -1879,7 +1879,7 @@ __all__ = \
     'amdsmi_dev_set_od_clk_info', 'amdsmi_dev_set_od_volt_info',
     'amdsmi_dev_set_overdrive_level',
     'amdsmi_dev_set_overdrive_level_v1',
-    'amdsmi_dev_set_pci_bandwidth', 'amdsmi_dev_set_perf_level',
+    'amdsmi_set_gpu_pci_bandwidth', 'amdsmi_dev_set_perf_level',
     'amdsmi_dev_set_perf_level_v1', 'amdsmi_dev_set_power_cap',
     'amdsmi_dev_set_power_profile', 'amdsmi_dev_xgmi_error_status',
     'amdsmi_processor_handle', 'amdsmi_engine_usage_t',
