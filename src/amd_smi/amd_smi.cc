@@ -86,7 +86,7 @@ static amdsmi_status_t get_gpu_device_from_handle(amdsmi_processor_handle proces
 
     amd::smi::AMDSmiProcessor* device = nullptr;
     amdsmi_status_t r = amd::smi::AMDSmiSystem::getInstance()
-                    .handle_to_device(processor_handle, &device);
+                    .handle_to_processor(processor_handle, &device);
     if (r != AMDSMI_STATUS_SUCCESS) return r;
 
     if (device->get_processor_type() == AMD_GPU) {
@@ -215,11 +215,11 @@ amdsmi_status_t amdsmi_get_socket_info(
 }
 
 amdsmi_status_t amdsmi_get_processor_handles(amdsmi_socket_handle socket_handle,
-                                    uint32_t* device_count,
+                                    uint32_t* processor_count,
                                     amdsmi_processor_handle* processor_handles) {
     AMDSMI_CHECK_INIT();
 
-    if (device_count == nullptr) {
+    if (processor_count == nullptr) {
         return AMDSMI_STATUS_INVAL;
     }
 
@@ -230,20 +230,20 @@ amdsmi_status_t amdsmi_get_processor_handles(amdsmi_socket_handle socket_handle,
     if (r != AMDSMI_STATUS_SUCCESS) return r;
 
 
-    std::vector<amd::smi::AMDSmiProcessor*>& devices = socket->get_processors();
-    uint32_t device_size = static_cast<uint32_t>(devices.size());
-    // Get the device count only
+    std::vector<amd::smi::AMDSmiProcessor*>& processors = socket->get_processors();
+    uint32_t processor_size = static_cast<uint32_t>(processors.size());
+    // Get the processor count only
     if (processor_handles == nullptr) {
-        *device_count = device_size;
+        *processor_count = processor_size;
         return AMDSMI_STATUS_SUCCESS;
     }
 
-    // If the processor_handles can hold all devices, return all of them.
-    *device_count = *device_count >= device_size ? device_size : *device_count;
+    // If the processor_handles can hold all processors, return all of them.
+    *processor_count = *processor_count >= processor_size ? processor_size : *processor_count;
 
-    // Copy the device handles
-    for (uint32_t i = 0; i < *device_count; i++) {
-        processor_handles[i] = reinterpret_cast<amdsmi_processor_handle>(devices[i]);
+    // Copy the processor handles
+    for (uint32_t i = 0; i < *processor_count; i++) {
+        processor_handles[i] = reinterpret_cast<amdsmi_processor_handle>(processors[i]);
     }
 
     return AMDSMI_STATUS_SUCCESS;
@@ -257,11 +257,11 @@ amdsmi_status_t amdsmi_get_processor_type(amdsmi_processor_handle processor_hand
     if (processor_type == nullptr) {
         return AMDSMI_STATUS_INVAL;
     }
-    amd::smi::AMDSmiProcessor* device = nullptr;
+    amd::smi::AMDSmiProcessor* processor = nullptr;
     amdsmi_status_t r = amd::smi::AMDSmiSystem::getInstance()
-                    .handle_to_device(processor_handle, &device);
+                    .handle_to_processor(processor_handle, &processor);
     if (r != AMDSMI_STATUS_SUCCESS) return r;
-    *processor_type = device->get_processor_type();
+    *processor_type = processor->get_processor_type();
 
     return AMDSMI_STATUS_SUCCESS;
 }
@@ -357,7 +357,7 @@ amdsmi_status_t amdsmi_get_vram_usage(amdsmi_processor_handle processor_handle,
 
     amd::smi::AMDSmiProcessor* device = nullptr;
     amdsmi_status_t ret = amd::smi::AMDSmiSystem::getInstance()
-                    .handle_to_device(processor_handle, &device);
+                    .handle_to_processor(processor_handle, &device);
     if (ret != AMDSMI_STATUS_SUCCESS) return ret;
 
     if (device->get_processor_type() != AMD_GPU) {
@@ -399,7 +399,7 @@ amdsmi_status_t amdsmi_get_caps_info(amdsmi_processor_handle processor_handle,
 
     amd::smi::AMDSmiProcessor* amd_device = nullptr;
     amdsmi_status_t ret = amd::smi::AMDSmiSystem::getInstance()
-                    .handle_to_device(processor_handle, &amd_device);
+                    .handle_to_processor(processor_handle, &amd_device);
     if (ret != AMDSMI_STATUS_SUCCESS) return ret;
 
     if (amd_device->get_processor_type() != AMD_GPU) {
