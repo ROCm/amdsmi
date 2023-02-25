@@ -105,7 +105,7 @@ except AmdSmiException as e:
 ## amdsmi_get_device_type
 Description: Checks the type of device with provided handle.
 
-Input parameters: device handle as an instance of `amdsmi_device_handle`
+Input parameters: device handle as an instance of `amdsmi_processor_handle`
 
 Output: Integer, type of gpu
 

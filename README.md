@@ -119,7 +119,7 @@ int main() {
     ret = amdsmi_get_device_handles(sockets[i], &device_count, nullptr);
  
     // Allocate the memory for the device handlers on the socket
-    std::vector<amdsmi_device_handle> device_handles(device_count);
+    std::vector<amdsmi_processor_handle> device_handles(device_count);
     // Get all devices of the socket
     ret = amdsmi_get_device_handles(sockets[i],
               &device_count, &device_handles[0]);

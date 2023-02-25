@@ -131,7 +131,7 @@ void TestBase::SetUp(uint64_t init_flags) {
     }
     ASSERT_EQ(err, AMDSMI_STATUS_SUCCESS);
 
-    std::vector<amdsmi_device_handle> device_handles(device_count);
+    std::vector<amdsmi_processor_handle> device_handles(device_count);
     err = amdsmi_get_device_handles(sockets_[i],
             &device_count, &device_handles[0]);
     if (err != AMDSMI_STATUS_SUCCESS) {
@@ -159,7 +159,7 @@ void TestBase::SetUp(uint64_t init_flags) {
   return;
 }
 
-void TestBase::PrintDeviceHeader(amdsmi_device_handle dv_ind) {
+void TestBase::PrintDeviceHeader(amdsmi_processor_handle dv_ind) {
   amdsmi_status_t err;
   uint16_t val_ui16;
   amdsmi_asic_info_t info;

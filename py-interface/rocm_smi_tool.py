@@ -234,7 +234,7 @@ class Formatter:
                 self.print_dict(result)
             elif isinstance(result, list):
                 self.print_list(result)
-            elif isinstance(result, smi_api.amdsmi_wrapper.amdsmi_device_handle):
+            elif isinstance(result, smi_api.amdsmi_wrapper.amdsmi_processor_handle):
                 self.print_handle("\n" + result)
             else:
                 print(result)
