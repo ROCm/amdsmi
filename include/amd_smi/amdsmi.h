@@ -1553,7 +1553,7 @@ amdsmi_status_t amdsmi_get_gpu_topo_numa_affinity(amdsmi_processor_handle proces
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_dev_get_pci_throughput(amdsmi_processor_handle processor_handle, uint64_t *sent,
+amdsmi_status_t amdsmi_get_gpu_pci_throughput(amdsmi_processor_handle processor_handle, uint64_t *sent,
                                     uint64_t *received, uint64_t *max_pkt_sz);
 
 /**

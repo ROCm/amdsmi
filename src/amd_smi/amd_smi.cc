@@ -903,7 +903,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_unique_id_get", "amdsmi_get_gpu_board_info"},
         {"rsmi_dev_pci_bandwidth_get", "amdsmi_get_gpu_pci_bandwidth"},
         {"rsmi_dev_pci_id_get", "amdsmi_get_gpu_pci_id"},
-        {"rsmi_dev_pci_throughput_get", "amdsmi_dev_get_pci_throughput"},
+        {"rsmi_dev_pci_throughput_get", "amdsmi_get_gpu_pci_throughput"},
         {"rsmi_dev_pci_replay_counter_get", " amdsmi_dev_get_pci_replay_counter"},
         {"rsmi_dev_pci_bandwidth_set", " amdsmi_dev_set_pci_bandwidth"},
         {"rsmi_dev_power_profile_set", " amdsmi_dev_set_power_profile"},
@@ -1295,7 +1295,7 @@ amdsmi_status_t  amdsmi_dev_get_pci_replay_counter(
     return rsmi_wrapper(rsmi_dev_pci_replay_counter_get,
                 processor_handle, counter);
 }
-amdsmi_status_t amdsmi_dev_get_pci_throughput(
+amdsmi_status_t amdsmi_get_gpu_pci_throughput(
         amdsmi_processor_handle processor_handle,
         uint64_t *sent, uint64_t *received, uint64_t *max_pkt_sz) {
     return rsmi_wrapper(rsmi_dev_pci_throughput_get, processor_handle,

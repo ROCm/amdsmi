@@ -217,7 +217,7 @@ void TestMutualExclusion::Run(void) {
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret = amdsmi_get_gpu_pci_id(processor_handles_[0], &dmy_ui64);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_get_pci_throughput(processor_handles_[0], &dmy_ui64, &dmy_ui64, &dmy_ui64);
+    ret = amdsmi_get_gpu_pci_throughput(processor_handles_[0], &dmy_ui64, &dmy_ui64, &dmy_ui64);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret =  amdsmi_dev_get_pci_replay_counter(processor_handles_[0], &dmy_ui64);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
@@ -271,7 +271,7 @@ void TestMutualExclusion::Run(void) {
     amdsmi_get_gpu_vendor_name
     amdsmi_get_gpu_pci_bandwidth
      amdsmi_dev_set_pci_bandwidth
-    amdsmi_dev_get_pci_throughput
+    amdsmi_get_gpu_pci_throughput
      amdsmi_dev_get_temp_metric
      amdsmi_dev_get_volt_metric
     amdsmi_dev_get_fan_speed

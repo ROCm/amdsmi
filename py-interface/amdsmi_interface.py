@@ -1763,7 +1763,7 @@ def amdsmi_get_gpu_pci_bandwidth(processor_handle: amdsmi_wrapper.amdsmi_process
     }
 
 
-def amdsmi_dev_get_pci_throughput(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_get_gpu_pci_throughput(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
@@ -1774,7 +1774,7 @@ def amdsmi_dev_get_pci_throughput(processor_handle: amdsmi_wrapper.amdsmi_proces
     max_pkt_sz = ctypes.c_uint64()
 
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_get_pci_throughput(processor_handle, ctypes.byref(
+        amdsmi_wrapper.amdsmi_get_gpu_pci_throughput(processor_handle, ctypes.byref(
             sent), ctypes.byref(received), ctypes.byref(max_pkt_sz))
     )
 

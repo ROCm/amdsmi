@@ -1397,7 +1397,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_get_pci_throughput
+## amdsmi_get_gpu_pci_throughput
 Description: Get PCIe traffic information
 
 Input parameters:
@@ -1412,7 +1412,7 @@ Field | Content
 `received` | the number of bytes received
 `max_pkt_sz` | maximum packet size
 
-Exceptions that can be thrown by `amdsmi_dev_get_pci_throughput` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_pci_throughput` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1425,7 +1425,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            pci = amdsmi_dev_get_pci_throughput(device)
+            pci = amdsmi_get_gpu_pci_throughput(device)
             print(pci)
 except AmdSmiException as e:
     print(e)
