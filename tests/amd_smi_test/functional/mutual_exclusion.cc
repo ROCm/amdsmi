@@ -286,7 +286,7 @@ void TestMutualExclusion::Run(void) {
     amdsmi_get_power_ave
     amdsmi_dev_power_cap_get
     amdsmi_dev_power_cap_range_get
-     amdsmi_dev_set_power_cap
+     amdsmi_set_power_cap
      amdsmi_dev_get_power_profile_presets
      amdsmi_dev_set_power_profile
     amdsmi_dev_get_memory_total

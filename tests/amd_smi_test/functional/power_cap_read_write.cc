@@ -121,7 +121,7 @@ void TestPowerCapReadWrite::Run(void) {
       std::cout << "Setting new cap to " << new_cap << "..." << std::endl;
     }
     start = clock();
-    ret =  amdsmi_dev_set_power_cap(processor_handles_[dv_ind], 0, new_cap);
+    ret =  amdsmi_set_power_cap(processor_handles_[dv_ind], 0, new_cap);
     end = clock();
     cpu_time_used = ((double) (end - start)) * 1000000UL / CLOCKS_PER_SEC;
 
@@ -139,7 +139,7 @@ void TestPowerCapReadWrite::Run(void) {
       std::cout << "Resetting cap to " << orig << "..." << std::endl;
     }
 
-    ret =  amdsmi_dev_set_power_cap(processor_handles_[dv_ind], 0, orig);
+    ret =  amdsmi_set_power_cap(processor_handles_[dv_ind], 0, orig);
     CHK_ERR_ASRT(ret)
 
     ret = amdsmi_get_power_cap_info(processor_handles_[dv_ind], 0, &info);

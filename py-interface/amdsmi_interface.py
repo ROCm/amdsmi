@@ -1817,7 +1817,7 @@ def amdsmi_get_gpu_topo_numa_affinity(processor_handle: amdsmi_wrapper.amdsmi_pr
     return numa_node.value
 
 
-def amdsmi_dev_set_power_cap(
+def amdsmi_set_power_cap(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_ind: int, cap: int
 ) -> None:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -1832,7 +1832,7 @@ def amdsmi_dev_set_power_cap(
         raise AmdSmiParameterException(cap, int)
 
     _check_res(
-        amdsmi_wrapper. amdsmi_dev_set_power_cap(
+        amdsmi_wrapper. amdsmi_set_power_cap(
             processor_handle, ctypes.c_uint32(sensor_ind), ctypes.c_uint64(cap)
         )
     )

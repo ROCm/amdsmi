@@ -1463,9 +1463,9 @@ amdsmi_get_power_ave.argtypes = [amdsmi_processor_handle, uint32_t, ctypes.POINT
 amdsmi_get_energy_count = _libraries['libamd_smi.so'].amdsmi_get_energy_count
 amdsmi_get_energy_count.restype = amdsmi_status_t
 amdsmi_get_energy_count.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_uint64)]
-amdsmi_dev_set_power_cap = _libraries['libamd_smi.so'].amdsmi_dev_set_power_cap
-amdsmi_dev_set_power_cap.restype = amdsmi_status_t
-amdsmi_dev_set_power_cap.argtypes = [amdsmi_processor_handle, uint32_t, uint64_t]
+amdsmi_set_power_cap = _libraries['libamd_smi.so'].amdsmi_set_power_cap
+amdsmi_set_power_cap.restype = amdsmi_status_t
+amdsmi_set_power_cap.argtypes = [amdsmi_processor_handle, uint32_t, uint64_t]
 amdsmi_dev_set_power_profile = _libraries['libamd_smi.so'].amdsmi_dev_set_power_profile
 amdsmi_dev_set_power_profile.restype = amdsmi_status_t
 amdsmi_dev_set_power_profile.argtypes = [amdsmi_processor_handle, uint32_t, amdsmi_power_profile_preset_masks_t]
@@ -1880,7 +1880,7 @@ __all__ = \
     'amdsmi_dev_set_overdrive_level',
     'amdsmi_dev_set_overdrive_level_v1',
     'amdsmi_set_gpu_pci_bandwidth', 'amdsmi_dev_set_perf_level',
-    'amdsmi_dev_set_perf_level_v1', 'amdsmi_dev_set_power_cap',
+    'amdsmi_dev_set_perf_level_v1', 'amdsmi_set_power_cap',
     'amdsmi_dev_set_power_profile', 'amdsmi_dev_xgmi_error_status',
     'amdsmi_processor_handle', 'amdsmi_engine_usage_t',
     'amdsmi_error_count_t', 'amdsmi_event_group_t',

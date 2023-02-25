@@ -361,7 +361,7 @@ class Formatter:
     |     """ + self.style.text("72   Set dev pci bandwidth.                Api:  amdsmi_set_gpu_pci_bandwidth           <bdf><bitmask>") + """               |
     |     """ + self.style.text("73   Set dev perf level.                   Api:  amdsmi_dev_set_perf_level              <bdf>") + """                        |
     |     """ + self.style.text("74   Set dev perf level v1.                Api:  amdsmi_dev_set_perf_level_v1           <bdf>") + """                        |
-    |     """ + self.style.text("75   Set dev power cap.                    Api:  amdsmi_dev_set_power_cap               <bdf><sensor_ind><cap>") + """       |
+    |     """ + self.style.text("75   Set dev power cap.                    Api:  amdsmi_set_power_cap               <bdf><sensor_ind><cap>") + """       |
     |     """ + self.style.text("76   Set dev power profile.                Api:  amdsmi_dev_set_power_profile           <bdf><reserved>") + """              |
     |     """ + self.style.text("77   Close dev supported func iterator.    Api: amdsmi_dev_close_supported_func_iterator    <bdf>") + """                   |
     |     """ + self.style.text("78   Pen dev supported func iterator.      Api: amdsmi_dev_open_supported_func_iterator     <bdf>") + """                   |
@@ -694,7 +694,7 @@ def amdsmi_tool_dev_perf_level_set_v1(dev):
 def amdsmi_tool_dev_power_cap_set(dev, dic):
     sensor_ind = dic["sensor_ind"]
     cap = dic["cap"]
-    return smi_api. amdsmi_dev_set_power_cap(dev, sensor_ind, cap)
+    return smi_api. amdsmi_set_power_cap(dev, sensor_ind, cap)
 
 def amdsmi_tool_dev_power_profile_set(dev, dic):
     result = {}

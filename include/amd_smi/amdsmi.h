@@ -1705,7 +1705,7 @@ amdsmi_get_energy_count(amdsmi_processor_handle processor_handle, uint64_t *powe
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
- amdsmi_dev_set_power_cap(amdsmi_processor_handle processor_handle, uint32_t sensor_ind, uint64_t cap);
+ amdsmi_set_power_cap(amdsmi_processor_handle processor_handle, uint32_t sensor_ind, uint64_t cap);
 
 /**
  *  @brief Set the power performance profile
