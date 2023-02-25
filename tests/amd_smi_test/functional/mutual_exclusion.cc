@@ -209,7 +209,7 @@ void TestMutualExclusion::Run(void) {
     ret = amdsmi_get_board_info(processor_handles_[0], &board_info);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
 
-    ret = amdsmi_dev_get_vendor_name(processor_handles_[0], dmy_str, 10);
+    ret = amdsmi_get_gpu_vendor_name(processor_handles_[0], dmy_str, 10);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret = amdsmi_dev_get_vram_vendor(processor_handles_[0], dmy_str, 10);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
@@ -268,7 +268,7 @@ void TestMutualExclusion::Run(void) {
     amdsmi_dev_get_vram_vendor
     amdsmi_dev_get_subsystem_name
     amdsmi_dev_get_drm_render_minor
-    amdsmi_dev_get_vendor_name
+    amdsmi_get_gpu_vendor_name
     amdsmi_dev_get_pci_bandwidth
      amdsmi_dev_set_pci_bandwidth
     amdsmi_dev_get_pci_throughput

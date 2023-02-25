@@ -1068,7 +1068,7 @@ def amdsmi_get_processor_handle_from_bdf(bdf):
     return processor_handle
 
 
-def amdsmi_dev_get_vendor_name(
+def amdsmi_get_gpu_vendor_name(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> str:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -1082,7 +1082,7 @@ def amdsmi_dev_get_vendor_name(
     vendor_name = ctypes.create_string_buffer(_AMDSMI_STRING_LENGTH)
 
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_get_vendor_name(
+        amdsmi_wrapper.amdsmi_get_gpu_vendor_name(
             processor_handle, vendor_name, length)
     )
 

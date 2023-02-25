@@ -287,7 +287,7 @@ class Formatter:
     |                                                                                                                         |
     |  """ + self.style.header("COMMANDS:") + """                                                                                                              |
     |                                                                                                                         |
-    |     """ + self.style.text(" 1   Get device vendor name.               Api: amdsmi_dev_get_vendor_name             <bdf>") + """                        |
+    |     """ + self.style.text(" 1   Get device vendor name.               Api: amdsmi_get_gpu_vendor_name             <bdf>") + """                        |
     |     """ + self.style.text(" 2   Get device id.                        Api: amdsmi_get_gpu_id                      <bdf>") + """                        |
     |     """ + self.style.text(" 3   Get device vram vendor.               Api: amdsmi_dev_get_vram_vendor             <bdf>") + """                        |
     |     """ + self.style.text(" 4   Get device drm render minor.          Api: amdsmi_dev_get_drm_render_minor        <bdf>") + """                        |
@@ -722,7 +722,7 @@ def amdsmi_tool_func_iter_next(dev):
 
 commands = {
     # idx: [func, {arg_name : [arg_type, is_arg_obligatory]}]
-    1: [smi_api.amdsmi_dev_get_vendor_name, {
+    1: [smi_api.amdsmi_get_gpu_vendor_name, {
         "device_identifier1": [None, True]
     }],
     2: [smi_api.amdsmi_get_gpu_id, {
