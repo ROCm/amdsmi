@@ -1502,9 +1502,9 @@ amdsmi_get_temp_metric.argtypes = [amdsmi_processor_handle, amdsmi_temperature_t
 amdsmi_get_gpu_volt_metric = _libraries['libamd_smi.so'].amdsmi_get_gpu_volt_metric
 amdsmi_get_gpu_volt_metric.restype = amdsmi_status_t
 amdsmi_get_gpu_volt_metric.argtypes = [amdsmi_processor_handle, amdsmi_voltage_type_t, amdsmi_voltage_metric_t, ctypes.POINTER(ctypes.c_int64)]
-amdsmi_dev_reset_fan = _libraries['libamd_smi.so'].amdsmi_dev_reset_fan
-amdsmi_dev_reset_fan.restype = amdsmi_status_t
-amdsmi_dev_reset_fan.argtypes = [amdsmi_processor_handle, uint32_t]
+amdsmi_reset_gpu_fan = _libraries['libamd_smi.so'].amdsmi_reset_gpu_fan
+amdsmi_reset_gpu_fan.restype = amdsmi_status_t
+amdsmi_reset_gpu_fan.argtypes = [amdsmi_processor_handle, uint32_t]
 amdsmi_dev_set_fan_speed = _libraries['libamd_smi.so'].amdsmi_dev_set_fan_speed
 amdsmi_dev_set_fan_speed.restype = amdsmi_status_t
 amdsmi_dev_set_fan_speed.argtypes = [amdsmi_processor_handle, uint32_t, uint64_t]
@@ -1873,7 +1873,7 @@ __all__ = \
     'amdsmi_dev_open_supported_func_iterator',
     'amdsmi_dev_open_supported_variant_iterator',
     'amdsmi_dev_perf_level_t', 'amdsmi_dev_perf_level_t__enumvalues',
-    'amdsmi_dev_reset_fan', 'amdsmi_dev_reset_gpu',
+    'amdsmi_reset_gpu_fan', 'amdsmi_dev_reset_gpu',
     'amdsmi_dev_reset_xgmi_error', 'amdsmi_dev_set_clk_freq',
     'amdsmi_dev_set_clk_range', 'amdsmi_dev_set_fan_speed',
     'amdsmi_dev_set_od_clk_info', 'amdsmi_dev_set_od_volt_info',

@@ -1539,7 +1539,7 @@ def amdsmi_dev_set_fan_speed(
     )
 
 
-def amdsmi_dev_reset_fan(
+def amdsmi_reset_gpu_fan(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_idx: int
 ):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -1550,7 +1550,7 @@ def amdsmi_dev_reset_fan(
         raise AmdSmiParameterException(sensor_idx, int)
     sensor_idx = ctypes.c_uint32(sensor_idx)
 
-    _check_res(amdsmi_wrapper.amdsmi_dev_reset_fan(processor_handle, sensor_idx))
+    _check_res(amdsmi_wrapper.amdsmi_reset_gpu_fan(processor_handle, sensor_idx))
 
 
 def amdsmi_dev_set_clk_freq(
