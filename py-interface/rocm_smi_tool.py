@@ -294,7 +294,7 @@ class Formatter:
     |     """ + self.style.text(" 5   Get device subsystem id.              Api: amdsmi_get_gpu_subsystem_id            <bdf>") + """                        |
     |     """ + self.style.text(" 6   Get device subsystem name.            Api: amdsmi_get_gpu_subsystem_name          <bdf>") + """                        |
     |     """ + self.style.text(" 7   Get device pci id.                    Api: amdsmi_dev_get_pci_id                  <bdf>") + """                        |
-    |     """ + self.style.text(" 8   Get device pci bandwidth.             Api: amdsmi_dev_get_pci_bandwidth           <bdf>") + """                        |
+    |     """ + self.style.text(" 8   Get device pci bandwidth.             Api: amdsmi_get_gpu_pci_bandwidth           <bdf>") + """                        |
     |     """ + self.style.text(" 9   Get device pci throughput.            Api: amdsmi_dev_get_pci_throughput          <bdf>") + """                        |
     |     """ + self.style.text("10   Get device pci replay counter.        Api:  amdsmi_dev_get_pci_replay_counter      <bdf>") + """                        |
     |     """ + self.style.text("11   Get topo numa affinity.               Api: amdsmi_topo_get_numa_affinity          <bdf>") + """                        |
@@ -743,7 +743,7 @@ commands = {
     7: [smi_api.amdsmi_dev_get_pci_id, {
         "device_identifier1": [None, True]
     }],
-    8: [smi_api.amdsmi_dev_get_pci_bandwidth, {
+    8: [smi_api.amdsmi_get_gpu_pci_bandwidth, {
         "device_identifier1": [None, True]
     }],
     9: [smi_api.amdsmi_dev_get_pci_throughput, {

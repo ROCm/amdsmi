@@ -1355,7 +1355,7 @@ except AmdSmiException as e:
 ```
 
 
-## amdsmi_dev_get_pci_bandwidth
+## amdsmi_get_gpu_pci_bandwidth
 Description: Get the list of possible PCIe bandwidths that are available.
 
 Input parameters:
@@ -1378,7 +1378,7 @@ Field | Content
 `current` | current
 `frequency` | list of frequency
 
-Exceptions that can be thrown by `amdsmi_dev_get_pci_bandwidth` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_pci_bandwidth` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1391,7 +1391,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            bandwidth = amdsmi_dev_get_pci_bandwidth(device)
+            bandwidth = amdsmi_get_gpu_pci_bandwidth(device)
             print(bandwidth)
 except AmdSmiException as e:
     print(e)

@@ -1742,7 +1742,7 @@ def _format_transfer_rate(transfer_rate):
     }
 
 
-def amdsmi_dev_get_pci_bandwidth(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_get_gpu_pci_bandwidth(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
@@ -1751,7 +1751,7 @@ def amdsmi_dev_get_pci_bandwidth(processor_handle: amdsmi_wrapper.amdsmi_process
     bandwidth = amdsmi_wrapper.amdsmi_pcie_bandwidth_t()
 
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_get_pci_bandwidth(
+        amdsmi_wrapper.amdsmi_get_gpu_pci_bandwidth(
             processor_handle, ctypes.byref(bandwidth))
     )
 
