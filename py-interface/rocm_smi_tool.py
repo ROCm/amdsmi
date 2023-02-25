@@ -305,8 +305,8 @@ class Formatter:
     |     """ + self.style.text("16   Get device memory busy percent.       Api: amdsmi_get_gpu_memory_busy_percent     <bdf>") + """                        |
     |     """ + self.style.text("17   Get device memory reserved pages.     Api: amdsmi_get_gpu_memory_reserved_pages   <bdf>") + """                        |
     |     """ + self.style.text("18   Get device fan rpms.                  Api: amdsmi_get_gpu_fan_rpms                <bdf><sensor_idx>") + """            |
-    |     """ + self.style.text("19   Get device fan speed.                 Api: amdsmi_dev_get_fan_speed               <bdf><sensor_idx>") + """            |
-    |     """ + self.style.text("20   Get device fan speed max.             Api: amdsmi_dev_get_fan_speed_max           <bdf><sensor_idx>") + """            |
+    |     """ + self.style.text("19   Get device fan speed.                 Api: amdsmi_get_gpu_fan_speed               <bdf><sensor_idx>") + """            |
+    |     """ + self.style.text("20   Get device fan speed max.             Api: amdsmi_get_gpu_fan_speed_max           <bdf><sensor_idx>") + """            |
     |     """ + self.style.text("21   Get device temp metric.               Api:  amdsmi_dev_get_temp_metric             <bdf>") + """                        |
     |     """ + self.style.text("22   Get device volt metric.               Api:  amdsmi_dev_get_volt_metric             <bdf>") + """                        |
     |     """ + self.style.text("23   Get device busy percent.              Api: amdsmi_dev_get_busy_percent            <bdf>") + """                        |
@@ -407,11 +407,11 @@ def amdsmi_tool_dev_fan_rpms_get(dev, dic):
 
 def amdsmi_tool_dev_fan_speed_get(dev, dic):
     sensor_idx = dic["sensor_idx"]
-    return smi_api.amdsmi_dev_get_fan_speed(dev, sensor_idx)
+    return smi_api.amdsmi_get_gpu_fan_speed(dev, sensor_idx)
 
 def amdsmi_tool_dev_fan_speed_max_get(dev, dic):
     sensor_idx = dic["sensor_idx"]
-    return smi_api.amdsmi_dev_get_fan_speed_max(dev, sensor_idx)
+    return smi_api.amdsmi_get_gpu_fan_speed_max(dev, sensor_idx)
 
 def amdsmi_tool_dev_temp_metric_get(dev):
     result = {}

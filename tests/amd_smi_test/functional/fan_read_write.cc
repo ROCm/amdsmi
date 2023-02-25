@@ -100,7 +100,7 @@ void TestFanReadWrite::Run(void) {
   for (uint32_t dv_ind = 0; dv_ind < num_monitor_devs(); ++dv_ind) {
     PrintDeviceHeader(processor_handles_[dv_ind]);
 
-    ret = amdsmi_dev_get_fan_speed(processor_handles_[dv_ind], 0, &orig_speed);
+    ret = amdsmi_get_gpu_fan_speed(processor_handles_[dv_ind], 0, &orig_speed);
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
        IF_VERB(STANDARD) {
           std::cout << "\t**" <<  ": " <<
@@ -120,7 +120,7 @@ void TestFanReadWrite::Run(void) {
       return;
     }
 
-    ret = amdsmi_dev_get_fan_speed_max(processor_handles_[dv_ind], 0, &max_speed);
+    ret = amdsmi_get_gpu_fan_speed_max(processor_handles_[dv_ind], 0, &max_speed);
     CHK_ERR_ASRT(ret)
 
     new_speed = 1.1 * orig_speed;
@@ -141,7 +141,7 @@ void TestFanReadWrite::Run(void) {
 
     sleep(4);
 
-    ret = amdsmi_dev_get_fan_speed(processor_handles_[dv_ind], 0, &cur_speed);
+    ret = amdsmi_get_gpu_fan_speed(processor_handles_[dv_ind], 0, &cur_speed);
     CHK_ERR_ASRT(ret)
 
     IF_VERB(STANDARD) {
@@ -168,7 +168,7 @@ void TestFanReadWrite::Run(void) {
 
     sleep(3);
 
-    ret = amdsmi_dev_get_fan_speed(processor_handles_[dv_ind], 0, &cur_speed);
+    ret = amdsmi_get_gpu_fan_speed(processor_handles_[dv_ind], 0, &cur_speed);
     CHK_ERR_ASRT(ret)
 
     IF_VERB(STANDARD) {
