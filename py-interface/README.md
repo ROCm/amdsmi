@@ -1746,7 +1746,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_get_fan_rpms
+## amdsmi_get_gpu_fan_rpms
 Description: Get the fan speed in RPMs of the device with the specified device
 handle and 0-based sensor index.
 
@@ -1757,7 +1757,7 @@ more than one sensor, it could be greater than 0.
 
 Output: Fan speed in rpms as integer
 
-Exceptions that can be thrown by `amdsmi_dev_get_fan_rpms` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_fan_rpms` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1770,7 +1770,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            fan_rpm = amdsmi_dev_get_fan_rpms(device, 0)
+            fan_rpm = amdsmi_get_gpu_fan_rpms(device, 0)
             print(fan_rpm)
 except AmdSmiException as e:
     print(e)

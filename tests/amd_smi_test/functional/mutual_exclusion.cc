@@ -223,7 +223,7 @@ void TestMutualExclusion::Run(void) {
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret =  amdsmi_set_gpu_pci_bandwidth(processor_handles_[0], 0);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_get_fan_rpms(processor_handles_[0], dmy_ui32, &dmy_i64);
+    ret = amdsmi_get_gpu_fan_rpms(processor_handles_[0], dmy_ui32, &dmy_i64);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret = amdsmi_dev_get_fan_speed(processor_handles_[0], 0, &dmy_i64);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
@@ -275,7 +275,7 @@ void TestMutualExclusion::Run(void) {
      amdsmi_dev_get_temp_metric
      amdsmi_dev_get_volt_metric
     amdsmi_dev_get_fan_speed
-    amdsmi_dev_get_fan_rpms
+    amdsmi_get_gpu_fan_rpms
     amdsmi_dev_reset_fan
     amdsmi_dev_set_fan_speed
     amdsmi_dev_get_fan_speed_max

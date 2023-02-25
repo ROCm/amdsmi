@@ -1911,7 +1911,7 @@ amdsmi_get_gpu_memory_reserved_pages(amdsmi_processor_handle processor_handle, u
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_dev_get_fan_rpms(amdsmi_processor_handle processor_handle, uint32_t sensor_ind,
+amdsmi_status_t amdsmi_get_gpu_fan_rpms(amdsmi_processor_handle processor_handle, uint32_t sensor_ind,
                                                               int64_t *speed);
 
 /**

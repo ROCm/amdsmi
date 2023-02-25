@@ -130,14 +130,14 @@ void TestFanRead::Run(void) {
       IF_VERB(STANDARD) {
         std::cout << "\t**Current fan RPMs: ";
       }
-      err = amdsmi_dev_get_fan_rpms(processor_handles_[i], 0, &val_i64);
+      err = amdsmi_get_gpu_fan_rpms(processor_handles_[i], 0, &val_i64);
       CHK_ERR_ASRT(err)
       IF_VERB(STANDARD) {
         std::cout << val_i64 << std::endl;
       }
 
       // Verify api support checking functionality is working
-      err = amdsmi_dev_get_fan_rpms(processor_handles_[i], 0, nullptr);
+      err = amdsmi_get_gpu_fan_rpms(processor_handles_[i], 0, nullptr);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
     }
   }
