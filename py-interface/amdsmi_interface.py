@@ -1626,7 +1626,7 @@ def amdsmi_dev_open_supported_func_iterator(
     return obj_handle
 
 
-def amdsmi_dev_get_pci_id(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_get_gpu_pci_id(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
@@ -1634,7 +1634,7 @@ def amdsmi_dev_get_pci_id(processor_handle: amdsmi_wrapper.amdsmi_processor_hand
 
     bdfid = ctypes.c_uint64()
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_get_pci_id(
+        amdsmi_wrapper.amdsmi_get_gpu_pci_id(
             processor_handle, ctypes.byref(bdfid))
     )
 

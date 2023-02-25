@@ -1313,7 +1313,7 @@ except AmdSmiException as e:
 ```
 
 
-## amdsmi_dev_get_pci_id
+## amdsmi_get_gpu_pci_id
 Description: Get the unique PCI device identifier associated for a device
 
 Input parameters:
@@ -1335,7 +1335,7 @@ BDFID = ((DOMAIN & 0xffffffff) << 32) | ((BUS & 0xff) << 8) |
 | Function | [ 2: 0] |
 
 
-Exceptions that can be thrown by `amdsmi_dev_get_pci_id` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_pci_id` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1348,7 +1348,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            bdfid = amdsmi_dev_get_pci_id(device)
+            bdfid = amdsmi_get_gpu_pci_id(device)
             print(bdfid)
 except AmdSmiException as e:
     print(e)

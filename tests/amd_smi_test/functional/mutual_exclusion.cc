@@ -215,7 +215,7 @@ void TestMutualExclusion::Run(void) {
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret = amdsmi_get_gpu_subsystem_id(processor_handles_[0], &dmy_ui16);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_dev_get_pci_id(processor_handles_[0], &dmy_ui64);
+    ret = amdsmi_get_gpu_pci_id(processor_handles_[0], &dmy_ui64);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret = amdsmi_dev_get_pci_throughput(processor_handles_[0], &dmy_ui64, &dmy_ui64, &dmy_ui64);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
