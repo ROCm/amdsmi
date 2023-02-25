@@ -51,7 +51,7 @@ namespace smi {
 
 class AMDSmiProcessor {
  public:
-    explicit AMDSmiProcessor(processor_type_t device) : processor_type_(device) {}
+    explicit AMDSmiProcessor(processor_type_t processor) : processor_type_(processor) {}
     virtual ~AMDSmiProcessor() {}
     processor_type_t get_processor_type() const { return processor_type_;}
  private:
