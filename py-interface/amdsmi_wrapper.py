@@ -1448,9 +1448,9 @@ amdsmi_get_gpu_pci_id.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes
 amdsmi_get_gpu_topo_numa_affinity = _libraries['libamd_smi.so'].amdsmi_get_gpu_topo_numa_affinity
 amdsmi_get_gpu_topo_numa_affinity.restype = amdsmi_status_t
 amdsmi_get_gpu_topo_numa_affinity.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32)]
-amdsmi_dev_get_pci_throughput = _libraries['libamd_smi.so'].amdsmi_dev_get_pci_throughput
-amdsmi_dev_get_pci_throughput.restype = amdsmi_status_t
-amdsmi_dev_get_pci_throughput.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(ctypes.c_uint64)]
+amdsmi_get_gpu_pci_throughput = _libraries['libamd_smi.so'].amdsmi_get_gpu_pci_throughput
+amdsmi_get_gpu_pci_throughput.restype = amdsmi_status_t
+amdsmi_get_gpu_pci_throughput.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(ctypes.c_uint64)]
 amdsmi_dev_get_pci_replay_counter = _libraries['libamd_smi.so'].amdsmi_dev_get_pci_replay_counter
 amdsmi_dev_get_pci_replay_counter.restype = amdsmi_status_t
 amdsmi_dev_get_pci_replay_counter.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint64)]
@@ -1864,7 +1864,7 @@ __all__ = \
     'amdsmi_dev_get_od_volt_info', 'amdsmi_dev_get_overdrive_level',
     'amdsmi_get_gpu_pci_bandwidth', 'amdsmi_get_gpu_pci_id',
     'amdsmi_dev_get_pci_replay_counter',
-    'amdsmi_dev_get_pci_throughput', 'amdsmi_dev_get_perf_level',
+    'amdsmi_get_gpu_pci_throughput', 'amdsmi_dev_get_perf_level',
     'amdsmi_dev_get_power_ave',
     'amdsmi_dev_get_power_profile_presets',
     'amdsmi_get_gpu_subsystem_id', 'amdsmi_get_gpu_subsystem_name',

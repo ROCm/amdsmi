@@ -120,7 +120,7 @@ void TestPciReadWrite::Run(void) {
         ASSERT_EQ(ret, AMDSMI_STATUS_INVAL);
       }
 
-    ret = amdsmi_dev_get_pci_throughput(processor_handles_[dv_ind], &sent, &received, &max_pkt_sz);
+    ret = amdsmi_get_gpu_pci_throughput(processor_handles_[dv_ind], &sent, &received, &max_pkt_sz);
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
       std::cout << "TEST FAILURE: Current PCIe throughput is not detected. "
         "This is likely because it is not indicated in the pcie_bw sysfs "
