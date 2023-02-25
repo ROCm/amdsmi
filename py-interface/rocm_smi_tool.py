@@ -312,7 +312,7 @@ class Formatter:
     |     """ + self.style.text("23   Get device busy percent.              Api: amdsmi_get_busy_percent            <bdf>") + """                        |
     |     """ + self.style.text("24   Get utilization count.                Api: amdsmi_get_utilization_count           <bdf>") + """                        |
     |     """ + self.style.text("25   Get device perf level.                Api: amdsmi_get_gpu_perf_level              <bdf>") + """                        |
-    |     """ + self.style.text("26   Set perf determinism mode.            Api: amdsmi_set_perf_determinism_mode       <bdf><clock_value>") + """           |
+    |     """ + self.style.text("26   Set perf determinism mode.            Api: amdsmi_set_gpu_perf_determinism_mode       <bdf><clock_value>") + """           |
     |     """ + self.style.text("27   Get device overdrive level.           Api: amdsmi_dev_get_overdrive_level         <bdf>") + """                        |
     |     """ + self.style.text("28   Get device gpu clk freq.              Api:  amdsmi_dev_get_gpu_clk_freq            <bdf>") + """                        |
     |     """ + self.style.text("29   Get device od volt.                   Api:  amdsmi_dev_get_od_volt_info            <bdf>") + """                        |
@@ -450,7 +450,7 @@ def amdsmi_tool_utilization_count_get(dev):
 
 def amdsmi_tool_perf_determinism_mode_set(dev, dic):
     clock_value = dic["clock_value"]
-    return smi_api.amdsmi_set_perf_determinism_mode(dev, clock_value)
+    return smi_api.amdsmi_set_gpu_perf_determinism_mode(dev, clock_value)
 
 def amdsmi_tool_dev_power_profile_presets_get(dev, dic):
     sensor_idx = dic["sensor_idx"]

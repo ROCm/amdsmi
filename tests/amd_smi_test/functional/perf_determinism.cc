@@ -114,7 +114,7 @@ void TestPerfDeterminism::Run(void) {
       clkvalue = (odv.curr_sclk_range.lower_bound/1000000) + 50;
     }
 
-    err = amdsmi_set_perf_determinism_mode(processor_handles_[i], clkvalue);
+    err = amdsmi_set_gpu_perf_determinism_mode(processor_handles_[i], clkvalue);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       IF_VERB(STANDARD) {
         std::cout << "\t**Not supported on this machine" << std::endl;

@@ -1502,7 +1502,7 @@ def amdsmi_dev_reset_gpu(processor_handle: amdsmi_wrapper.amdsmi_processor_handl
     _check_res(amdsmi_wrapper.amdsmi_dev_reset_gpu(processor_handle))
 
 
-def amdsmi_set_perf_determinism_mode(
+def amdsmi_set_gpu_perf_determinism_mode(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, clock_value: int
 ):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -1514,7 +1514,7 @@ def amdsmi_set_perf_determinism_mode(
     clock_value = ctypes.c_uint64(clock_value)
 
     _check_res(
-        amdsmi_wrapper.amdsmi_set_perf_determinism_mode(
+        amdsmi_wrapper.amdsmi_set_gpu_perf_determinism_mode(
             processor_handle, clock_value)
     )
 
@@ -2253,7 +2253,7 @@ def amdsmi_get_gpu_perf_level(
     return result
 
 
-def amdsmi_set_perf_determinism_mode(
+def amdsmi_set_gpu_perf_determinism_mode(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, clkvalue: int
 ) -> None:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -2263,7 +2263,7 @@ def amdsmi_set_perf_determinism_mode(
     if not isinstance(clkvalue, int):
         raise AmdSmiParameterException(clkvalue, int)
 
-    _check_res(amdsmi_wrapper.amdsmi_set_perf_determinism_mode(
+    _check_res(amdsmi_wrapper.amdsmi_set_gpu_perf_determinism_mode(
         processor_handle, clkvalue))
 
 

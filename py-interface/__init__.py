@@ -89,7 +89,7 @@ from .amdsmi_interface import  amdsmi_dev_set_perf_level_v1
 from .amdsmi_interface import  amdsmi_dev_set_perf_level
 from .amdsmi_interface import  amdsmi_dev_get_power_profile_presets
 from .amdsmi_interface import amdsmi_dev_reset_gpu
-from .amdsmi_interface import amdsmi_set_perf_determinism_mode
+from .amdsmi_interface import amdsmi_set_gpu_perf_determinism_mode
 from .amdsmi_interface import amdsmi_set_gpu_fan_speed
 from .amdsmi_interface import amdsmi_reset_gpu_fan
 from .amdsmi_interface import  amdsmi_dev_set_clk_freq
@@ -107,7 +107,7 @@ from .amdsmi_interface import  amdsmi_get_gpu_volt_metric
 from .amdsmi_interface import amdsmi_get_busy_percent
 from .amdsmi_interface import amdsmi_get_utilization_count
 from .amdsmi_interface import amdsmi_get_gpu_perf_level
-from .amdsmi_interface import amdsmi_set_perf_determinism_mode
+from .amdsmi_interface import amdsmi_set_gpu_perf_determinism_mode
 from .amdsmi_interface import amdsmi_dev_get_overdrive_level
 from .amdsmi_interface import  amdsmi_dev_get_gpu_clk_freq
 from .amdsmi_interface import  amdsmi_dev_get_od_volt_info
