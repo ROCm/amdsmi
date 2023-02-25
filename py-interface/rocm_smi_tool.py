@@ -263,7 +263,7 @@ class Formatter:
                 print("{}{:25} :{}".format(space, self.style.background(key), str(value)))
 
     def print_handle(self, handle):
-        bdf = smi_api.amdsmi_get_device_bdf(handle)
+        bdf = smi_api.amdsmi_get_gpu_device_bdf(handle)
         print("{:25} :{}".format(self.style.background("BDF"), str(bdf)))
 
     def print_usage(self):

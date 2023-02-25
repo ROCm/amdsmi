@@ -267,7 +267,7 @@ amdsmi_status_t amdsmi_get_processor_type(amdsmi_processor_handle processor_hand
 }
 
 amdsmi_status_t
-amdsmi_get_device_bdf(amdsmi_processor_handle processor_handle, amdsmi_bdf_t *bdf) {
+amdsmi_get_gpu_device_bdf(amdsmi_processor_handle processor_handle, amdsmi_bdf_t *bdf) {
 
     AMDSMI_CHECK_INIT();
 

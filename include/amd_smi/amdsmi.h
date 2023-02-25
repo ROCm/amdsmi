@@ -3569,7 +3569,7 @@ amdsmi_status_t amdsmi_stop_event_notification(amdsmi_processor_handle processor
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_device_bdf(amdsmi_processor_handle processor_handle, amdsmi_bdf_t *bdf);
+amdsmi_get_gpu_device_bdf(amdsmi_processor_handle processor_handle, amdsmi_bdf_t *bdf);
 
 /**
  *  @brief          Returns the UUID of the device

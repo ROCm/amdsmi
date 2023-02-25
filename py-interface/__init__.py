@@ -29,7 +29,7 @@ from .amdsmi_interface import amdsmi_get_processor_handles
 from .amdsmi_interface import amdsmi_get_socket_handles
 from .amdsmi_interface import amdsmi_get_socket_info
 
-from .amdsmi_interface import amdsmi_get_device_bdf
+from .amdsmi_interface import amdsmi_get_gpu_device_bdf
 from .amdsmi_interface import amdsmi_get_device_uuid
 from .amdsmi_interface import amdsmi_get_processor_handle_from_bdf
 

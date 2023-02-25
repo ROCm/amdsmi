@@ -216,7 +216,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_get_device_bdf
+## amdsmi_get_gpu_device_bdf
 Description: Returns BDF of the given device
 
 Input parameters:
@@ -229,7 +229,7 @@ Where:
 * `<device>` is 2 hex digits long from 00-1F interval
 * `<function>` is 1 hex digit long from 0-7 interval
 
-Exceptions that can be thrown by `amdsmi_get_device_bdf` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_device_bdf` function:
 * `AmdSmiParameterException`
 * `AmdSmiLibraryException`
 
@@ -237,7 +237,7 @@ Example:
 ```python
 try:
     device = amdsmi_get_processor_handles()[0]
-    print("Device's bdf:", amdsmi_get_device_bdf(device))
+    print("Device's bdf:", amdsmi_get_gpu_device_bdf(device))
 except AmdSmiException as e:
     print(e)
 ```
