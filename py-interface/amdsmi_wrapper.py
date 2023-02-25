@@ -1430,9 +1430,9 @@ uint32_t = ctypes.c_uint32
 amdsmi_get_gpu_vram_vendor = _libraries['libamd_smi.so'].amdsmi_get_gpu_vram_vendor
 amdsmi_get_gpu_vram_vendor.restype = amdsmi_status_t
 amdsmi_get_gpu_vram_vendor.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_char), uint32_t]
-amdsmi_dev_get_subsystem_id = _libraries['libamd_smi.so'].amdsmi_dev_get_subsystem_id
-amdsmi_dev_get_subsystem_id.restype = amdsmi_status_t
-amdsmi_dev_get_subsystem_id.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint16)]
+amdsmi_get_gpu_subsystem_id = _libraries['libamd_smi.so'].amdsmi_get_gpu_subsystem_id
+amdsmi_get_gpu_subsystem_id.restype = amdsmi_status_t
+amdsmi_get_gpu_subsystem_id.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint16)]
 amdsmi_dev_get_subsystem_name = _libraries['libamd_smi.so'].amdsmi_dev_get_subsystem_name
 amdsmi_dev_get_subsystem_name.restype = amdsmi_status_t
 amdsmi_dev_get_subsystem_name.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_char), size_t]
@@ -1867,7 +1867,7 @@ __all__ = \
     'amdsmi_dev_get_pci_throughput', 'amdsmi_dev_get_perf_level',
     'amdsmi_dev_get_power_ave',
     'amdsmi_dev_get_power_profile_presets',
-    'amdsmi_dev_get_subsystem_id', 'amdsmi_dev_get_subsystem_name',
+    'amdsmi_get_gpu_subsystem_id', 'amdsmi_dev_get_subsystem_name',
     'amdsmi_dev_get_temp_metric', 'amdsmi_get_gpu_vendor_name',
     'amdsmi_dev_get_volt_metric', 'amdsmi_get_gpu_vram_vendor',
     'amdsmi_dev_open_supported_func_iterator',

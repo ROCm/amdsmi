@@ -622,7 +622,7 @@ amdsmi_get_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_info_
 }
 
 
-amdsmi_status_t amdsmi_dev_get_subsystem_id(amdsmi_processor_handle processor_handle,
+amdsmi_status_t amdsmi_get_gpu_subsystem_id(amdsmi_processor_handle processor_handle,
                                 uint16_t *id) {
     return rsmi_wrapper(rsmi_dev_subsystem_id_get, processor_handle, id);
 }
@@ -896,7 +896,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_brand_get", "amdsmi_get_asic_info"},
         {"rsmi_dev_vendor_name_get", "amdsmi_get_gpu_vendor_name"},
         {"rsmi_dev_serial_number_get", "amdsmi_get_asic_info"},
-        {"rsmi_dev_subsystem_id_get", "amdsmi_dev_get_subsystem_id"},
+        {"rsmi_dev_subsystem_id_get", "amdsmi_get_gpu_subsystem_id"},
         {"rsmi_dev_subsystem_name_get", "amdsmi_dev_get_subsystem_name"},
         {"rsmi_dev_drm_render_minor_get", "amdsmi_dev_get_drm_render_minor"},
         {"rsmi_dev_subsystem_vendor_id_get", "amdsmi_get_asic_info"},

@@ -2986,7 +2986,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_get_subsystem_id
+## amdsmi_get_gpu_subsystem_id
 Description: Get the subsystem device id associated with the device with provided device handle.
 
 Input parameters:
@@ -2995,7 +2995,7 @@ Input parameters:
 
 Output: subsystem device id
 
-Exceptions that can be thrown by `amdsmi_dev_get_subsystem_id` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_subsystem_id` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -3008,7 +3008,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            id = amdsmi_dev_get_subsystem_id(device)
+            id = amdsmi_get_gpu_subsystem_id(device)
             print(id)
 except AmdSmiException as e:
     print(e)
