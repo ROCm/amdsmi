@@ -129,7 +129,7 @@ void TestIdInfoRead::Run(void) {
 
     // device name, brand, serial_number
     amdsmi_board_info_t board_info;
-    err = amdsmi_get_board_info(processor_handles_[0], &board_info);
+    err = amdsmi_get_gpu_board_info(processor_handles_[0], &board_info);
     CHK_ERR_ASRT(err)
 
     err = amdsmi_get_gpu_vram_vendor(processor_handles_[i], buffer, kBufferLen);

@@ -174,7 +174,7 @@ void TestBase::PrintDeviceHeader(amdsmi_processor_handle dv_ind) {
   }
 
   amdsmi_board_info_t board_info;
-  err = amdsmi_get_board_info(dv_ind, &board_info);
+  err = amdsmi_get_gpu_board_info(dv_ind, &board_info);
   CHK_ERR_ASRT(err)
   IF_VERB(STANDARD) {
     std::cout << "\t**Device name: " << board_info.product_name  << std::endl;

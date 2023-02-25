@@ -623,9 +623,9 @@ int main() {
 
             // Get device name
             amdsmi_board_info_t board_info = {};
-            ret = amdsmi_get_board_info(processor_handles[j], &board_info);
+            ret = amdsmi_get_gpu_board_info(processor_handles[j], &board_info);
             CHK_AMDSMI_RET(ret)
-            printf("    Output of amdsmi_get_board_info:\n");
+            printf("    Output of amdsmi_get_gpu_board_info:\n");
             std::cout << "\tdevice [" << j
                       << "]\n\t\tProduct name: " << board_info.product_name
                       << "\n"

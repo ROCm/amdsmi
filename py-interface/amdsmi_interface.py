@@ -800,7 +800,7 @@ def amdsmi_get_ecc_error_count(
     }
 
 
-def amdsmi_get_board_info(
+def amdsmi_get_gpu_board_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -810,7 +810,7 @@ def amdsmi_get_board_info(
 
     board_info = amdsmi_wrapper.amdsmi_board_info_t()
     _check_res(
-        amdsmi_wrapper.amdsmi_get_board_info(
+        amdsmi_wrapper.amdsmi_get_gpu_board_info(
             processor_handle, ctypes.byref(board_info))
     )
 

@@ -286,7 +286,7 @@ amdsmi_get_gpu_device_bdf(amdsmi_processor_handle processor_handle, amdsmi_bdf_t
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_board_info(amdsmi_processor_handle processor_handle, amdsmi_board_info_t *board_info) {
+amdsmi_status_t amdsmi_get_gpu_board_info(amdsmi_processor_handle processor_handle, amdsmi_board_info_t *board_info) {
 
     AMDSMI_CHECK_INIT();
 
@@ -891,8 +891,8 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_vram_vendor_get", "amdsmi_get_gpu_vram_vendor"},
         {"rsmi_dev_id_get", "amdsmi_get_gpu_id"},
         {"rsmi_dev_vendor_id_get", "amdsmi_get_gpu_asic_info"},
-        {"rsmi_dev_name_get", "amdsmi_get_board_info"},
-        {"rsmi_dev_sku_get", "amdsmi_get_board_info"},
+        {"rsmi_dev_name_get", "amdsmi_get_gpu_board_info"},
+        {"rsmi_dev_sku_get", "amdsmi_get_gpu_board_info"},
         {"rsmi_dev_brand_get", "amdsmi_get_gpu_asic_info"},
         {"rsmi_dev_vendor_name_get", "amdsmi_get_gpu_vendor_name"},
         {"rsmi_dev_serial_number_get", "amdsmi_get_gpu_asic_info"},
@@ -900,7 +900,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_subsystem_name_get", "amdsmi_get_gpu_subsystem_name"},
         {"rsmi_dev_drm_render_minor_get", "amdsmi_get_gpu_drm_render_minor"},
         {"rsmi_dev_subsystem_vendor_id_get", "amdsmi_get_gpu_asic_info"},
-        {"rsmi_dev_unique_id_get", "amdsmi_get_board_info"},
+        {"rsmi_dev_unique_id_get", "amdsmi_get_gpu_board_info"},
         {"rsmi_dev_pci_bandwidth_get", "amdsmi_get_gpu_pci_bandwidth"},
         {"rsmi_dev_pci_id_get", "amdsmi_dev_get_pci_id"},
         {"rsmi_dev_pci_throughput_get", "amdsmi_dev_get_pci_throughput"},

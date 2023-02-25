@@ -1676,9 +1676,9 @@ amdsmi_get_gpu_driver_version.argtypes = [amdsmi_processor_handle, ctypes.POINTE
 amdsmi_get_gpu_asic_info = _libraries['libamd_smi.so'].amdsmi_get_gpu_asic_info
 amdsmi_get_gpu_asic_info.restype = amdsmi_status_t
 amdsmi_get_gpu_asic_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_c__SA_amdsmi_asic_info_t)]
-amdsmi_get_board_info = _libraries['libamd_smi.so'].amdsmi_get_board_info
-amdsmi_get_board_info.restype = amdsmi_status_t
-amdsmi_get_board_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_c__SA_amdsmi_board_info_t)]
+amdsmi_get_gpu_board_info = _libraries['libamd_smi.so'].amdsmi_get_gpu_board_info
+amdsmi_get_gpu_board_info.restype = amdsmi_status_t
+amdsmi_get_gpu_board_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_c__SA_amdsmi_board_info_t)]
 amdsmi_get_power_cap_info = _libraries['libamd_smi.so'].amdsmi_get_power_cap_info
 amdsmi_get_power_cap_info.restype = amdsmi_status_t
 amdsmi_get_power_cap_info.argtypes = [amdsmi_processor_handle, uint32_t, ctypes.POINTER(struct_c__SA_amdsmi_power_cap_info_t)]
@@ -1894,7 +1894,7 @@ __all__ = \
     'amdsmi_func_id_iter_handle_t', 'amdsmi_func_id_value_t',
     'amdsmi_fw_block_t', 'amdsmi_fw_block_t__enumvalues',
     'amdsmi_fw_info_t', 'amdsmi_get_gpu_asic_info',
-    'amdsmi_get_bad_page_info', 'amdsmi_get_board_info',
+    'amdsmi_get_bad_page_info', 'amdsmi_get_gpu_board_info',
     'amdsmi_get_caps_info', 'amdsmi_get_clock_measure',
     'amdsmi_get_compute_process_gpus',
     'amdsmi_get_compute_process_info',

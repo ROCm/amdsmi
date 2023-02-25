@@ -909,7 +909,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_get_board_info
+## amdsmi_get_gpu_board_info
 Description: Returns board info for the given GPU
 
 Input parameters:
@@ -924,7 +924,7 @@ Field | Description
 `product_serial` | Product serial
 `product_name` | Product name
 
-Exceptions that can be thrown by `amdsmi_get_board_info` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_board_info` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -933,7 +933,7 @@ Example:
 ```python
 try:
     device = amdsmi_get_processor_handle_from_bdf("0000:23.00.0")
-    board_info = amdsmi_get_board_info(device)
+    board_info = amdsmi_get_gpu_board_info(device)
     print(board_info["serial_number"])
     print(board_info["product_serial"])
     print(board_info["product_name"])
