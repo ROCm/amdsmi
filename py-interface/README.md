@@ -1959,7 +1959,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_get_perf_level
+## amdsmi_get_gpu_perf_level
 Description: Get the performance level of the device with provided device handle
 
 Input parameters:
@@ -1967,7 +1967,7 @@ Input parameters:
 
 Output: Performance level as enum value of dev_perf_level_t
 
-Exceptions that can be thrown by `amdsmi_dev_get_perf_level` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_perf_level` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1980,7 +1980,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            perf_level = amdsmi_dev_get_perf_level(dev)
+            perf_level = amdsmi_get_gpu_perf_level(dev)
             print(perf_level)
 except AmdSmiException as e:
     print(e)

@@ -1520,9 +1520,9 @@ amdsmi_get_pcie_link_status.argtypes = [amdsmi_processor_handle, ctypes.POINTER(
 amdsmi_get_pcie_link_caps = _libraries['libamd_smi.so'].amdsmi_get_pcie_link_caps
 amdsmi_get_pcie_link_caps.restype = amdsmi_status_t
 amdsmi_get_pcie_link_caps.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_c__SA_amdsmi_pcie_info_t)]
-amdsmi_dev_get_perf_level = _libraries['libamd_smi.so'].amdsmi_dev_get_perf_level
-amdsmi_dev_get_perf_level.restype = amdsmi_status_t
-amdsmi_dev_get_perf_level.argtypes = [amdsmi_processor_handle, ctypes.POINTER(c__EA_amdsmi_dev_perf_level_t)]
+amdsmi_get_gpu_perf_level = _libraries['libamd_smi.so'].amdsmi_get_gpu_perf_level
+amdsmi_get_gpu_perf_level.restype = amdsmi_status_t
+amdsmi_get_gpu_perf_level.argtypes = [amdsmi_processor_handle, ctypes.POINTER(c__EA_amdsmi_dev_perf_level_t)]
 amdsmi_set_perf_determinism_mode = _libraries['libamd_smi.so'].amdsmi_set_perf_determinism_mode
 amdsmi_set_perf_determinism_mode.restype = amdsmi_status_t
 amdsmi_set_perf_determinism_mode.argtypes = [amdsmi_processor_handle, uint64_t]
@@ -1864,7 +1864,7 @@ __all__ = \
     'amdsmi_dev_get_od_volt_info', 'amdsmi_dev_get_overdrive_level',
     'amdsmi_get_gpu_pci_bandwidth', 'amdsmi_get_gpu_pci_id',
     'amdsmi_get_gpu_pci_replay_counter',
-    'amdsmi_get_gpu_pci_throughput', 'amdsmi_dev_get_perf_level',
+    'amdsmi_get_gpu_pci_throughput', 'amdsmi_get_gpu_perf_level',
     'amdsmi_get_power_ave',
     'amdsmi_dev_get_power_profile_presets',
     'amdsmi_get_gpu_subsystem_id', 'amdsmi_get_gpu_subsystem_name',

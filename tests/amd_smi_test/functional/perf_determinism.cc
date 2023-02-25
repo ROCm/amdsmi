@@ -121,7 +121,7 @@ void TestPerfDeterminism::Run(void) {
       }
       return;
     } else {
-      ret = amdsmi_dev_get_perf_level(processor_handles_[i], &pfl);
+      ret = amdsmi_get_gpu_perf_level(processor_handles_[i], &pfl);
       CHK_ERR_ASRT(ret)
       IF_VERB(STANDARD) {
           std::cout << "\t**New Perf Level:" <<  GetPerfLevelStr(pfl) <<
@@ -132,7 +132,7 @@ void TestPerfDeterminism::Run(void) {
       std::cout << "\t**Resetting performance determinism" << std::endl;
       err =  amdsmi_dev_set_perf_level(processor_handles_[i], AMDSMI_DEV_PERF_LEVEL_AUTO);;
       CHK_ERR_ASRT(err)
-      ret = amdsmi_dev_get_perf_level(processor_handles_[i], &pfl);
+      ret = amdsmi_get_gpu_perf_level(processor_handles_[i], &pfl);
       CHK_ERR_ASRT(ret)
       IF_VERB(STANDARD) {
           std::cout << "\t**New Perf Level:" <<  GetPerfLevelStr(pfl) <<
