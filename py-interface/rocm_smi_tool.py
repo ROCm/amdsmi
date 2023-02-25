@@ -291,7 +291,7 @@ class Formatter:
     |     """ + self.style.text(" 2   Get device id.                        Api: amdsmi_get_gpu_id                      <bdf>") + """                        |
     |     """ + self.style.text(" 3   Get device vram vendor.               Api: amdsmi_get_gpu_vram_vendor             <bdf>") + """                        |
     |     """ + self.style.text(" 4   Get device drm render minor.          Api: amdsmi_dev_get_drm_render_minor        <bdf>") + """                        |
-    |     """ + self.style.text(" 5   Get device subsystem id.              Api: amdsmi_dev_get_subsystem_id            <bdf>") + """                        |
+    |     """ + self.style.text(" 5   Get device subsystem id.              Api: amdsmi_get_gpu_subsystem_id            <bdf>") + """                        |
     |     """ + self.style.text(" 6   Get device subsystem name.            Api: amdsmi_dev_get_subsystem_name          <bdf>") + """                        |
     |     """ + self.style.text(" 7   Get device pci id.                    Api: amdsmi_dev_get_pci_id                  <bdf>") + """                        |
     |     """ + self.style.text(" 8   Get device pci bandwidth.             Api: amdsmi_dev_get_pci_bandwidth           <bdf>") + """                        |
@@ -734,7 +734,7 @@ commands = {
     4: [smi_api.amdsmi_dev_get_drm_render_minor, {
         "device_identifier1": [None, True]
     }],
-    5: [smi_api.amdsmi_dev_get_subsystem_id, {
+    5: [smi_api.amdsmi_get_gpu_subsystem_id, {
         "device_identifier1": [None, True]
     }],
     6: [smi_api.amdsmi_dev_get_subsystem_name, {

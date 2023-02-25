@@ -1137,7 +1137,7 @@ def amdsmi_dev_get_drm_render_minor(processor_handle: amdsmi_wrapper.amdsmi_proc
     return minor.value
 
 
-def amdsmi_dev_get_subsystem_id(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_get_gpu_subsystem_id(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
@@ -1145,7 +1145,7 @@ def amdsmi_dev_get_subsystem_id(processor_handle: amdsmi_wrapper.amdsmi_processo
     id = ctypes.c_uint16()
 
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_get_subsystem_id(
+        amdsmi_wrapper.amdsmi_get_gpu_subsystem_id(
             processor_handle, ctypes.byref(id))
     )
 

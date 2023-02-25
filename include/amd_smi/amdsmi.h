@@ -1397,7 +1397,7 @@ amdsmi_status_t amdsmi_get_gpu_vram_vendor(amdsmi_processor_handle processor_han
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_dev_get_subsystem_id(amdsmi_processor_handle processor_handle, uint16_t *id);
+amdsmi_status_t amdsmi_get_gpu_subsystem_id(amdsmi_processor_handle processor_handle, uint16_t *id);
 
 /**
  *  @brief Get the name string for the device subsytem

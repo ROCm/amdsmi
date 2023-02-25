@@ -177,10 +177,10 @@ void TestIdInfoRead::Run(void) {
     }
 
     // Get the device ID, name, vendor ID and vendor name for the sub-device
-    err = amdsmi_dev_get_subsystem_id(processor_handles_[i], &id);
+    err = amdsmi_get_gpu_subsystem_id(processor_handles_[i], &id);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       // Verify api support checking functionality is working
-      err = amdsmi_dev_get_subsystem_id(processor_handles_[i], nullptr);
+      err = amdsmi_get_gpu_subsystem_id(processor_handles_[i], nullptr);
       ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
     } else {
       CHK_ERR_ASRT(err)
@@ -188,7 +188,7 @@ void TestIdInfoRead::Run(void) {
         std::cout << "\t**Subsystem ID: 0x" << std::hex << id << std::endl;
       }
       // Verify api support checking functionality is working
-      err = amdsmi_dev_get_subsystem_id(processor_handles_[i], nullptr);
+      err = amdsmi_get_gpu_subsystem_id(processor_handles_[i], nullptr);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
     }
     err = amdsmi_dev_get_subsystem_name(processor_handles_[i], buffer, kBufferLen);
