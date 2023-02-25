@@ -1089,14 +1089,14 @@ def amdsmi_dev_get_vendor_name(
     return vendor_name.value.decode("utf-8")
 
 
-def amdsmi_dev_get_id(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_get_gpu_id(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     id = ctypes.c_uint16()
 
-    _check_res(amdsmi_wrapper.amdsmi_dev_get_id(
+    _check_res(amdsmi_wrapper.amdsmi_get_gpu_id(
         processor_handle, ctypes.byref(id)))
 
     return id.value

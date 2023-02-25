@@ -1420,9 +1420,9 @@ amdsmi_get_processor_type.argtypes = [amdsmi_processor_handle, ctypes.POINTER(c_
 amdsmi_get_processor_handle_from_bdf = _libraries['libamd_smi.so'].amdsmi_get_processor_handle_from_bdf
 amdsmi_get_processor_handle_from_bdf.restype = amdsmi_status_t
 amdsmi_get_processor_handle_from_bdf.argtypes = [amdsmi_bdf_t, ctypes.POINTER(ctypes.POINTER(None))]
-amdsmi_dev_get_id = _libraries['libamd_smi.so'].amdsmi_dev_get_id
-amdsmi_dev_get_id.restype = amdsmi_status_t
-amdsmi_dev_get_id.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint16)]
+amdsmi_get_gpu_id = _libraries['libamd_smi.so'].amdsmi_get_gpu_id
+amdsmi_get_gpu_id.restype = amdsmi_status_t
+amdsmi_get_gpu_id.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint16)]
 amdsmi_dev_get_vendor_name = _libraries['libamd_smi.so'].amdsmi_dev_get_vendor_name
 amdsmi_dev_get_vendor_name.restype = amdsmi_status_t
 amdsmi_dev_get_vendor_name.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_char), size_t]
@@ -1857,7 +1857,7 @@ __all__ = \
     'amdsmi_dev_get_energy_count', 'amdsmi_dev_get_fan_rpms',
     'amdsmi_dev_get_fan_speed', 'amdsmi_dev_get_fan_speed_max',
     'amdsmi_dev_get_gpu_clk_freq', 'amdsmi_dev_get_gpu_metrics_info',
-    'amdsmi_dev_get_id', 'amdsmi_dev_get_memory_busy_percent',
+    'amdsmi_get_gpu_id', 'amdsmi_dev_get_memory_busy_percent',
     'amdsmi_dev_get_memory_reserved_pages',
     'amdsmi_dev_get_memory_total', 'amdsmi_dev_get_memory_usage',
     'amdsmi_dev_get_od_volt_curve_regions',
