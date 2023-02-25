@@ -309,7 +309,7 @@ class Formatter:
     |     """ + self.style.text("20   Get device fan speed max.             Api: amdsmi_get_gpu_fan_speed_max           <bdf><sensor_idx>") + """            |
     |     """ + self.style.text("21   Get device temp metric.               Api:  amdsmi_get_temp_metric             <bdf>") + """                        |
     |     """ + self.style.text("22   Get device volt metric.               Api:  amdsmi_get_gpu_volt_metric             <bdf>") + """                        |
-    |     """ + self.style.text("23   Get device busy percent.              Api: amdsmi_dev_get_busy_percent            <bdf>") + """                        |
+    |     """ + self.style.text("23   Get device busy percent.              Api: amdsmi_get_busy_percent            <bdf>") + """                        |
     |     """ + self.style.text("24   Get utilization count.                Api: amdsmi_get_utilization_count           <bdf>") + """                        |
     |     """ + self.style.text("25   Get device perf level.                Api: amdsmi_dev_get_perf_level              <bdf>") + """                        |
     |     """ + self.style.text("26   Set perf determinism mode.            Api: amdsmi_set_perf_determinism_mode       <bdf><clock_value>") + """           |
@@ -792,7 +792,7 @@ commands = {
     22: [amdsmi_tool_dev_volt_metric_get, {
         "device_identifier1": [None, True],
     }],
-    23: [smi_api.amdsmi_dev_get_busy_percent, {
+    23: [smi_api.amdsmi_get_busy_percent, {
         "device_identifier1": [None, True]
     }],
     24: [amdsmi_tool_utilization_count_get, {

@@ -2165,7 +2165,7 @@ def amdsmi_get_gpu_volt_metric(
     return voltage.value
 
 
-def amdsmi_dev_get_busy_percent(
+def amdsmi_get_busy_percent(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> int:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -2175,7 +2175,7 @@ def amdsmi_dev_get_busy_percent(
 
     busy_percent = ctypes.c_uint32()
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_get_busy_percent(
+        amdsmi_wrapper.amdsmi_get_busy_percent(
             processor_handle, ctypes.byref(busy_percent)
         )
     )

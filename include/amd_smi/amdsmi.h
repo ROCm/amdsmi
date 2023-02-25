@@ -2098,7 +2098,7 @@ amdsmi_status_t amdsmi_set_gpu_fan_speed(amdsmi_processor_handle processor_handl
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_get_busy_percent(amdsmi_processor_handle processor_handle, uint32_t *busy_percent);
+amdsmi_get_busy_percent(amdsmi_processor_handle processor_handle, uint32_t *busy_percent);
 
 /**
  *  @brief Get coarse grain utilization counter of the specified device
