@@ -102,20 +102,20 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_get_device_type
+## amdsmi_get_processor_type
 Description: Checks the type of device with provided handle.
 
 Input parameters: device handle as an instance of `amdsmi_processor_handle`
 
 Output: Integer, type of gpu
 
-Exceptions that can be thrown by `amdsmi_get_device_type` function:
+Exceptions that can be thrown by `amdsmi_get_processor_type` function:
 * `AmdSmiLibraryException`
 
 Example:
 ```python
 try:
-    type_of_GPU = amdsmi_get_device_type(processor_handle)
+    type_of_GPU = amdsmi_get_processor_type(processor_handle)
     if type_of_GPU == 1:
         print("This is an AMD GPU")
 except AmdSmiException as e:

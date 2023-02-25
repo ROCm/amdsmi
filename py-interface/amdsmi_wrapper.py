@@ -232,8 +232,8 @@ amdsmi_container_types_t__enumvalues = c__EA_amdsmi_container_types_t__enumvalue
 amdsmi_processor_handle = ctypes.POINTER(None)
 amdsmi_socket_handle = ctypes.POINTER(None)
 
-# values for enumeration 'c__EA_device_type_t'
-c__EA_device_type_t__enumvalues = {
+# values for enumeration 'c__EA_processor_type_t'
+c__EA_processor_type_t__enumvalues = {
     0: 'UNKNOWN',
     1: 'AMD_GPU',
     2: 'AMD_CPU',
@@ -245,9 +245,9 @@ AMD_GPU = 1
 AMD_CPU = 2
 NON_AMD_GPU = 3
 NON_AMD_CPU = 4
-c__EA_device_type_t = ctypes.c_uint32 # enum
-device_type_t = c__EA_device_type_t
-device_type_t__enumvalues = c__EA_device_type_t__enumvalues
+c__EA_processor_type_t = ctypes.c_uint32 # enum
+processor_type_t = c__EA_processor_type_t
+processor_type_t__enumvalues = c__EA_processor_type_t__enumvalues
 
 # values for enumeration 'c__EA_amdsmi_status_t'
 c__EA_amdsmi_status_t__enumvalues = {
@@ -1414,9 +1414,9 @@ amdsmi_get_socket_info.argtypes = [amdsmi_socket_handle, ctypes.POINTER(ctypes.c
 amdsmi_get_processor_handles = _libraries['libamd_smi.so'].amdsmi_get_processor_handles
 amdsmi_get_processor_handles.restype = amdsmi_status_t
 amdsmi_get_processor_handles.argtypes = [amdsmi_socket_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.POINTER(None))]
-amdsmi_get_device_type = _libraries['libamd_smi.so'].amdsmi_get_device_type
-amdsmi_get_device_type.restype = amdsmi_status_t
-amdsmi_get_device_type.argtypes = [amdsmi_processor_handle, ctypes.POINTER(c__EA_device_type_t)]
+amdsmi_get_processor_type = _libraries['libamd_smi.so'].amdsmi_get_processor_type
+amdsmi_get_processor_type.restype = amdsmi_status_t
+amdsmi_get_processor_type.argtypes = [amdsmi_processor_handle, ctypes.POINTER(c__EA_processor_type_t)]
 amdsmi_get_processor_handle_from_bdf = _libraries['libamd_smi.so'].amdsmi_get_processor_handle_from_bdf
 amdsmi_get_processor_handle_from_bdf.restype = amdsmi_status_t
 amdsmi_get_processor_handle_from_bdf.argtypes = [amdsmi_bdf_t, ctypes.POINTER(ctypes.POINTER(None))]
@@ -1900,7 +1900,7 @@ __all__ = \
     'amdsmi_get_compute_process_info',
     'amdsmi_get_compute_process_info_by_pid', 'amdsmi_get_device_bdf',
     'amdsmi_get_processor_handle_from_bdf', 'amdsmi_get_processor_handles',
-    'amdsmi_get_device_type', 'amdsmi_get_device_uuid',
+    'amdsmi_get_processor_type', 'amdsmi_get_device_uuid',
     'amdsmi_get_driver_version', 'amdsmi_get_ecc_error_count',
     'amdsmi_get_event_notification', 'amdsmi_get_func_iter_value',
     'amdsmi_get_fw_info', 'amdsmi_get_gpu_activity',
@@ -1964,8 +1964,8 @@ __all__ = \
     'c__EA_amdsmi_temperature_metric_t',
     'c__EA_amdsmi_temperature_type_t',
     'c__EA_amdsmi_voltage_metric_t', 'c__EA_amdsmi_voltage_type_t',
-    'c__EA_amdsmi_xgmi_status_t', 'c__EA_device_type_t',
-    'device_type_t', 'device_type_t__enumvalues', 'size_t',
+    'c__EA_amdsmi_xgmi_status_t', 'c__EA_processor_type_t',
+    'processor_type_t', 'processor_type_t__enumvalues', 'size_t',
     'struct_amdsmi_func_id_iter_handle',
     'struct_c__SA_amd_metrics_table_header_t',
     'struct_c__SA_amdsmi_asic_info_t',

@@ -188,7 +188,7 @@ amdsmi_status_t AMDSmiSystem::gpu_index_to_handle(uint32_t gpu_index,
     auto iter = devices_.begin();
     for (; iter != devices_.end(); iter++) {
         auto cur_device = (*iter);
-        if (cur_device->get_device_type() != AMD_GPU)
+        if (cur_device->get_processor_type() != AMD_GPU)
             continue;
         amd::smi::AMDSmiGPUDevice* gpu_device =
                 static_cast<amd::smi::AMDSmiGPUDevice*>(cur_device);
