@@ -362,7 +362,7 @@ class Formatter:
     |     """ + self.style.text("73   Set dev perf level.                   Api:  amdsmi_dev_set_perf_level              <bdf>") + """                        |
     |     """ + self.style.text("74   Set dev perf level v1.                Api:  amdsmi_dev_set_perf_level_v1           <bdf>") + """                        |
     |     """ + self.style.text("75   Set dev power cap.                    Api:  amdsmi_set_power_cap               <bdf><sensor_ind><cap>") + """       |
-    |     """ + self.style.text("76   Set dev power profile.                Api:  amdsmi_dev_set_power_profile           <bdf><reserved>") + """              |
+    |     """ + self.style.text("76   Set dev power profile.                Api:  amdsmi_set_gpu_power_profile           <bdf><reserved>") + """              |
     |     """ + self.style.text("77   Close dev supported func iterator.    Api: amdsmi_dev_close_supported_func_iterator    <bdf>") + """                   |
     |     """ + self.style.text("78   Pen dev supported func iterator.      Api: amdsmi_dev_open_supported_func_iterator     <bdf>") + """                   |
     |     """ + self.style.text("79   Get func iter next.                   Api: amdsmi_next_func_iter                  <bdf>") + """                        |
@@ -701,7 +701,7 @@ def amdsmi_tool_dev_power_profile_set(dev, dic):
     reserved = dic["reserved"]
     for power_profile_preset_maks in smi_api.AmdSmiPowerProfilePresetMasks:
         try:
-            value = smi_api. amdsmi_dev_set_power_profile(dev, reserved, power_profile_preset_maks)
+            value = smi_api. amdsmi_set_gpu_power_profile(dev, reserved, power_profile_preset_maks)
             result.update({power_profile_preset_maks.name: value})
         except smi_api.AmdSmiException as e:
             print("{}:\t{}".format(power_profile_preset_maks.name, e))

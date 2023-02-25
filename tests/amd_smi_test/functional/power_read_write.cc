@@ -172,7 +172,7 @@ void TestPowerReadWrite::Run(void) {
       return;
     }
 
-    ret =  amdsmi_dev_set_power_profile(processor_handles_[dv_ind], 0, new_prof);
+    ret =  amdsmi_set_gpu_power_profile(processor_handles_[dv_ind], 0, new_prof);
     CHK_ERR_ASRT(ret)
 
     amdsmi_dev_perf_level_t pfl;

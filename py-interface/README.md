@@ -1252,7 +1252,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-##  amdsmi_dev_set_power_profile
+##  amdsmi_set_gpu_power_profile
 Description: Set the power profile
 
 Input parameters:
@@ -1263,7 +1263,7 @@ the desired new power profile
 
 Output: None
 
-Exceptions that can be thrown by ` amdsmi_dev_set_power_profile` function:
+Exceptions that can be thrown by ` amdsmi_set_gpu_power_profile` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1277,7 +1277,7 @@ try:
     else:
         for device in devices:
             profile = ...
-             amdsmi_dev_set_power_profile(device, 0, profile)
+             amdsmi_set_gpu_power_profile(device, 0, profile)
 except AmdSmiException as e:
     print(e)
 ```
