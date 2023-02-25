@@ -1627,7 +1627,7 @@ except AmdSmiException as e:
 ```
 
 
-## amdsmi_dev_get_memory_usage
+## amdsmi_get_gpu_memory_usage
 
 Description: Get the current memory usage
 
@@ -1638,7 +1638,7 @@ Input parameters:
 
 Output: the amount of memory currently being used
 
-Exceptions that can be thrown by `amdsmi_dev_get_memory_usage` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_memory_usage` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1651,7 +1651,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            memory = amdsmi_dev_get_memory_usage(device)
+            memory = amdsmi_get_gpu_memory_usage(device)
             print(memory)
 except AmdSmiException as e:
     print(e)

@@ -301,7 +301,7 @@ class Formatter:
     |     """ + self.style.text("12   Get device power ave.                 Api: amdsmi_get_power_ave               <bdf><sensor_id>") + """             |
     |     """ + self.style.text("13   Get device energy count.              Api: amdsmi_get_energy_count            <bdf>") + """                        |
     |     """ + self.style.text("14   Get device memory total.              Api: amdsmi_get_gpu_memory_total            <bdf>") + """                        |
-    |     """ + self.style.text("15   Get device memory usage.              Api: amdsmi_dev_get_memory_usage            <bdf>") + """                        |
+    |     """ + self.style.text("15   Get device memory usage.              Api: amdsmi_get_gpu_memory_usage            <bdf>") + """                        |
     |     """ + self.style.text("16   Get device memory busy percent.       Api: amdsmi_dev_get_memory_busy_percent     <bdf>") + """                        |
     |     """ + self.style.text("17   Get device memory reserved pages.     Api: amdsmi_dev_get_memory_reserved_pages   <bdf>") + """                        |
     |     """ + self.style.text("18   Get device fan rpms.                  Api: amdsmi_dev_get_fan_rpms                <bdf><sensor_idx>") + """            |
@@ -394,7 +394,7 @@ def amdsmi_tool_dev_memory_usage_get(dev):
     result = {}
     for memory_type in smi_api.AmdSmiMemoryType:
         try:
-            value = smi_api.amdsmi_dev_get_memory_usage(dev, memory_type)
+            value = smi_api.amdsmi_get_gpu_memory_usage(dev, memory_type)
             result.update({memory_type.name: value})
         except smi_api.AmdSmiException as e:
             print("{}:\t{}".format(memory_type.name, e))
