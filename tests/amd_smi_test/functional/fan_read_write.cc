@@ -163,7 +163,7 @@ void TestFanReadWrite::Run(void) {
       std::cout << "Resetting fan control to auto..." << std::endl;
     }
 
-    ret = amdsmi_dev_reset_fan(processor_handles_[dv_ind], 0);
+    ret = amdsmi_reset_gpu_fan(processor_handles_[dv_ind], 0);
     CHK_ERR_ASRT(ret)
 
     sleep(3);

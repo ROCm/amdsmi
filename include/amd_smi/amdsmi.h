@@ -2044,7 +2044,7 @@ amdsmi_status_t  amdsmi_get_gpu_volt_metric(amdsmi_processor_handle processor_ha
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_dev_reset_fan(amdsmi_processor_handle processor_handle, uint32_t sensor_ind);
+amdsmi_status_t amdsmi_reset_gpu_fan(amdsmi_processor_handle processor_handle, uint32_t sensor_ind);
 
 /**
  *  @brief Set the fan speed for the specified device with the provided speed,

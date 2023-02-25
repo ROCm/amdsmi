@@ -2518,7 +2518,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_reset_fan
+## amdsmi_reset_gpu_fan
 Description: Reset the fan to automatic driver control
 
 Input parameters:
@@ -2527,7 +2527,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_dev_reset_fan` function:
+Exceptions that can be thrown by `amdsmi_reset_gpu_fan` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2540,7 +2540,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_dev_reset_fan(device, 0)
+            amdsmi_reset_gpu_fan(device, 0)
 except AmdSmiException as e:
     print(e)
 ```
