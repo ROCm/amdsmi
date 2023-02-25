@@ -1854,7 +1854,7 @@ def amdsmi_get_power_ave(processor_handle: amdsmi_wrapper.amdsmi_processor_handl
     return power.value
 
 
-def amdsmi_dev_set_power_profile(
+def amdsmi_set_gpu_power_profile(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     reserved: int,
     profile: AmdSmiPowerProfilePresetMasks,
@@ -1871,7 +1871,7 @@ def amdsmi_dev_set_power_profile(
         raise AmdSmiParameterException(profile, AmdSmiPowerProfilePresetMasks)
 
     _check_res(
-        amdsmi_wrapper. amdsmi_dev_set_power_profile(
+        amdsmi_wrapper. amdsmi_set_gpu_power_profile(
             processor_handle, ctypes.c_uint32(reserved), profile
         )
     )

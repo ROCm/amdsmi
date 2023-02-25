@@ -1725,7 +1725,7 @@ amdsmi_status_t
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
- amdsmi_dev_set_power_profile(amdsmi_processor_handle processor_handle, uint32_t reserved,
+ amdsmi_set_gpu_power_profile(amdsmi_processor_handle processor_handle, uint32_t reserved,
                                    amdsmi_power_profile_preset_masks_t profile);
 
 /** @} End PowerCont*/

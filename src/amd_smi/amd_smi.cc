@@ -906,7 +906,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_pci_throughput_get", "amdsmi_get_gpu_pci_throughput"},
         {"rsmi_dev_pci_replay_counter_get", " amdsmi_get_gpu_pci_replay_counter"},
         {"rsmi_dev_pci_bandwidth_set", " amdsmi_set_gpu_pci_bandwidth"},
-        {"rsmi_dev_power_profile_set", " amdsmi_dev_set_power_profile"},
+        {"rsmi_dev_power_profile_set", " amdsmi_set_gpu_power_profile"},
         {"rsmi_dev_memory_busy_percent_get", "amdsmi_dev_get_memory_busy_percent"},
         {"rsmi_dev_busy_percent_get", "amdsmi_dev_get_busy_percent"},
         {"rsmi_dev_memory_reserved_pages_get", "amdsmi_dev_get_memory_reserved_pages"},
@@ -1160,7 +1160,7 @@ amdsmi_status_t amdsmi_set_perf_determinism_mode(
 }
 
 amdsmi_status_t
- amdsmi_dev_set_power_profile(amdsmi_processor_handle processor_handle,
+ amdsmi_set_gpu_power_profile(amdsmi_processor_handle processor_handle,
         uint32_t reserved, amdsmi_power_profile_preset_masks_t profile) {
     return rsmi_wrapper(rsmi_dev_power_profile_set, processor_handle,
                 reserved,
