@@ -3721,7 +3721,7 @@ amdsmi_get_fw_info(amdsmi_processor_handle processor_handle, amdsmi_fw_info_t *i
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_vbios_info(amdsmi_processor_handle processor_handle, amdsmi_vbios_info_t *info);
+amdsmi_get_gpu_vbios_info(amdsmi_processor_handle processor_handle, amdsmi_vbios_info_t *info);
 
 /** @} End fwinfo */
 

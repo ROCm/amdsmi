@@ -1691,9 +1691,9 @@ amdsmi_get_caps_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_
 amdsmi_get_fw_info = _libraries['libamd_smi.so'].amdsmi_get_fw_info
 amdsmi_get_fw_info.restype = amdsmi_status_t
 amdsmi_get_fw_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_c__SA_amdsmi_fw_info_t)]
-amdsmi_get_vbios_info = _libraries['libamd_smi.so'].amdsmi_get_vbios_info
-amdsmi_get_vbios_info.restype = amdsmi_status_t
-amdsmi_get_vbios_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_c__SA_amdsmi_vbios_info_t)]
+amdsmi_get_gpu_vbios_info = _libraries['libamd_smi.so'].amdsmi_get_gpu_vbios_info
+amdsmi_get_gpu_vbios_info.restype = amdsmi_status_t
+amdsmi_get_gpu_vbios_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_c__SA_amdsmi_vbios_info_t)]
 amdsmi_get_gpu_activity = _libraries['libamd_smi.so'].amdsmi_get_gpu_activity
 amdsmi_get_gpu_activity.restype = amdsmi_status_t
 amdsmi_get_gpu_activity.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_c__SA_amdsmi_engine_usage_t)]
@@ -1911,7 +1911,7 @@ __all__ = \
     'amdsmi_get_ras_block_features_enabled',
     'amdsmi_get_socket_handles', 'amdsmi_get_socket_info',
     'amdsmi_get_target_frequency_range',
-    'amdsmi_get_utilization_count', 'amdsmi_get_vbios_info',
+    'amdsmi_get_utilization_count', 'amdsmi_get_gpu_vbios_info',
     'amdsmi_get_version', 'amdsmi_get_version_str',
     'amdsmi_get_vram_usage', 'amdsmi_get_xgmi_info',
     'amdsmi_gpu_block_t', 'amdsmi_gpu_block_t__enumvalues',

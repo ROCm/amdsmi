@@ -42,7 +42,7 @@ from .amdsmi_interface import amdsmi_get_power_cap_info
 from .amdsmi_interface import amdsmi_get_caps_info
 
 # # Microcode and VBIOS Information
-from .amdsmi_interface import amdsmi_get_vbios_info
+from .amdsmi_interface import amdsmi_get_gpu_vbios_info
 from .amdsmi_interface import amdsmi_get_fw_info
 
 # # GPU Monitoring
