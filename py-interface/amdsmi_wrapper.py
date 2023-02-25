@@ -1667,9 +1667,9 @@ amdsmi_stop_event_notification.argtypes = [amdsmi_processor_handle]
 amdsmi_get_gpu_device_bdf = _libraries['libamd_smi.so'].amdsmi_get_gpu_device_bdf
 amdsmi_get_gpu_device_bdf.restype = amdsmi_status_t
 amdsmi_get_gpu_device_bdf.argtypes = [amdsmi_processor_handle, ctypes.POINTER(union_c__UA_amdsmi_bdf_t)]
-amdsmi_get_device_uuid = _libraries['libamd_smi.so'].amdsmi_get_device_uuid
-amdsmi_get_device_uuid.restype = amdsmi_status_t
-amdsmi_get_device_uuid.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_char)]
+amdsmi_get_gpu_device_uuid = _libraries['libamd_smi.so'].amdsmi_get_gpu_device_uuid
+amdsmi_get_gpu_device_uuid.restype = amdsmi_status_t
+amdsmi_get_gpu_device_uuid.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_char)]
 amdsmi_get_driver_version = _libraries['libamd_smi.so'].amdsmi_get_driver_version
 amdsmi_get_driver_version.restype = amdsmi_status_t
 amdsmi_get_driver_version.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_int32), ctypes.POINTER(ctypes.c_char)]
@@ -1900,7 +1900,7 @@ __all__ = \
     'amdsmi_get_compute_process_info',
     'amdsmi_get_compute_process_info_by_pid', 'amdsmi_get_gpu_device_bdf',
     'amdsmi_get_processor_handle_from_bdf', 'amdsmi_get_processor_handles',
-    'amdsmi_get_processor_type', 'amdsmi_get_device_uuid',
+    'amdsmi_get_processor_type', 'amdsmi_get_gpu_device_uuid',
     'amdsmi_get_driver_version', 'amdsmi_get_ecc_error_count',
     'amdsmi_get_event_notification', 'amdsmi_get_func_iter_value',
     'amdsmi_get_fw_info', 'amdsmi_get_gpu_activity',

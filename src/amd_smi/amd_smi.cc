@@ -1810,7 +1810,7 @@ amdsmi_get_driver_version(amdsmi_processor_handle processor_handle, int *length,
 }
 
 amdsmi_status_t
-amdsmi_get_device_uuid(amdsmi_processor_handle processor_handle, unsigned int *uuid_length, char *uuid) {
+amdsmi_get_gpu_device_uuid(amdsmi_processor_handle processor_handle, unsigned int *uuid_length, char *uuid) {
     AMDSMI_CHECK_INIT();
 
     if (uuid_length == nullptr || uuid == nullptr) {
