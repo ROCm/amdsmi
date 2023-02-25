@@ -3608,7 +3608,7 @@ amdsmi_get_gpu_device_uuid(amdsmi_processor_handle processor_handle, unsigned in
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_driver_version(amdsmi_processor_handle processor_handle, int *length, char *version);
+amdsmi_get_gpu_driver_version(amdsmi_processor_handle processor_handle, int *length, char *version);
 
 /** @} End swversion */
 

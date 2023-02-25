@@ -940,7 +940,7 @@ def amdsmi_get_gpu_device_uuid(processor_handle: amdsmi_wrapper.amdsmi_processor
     return uuid.value.decode("utf-8")
 
 
-def amdsmi_get_driver_version(
+def amdsmi_get_gpu_driver_version(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> str:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -954,7 +954,7 @@ def amdsmi_get_driver_version(
     version = ctypes.create_string_buffer(_AMDSMI_MAX_DRIVER_VERSION_LENGTH)
 
     _check_res(
-        amdsmi_wrapper.amdsmi_get_driver_version(
+        amdsmi_wrapper.amdsmi_get_gpu_driver_version(
             processor_handle, ctypes.byref(length), version
         )
     )

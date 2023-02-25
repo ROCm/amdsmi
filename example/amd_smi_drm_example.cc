@@ -320,9 +320,9 @@ int main() {
             // Get driver version
             char version[AMDSMI_MAX_DRIVER_VERSION_LENGTH];
             int version_length = AMDSMI_MAX_DRIVER_VERSION_LENGTH;
-            ret = amdsmi_get_driver_version(processor_handles[j], &version_length, version);
+            ret = amdsmi_get_gpu_driver_version(processor_handles[j], &version_length, version);
             CHK_AMDSMI_RET(ret)
-            printf("    Output of amdsmi_get_driver_version:\n");
+            printf("    Output of amdsmi_get_gpu_driver_version:\n");
             printf("\tDriver version: %s\n\n", version);
 
             // Get device uuid

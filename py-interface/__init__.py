@@ -34,7 +34,7 @@ from .amdsmi_interface import amdsmi_get_gpu_device_uuid
 from .amdsmi_interface import amdsmi_get_processor_handle_from_bdf
 
 # # SW Version Information
-from .amdsmi_interface import amdsmi_get_driver_version
+from .amdsmi_interface import amdsmi_get_gpu_driver_version
 
 # # ASIC and Bus Static Information
 from .amdsmi_interface import amdsmi_get_asic_info
