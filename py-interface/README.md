@@ -1688,7 +1688,7 @@ except AmdSmiException as e:
 ```
 
 
-## amdsmi_dev_get_memory_busy_percent
+## amdsmi_get_gpu_memory_busy_percent
 
 Description: Get percentage of time any device memory is being used
 
@@ -1698,7 +1698,7 @@ Input parameters:
 
 Output: percentage of time that any device memory is being used for the specified device.
 
-Exceptions that can be thrown by `amdsmi_dev_get_memory_busy_percent` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_memory_busy_percent` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1711,7 +1711,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            busy_percent = amdsmi_dev_get_memory_busy_percent(device)
+            busy_percent = amdsmi_get_gpu_memory_busy_percent(device)
             print(busy_percent)
 except AmdSmiException as e:
     print(e)

@@ -119,8 +119,8 @@ void TestMemUtilRead::Run(void) {
       PrintDeviceHeader(processor_handles_[i]);
 
 #if 0
-      err = amdsmi_dev_get_memory_busy_percent(i, &mem_busy_percent);
-      err_chk("amdsmi_dev_get_memory_busy_percent()");
+      err = amdsmi_get_gpu_memory_busy_percent(i, &mem_busy_percent);
+      err_chk("amdsmi_get_gpu_memory_busy_percent()");
       if (err != AMDSMI_STATUS_SUCCESS) {
         return;
       }

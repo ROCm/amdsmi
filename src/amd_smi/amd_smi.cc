@@ -907,7 +907,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_pci_replay_counter_get", " amdsmi_get_gpu_pci_replay_counter"},
         {"rsmi_dev_pci_bandwidth_set", " amdsmi_set_gpu_pci_bandwidth"},
         {"rsmi_dev_power_profile_set", " amdsmi_set_gpu_power_profile"},
-        {"rsmi_dev_memory_busy_percent_get", "amdsmi_dev_get_memory_busy_percent"},
+        {"rsmi_dev_memory_busy_percent_get", "amdsmi_get_gpu_memory_busy_percent"},
         {"rsmi_dev_busy_percent_get", "amdsmi_dev_get_busy_percent"},
         {"rsmi_dev_memory_reserved_pages_get", "amdsmi_dev_get_memory_reserved_pages"},
         {"rsmi_dev_overdrive_level_get", "amdsmi_dev_get_overdrive_level"},
@@ -1366,7 +1366,7 @@ amdsmi_status_t amdsmi_get_utilization_count(amdsmi_processor_handle processor_h
             reinterpret_cast<rsmi_utilization_counter_t*>(utilization_counters),
             count, timestamp);
 }
-amdsmi_status_t amdsmi_dev_get_memory_busy_percent(
+amdsmi_status_t amdsmi_get_gpu_memory_busy_percent(
             amdsmi_processor_handle processor_handle,
             uint32_t *busy_percent) {
     return rsmi_wrapper(rsmi_dev_memory_busy_percent_get, processor_handle,

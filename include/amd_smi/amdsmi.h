@@ -1845,7 +1845,7 @@ amdsmi_get_ras_block_features_enabled(amdsmi_processor_handle processor_handle, 
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_get_memory_busy_percent(amdsmi_processor_handle processor_handle, uint32_t *busy_percent);
+amdsmi_get_gpu_memory_busy_percent(amdsmi_processor_handle processor_handle, uint32_t *busy_percent);
 
 /**
  *  @brief Get information about reserved ("retired") memory pages
