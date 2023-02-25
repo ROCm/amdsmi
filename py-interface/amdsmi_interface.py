@@ -1838,7 +1838,7 @@ def amdsmi_dev_set_power_cap(
     )
 
 
-def amdsmi_dev_get_power_ave(processor_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_id: ctypes.c_uint32):
+def amdsmi_get_power_ave(processor_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_id: ctypes.c_uint32):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
@@ -1847,7 +1847,7 @@ def amdsmi_dev_get_power_ave(processor_handle: amdsmi_wrapper.amdsmi_processor_h
     power = ctypes.c_uint64()
 
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_get_power_ave(
+        amdsmi_wrapper.amdsmi_get_power_ave(
             processor_handle, sensor_id, ctypes.byref(power))
     )
 

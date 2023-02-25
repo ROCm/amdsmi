@@ -1457,9 +1457,9 @@ amdsmi_get_gpu_pci_replay_counter.argtypes = [amdsmi_processor_handle, ctypes.PO
 amdsmi_set_gpu_pci_bandwidth = _libraries['libamd_smi.so'].amdsmi_set_gpu_pci_bandwidth
 amdsmi_set_gpu_pci_bandwidth.restype = amdsmi_status_t
 amdsmi_set_gpu_pci_bandwidth.argtypes = [amdsmi_processor_handle, uint64_t]
-amdsmi_dev_get_power_ave = _libraries['libamd_smi.so'].amdsmi_dev_get_power_ave
-amdsmi_dev_get_power_ave.restype = amdsmi_status_t
-amdsmi_dev_get_power_ave.argtypes = [amdsmi_processor_handle, uint32_t, ctypes.POINTER(ctypes.c_uint64)]
+amdsmi_get_power_ave = _libraries['libamd_smi.so'].amdsmi_get_power_ave
+amdsmi_get_power_ave.restype = amdsmi_status_t
+amdsmi_get_power_ave.argtypes = [amdsmi_processor_handle, uint32_t, ctypes.POINTER(ctypes.c_uint64)]
 amdsmi_dev_get_energy_count = _libraries['libamd_smi.so'].amdsmi_dev_get_energy_count
 amdsmi_dev_get_energy_count.restype = amdsmi_status_t
 amdsmi_dev_get_energy_count.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_uint64)]
@@ -1865,7 +1865,7 @@ __all__ = \
     'amdsmi_get_gpu_pci_bandwidth', 'amdsmi_get_gpu_pci_id',
     'amdsmi_get_gpu_pci_replay_counter',
     'amdsmi_get_gpu_pci_throughput', 'amdsmi_dev_get_perf_level',
-    'amdsmi_dev_get_power_ave',
+    'amdsmi_get_power_ave',
     'amdsmi_dev_get_power_profile_presets',
     'amdsmi_get_gpu_subsystem_id', 'amdsmi_get_gpu_subsystem_name',
     'amdsmi_dev_get_temp_metric', 'amdsmi_get_gpu_vendor_name',

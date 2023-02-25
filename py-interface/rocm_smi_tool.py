@@ -298,7 +298,7 @@ class Formatter:
     |     """ + self.style.text(" 9   Get device pci throughput.            Api: amdsmi_get_gpu_pci_throughput          <bdf>") + """                        |
     |     """ + self.style.text("10   Get device pci replay counter.        Api:  amdsmi_get_gpu_pci_replay_counter      <bdf>") + """                        |
     |     """ + self.style.text("11   Get topo numa affinity.               Api: amdsmi_get_gpu_topo_numa_affinity          <bdf>") + """                        |
-    |     """ + self.style.text("12   Get device power ave.                 Api: amdsmi_dev_get_power_ave               <bdf><sensor_id>") + """             |
+    |     """ + self.style.text("12   Get device power ave.                 Api: amdsmi_get_power_ave               <bdf><sensor_id>") + """             |
     |     """ + self.style.text("13   Get device energy count.              Api: amdsmi_dev_get_energy_count            <bdf>") + """                        |
     |     """ + self.style.text("14   Get device memory total.              Api: amdsmi_dev_get_memory_total            <bdf>") + """                        |
     |     """ + self.style.text("15   Get device memory usage.              Api: amdsmi_dev_get_memory_usage            <bdf>") + """                        |
@@ -377,7 +377,7 @@ class Formatter:
 ##############################################
 def amdsmi_tool_dev_power_ave_get(dev, dic):
     sensor_id = dic["sensor_id"]
-    return smi_api.amdsmi_dev_get_power_ave(dev, ctypes.c_uint32(sensor_id))
+    return smi_api.amdsmi_get_power_ave(dev, ctypes.c_uint32(sensor_id))
 
 def amdsmi_tool_dev_memory_total_get(dev):
     result = {}

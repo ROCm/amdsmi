@@ -938,7 +938,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_firmware_version_get", "amdsmi_get_fw_info"},
         {"rsmi_dev_ecc_count_get", " amdsmi_dev_get_ecc_count"},
         {"rsmi_counter_available_counters_get", " amdsmi_counter_get_available_counters"},
-        {"rsmi_dev_power_ave_get", "amdsmi_dev_get_power_ave"},
+        {"rsmi_dev_power_ave_get", "amdsmi_get_power_ave"},
         {"rsmi_dev_power_cap_get", "amdsmi_get_power_cap_info"},
         {"rsmi_dev_power_cap_default_get", "amdsmi_get_power_cap_info"},
         {"rsmi_dev_power_cap_range_get", "amdsmi_get_power_cap_info"},
@@ -1131,7 +1131,7 @@ amdsmi_status_t
 }
 
 amdsmi_status_t
-amdsmi_dev_get_power_ave(amdsmi_processor_handle processor_handle,
+amdsmi_get_power_ave(amdsmi_processor_handle processor_handle,
                     uint32_t sensor_ind, uint64_t *power) {
     AMDSMI_CHECK_INIT();
 
