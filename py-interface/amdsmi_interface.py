@@ -1005,7 +1005,7 @@ def amdsmi_get_fw_info(
     }
 
 
-def amdsmi_get_vram_usage(
+def amdsmi_get_gpu_vram_usage(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -1015,7 +1015,7 @@ def amdsmi_get_vram_usage(
 
     vram_info = amdsmi_wrapper.amdsmi_vram_info_t()
     _check_res(
-        amdsmi_wrapper.amdsmi_get_vram_usage(
+        amdsmi_wrapper.amdsmi_get_gpu_vram_usage(
             processor_handle, ctypes.byref(vram_info))
     )
 

@@ -645,9 +645,9 @@ int main() {
 
             // Get frame buffer
             amdsmi_vram_info_t vram_usage = {};
-            ret = amdsmi_get_vram_usage(processor_handles[j], &vram_usage);
+            ret = amdsmi_get_gpu_vram_usage(processor_handles[j], &vram_usage);
             CHK_AMDSMI_RET(ret)
-            printf("    Output of amdsmi_get_vram_usage:\n");
+            printf("    Output of amdsmi_get_gpu_vram_usage:\n");
             std::cout << "\t\tFrame buffer usage (MB): " << vram_usage.vram_used
                       << "/" << vram_usage.vram_total << "\n\n";
 
