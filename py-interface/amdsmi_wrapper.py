@@ -1469,9 +1469,9 @@ amdsmi_set_power_cap.argtypes = [amdsmi_processor_handle, uint32_t, uint64_t]
 amdsmi_set_gpu_power_profile = _libraries['libamd_smi.so'].amdsmi_set_gpu_power_profile
 amdsmi_set_gpu_power_profile.restype = amdsmi_status_t
 amdsmi_set_gpu_power_profile.argtypes = [amdsmi_processor_handle, uint32_t, amdsmi_power_profile_preset_masks_t]
-amdsmi_dev_get_memory_total = _libraries['libamd_smi.so'].amdsmi_dev_get_memory_total
-amdsmi_dev_get_memory_total.restype = amdsmi_status_t
-amdsmi_dev_get_memory_total.argtypes = [amdsmi_processor_handle, amdsmi_memory_type_t, ctypes.POINTER(ctypes.c_uint64)]
+amdsmi_get_gpu_memory_total = _libraries['libamd_smi.so'].amdsmi_get_gpu_memory_total
+amdsmi_get_gpu_memory_total.restype = amdsmi_status_t
+amdsmi_get_gpu_memory_total.argtypes = [amdsmi_processor_handle, amdsmi_memory_type_t, ctypes.POINTER(ctypes.c_uint64)]
 amdsmi_dev_get_memory_usage = _libraries['libamd_smi.so'].amdsmi_dev_get_memory_usage
 amdsmi_dev_get_memory_usage.restype = amdsmi_status_t
 amdsmi_dev_get_memory_usage.argtypes = [amdsmi_processor_handle, amdsmi_memory_type_t, ctypes.POINTER(ctypes.c_uint64)]
@@ -1859,7 +1859,7 @@ __all__ = \
     'amdsmi_dev_get_gpu_clk_freq', 'amdsmi_dev_get_gpu_metrics_info',
     'amdsmi_get_gpu_id', 'amdsmi_dev_get_memory_busy_percent',
     'amdsmi_dev_get_memory_reserved_pages',
-    'amdsmi_dev_get_memory_total', 'amdsmi_dev_get_memory_usage',
+    'amdsmi_get_gpu_memory_total', 'amdsmi_dev_get_memory_usage',
     'amdsmi_dev_get_od_volt_curve_regions',
     'amdsmi_dev_get_od_volt_info', 'amdsmi_dev_get_overdrive_level',
     'amdsmi_get_gpu_pci_bandwidth', 'amdsmi_get_gpu_pci_id',

@@ -1929,7 +1929,7 @@ def amdsmi_dev_set_clk_range(
     )
 
 
-def amdsmi_dev_get_memory_total(processor_handle: amdsmi_wrapper.amdsmi_processor_handle, mem_type: AmdSmiMemoryType):
+def amdsmi_get_gpu_memory_total(processor_handle: amdsmi_wrapper.amdsmi_processor_handle, mem_type: AmdSmiMemoryType):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
@@ -1943,7 +1943,7 @@ def amdsmi_dev_get_memory_total(processor_handle: amdsmi_wrapper.amdsmi_processo
     total = ctypes.c_uint64()
 
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_get_memory_total(
+        amdsmi_wrapper.amdsmi_get_gpu_memory_total(
             processor_handle, mem_type, ctypes.byref(total))
     )
 

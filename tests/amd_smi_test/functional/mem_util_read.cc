@@ -131,9 +131,9 @@ void TestMemUtilRead::Run(void) {
 #endif
       for (uint32_t mem_type = AMDSMI_MEM_TYPE_FIRST;
                                    mem_type <= AMDSMI_MEM_TYPE_LAST; ++mem_type) {
-        err = amdsmi_dev_get_memory_total(processor_handles_[i],
+        err = amdsmi_get_gpu_memory_total(processor_handles_[i],
                              static_cast<amdsmi_memory_type_t>(mem_type), &total);
-        err_chk("amdsmi_dev_get_memory_total()");
+        err_chk("amdsmi_get_gpu_memory_total()");
         if (err != AMDSMI_STATUS_SUCCESS) {
           return;
         }
