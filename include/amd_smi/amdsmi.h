@@ -1363,7 +1363,7 @@ amdsmi_status_t amdsmi_get_gpu_vendor_name(amdsmi_processor_handle processor_han
  *  buffer @p brand.
  *
  *  If the vram vendor for the device is not found as one of the values
- *  contained within amdsmi_dev_get_vram_vendor, then this function will return
+ *  contained within amdsmi_get_gpu_vram_vendor, then this function will return
  *  the string 'unknown' instead of the vram vendor.
  *
  *  @param[in] processor_handle a device handle
@@ -1375,7 +1375,7 @@ amdsmi_status_t amdsmi_get_gpu_vendor_name(amdsmi_processor_handle processor_han
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_dev_get_vram_vendor(amdsmi_processor_handle processor_handle, char *brand,
+amdsmi_status_t amdsmi_get_gpu_vram_vendor(amdsmi_processor_handle processor_handle, char *brand,
                                                                 uint32_t len);
 
 /**

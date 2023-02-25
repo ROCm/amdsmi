@@ -638,7 +638,7 @@ amdsmi_status_t amdsmi_get_gpu_vendor_name(
     return rsmi_wrapper(rsmi_dev_vendor_name_get, processor_handle, name, len);
 }
 
-amdsmi_status_t amdsmi_dev_get_vram_vendor(amdsmi_processor_handle processor_handle,
+amdsmi_status_t amdsmi_get_gpu_vram_vendor(amdsmi_processor_handle processor_handle,
                                      char *brand, uint32_t len) {
     return rsmi_wrapper(rsmi_dev_vram_vendor_get, processor_handle, brand, len);
 }
@@ -888,7 +888,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         return AMDSMI_STATUS_INVAL;
 
     static const std::map<std::string, const char*> rsmi_2_amdsmi = {
-        {"rsmi_dev_vram_vendor_get", "amdsmi_dev_get_vram_vendor"},
+        {"rsmi_dev_vram_vendor_get", "amdsmi_get_gpu_vram_vendor"},
         {"rsmi_dev_id_get", "amdsmi_get_gpu_id"},
         {"rsmi_dev_vendor_id_get", "amdsmi_get_asic_info"},
         {"rsmi_dev_name_get", "amdsmi_get_board_info"},

@@ -2930,7 +2930,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_get_vram_vendor
+## amdsmi_get_gpu_vram_vendor
 Description: Get the vram vendor string of a gpu device.
 
 Input parameters:
@@ -2939,7 +2939,7 @@ Input parameters:
 
 Output: vram vendor
 
-Exceptions that can be thrown by `amdsmi_dev_get_vram_vendor` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_vram_vendor` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2952,7 +2952,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            vram_vendor = amdsmi_dev_get_vram_vendor(device)
+            vram_vendor = amdsmi_get_gpu_vram_vendor(device)
             print(vram_vendor)
 except AmdSmiException as e:
     print(e)
