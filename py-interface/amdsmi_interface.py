@@ -2229,7 +2229,7 @@ def amdsmi_get_utilization_count(
     return result
 
 
-def amdsmi_dev_get_perf_level(
+def amdsmi_get_gpu_perf_level(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> str:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -2240,7 +2240,7 @@ def amdsmi_dev_get_perf_level(
     perf = amdsmi_wrapper.amdsmi_dev_perf_level_t()
 
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_get_perf_level(
+        amdsmi_wrapper.amdsmi_get_gpu_perf_level(
             processor_handle, ctypes.byref(perf))
     )
 

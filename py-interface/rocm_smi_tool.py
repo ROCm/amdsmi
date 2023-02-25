@@ -311,7 +311,7 @@ class Formatter:
     |     """ + self.style.text("22   Get device volt metric.               Api:  amdsmi_get_gpu_volt_metric             <bdf>") + """                        |
     |     """ + self.style.text("23   Get device busy percent.              Api: amdsmi_get_busy_percent            <bdf>") + """                        |
     |     """ + self.style.text("24   Get utilization count.                Api: amdsmi_get_utilization_count           <bdf>") + """                        |
-    |     """ + self.style.text("25   Get device perf level.                Api: amdsmi_dev_get_perf_level              <bdf>") + """                        |
+    |     """ + self.style.text("25   Get device perf level.                Api: amdsmi_get_gpu_perf_level              <bdf>") + """                        |
     |     """ + self.style.text("26   Set perf determinism mode.            Api: amdsmi_set_perf_determinism_mode       <bdf><clock_value>") + """           |
     |     """ + self.style.text("27   Get device overdrive level.           Api: amdsmi_dev_get_overdrive_level         <bdf>") + """                        |
     |     """ + self.style.text("28   Get device gpu clk freq.              Api:  amdsmi_dev_get_gpu_clk_freq            <bdf>") + """                        |
@@ -798,7 +798,7 @@ commands = {
     24: [amdsmi_tool_utilization_count_get, {
         "device_identifier1": [None, True],
     }],
-    25: [smi_api.amdsmi_dev_get_perf_level, {
+    25: [smi_api.amdsmi_get_gpu_perf_level, {
         "device_identifier1": [None, True]
     }],
     26: [amdsmi_tool_perf_determinism_mode_set, {

@@ -914,7 +914,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_power_profile_presets_get", " amdsmi_dev_get_power_profile_presets"},
         {"rsmi_dev_perf_level_set", " amdsmi_dev_set_perf_level"},
         {"rsmi_dev_perf_level_set_v1", " amdsmi_dev_set_perf_level_v1"},
-        {"rsmi_dev_perf_level_get", "amdsmi_dev_get_perf_level"},
+        {"rsmi_dev_perf_level_get", "amdsmi_get_gpu_perf_level"},
         {"rsmi_perf_determinism_mode_set", "amdsmi_set_perf_determinism_mode"},
         {"rsmi_dev_overdrive_level_set", " amdsmi_dev_set_overdrive_level"},
         {"rsmi_dev_vbios_version_get", "amdsmi_get_gpu_vbios_info"},
@@ -1166,7 +1166,7 @@ amdsmi_status_t
                 reserved,
                 static_cast<rsmi_power_profile_preset_masks_t>(profile));
 }
-amdsmi_status_t amdsmi_dev_get_perf_level(amdsmi_processor_handle processor_handle,
+amdsmi_status_t amdsmi_get_gpu_perf_level(amdsmi_processor_handle processor_handle,
                                         amdsmi_dev_perf_level_t *perf) {
     AMDSMI_CHECK_INIT();
 
