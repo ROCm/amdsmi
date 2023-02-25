@@ -109,11 +109,11 @@ int main() {
         // For each device of the socket, get name and temperature.
         for (uint32_t j = 0; j < device_count; j++) {
             // Get device type. Since the amdsmi is initialized with
-            // AMD_SMI_INIT_AMD_GPUS, the device_type must be AMD_GPU.
-            device_type_t device_type = {};
-            ret = amdsmi_get_device_type(processor_handles[j], &device_type);
+            // AMD_SMI_INIT_AMD_GPUS, the processor_type must be AMD_GPU.
+            processor_type_t processor_type = {};
+            ret = amdsmi_get_processor_type(processor_handles[j], &processor_type);
             CHK_AMDSMI_RET(ret)
-            if (device_type != AMD_GPU) {
+            if (processor_type != AMD_GPU) {
                 std::cout << "Expect AMD_GPU device type!\n";
                 return AMDSMI_STATUS_NOT_SUPPORTED;
             }

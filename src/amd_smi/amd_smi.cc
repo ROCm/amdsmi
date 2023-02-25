@@ -89,7 +89,7 @@ static amdsmi_status_t get_gpu_device_from_handle(amdsmi_processor_handle proces
                     .handle_to_device(processor_handle, &device);
     if (r != AMDSMI_STATUS_SUCCESS) return r;
 
-    if (device->get_device_type() == AMD_GPU) {
+    if (device->get_processor_type() == AMD_GPU) {
         *gpudevice = static_cast<amd::smi::AMDSmiGPUDevice*>(processor_handle);
         return AMDSMI_STATUS_SUCCESS;
     }
@@ -249,19 +249,19 @@ amdsmi_status_t amdsmi_get_processor_handles(amdsmi_socket_handle socket_handle,
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_device_type(amdsmi_processor_handle processor_handle ,
-              device_type_t* device_type) {
+amdsmi_status_t amdsmi_get_processor_type(amdsmi_processor_handle processor_handle ,
+              processor_type_t* processor_type) {
 
     AMDSMI_CHECK_INIT();
 
-    if (device_type == nullptr) {
+    if (processor_type == nullptr) {
         return AMDSMI_STATUS_INVAL;
     }
     amd::smi::AMDSmiProcessor* device = nullptr;
     amdsmi_status_t r = amd::smi::AMDSmiSystem::getInstance()
                     .handle_to_device(processor_handle, &device);
     if (r != AMDSMI_STATUS_SUCCESS) return r;
-    *device_type = device->get_device_type();
+    *processor_type = device->get_processor_type();
 
     return AMDSMI_STATUS_SUCCESS;
 }
@@ -360,7 +360,7 @@ amdsmi_status_t amdsmi_get_vram_usage(amdsmi_processor_handle processor_handle,
                     .handle_to_device(processor_handle, &device);
     if (ret != AMDSMI_STATUS_SUCCESS) return ret;
 
-    if (device->get_device_type() != AMD_GPU) {
+    if (device->get_processor_type() != AMD_GPU) {
         return AMDSMI_STATUS_NOT_SUPPORTED;
     }
 
@@ -402,7 +402,7 @@ amdsmi_status_t amdsmi_get_caps_info(amdsmi_processor_handle processor_handle,
                     .handle_to_device(processor_handle, &amd_device);
     if (ret != AMDSMI_STATUS_SUCCESS) return ret;
 
-    if (amd_device->get_device_type() != AMD_GPU) {
+    if (amd_device->get_processor_type() != AMD_GPU) {
         return AMDSMI_STATUS_NOT_SUPPORTED;
     }
     amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;

@@ -550,7 +550,7 @@ def amdsmi_shut_down():
     _check_res(amdsmi_wrapper.amdsmi_shut_down())
 
 
-def amdsmi_get_device_type(
+def amdsmi_get_processor_type(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> ctypes.c_uint32:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -558,9 +558,9 @@ def amdsmi_get_device_type(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    dev_type = amdsmi_wrapper.device_type_t()
+    dev_type = amdsmi_wrapper.processor_type_t()
     _check_res(
-        amdsmi_wrapper.amdsmi_get_device_type(
+        amdsmi_wrapper.amdsmi_get_processor_type(
             processor_handle, ctypes.byref(dev_type))
     )
     return dev_type.value

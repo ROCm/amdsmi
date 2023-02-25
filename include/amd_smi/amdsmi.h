@@ -132,7 +132,7 @@ typedef enum {
   AMD_CPU,
   NON_AMD_GPU,
   NON_AMD_CPU
-} device_type_t;
+} processor_type_t;
 
 /**
  * @brief Error codes returned by amdsmi functions
@@ -1263,14 +1263,14 @@ amdsmi_status_t amdsmi_get_processor_handles(amdsmi_socket_handle socket_handle,
  *
  *  @param[in] processor_handle a device handle
  *
- *  @param[out] device_type a pointer to device_type_t to which the device type
+ *  @param[out] processor_type a pointer to processor_type_t to which the device type
  *  will be written. If this parameter is nullptr, this function will return
  * ::AMDSMI_STATUS_INVAL.
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_device_type(amdsmi_processor_handle processor_handle,
-              device_type_t* device_type);
+amdsmi_status_t amdsmi_get_processor_type(amdsmi_processor_handle processor_handle,
+              processor_type_t* processor_type);
 
 /**
  *  @brief Get device handle with the matching bdf.
