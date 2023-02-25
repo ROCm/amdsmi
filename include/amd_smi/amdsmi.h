@@ -1758,7 +1758,7 @@ amdsmi_status_t
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_get_memory_total(amdsmi_processor_handle processor_handle, amdsmi_memory_type_t mem_type,
+amdsmi_get_gpu_memory_total(amdsmi_processor_handle processor_handle, amdsmi_memory_type_t mem_type,
                                                              uint64_t *total);
 
 /**

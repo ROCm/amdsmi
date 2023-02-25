@@ -148,7 +148,7 @@ from .amdsmi_interface import amdsmi_get_power_ave
 from .amdsmi_interface import amdsmi_get_energy_count
 
 # # Memory information
-from .amdsmi_interface import amdsmi_dev_get_memory_total
+from .amdsmi_interface import amdsmi_get_gpu_memory_total
 from .amdsmi_interface import amdsmi_dev_get_memory_usage
 from .amdsmi_interface import amdsmi_dev_get_memory_busy_percent
 from .amdsmi_interface import amdsmi_dev_get_memory_reserved_pages

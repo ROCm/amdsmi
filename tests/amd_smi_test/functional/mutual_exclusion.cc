@@ -289,7 +289,7 @@ void TestMutualExclusion::Run(void) {
      amdsmi_set_power_cap
      amdsmi_dev_get_power_profile_presets
      amdsmi_set_gpu_power_profile
-    amdsmi_dev_get_memory_total
+    amdsmi_get_gpu_memory_total
     amdsmi_dev_get_memory_usage
     amdsmi_dev_get_memory_busy_percent
     amdsmi_dev_get_busy_percent
