@@ -581,7 +581,7 @@ def amdsmi_get_gpu_device_bdf(processor_handle: amdsmi_wrapper.amdsmi_processor_
     return _format_bdf(bdf_info)
 
 
-def amdsmi_get_asic_info(
+def amdsmi_get_gpu_asic_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -591,7 +591,7 @@ def amdsmi_get_asic_info(
 
     asic_info = amdsmi_wrapper.amdsmi_asic_info_t()
     _check_res(
-        amdsmi_wrapper.amdsmi_get_asic_info(
+        amdsmi_wrapper.amdsmi_get_gpu_asic_info(
             processor_handle, ctypes.byref(asic_info))
     )
 

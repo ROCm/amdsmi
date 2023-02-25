@@ -3632,7 +3632,7 @@ amdsmi_get_gpu_driver_version(amdsmi_processor_handle processor_handle, int *len
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_info_t *info);
+amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_info_t *info);
 
 /**
  *  @brief          Returns the board part number and board information for the requested device

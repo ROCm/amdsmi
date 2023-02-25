@@ -151,13 +151,13 @@ void TestSysInfoRead::Run(void) {
 
        // vendor_id, unique_id
     amdsmi_asic_info_t asci_info;
-    err = amdsmi_get_asic_info(processor_handles_[0], &asci_info);
+    err = amdsmi_get_gpu_asic_info(processor_handles_[0], &asci_info);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
         std::cout <<
             "\t**amdsmi_dev_unique_id() is not supported"
             " on this machine" << std::endl;
         // Verify api support checking functionality is working
-        err = amdsmi_get_asic_info(processor_handles_[i], nullptr);
+        err = amdsmi_get_gpu_asic_info(processor_handles_[i], nullptr);
         ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
     } else {
         if (err == AMDSMI_STATUS_SUCCESS) {
@@ -169,7 +169,7 @@ void TestSysInfoRead::Run(void) {
                 */
             }
             // Verify api support checking functionality is working
-            err = amdsmi_get_asic_info(processor_handles_[i], nullptr);
+            err = amdsmi_get_gpu_asic_info(processor_handles_[i], nullptr);
             ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
         } else {
             std::cout << "amdsmi_dev_unique_id_get() failed with error " <<

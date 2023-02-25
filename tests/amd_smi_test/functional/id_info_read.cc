@@ -124,7 +124,7 @@ void TestIdInfoRead::Run(void) {
 
        // vendor_id, unique_id
     amdsmi_asic_info_t asci_info;
-    err = amdsmi_get_asic_info(processor_handles_[0], &asci_info);
+    err = amdsmi_get_gpu_asic_info(processor_handles_[0], &asci_info);
     CHK_ERR_ASRT(err)
 
     // device name, brand, serial_number

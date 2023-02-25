@@ -179,7 +179,7 @@ void TestBase::PrintDeviceHeader(amdsmi_processor_handle dv_ind) {
   IF_VERB(STANDARD) {
     std::cout << "\t**Device name: " << board_info.product_name  << std::endl;
 
-    err = amdsmi_get_asic_info(dv_ind, &info);
+    err = amdsmi_get_gpu_asic_info(dv_ind, &info);
     CHK_ERR_ASRT(err)
     IF_VERB(STANDARD) {
       std::cout << "\t**Device Vendor ID: 0x" << std::hex <<

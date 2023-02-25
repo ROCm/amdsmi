@@ -335,7 +335,7 @@ class Formatter:
     |     """ + self.style.text("46   Get minmax_bandwidth_get.             Api:  amdsmi_get_minmax_bandwidth            <bdf><bdf>") + """                   |
     |     """ + self.style.text("47   Get topo get link type.               Api: amdsmi_topo_get_link_type              <bdf><bdf>") + """                   |
     |     """ + self.style.text("48   Get is P2P accessible.                Api: amdsmi_is_P2P_accessible               <bdf><bdf>") + """                   |
-    |     """ + self.style.text("49   Get asic info.                        Api: amdsmi_get_asic_info                   <bdf>") + """                        |
+    |     """ + self.style.text("49   Get asic info.                        Api: amdsmi_get_gpu_asic_info                   <bdf>") + """                        |
     |     """ + self.style.text("50   Get processor_handles.                   Api: amdsmi_get_processor_handles              <None>") + """                       |
     |     """ + self.style.text("51   Get event notification.               Api:  amdsmi_get_event_notification          <bdf>") + """                        |
     |     """ + self.style.text("52   Init event notification.              Api: amdsmi_init_event_notification         <bdf>") + """                        |
@@ -871,7 +871,7 @@ commands = {
         "device_identifier1": [None, True],
         "device_identifier2": [None, True]
     }],
-    49: [smi_api.amdsmi_get_asic_info, {
+    49: [smi_api.amdsmi_get_gpu_asic_info, {
         "device_identifier1": [None, True]
     }],
     50: [smi_api.amdsmi_get_processor_handles, {}],

@@ -284,7 +284,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_get_asic_info
+## amdsmi_get_gpu_asic_info
 Description: Returns asic information for the given GPU
 
 Input parameters:
@@ -301,7 +301,7 @@ Field | Content
 `rev_id` |  revision id
 `asic_serial` | asic serial
 
-Exceptions that can be thrown by `amdsmi_get_asic_info` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_asic_info` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -314,7 +314,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            asic_info = amdsmi_get_asic_info(device)
+            asic_info = amdsmi_get_gpu_asic_info(device)
             print(asic_info['market_name'])
             print(hex(asic_info['family']))
             print(hex(asic_info['vendor_id']))
