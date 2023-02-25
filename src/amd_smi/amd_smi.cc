@@ -346,7 +346,7 @@ amdsmi_status_t  amdsmi_dev_get_temp_metric(amdsmi_processor_handle processor_ha
     return amdsmi_status;
 }
 
-amdsmi_status_t amdsmi_get_vram_usage(amdsmi_processor_handle processor_handle,
+amdsmi_status_t amdsmi_get_gpu_vram_usage(amdsmi_processor_handle processor_handle,
             amdsmi_vram_info_t *vram_info) {
 
     AMDSMI_CHECK_INIT();

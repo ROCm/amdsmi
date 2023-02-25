@@ -547,7 +547,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_get_vram_usage
+## amdsmi_get_gpu_vram_usage
 Description: Returns total VRAM and VRAM in use
 
 Input parameters:
@@ -560,7 +560,7 @@ Field | Description
 `vram_total` | VRAM total
 `vram_used`| VRAM currently in use
 
-Exceptions that can be thrown by `amdsmi_get_vram_usage` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_vram_usage` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -573,7 +573,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            vram_usage = amdsmi_get_vram_usage(device)
+            vram_usage = amdsmi_get_gpu_vram_usage(device)
             print(vram_usage['vram_used'])
             print(vram_usage['vram_total'])
 except AmdSmiException as e:

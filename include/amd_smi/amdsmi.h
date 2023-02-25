@@ -3786,7 +3786,7 @@ amdsmi_get_clock_measure(amdsmi_processor_handle processor_handle, amdsmi_clk_ty
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_vram_usage(amdsmi_processor_handle processor_handle, amdsmi_vram_info_t *info);
+amdsmi_get_gpu_vram_usage(amdsmi_processor_handle processor_handle, amdsmi_vram_info_t *info);
 
 /** @} End gpumon */
 
