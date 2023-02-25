@@ -1102,7 +1102,7 @@ def amdsmi_get_gpu_id(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
     return id.value
 
 
-def amdsmi_dev_get_vram_vendor(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_get_gpu_vram_vendor(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
@@ -1114,7 +1114,7 @@ def amdsmi_dev_get_vram_vendor(processor_handle: amdsmi_wrapper.amdsmi_processor
     vram_vendor = ctypes.create_string_buffer(_AMDSMI_STRING_LENGTH)
 
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_get_vram_vendor(
+        amdsmi_wrapper.amdsmi_get_gpu_vram_vendor(
             processor_handle, vram_vendor, length)
     )
 

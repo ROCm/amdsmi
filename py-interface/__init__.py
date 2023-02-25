@@ -159,7 +159,7 @@ from .amdsmi_interface import AmdSmiEventReader
 # # Device Identification information
 from .amdsmi_interface import amdsmi_get_gpu_vendor_name
 from .amdsmi_interface import amdsmi_get_gpu_id
-from .amdsmi_interface import amdsmi_dev_get_vram_vendor
+from .amdsmi_interface import amdsmi_get_gpu_vram_vendor
 from .amdsmi_interface import amdsmi_dev_get_drm_render_minor
 from .amdsmi_interface import amdsmi_dev_get_subsystem_id
 from .amdsmi_interface import amdsmi_dev_get_subsystem_name
