@@ -1785,7 +1785,7 @@ def amdsmi_get_gpu_pci_throughput(processor_handle: amdsmi_wrapper.amdsmi_proces
     }
 
 
-def amdsmi_dev_get_pci_replay_counter(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_get_gpu_pci_replay_counter(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
@@ -1794,7 +1794,7 @@ def amdsmi_dev_get_pci_replay_counter(processor_handle: amdsmi_wrapper.amdsmi_pr
     counter = ctypes.c_uint64()
 
     _check_res(
-        amdsmi_wrapper. amdsmi_dev_get_pci_replay_counter(
+        amdsmi_wrapper. amdsmi_get_gpu_pci_replay_counter(
             processor_handle, ctypes.byref(counter))
     )
 

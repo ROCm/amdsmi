@@ -1575,7 +1575,7 @@ amdsmi_status_t amdsmi_get_gpu_pci_throughput(amdsmi_processor_handle processor_
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_get_pci_replay_counter(amdsmi_processor_handle processor_handle,
+amdsmi_status_t  amdsmi_get_gpu_pci_replay_counter(amdsmi_processor_handle processor_handle,
                                                            uint64_t *counter);
 
 /** @} End PCIeQuer */

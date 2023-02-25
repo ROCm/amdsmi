@@ -904,7 +904,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_pci_bandwidth_get", "amdsmi_get_gpu_pci_bandwidth"},
         {"rsmi_dev_pci_id_get", "amdsmi_get_gpu_pci_id"},
         {"rsmi_dev_pci_throughput_get", "amdsmi_get_gpu_pci_throughput"},
-        {"rsmi_dev_pci_replay_counter_get", " amdsmi_dev_get_pci_replay_counter"},
+        {"rsmi_dev_pci_replay_counter_get", " amdsmi_get_gpu_pci_replay_counter"},
         {"rsmi_dev_pci_bandwidth_set", " amdsmi_dev_set_pci_bandwidth"},
         {"rsmi_dev_power_profile_set", " amdsmi_dev_set_power_profile"},
         {"rsmi_dev_memory_busy_percent_get", "amdsmi_dev_get_memory_busy_percent"},
@@ -1290,7 +1290,7 @@ amdsmi_status_t  amdsmi_dev_set_overdrive_level(
             amdsmi_processor_handle processor_handle, uint32_t od) {
     return rsmi_wrapper(rsmi_dev_overdrive_level_set, processor_handle, od);
 }
-amdsmi_status_t  amdsmi_dev_get_pci_replay_counter(
+amdsmi_status_t  amdsmi_get_gpu_pci_replay_counter(
             amdsmi_processor_handle processor_handle, uint64_t *counter) {
     return rsmi_wrapper(rsmi_dev_pci_replay_counter_get,
                 processor_handle, counter);
