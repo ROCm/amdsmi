@@ -141,14 +141,14 @@ void TestPciReadWrite::Run(void) {
       std::cout << std::endl;
     }
 
-    ret = amdsmi_dev_get_pci_bandwidth(processor_handles_[dv_ind], &bw);
+    ret = amdsmi_get_gpu_pci_bandwidth(processor_handles_[dv_ind], &bw);
 
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
       std::cout << "TEST FAILURE: Current PCIe bandwidth is not detected. "
         "This is likely because it is not indicated in the pp_dpm_pcie sysfs "
          "file. Aborting test." << std::endl;
       // Verify api support checking functionality is working
-      ret = amdsmi_dev_get_pci_bandwidth(processor_handles_[dv_ind], nullptr);
+      ret = amdsmi_get_gpu_pci_bandwidth(processor_handles_[dv_ind], nullptr);
       ASSERT_EQ(ret, AMDSMI_STATUS_NOT_SUPPORTED);
 
       return;
@@ -163,7 +163,7 @@ void TestPciReadWrite::Run(void) {
                                                                     std::endl;
     }
     // Verify api support checking functionality is working
-    ret = amdsmi_dev_get_pci_bandwidth(processor_handles_[dv_ind], nullptr);
+    ret = amdsmi_get_gpu_pci_bandwidth(processor_handles_[dv_ind], nullptr);
     ASSERT_EQ(ret, AMDSMI_STATUS_INVAL);
 
     // First set the bitmask to all supported bandwidths
@@ -185,7 +185,7 @@ void TestPciReadWrite::Run(void) {
     ret =  amdsmi_dev_set_pci_bandwidth(processor_handles_[dv_ind], freq_bitmask);
     CHK_ERR_ASRT(ret)
 
-    ret = amdsmi_dev_get_pci_bandwidth(processor_handles_[dv_ind], &bw);
+    ret = amdsmi_get_gpu_pci_bandwidth(processor_handles_[dv_ind], &bw);
     CHK_ERR_ASRT(ret)
 
     IF_VERB(STANDARD) {

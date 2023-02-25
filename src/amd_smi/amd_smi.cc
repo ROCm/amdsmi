@@ -901,7 +901,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_drm_render_minor_get", "amdsmi_get_gpu_drm_render_minor"},
         {"rsmi_dev_subsystem_vendor_id_get", "amdsmi_get_gpu_asic_info"},
         {"rsmi_dev_unique_id_get", "amdsmi_get_board_info"},
-        {"rsmi_dev_pci_bandwidth_get", "amdsmi_dev_get_pci_bandwidth"},
+        {"rsmi_dev_pci_bandwidth_get", "amdsmi_get_gpu_pci_bandwidth"},
         {"rsmi_dev_pci_id_get", "amdsmi_dev_get_pci_id"},
         {"rsmi_dev_pci_throughput_get", "amdsmi_dev_get_pci_throughput"},
         {"rsmi_dev_pci_replay_counter_get", " amdsmi_dev_get_pci_replay_counter"},
@@ -1195,7 +1195,7 @@ amdsmi_status_t  amdsmi_dev_set_pci_bandwidth(amdsmi_processor_handle processor_
                     bw_bitmask);
 }
 
-amdsmi_status_t amdsmi_dev_get_pci_bandwidth(amdsmi_processor_handle processor_handle,
+amdsmi_status_t amdsmi_get_gpu_pci_bandwidth(amdsmi_processor_handle processor_handle,
             amdsmi_pcie_bandwidth_t *bandwidth) {
     return rsmi_wrapper(rsmi_dev_pci_bandwidth_get, processor_handle,
                     reinterpret_cast<rsmi_pcie_bandwidth_t*>(bandwidth));
