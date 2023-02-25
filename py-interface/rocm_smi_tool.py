@@ -358,7 +358,7 @@ class Formatter:
     |     """ + self.style.text("69   Set dev od volt info.                 Api:  amdsmi_dev_set_od_volt_info     <bdf><vpoint><clk_value><volt_value>") + """|
     |     """ + self.style.text("70   Set dev overdrive level.              Api:  amdsmi_dev_set_overdrive_level         <bdf><overdrive_value>") + """       |
     |     """ + self.style.text("71   Set v1 dev overdrive level.           Api:  amdsmi_dev_set_overdrive_level_v1      <bdf><overdrive_value>") + """       |
-    |     """ + self.style.text("72   Set dev pci bandwidth.                Api:  amdsmi_dev_set_pci_bandwidth           <bdf><bitmask>") + """               |
+    |     """ + self.style.text("72   Set dev pci bandwidth.                Api:  amdsmi_set_gpu_pci_bandwidth           <bdf><bitmask>") + """               |
     |     """ + self.style.text("73   Set dev perf level.                   Api:  amdsmi_dev_set_perf_level              <bdf>") + """                        |
     |     """ + self.style.text("74   Set dev perf level v1.                Api:  amdsmi_dev_set_perf_level_v1           <bdf>") + """                        |
     |     """ + self.style.text("75   Set dev power cap.                    Api:  amdsmi_dev_set_power_cap               <bdf><sensor_ind><cap>") + """       |
@@ -486,7 +486,7 @@ def amdsmi_tool_dev_overdrive_level_set_v1(dev, dic):
 
 def amdsmi_tool_dev_pci_bandwidth_set(dev, dic):
     bitmask = dic["bitmask"]
-    return smi_api. amdsmi_dev_set_pci_bandwidth(dev, bitmask)
+    return smi_api. amdsmi_set_gpu_pci_bandwidth(dev, bitmask)
 
 
 def amdsmi_tool_dev_gpu_clk_freq_get(dev):

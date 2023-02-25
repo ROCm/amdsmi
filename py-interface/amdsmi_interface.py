@@ -1716,7 +1716,7 @@ def amdsmi_get_func_iter_value(
     }
 
 
-def amdsmi_dev_set_pci_bandwidth(
+def amdsmi_set_gpu_pci_bandwidth(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, bitmask: int
 ) -> None:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -1728,7 +1728,7 @@ def amdsmi_dev_set_pci_bandwidth(
         raise AmdSmiParameterException(bitmask, int)
 
     _check_res(
-        amdsmi_wrapper. amdsmi_dev_set_pci_bandwidth(
+        amdsmi_wrapper. amdsmi_set_gpu_pci_bandwidth(
             processor_handle, ctypes.c_uint64(bitmask)
         )
     )
