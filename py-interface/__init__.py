@@ -80,7 +80,7 @@ from .amdsmi_interface import amdsmi_get_func_iter_value
 
 # # Unsupported Functions In Virtual Environment
 from .amdsmi_interface import  amdsmi_set_gpu_pci_bandwidth
-from .amdsmi_interface import  amdsmi_dev_set_power_cap
+from .amdsmi_interface import  amdsmi_set_power_cap
 from .amdsmi_interface import  amdsmi_dev_set_power_profile
 from .amdsmi_interface import amdsmi_dev_set_clk_range
 from .amdsmi_interface import  amdsmi_dev_set_od_clk_info

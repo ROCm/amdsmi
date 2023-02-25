@@ -1223,7 +1223,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-##  amdsmi_dev_set_power_cap
+##  amdsmi_set_power_cap
 Description: Set the power cap value
 
 Input parameters:
@@ -1234,7 +1234,7 @@ device has more than one sensor, it could be greater than 0
 
 Output: None
 
-Exceptions that can be thrown by ` amdsmi_dev_set_power_cap` function:
+Exceptions that can be thrown by ` amdsmi_set_power_cap` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1248,7 +1248,7 @@ try:
     else:
         for device in devices:
             power_cap = 250 * 1000000
-             amdsmi_dev_set_power_cap(device, 0, power_cap)
+             amdsmi_set_power_cap(device, 0, power_cap)
 except AmdSmiException as e:
     print(e)
 ```
