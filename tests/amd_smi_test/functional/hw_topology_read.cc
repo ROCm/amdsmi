@@ -113,7 +113,7 @@ void TestHWTopologyRead::Run(void) {
   std::vector<uint32_t> numa_numbers(num_devices);
 
   for (uint32_t dv_ind = 0; dv_ind < num_devices; ++dv_ind) {
-    amdsmi_device_handle dev_handle = device_handles_[dv_ind];
+    amdsmi_processor_handle dev_handle = device_handles_[dv_ind];
     err = amdsmi_topo_get_numa_node_number(dev_handle, &numa_numbers[dv_ind]);
     if (err != AMDSMI_STATUS_SUCCESS) {
       if (err == AMDSMI_STATUS_NOT_SUPPORTED) {

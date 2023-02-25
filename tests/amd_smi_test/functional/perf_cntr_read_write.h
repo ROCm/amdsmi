@@ -72,11 +72,11 @@ class TestPerfCntrReadWrite : public TestBase {
   virtual void DisplayTestInfo(void);
 
  private:
-  void CountEvents(amdsmi_device_handle dv_ind,
+  void CountEvents(amdsmi_processor_handle dv_ind,
        amdsmi_event_type_t evnt, amdsmi_counter_value_t *val,
                                                    int32_t sleep_sec = 1);
-  void testEventsIndividually(amdsmi_device_handle dv_ind);
-  void testEventsSimultaneously(amdsmi_device_handle dv_ind);
+  void testEventsIndividually(amdsmi_processor_handle dv_ind);
+  void testEventsSimultaneously(amdsmi_processor_handle dv_ind);
 };
 
 class PerfCntrEvtGrp {

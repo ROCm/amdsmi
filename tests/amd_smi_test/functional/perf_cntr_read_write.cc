@@ -110,7 +110,7 @@ void TestPerfCntrReadWrite::Close() {
 
 // Refactor this to handle different event groups once we have > 1 event group
 
-void TestPerfCntrReadWrite::CountEvents(amdsmi_device_handle dv_ind,
+void TestPerfCntrReadWrite::CountEvents(amdsmi_processor_handle dv_ind,
        amdsmi_event_type_t evnt, amdsmi_counter_value_t *val, int32_t sleep_sec) {
   amdsmi_event_handle_t evt_handle;
   amdsmi_status_t ret;
@@ -157,7 +157,7 @@ static const uint64_t kVg20Level1Bandwidth = 23;  // 23 GB/sec
 
 
 void
-TestPerfCntrReadWrite::testEventsIndividually(amdsmi_device_handle dv_ind) {
+TestPerfCntrReadWrite::testEventsIndividually(amdsmi_processor_handle dv_ind) {
   amdsmi_status_t ret;
   amdsmi_counter_value_t val;
   uint64_t throughput;
@@ -231,7 +231,7 @@ TestPerfCntrReadWrite::testEventsIndividually(amdsmi_device_handle dv_ind) {
 }
 
 void
-TestPerfCntrReadWrite::testEventsSimultaneously(amdsmi_device_handle dv_ind) {
+TestPerfCntrReadWrite::testEventsSimultaneously(amdsmi_processor_handle dv_ind) {
   amdsmi_status_t ret;
   amdsmi_counter_value_t val;
   uint32_t avail_counters;
@@ -352,7 +352,7 @@ void TestPerfCntrReadWrite::Run(void) {
   }
 
   for (uint32_t dv_ind = 0; dv_ind < num_monitor_devs(); ++dv_ind) {
-    amdsmi_device_handle dev_handle = device_handles_[dv_ind];
+    amdsmi_processor_handle dev_handle = device_handles_[dv_ind];
     PrintDeviceHeader(dev_handle);
     try {
       testEventsIndividually(dev_handle);

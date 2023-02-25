@@ -248,7 +248,7 @@ int main() {
         CHK_AMDSMI_RET(ret)
 
         // Allocate the memory for the device handlers on the socket
-        std::vector<amdsmi_device_handle> device_handles(device_count);
+        std::vector<amdsmi_processor_handle> device_handles(device_count);
         // Get all devices of the socket
         ret = amdsmi_get_device_handles(sockets[i],
                                         &device_count, &device_handles[0]);
@@ -276,7 +276,7 @@ int main() {
                    bdf.function_number);
 
             // Get handle from BDF
-            amdsmi_device_handle dev_handle;
+            amdsmi_processor_handle dev_handle;
             ret = amdsmi_get_device_handle_from_bdf(bdf, &dev_handle);
             CHK_AMDSMI_RET(ret)
 

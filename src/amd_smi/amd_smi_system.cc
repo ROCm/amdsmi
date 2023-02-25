@@ -165,7 +165,7 @@ amdsmi_status_t AMDSmiSystem::handle_to_socket(
     }
 
 amdsmi_status_t AMDSmiSystem::handle_to_device(
-            amdsmi_device_handle device_handle,
+            amdsmi_processor_handle device_handle,
             AMDSmiProcessor** device) {
     if (device_handle == nullptr || device == nullptr) {
         return AMDSMI_STATUS_INVAL;
@@ -181,7 +181,7 @@ amdsmi_status_t AMDSmiSystem::handle_to_device(
 }
 
 amdsmi_status_t AMDSmiSystem::gpu_index_to_handle(uint32_t gpu_index,
-                    amdsmi_device_handle* device_handle) {
+                    amdsmi_processor_handle* device_handle) {
     if (device_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 

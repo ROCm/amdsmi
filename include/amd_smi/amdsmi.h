@@ -120,7 +120,7 @@ typedef enum {
 } amdsmi_container_types_t;
 
 //! opaque handler point to underlying implementation
-typedef void *amdsmi_device_handle;
+typedef void *amdsmi_processor_handle;
 typedef void *amdsmi_socket_handle;
 
 /**
@@ -609,7 +609,7 @@ typedef enum {
  * Event notification data returned from event notification API
  */
 typedef struct {
-    amdsmi_device_handle device_handle;        //!< Handler of device that corresponds to the event
+    amdsmi_processor_handle device_handle;        //!< Handler of device that corresponds to the event
     amdsmi_evt_notification_type_t event;     //!< Event type
     char message[MAX_EVENT_NOTIFICATION_MSG_SIZE];  //!< Event message
 } amdsmi_evt_notification_data_t;
@@ -1235,7 +1235,7 @@ amdsmi_status_t amdsmi_get_socket_info(
  *  @param[in] socket_handle The socket to query
  *
  *  @param[in,out] device_count As input, the value passed
- *  through this parameter is the number of ::amdsmi_device_handle's that
+ *  through this parameter is the number of ::amdsmi_processor_handle's that
  *  may be safely written to the memory pointed to by @p device_handles. This is the
  *  limit on how many device handles will be written to @p device_handles. On return, @p
  *  device_count will contain the number of device handles written to @p device_handles,
@@ -1245,7 +1245,7 @@ amdsmi_status_t amdsmi_get_socket_info(
  *  how many devices are available to read for the socket.
  *
  *  @param[in,out] device_handles A pointer to a block of memory to which the
- *  ::amdsmi_device_handle values will be written. This value may be NULL.
+ *  ::amdsmi_processor_handle values will be written. This value may be NULL.
  *  In this case, this function can be used to query how many devices are
  *  available to read.
  *
@@ -1253,7 +1253,7 @@ amdsmi_status_t amdsmi_get_socket_info(
  */
 amdsmi_status_t amdsmi_get_device_handles(amdsmi_socket_handle socket_handle,
                                     uint32_t *device_count,
-                                    amdsmi_device_handle* device_handles);
+                                    amdsmi_processor_handle* device_handles);
 
 /**
  *  @brief Get the device type of the device_handle
@@ -1269,7 +1269,7 @@ amdsmi_status_t amdsmi_get_device_handles(amdsmi_socket_handle socket_handle,
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_device_type(amdsmi_device_handle device_handle,
+amdsmi_status_t amdsmi_get_device_type(amdsmi_processor_handle device_handle,
               device_type_t* device_type);
 
 /**
@@ -1284,7 +1284,7 @@ amdsmi_status_t amdsmi_get_device_type(amdsmi_device_handle device_handle,
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_device_handle_from_bdf(amdsmi_bdf_t bdf, amdsmi_device_handle* device_handle);
+amdsmi_status_t amdsmi_get_device_handle_from_bdf(amdsmi_bdf_t bdf, amdsmi_processor_handle* device_handle);
 
 /** @} End DiscQueries */
 
@@ -1317,7 +1317,7 @@ amdsmi_status_t amdsmi_get_device_handle_from_bdf(amdsmi_bdf_t bdf, amdsmi_devic
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_dev_get_id(amdsmi_device_handle device_handle, uint16_t *id);
+amdsmi_status_t amdsmi_dev_get_id(amdsmi_processor_handle device_handle, uint16_t *id);
 
 /**
  *  @brief Get the name string for a give vendor ID
@@ -1350,7 +1350,7 @@ amdsmi_status_t amdsmi_dev_get_id(amdsmi_device_handle device_handle, uint16_t *
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_dev_get_vendor_name(amdsmi_device_handle device_handle, char *name,
+amdsmi_status_t amdsmi_dev_get_vendor_name(amdsmi_processor_handle device_handle, char *name,
                                                                   size_t len);
 
 /**
@@ -1375,7 +1375,7 @@ amdsmi_status_t amdsmi_dev_get_vendor_name(amdsmi_device_handle device_handle, c
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_dev_get_vram_vendor(amdsmi_device_handle device_handle, char *brand,
+amdsmi_status_t amdsmi_dev_get_vram_vendor(amdsmi_processor_handle device_handle, char *brand,
                                                                 uint32_t len);
 
 /**
@@ -1397,7 +1397,7 @@ amdsmi_status_t amdsmi_dev_get_vram_vendor(amdsmi_device_handle device_handle, c
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_dev_get_subsystem_id(amdsmi_device_handle device_handle, uint16_t *id);
+amdsmi_status_t amdsmi_dev_get_subsystem_id(amdsmi_processor_handle device_handle, uint16_t *id);
 
 /**
  *  @brief Get the name string for the device subsytem
@@ -1431,7 +1431,7 @@ amdsmi_status_t amdsmi_dev_get_subsystem_id(amdsmi_device_handle device_handle, 
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_get_subsystem_name(amdsmi_device_handle device_handle, char *name, size_t len);
+amdsmi_dev_get_subsystem_name(amdsmi_processor_handle device_handle, char *name, size_t len);
 
 /**
  *  @brief Get the drm minor number associated with this device
@@ -1447,7 +1447,7 @@ amdsmi_dev_get_subsystem_name(amdsmi_device_handle device_handle, char *name, si
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_get_drm_render_minor(amdsmi_device_handle device_handle, uint32_t *minor);
+amdsmi_dev_get_drm_render_minor(amdsmi_processor_handle device_handle, uint32_t *minor);
 
 /** @} End IDQuer */
 
@@ -1474,7 +1474,7 @@ amdsmi_dev_get_drm_render_minor(amdsmi_device_handle device_handle, uint32_t *mi
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_get_pci_bandwidth(amdsmi_device_handle device_handle, amdsmi_pcie_bandwidth_t *bandwidth);
+amdsmi_dev_get_pci_bandwidth(amdsmi_processor_handle device_handle, amdsmi_pcie_bandwidth_t *bandwidth);
 
 /**
  *  @brief Get the unique PCI device identifier associated for a device
@@ -1508,7 +1508,7 @@ amdsmi_dev_get_pci_bandwidth(amdsmi_device_handle device_handle, amdsmi_pcie_ban
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_dev_get_pci_id(amdsmi_device_handle device_handle, uint64_t *bdfid);
+amdsmi_status_t amdsmi_dev_get_pci_id(amdsmi_processor_handle device_handle, uint64_t *bdfid);
 
 /**
  *  @brief Get the NUMA node associated with a device
@@ -1529,7 +1529,7 @@ amdsmi_status_t amdsmi_dev_get_pci_id(amdsmi_device_handle device_handle, uint64
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_topo_get_numa_affinity(amdsmi_device_handle device_handle, uint32_t *numa_node);
+amdsmi_status_t amdsmi_topo_get_numa_affinity(amdsmi_processor_handle device_handle, uint32_t *numa_node);
 
 /**
  *  @brief Get PCIe traffic information
@@ -1553,7 +1553,7 @@ amdsmi_status_t amdsmi_topo_get_numa_affinity(amdsmi_device_handle device_handle
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_dev_get_pci_throughput(amdsmi_device_handle device_handle, uint64_t *sent,
+amdsmi_status_t amdsmi_dev_get_pci_throughput(amdsmi_processor_handle device_handle, uint64_t *sent,
                                     uint64_t *received, uint64_t *max_pkt_sz);
 
 /**
@@ -1575,7 +1575,7 @@ amdsmi_status_t amdsmi_dev_get_pci_throughput(amdsmi_device_handle device_handle
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_get_pci_replay_counter(amdsmi_device_handle device_handle,
+amdsmi_status_t  amdsmi_dev_get_pci_replay_counter(amdsmi_processor_handle device_handle,
                                                            uint64_t *counter);
 
 /** @} End PCIeQuer */
@@ -1615,7 +1615,7 @@ amdsmi_status_t  amdsmi_dev_get_pci_replay_counter(amdsmi_device_handle device_h
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_set_pci_bandwidth(amdsmi_device_handle device_handle, uint64_t bw_bitmask);
+amdsmi_status_t  amdsmi_dev_set_pci_bandwidth(amdsmi_processor_handle device_handle, uint64_t bw_bitmask);
 
 /** @} End PCIeCont */
 
@@ -1647,7 +1647,7 @@ amdsmi_status_t  amdsmi_dev_set_pci_bandwidth(amdsmi_device_handle device_handle
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_get_power_ave(amdsmi_device_handle device_handle, uint32_t sensor_ind, uint64_t *power);
+amdsmi_dev_get_power_ave(amdsmi_processor_handle device_handle, uint32_t sensor_ind, uint64_t *power);
 
 /**
  *  @brief Get the energy accumulator counter of the device with provided
@@ -1677,7 +1677,7 @@ amdsmi_dev_get_power_ave(amdsmi_device_handle device_handle, uint32_t sensor_ind
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_get_energy_count(amdsmi_device_handle device_handle, uint64_t *power,
+amdsmi_dev_get_energy_count(amdsmi_processor_handle device_handle, uint64_t *power,
                           float *counter_resolution, uint64_t *timestamp);
 
 /** @} End PowerQuer */
@@ -1705,7 +1705,7 @@ amdsmi_dev_get_energy_count(amdsmi_device_handle device_handle, uint64_t *power,
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
- amdsmi_dev_set_power_cap(amdsmi_device_handle device_handle, uint32_t sensor_ind, uint64_t cap);
+ amdsmi_dev_set_power_cap(amdsmi_processor_handle device_handle, uint32_t sensor_ind, uint64_t cap);
 
 /**
  *  @brief Set the power performance profile
@@ -1725,7 +1725,7 @@ amdsmi_status_t
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
- amdsmi_dev_set_power_profile(amdsmi_device_handle device_handle, uint32_t reserved,
+ amdsmi_dev_set_power_profile(amdsmi_processor_handle device_handle, uint32_t reserved,
                                    amdsmi_power_profile_preset_masks_t profile);
 
 /** @} End PowerCont*/
@@ -1758,7 +1758,7 @@ amdsmi_status_t
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_get_memory_total(amdsmi_device_handle device_handle, amdsmi_memory_type_t mem_type,
+amdsmi_dev_get_memory_total(amdsmi_processor_handle device_handle, amdsmi_memory_type_t mem_type,
                                                              uint64_t *total);
 
 /**
@@ -1782,7 +1782,7 @@ amdsmi_dev_get_memory_total(amdsmi_device_handle device_handle, amdsmi_memory_ty
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_get_memory_usage(amdsmi_device_handle device_handle, amdsmi_memory_type_t mem_type,
+amdsmi_dev_get_memory_usage(amdsmi_processor_handle device_handle, amdsmi_memory_type_t mem_type,
                                                               uint64_t *used);
 
 /**
@@ -1800,7 +1800,7 @@ amdsmi_dev_get_memory_usage(amdsmi_device_handle device_handle, amdsmi_memory_ty
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_bad_page_info(amdsmi_device_handle device_handle, uint32_t *num_pages, amdsmi_retired_page_record_t *info);
+amdsmi_get_bad_page_info(amdsmi_processor_handle device_handle, uint32_t *num_pages, amdsmi_retired_page_record_t *info);
 
 /**
  * @brief Returns if RAS features are enabled or disabled for given block
@@ -1823,7 +1823,7 @@ amdsmi_get_bad_page_info(amdsmi_device_handle device_handle, uint32_t *num_pages
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_ras_block_features_enabled(amdsmi_device_handle device_handle, amdsmi_gpu_block_t block,
+amdsmi_get_ras_block_features_enabled(amdsmi_processor_handle device_handle, amdsmi_gpu_block_t block,
                                                                   amdsmi_ras_err_state_t *state);
 
 /**
@@ -1845,7 +1845,7 @@ amdsmi_get_ras_block_features_enabled(amdsmi_device_handle device_handle, amdsmi
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_get_memory_busy_percent(amdsmi_device_handle device_handle, uint32_t *busy_percent);
+amdsmi_dev_get_memory_busy_percent(amdsmi_processor_handle device_handle, uint32_t *busy_percent);
 
 /**
  *  @brief Get information about reserved ("retired") memory pages
@@ -1878,7 +1878,7 @@ amdsmi_dev_get_memory_busy_percent(amdsmi_device_handle device_handle, uint32_t 
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_get_memory_reserved_pages(amdsmi_device_handle device_handle, uint32_t *num_pages,
+amdsmi_dev_get_memory_reserved_pages(amdsmi_processor_handle device_handle, uint32_t *num_pages,
                                          amdsmi_retired_page_record_t *records);
 
 /** @} End MemQuer */
@@ -1911,7 +1911,7 @@ amdsmi_dev_get_memory_reserved_pages(amdsmi_device_handle device_handle, uint32_
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_dev_get_fan_rpms(amdsmi_device_handle device_handle, uint32_t sensor_ind,
+amdsmi_status_t amdsmi_dev_get_fan_rpms(amdsmi_processor_handle device_handle, uint32_t sensor_ind,
                                                               int64_t *speed);
 
 /**
@@ -1937,7 +1937,7 @@ amdsmi_status_t amdsmi_dev_get_fan_rpms(amdsmi_device_handle device_handle, uint
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_dev_get_fan_speed(amdsmi_device_handle device_handle,
+amdsmi_status_t amdsmi_dev_get_fan_speed(amdsmi_processor_handle device_handle,
                                         uint32_t sensor_ind, int64_t *speed);
 
 /**
@@ -1961,7 +1961,7 @@ amdsmi_status_t amdsmi_dev_get_fan_speed(amdsmi_device_handle device_handle,
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_dev_get_fan_speed_max(amdsmi_device_handle device_handle,
+amdsmi_status_t amdsmi_dev_get_fan_speed_max(amdsmi_processor_handle device_handle,
                                     uint32_t sensor_ind, uint64_t *max_speed);
 
 /**
@@ -1990,7 +1990,7 @@ amdsmi_status_t amdsmi_dev_get_fan_speed_max(amdsmi_device_handle device_handle,
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_get_temp_metric(amdsmi_device_handle device_handle,
+amdsmi_status_t  amdsmi_dev_get_temp_metric(amdsmi_processor_handle device_handle,
                       amdsmi_temperature_type_t sensor_type,
                       amdsmi_temperature_metric_t metric, int64_t *temperature);
 
@@ -2020,7 +2020,7 @@ amdsmi_status_t  amdsmi_dev_get_temp_metric(amdsmi_device_handle device_handle,
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_get_volt_metric(amdsmi_device_handle device_handle,
+amdsmi_status_t  amdsmi_dev_get_volt_metric(amdsmi_processor_handle device_handle,
                                amdsmi_voltage_type_t sensor_type,
                               amdsmi_voltage_metric_t metric, int64_t *voltage);
 
@@ -2044,7 +2044,7 @@ amdsmi_status_t  amdsmi_dev_get_volt_metric(amdsmi_device_handle device_handle,
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_dev_reset_fan(amdsmi_device_handle device_handle, uint32_t sensor_ind);
+amdsmi_status_t amdsmi_dev_reset_fan(amdsmi_processor_handle device_handle, uint32_t sensor_ind);
 
 /**
  *  @brief Set the fan speed for the specified device with the provided speed,
@@ -2066,7 +2066,7 @@ amdsmi_status_t amdsmi_dev_reset_fan(amdsmi_device_handle device_handle, uint32_
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_dev_set_fan_speed(amdsmi_device_handle device_handle,
+amdsmi_status_t amdsmi_dev_set_fan_speed(amdsmi_processor_handle device_handle,
       uint32_t sensor_ind, uint64_t speed);
 
 /** @} End PhysCont */
@@ -2098,7 +2098,7 @@ amdsmi_status_t amdsmi_dev_set_fan_speed(amdsmi_device_handle device_handle,
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_get_busy_percent(amdsmi_device_handle device_handle, uint32_t *busy_percent);
+amdsmi_dev_get_busy_percent(amdsmi_processor_handle device_handle, uint32_t *busy_percent);
 
 /**
  *  @brief Get coarse grain utilization counter of the specified device
@@ -2125,7 +2125,7 @@ amdsmi_dev_get_busy_percent(amdsmi_device_handle device_handle, uint32_t *busy_p
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_utilization_count(amdsmi_device_handle device_handle,
+amdsmi_get_utilization_count(amdsmi_processor_handle device_handle,
                 amdsmi_utilization_counter_t utilization_counters[],
                 uint32_t count,
                 uint64_t *timestamp);
@@ -2142,7 +2142,7 @@ amdsmi_get_utilization_count(amdsmi_device_handle device_handle,
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_pcie_link_status(amdsmi_device_handle device_handle, amdsmi_pcie_info_t *info);
+amdsmi_status_t amdsmi_get_pcie_link_status(amdsmi_processor_handle device_handle, amdsmi_pcie_info_t *info);
 
 /**
  *  @brief Get max PCIe capabilities of the device with provided device handle.
@@ -2156,7 +2156,7 @@ amdsmi_status_t amdsmi_get_pcie_link_status(amdsmi_device_handle device_handle, 
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_pcie_link_caps(amdsmi_device_handle device_handle, amdsmi_pcie_info_t *info);
+amdsmi_status_t amdsmi_get_pcie_link_caps(amdsmi_processor_handle device_handle, amdsmi_pcie_info_t *info);
 
 /**
  *  @brief Get the performance level of the device
@@ -2176,7 +2176,7 @@ amdsmi_status_t amdsmi_get_pcie_link_caps(amdsmi_device_handle device_handle, am
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_dev_get_perf_level(amdsmi_device_handle device_handle,
+amdsmi_status_t amdsmi_dev_get_perf_level(amdsmi_processor_handle device_handle,
                                                  amdsmi_dev_perf_level_t *perf);
 
 /**
@@ -2197,7 +2197,7 @@ amdsmi_status_t amdsmi_dev_get_perf_level(amdsmi_device_handle device_handle,
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_set_perf_determinism_mode(amdsmi_device_handle device_handle, uint64_t clkvalue);
+amdsmi_set_perf_determinism_mode(amdsmi_processor_handle device_handle, uint64_t clkvalue);
 
 /**
  *  @brief Get the overdrive percent associated with the device with provided
@@ -2219,7 +2219,7 @@ amdsmi_set_perf_determinism_mode(amdsmi_device_handle device_handle, uint64_t cl
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 
-amdsmi_status_t amdsmi_dev_get_overdrive_level(amdsmi_device_handle device_handle, uint32_t *od);
+amdsmi_status_t amdsmi_dev_get_overdrive_level(amdsmi_processor_handle device_handle, uint32_t *od);
 
 /**
  *  @brief Get the list of possible system clock speeds of device for a
@@ -2240,7 +2240,7 @@ amdsmi_status_t amdsmi_dev_get_overdrive_level(amdsmi_device_handle device_handl
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_get_gpu_clk_freq(amdsmi_device_handle device_handle,
+amdsmi_status_t  amdsmi_dev_get_gpu_clk_freq(amdsmi_processor_handle device_handle,
                              amdsmi_clk_type_t clk_type, amdsmi_frequencies_t *f);
 
 /**
@@ -2252,7 +2252,7 @@ amdsmi_status_t  amdsmi_dev_get_gpu_clk_freq(amdsmi_device_handle device_handle,
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_dev_reset_gpu(amdsmi_device_handle device_handle);
+amdsmi_status_t amdsmi_dev_reset_gpu(amdsmi_processor_handle device_handle);
 
 /**
  *  @brief This function retrieves the voltage/frequency curve information
@@ -2271,7 +2271,7 @@ amdsmi_status_t amdsmi_dev_reset_gpu(amdsmi_device_handle device_handle);
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_get_od_volt_info(amdsmi_device_handle device_handle,
+amdsmi_status_t  amdsmi_dev_get_od_volt_info(amdsmi_processor_handle device_handle,
                                                amdsmi_od_volt_freq_data_t *odv);
 
 /**
@@ -2291,7 +2291,7 @@ amdsmi_status_t  amdsmi_dev_get_od_volt_info(amdsmi_device_handle device_handle,
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_get_gpu_metrics_info(amdsmi_device_handle device_handle,
+amdsmi_status_t  amdsmi_dev_get_gpu_metrics_info(amdsmi_processor_handle device_handle,
                                             amdsmi_gpu_metrics_t *pgpu_metrics);
 
 /**
@@ -2313,7 +2313,7 @@ amdsmi_status_t  amdsmi_dev_get_gpu_metrics_info(amdsmi_device_handle device_han
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_dev_set_clk_range(amdsmi_device_handle device_handle, uint64_t minclkvalue,
+amdsmi_status_t amdsmi_dev_set_clk_range(amdsmi_processor_handle device_handle, uint64_t minclkvalue,
                                        uint64_t maxclkvalue,
                                        amdsmi_clk_type_t clkType);
 
@@ -2336,7 +2336,7 @@ amdsmi_status_t amdsmi_dev_set_clk_range(amdsmi_device_handle device_handle, uin
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_set_od_clk_info(amdsmi_device_handle device_handle, amdsmi_freq_ind_t level,
+amdsmi_status_t  amdsmi_dev_set_od_clk_info(amdsmi_processor_handle device_handle, amdsmi_freq_ind_t level,
                                        uint64_t clkvalue,
                                        amdsmi_clk_type_t clkType);
 
@@ -2358,7 +2358,7 @@ amdsmi_status_t  amdsmi_dev_set_od_clk_info(amdsmi_device_handle device_handle, 
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_set_od_volt_info(amdsmi_device_handle device_handle, uint32_t vpoint,
+amdsmi_status_t  amdsmi_dev_set_od_volt_info(amdsmi_processor_handle device_handle, uint32_t vpoint,
                                         uint64_t clkvalue, uint64_t voltvalue);
 
 /**
@@ -2396,7 +2396,7 @@ amdsmi_status_t  amdsmi_dev_set_od_volt_info(amdsmi_device_handle device_handle,
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_get_od_volt_curve_regions(amdsmi_device_handle device_handle,
+amdsmi_status_t  amdsmi_dev_get_od_volt_curve_regions(amdsmi_processor_handle device_handle,
                       uint32_t *num_regions, amdsmi_freq_volt_region_t *buffer);
 
 /**
@@ -2431,7 +2431,7 @@ amdsmi_status_t  amdsmi_dev_get_od_volt_curve_regions(amdsmi_device_handle devic
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
- amdsmi_dev_get_power_profile_presets(amdsmi_device_handle device_handle, uint32_t sensor_ind,
+ amdsmi_dev_get_power_profile_presets(amdsmi_processor_handle device_handle, uint32_t sensor_ind,
                                          amdsmi_power_profile_status_t *status);
 
 /** @} End PerfQuer */
@@ -2463,7 +2463,7 @@ amdsmi_status_t
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
- amdsmi_dev_set_perf_level(amdsmi_device_handle device_handle, amdsmi_dev_perf_level_t perf_lvl);
+ amdsmi_dev_set_perf_level(amdsmi_processor_handle device_handle, amdsmi_dev_perf_level_t perf_lvl);
 
 /**
  *  @brief Set the PowerPlay performance level associated with the device with
@@ -2482,7 +2482,7 @@ amdsmi_status_t
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
- amdsmi_dev_set_perf_level_v1(amdsmi_device_handle device_handle, amdsmi_dev_perf_level_t perf_lvl);
+ amdsmi_dev_set_perf_level_v1(amdsmi_processor_handle device_handle, amdsmi_dev_perf_level_t perf_lvl);
 
 /**
  *  @brief Set the overdrive percent associated with the device with provided
@@ -2523,7 +2523,7 @@ amdsmi_status_t
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_set_overdrive_level(amdsmi_device_handle device_handle, uint32_t od);
+amdsmi_status_t  amdsmi_dev_set_overdrive_level(amdsmi_processor_handle device_handle, uint32_t od);
 
 /**
  *  @brief Set the overdrive percent associated with the device with provided
@@ -2562,7 +2562,7 @@ amdsmi_status_t  amdsmi_dev_set_overdrive_level(amdsmi_device_handle device_hand
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_set_overdrive_level_v1(amdsmi_device_handle device_handle, uint32_t od);
+amdsmi_status_t  amdsmi_dev_set_overdrive_level_v1(amdsmi_processor_handle device_handle, uint32_t od);
 
 /**
  * @brief Control the set of allowed frequencies that can be used for the
@@ -2596,7 +2596,7 @@ amdsmi_status_t  amdsmi_dev_set_overdrive_level_v1(amdsmi_device_handle device_h
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_set_clk_freq(amdsmi_device_handle device_handle,
+amdsmi_status_t  amdsmi_dev_set_clk_freq(amdsmi_processor_handle device_handle,
                              amdsmi_clk_type_t clk_type, uint64_t freq_bitmask);
 
 /** @} End PerfCont */
@@ -2679,7 +2679,7 @@ amdsmi_get_version_str(amdsmi_sw_component_t component, char *ver_str,
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_get_ecc_count(amdsmi_device_handle device_handle,
+amdsmi_status_t  amdsmi_dev_get_ecc_count(amdsmi_processor_handle device_handle,
                               amdsmi_gpu_block_t block, amdsmi_error_count_t *ec);
 
 /**
@@ -2706,7 +2706,7 @@ amdsmi_status_t  amdsmi_dev_get_ecc_count(amdsmi_device_handle device_handle,
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_get_ecc_enabled(amdsmi_device_handle device_handle,
+amdsmi_status_t  amdsmi_dev_get_ecc_enabled(amdsmi_processor_handle device_handle,
                                                     uint64_t *enabled_blocks);
 
 /**
@@ -2730,7 +2730,7 @@ amdsmi_status_t  amdsmi_dev_get_ecc_enabled(amdsmi_device_handle device_handle,
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_get_ecc_status(amdsmi_device_handle device_handle, amdsmi_gpu_block_t block,
+amdsmi_status_t  amdsmi_dev_get_ecc_status(amdsmi_processor_handle device_handle, amdsmi_gpu_block_t block,
                                                   amdsmi_ras_err_state_t *state);
 
 /**
@@ -2868,7 +2868,7 @@ amdsmi_status_string(amdsmi_status_t status, const char **status_string);
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_counter_group_supported(amdsmi_device_handle device_handle, amdsmi_event_group_t group);
+amdsmi_dev_counter_group_supported(amdsmi_processor_handle device_handle, amdsmi_event_group_t group);
 
 /**
  *  @brief Create a performance counter object
@@ -2895,7 +2895,7 @@ amdsmi_dev_counter_group_supported(amdsmi_device_handle device_handle, amdsmi_ev
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_create_counter(amdsmi_device_handle device_handle, amdsmi_event_type_t type,
+amdsmi_dev_create_counter(amdsmi_processor_handle device_handle, amdsmi_event_type_t type,
                                             amdsmi_event_handle_t *evnt_handle);
 
 /**
@@ -2971,7 +2971,7 @@ amdsmi_read_counter(amdsmi_event_handle_t evt_handle,
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
- amdsmi_counter_get_available_counters(amdsmi_device_handle device_handle,
+ amdsmi_counter_get_available_counters(amdsmi_processor_handle device_handle,
                                  amdsmi_event_group_t grp, uint32_t *available);
 
 /** @} End PerfCntr */
@@ -3093,7 +3093,7 @@ amdsmi_get_compute_process_gpus(uint32_t pid, uint32_t *dv_indices,
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_xgmi_error_status(amdsmi_device_handle device_handle, amdsmi_xgmi_status_t *status);
+amdsmi_dev_xgmi_error_status(amdsmi_processor_handle device_handle, amdsmi_xgmi_status_t *status);
 
 /**
  * @brief Reset the XGMI error status for a device
@@ -3107,7 +3107,7 @@ amdsmi_dev_xgmi_error_status(amdsmi_device_handle device_handle, amdsmi_xgmi_sta
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_reset_xgmi_error(amdsmi_device_handle device_handle);
+amdsmi_dev_reset_xgmi_error(amdsmi_processor_handle device_handle);
 
 /** @} End SysInfo */
 
@@ -3133,7 +3133,7 @@ amdsmi_dev_reset_xgmi_error(amdsmi_device_handle device_handle);
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_topo_get_numa_node_number(amdsmi_device_handle device_handle, uint32_t *numa_node);
+amdsmi_topo_get_numa_node_number(amdsmi_processor_handle device_handle, uint32_t *numa_node);
 
 /**
  *  @brief Retrieve the weight for a connection between 2 GPUs
@@ -3154,7 +3154,7 @@ amdsmi_topo_get_numa_node_number(amdsmi_device_handle device_handle, uint32_t *n
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_topo_get_link_weight(amdsmi_device_handle device_handle_src, amdsmi_device_handle device_handle_dst,
+amdsmi_topo_get_link_weight(amdsmi_processor_handle device_handle_src, amdsmi_processor_handle device_handle_dst,
                           uint64_t *weight);
 
 /**
@@ -3179,7 +3179,7 @@ amdsmi_topo_get_link_weight(amdsmi_device_handle device_handle_src, amdsmi_devic
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
- amdsmi_get_minmax_bandwidth(amdsmi_device_handle device_handle_src, amdsmi_device_handle device_handle_dst,
+ amdsmi_get_minmax_bandwidth(amdsmi_processor_handle device_handle_src, amdsmi_processor_handle device_handle_dst,
                           uint64_t *min_bandwidth, uint64_t *max_bandwidth);
 
 /**
@@ -3205,8 +3205,8 @@ amdsmi_status_t
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_topo_get_link_type(amdsmi_device_handle device_handle_src,
-                        amdsmi_device_handle device_handle_dst,
+amdsmi_topo_get_link_type(amdsmi_processor_handle device_handle_src,
+                        amdsmi_processor_handle device_handle_dst,
                         uint64_t *hops, AMDSMI_IO_LINK_TYPE *type);
 
 /**
@@ -3228,7 +3228,7 @@ amdsmi_topo_get_link_type(amdsmi_device_handle device_handle_src,
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_is_P2P_accessible(amdsmi_device_handle device_handle_src, amdsmi_device_handle device_handle_dst,
+amdsmi_is_P2P_accessible(amdsmi_processor_handle device_handle_src, amdsmi_processor_handle device_handle_dst,
                        bool *accessible);
 
 /** @} End HWTopo */
@@ -3277,7 +3277,7 @@ amdsmi_is_P2P_accessible(amdsmi_device_handle device_handle_src, amdsmi_device_h
  *     amdsmi_func_id_iter_handle_t iter_handle, var_iter, sub_var_iter;
  *     amdsmi_func_id_value_t value;
  *     amdsmi_status_t err;
- *     amdsmi_device_handle device;
+ *     amdsmi_processor_handle device;
  *
  *     // Get the device handle via amdsmi_get_device_handles()
  *     // ... ...
@@ -3366,7 +3366,7 @@ amdsmi_is_P2P_accessible(amdsmi_device_handle device_handle_src, amdsmi_device_h
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_open_supported_func_iterator(amdsmi_device_handle device_handle,
+amdsmi_dev_open_supported_func_iterator(amdsmi_processor_handle device_handle,
                                           amdsmi_func_id_iter_handle_t *handle);
 
 /**
@@ -3471,7 +3471,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_init_event_notification(amdsmi_device_handle device_handle);
+amdsmi_init_event_notification(amdsmi_processor_handle device_handle);
 
 /**
  * @brief Specify which events to collect for a device
@@ -3500,7 +3500,7 @@ amdsmi_init_event_notification(amdsmi_device_handle device_handle);
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
- amdsmi_set_event_notification_mask(amdsmi_device_handle device_handle, uint64_t mask);
+ amdsmi_set_event_notification_mask(amdsmi_processor_handle device_handle, uint64_t mask);
 
 /**
  * @brief Collect event notifications, waiting a specified amount of time
@@ -3555,7 +3555,7 @@ amdsmi_status_t
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_stop_event_notification(amdsmi_device_handle device_handle);
+amdsmi_status_t amdsmi_stop_event_notification(amdsmi_processor_handle device_handle);
 
 /** @} End EvntNotif */
 
@@ -3569,7 +3569,7 @@ amdsmi_status_t amdsmi_stop_event_notification(amdsmi_device_handle device_handl
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_device_bdf(amdsmi_device_handle device_handle, amdsmi_bdf_t *bdf);
+amdsmi_get_device_bdf(amdsmi_processor_handle device_handle, amdsmi_bdf_t *bdf);
 
 /**
  *  @brief          Returns the UUID of the device
@@ -3586,7 +3586,7 @@ amdsmi_get_device_bdf(amdsmi_device_handle device_handle, amdsmi_bdf_t *bdf);
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_device_uuid(amdsmi_device_handle device_handle, unsigned int *uuid_length, char *uuid);
+amdsmi_get_device_uuid(amdsmi_processor_handle device_handle, unsigned int *uuid_length, char *uuid);
 
 /*****************************************************************************/
 /** @defgroup swversion     SW Version Information
@@ -3608,7 +3608,7 @@ amdsmi_get_device_uuid(amdsmi_device_handle device_handle, unsigned int *uuid_le
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_driver_version(amdsmi_device_handle device_handle, int *length, char *version);
+amdsmi_get_driver_version(amdsmi_processor_handle device_handle, int *length, char *version);
 
 /** @} End swversion */
 
@@ -3632,7 +3632,7 @@ amdsmi_get_driver_version(amdsmi_device_handle device_handle, int *length, char 
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_asic_info(amdsmi_device_handle device_handle, amdsmi_asic_info_t *info);
+amdsmi_get_asic_info(amdsmi_processor_handle device_handle, amdsmi_asic_info_t *info);
 
 /**
  *  @brief          Returns the board part number and board information for the requested device
@@ -3645,7 +3645,7 @@ amdsmi_get_asic_info(amdsmi_device_handle device_handle, amdsmi_asic_info_t *inf
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_board_info(amdsmi_device_handle device_handle, amdsmi_board_info_t *info);
+amdsmi_get_board_info(amdsmi_processor_handle device_handle, amdsmi_board_info_t *info);
 
 /**
  *  @brief          Returns the power caps as currently configured in the
@@ -3660,7 +3660,7 @@ amdsmi_get_board_info(amdsmi_device_handle device_handle, amdsmi_board_info_t *i
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_power_cap_info(amdsmi_device_handle device_handle, uint32_t sensor_ind,
+amdsmi_get_power_cap_info(amdsmi_processor_handle device_handle, uint32_t sensor_ind,
           amdsmi_power_cap_info_t *info);
 
 /**
@@ -3675,7 +3675,7 @@ amdsmi_get_power_cap_info(amdsmi_device_handle device_handle, uint32_t sensor_in
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_xgmi_info(amdsmi_device_handle device_handle, amdsmi_xgmi_info_t *info);
+amdsmi_get_xgmi_info(amdsmi_processor_handle device_handle, amdsmi_xgmi_info_t *info);
 
 /**
  *  @brief          Returns the device capabilities as currently configured in
@@ -3689,7 +3689,7 @@ amdsmi_get_xgmi_info(amdsmi_device_handle device_handle, amdsmi_xgmi_info_t *inf
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_caps_info(amdsmi_device_handle device_handle, amdsmi_gpu_caps_t *info);
+amdsmi_get_caps_info(amdsmi_processor_handle device_handle, amdsmi_gpu_caps_t *info);
 
 /** @} End asicinfo */
 
@@ -3708,7 +3708,7 @@ amdsmi_get_caps_info(amdsmi_device_handle device_handle, amdsmi_gpu_caps_t *info
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_fw_info(amdsmi_device_handle device_handle, amdsmi_fw_info_t *info);
+amdsmi_get_fw_info(amdsmi_processor_handle device_handle, amdsmi_fw_info_t *info);
 
 /**
  *  @brief          Returns the static information for the vBIOS on the device.
@@ -3721,7 +3721,7 @@ amdsmi_get_fw_info(amdsmi_device_handle device_handle, amdsmi_fw_info_t *info);
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_vbios_info(amdsmi_device_handle device_handle, amdsmi_vbios_info_t *info);
+amdsmi_get_vbios_info(amdsmi_processor_handle device_handle, amdsmi_vbios_info_t *info);
 
 /** @} End fwinfo */
 
@@ -3741,7 +3741,7 @@ amdsmi_get_vbios_info(amdsmi_device_handle device_handle, amdsmi_vbios_info_t *i
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_gpu_activity(amdsmi_device_handle device_handle, amdsmi_engine_usage_t *info);
+amdsmi_get_gpu_activity(amdsmi_processor_handle device_handle, amdsmi_engine_usage_t *info);
 
 /**
  *  @brief          Returns the current power and voltage of the GPU.
@@ -3754,7 +3754,7 @@ amdsmi_get_gpu_activity(amdsmi_device_handle device_handle, amdsmi_engine_usage_
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_power_measure(amdsmi_device_handle device_handle, amdsmi_power_measure_t *info);
+amdsmi_get_power_measure(amdsmi_processor_handle device_handle, amdsmi_power_measure_t *info);
 
 /**
  *  @brief          Returns the measurements of the clocks in the GPU
@@ -3771,7 +3771,7 @@ amdsmi_get_power_measure(amdsmi_device_handle device_handle, amdsmi_power_measur
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_clock_measure(amdsmi_device_handle device_handle, amdsmi_clk_type_t clk_type, amdsmi_clk_measure_t *info);
+amdsmi_get_clock_measure(amdsmi_processor_handle device_handle, amdsmi_clk_type_t clk_type, amdsmi_clk_measure_t *info);
 
 /**
  *  @brief          Returns the VRAM usage (both total and used memory)
@@ -3786,7 +3786,7 @@ amdsmi_get_clock_measure(amdsmi_device_handle device_handle, amdsmi_clk_type_t c
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_vram_usage(amdsmi_device_handle device_handle, amdsmi_vram_info_t *info);
+amdsmi_get_vram_usage(amdsmi_processor_handle device_handle, amdsmi_vram_info_t *info);
 
 /** @} End gpumon */
 
@@ -3810,7 +3810,7 @@ amdsmi_get_vram_usage(amdsmi_device_handle device_handle, amdsmi_vram_info_t *in
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_target_frequency_range(amdsmi_device_handle device_handle, amdsmi_clk_type_t clk_type, amdsmi_frequency_range_t *range);
+amdsmi_get_target_frequency_range(amdsmi_processor_handle device_handle, amdsmi_clk_type_t clk_type, amdsmi_frequency_range_t *range);
 
 /** @} End powermon */
 
@@ -3841,7 +3841,7 @@ amdsmi_get_target_frequency_range(amdsmi_device_handle device_handle, amdsmi_clk
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_process_list(amdsmi_device_handle device_handle, amdsmi_process_handle *list, uint32_t *max_processes);
+amdsmi_get_process_list(amdsmi_processor_handle device_handle, amdsmi_process_handle *list, uint32_t *max_processes);
 
 /**
  *  @brief          Returns the process information of a given process.
@@ -3857,7 +3857,7 @@ amdsmi_get_process_list(amdsmi_device_handle device_handle, amdsmi_process_handl
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_process_info(amdsmi_device_handle device_handle, amdsmi_process_handle process, amdsmi_proc_info_t *info);
+amdsmi_get_process_info(amdsmi_processor_handle device_handle, amdsmi_process_handle process, amdsmi_proc_info_t *info);
 
 /** @} End processinfo */
 
@@ -3878,7 +3878,7 @@ amdsmi_get_process_info(amdsmi_device_handle device_handle, amdsmi_process_handl
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_ecc_error_count(amdsmi_device_handle device_handle, amdsmi_error_count_t *ec);
+amdsmi_get_ecc_error_count(amdsmi_processor_handle device_handle, amdsmi_error_count_t *ec);
 
 /** @} End eccinfo */
 
