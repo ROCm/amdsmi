@@ -244,14 +244,14 @@ int main() {
 
         // Get the device count available for the socket.
         uint32_t device_count = 0;
-        ret = amdsmi_get_device_handles(sockets[i], &device_count, nullptr);
+        ret = amdsmi_get_processor_handles(sockets[i], &device_count, nullptr);
         CHK_AMDSMI_RET(ret)
 
         // Allocate the memory for the device handlers on the socket
-        std::vector<amdsmi_processor_handle> device_handles(device_count);
+        std::vector<amdsmi_processor_handle> processor_handles(device_count);
         // Get all devices of the socket
-        ret = amdsmi_get_device_handles(sockets[i],
-                                        &device_count, &device_handles[0]);
+        ret = amdsmi_get_processor_handles(sockets[i],
+                                        &device_count, &processor_handles[0]);
         CHK_AMDSMI_RET(ret)
 
         // For each device of the socket, get name and temperature.
@@ -259,7 +259,7 @@ int main() {
             // Get device type. Since the amdsmi is initialized with
             // AMD_SMI_INIT_AMD_GPUS, the device_type must be AMD_GPU.
             device_type_t device_type = {};
-            ret = amdsmi_get_device_type(device_handles[j], &device_type);
+            ret = amdsmi_get_device_type(processor_handles[j], &device_type);
             CHK_AMDSMI_RET(ret)
             if (device_type != AMD_GPU) {
                 std::cout << "Expect AMD_GPU device type!\n";
@@ -268,7 +268,7 @@ int main() {
 
             // Get BDF info
             amdsmi_bdf_t bdf = {};
-            ret = amdsmi_get_device_bdf(device_handles[j], &bdf);
+            ret = amdsmi_get_device_bdf(processor_handles[j], &bdf);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_device_bdf:\n");
             printf("\tDevice[%d] BDF %04lx:%02x:%02x.%d\n\n", i,
@@ -277,12 +277,12 @@ int main() {
 
             // Get handle from BDF
             amdsmi_processor_handle dev_handle;
-            ret = amdsmi_get_device_handle_from_bdf(bdf, &dev_handle);
+            ret = amdsmi_get_processor_handle_from_bdf(bdf, &dev_handle);
             CHK_AMDSMI_RET(ret)
 
             // Get ASIC info
             amdsmi_asic_info_t asic_info = {};
-            ret = amdsmi_get_asic_info(device_handles[j], &asic_info);
+            ret = amdsmi_get_asic_info(processor_handles[j], &asic_info);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_asic_info:\n");
             printf("\tMarket Name: %s\n", asic_info.market_name);
@@ -294,7 +294,7 @@ int main() {
 
             // Get VBIOS info
             amdsmi_vbios_info_t vbios_info = {};
-            ret = amdsmi_get_vbios_info(device_handles[j], &vbios_info);
+            ret = amdsmi_get_vbios_info(processor_handles[j], &vbios_info);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_vbios_info:\n");
             printf("\tVBios Name: %s\n", vbios_info.name);
@@ -306,7 +306,7 @@ int main() {
 
             // Get power measure
             amdsmi_power_measure_t power_measure = {};
-            ret = amdsmi_get_power_measure(device_handles[j], &power_measure);
+            ret = amdsmi_get_power_measure(processor_handles[j], &power_measure);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_power_measure:\n");
             printf("\tCurrent GFX Voltage: %d\n",
@@ -320,7 +320,7 @@ int main() {
             // Get driver version
             char version[AMDSMI_MAX_DRIVER_VERSION_LENGTH];
             int version_length = AMDSMI_MAX_DRIVER_VERSION_LENGTH;
-            ret = amdsmi_get_driver_version(device_handles[j], &version_length, version);
+            ret = amdsmi_get_driver_version(processor_handles[j], &version_length, version);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_driver_version:\n");
             printf("\tDriver version: %s\n\n", version);
@@ -328,14 +328,14 @@ int main() {
             // Get device uuid
             unsigned int uuid_length = AMDSMI_GPU_UUID_SIZE;
 	        char uuid[AMDSMI_GPU_UUID_SIZE];
-            ret = amdsmi_get_device_uuid(device_handles[j], &uuid_length, uuid);
+            ret = amdsmi_get_device_uuid(processor_handles[j], &uuid_length, uuid);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_device_uuid:\n");
             printf("\tDevice uuid: %s\n\n", uuid);
 
             // Get engine usage info
             amdsmi_engine_usage_t engine_usage = {};
-            ret = amdsmi_get_gpu_activity(device_handles[j], &engine_usage);
+            ret = amdsmi_get_gpu_activity(processor_handles[j], &engine_usage);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_gpu_activity:\n");
             printf("\tAverage GFX Activity: %d\n",
@@ -348,7 +348,7 @@ int main() {
             // Get firmware info
             amdsmi_fw_info_t fw_information = {};
             char ucode_name[AMDSMI_MAX_STRING_LENGTH];
-            ret = amdsmi_get_fw_info(device_handles[j], &fw_information);
+            ret = amdsmi_get_fw_info(processor_handles[j], &fw_information);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_fw_info:\n");
             printf("Number of Microcodes: %d\n", fw_information.num_fw_info);
@@ -359,7 +359,7 @@ int main() {
 
             // Get GFX clock measurements
             amdsmi_clk_measure_t gfx_clk_values = {};
-            ret = amdsmi_get_clock_measure(device_handles[j], CLK_TYPE_GFX,
+            ret = amdsmi_get_clock_measure(processor_handles[j], CLK_TYPE_GFX,
                                            &gfx_clk_values);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_clock_measure:\n");
@@ -369,7 +369,7 @@ int main() {
 
             // Get MEM clock measurements
             amdsmi_clk_measure_t mem_clk_values = {};
-            ret = amdsmi_get_clock_measure(device_handles[j], CLK_TYPE_MEM,
+            ret = amdsmi_get_clock_measure(processor_handles[j], CLK_TYPE_MEM,
                                            &mem_clk_values);
             CHK_AMDSMI_RET(ret)
             printf("\tGPU MEM Max Clock: %d\n", mem_clk_values.max_clk);
@@ -378,7 +378,7 @@ int main() {
 
             // Get PCIe status
             amdsmi_pcie_info_t pcie_info = {};
-            ret = amdsmi_get_pcie_link_status(device_handles[j], &pcie_info);
+            ret = amdsmi_get_pcie_link_status(processor_handles[j], &pcie_info);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_pcie_link_status:\n");
             printf("\tPCIe lanes: %d\n", pcie_info.pcie_lanes);
@@ -386,7 +386,7 @@ int main() {
 
             // Get PCIe caps
             amdsmi_pcie_info_t pcie_caps_info = {};
-            ret = amdsmi_get_pcie_link_caps(device_handles[j], &pcie_caps_info);
+            ret = amdsmi_get_pcie_link_caps(processor_handles[j], &pcie_caps_info);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_pcie_link_caps:\n");
             printf("\tPCIe max lanes: %d\n", pcie_caps_info.pcie_lanes);
@@ -395,7 +395,7 @@ int main() {
             // Get VRAM temperature limit
             int64_t temperature = 0;
             ret = amdsmi_dev_get_temp_metric(
-                device_handles[j], TEMPERATURE_TYPE_VRAM,
+                processor_handles[j], TEMPERATURE_TYPE_VRAM,
                 AMDSMI_TEMP_CRITICAL, &temperature);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_dev_get_temp_metric:\n");
@@ -403,7 +403,7 @@ int main() {
 
             // Get GFX temperature limit
             ret = amdsmi_dev_get_temp_metric(
-                device_handles[j], TEMPERATURE_TYPE_EDGE,
+                processor_handles[j], TEMPERATURE_TYPE_EDGE,
                 AMDSMI_TEMP_CRITICAL, &temperature);
             CHK_AMDSMI_RET(ret)
             printf("\tGPU GFX temp limit: %ld\n\n", temperature);
@@ -417,7 +417,7 @@ int main() {
                 TEMPERATURE_TYPE_VRAM, TEMPERATURE_TYPE_PLX};
             for (const auto &temp_type : temp_types) {
                 ret = amdsmi_dev_get_temp_metric(
-                    device_handles[j], temp_type,
+                    processor_handles[j], temp_type,
                     AMDSMI_TEMP_CURRENT,
                     &temp_measurements[(int)(temp_type)]);
                 CHK_AMDSMI_RET(ret)
@@ -446,7 +446,7 @@ int main() {
             for (auto block = AMDSMI_GPU_BLOCK_FIRST;
                  block <= AMDSMI_GPU_BLOCK_LAST;
                  block = (amdsmi_gpu_block_t)(block * 2)) {
-                ret = amdsmi_get_ras_block_features_enabled(device_handles[j], block,
+                ret = amdsmi_get_ras_block_features_enabled(processor_handles[j], block,
                                                       &state);
                 CHK_AMDSMI_RET(ret)
                 printf("\tBlock: %s\n", block_names[index]);
@@ -459,7 +459,7 @@ int main() {
             char bad_page_status_names[3][15] = {"RESERVED", "PENDING",
                                                  "UNRESERVABLE"};
             uint32_t num_pages = 0;
-            ret = amdsmi_get_bad_page_info(device_handles[j], &num_pages,
+            ret = amdsmi_get_bad_page_info(processor_handles[j], &num_pages,
                                            nullptr);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_bad_page_info:\n");
@@ -467,7 +467,7 @@ int main() {
                 printf("\tNo bad pages found.\n");
             } else {
                 std::vector<amdsmi_retired_page_record_t> bad_page_info(num_pages);
-                ret = amdsmi_get_bad_page_info(device_handles[j], &num_pages,
+                ret = amdsmi_get_bad_page_info(processor_handles[j], &num_pages,
                                                bad_page_info.data());
                 CHK_AMDSMI_RET(ret)
                 for (uint32_t page_it = 0; page_it < num_pages; page_it += 1) {
@@ -484,7 +484,7 @@ int main() {
 
             // Get ECC error counts
             amdsmi_error_count_t err_cnt_info = {};
-            ret = amdsmi_get_ecc_error_count(device_handles[j], &err_cnt_info);
+            ret = amdsmi_get_ecc_error_count(processor_handles[j], &err_cnt_info);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_ecc_error_count:\n");
             printf("\tCorrectable errors: %lu\n", err_cnt_info.correctable_count);
@@ -501,7 +501,7 @@ int main() {
             // Get frequency ranges
             amdsmi_frequency_range_t freq_ranges = {};
             ret = amdsmi_get_target_frequency_range(
-                device_handles[j], CLK_TYPE_GFX, &freq_ranges);
+                processor_handles[j], CLK_TYPE_GFX, &freq_ranges);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_target_frequency_range:\n");
             printf("\tSupported min freq: %lu\n",
@@ -514,7 +514,7 @@ int main() {
                    freq_ranges.current_freq_range.upper_bound);
 
             uint32_t num_process = 0;
-            ret = amdsmi_get_process_list(device_handles[j], nullptr,
+            ret = amdsmi_get_process_list(processor_handles[j], nullptr,
                                           &num_process);
             CHK_AMDSMI_RET(ret)
             if (!num_process) {
@@ -529,14 +529,14 @@ int main() {
                 sprintf(bdf_str, "%04lx:%02x:%02x.%d", bdf.domain_number,
                         bdf.bus_number, bdf.device_number, bdf.function_number);
                 int num = 0;
-                ret = amdsmi_get_process_list(device_handles[j], process_list,
+                ret = amdsmi_get_process_list(processor_handles[j], process_list,
                                               &num_process);
                 CHK_AMDSMI_RET(ret)
                 for (uint32_t it = 0; it < num_process; it += 1) {
                     if (getpid() == process_list[it]) {
                         continue;
                     }
-                    ret = amdsmi_get_process_info(device_handles[j],
+                    ret = amdsmi_get_process_info(processor_handles[j],
                                                   process_list[it], &process);
                     if (ret != AMDSMI_STATUS_SUCCESS) {
                         printf("amdsmi_get_process_info() failed for "
@@ -623,7 +623,7 @@ int main() {
 
             // Get device name
             amdsmi_board_info_t board_info = {};
-            ret = amdsmi_get_board_info(device_handles[j], &board_info);
+            ret = amdsmi_get_board_info(processor_handles[j], &board_info);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_board_info:\n");
             std::cout << "\tdevice [" << j
@@ -636,7 +636,7 @@ int main() {
 
             // Get temperature
             int64_t val_i64 = 0;
-            ret =  amdsmi_dev_get_temp_metric(device_handles[j], TEMPERATURE_TYPE_EDGE,
+            ret =  amdsmi_dev_get_temp_metric(processor_handles[j], TEMPERATURE_TYPE_EDGE,
                                              AMDSMI_TEMP_CURRENT, &val_i64);
             CHK_AMDSMI_RET(ret)
             printf("    Output of  amdsmi_dev_get_temp_metric:\n");
@@ -645,7 +645,7 @@ int main() {
 
             // Get frame buffer
             amdsmi_vram_info_t vram_usage = {};
-            ret = amdsmi_get_vram_usage(device_handles[j], &vram_usage);
+            ret = amdsmi_get_vram_usage(processor_handles[j], &vram_usage);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_vram_usage:\n");
             std::cout << "\t\tFrame buffer usage (MB): " << vram_usage.vram_used
@@ -653,7 +653,7 @@ int main() {
 
             // Get Cap info
             amdsmi_gpu_caps_t caps_info = {};
-            ret = amdsmi_get_caps_info(device_handles[j], &caps_info);
+            ret = amdsmi_get_caps_info(processor_handles[j], &caps_info);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_caps_info:\n");
             std::cout << "\t\tGFX IP Major: " << caps_info.gfx.gfxip_major
@@ -668,7 +668,7 @@ int main() {
                       << "\n\n";
 
             amdsmi_power_cap_info_t cap_info = {};
-            ret = amdsmi_get_power_cap_info(device_handles[j], 0, &cap_info);
+            ret = amdsmi_get_power_cap_info(processor_handles[j], 0, &cap_info);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_power_cap_info:\n");
             std::cout << "\t\t Power Cap: " << cap_info.power_cap

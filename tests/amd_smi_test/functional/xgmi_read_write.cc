@@ -98,7 +98,7 @@ void TestXGMIReadWrite::Run(void) {
   }
 
   for (uint32_t dv_ind = 0; dv_ind < num_monitor_devs(); ++dv_ind) {
-    auto device = device_handles_[dv_ind];
+    auto device = processor_handles_[dv_ind];
     PrintDeviceHeader(device);
 
     amdsmi_xgmi_info_t info;

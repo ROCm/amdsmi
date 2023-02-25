@@ -96,14 +96,14 @@ void TestOverdriveRead::Run(void) {
   }
 
   for (uint32_t i = 0; i < num_monitor_devs(); ++i) {
-    PrintDeviceHeader(device_handles_[i]);
+    PrintDeviceHeader(processor_handles_[i]);
 
-    err = amdsmi_dev_get_overdrive_level(device_handles_[i], &val_ui32);
+    err = amdsmi_dev_get_overdrive_level(processor_handles_[i], &val_ui32);
     CHK_ERR_ASRT(err)
     IF_VERB(STANDARD) {
     std::cout << "\t**OverDrive Level:" << val_ui32 << std::endl;
     // Verify api support checking functionality is working
-    err = amdsmi_dev_get_overdrive_level(device_handles_[i], nullptr);
+    err = amdsmi_dev_get_overdrive_level(processor_handles_[i], nullptr);
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
     }
   }

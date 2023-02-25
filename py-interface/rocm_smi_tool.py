@@ -100,16 +100,16 @@ class CmdLineParser:
             return True
         return False
 
-    def _get_device_handle_from_id(self, gpu_id, vf_id=None):
-        devices = smi_api.amdsmi_get_device_handles()
+    def _get_processor_handle_from_id(self, gpu_id, vf_id=None):
+        devices = smi_api.amdsmi_get_processor_handles()
         self._check_range("gpu id", gpu_id, 0, len(devices) - 1)
-        device_handle = devices[gpu_id]
+        processor_handle = devices[gpu_id]
 
         if vf_id is not None:
-            partitions = smi_api.amdsmi_get_vf_partition_info(device_handle)
+            partitions = smi_api.amdsmi_get_vf_partition_info(processor_handle)
             self._check_range("vf id", vf_id, 0, len(partitions) - 1)
-            device_handle = smi_api.amdsmi_get_vf_handle_from_vf_index(device_handle, vf_id)
-        return device_handle
+            processor_handle = smi_api.amdsmi_get_vf_handle_from_vf_index(processor_handle, vf_id)
+        return processor_handle
 
     def _parse_vf_id_if_exists(self):
         gpu_id = None
@@ -156,32 +156,32 @@ class CmdLineParser:
 
         return self.command_entry[0]
 
-    def get_device_handle(self):
-        device_handles = []
+    def get_processor_handle(self):
+        processor_handles = []
 
-        def parse_device_handle(position):
-            self._check_if_arg_exists("Device identifier", "device bdf or device id", position)
+        def parse_processor_handle(possition):
+            self._check_if_arg_exists("Device identifier", "device bdf or device id", possition)
 
             ids = self._parse_vf_id_if_exists()
             if ids["gpu_id"] is not None and ids["vf_id"] is not None:
-                device_handle = self._get_device_handle_from_id(ids["gpu_id"], ids["vf_id"])
+                processor_handle = self._get_processor_handle_from_id(ids["gpu_id"], ids["vf_id"])
             else:
                 gpu_arg = self.cmd_args[position]
                 if gpu_arg.isdigit():
-                    device_handle = self._get_device_handle_from_id(int(gpu_arg))
+                    processor_handle = self._get_processor_handle_from_id(int(gpu_arg))
                 else:
                     self._check_bdf(gpu_arg)
-                    device_handle = smi_api.amdsmi_get_device_handle_from_bdf(gpu_arg)
-            device_handles.append(device_handle)
+                    processor_handle = smi_api.amdsmi_get_processor_handle_from_bdf(gpu_arg)
+            processor_handles.append(processor_handle)
 
         for i in range(len(self.command_entry)):
             if f"device_identifier{i + 1}" in self.command_entry[1]:
-                parse_device_handle(i + 2)
+                parse_processor_handle(i + 2)
 
-        if len(device_handles) == 0:
+        if len(processor_handles) == 0:
             return None
 
-        return device_handles
+        return processor_handles
 
     def get_command_args(self):
         offset = 2 + self.extra_args
@@ -336,7 +336,7 @@ class Formatter:
     |     """ + self.style.text("47   Get topo get link type.               Api: amdsmi_topo_get_link_type              <bdf><bdf>") + """                   |
     |     """ + self.style.text("48   Get is P2P accessible.                Api: amdsmi_is_P2P_accessible               <bdf><bdf>") + """                   |
     |     """ + self.style.text("49   Get asic info.                        Api: amdsmi_get_asic_info                   <bdf>") + """                        |
-    |     """ + self.style.text("50   Get device_handles.                   Api: amdsmi_get_device_handles              <None>") + """                       |
+    |     """ + self.style.text("50   Get processor_handles.                   Api: amdsmi_get_processor_handles              <None>") + """                       |
     |     """ + self.style.text("51   Get event notification.               Api:  amdsmi_get_event_notification          <bdf>") + """                        |
     |     """ + self.style.text("52   Init event notification.              Api: amdsmi_init_event_notification         <bdf>") + """                        |
     |     """ + self.style.text("53   Set event notification mask.          Api:  amdsmi_set_event_notification_mask     <bdf><mask>") + """                  |
@@ -874,7 +874,7 @@ commands = {
     49: [smi_api.amdsmi_get_asic_info, {
         "device_identifier1": [None, True]
     }],
-    50: [smi_api.amdsmi_get_device_handles, {}],
+    50: [smi_api.amdsmi_get_processor_handles, {}],
     51: [amdsmi_tool_event_notification_get, {
         "device_identifier1": [None, True]
     }],
@@ -994,22 +994,22 @@ if __name__ == "__main__":
         smi_api.amdsmi_init()
 
         command = parser.get_command_handle()
-        device_handles = parser.get_device_handle()
+        processor_handles = parser.get_processor_handle()
         command_args = parser.get_command_args()
         result = None
 
-        if not device_handles and not command_args:
+        if not processor_handles and not command_args:
             result = command()
-        elif not device_handles and command_args:
+        elif not processor_handles and command_args:
             result = command(command_args)
-        elif len(device_handles) == 1 and not command_args:
-            result = command(device_handles[0])
-        elif len(device_handles) > 1 and not command_args:
-            result = command(device_handles)
-        elif len(device_handles) == 1 and command_args:
-            result = command(device_handles[0], command_args)
+        elif len(processor_handles) == 1 and not command_args:
+            result = command(processor_handles[0])
+        elif len(processor_handles) > 1 and not command_args:
+            result = command(processor_handles)
+        elif len(processor_handles) == 1 and command_args:
+            result = command(processor_handles[0], command_args)
         else:
-            result = command(device_handles, command_args)
+            result = command(processor_handles, command_args)
 
         formatter.print_output(result)
 

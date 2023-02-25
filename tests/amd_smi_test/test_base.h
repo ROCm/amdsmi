@@ -125,7 +125,7 @@ class TestBase {
   bool setup_failed_;   ///< Record that setup failed to return ierr in Run
   uint32_t num_monitor_devs_;  ///< Number of monitor devices found
   ///< device handles
-  amdsmi_processor_handle device_handles_[MAX_MONITOR_DEVICES];
+  amdsmi_processor_handle processor_handles_[MAX_MONITOR_DEVICES];
   uint32_t socket_count_;  ///< socket count
   std::vector<amdsmi_socket_handle> sockets_;  ///< sockets
 

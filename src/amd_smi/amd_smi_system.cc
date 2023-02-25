@@ -165,12 +165,12 @@ amdsmi_status_t AMDSmiSystem::handle_to_socket(
     }
 
 amdsmi_status_t AMDSmiSystem::handle_to_device(
-            amdsmi_processor_handle device_handle,
+            amdsmi_processor_handle processor_handle,
             AMDSmiProcessor** device) {
-    if (device_handle == nullptr || device == nullptr) {
+    if (processor_handle == nullptr || device == nullptr) {
         return AMDSMI_STATUS_INVAL;
     }
-    *device = static_cast<AMDSmiProcessor*>(device_handle);
+    *device = static_cast<AMDSmiProcessor*>(processor_handle);
 
     // double check handlers is here
     if (std::find(devices_.begin(), devices_.end(), *device)
@@ -181,8 +181,8 @@ amdsmi_status_t AMDSmiSystem::handle_to_device(
 }
 
 amdsmi_status_t AMDSmiSystem::gpu_index_to_handle(uint32_t gpu_index,
-                    amdsmi_processor_handle* device_handle) {
-    if (device_handle == nullptr)
+                    amdsmi_processor_handle* processor_handle) {
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
     auto iter = devices_.begin();
@@ -194,7 +194,7 @@ amdsmi_status_t AMDSmiSystem::gpu_index_to_handle(uint32_t gpu_index,
                 static_cast<amd::smi::AMDSmiGPUDevice*>(cur_device);
         uint32_t cur_gpu_index = gpu_device->get_gpu_id();
         if (gpu_index == cur_gpu_index) {
-            *device_handle = cur_device;
+            *processor_handle = cur_device;
             return AMDSMI_STATUS_SUCCESS;
         }
     }

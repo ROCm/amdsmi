@@ -109,7 +109,7 @@ void TestEvtNotifReadWrite::Run(void) {
   }
 
   for (dv_ind = 0; dv_ind < num_monitor_devs(); ++dv_ind) {
-    ret = amdsmi_init_event_notification(device_handles_[dv_ind]);
+    ret = amdsmi_init_event_notification(processor_handles_[dv_ind]);
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
       IF_VERB(STANDARD) {
         std::cout <<
@@ -119,7 +119,7 @@ void TestEvtNotifReadWrite::Run(void) {
       return;
     }
     ASSERT_EQ(ret, AMDSMI_STATUS_SUCCESS);
-    ret =  amdsmi_set_event_notification_mask(device_handles_[dv_ind], mask);
+    ret =  amdsmi_set_event_notification_mask(processor_handles_[dv_ind], mask);
     ASSERT_EQ(ret, AMDSMI_STATUS_SUCCESS);
   }
 
@@ -133,7 +133,7 @@ void TestEvtNotifReadWrite::Run(void) {
             "Expected the number of elements found to be <= buffer size (10)";
     IF_VERB(STANDARD) {
       for (uint32_t i = 0; i < num_elem; ++i) {
-        std::cout << "\tdv_handle=" << data[i].device_handle <<
+        std::cout << "\tdv_handle=" << data[i].processor_handle <<
                    "  Type: " << NameFromEvtNotifType(data[i].event) <<
                    "  Mesg: " << data[i].message << std::endl;
         if (data[i].event == AMDSMI_EVT_NOTIF_GPU_PRE_RESET) {
@@ -167,7 +167,7 @@ void TestEvtNotifReadWrite::Run(void) {
               "Expected the number of elements found to be <= buffer size (10)";
       IF_VERB(STANDARD) {
         for (uint32_t i = 0; i < num_elem; ++i) {
-          std::cout << "\tdv_handle=" << data[i].device_handle <<
+          std::cout << "\tdv_handle=" << data[i].processor_handle <<
                      "  Type: " << NameFromEvtNotifType(data[i].event) <<
                      "  Mesg: " << data[i].message << std::endl;
         }
@@ -191,7 +191,7 @@ void TestEvtNotifReadWrite::Run(void) {
   }
 
   for (uint32_t dv_ind = 0; dv_ind < num_monitor_devs(); ++dv_ind) {
-    ret = amdsmi_stop_event_notification(device_handles_[dv_ind]);
+    ret = amdsmi_stop_event_notification(processor_handles_[dv_ind]);
     ASSERT_EQ(ret, AMDSMI_STATUS_SUCCESS);
   }
 }

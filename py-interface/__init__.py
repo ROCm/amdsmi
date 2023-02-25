@@ -25,13 +25,13 @@ from .amdsmi_interface import amdsmi_shut_down
 
 # Device Descovery
 from .amdsmi_interface import amdsmi_get_device_type
-from .amdsmi_interface import amdsmi_get_device_handles
+from .amdsmi_interface import amdsmi_get_processor_handles
 from .amdsmi_interface import amdsmi_get_socket_handles
 from .amdsmi_interface import amdsmi_get_socket_info
 
 from .amdsmi_interface import amdsmi_get_device_bdf
 from .amdsmi_interface import amdsmi_get_device_uuid
-from .amdsmi_interface import amdsmi_get_device_handle_from_bdf
+from .amdsmi_interface import amdsmi_get_processor_handle_from_bdf
 
 # # SW Version Information
 from .amdsmi_interface import amdsmi_get_driver_version

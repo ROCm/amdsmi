@@ -352,7 +352,7 @@ void TestPerfCntrReadWrite::Run(void) {
   }
 
   for (uint32_t dv_ind = 0; dv_ind < num_monitor_devs(); ++dv_ind) {
-    amdsmi_processor_handle dev_handle = device_handles_[dv_ind];
+    amdsmi_processor_handle dev_handle = processor_handles_[dv_ind];
     PrintDeviceHeader(dev_handle);
     try {
       testEventsIndividually(dev_handle);

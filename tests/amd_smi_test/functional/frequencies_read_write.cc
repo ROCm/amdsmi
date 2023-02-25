@@ -102,7 +102,7 @@ void TestFrequenciesReadWrite::Run(void) {
   }
 
   for (uint32_t dv_ind = 0; dv_ind < num_monitor_devs(); ++dv_ind) {
-    PrintDeviceHeader(device_handles_[dv_ind]);
+    PrintDeviceHeader(processor_handles_[dv_ind]);
 
     for (uint32_t clk = (uint32_t)CLK_TYPE_FIRST;
                                            clk <= CLK_TYPE__MAX; ++clk) {
@@ -113,7 +113,7 @@ void TestFrequenciesReadWrite::Run(void) {
         std::cout << amdsmi_clk << std::endl;
         if (amdsmi_clk == CLK_TYPE_PCIE)
           return false;
-        ret =  amdsmi_dev_get_gpu_clk_freq(device_handles_[dv_ind], amdsmi_clk, &f);
+        ret =  amdsmi_dev_get_gpu_clk_freq(processor_handles_[dv_ind], amdsmi_clk, &f);
         std::cout << ret << std::endl;
 
         if (ret == AMDSMI_STATUS_NOT_SUPPORTED ||
@@ -151,7 +151,7 @@ void TestFrequenciesReadWrite::Run(void) {
             FreqEnumToStr(amdsmi_clk) << " to 0b" << freq_bm_str << " ..." <<
                                                                     std::endl;
         }
-        ret =  amdsmi_dev_set_clk_freq(device_handles_[dv_ind], amdsmi_clk, freq_bitmask);
+        ret =  amdsmi_dev_set_clk_freq(processor_handles_[dv_ind], amdsmi_clk, freq_bitmask);
         //Certain ASICs does not allow to set particular clocks. If set function for a clock returns
         //permission error despite root access, manually set ret value to success and return
         if (ret == AMDSMI_STATUS_NO_PERM && geteuid() == 0) {
@@ -166,7 +166,7 @@ void TestFrequenciesReadWrite::Run(void) {
           return;
         }
         CHK_ERR_ASRT(ret)
-        ret =  amdsmi_dev_get_gpu_clk_freq(device_handles_[dv_ind], amdsmi_clk, &f);
+        ret =  amdsmi_dev_get_gpu_clk_freq(processor_handles_[dv_ind], amdsmi_clk, &f);
         if (ret != AMDSMI_STATUS_SUCCESS) {
           return;
         }
@@ -175,12 +175,12 @@ void TestFrequenciesReadWrite::Run(void) {
           std::cout << "Frequency is now index " << f.current << std::endl;
           std::cout << "Resetting mask to all frequencies." << std::endl;
         }
-        ret =  amdsmi_dev_set_clk_freq(device_handles_[dv_ind], amdsmi_clk, 0xFFFFFFFF);
+        ret =  amdsmi_dev_set_clk_freq(processor_handles_[dv_ind], amdsmi_clk, 0xFFFFFFFF);
         if (ret != AMDSMI_STATUS_SUCCESS) {
           return;
         }
 
-        ret =  amdsmi_dev_set_perf_level(device_handles_[dv_ind], AMDSMI_DEV_PERF_LEVEL_AUTO);
+        ret =  amdsmi_dev_set_perf_level(processor_handles_[dv_ind], AMDSMI_DEV_PERF_LEVEL_AUTO);
         if (ret != AMDSMI_STATUS_SUCCESS) {
           return;
         }

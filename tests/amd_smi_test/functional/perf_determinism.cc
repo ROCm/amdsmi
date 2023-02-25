@@ -102,8 +102,8 @@ void TestPerfDeterminism::Run(void) {
   }
 
   for (uint32_t i = 0; i < num_monitor_devs(); ++i) {
-    PrintDeviceHeader(device_handles_[i]);
-    err =  amdsmi_dev_get_od_volt_info(device_handles_[i], &odv);
+    PrintDeviceHeader(processor_handles_[i]);
+    err =  amdsmi_dev_get_od_volt_info(processor_handles_[i], &odv);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       IF_VERB(STANDARD) {
         std::cout << "\t** Not supported on this machine" << std::endl;
@@ -114,14 +114,14 @@ void TestPerfDeterminism::Run(void) {
       clkvalue = (odv.curr_sclk_range.lower_bound/1000000) + 50;
     }
 
-    err = amdsmi_set_perf_determinism_mode(device_handles_[i], clkvalue);
+    err = amdsmi_set_perf_determinism_mode(processor_handles_[i], clkvalue);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       IF_VERB(STANDARD) {
         std::cout << "\t**Not supported on this machine" << std::endl;
       }
       return;
     } else {
-      ret = amdsmi_dev_get_perf_level(device_handles_[i], &pfl);
+      ret = amdsmi_dev_get_perf_level(processor_handles_[i], &pfl);
       CHK_ERR_ASRT(ret)
       IF_VERB(STANDARD) {
           std::cout << "\t**New Perf Level:" <<  GetPerfLevelStr(pfl) <<
@@ -130,9 +130,9 @@ void TestPerfDeterminism::Run(void) {
       }
 
       std::cout << "\t**Resetting performance determinism" << std::endl;
-      err =  amdsmi_dev_set_perf_level(device_handles_[i], AMDSMI_DEV_PERF_LEVEL_AUTO);;
+      err =  amdsmi_dev_set_perf_level(processor_handles_[i], AMDSMI_DEV_PERF_LEVEL_AUTO);;
       CHK_ERR_ASRT(err)
-      ret = amdsmi_dev_get_perf_level(device_handles_[i], &pfl);
+      ret = amdsmi_dev_get_perf_level(processor_handles_[i], &pfl);
       CHK_ERR_ASRT(ret)
       IF_VERB(STANDARD) {
           std::cout << "\t**New Perf Level:" <<  GetPerfLevelStr(pfl) <<

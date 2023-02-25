@@ -100,13 +100,13 @@ void TestPowerCapReadWrite::Run(void) {
   }
 
   for (uint32_t dv_ind = 0; dv_ind < num_monitor_devs(); ++dv_ind) {
-    PrintDeviceHeader(device_handles_[dv_ind]);
+    PrintDeviceHeader(processor_handles_[dv_ind]);
 
     amdsmi_power_cap_info_t info;
-    ret = amdsmi_get_power_cap_info(device_handles_[dv_ind], 0, &info);
+    ret = amdsmi_get_power_cap_info(processor_handles_[dv_ind], 0, &info);
     CHK_ERR_ASRT(ret)
     // Verify api support checking functionality is working
-    ret = amdsmi_get_power_cap_info(device_handles_[dv_ind], 0, nullptr);
+    ret = amdsmi_get_power_cap_info(processor_handles_[dv_ind], 0, nullptr);
     ASSERT_EQ(ret, AMDSMI_STATUS_INVAL);
     min = info.min_power_cap;
     max = info.max_power_cap;
@@ -121,13 +121,13 @@ void TestPowerCapReadWrite::Run(void) {
       std::cout << "Setting new cap to " << new_cap << "..." << std::endl;
     }
     start = clock();
-    ret =  amdsmi_dev_set_power_cap(device_handles_[dv_ind], 0, new_cap);
+    ret =  amdsmi_dev_set_power_cap(processor_handles_[dv_ind], 0, new_cap);
     end = clock();
     cpu_time_used = ((double) (end - start)) * 1000000UL / CLOCKS_PER_SEC;
 
     CHK_ERR_ASRT(ret)
 
-    ret = amdsmi_get_power_cap_info(device_handles_[dv_ind], 0, &info);
+    ret = amdsmi_get_power_cap_info(processor_handles_[dv_ind], 0, &info);
     CHK_ERR_ASRT(ret)
     new_cap = info.default_power_cap;
 
@@ -139,10 +139,10 @@ void TestPowerCapReadWrite::Run(void) {
       std::cout << "Resetting cap to " << orig << "..." << std::endl;
     }
 
-    ret =  amdsmi_dev_set_power_cap(device_handles_[dv_ind], 0, orig);
+    ret =  amdsmi_dev_set_power_cap(processor_handles_[dv_ind], 0, orig);
     CHK_ERR_ASRT(ret)
 
-    ret = amdsmi_get_power_cap_info(device_handles_[dv_ind], 0, &info);
+    ret = amdsmi_get_power_cap_info(processor_handles_[dv_ind], 0, &info);
     CHK_ERR_ASRT(ret)
     new_cap = info.default_power_cap;
 

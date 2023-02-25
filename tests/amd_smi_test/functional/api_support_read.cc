@@ -102,11 +102,11 @@ void TestAPISupportRead::Run(void) {
   for (uint32_t x = 0; x < num_iterations(); ++x) {
     for (uint32_t i = 0; i < num_monitor_devs(); ++i) {
       IF_VERB(STANDARD) {
-        PrintDeviceHeader(device_handles_[i]);
+        PrintDeviceHeader(processor_handles_[i]);
         std::cout << "Supported AMDSMI Functions:" << std::endl;
         std::cout << "\tVariants (Monitors)" << std::endl;
       }
-      err = amdsmi_dev_open_supported_func_iterator(device_handles_[i], &iter_handle);
+      err = amdsmi_dev_open_supported_func_iterator(processor_handles_[i], &iter_handle);
       CHK_ERR_ASRT(err)
 
       while (1) {
