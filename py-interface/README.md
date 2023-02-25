@@ -140,7 +140,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            print(amdsmi_get_device_uuid(device))
+            print(amdsmi_get_gpu_device_uuid(device))
 except AmdSmiException as e:
     print(e)
 ```
@@ -211,7 +211,7 @@ Example:
 ```python
 try:
     device = amdsmi_get_processor_handle_from_bdf("0000:23:00.0")
-    print(amdsmi_get_device_uuid(device))
+    print(amdsmi_get_gpu_device_uuid(device))
 except AmdSmiException as e:
     print(e)
 ```
@@ -242,7 +242,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_get_device_uuid
+## amdsmi_get_gpu_device_uuid
 Description: Returns the UUID of the device
 
 Input parameters:
@@ -250,7 +250,7 @@ Input parameters:
 
 Output: UUID string unique to the device
 
-Exceptions that can be thrown by `amdsmi_get_device_uuid` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_device_uuid` function:
 * `AmdSmiParameterException`
 * `AmdSmiLibraryException`
 
@@ -258,7 +258,7 @@ Example:
 ```python
 try:
     device = amdsmi_get_processor_handles()[0]
-    print("Device UUID: ", amdsmi_get_device_uuid(device))
+    print("Device UUID: ", amdsmi_get_gpu_device_uuid(device))
 except AmdSmiException as e:
     print(e)
 ```

@@ -3586,7 +3586,7 @@ amdsmi_get_gpu_device_bdf(amdsmi_processor_handle processor_handle, amdsmi_bdf_t
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_device_uuid(amdsmi_processor_handle processor_handle, unsigned int *uuid_length, char *uuid);
+amdsmi_get_gpu_device_uuid(amdsmi_processor_handle processor_handle, unsigned int *uuid_length, char *uuid);
 
 /*****************************************************************************/
 /** @defgroup swversion     SW Version Information

@@ -328,9 +328,9 @@ int main() {
             // Get device uuid
             unsigned int uuid_length = AMDSMI_GPU_UUID_SIZE;
 	        char uuid[AMDSMI_GPU_UUID_SIZE];
-            ret = amdsmi_get_device_uuid(processor_handles[j], &uuid_length, uuid);
+            ret = amdsmi_get_gpu_device_uuid(processor_handles[j], &uuid_length, uuid);
             CHK_AMDSMI_RET(ret)
-            printf("    Output of amdsmi_get_device_uuid:\n");
+            printf("    Output of amdsmi_get_gpu_device_uuid:\n");
             printf("\tDevice uuid: %s\n\n", uuid);
 
             // Get engine usage info

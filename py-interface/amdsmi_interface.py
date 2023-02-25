@@ -920,7 +920,7 @@ def amdsmi_get_process_info(
     }
 
 
-def amdsmi_get_device_uuid(processor_handle: amdsmi_wrapper.amdsmi_processor_handle) -> str:
+def amdsmi_get_gpu_device_uuid(processor_handle: amdsmi_wrapper.amdsmi_processor_handle) -> str:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
@@ -932,7 +932,7 @@ def amdsmi_get_device_uuid(processor_handle: amdsmi_wrapper.amdsmi_processor_han
     uuid_length.value = _AMDSMI_GPU_UUID_SIZE
 
     _check_res(
-        amdsmi_wrapper.amdsmi_get_device_uuid(
+        amdsmi_wrapper.amdsmi_get_gpu_device_uuid(
             processor_handle, ctypes.byref(uuid_length), uuid
         )
     )
