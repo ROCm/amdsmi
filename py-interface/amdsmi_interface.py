@@ -2060,7 +2060,7 @@ def amdsmi_dev_set_perf_level_v1(
         processor_handle, perf_lvl))
 
 
-def amdsmi_dev_get_fan_rpms(
+def amdsmi_get_gpu_fan_rpms(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_idx: int
 ) -> int:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -2071,7 +2071,7 @@ def amdsmi_dev_get_fan_rpms(
         raise AmdSmiParameterException(sensor_idx, int)
     fan_speed = ctypes.c_int64()
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_get_fan_rpms(
+        amdsmi_wrapper.amdsmi_get_gpu_fan_rpms(
             processor_handle, sensor_idx, ctypes.byref(fan_speed)
         )
     )

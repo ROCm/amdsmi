@@ -1487,9 +1487,9 @@ amdsmi_get_gpu_memory_busy_percent.argtypes = [amdsmi_processor_handle, ctypes.P
 amdsmi_get_gpu_memory_reserved_pages = _libraries['libamd_smi.so'].amdsmi_get_gpu_memory_reserved_pages
 amdsmi_get_gpu_memory_reserved_pages.restype = amdsmi_status_t
 amdsmi_get_gpu_memory_reserved_pages.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(struct_c__SA_amdsmi_retired_page_record_t)]
-amdsmi_dev_get_fan_rpms = _libraries['libamd_smi.so'].amdsmi_dev_get_fan_rpms
-amdsmi_dev_get_fan_rpms.restype = amdsmi_status_t
-amdsmi_dev_get_fan_rpms.argtypes = [amdsmi_processor_handle, uint32_t, ctypes.POINTER(ctypes.c_int64)]
+amdsmi_get_gpu_fan_rpms = _libraries['libamd_smi.so'].amdsmi_get_gpu_fan_rpms
+amdsmi_get_gpu_fan_rpms.restype = amdsmi_status_t
+amdsmi_get_gpu_fan_rpms.argtypes = [amdsmi_processor_handle, uint32_t, ctypes.POINTER(ctypes.c_int64)]
 amdsmi_dev_get_fan_speed = _libraries['libamd_smi.so'].amdsmi_dev_get_fan_speed
 amdsmi_dev_get_fan_speed.restype = amdsmi_status_t
 amdsmi_dev_get_fan_speed.argtypes = [amdsmi_processor_handle, uint32_t, ctypes.POINTER(ctypes.c_int64)]
@@ -1854,7 +1854,7 @@ __all__ = \
     'amdsmi_dev_destroy_counter', 'amdsmi_dev_get_busy_percent',
     'amdsmi_get_gpu_drm_render_minor', 'amdsmi_dev_get_ecc_count',
     'amdsmi_dev_get_ecc_enabled', 'amdsmi_dev_get_ecc_status',
-    'amdsmi_get_energy_count', 'amdsmi_dev_get_fan_rpms',
+    'amdsmi_get_energy_count', 'amdsmi_get_gpu_fan_rpms',
     'amdsmi_dev_get_fan_speed', 'amdsmi_dev_get_fan_speed_max',
     'amdsmi_dev_get_gpu_clk_freq', 'amdsmi_dev_get_gpu_metrics_info',
     'amdsmi_get_gpu_id', 'amdsmi_get_gpu_memory_busy_percent',

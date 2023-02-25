@@ -478,7 +478,7 @@ amdsmi_status_t amdsmi_get_caps_info(amdsmi_processor_handle processor_handle,
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_dev_get_fan_rpms(amdsmi_processor_handle processor_handle,
+amdsmi_status_t amdsmi_get_gpu_fan_rpms(amdsmi_processor_handle processor_handle,
                             uint32_t sensor_ind, int64_t *speed) {
     return rsmi_wrapper(rsmi_dev_fan_rpms_get, processor_handle, sensor_ind,
             speed);
@@ -943,7 +943,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_power_cap_default_get", "amdsmi_get_power_cap_info"},
         {"rsmi_dev_power_cap_range_get", "amdsmi_get_power_cap_info"},
         {"rsmi_dev_power_cap_set", " amdsmi_set_power_cap"},
-        {"rsmi_dev_fan_rpms_get", "amdsmi_dev_get_fan_rpms"},
+        {"rsmi_dev_fan_rpms_get", "amdsmi_get_gpu_fan_rpms"},
         {"rsmi_dev_fan_speed_get", "amdsmi_dev_get_fan_speed"},
         {"rsmi_dev_fan_speed_max_get", "amdsmi_dev_get_fan_speed_max"},
         {"rsmi_dev_temp_metric_get", " amdsmi_dev_get_temp_metric"},
