@@ -3015,7 +3015,7 @@ except AmdSmiException as e:
 ```
 
 
-## amdsmi_dev_get_subsystem_name
+## amdsmi_get_gpu_subsystem_name
 Description: Get the name string for the device subsytem
 
 Input parameters:
@@ -3024,7 +3024,7 @@ Input parameters:
 
 Output: device subsytem
 
-Exceptions that can be thrown by `amdsmi_dev_get_subsystem_name` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_subsystem_name` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -3037,7 +3037,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            subsystem_nam = amdsmi_dev_get_subsystem_name(device)
+            subsystem_nam = amdsmi_get_gpu_subsystem_name(device)
             print(subsystem_nam)
 except AmdSmiException as e:
     print(e)

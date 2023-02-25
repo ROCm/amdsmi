@@ -1431,7 +1431,7 @@ amdsmi_status_t amdsmi_get_gpu_subsystem_id(amdsmi_processor_handle processor_ha
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_get_subsystem_name(amdsmi_processor_handle processor_handle, char *name, size_t len);
+amdsmi_get_gpu_subsystem_name(amdsmi_processor_handle processor_handle, char *name, size_t len);
 
 /**
  *  @brief Get the drm minor number associated with this device
