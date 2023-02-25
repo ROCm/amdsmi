@@ -191,12 +191,12 @@ void TestIdInfoRead::Run(void) {
       err = amdsmi_get_gpu_subsystem_id(processor_handles_[i], nullptr);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
     }
-    err = amdsmi_dev_get_subsystem_name(processor_handles_[i], buffer, kBufferLen);
+    err = amdsmi_get_gpu_subsystem_name(processor_handles_[i], buffer, kBufferLen);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       std::cout << "\t**Subsystem name string not found on this system." <<
                                                                     std::endl;
       // Verify api support checking functionality is working
-      err = amdsmi_dev_get_subsystem_name(processor_handles_[i], nullptr, kBufferLen);
+      err = amdsmi_get_gpu_subsystem_name(processor_handles_[i], nullptr, kBufferLen);
       ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
     } else {
       CHK_ERR_ASRT(err)
@@ -204,7 +204,7 @@ void TestIdInfoRead::Run(void) {
         std::cout << "\t**Subsystem name: " << buffer << std::endl;
       }
       // Verify api support checking functionality is working
-      err = amdsmi_dev_get_subsystem_name(processor_handles_[i], nullptr, kBufferLen);
+      err = amdsmi_get_gpu_subsystem_name(processor_handles_[i], nullptr, kBufferLen);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
     }
 

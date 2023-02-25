@@ -1152,7 +1152,7 @@ def amdsmi_get_gpu_subsystem_id(processor_handle: amdsmi_wrapper.amdsmi_processo
     return id.value
 
 
-def amdsmi_dev_get_subsystem_name(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_get_gpu_subsystem_name(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
@@ -1164,7 +1164,7 @@ def amdsmi_dev_get_subsystem_name(processor_handle: amdsmi_wrapper.amdsmi_proces
     name = ctypes.create_string_buffer(_AMDSMI_STRING_LENGTH)
 
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_get_subsystem_name(
+        amdsmi_wrapper.amdsmi_get_gpu_subsystem_name(
             processor_handle, name, length)
     )
 
