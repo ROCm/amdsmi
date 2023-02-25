@@ -307,7 +307,7 @@ class Formatter:
     |     """ + self.style.text("18   Get device fan rpms.                  Api: amdsmi_get_gpu_fan_rpms                <bdf><sensor_idx>") + """            |
     |     """ + self.style.text("19   Get device fan speed.                 Api: amdsmi_get_gpu_fan_speed               <bdf><sensor_idx>") + """            |
     |     """ + self.style.text("20   Get device fan speed max.             Api: amdsmi_get_gpu_fan_speed_max           <bdf><sensor_idx>") + """            |
-    |     """ + self.style.text("21   Get device temp metric.               Api:  amdsmi_dev_get_temp_metric             <bdf>") + """                        |
+    |     """ + self.style.text("21   Get device temp metric.               Api:  amdsmi_get_temp_metric             <bdf>") + """                        |
     |     """ + self.style.text("22   Get device volt metric.               Api:  amdsmi_dev_get_volt_metric             <bdf>") + """                        |
     |     """ + self.style.text("23   Get device busy percent.              Api: amdsmi_dev_get_busy_percent            <bdf>") + """                        |
     |     """ + self.style.text("24   Get utilization count.                Api: amdsmi_get_utilization_count           <bdf>") + """                        |
@@ -418,7 +418,7 @@ def amdsmi_tool_dev_temp_metric_get(dev):
     for temperature_type in smi_api.AmdSmiTemperatureType:
         for temperature_metric in smi_api.AmdSmiTemperatureMetric:
             try:
-                value = smi_api. amdsmi_dev_get_temp_metric(dev, temperature_type, temperature_metric)
+                value = smi_api. amdsmi_get_temp_metric(dev, temperature_type, temperature_metric)
                 result.update({"AmdSmiTemperatureType: " + temperature_type.name + ", AmdSmiTemperatureMetric: " + temperature_metric.name: value})
             except smi_api.AmdSmiException as e:
                 print("{},{}:\t{}".format(temperature_type.name,  temperature_metric.name, e))

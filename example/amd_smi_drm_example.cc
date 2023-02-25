@@ -394,15 +394,15 @@ int main() {
 
             // Get VRAM temperature limit
             int64_t temperature = 0;
-            ret = amdsmi_dev_get_temp_metric(
+            ret = amdsmi_get_temp_metric(
                 processor_handles[j], TEMPERATURE_TYPE_VRAM,
                 AMDSMI_TEMP_CRITICAL, &temperature);
             CHK_AMDSMI_RET(ret)
-            printf("    Output of amdsmi_dev_get_temp_metric:\n");
+            printf("    Output of amdsmi_get_temp_metric:\n");
             printf("\tGPU VRAM temp limit: %ld\n", temperature);
 
             // Get GFX temperature limit
-            ret = amdsmi_dev_get_temp_metric(
+            ret = amdsmi_get_temp_metric(
                 processor_handles[j], TEMPERATURE_TYPE_EDGE,
                 AMDSMI_TEMP_CRITICAL, &temperature);
             CHK_AMDSMI_RET(ret)
@@ -416,13 +416,13 @@ int main() {
                 TEMPERATURE_TYPE_EDGE, TEMPERATURE_TYPE_JUNCTION,
                 TEMPERATURE_TYPE_VRAM, TEMPERATURE_TYPE_PLX};
             for (const auto &temp_type : temp_types) {
-                ret = amdsmi_dev_get_temp_metric(
+                ret = amdsmi_get_temp_metric(
                     processor_handles[j], temp_type,
                     AMDSMI_TEMP_CURRENT,
                     &temp_measurements[(int)(temp_type)]);
                 CHK_AMDSMI_RET(ret)
             }
-            printf("    Output of amdsmi_dev_get_temp_metric:\n");
+            printf("    Output of amdsmi_get_temp_metric:\n");
             printf("\tGPU Edge temp measurement: %ld\n",
                    temp_measurements[TEMPERATURE_TYPE_EDGE]);
             printf("\tGPU Junction temp measurement: %ld\n",
@@ -636,10 +636,10 @@ int main() {
 
             // Get temperature
             int64_t val_i64 = 0;
-            ret =  amdsmi_dev_get_temp_metric(processor_handles[j], TEMPERATURE_TYPE_EDGE,
+            ret =  amdsmi_get_temp_metric(processor_handles[j], TEMPERATURE_TYPE_EDGE,
                                              AMDSMI_TEMP_CURRENT, &val_i64);
             CHK_AMDSMI_RET(ret)
-            printf("    Output of  amdsmi_dev_get_temp_metric:\n");
+            printf("    Output of  amdsmi_get_temp_metric:\n");
             std::cout << "\t\tTemperature: " << val_i64 << "C"
                       << "\n\n";
 

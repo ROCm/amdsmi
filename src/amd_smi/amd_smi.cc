@@ -319,7 +319,7 @@ amdsmi_status_t amdsmi_get_gpu_board_info(amdsmi_processor_handle processor_hand
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t  amdsmi_dev_get_temp_metric(amdsmi_processor_handle processor_handle,
+amdsmi_status_t  amdsmi_get_temp_metric(amdsmi_processor_handle processor_handle,
                     amdsmi_temperature_type_t sensor_type,
                     amdsmi_temperature_metric_t metric, int64_t *temperature) {
 
@@ -946,7 +946,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_fan_rpms_get", "amdsmi_get_gpu_fan_rpms"},
         {"rsmi_dev_fan_speed_get", "amdsmi_get_gpu_fan_speed"},
         {"rsmi_dev_fan_speed_max_get", "amdsmi_get_gpu_fan_speed_max"},
-        {"rsmi_dev_temp_metric_get", " amdsmi_dev_get_temp_metric"},
+        {"rsmi_dev_temp_metric_get", " amdsmi_get_temp_metric"},
         {"rsmi_dev_fan_reset", "amdsmi_dev_reset_fan"},
         {"rsmi_dev_fan_speed_set", "amdsmi_dev_set_fan_speed"},
         {"rsmi_dev_volt_metric_get", " amdsmi_dev_get_volt_metric"}
