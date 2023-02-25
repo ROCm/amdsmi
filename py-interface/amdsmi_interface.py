@@ -1877,7 +1877,7 @@ def amdsmi_dev_set_power_profile(
     )
 
 
-def amdsmi_dev_get_energy_count(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_get_energy_count(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
@@ -1888,7 +1888,7 @@ def amdsmi_dev_get_energy_count(processor_handle: amdsmi_wrapper.amdsmi_processo
     timestamp = ctypes.c_uint64()
 
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_get_energy_count(processor_handle, ctypes.byref(
+        amdsmi_wrapper.amdsmi_get_energy_count(processor_handle, ctypes.byref(
             power), ctypes.byref(counter_resolution), ctypes.byref(timestamp))
     )
 

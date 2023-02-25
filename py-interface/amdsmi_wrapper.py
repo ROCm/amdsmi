@@ -1460,9 +1460,9 @@ amdsmi_set_gpu_pci_bandwidth.argtypes = [amdsmi_processor_handle, uint64_t]
 amdsmi_get_power_ave = _libraries['libamd_smi.so'].amdsmi_get_power_ave
 amdsmi_get_power_ave.restype = amdsmi_status_t
 amdsmi_get_power_ave.argtypes = [amdsmi_processor_handle, uint32_t, ctypes.POINTER(ctypes.c_uint64)]
-amdsmi_dev_get_energy_count = _libraries['libamd_smi.so'].amdsmi_dev_get_energy_count
-amdsmi_dev_get_energy_count.restype = amdsmi_status_t
-amdsmi_dev_get_energy_count.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_uint64)]
+amdsmi_get_energy_count = _libraries['libamd_smi.so'].amdsmi_get_energy_count
+amdsmi_get_energy_count.restype = amdsmi_status_t
+amdsmi_get_energy_count.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_uint64)]
 amdsmi_dev_set_power_cap = _libraries['libamd_smi.so'].amdsmi_dev_set_power_cap
 amdsmi_dev_set_power_cap.restype = amdsmi_status_t
 amdsmi_dev_set_power_cap.argtypes = [amdsmi_processor_handle, uint32_t, uint64_t]
@@ -1854,7 +1854,7 @@ __all__ = \
     'amdsmi_dev_destroy_counter', 'amdsmi_dev_get_busy_percent',
     'amdsmi_get_gpu_drm_render_minor', 'amdsmi_dev_get_ecc_count',
     'amdsmi_dev_get_ecc_enabled', 'amdsmi_dev_get_ecc_status',
-    'amdsmi_dev_get_energy_count', 'amdsmi_dev_get_fan_rpms',
+    'amdsmi_get_energy_count', 'amdsmi_dev_get_fan_rpms',
     'amdsmi_dev_get_fan_speed', 'amdsmi_dev_get_fan_speed_max',
     'amdsmi_dev_get_gpu_clk_freq', 'amdsmi_dev_get_gpu_metrics_info',
     'amdsmi_get_gpu_id', 'amdsmi_dev_get_memory_busy_percent',

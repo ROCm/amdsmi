@@ -1677,7 +1677,7 @@ amdsmi_get_power_ave(amdsmi_processor_handle processor_handle, uint32_t sensor_i
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_get_energy_count(amdsmi_processor_handle processor_handle, uint64_t *power,
+amdsmi_get_energy_count(amdsmi_processor_handle processor_handle, uint64_t *power,
                           float *counter_resolution, uint64_t *timestamp);
 
 /** @} End PowerQuer */

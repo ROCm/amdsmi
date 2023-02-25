@@ -1373,7 +1373,7 @@ amdsmi_status_t amdsmi_dev_get_memory_busy_percent(
             busy_percent);
 }
 
-amdsmi_status_t amdsmi_dev_get_energy_count(amdsmi_processor_handle processor_handle,
+amdsmi_status_t amdsmi_get_energy_count(amdsmi_processor_handle processor_handle,
             uint64_t *power, float *counter_resolution, uint64_t *timestamp) {
     return rsmi_wrapper(rsmi_dev_energy_count_get, processor_handle,
             power, counter_resolution, timestamp);
