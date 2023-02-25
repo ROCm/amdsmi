@@ -98,8 +98,8 @@ from .amdsmi_interface import  amdsmi_dev_set_overdrive_level
 
 # # Physical State Queries
 from .amdsmi_interface import amdsmi_get_gpu_fan_rpms
-from .amdsmi_interface import amdsmi_dev_get_fan_speed
-from .amdsmi_interface import amdsmi_dev_get_fan_speed_max
+from .amdsmi_interface import amdsmi_get_gpu_fan_speed
+from .amdsmi_interface import amdsmi_get_gpu_fan_speed_max
 from .amdsmi_interface import  amdsmi_dev_get_temp_metric
 from .amdsmi_interface import  amdsmi_dev_get_volt_metric
 

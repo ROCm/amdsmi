@@ -1775,7 +1775,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_get_fan_speed
+## amdsmi_get_gpu_fan_speed
 Description: Get the fan speed for the specified device as a value relative to
 AMDSMI_MAX_FAN_SPEED
 
@@ -1786,7 +1786,7 @@ more than one sensor, it could be greater than 0.
 
 Output: Fan speed in relative to MAX
 
-Exceptions that can be thrown by `amdsmi_dev_get_fan_speed` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_fan_speed` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1799,12 +1799,12 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            fan_speed = amdsmi_dev_get_fan_speed(device, 0)
+            fan_speed = amdsmi_get_gpu_fan_speed(device, 0)
             print(fan_speed)
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_get_fan_speed_max
+## amdsmi_get_gpu_fan_speed_max
 Description: Get the max fan speed of the device with provided device handle
 
 Input parameters:
@@ -1814,7 +1814,7 @@ more than one sensor, it could be greater than 0.
 
 Output: Max fan speed as integer
 
-Exceptions that can be thrown by `amdsmi_dev_get_fan_speed_max` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_fan_speed_max` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1827,7 +1827,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            max_fan_speed = amdsmi_dev_get_fan_speed_max(device, 0)
+            max_fan_speed = amdsmi_get_gpu_fan_speed_max(device, 0)
             print(max_fan_speed)
 except AmdSmiException as e:
     print(e)

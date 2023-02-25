@@ -2079,7 +2079,7 @@ def amdsmi_get_gpu_fan_rpms(
     return fan_speed.value
 
 
-def amdsmi_dev_get_fan_speed(
+def amdsmi_get_gpu_fan_speed(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_idx: int
 ) -> int:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -2090,7 +2090,7 @@ def amdsmi_dev_get_fan_speed(
         raise AmdSmiParameterException(sensor_idx, int)
     fan_speed = ctypes.c_int64()
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_get_fan_speed(
+        amdsmi_wrapper.amdsmi_get_gpu_fan_speed(
             processor_handle, sensor_idx, ctypes.byref(fan_speed)
         )
     )
@@ -2098,7 +2098,7 @@ def amdsmi_dev_get_fan_speed(
     return fan_speed.value
 
 
-def amdsmi_dev_get_fan_speed_max(
+def amdsmi_get_gpu_fan_speed_max(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_idx: int
 ) -> int:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -2109,7 +2109,7 @@ def amdsmi_dev_get_fan_speed_max(
         raise AmdSmiParameterException(sensor_idx, int)
     fan_speed = ctypes.c_uint64()
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_get_fan_speed_max(
+        amdsmi_wrapper.amdsmi_get_gpu_fan_speed_max(
             processor_handle, sensor_idx, ctypes.byref(fan_speed)
         )
     )

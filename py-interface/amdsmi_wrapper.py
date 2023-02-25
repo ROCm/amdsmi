@@ -1490,12 +1490,12 @@ amdsmi_get_gpu_memory_reserved_pages.argtypes = [amdsmi_processor_handle, ctypes
 amdsmi_get_gpu_fan_rpms = _libraries['libamd_smi.so'].amdsmi_get_gpu_fan_rpms
 amdsmi_get_gpu_fan_rpms.restype = amdsmi_status_t
 amdsmi_get_gpu_fan_rpms.argtypes = [amdsmi_processor_handle, uint32_t, ctypes.POINTER(ctypes.c_int64)]
-amdsmi_dev_get_fan_speed = _libraries['libamd_smi.so'].amdsmi_dev_get_fan_speed
-amdsmi_dev_get_fan_speed.restype = amdsmi_status_t
-amdsmi_dev_get_fan_speed.argtypes = [amdsmi_processor_handle, uint32_t, ctypes.POINTER(ctypes.c_int64)]
-amdsmi_dev_get_fan_speed_max = _libraries['libamd_smi.so'].amdsmi_dev_get_fan_speed_max
-amdsmi_dev_get_fan_speed_max.restype = amdsmi_status_t
-amdsmi_dev_get_fan_speed_max.argtypes = [amdsmi_processor_handle, uint32_t, ctypes.POINTER(ctypes.c_uint64)]
+amdsmi_get_gpu_fan_speed = _libraries['libamd_smi.so'].amdsmi_get_gpu_fan_speed
+amdsmi_get_gpu_fan_speed.restype = amdsmi_status_t
+amdsmi_get_gpu_fan_speed.argtypes = [amdsmi_processor_handle, uint32_t, ctypes.POINTER(ctypes.c_int64)]
+amdsmi_get_gpu_fan_speed_max = _libraries['libamd_smi.so'].amdsmi_get_gpu_fan_speed_max
+amdsmi_get_gpu_fan_speed_max.restype = amdsmi_status_t
+amdsmi_get_gpu_fan_speed_max.argtypes = [amdsmi_processor_handle, uint32_t, ctypes.POINTER(ctypes.c_uint64)]
 amdsmi_dev_get_temp_metric = _libraries['libamd_smi.so'].amdsmi_dev_get_temp_metric
 amdsmi_dev_get_temp_metric.restype = amdsmi_status_t
 amdsmi_dev_get_temp_metric.argtypes = [amdsmi_processor_handle, amdsmi_temperature_type_t, amdsmi_temperature_metric_t, ctypes.POINTER(ctypes.c_int64)]
@@ -1855,7 +1855,7 @@ __all__ = \
     'amdsmi_get_gpu_drm_render_minor', 'amdsmi_dev_get_ecc_count',
     'amdsmi_dev_get_ecc_enabled', 'amdsmi_dev_get_ecc_status',
     'amdsmi_get_energy_count', 'amdsmi_get_gpu_fan_rpms',
-    'amdsmi_dev_get_fan_speed', 'amdsmi_dev_get_fan_speed_max',
+    'amdsmi_get_gpu_fan_speed', 'amdsmi_get_gpu_fan_speed_max',
     'amdsmi_dev_get_gpu_clk_freq', 'amdsmi_dev_get_gpu_metrics_info',
     'amdsmi_get_gpu_id', 'amdsmi_get_gpu_memory_busy_percent',
     'amdsmi_get_gpu_memory_reserved_pages',
