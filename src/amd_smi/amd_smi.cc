@@ -559,7 +559,7 @@ amdsmi_status_t amdsmi_get_fw_info(amdsmi_processor_handle processor_handle,
 }
 
 amdsmi_status_t
-amdsmi_get_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_info_t *info) {
+amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_info_t *info) {
 
     AMDSMI_CHECK_INIT();
 
@@ -890,16 +890,16 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
     static const std::map<std::string, const char*> rsmi_2_amdsmi = {
         {"rsmi_dev_vram_vendor_get", "amdsmi_get_gpu_vram_vendor"},
         {"rsmi_dev_id_get", "amdsmi_get_gpu_id"},
-        {"rsmi_dev_vendor_id_get", "amdsmi_get_asic_info"},
+        {"rsmi_dev_vendor_id_get", "amdsmi_get_gpu_asic_info"},
         {"rsmi_dev_name_get", "amdsmi_get_board_info"},
         {"rsmi_dev_sku_get", "amdsmi_get_board_info"},
-        {"rsmi_dev_brand_get", "amdsmi_get_asic_info"},
+        {"rsmi_dev_brand_get", "amdsmi_get_gpu_asic_info"},
         {"rsmi_dev_vendor_name_get", "amdsmi_get_gpu_vendor_name"},
-        {"rsmi_dev_serial_number_get", "amdsmi_get_asic_info"},
+        {"rsmi_dev_serial_number_get", "amdsmi_get_gpu_asic_info"},
         {"rsmi_dev_subsystem_id_get", "amdsmi_get_gpu_subsystem_id"},
         {"rsmi_dev_subsystem_name_get", "amdsmi_get_gpu_subsystem_name"},
         {"rsmi_dev_drm_render_minor_get", "amdsmi_get_gpu_drm_render_minor"},
-        {"rsmi_dev_subsystem_vendor_id_get", "amdsmi_get_asic_info"},
+        {"rsmi_dev_subsystem_vendor_id_get", "amdsmi_get_gpu_asic_info"},
         {"rsmi_dev_unique_id_get", "amdsmi_get_board_info"},
         {"rsmi_dev_pci_bandwidth_get", "amdsmi_dev_get_pci_bandwidth"},
         {"rsmi_dev_pci_id_get", "amdsmi_dev_get_pci_id"},
@@ -1832,7 +1832,7 @@ amdsmi_get_gpu_device_uuid(amdsmi_processor_handle processor_handle, unsigned in
     const uint8_t fcn = 0xff;
 
     std::string path = "/sys/class/drm/" + gpu_device->get_gpu_path() + "/device/uuid_info";
-    status = amdsmi_get_asic_info(processor_handle, &asic_info);
+    status = amdsmi_get_gpu_asic_info(processor_handle, &asic_info);
     if (status != AMDSMI_STATUS_SUCCESS) {
         printf("Getting asic info failed. Return code: %d", status);
         return status;
@@ -1923,7 +1923,7 @@ amdsmi_status_t amdsmi_get_pcie_link_caps(amdsmi_processor_handle processor_hand
         return AMDSMI_STATUS_API_FAILED;
     }
 
-    status = amdsmi_get_asic_info(processor_handle, &asic_info);
+    status = amdsmi_get_gpu_asic_info(processor_handle, &asic_info);
     if (status != AMDSMI_STATUS_SUCCESS)
         return status;
 

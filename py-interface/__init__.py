@@ -37,7 +37,7 @@ from .amdsmi_interface import amdsmi_get_processor_handle_from_bdf
 from .amdsmi_interface import amdsmi_get_gpu_driver_version
 
 # # ASIC and Bus Static Information
-from .amdsmi_interface import amdsmi_get_asic_info
+from .amdsmi_interface import amdsmi_get_gpu_asic_info
 from .amdsmi_interface import amdsmi_get_power_cap_info
 from .amdsmi_interface import amdsmi_get_caps_info
 

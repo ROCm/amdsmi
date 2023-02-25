@@ -127,9 +127,9 @@ int main() {
                    bdf.function_number);
 
             amdsmi_asic_info_t asic_info = {};
-            ret = amdsmi_get_asic_info(processor_handles[j], &asic_info);
+            ret = amdsmi_get_gpu_asic_info(processor_handles[j], &asic_info);
             CHK_AMDSMI_RET(ret)
-            printf("    Output of amdsmi_get_asic_info:\n");
+            printf("    Output of amdsmi_get_gpu_asic_info:\n");
             printf("\tMarket Name: %s\n", asic_info.market_name);
             printf("\tFamilyID: 0x%x\n", asic_info.family);
             printf("\tDeviceID: 0x%lx\n", asic_info.device_id);
