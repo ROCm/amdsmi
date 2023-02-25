@@ -1523,9 +1523,9 @@ amdsmi_get_pcie_link_caps.argtypes = [amdsmi_processor_handle, ctypes.POINTER(st
 amdsmi_get_gpu_perf_level = _libraries['libamd_smi.so'].amdsmi_get_gpu_perf_level
 amdsmi_get_gpu_perf_level.restype = amdsmi_status_t
 amdsmi_get_gpu_perf_level.argtypes = [amdsmi_processor_handle, ctypes.POINTER(c__EA_amdsmi_dev_perf_level_t)]
-amdsmi_set_perf_determinism_mode = _libraries['libamd_smi.so'].amdsmi_set_perf_determinism_mode
-amdsmi_set_perf_determinism_mode.restype = amdsmi_status_t
-amdsmi_set_perf_determinism_mode.argtypes = [amdsmi_processor_handle, uint64_t]
+amdsmi_set_gpu_perf_determinism_mode = _libraries['libamd_smi.so'].amdsmi_set_gpu_perf_determinism_mode
+amdsmi_set_gpu_perf_determinism_mode.restype = amdsmi_status_t
+amdsmi_set_gpu_perf_determinism_mode.argtypes = [amdsmi_processor_handle, uint64_t]
 amdsmi_dev_get_overdrive_level = _libraries['libamd_smi.so'].amdsmi_dev_get_overdrive_level
 amdsmi_dev_get_overdrive_level.restype = amdsmi_status_t
 amdsmi_dev_get_overdrive_level.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32)]
@@ -1933,7 +1933,7 @@ __all__ = \
     'amdsmi_ras_err_state_t__enumvalues', 'amdsmi_read_counter',
     'amdsmi_retired_page_record_t',
     'amdsmi_set_event_notification_mask',
-    'amdsmi_set_perf_determinism_mode', 'amdsmi_shut_down',
+    'amdsmi_set_gpu_perf_determinism_mode', 'amdsmi_shut_down',
     'amdsmi_socket_handle', 'amdsmi_status_string', 'amdsmi_status_t',
     'amdsmi_status_t__enumvalues', 'amdsmi_stop_event_notification',
     'amdsmi_sw_component_t', 'amdsmi_sw_component_t__enumvalues',

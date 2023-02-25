@@ -2197,7 +2197,7 @@ amdsmi_status_t amdsmi_get_gpu_perf_level(amdsmi_processor_handle processor_hand
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_set_perf_determinism_mode(amdsmi_processor_handle processor_handle, uint64_t clkvalue);
+amdsmi_set_gpu_perf_determinism_mode(amdsmi_processor_handle processor_handle, uint64_t clkvalue);
 
 /**
  *  @brief Get the overdrive percent associated with the device with provided

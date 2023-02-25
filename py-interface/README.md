@@ -1985,7 +1985,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_set_perf_determinism_mode
+## amdsmi_set_gpu_perf_determinism_mode
 Description: Enter performance determinism mode with provided device handle
 
 Input parameters:
@@ -1994,7 +1994,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_set_perf_determinism_mode` function:
+Exceptions that can be thrown by `amdsmi_set_gpu_perf_determinism_mode` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2007,7 +2007,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_set_perf_determinism_mode(device, 1333)
+            amdsmi_set_gpu_perf_determinism_mode(device, 1333)
 except AmdSmiException as e:
     print(e)
 ```
