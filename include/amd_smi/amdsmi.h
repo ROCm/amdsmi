@@ -2066,7 +2066,7 @@ amdsmi_status_t amdsmi_reset_gpu_fan(amdsmi_processor_handle processor_handle, u
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_dev_set_fan_speed(amdsmi_processor_handle processor_handle,
+amdsmi_status_t amdsmi_set_gpu_fan_speed(amdsmi_processor_handle processor_handle,
       uint32_t sensor_ind, uint64_t speed);
 
 /** @} End PhysCont */

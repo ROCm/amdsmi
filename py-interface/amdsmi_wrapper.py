@@ -1505,9 +1505,9 @@ amdsmi_get_gpu_volt_metric.argtypes = [amdsmi_processor_handle, amdsmi_voltage_t
 amdsmi_reset_gpu_fan = _libraries['libamd_smi.so'].amdsmi_reset_gpu_fan
 amdsmi_reset_gpu_fan.restype = amdsmi_status_t
 amdsmi_reset_gpu_fan.argtypes = [amdsmi_processor_handle, uint32_t]
-amdsmi_dev_set_fan_speed = _libraries['libamd_smi.so'].amdsmi_dev_set_fan_speed
-amdsmi_dev_set_fan_speed.restype = amdsmi_status_t
-amdsmi_dev_set_fan_speed.argtypes = [amdsmi_processor_handle, uint32_t, uint64_t]
+amdsmi_set_gpu_fan_speed = _libraries['libamd_smi.so'].amdsmi_set_gpu_fan_speed
+amdsmi_set_gpu_fan_speed.restype = amdsmi_status_t
+amdsmi_set_gpu_fan_speed.argtypes = [amdsmi_processor_handle, uint32_t, uint64_t]
 amdsmi_dev_get_busy_percent = _libraries['libamd_smi.so'].amdsmi_dev_get_busy_percent
 amdsmi_dev_get_busy_percent.restype = amdsmi_status_t
 amdsmi_dev_get_busy_percent.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32)]
@@ -1875,7 +1875,7 @@ __all__ = \
     'amdsmi_dev_perf_level_t', 'amdsmi_dev_perf_level_t__enumvalues',
     'amdsmi_reset_gpu_fan', 'amdsmi_dev_reset_gpu',
     'amdsmi_dev_reset_xgmi_error', 'amdsmi_dev_set_clk_freq',
-    'amdsmi_dev_set_clk_range', 'amdsmi_dev_set_fan_speed',
+    'amdsmi_dev_set_clk_range', 'amdsmi_set_gpu_fan_speed',
     'amdsmi_dev_set_od_clk_info', 'amdsmi_dev_set_od_volt_info',
     'amdsmi_dev_set_overdrive_level',
     'amdsmi_dev_set_overdrive_level_v1',

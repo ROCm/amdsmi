@@ -351,7 +351,7 @@ class Formatter:
     |     """ + self.style.text("62   Set dev clk range.                    Api: amdsmi_dev_set_clk_range               <bdf><min_clk><max_clk>") + """      |
     |     """ + self.style.text("63   Get dev counter group supported.      Api: amdsmi_dev_counter_group_supported     <bdf>") + """                        |
     |     """ + self.style.text("64   Reset dev fan.                        Api: amdsmi_reset_gpu_fan                   <bdf><sensor_idx>") + """            |
-    |     """ + self.style.text("65   Set dev fan speed.                    Api: amdsmi_dev_set_fan_speed               <bdf><sensor_idx><fan_speed>") + """ |
+    |     """ + self.style.text("65   Set dev fan speed.                    Api: amdsmi_set_gpu_fan_speed               <bdf><sensor_idx><fan_speed>") + """ |
     |     """ + self.style.text("66   Set dev gpu clk freq.                 Api:  amdsmi_dev_set_clk_freq            <bdf><freq_bitmask>") + """          |
     |     """ + self.style.text("67   Reset dev gpu.                        Api: amdsmi_dev_reset_gpu                   <bdf>") + """                        |
     |     """ + self.style.text("68   Set dev od clk info.                  Api:  amdsmi_dev_set_od_clk_info             <bdf><value>") + """                 |
@@ -474,7 +474,7 @@ def amdsmi_tool_dev_fan_reset(dev, dic):
 def amdsmi_tool_dev_fan_speed_set(dev, dic):
     sensor_idx = dic["sensor_idx"]
     fan_speed = dic["fan_speed"]
-    return smi_api.amdsmi_dev_set_fan_speed(dev, sensor_idx, fan_speed)
+    return smi_api.amdsmi_set_gpu_fan_speed(dev, sensor_idx, fan_speed)
 
 def amdsmi_tool_dev_overdrive_level_set(dev, dic):
     overdrive_value = dic["overdrive_value"]

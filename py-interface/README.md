@@ -2490,7 +2490,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_set_fan_speed
+## amdsmi_set_gpu_fan_speed
 Description: Set the fan speed for the specified device with the provided speed,
 in RPMs
 
@@ -2501,7 +2501,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_dev_set_fan_speed` function:
+Exceptions that can be thrown by `amdsmi_set_gpu_fan_speed` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2514,7 +2514,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_dev_set_fan_speed(device, 0, 1333)
+            amdsmi_set_gpu_fan_speed(device, 0, 1333)
 except AmdSmiException as e:
     print(e)
 ```
