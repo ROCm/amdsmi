@@ -2141,7 +2141,7 @@ def amdsmi_get_temp_metric(
     return temp_value.value
 
 
-def amdsmi_dev_get_volt_metric(
+def amdsmi_get_gpu_volt_metric(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     sensor_type: AmdSmiVoltageType,
     metric: AmdSmiVoltageMetric,
@@ -2157,7 +2157,7 @@ def amdsmi_dev_get_volt_metric(
 
     voltage = ctypes.c_int64()
     _check_res(
-        amdsmi_wrapper. amdsmi_dev_get_volt_metric(
+        amdsmi_wrapper. amdsmi_get_gpu_volt_metric(
             processor_handle, sensor_type, metric, ctypes.byref(voltage)
         )
     )

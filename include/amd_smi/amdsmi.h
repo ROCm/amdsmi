@@ -2020,7 +2020,7 @@ amdsmi_status_t  amdsmi_get_temp_metric(amdsmi_processor_handle processor_handle
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_get_volt_metric(amdsmi_processor_handle processor_handle,
+amdsmi_status_t  amdsmi_get_gpu_volt_metric(amdsmi_processor_handle processor_handle,
                                amdsmi_voltage_type_t sensor_type,
                               amdsmi_voltage_metric_t metric, int64_t *voltage);
 

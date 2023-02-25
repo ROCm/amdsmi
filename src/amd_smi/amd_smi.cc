@@ -949,7 +949,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_temp_metric_get", " amdsmi_get_temp_metric"},
         {"rsmi_dev_fan_reset", "amdsmi_dev_reset_fan"},
         {"rsmi_dev_fan_speed_set", "amdsmi_dev_set_fan_speed"},
-        {"rsmi_dev_volt_metric_get", " amdsmi_dev_get_volt_metric"}
+        {"rsmi_dev_volt_metric_get", " amdsmi_get_gpu_volt_metric"}
     };
 
     auto rocm_func_handle =
@@ -1315,7 +1315,7 @@ amdsmi_status_t  amdsmi_dev_get_od_volt_curve_regions(
         num_regions, reinterpret_cast<rsmi_freq_volt_region_t* >(buffer));
 }
 
-amdsmi_status_t  amdsmi_dev_get_volt_metric(amdsmi_processor_handle processor_handle,
+amdsmi_status_t  amdsmi_get_gpu_volt_metric(amdsmi_processor_handle processor_handle,
                             amdsmi_voltage_type_t sensor_type,
                             amdsmi_voltage_metric_t metric, int64_t *voltage) {
     return rsmi_wrapper(rsmi_dev_volt_metric_get, processor_handle,
@@ -1720,7 +1720,7 @@ amdsmi_get_power_measure(amdsmi_processor_handle processor_handle, amdsmi_power_
 
     int64_t voltage_read = 0;
 
-    status =  amdsmi_dev_get_volt_metric(processor_handle, AMDSMI_VOLT_TYPE_VDDGFX, AMDSMI_VOLT_CURRENT, &voltage_read);
+    status =  amdsmi_get_gpu_volt_metric(processor_handle, AMDSMI_VOLT_TYPE_VDDGFX, AMDSMI_VOLT_CURRENT, &voltage_read);
     if (status != AMDSMI_STATUS_SUCCESS) {
         return status;
     }
