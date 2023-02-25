@@ -2958,7 +2958,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_get_drm_render_minor
+## amdsmi_get_gpu_drm_render_minor
 Description: Get the drm minor number associated with this device.
 
 Input parameters:
@@ -2967,7 +2967,7 @@ Input parameters:
 
 Output: drm minor number
 
-Exceptions that can be thrown by `amdsmi_dev_get_drm_render_minor` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_drm_render_minor` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2980,7 +2980,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            render_minor = amdsmi_dev_get_drm_render_minor(device)
+            render_minor = amdsmi_get_gpu_drm_render_minor(device)
             print(render_minor)
 except AmdSmiException as e:
     print(e)

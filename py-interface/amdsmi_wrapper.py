@@ -1436,9 +1436,9 @@ amdsmi_get_gpu_subsystem_id.argtypes = [amdsmi_processor_handle, ctypes.POINTER(
 amdsmi_get_gpu_subsystem_name = _libraries['libamd_smi.so'].amdsmi_get_gpu_subsystem_name
 amdsmi_get_gpu_subsystem_name.restype = amdsmi_status_t
 amdsmi_get_gpu_subsystem_name.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_char), size_t]
-amdsmi_dev_get_drm_render_minor = _libraries['libamd_smi.so'].amdsmi_dev_get_drm_render_minor
-amdsmi_dev_get_drm_render_minor.restype = amdsmi_status_t
-amdsmi_dev_get_drm_render_minor.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32)]
+amdsmi_get_gpu_drm_render_minor = _libraries['libamd_smi.so'].amdsmi_get_gpu_drm_render_minor
+amdsmi_get_gpu_drm_render_minor.restype = amdsmi_status_t
+amdsmi_get_gpu_drm_render_minor.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32)]
 amdsmi_dev_get_pci_bandwidth = _libraries['libamd_smi.so'].amdsmi_dev_get_pci_bandwidth
 amdsmi_dev_get_pci_bandwidth.restype = amdsmi_status_t
 amdsmi_dev_get_pci_bandwidth.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_c__SA_amdsmi_pcie_bandwidth_t)]
@@ -1852,7 +1852,7 @@ __all__ = \
     'amdsmi_dev_close_supported_func_iterator',
     'amdsmi_dev_counter_group_supported', 'amdsmi_dev_create_counter',
     'amdsmi_dev_destroy_counter', 'amdsmi_dev_get_busy_percent',
-    'amdsmi_dev_get_drm_render_minor', 'amdsmi_dev_get_ecc_count',
+    'amdsmi_get_gpu_drm_render_minor', 'amdsmi_dev_get_ecc_count',
     'amdsmi_dev_get_ecc_enabled', 'amdsmi_dev_get_ecc_status',
     'amdsmi_dev_get_energy_count', 'amdsmi_dev_get_fan_rpms',
     'amdsmi_dev_get_fan_speed', 'amdsmi_dev_get_fan_speed_max',

@@ -1121,7 +1121,7 @@ def amdsmi_get_gpu_vram_vendor(processor_handle: amdsmi_wrapper.amdsmi_processor
     return vram_vendor.value.decode("utf-8")
 
 
-def amdsmi_dev_get_drm_render_minor(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_get_gpu_drm_render_minor(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
@@ -1129,7 +1129,7 @@ def amdsmi_dev_get_drm_render_minor(processor_handle: amdsmi_wrapper.amdsmi_proc
     minor = ctypes.c_uint32()
 
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_get_drm_render_minor(
+        amdsmi_wrapper.amdsmi_get_gpu_drm_render_minor(
             processor_handle, ctypes.byref(minor)
         )
     )

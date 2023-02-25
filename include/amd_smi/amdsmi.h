@@ -1447,7 +1447,7 @@ amdsmi_get_gpu_subsystem_name(amdsmi_processor_handle processor_handle, char *na
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_get_drm_render_minor(amdsmi_processor_handle processor_handle, uint32_t *minor);
+amdsmi_get_gpu_drm_render_minor(amdsmi_processor_handle processor_handle, uint32_t *minor);
 
 /** @} End IDQuer */
 
