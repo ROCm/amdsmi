@@ -103,7 +103,7 @@ void TestSysInfoRead::Run(void) {
     PrintDeviceHeader(processor_handles_[i]);
 
     amdsmi_vbios_info_t info;
-    err = amdsmi_get_vbios_info(processor_handles_[i], &info);
+    err = amdsmi_get_gpu_vbios_info(processor_handles_[i], &info);
 
     if (err != AMDSMI_STATUS_SUCCESS) {
       if (err == AMDSMI_STATUS_FILE_ERROR) {
@@ -112,11 +112,11 @@ void TestSysInfoRead::Run(void) {
                                                                 << std::endl;
         }
         // Verify api support checking functionality is working
-        err = amdsmi_get_vbios_info(processor_handles_[i], nullptr);
+        err = amdsmi_get_gpu_vbios_info(processor_handles_[i], nullptr);
         ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
       } else {
         // Verify api support checking functionality is working
-        err = amdsmi_get_vbios_info(processor_handles_[i], nullptr);
+        err = amdsmi_get_gpu_vbios_info(processor_handles_[i], nullptr);
         ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
         CHK_ERR_ASRT(err)

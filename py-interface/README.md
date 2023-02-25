@@ -405,7 +405,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_get_vbios_info
+## amdsmi_get_gpu_vbios_info
 Description:  Returns the static information for the VBIOS on the device.
 
 Input parameters:
@@ -421,7 +421,7 @@ Field | Description
 `part_number` | vbios part number
 `vbios_version_string` | vbios version string
 
-Exceptions that can be thrown by `amdsmi_get_vbios_info` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_vbios_info` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -434,7 +434,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            vbios_info = amdsmi_get_vbios_info(device)
+            vbios_info = amdsmi_get_gpu_vbios_info(device)
             print(vbios_info['name'])
             print(vbios_info['vbios_version'])
             print(vbios_info['build_date'])

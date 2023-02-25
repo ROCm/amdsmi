@@ -344,7 +344,7 @@ class Formatter:
     |     """ + self.style.text("55   Init.                                 Api: amdsmi_init                            <None>") + """                       |
     |     """ + self.style.text("56   Shut down.                            Api: amdsmi_shut_down                       <None>") + """                       |
     |     """ + self.style.text("57   Get fw info.                          Api: amdsmi_get_fw_info                     <bdf>") + """                        |
-    |     """ + self.style.text("58   Get vbios info.                       Api: amdsmi_get_vbios_info                  <bdf>") + """                        |
+    |     """ + self.style.text("58   Get vbios info.                       Api: amdsmi_get_gpu_vbios_info                  <bdf>") + """                        |
     |     """ + self.style.text("59   Get counter available counters.       Api:  amdsmi_counter_get_available_counters  <bdf>") + """                        |
     |     """ + self.style.text("60   Get counter control.                  Api: amdsmi_control_counter                 <bdf>") + """                        |
     |     """ + self.style.text("61   Get counter read.                     Api: amdsmi_read_counter                    <bdf>") + """                        |
@@ -893,7 +893,7 @@ commands = {
     57: [smi_api.amdsmi_get_fw_info, {
         "device_identifier1": [None, True]
     }],
-    58: [smi_api.amdsmi_get_vbios_info, {
+    58: [smi_api.amdsmi_get_gpu_vbios_info, {
         "device_identifier1": [None, True]
     }],
     59: [amdsmi_tool_counter_available_counters_get, {

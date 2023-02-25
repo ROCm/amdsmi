@@ -139,9 +139,9 @@ int main() {
 
             // Get VBIOS info
             amdsmi_vbios_info_t vbios_info = {};
-            ret = amdsmi_get_vbios_info(processor_handles[j], &vbios_info);
+            ret = amdsmi_get_gpu_vbios_info(processor_handles[j], &vbios_info);
             CHK_AMDSMI_RET(ret)
-            printf("    Output of amdsmi_get_vbios_info:\n");
+            printf("    Output of amdsmi_get_gpu_vbios_info:\n");
             printf("\tVBios Name: %s\n", vbios_info.name);
             printf("\tBuild Date: %s\n", vbios_info.build_date);
             printf("\tPart Number: %s\n", vbios_info.part_number);

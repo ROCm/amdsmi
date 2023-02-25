@@ -653,7 +653,7 @@ def amdsmi_get_caps_info(
     }
 
 
-def amdsmi_get_vbios_info(
+def amdsmi_get_gpu_vbios_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -663,7 +663,7 @@ def amdsmi_get_vbios_info(
 
     vbios_info = amdsmi_wrapper.amdsmi_vbios_info_t()
     _check_res(
-        amdsmi_wrapper.amdsmi_get_vbios_info(
+        amdsmi_wrapper.amdsmi_get_gpu_vbios_info(
             processor_handle, ctypes.byref(vbios_info))
     )
 
