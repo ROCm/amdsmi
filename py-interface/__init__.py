@@ -151,7 +151,7 @@ from .amdsmi_interface import amdsmi_get_energy_count
 from .amdsmi_interface import amdsmi_get_gpu_memory_total
 from .amdsmi_interface import amdsmi_get_gpu_memory_usage
 from .amdsmi_interface import amdsmi_get_gpu_memory_busy_percent
-from .amdsmi_interface import amdsmi_dev_get_memory_reserved_pages
+from .amdsmi_interface import amdsmi_get_gpu_memory_reserved_pages
 
 # # Events
 from .amdsmi_interface import AmdSmiEventReader

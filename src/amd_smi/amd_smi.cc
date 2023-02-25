@@ -909,7 +909,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_power_profile_set", " amdsmi_set_gpu_power_profile"},
         {"rsmi_dev_memory_busy_percent_get", "amdsmi_get_gpu_memory_busy_percent"},
         {"rsmi_dev_busy_percent_get", "amdsmi_dev_get_busy_percent"},
-        {"rsmi_dev_memory_reserved_pages_get", "amdsmi_dev_get_memory_reserved_pages"},
+        {"rsmi_dev_memory_reserved_pages_get", "amdsmi_get_gpu_memory_reserved_pages"},
         {"rsmi_dev_overdrive_level_get", "amdsmi_dev_get_overdrive_level"},
         {"rsmi_dev_power_profile_presets_get", " amdsmi_dev_get_power_profile_presets"},
         {"rsmi_dev_perf_level_set", " amdsmi_dev_set_perf_level"},
@@ -927,7 +927,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_counter_create", "amdsmi_dev_create_counter"},
         {"rsmi_dev_xgmi_error_status", "amdsmi_dev_xgmi_error_status"},
         {"rsmi_dev_xgmi_error_reset", "amdsmi_dev_reset_xgmi_error"},
-        {"rsmi_dev_memory_reserved_pages_get", "amdsmi_dev_get_memory_reserved_pages"},
+        {"rsmi_dev_memory_reserved_pages_get", "amdsmi_get_gpu_memory_reserved_pages"},
         {"rsmi_topo_numa_affinity_get", "amdsmi_get_gpu_topo_numa_affinity"},
         {"rsmi_dev_gpu_metrics_info_get", " amdsmi_dev_get_gpu_metrics_info"},
         {"rsmi_dev_gpu_reset", "amdsmi_dev_reset_gpu"},
@@ -1262,7 +1262,7 @@ amdsmi_status_t  amdsmi_dev_set_clk_freq(amdsmi_processor_handle processor_handl
                     static_cast<rsmi_clk_type_t>(clk_type), freq_bitmask);
 }
 amdsmi_status_t
-amdsmi_dev_get_memory_reserved_pages(amdsmi_processor_handle processor_handle,
+amdsmi_get_gpu_memory_reserved_pages(amdsmi_processor_handle processor_handle,
                                     uint32_t *num_pages,
                                     amdsmi_retired_page_record_t *records) {
     return rsmi_wrapper(rsmi_dev_memory_reserved_pages_get, processor_handle,
