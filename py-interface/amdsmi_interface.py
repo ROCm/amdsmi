@@ -2028,7 +2028,7 @@ def amdsmi_dev_set_od_volt_info(
     )
 
 
-def amdsmi_dev_get_memory_busy_percent(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_get_gpu_memory_busy_percent(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
@@ -2037,7 +2037,7 @@ def amdsmi_dev_get_memory_busy_percent(processor_handle: amdsmi_wrapper.amdsmi_p
     busy_percent = ctypes.c_uint32()
 
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_get_memory_busy_percent(
+        amdsmi_wrapper.amdsmi_get_gpu_memory_busy_percent(
             processor_handle, ctypes.byref(busy_percent))
     )
 
