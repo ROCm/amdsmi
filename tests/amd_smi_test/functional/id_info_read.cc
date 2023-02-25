@@ -231,7 +231,7 @@ void TestIdInfoRead::Run(void) {
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
     }
 
-    err = amdsmi_dev_get_pci_id(processor_handles_[i], &val_ui64);
+    err = amdsmi_get_gpu_pci_id(processor_handles_[i], &val_ui64);
     // Don't check for AMDSMI_STATUS_NOT_SUPPORTED since this should always be
     // supported. It is not based on a sysfs file.
     CHK_ERR_ASRT(err)
@@ -240,7 +240,7 @@ void TestIdInfoRead::Run(void) {
       std::cout << " (" << std::dec << val_ui64 << ")" << std::endl;
     }
     // Verify api support checking functionality is working
-    err = amdsmi_dev_get_pci_id(processor_handles_[i], nullptr);
+    err = amdsmi_get_gpu_pci_id(processor_handles_[i], nullptr);
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
   }
 }

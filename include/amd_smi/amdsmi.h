@@ -1303,7 +1303,7 @@ amdsmi_status_t amdsmi_get_processor_handle_from_bdf(amdsmi_bdf_t bdf, amdsmi_pr
  *  @p id. This ID is an identification of the type of device, so calling this
  *  function for different devices will give the same value if they are kind
  *  of device. Consequently, this function should not be used to distinguish
- *  one device from another. amdsmi_dev_get_pci_id() should be used to get a
+ *  one device from another. amdsmi_get_gpu_pci_id() should be used to get a
  *  unique identifier.
  *
  *  @param[in] processor_handle a device handle
@@ -1508,7 +1508,7 @@ amdsmi_get_gpu_pci_bandwidth(amdsmi_processor_handle processor_handle, amdsmi_pc
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_dev_get_pci_id(amdsmi_processor_handle processor_handle, uint64_t *bdfid);
+amdsmi_status_t amdsmi_get_gpu_pci_id(amdsmi_processor_handle processor_handle, uint64_t *bdfid);
 
 /**
  *  @brief Get the NUMA node associated with a device
