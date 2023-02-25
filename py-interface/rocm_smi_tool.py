@@ -288,7 +288,7 @@ class Formatter:
     |  """ + self.style.header("COMMANDS:") + """                                                                                                              |
     |                                                                                                                         |
     |     """ + self.style.text(" 1   Get device vendor name.               Api: amdsmi_dev_get_vendor_name             <bdf>") + """                        |
-    |     """ + self.style.text(" 2   Get device id.                        Api: amdsmi_dev_get_id                      <bdf>") + """                        |
+    |     """ + self.style.text(" 2   Get device id.                        Api: amdsmi_get_gpu_id                      <bdf>") + """                        |
     |     """ + self.style.text(" 3   Get device vram vendor.               Api: amdsmi_dev_get_vram_vendor             <bdf>") + """                        |
     |     """ + self.style.text(" 4   Get device drm render minor.          Api: amdsmi_dev_get_drm_render_minor        <bdf>") + """                        |
     |     """ + self.style.text(" 5   Get device subsystem id.              Api: amdsmi_dev_get_subsystem_id            <bdf>") + """                        |
@@ -725,7 +725,7 @@ commands = {
     1: [smi_api.amdsmi_dev_get_vendor_name, {
         "device_identifier1": [None, True]
     }],
-    2: [smi_api.amdsmi_dev_get_id, {
+    2: [smi_api.amdsmi_get_gpu_id, {
         "device_identifier1": [None, True]
     }],
     3: [smi_api.amdsmi_dev_get_vram_vendor, {

@@ -197,7 +197,7 @@ void TestMutualExclusion::Run(void) {
     std::cout << "at " << __FILE__ << ":" << __LINE__ << std::endl; \
   } \
 }
-    ret = amdsmi_dev_get_id(processor_handles_[0], &dmy_ui16);
+    ret = amdsmi_get_gpu_id(processor_handles_[0], &dmy_ui16);
 
     // vendor_id, unique_id
     amdsmi_asic_info_t asci_info;

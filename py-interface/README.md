@@ -2902,7 +2902,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_get_id
+## amdsmi_get_gpu_id
 Description: Get the device id associated with the device with provided device handler
 
 Input parameters:
@@ -2911,7 +2911,7 @@ Input parameters:
 
 Output: device id
 
-Exceptions that can be thrown by `amdsmi_dev_get_id` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_id` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2924,7 +2924,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            dev_id = amdsmi_dev_get_id(device)
+            dev_id = amdsmi_get_gpu_id(device)
             print(dev_id)
 except AmdSmiException as e:
     print(e)
