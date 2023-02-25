@@ -1647,7 +1647,7 @@ amdsmi_status_t  amdsmi_set_gpu_pci_bandwidth(amdsmi_processor_handle processor_
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_get_power_ave(amdsmi_processor_handle processor_handle, uint32_t sensor_ind, uint64_t *power);
+amdsmi_get_power_ave(amdsmi_processor_handle processor_handle, uint32_t sensor_ind, uint64_t *power);
 
 /**
  *  @brief Get the energy accumulator counter of the device with provided
@@ -1657,7 +1657,7 @@ amdsmi_dev_get_power_ave(amdsmi_processor_handle processor_handle, uint32_t sens
  *  @p power, and a pointer to a uint64_t @p timestamp, this function will write
  *  amount of energy consumed to the uint64_t pointed to by @p power,
  *  and the timestamp to the uint64_t pointed to by @p timestamp.
- *  The amdsmi_dev_get_power_ave() is an average of a short time. This function
+ *  The amdsmi_get_power_ave() is an average of a short time. This function
  *  accumulates all energy consumed.
  *
  *  @param[in] processor_handle a device handle

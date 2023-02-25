@@ -1490,7 +1490,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_get_power_ave
+## amdsmi_get_power_ave
 
 Description: Get the average power consumption of the device
 
@@ -1502,7 +1502,7 @@ If a device has more than one sensor, it could be greater than 0.
 
 Output: the average power consumption
 
-Exceptions that can be thrown by `amdsmi_dev_get_power_ave` function:
+Exceptions that can be thrown by `amdsmi_get_power_ave` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1515,7 +1515,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            power = amdsmi_dev_get_power_ave(device)
+            power = amdsmi_get_power_ave(device)
             print(power)
 except AmdSmiException as e:
     print(e)
