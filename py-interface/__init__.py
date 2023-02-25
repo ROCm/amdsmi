@@ -141,7 +141,7 @@ from .amdsmi_interface import amdsmi_get_gpu_pci_id
 from .amdsmi_interface import amdsmi_get_gpu_pci_bandwidth
 from .amdsmi_interface import amdsmi_dev_get_pci_throughput
 from .amdsmi_interface import  amdsmi_dev_get_pci_replay_counter
-from .amdsmi_interface import amdsmi_topo_get_numa_affinity
+from .amdsmi_interface import amdsmi_get_gpu_topo_numa_affinity
 
 # # Power information
 from .amdsmi_interface import amdsmi_dev_get_power_ave

@@ -138,14 +138,14 @@ void TestSysInfoRead::Run(void) {
     err = amdsmi_get_gpu_pci_id(processor_handles_[i], nullptr);
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
-    err = amdsmi_topo_get_numa_affinity(processor_handles_[i], &val_ui32);
+    err = amdsmi_get_gpu_topo_numa_affinity(processor_handles_[i], &val_ui32);
     CHK_ERR_ASRT(err)
     IF_VERB(STANDARD) {
       std::cout << "\t**NUMA NODE: 0x" << std::hex << val_ui32;
       std::cout << " (" << std::dec << val_ui32 << ")" << std::endl;
     }
     // Verify api support checking functionality is working
-    err = amdsmi_topo_get_numa_affinity(processor_handles_[i], nullptr);
+    err = amdsmi_get_gpu_topo_numa_affinity(processor_handles_[i], nullptr);
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
 

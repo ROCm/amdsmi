@@ -1801,7 +1801,7 @@ def amdsmi_dev_get_pci_replay_counter(processor_handle: amdsmi_wrapper.amdsmi_pr
     return counter.value
 
 
-def amdsmi_topo_get_numa_affinity(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_get_gpu_topo_numa_affinity(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
@@ -1810,7 +1810,7 @@ def amdsmi_topo_get_numa_affinity(processor_handle: amdsmi_wrapper.amdsmi_proces
     numa_node = ctypes.c_uint32()
 
     _check_res(
-        amdsmi_wrapper.amdsmi_topo_get_numa_affinity(
+        amdsmi_wrapper.amdsmi_get_gpu_topo_numa_affinity(
             processor_handle, ctypes.byref(numa_node))
     )
 

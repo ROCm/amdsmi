@@ -928,7 +928,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_xgmi_error_status", "amdsmi_dev_xgmi_error_status"},
         {"rsmi_dev_xgmi_error_reset", "amdsmi_dev_reset_xgmi_error"},
         {"rsmi_dev_memory_reserved_pages_get", "amdsmi_dev_get_memory_reserved_pages"},
-        {"rsmi_topo_numa_affinity_get", "amdsmi_topo_get_numa_affinity"},
+        {"rsmi_topo_numa_affinity_get", "amdsmi_get_gpu_topo_numa_affinity"},
         {"rsmi_dev_gpu_metrics_info_get", " amdsmi_dev_get_gpu_metrics_info"},
         {"rsmi_dev_gpu_reset", "amdsmi_dev_reset_gpu"},
         {"rsmi_dev_memory_total_get", "amdsmi_dev_get_memory_total"},
@@ -1391,7 +1391,7 @@ amdsmi_status_t amdsmi_get_gpu_pci_id(
             bdfid);
 }
 
-amdsmi_status_t amdsmi_topo_get_numa_affinity(
+amdsmi_status_t amdsmi_get_gpu_topo_numa_affinity(
     amdsmi_processor_handle processor_handle, uint32_t *numa_node) {
     return rsmi_wrapper(rsmi_topo_numa_affinity_get, processor_handle,
             numa_node);
