@@ -104,7 +104,7 @@ from .amdsmi_interface import  amdsmi_get_temp_metric
 from .amdsmi_interface import  amdsmi_get_gpu_volt_metric
 
 # # Clock, Power and Performance Query
-from .amdsmi_interface import amdsmi_dev_get_busy_percent
+from .amdsmi_interface import amdsmi_get_busy_percent
 from .amdsmi_interface import amdsmi_get_utilization_count
 from .amdsmi_interface import amdsmi_dev_get_perf_level
 from .amdsmi_interface import amdsmi_set_perf_determinism_mode

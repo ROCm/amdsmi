@@ -1892,7 +1892,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_get_busy_percent
+## amdsmi_get_busy_percent
 Description: Get percentage of time device is busy doing any processing
 
 Input parameters:
@@ -1900,7 +1900,7 @@ Input parameters:
 
 Output: How busy the device is (as percentage of time)
 
-Exceptions that can be thrown by `amdsmi_dev_get_busy_percent` function:
+Exceptions that can be thrown by `amdsmi_get_busy_percent` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1913,7 +1913,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            busy = amdsmi_dev_get_busy_percent(dev)
+            busy = amdsmi_get_busy_percent(dev)
             print(busy)
 except AmdSmiException as e:
     print(e)

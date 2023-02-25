@@ -908,7 +908,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_pci_bandwidth_set", " amdsmi_set_gpu_pci_bandwidth"},
         {"rsmi_dev_power_profile_set", " amdsmi_set_gpu_power_profile"},
         {"rsmi_dev_memory_busy_percent_get", "amdsmi_get_gpu_memory_busy_percent"},
-        {"rsmi_dev_busy_percent_get", "amdsmi_dev_get_busy_percent"},
+        {"rsmi_dev_busy_percent_get", "amdsmi_get_busy_percent"},
         {"rsmi_dev_memory_reserved_pages_get", "amdsmi_get_gpu_memory_reserved_pages"},
         {"rsmi_dev_overdrive_level_get", "amdsmi_dev_get_overdrive_level"},
         {"rsmi_dev_power_profile_presets_get", " amdsmi_dev_get_power_profile_presets"},
@@ -1040,7 +1040,7 @@ amdsmi_status_t  amdsmi_dev_get_ecc_status(amdsmi_processor_handle processor_han
 }
 
 amdsmi_status_t
-amdsmi_dev_get_busy_percent(amdsmi_processor_handle processor_handle,
+amdsmi_get_busy_percent(amdsmi_processor_handle processor_handle,
                             uint32_t *busy_percent) {
     AMDSMI_CHECK_INIT();
 
