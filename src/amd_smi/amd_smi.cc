@@ -690,7 +690,7 @@ amdsmi_status_t amdsmi_stop_gpu_event_notification(
     return rsmi_wrapper(rsmi_event_notification_stop, processor_handle);
 }
 
-amdsmi_status_t amdsmi_dev_counter_group_supported(
+amdsmi_status_t amdsmi_gpu_counter_group_supported(
         amdsmi_processor_handle processor_handle, amdsmi_event_group_t group) {
     return rsmi_wrapper(rsmi_dev_counter_group_supported, processor_handle,
                     static_cast<rsmi_event_group_t>(group));
@@ -923,7 +923,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_od_volt_curve_regions_get", " amdsmi_dev_get_od_volt_curve_regions"},
         {"rsmi_dev_ecc_enabled_get", " amdsmi_dev_get_gpu_ecc_enabled"},
         {"rsmi_dev_ecc_status_get", " amdsmi_dev_get_gpu_ecc_status"},
-        {"rsmi_dev_counter_group_supported", "amdsmi_dev_counter_group_supported"},
+        {"rsmi_dev_counter_group_supported", "amdsmi_gpu_counter_group_supported"},
         {"rsmi_dev_counter_create", "amdsmi_dev_create_counter"},
         {"rsmi_dev_xgmi_error_status", "amdsmi_dev_xgmi_error_status"},
         {"rsmi_dev_xgmi_error_reset", "amdsmi_dev_reset_xgmi_error"},

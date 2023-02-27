@@ -2234,7 +2234,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_counter_group_supported
+## amdsmi_gpu_counter_group_supported
 Description: Tell if an event group is supported by a given device
 
 Input parameters:
@@ -2244,7 +2244,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_dev_counter_group_supported` function:
+Exceptions that can be thrown by `amdsmi_gpu_counter_group_supported` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2257,7 +2257,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_dev_counter_group_supported(device, AmdSmiEventGroup.XGMI)
+            amdsmi_gpu_counter_group_supported(device, AmdSmiEventGroup.XGMI)
 except AmdSmiException as e:
     print(e)
 ```
