@@ -253,7 +253,7 @@ void TestMutualExclusion::Run(void) {
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret =  amdsmi_dev_get_gpu_ecc_enabled(processor_handles_[0], &dmy_ui64);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret =  amdsmi_dev_get_ecc_status(processor_handles_[0], AMDSMI_GPU_BLOCK_UMC, &dmy_ras_err_st);
+    ret =  amdsmi_dev_get_gpu_ecc_status(processor_handles_[0], AMDSMI_GPU_BLOCK_UMC, &dmy_ras_err_st);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
 
     /* Other functions holding device mutexes. Listed for reference.

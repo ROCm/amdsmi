@@ -2502,7 +2502,7 @@ def amdsmi_dev_get_gpu_ecc_enabled(
     return blocks.value
 
 
-def amdsmi_dev_get_ecc_status(
+def amdsmi_dev_get_gpu_ecc_status(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, block: AmdSmiGpuBlock
 ) -> AmdSmiRasErrState:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -2515,7 +2515,7 @@ def amdsmi_dev_get_ecc_status(
 
     state = amdsmi_wrapper.amdsmi_ras_err_state_t()
     _check_res(
-        amdsmi_wrapper. amdsmi_dev_get_ecc_status(
+        amdsmi_wrapper. amdsmi_dev_get_gpu_ecc_status(
             processor_handle, block, ctypes.byref(state)
         )
     )

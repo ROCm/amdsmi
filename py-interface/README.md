@@ -2691,7 +2691,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-##  amdsmi_dev_get_ecc_status
+##  amdsmi_dev_get_gpu_ecc_status
 Description: Retrieve the ECC status for a GPU block
 
 Input parameters:
@@ -2700,7 +2700,7 @@ Input parameters:
 
 Output: ECC status for a requested GPU block
 
-Exceptions that can be thrown by ` amdsmi_dev_get_ecc_status` function:
+Exceptions that can be thrown by ` amdsmi_dev_get_gpu_ecc_status` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2713,7 +2713,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            status =  amdsmi_dev_get_ecc_status(device, AmdSmiGpuBlock.UMC)
+            status =  amdsmi_dev_get_gpu_ecc_status(device, AmdSmiGpuBlock.UMC)
             print(status)
 except AmdSmiException as e:
     print(e)

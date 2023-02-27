@@ -126,7 +126,7 @@ void TestErrCntRead::Run(void) {
       }
       for (uint32_t b = AMDSMI_GPU_BLOCK_FIRST;
                                             b <= AMDSMI_GPU_BLOCK_LAST; b = b*2) {
-        err =  amdsmi_dev_get_ecc_status(processor_handles_[i], static_cast<amdsmi_gpu_block_t>(b),
+        err =  amdsmi_dev_get_gpu_ecc_status(processor_handles_[i], static_cast<amdsmi_gpu_block_t>(b),
                                                                     &err_state);
         CHK_ERR_ASRT(err)
         IF_VERB(STANDARD) {
@@ -135,7 +135,7 @@ void TestErrCntRead::Run(void) {
                    " block: " << GetErrStateNameStr(err_state) << std::endl;
         }
         // Verify api support checking functionality is working
-        err =  amdsmi_dev_get_ecc_status(processor_handles_[i], static_cast<amdsmi_gpu_block_t>(b),
+        err =  amdsmi_dev_get_gpu_ecc_status(processor_handles_[i], static_cast<amdsmi_gpu_block_t>(b),
                                                                        nullptr);
         ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
