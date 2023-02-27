@@ -1141,7 +1141,7 @@ typedef union {
  *  @details This function initializes the library and the internal data structures, 
  *  including those corresponding to sources of information that SMI provides.
  *
- *  The @p init_flags decides which type of device
+ *  The @p init_flags decides which type of processor
  *  can be discovered by ::amdsmi_get_socket_handles(). AMDSMI_INIT_AMD_GPUS returns
  *  sockets with AMD GPUS, and AMDSMI_INIT_AMD_GPUS | AMDSMI_INIT_AMD_CPUS returns
  *  sockets with either AMD GPUS or CPUS.
@@ -1179,8 +1179,8 @@ amdsmi_status_t amdsmi_shut_down(void);
  *  @details Depends on what flag is passed to ::amdsmi_init.  AMDSMI_INIT_AMD_GPUS
  *  returns sockets with AMD GPUS, and AMDSMI_INIT_AMD_GPUS | AMDSMI_INIT_AMD_CPUS returns
  *  sockets with either AMD GPUS or CPUS.
- *  The socket handles can be used to query the device handles in that socket, which
- *  will be used in other APIs to get device detail information or telemtries.
+ *  The socket handles can be used to query the processor handles in that socket, which
+ *  will be used in other APIs to get processor detail information or telemtries.
  *
  *  @param[in,out] socket_count As input, the value passed
  *  through this parameter is the number of ::amdsmi_socket_handle that
@@ -1221,49 +1221,49 @@ amdsmi_status_t amdsmi_get_socket_info(
                 char *name, size_t len);
 
 /**
- *  @brief Get the list of the device handles associated to a socket.
+ *  @brief Get the list of the processor handles associated to a socket.
  *
- *  @details This function retrieves the device handles of a socket. The 
- *  @p socket_handle must be provided for the device. A socket may have mulitple different
- *  type devices: An APU on a socket have both CPUs and GPUs.
+ *  @details This function retrieves the processor handles of a socket. The
+ *  @p socket_handle must be provided for the processor. A socket may have mulitple different
+ *  type processors: An APU on a socket have both CPUs and GPUs.
  *  Currently, only AMD GPUs are supported.
  *
- *  The number of device count is returned through @p device_count
- *  if @p processor_handles is NULL. Then the number of @p device_count can be pass
- *  as input to retrieval all devices on the socket to @p processor_handles.
+ *  The number of processor count is returned through @p processor_count
+ *  if @p processor_handles is NULL. Then the number of @p processor_count can be pass
+ *  as input to retrieval all processors on the socket to @p processor_handles.
  *
  *  @param[in] socket_handle The socket to query
  *
- *  @param[in,out] device_count As input, the value passed
+ *  @param[in,out] processor_count As input, the value passed
  *  through this parameter is the number of ::amdsmi_processor_handle's that
  *  may be safely written to the memory pointed to by @p processor_handles. This is the
- *  limit on how many device handles will be written to @p processor_handles. On return, @p
- *  device_count will contain the number of device handles written to @p processor_handles,
- *  or the number of device handles that could have been written if enough memory had been
+ *  limit on how many processor handles will be written to @p processor_handles. On return, @p
+ *  processor_count will contain the number of processor handles written to @p processor_handles,
+ *  or the number of processor handles that could have been written if enough memory had been
  *  provided.
- *  If @p processor_handles is NULL, as output, @p device_count will contain
- *  how many devices are available to read for the socket.
+ *  If @p processor_handles is NULL, as output, @p processor_count will contain
+ *  how many processors are available to read for the socket.
  *
  *  @param[in,out] processor_handles A pointer to a block of memory to which the
  *  ::amdsmi_processor_handle values will be written. This value may be NULL.
- *  In this case, this function can be used to query how many devices are
+ *  In this case, this function can be used to query how many processors are
  *  available to read.
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t amdsmi_get_processor_handles(amdsmi_socket_handle socket_handle,
-                                    uint32_t *device_count,
+                                    uint32_t *processor_count,
                                     amdsmi_processor_handle* processor_handles);
 
 /**
- *  @brief Get the device type of the processor_handle
+ *  @brief Get the processor type of the processor_handle
  *
- *  @details This function retrieves the device type. A processor_handle must be provided
- *  for that device.
+ *  @details This function retrieves the processor type. A processor_handle must be provided
+ *  for that processor.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
- *  @param[out] processor_type a pointer to processor_type_t to which the device type
+ *  @param[out] processor_type a pointer to processor_type_t to which the processor type
  *  will be written. If this parameter is nullptr, this function will return
  * ::AMDSMI_STATUS_INVAL.
  *
@@ -1273,14 +1273,14 @@ amdsmi_status_t amdsmi_get_processor_type(amdsmi_processor_handle processor_hand
               processor_type_t* processor_type);
 
 /**
- *  @brief Get device handle with the matching bdf.
+ *  @brief Get processor handle with the matching bdf.
  *
  *  @details Given bdf info @p bdf, this function will get
- *  the device handle with the matching bdf.
+ *  the processor handle with the matching bdf.
  *
- *  @param[in] bdf The bdf to match with corresponding device handle.
+ *  @param[in] bdf The bdf to match with corresponding processor handle.
  *
- *  @param[out] processor_handle device handle with the matching bdf.
+ *  @param[out] processor_handle processor handle with the matching bdf.
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
@@ -1298,7 +1298,7 @@ amdsmi_status_t amdsmi_get_processor_handle_from_bdf(amdsmi_bdf_t bdf, amdsmi_pr
  *  @brief Get the device id associated with the device with provided device
  *  handler.
  *
- *  @details Given a device handle @p processor_handle and a pointer to a uint32_t @p id,
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint32_t @p id,
  *  this function will write the device id value to the uint64_t pointed to by
  *  @p id. This ID is an identification of the type of device, so calling this
  *  function for different devices will give the same value if they are kind
@@ -1306,7 +1306,7 @@ amdsmi_status_t amdsmi_get_processor_handle_from_bdf(amdsmi_bdf_t bdf, amdsmi_pr
  *  one device from another. amdsmi_get_gpu_pci_id() should be used to get a
  *  unique identifier.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in,out] id a pointer to uint64_t to which the device id will be
  *  written
@@ -1322,7 +1322,7 @@ amdsmi_status_t amdsmi_get_gpu_id(amdsmi_processor_handle processor_handle, uint
 /**
  *  @brief Get the name string for a give vendor ID
  *
- *  @details Given a device handle @p processor_handle, a pointer to a caller provided
+ *  @details Given a processor handle @p processor_handle, a pointer to a caller provided
  *  char buffer @p name, and a length of this buffer @p len, this function will
  *  write the name of the vendor (up to @p len characters) buffer @p name. The
  *  @p id may be a device vendor or subsystem vendor ID.
@@ -1333,7 +1333,7 @@ amdsmi_status_t amdsmi_get_gpu_id(amdsmi_processor_handle processor_handle, uint
  *  as a string. Updating the system name files can be accompplished with
  *  "sudo update-pciids".
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in,out] name a pointer to a caller provided char buffer to which the
  *  name will be written
@@ -1356,7 +1356,7 @@ amdsmi_status_t amdsmi_get_gpu_vendor_name(amdsmi_processor_handle processor_han
 /**
  *  @brief Get the vram vendor string of a device.
  *
- *  @details This function retrieves the vram vendor name given a device handle
+ *  @details This function retrieves the vram vendor name given a processor handle
  *  @p processor_handle, a pointer to a caller provided
  *  char buffer @p brand, and a length of this buffer @p len, this function
  *  will write the vram vendor of the device (up to @p len characters) to the
@@ -1366,7 +1366,7 @@ amdsmi_status_t amdsmi_get_gpu_vendor_name(amdsmi_processor_handle processor_han
  *  contained within amdsmi_get_gpu_vram_vendor, then this function will return
  *  the string 'unknown' instead of the vram vendor.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in,out] brand a pointer to a caller provided char buffer to which the
  *  vram vendor will be written
@@ -1380,13 +1380,13 @@ amdsmi_status_t amdsmi_get_gpu_vram_vendor(amdsmi_processor_handle processor_han
 
 /**
  *  @brief Get the subsystem device id associated with the device with
- *  provided device handle.
+ *  provided processor handle.
  *
- *  @details Given a device handle @p processor_handle and a pointer to a uint32_t @p id,
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint32_t @p id,
  *  this function will write the subsystem device id value to the uint64_t
  *  pointed to by @p id.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in,out] id a pointer to uint64_t to which the subsystem device id
  *  will be written
@@ -1402,7 +1402,7 @@ amdsmi_status_t amdsmi_get_gpu_subsystem_id(amdsmi_processor_handle processor_ha
 /**
  *  @brief Get the name string for the device subsytem
  *
- *  @details Given a device handle @p processor_handle, a pointer to a caller provided
+ *  @details Given a processor handle @p processor_handle, a pointer to a caller provided
  *  char buffer @p name, and a length of this buffer @p len, this function
  *  will write the name of the device subsystem (up to @p len characters)
  *  to the buffer @p name.
@@ -1413,7 +1413,7 @@ amdsmi_status_t amdsmi_get_gpu_subsystem_id(amdsmi_processor_handle processor_ha
  *  ID as a string. Updating the system name files can be accompplished with
  *  "sudo update-pciids".
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in,out] name a pointer to a caller provided char buffer to which the
  *  name will be written
@@ -1436,10 +1436,10 @@ amdsmi_get_gpu_subsystem_name(amdsmi_processor_handle processor_handle, char *na
 /**
  *  @brief Get the drm minor number associated with this device
  *
- *  @details Given a device handle @p processor_handle, find its render device file
+ *  @details Given a processor handle @p processor_handle, find its render device file
  *  /dev/dri/renderDN where N corresponds to its minor number.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in,out] minor a pointer to a uint32_t into which minor number will
  *  be copied
@@ -1460,12 +1460,12 @@ amdsmi_get_gpu_drm_render_minor(amdsmi_processor_handle processor_handle, uint32
 /**
  *  @brief Get the list of possible PCIe bandwidths that are available.
  *
- *  @details Given a device handle @p processor_handle and a pointer to a to an
+ *  @details Given a processor handle @p processor_handle and a pointer to a to an
  *  ::amdsmi_pcie_bandwidth_t structure @p bandwidth, this function will fill in
  *  @p bandwidth with the possible T/s values and associated number of lanes,
  *  and indication of the current selection.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in,out] bandwidth a pointer to a caller provided
  *  ::amdsmi_pcie_bandwidth_t structure to which the frequency information will be
@@ -1479,7 +1479,7 @@ amdsmi_get_gpu_pci_bandwidth(amdsmi_processor_handle processor_handle, amdsmi_pc
 /**
  *  @brief Get the unique PCI device identifier associated for a device
  *
- *  @details Give a device handle @p processor_handle and a pointer to a uint64_t @p
+ *  @details Give a processor handle @p processor_handle and a pointer to a uint64_t @p
  *  bdfid, this function will write the Bus/Device/Function PCI identifier
  *  (BDFID) associated with device @p processor_handle to the value pointed to by
  *  @p bdfid.
@@ -1497,7 +1497,7 @@ amdsmi_get_gpu_pci_bandwidth(amdsmi_processor_handle processor_handle, amdsmi_pc
  *  | Device   | [ 7: 3] |
  *  | Function | [ 2: 0] |
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in,out] bdfid a pointer to uint64_t to which the device bdfid value
  *  will be written
@@ -1513,12 +1513,12 @@ amdsmi_status_t amdsmi_get_gpu_pci_id(amdsmi_processor_handle processor_handle, 
 /**
  *  @brief Get the NUMA node associated with a device
  *
- *  @details Given a device handle @p processor_handle and a pointer to a uint32_t @p
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint32_t @p
  *  numa_node, this function will retrieve the NUMA node value associated
  *  with device @p processor_handle and store the value at location pointed to by
  *  @p numa_node.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in,out] numa_node pointer to location where NUMA node value will
  *  be written.
@@ -1534,13 +1534,13 @@ amdsmi_status_t amdsmi_get_gpu_topo_numa_affinity(amdsmi_processor_handle proces
 /**
  *  @brief Get PCIe traffic information
  *
- *  @details Give a device handle @p processor_handle and pointers to a uint64_t's, @p
+ *  @details Give a processor handle @p processor_handle and pointers to a uint64_t's, @p
  *  sent, @p received and @p max_pkt_sz, this function will write the number
  *  of bytes sent and received in 1 second to @p sent and @p received,
  *  respectively. The maximum possible packet size will be written to
  *  @p max_pkt_sz.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in,out] sent a pointer to uint64_t to which the number of bytes sent
  *  will be written in 1 second. If pointer is NULL, it will be ignored.
@@ -1559,12 +1559,12 @@ amdsmi_status_t amdsmi_get_gpu_pci_throughput(amdsmi_processor_handle processor_
 /**
  *  @brief Get PCIe replay counter
  *
- *  @details Given a device handle @p processor_handle and a pointer to a uint64_t @p
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint64_t @p
  *  counter, this function will write the sum of the number of NAK's received
  *  by the GPU and the NAK's generated by the GPU to memory pointed to by @p
  *  counter.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in,out] counter a pointer to uint64_t to which the sum of the NAK's
  *  received and generated by the GPU is written
@@ -1589,7 +1589,7 @@ amdsmi_status_t  amdsmi_get_gpu_pci_replay_counter(amdsmi_processor_handle proce
 /**
  *  @brief Control the set of allowed PCIe bandwidths that can be used.
  *
- *  @details Given a device handle @p processor_handle and a 64 bit bitmask @p bw_bitmask,
+ *  @details Given a processor handle @p processor_handle and a 64 bit bitmask @p bw_bitmask,
  *  this function will limit the set of allowable bandwidths. If a bit in @p
  *  bw_bitmask has a value of 1, then the frequency (as ordered in an
  *  ::amdsmi_frequencies_t returned by :: amdsmi_dev_get_gpu_clk_freq()) corresponding
@@ -1606,7 +1606,7 @@ amdsmi_status_t  amdsmi_get_gpu_pci_replay_counter(amdsmi_processor_handle proce
  *
  *  @note This function requires root access
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] bw_bitmask A bitmask indicating the indices of the
  *  bandwidths that are to be enabled (1) and disabled (0). Only the lowest
@@ -1626,16 +1626,16 @@ amdsmi_status_t  amdsmi_set_gpu_pci_bandwidth(amdsmi_processor_handle processor_
  */
 
 /**
- *  @brief Get the average power consumption of a device
+ *  @brief Get the average power consumption of a processor
  *
  *  @details This function will write the current average power consumption
  *  (in microwatts) to the uint64_t pointed to by @p power, for the given
- *  device handle @p processor_handle and a pointer to a uint64_t @p power 
+ *  processor handle @p processor_handle and a pointer to a uint64_t @p power
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] sensor_ind a 0-based sensor index. Normally, this will be 0.
- *  If a device has more than one sensor, it could be greater than 0.
+ *  If a processor has more than one sensor, it could be greater than 0.
  *
  *  @param[in,out] power a pointer to uint64_t to which the average power
  *  consumption will be written
@@ -1650,17 +1650,17 @@ amdsmi_status_t
 amdsmi_get_power_ave(amdsmi_processor_handle processor_handle, uint32_t sensor_ind, uint64_t *power);
 
 /**
- *  @brief Get the energy accumulator counter of the device with provided
- *  device handle.
+ *  @brief Get the energy accumulator counter of the processor with provided
+ *  processor handle.
  *
- *  @details Given a device handle @p processor_handle, a pointer to a uint64_t
+ *  @details Given a processor handle @p processor_handle, a pointer to a uint64_t
  *  @p power, and a pointer to a uint64_t @p timestamp, this function will write
  *  amount of energy consumed to the uint64_t pointed to by @p power,
  *  and the timestamp to the uint64_t pointed to by @p timestamp.
  *  The amdsmi_get_power_ave() is an average of a short time. This function
  *  accumulates all energy consumed.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *  @param[in,out] counter_resolution resolution of the counter @p power in
  *  micro Joules
  *
@@ -1694,10 +1694,10 @@ amdsmi_get_energy_count(amdsmi_processor_handle processor_handle, uint64_t *powe
  *  @p cap must be between the minimum and maximum power cap values set by the
  *  system, which can be obtained from ::amdsmi_dev_power_cap_range_get.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] sensor_ind a 0-based sensor index. Normally, this will be 0.
- *  If a device has more than one sensor, it could be greater than 0.
+ *  If a processor has more than one sensor, it could be greater than 0.
  *
  *  @param[in] cap a uint64_t that indicates the desired power cap, in
  *  microwatts
@@ -1711,11 +1711,11 @@ amdsmi_status_t
  *  @brief Set the power performance profile
  *
  *  @details This function will attempt to set the current profile to the provided
- *  profile, given a device handle @p processor_handle and a @p profile. The provided
+ *  profile, given a processor handle @p processor_handle and a @p profile. The provided
  *  profile must be one of the currently supported profiles, as indicated by a
  *  call to :: amdsmi_dev_get_power_profile_presets()
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] reserved Not currently used. Set to 0.
  *
@@ -1739,11 +1739,11 @@ amdsmi_status_t
 /**
  *  @brief Get the total amount of memory that exists
  *
- *  @details Given a device handle @p processor_handle, a type of memory @p mem_type, and
+ *  @details Given a processor handle @p processor_handle, a type of memory @p mem_type, and
  *  a pointer to a uint64_t @p total, this function will write the total amount
  *  of @p mem_type memory that exists to the location pointed to by @p total.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] mem_type The type of memory for which the total amount will be
  *  found
@@ -1767,7 +1767,7 @@ amdsmi_get_gpu_memory_total(amdsmi_processor_handle processor_handle, amdsmi_mem
  *  @details This function will write the amount of @p mem_type memory that
  *  that is currently being used to the location pointed to by @p used.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] mem_type The type of memory for which the amount being used will
  *  be found
@@ -1792,7 +1792,7 @@ amdsmi_get_gpu_memory_usage(amdsmi_processor_handle processor_handle, amdsmi_mem
  * @details This call will query the device @p processor_handle for the
  * number of bad pages (written to @p num_pages address). The results are
  * written to address held by the @p info pointer.
- * @param[in] processor_handle a device handle
+ * @param[in] processor_handle a processor handle
  * @param[out] num_pages Number of bad page records.
  * @param[out] info The results will be written to the 
  * amdsmi_retired_page_record_t pointer.
@@ -1805,7 +1805,7 @@ amdsmi_get_bad_page_info(amdsmi_processor_handle processor_handle, uint32_t *num
 /**
  * @brief Returns if RAS features are enabled or disabled for given block
  *
- * @details Given a device handle @p processor_handle, this function queries the
+ * @details Given a processor handle @p processor_handle, this function queries the
  * state of RAS features for a specific block @p block. Result will be written
  * to address held by pointer @p state.
  *
@@ -1829,11 +1829,11 @@ amdsmi_get_ras_block_features_enabled(amdsmi_processor_handle processor_handle, 
 /**
  *  @brief Get percentage of time any device memory is being used
  *
- *  @details Given a device handle @p processor_handle, this function returns the
+ *  @details Given a processor handle @p processor_handle, this function returns the
  *  percentage of time that any device memory is being used for the specified
  *  device.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in,out] busy_percent a pointer to the uint32_t to which the busy
  *  percent will be written
@@ -1850,13 +1850,13 @@ amdsmi_get_gpu_memory_busy_percent(amdsmi_processor_handle processor_handle, uin
 /**
  *  @brief Get information about reserved ("retired") memory pages
  *
- *  @details Given a device handle @p processor_handle, this function returns retired page
- *  information @p records corresponding to the device with the provided device
+ *  @details Given a processor handle @p processor_handle, this function returns retired page
+ *  information @p records corresponding to the device with the provided processor
  *  handle @p processor_handle. The number of retired page records is returned through @p
  *  num_pages. @p records may be NULL on input. In this case, the number of
  *  records available for retrieval will be returned through @p num_pages.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in,out] num_pages a pointer to a uint32. As input, the value passed
  *  through this parameter is the number of ::amdsmi_retired_page_record_t's that
@@ -1890,14 +1890,14 @@ amdsmi_get_gpu_memory_reserved_pages(amdsmi_processor_handle processor_handle, u
  */
 
 /**
- *  @brief Get the fan speed in RPMs of the device with the specified device
+ *  @brief Get the fan speed in RPMs of the device with the specified processor
  *  handle and 0-based sensor index.
  *
- *  @details Given a device handle @p processor_handle and a pointer to a uint32_t
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint32_t
  *  @p speed, this function will write the current fan speed in RPMs to the
  *  uint32_t pointed to by @p speed
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] sensor_ind a 0-based sensor index. Normally, this will be 0.
  *  If a device has more than one sensor, it could be greater than 0.
@@ -1918,12 +1918,12 @@ amdsmi_status_t amdsmi_get_gpu_fan_rpms(amdsmi_processor_handle processor_handle
  *  @brief Get the fan speed for the specified device as a value relative to
  *  ::AMDSMI_MAX_FAN_SPEED
  *
- *  @details Given a device handle @p processor_handle and a pointer to a uint32_t
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint32_t
  *  @p speed, this function will write the current fan speed (a value
  *  between 0 and the maximum fan speed, ::AMDSMI_MAX_FAN_SPEED) to the uint32_t
  *  pointed to by @p speed
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] sensor_ind a 0-based sensor index. Normally, this will be 0.
  *  If a device has more than one sensor, it could be greater than 0.
@@ -1941,13 +1941,13 @@ amdsmi_status_t amdsmi_get_gpu_fan_speed(amdsmi_processor_handle processor_handl
                                         uint32_t sensor_ind, int64_t *speed);
 
 /**
- *  @brief Get the max. fan speed of the device with provided device handle.
+ *  @brief Get the max. fan speed of the device with provided processor handle.
  *
- *  @details Given a device handle @p processor_handle and a pointer to a uint32_t
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint32_t
  *  @p max_speed, this function will write the maximum fan speed possible to
  *  the uint32_t pointed to by @p max_speed
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] sensor_ind a 0-based sensor index. Normally, this will be 0.
  *  If a device has more than one sensor, it could be greater than 0.
@@ -1968,12 +1968,12 @@ amdsmi_status_t amdsmi_get_gpu_fan_speed_max(amdsmi_processor_handle processor_h
  *  @brief Get the temperature metric value for the specified metric, from the
  *  specified temperature sensor on the specified device.
  *
- *  @details Given a device handle @p processor_handle, a sensor type @p sensor_type, a
+ *  @details Given a processor handle @p processor_handle, a sensor type @p sensor_type, a
  *  ::amdsmi_temperature_metric_t @p metric and a pointer to an int64_t @p
  *  temperature, this function will write the value of the metric indicated by
  *  @p metric and @p sensor_type to the memory location @p temperature.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] sensor_type part of device from which temperature should be
  *  obtained. This should come from the enum ::amdsmi_temperature_type_t
@@ -1998,12 +1998,12 @@ amdsmi_status_t  amdsmi_get_temp_metric(amdsmi_processor_handle processor_handle
  *  @brief Get the voltage metric value for the specified metric, from the
  *  specified voltage sensor on the specified device.
  *
- *  @details Given a device handle @p processor_handle, a sensor type @p sensor_type, a
+ *  @details Given a processor handle @p processor_handle, a sensor type @p sensor_type, a
  *  ::amdsmi_voltage_metric_t @p metric and a pointer to an int64_t @p
  *  voltage, this function will write the value of the metric indicated by
  *  @p metric and @p sensor_type to the memory location @p voltage.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] sensor_type part of device from which voltage should be
  *  obtained. This should come from the enum ::amdsmi_voltage_type_t
@@ -2037,7 +2037,7 @@ amdsmi_status_t  amdsmi_get_gpu_volt_metric(amdsmi_processor_handle processor_ha
  *
  *  @details This function returns control of the fan to the system
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] sensor_ind a 0-based sensor index. Normally, this will be 0.
  *  If a device has more than one sensor, it could be greater than 0.
@@ -2050,14 +2050,14 @@ amdsmi_status_t amdsmi_reset_gpu_fan(amdsmi_processor_handle processor_handle, u
  *  @brief Set the fan speed for the specified device with the provided speed,
  *  in RPMs.
  *
- *  @details Given a device handle @p processor_handle and a integer value indicating
+ *  @details Given a processor handle @p processor_handle and a integer value indicating
  *  speed @p speed, this function will attempt to set the fan speed to @p speed.
  *  An error will be returned if the specified speed is outside the allowable
  *  range for the device. The maximum value is 255 and the minimum is 0.
  *
  *  @note This function requires root access
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] sensor_ind a 0-based sensor index. Normally, this will be 0.
  *  If a device has more than one sensor, it could be greater than 0.
@@ -2081,12 +2081,12 @@ amdsmi_status_t amdsmi_set_gpu_fan_speed(amdsmi_processor_handle processor_handl
 /**
  *  @brief Get percentage of time device is busy doing any processing
  *
- *  @details Given a device handle @p processor_handle, this function returns the
+ *  @details Given a processor handle @p processor_handle, this function returns the
  *  percentage of time that the specified device is busy. The device is
  *  considered busy if any one or more of its sub-blocks are working, and idle
  *  if none of the sub-blocks are working.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in,out] busy_percent a pointer to the uint32_t to which the busy
  *  percent will be written
@@ -2103,14 +2103,14 @@ amdsmi_get_busy_percent(amdsmi_processor_handle processor_handle, uint32_t *busy
 /**
  *  @brief Get coarse grain utilization counter of the specified device
  *
- *  @details Given a device handle @p processor_handle, the array of the utilization counters,
+ *  @details Given a processor handle @p processor_handle, the array of the utilization counters,
  *  the size of the array, this function returns the coarse grain utilization counters
  *  and timestamp.
  *  The counter is the accumulated percentages. Every milliseconds the firmware calculates
  *  % busy count and then accumulates that value in the counter. This provides minimally
  *  invasive coarse grain GPU usage information.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in,out] utilization_counters Multiple utilization counters can be retreived with a single
  *  call. The caller must allocate enough space to the utilization_counters array. The caller also
@@ -2131,12 +2131,12 @@ amdsmi_get_utilization_count(amdsmi_processor_handle processor_handle,
                 uint64_t *timestamp);
 
 /**
- *  @brief Get current PCIE info of the device with provided device handle.
+ *  @brief Get current PCIE info of the device with provided processor handle.
  *
- *  @details Given a device handle @p processor_handle, this function returns PCIE info of the
+ *  @details Given a processor handle @p processor_handle, this function returns PCIE info of the
  *  given device.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[out] info amdsmi_pcie_info_t struct which will hold all the extracted PCIE info data.
  *
@@ -2145,12 +2145,12 @@ amdsmi_get_utilization_count(amdsmi_processor_handle processor_handle,
 amdsmi_status_t amdsmi_get_pcie_link_status(amdsmi_processor_handle processor_handle, amdsmi_pcie_info_t *info);
 
 /**
- *  @brief Get max PCIe capabilities of the device with provided device handle.
+ *  @brief Get max PCIe capabilities of the device with provided processor handle.
  *
- *  @details Given a device handle @p processor_handle, this function returns PCIe caps info of the
+ *  @details Given a processor handle @p processor_handle, this function returns PCIe caps info of the
  *  given device.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[out] info amdsmi_pcie_info_t struct which will hold all the extracted PCIe caps data.
  *
@@ -2162,10 +2162,10 @@ amdsmi_status_t amdsmi_get_pcie_link_caps(amdsmi_processor_handle processor_hand
  *  @brief Get the performance level of the device
  *
  *  @details This function will write the ::amdsmi_dev_perf_level_t to the uint32_t
- *  pointed to by @p perf, for a given device handle @p processor_handle and a pointer
+ *  pointed to by @p perf, for a given processor handle @p processor_handle and a pointer
  *  to a uint32_t @p perf. 
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in,out] perf a pointer to ::amdsmi_dev_perf_level_t to which the
  *  performance level will be written
@@ -2180,9 +2180,9 @@ amdsmi_status_t amdsmi_get_gpu_perf_level(amdsmi_processor_handle processor_hand
                                                  amdsmi_dev_perf_level_t *perf);
 
 /**
- *  @brief Enter performance determinism mode with provided device handle.
+ *  @brief Enter performance determinism mode with provided processor handle.
  *
- *  @details Given a device handle @p processor_handle and @p clkvalue this function
+ *  @details Given a processor handle @p processor_handle and @p clkvalue this function
  *  will enable performance determinism mode, which enforces a GFXCLK frequency
  *  SoftMax limit per GPU set by the user. This prevents the GFXCLK PLL from
  *  stretching when running the same workload on different GPUS, making
@@ -2190,7 +2190,7 @@ amdsmi_status_t amdsmi_get_gpu_perf_level(amdsmi_processor_handle processor_hand
  *  level ::amdsmi_dev_perf_level_t of the device being
  *  ::AMDSMI_DEV_PERF_LEVEL_DETERMINISM.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] clkvalue Softmax value for GFXCLK in MHz.
  *
@@ -2201,13 +2201,13 @@ amdsmi_set_gpu_perf_determinism_mode(amdsmi_processor_handle processor_handle, u
 
 /**
  *  @brief Get the overdrive percent associated with the device with provided
- *  device handle.
+ *  processor handle.
  *
- *  @details Given a device handle @p processor_handle and a pointer to a uint32_t @p od,
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint32_t @p od,
  *  this function will write the overdrive percentage to the uint32_t pointed
  *  to by @p od
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in,out] od a pointer to uint32_t to which the overdrive percentage
  *  will be written
@@ -2225,12 +2225,12 @@ amdsmi_status_t amdsmi_dev_get_overdrive_level(amdsmi_processor_handle processor
  *  @brief Get the list of possible system clock speeds of device for a
  *  specified clock type.
  *
- *  @details Given a device handle @p processor_handle, a clock type @p clk_type, and a
+ *  @details Given a processor handle @p processor_handle, a clock type @p clk_type, and a
  *  pointer to a to an ::amdsmi_frequencies_t structure @p f, this function will
  *  fill in @p f with the possible clock speeds, and indication of the current
  *  clock speed selection.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] clk_type the type of clock for which the frequency is desired
  *
@@ -2244,11 +2244,11 @@ amdsmi_status_t  amdsmi_dev_get_gpu_clk_freq(amdsmi_processor_handle processor_h
                              amdsmi_clk_type_t clk_type, amdsmi_frequencies_t *f);
 
 /**
- *  @brief Reset the gpu associated with the device with provided device handle
+ *  @brief Reset the gpu associated with the device with provided processor handle
  *
- *  @details Given a device handle @p processor_handle, this function will reset the GPU
+ *  @details Given a processor handle @p processor_handle, this function will reset the GPU
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
@@ -2257,11 +2257,11 @@ amdsmi_status_t amdsmi_dev_reset_gpu(amdsmi_processor_handle processor_handle);
 /**
  *  @brief This function retrieves the voltage/frequency curve information
  *
- *  @details Given a device handle @p processor_handle and a pointer to a
+ *  @details Given a processor handle @p processor_handle and a pointer to a
  *  ::amdsmi_od_volt_freq_data_t structure @p odv, this function will populate @p
  *  odv. See ::amdsmi_od_volt_freq_data_t for more details.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in,out] odv a pointer to an ::amdsmi_od_volt_freq_data_t structure
  *  If this parameter is nullptr, this function will return
@@ -2277,11 +2277,11 @@ amdsmi_status_t  amdsmi_dev_get_od_volt_info(amdsmi_processor_handle processor_h
 /**
  *  @brief This function retrieves the gpu metrics information
  *
- *  @details Given a device handle @p processor_handle and a pointer to a
+ *  @details Given a processor handle @p processor_handle and a pointer to a
  *  ::amdsmi_gpu_metrics_t structure @p pgpu_metrics, this function will populate
  *  @p pgpu_metrics. See ::amdsmi_gpu_metrics_t for more details.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in,out] pgpu_metrics a pointer to an ::amdsmi_gpu_metrics_t structure
  *  If this parameter is nullptr, this function will return
@@ -2297,11 +2297,11 @@ amdsmi_status_t  amdsmi_dev_get_gpu_metrics_info(amdsmi_processor_handle process
 /**
  *  @brief This function sets the clock range information
  *
- *  @details Given a device handle @p processor_handle, a minimum clock value @p minclkvalue,
+ *  @details Given a processor handle @p processor_handle, a minimum clock value @p minclkvalue,
  *  a maximum clock value @p maxclkvalue and a clock type @p clkType this function
  *  will set the sclk|mclk range
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] minclkvalue value to apply to the clock range. Frequency values
  *  are in MHz.
@@ -2320,11 +2320,11 @@ amdsmi_status_t amdsmi_dev_set_clk_range(amdsmi_processor_handle processor_handl
 /**
  *  @brief This function sets the clock frequency information
  *
- *  @details Given a device handle @p processor_handle, a frequency level @p level,
+ *  @details Given a processor handle @p processor_handle, a frequency level @p level,
  *  a clock value @p clkvalue and a clock type @p clkType this function
  *  will set the sclk|mclk range
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] level AMDSMI_FREQ_IND_MIN|AMDSMI_FREQ_IND_MAX to set the
  *  minimum (0) or maximum (1) speed.
@@ -2343,10 +2343,10 @@ amdsmi_status_t  amdsmi_dev_set_od_clk_info(amdsmi_processor_handle processor_ha
 /**
  *  @brief This function sets  1 of the 3 voltage curve points.
  *
- *  @details Given a device handle @p processor_handle, a voltage point @p vpoint
+ *  @details Given a processor handle @p processor_handle, a voltage point @p vpoint
  *  and a voltage value @p voltvalue this function will set voltage curve point
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] vpoint voltage point [0|1|2] on the voltage curve
  *
@@ -2365,7 +2365,7 @@ amdsmi_status_t  amdsmi_dev_set_od_volt_info(amdsmi_processor_handle processor_h
  *  @brief This function will retrieve the current valid regions in the
  *  frequency/voltage space.
  *
- *  @details Given a device handle @p processor_handle, a pointer to an unsigned integer
+ *  @details Given a processor handle @p processor_handle, a pointer to an unsigned integer
  *  @p num_regions and a buffer of ::amdsmi_freq_volt_region_t structures, @p
  *  buffer, this function will populate @p buffer with the current
  *  frequency-volt space regions. The caller should assign @p buffer to memory
@@ -2376,7 +2376,7 @@ amdsmi_status_t  amdsmi_dev_set_od_volt_info(amdsmi_processor_handle processor_h
  *  The number of regions to expect this function provide (@p num_regions) can
  *  be obtained by calling :: amdsmi_dev_get_od_volt_info().
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in,out] num_regions As input, this is the number of
  *  ::amdsmi_freq_volt_region_t structures that can be written to @p buffer. As
@@ -2403,7 +2403,7 @@ amdsmi_status_t  amdsmi_dev_get_od_volt_curve_regions(amdsmi_processor_handle pr
  *  @brief Get the list of available preset power profiles and an indication of
  *  which profile is currently active.
  *
- *  @details Given a device handle @p processor_handle and a pointer to a
+ *  @details Given a processor handle @p processor_handle and a pointer to a
  *  ::amdsmi_power_profile_status_t @p status, this function will set the bits of
  *  the ::amdsmi_power_profile_status_t.available_profiles bit field of @p status to
  *  1 if the profile corresponding to the respective
@@ -2416,7 +2416,7 @@ amdsmi_status_t  amdsmi_dev_get_od_volt_curve_regions(amdsmi_processor_handle pr
  *  ::amdsmi_power_profile_status_t.current will be set to the
  *  ::amdsmi_power_profile_preset_masks_t of the profile that is currently active.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] sensor_ind a 0-based sensor index. Normally, this will be 0.
  *  If a device has more than one sensor, it could be greater than 0.
@@ -2445,18 +2445,18 @@ amdsmi_status_t
 
 /**
  *  @brief Set the PowerPlay performance level associated with the device with
- *  provided device handle with the provided value.
+ *  provided processor handle with the provided value.
  *
  *  @deprecated :: amdsmi_dev_set_perf_level_v1() is preferred, with an
  *  interface that more closely  matches the rest of the amd_smi API.
  *
- *  @details Given a device handle @p processor_handle and an ::amdsmi_dev_perf_level_t @p
+ *  @details Given a processor handle @p processor_handle and an ::amdsmi_dev_perf_level_t @p
  *  perf_level, this function will set the PowerPlay performance level for the
  *  device to the value @p perf_lvl.
  *
  *  @note This function requires root access
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] perf_lvl the value to which the performance level should be set
  *
@@ -2467,15 +2467,15 @@ amdsmi_status_t
 
 /**
  *  @brief Set the PowerPlay performance level associated with the device with
- *  provided device handle with the provided value.
+ *  provided processor handle with the provided value.
  *
- *  @details Given a device handle @p processor_handle and an ::amdsmi_dev_perf_level_t @p
+ *  @details Given a processor handle @p processor_handle and an ::amdsmi_dev_perf_level_t @p
  *  perf_level, this function will set the PowerPlay performance level for the
  *  device to the value @p perf_lvl.
  *
  *  @note This function requires root access
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] perf_lvl the value to which the performance level should be set
  *
@@ -2486,13 +2486,13 @@ amdsmi_status_t
 
 /**
  *  @brief Set the overdrive percent associated with the device with provided
- *  device handle with the provided value. See details for WARNING.
+ *  processor handle with the provided value. See details for WARNING.
  *
  *  @deprecated This function is deprecated. :: amdsmi_dev_set_overdrive_level_v1
  *  has the same functionaltiy, with an interface that more closely
  *  matches the rest of the amd_smi API.
  *
- *  @details Given a device handle @p processor_handle and an overdrive level @p od,
+ *  @details Given a processor handle @p processor_handle and an overdrive level @p od,
  *  this function will set the overdrive level for the device to the value
  *  @p od. The overdrive level is an integer value between 0 and 20, inclusive,
  *  which represents the overdrive percentage; e.g., a value of 5 specifies
@@ -2517,7 +2517,7 @@ amdsmi_status_t
  *  WARRANTY AND MAY NOT BE COVERED BY YOUR BOARD OR SYSTEM MANUFACTURER'S
  *  WARRANTY. Please use this utility with caution.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] od the value to which the overdrive level should be set
  *
@@ -2527,9 +2527,9 @@ amdsmi_status_t  amdsmi_dev_set_overdrive_level(amdsmi_processor_handle processo
 
 /**
  *  @brief Set the overdrive percent associated with the device with provided
- *  device handle with the provided value. See details for WARNING.
+ *  processor handle with the provided value. See details for WARNING.
  *
- *  @details Given a device handle @p processor_handle and an overdrive level @p od,
+ *  @details Given a processor handle @p processor_handle and an overdrive level @p od,
  *  this function will set the overdrive level for the device to the value
  *  @p od. The overdrive level is an integer value between 0 and 20, inclusive,
  *  which represents the overdrive percentage; e.g., a value of 5 specifies
@@ -2556,7 +2556,7 @@ amdsmi_status_t  amdsmi_dev_set_overdrive_level(amdsmi_processor_handle processo
  *
  *  @note This function requires root access
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] od the value to which the overdrive level should be set
  *
@@ -2568,7 +2568,7 @@ amdsmi_status_t  amdsmi_dev_set_overdrive_level_v1(amdsmi_processor_handle proce
  * @brief Control the set of allowed frequencies that can be used for the
  * specified clock.
  *
- * @details Given a device handle @p processor_handle, a clock type @p clk_type, and a
+ * @details Given a processor handle @p processor_handle, a clock type @p clk_type, and a
  * 64 bit bitmask @p freq_bitmask, this function will limit the set of
  * allowable frequencies. If a bit in @p freq_bitmask has a value of 1, then
  * the frequency (as ordered in an ::amdsmi_frequencies_t returned by
@@ -2585,7 +2585,7 @@ amdsmi_status_t  amdsmi_dev_set_overdrive_level_v1(amdsmi_processor_handle proce
  *
  *  @note This function requires root access
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] clk_type the type of clock for which the set of frequencies
  *  will be modified
@@ -2661,12 +2661,12 @@ amdsmi_get_version_str(amdsmi_sw_component_t component, char *ver_str,
 /**
  *  @brief Retrieve the error counts for a GPU block
  *
- *  @details Given a device handle @p processor_handle, an ::amdsmi_gpu_block_t @p block and a
+ *  @details Given a processor handle @p processor_handle, an ::amdsmi_gpu_block_t @p block and a
  *  pointer to an ::amdsmi_error_count_t @p ec, this function will write the error
  *  count values for the GPU block indicated by @p block to memory pointed to by
  *  @p ec.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] block The block for which error counts should be retrieved
  *
@@ -2685,7 +2685,7 @@ amdsmi_status_t  amdsmi_dev_get_ecc_count(amdsmi_processor_handle processor_hand
 /**
  *  @brief Retrieve the enabled ECC bit-mask
  *
- *  @details Given a device handle @p processor_handle, and a pointer to a uint64_t @p
+ *  @details Given a processor handle @p processor_handle, and a pointer to a uint64_t @p
  *  enabled_mask, this function will write bits to memory pointed to by
  *  @p enabled_blocks. Upon a successful call, @p enabled_blocks can then be
  *  AND'd with elements of the ::amdsmi_gpu_block_t ennumeration to determine if
@@ -2695,7 +2695,7 @@ amdsmi_status_t  amdsmi_dev_get_ecc_count(amdsmi_processor_handle processor_hand
  *  but there may not be kernel support for reading error counters for that
  *  block.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in,out] enabled_blocks A pointer to a uint64_t to which the enabled
  *  blocks bits will be written.
@@ -2712,12 +2712,12 @@ amdsmi_status_t  amdsmi_dev_get_ecc_enabled(amdsmi_processor_handle processor_ha
 /**
  *  @brief Retrieve the ECC status for a GPU block
  *
- *  @details Given a device handle @p processor_handle, an ::amdsmi_gpu_block_t @p block and
+ *  @details Given a processor handle @p processor_handle, an ::amdsmi_gpu_block_t @p block and
  *  a pointer to an ::amdsmi_ras_err_state_t @p state, this function will write
  *  the current state for the GPU block indicated by @p block to memory pointed
  *  to by @p state.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] block The block for which error counts should be retrieved
  *
@@ -2856,11 +2856,11 @@ amdsmi_status_string(amdsmi_status_t status, const char **status_string);
 /**
  *  @brief Tell if an event group is supported by a given device
  *
- *  @details Given a device handle @p processor_handle and an event group specifier @p
+ *  @details Given a processor handle @p processor_handle and an event group specifier @p
  *  group, tell if @p group type events are supported by the device associated
  *  with @p processor_handle
  *
- *  @param[in] processor_handle device handle of device being queried
+ *  @param[in] processor_handle processor handle of device being queried
  *
  *  @param[in] group ::amdsmi_event_group_t identifier of group for which support
  *  is being queried
@@ -2874,14 +2874,14 @@ amdsmi_dev_counter_group_supported(amdsmi_processor_handle processor_handle, amd
  *  @brief Create a performance counter object
  *
  *  @details Create a performance counter object of type @p type for the device
- *  with a device handle of @p processor_handle, and write a handle to the object to the
+ *  with a processor handle of @p processor_handle, and write a handle to the object to the
  *  memory location pointed to by @p evnt_handle. @p evnt_handle can be used
  *  with other performance event operations. The handle should be deallocated
  *  with ::amdsmi_dev_destroy_counter() when no longer needed.
  *
  *  @note This function requires root access
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] type the ::amdsmi_event_type_t of performance event to create
  *
@@ -2956,12 +2956,12 @@ amdsmi_read_counter(amdsmi_event_handle_t evt_handle,
 /**
  *  @brief Get the number of currently available counters
  *
- *  @details Given a device handle @p processor_handle, a performance event group @p grp,
+ *  @details Given a processor handle @p processor_handle, a performance event group @p grp,
  *  and a pointer to a uint32_t @p available, this function will write the
  *  number of @p grp type counters that are available on the device with handle
  *  @p processor_handle to the memory that @p available points to.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in] grp an event device group
  *
@@ -3076,12 +3076,12 @@ amdsmi_get_compute_process_gpus(uint32_t pid, uint32_t *dv_indices,
 /**
  *  @brief Retrieve the XGMI error status for a device
  *
- *  @details Given a device handle @p processor_handle, and a pointer to an
+ *  @details Given a processor handle @p processor_handle, and a pointer to an
  *  ::amdsmi_xgmi_status_t @p status, this function will write the current XGMI
  *  error state ::amdsmi_xgmi_status_t for the device @p processor_handle to the memory
  *  pointed to by @p status.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in,out] status A pointer to an ::amdsmi_xgmi_status_t to which the
  *  XGMI error state should be written
@@ -3098,11 +3098,11 @@ amdsmi_dev_xgmi_error_status(amdsmi_processor_handle processor_handle, amdsmi_xg
 /**
  * @brief Reset the XGMI error status for a device
  *
- * @details Given a device handle @p processor_handle, this function will reset the
+ * @details Given a processor handle @p processor_handle, this function will reset the
  * current XGMI error state ::amdsmi_xgmi_status_t for the device @p processor_handle to
  * amdsmi_xgmi_status_t::AMDSMI_XGMI_STATUS_NO_ERRORS
  *
- * @param[in] processor_handle a device handle
+ * @param[in] processor_handle a processor handle
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
@@ -3120,12 +3120,12 @@ amdsmi_dev_reset_xgmi_error(amdsmi_processor_handle processor_handle);
 /**
  *  @brief Retrieve the NUMA CPU node number for a device
  *
- *  @details Given a device handle @p processor_handle, and a pointer to an
+ *  @details Given a processor handle @p processor_handle, and a pointer to an
  *  uint32_t @p numa_node, this function will write the
  *  node number of NUMA CPU for the device @p processor_handle to the memory
  *  pointed to by @p numa_node.
  *
- *  @param[in] processor_handle a device handle
+ *  @param[in] processor_handle a processor handle
  *
  *  @param[in,out] numa_node A pointer to an uint32_t to which the
  *  numa node number should be written.
@@ -3138,15 +3138,15 @@ amdsmi_topo_get_numa_node_number(amdsmi_processor_handle processor_handle, uint3
 /**
  *  @brief Retrieve the weight for a connection between 2 GPUs
  *
- *  @details Given a source device handle @p processor_handle_src and
- *  a destination device handle @p processor_handle_dst, and a pointer to an
+ *  @details Given a source processor handle @p processor_handle_src and
+ *  a destination processor handle @p processor_handle_dst, and a pointer to an
  *  uint64_t @p weight, this function will write the
  *  weight for the connection between the device @p processor_handle_src
  *  and @p processor_handle_dst to the memory pointed to by @p weight.
  *
- *  @param[in] processor_handle_src the source device handle
+ *  @param[in] processor_handle_src the source processor handle
  *
- *  @param[in] processor_handle_dst the destination device handle
+ *  @param[in] processor_handle_dst the destination processor handle
  *
  *  @param[in,out] weight A pointer to an uint64_t to which the
  *  weight for the connection should be written.
@@ -3160,15 +3160,15 @@ amdsmi_topo_get_link_weight(amdsmi_processor_handle processor_handle_src, amdsmi
 /**
  *  @brief Retreive minimal and maximal io link bandwidth between 2 GPUs
  *
- *  @details Given a source device handle @p processor_handle_src and
- *  a destination device handle @p processor_handle_dst,  pointer to an
+ *  @details Given a source processor handle @p processor_handle_src and
+ *  a destination processor handle @p processor_handle_dst,  pointer to an
  *  uint64_t @p min_bandwidth, and a pointer to uint64_t @p max_bandiwidth,
  *  this function will write theoretical minimal and maximal bandwidth limits.
  *  API works if src and dst are connected via xgmi and have 1 hop distance.
  *
- *  @param[in] processor_handle_src the source device handle
+ *  @param[in] processor_handle_src the source processor handle
  *
- *  @param[in] processor_handle_dst the destination device handle
+ *  @param[in] processor_handle_dst the destination processor handle
  *
  *  @param[in,out] min_bandwidth A pointer to an uint64_t to which the
  *  minimal bandwidth for the connection should be written.
@@ -3185,16 +3185,16 @@ amdsmi_status_t
 /**
  *  @brief Retrieve the hops and the connection type between 2 GPUs
  *
- *  @details Given a source device handle @p processor_handle_src and
- *  a destination device handle @p processor_handle_dst, and a pointer to an
+ *  @details Given a source processor handle @p processor_handle_src and
+ *  a destination processor handle @p processor_handle_dst, and a pointer to an
  *  uint64_t @p hops and a pointer to an AMDSMI_IO_LINK_TYPE @p type,
  *  this function will write the number of hops and the connection type
  *  between the device @p processor_handle_src and @p processor_handle_dst to the memory
  *  pointed to by @p hops and @p type.
  *
- *  @param[in] processor_handle_src the source device handle
+ *  @param[in] processor_handle_src the source processor handle
  *
- *  @param[in] processor_handle_dst the destination device handle
+ *  @param[in] processor_handle_dst the destination processor handle
  *
  *  @param[in,out] hops A pointer to an uint64_t to which the
  *  hops for the connection should be written.
@@ -3212,15 +3212,15 @@ amdsmi_topo_get_link_type(amdsmi_processor_handle processor_handle_src,
 /**
  *  @brief Return P2P availability status between 2 GPUs
  *
- *  @details Given a source device handle @p processor_handle_src and
- *  a destination device handle @p processor_handle_dst, and a pointer to a
+ *  @details Given a source processor handle @p processor_handle_src and
+ *  a destination processor handle @p processor_handle_dst, and a pointer to a
  *  bool @p accessible, this function will write the P2P connection status
  *  between the device @p processor_handle_src and @p processor_handle_dst to the memory
  *  pointed to by @p accessible.
  *
- *  @param[in] processor_handle_src the source device handle
+ *  @param[in] processor_handle_src the source processor handle
  *
- *  @param[in] processor_handle_dst the destination device handle
+ *  @param[in] processor_handle_dst the destination processor handle
  *
  *  @param[in,out] accessible A pointer to a bool to which the status for
  *  the P2P connection availablity should be written.
@@ -3279,7 +3279,7 @@ amdsmi_is_P2P_accessible(amdsmi_processor_handle processor_handle_src, amdsmi_pr
  *     amdsmi_status_t err;
  *     amdsmi_processor_handle device;
  *
- *     // Get the device handle via amdsmi_get_processor_handles()
+ *     // Get the processor handle via amdsmi_get_processor_handles()
  *     // ... ...
  *
  *     std::cout << "Supported AMDSMI Functions:" << std::endl; *
@@ -3347,7 +3347,7 @@ amdsmi_is_P2P_accessible(amdsmi_processor_handle processor_handle_src, amdsmi_pr
 /**
  * @brief Get a function name iterator of supported AMDSMI functions for a device
  *
- * @details Given a device handle @p processor_handle, this function will write a function
+ * @details Given a processor handle @p processor_handle, this function will write a function
  * iterator handle to the caller-provided memory pointed to by @p handle. This
  * handle can be used to iterate through all the supported functions.
  *
@@ -3357,7 +3357,7 @@ amdsmi_is_P2P_accessible(amdsmi_processor_handle processor_handle_src, amdsmi_pr
  * ::amdsmi_dev_open_supported_func_iterator does not depend on hardware or
  * driver support and should always be supported.
  *
- * @param[in] processor_handle a device handle of device for which support information is
+ * @param[in] processor_handle a processor handle of device for which support information is
  * requested
  *
  * @param[in,out] handle A pointer to caller-provided memory to which the
@@ -3465,7 +3465,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
  * may open files which will remain open until ::amdsmi_stop_event_notification()
  * is called.
  *
- * @param processor_handle a device handle corresponding to the device on which to
+ * @param processor_handle a processor handle corresponding to the device on which to
  * listen for events
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
@@ -3476,12 +3476,12 @@ amdsmi_init_event_notification(amdsmi_processor_handle processor_handle);
 /**
  * @brief Specify which events to collect for a device
  *
- * @details Given a device handle @p processor_handle and a @p mask consisting of
+ * @details Given a processor handle @p processor_handle and a @p mask consisting of
  * elements of ::amdsmi_evt_notification_type_t OR'd together, this function
  * will listen for the events specified in @p mask on the device
  * corresponding to @p processor_handle.
  *
- * @param processor_handle a device handle corresponding to the device on which to
+ * @param processor_handle a processor handle corresponding to the device on which to
  * listen for events
  *
  * @param mask Bitmask generated by OR'ing 1 or more elements of
@@ -3546,11 +3546,11 @@ amdsmi_status_t
  * notification for a GPU
  *
  * @details Any resources used by event notification for the GPU with
- * device handle @p processor_handle will be free with this
+ * processor handle @p processor_handle will be free with this
  * function. This includes freeing any memory and closing file handles. This
  * should be called for every call to ::amdsmi_init_event_notification()
  *
- * @param[in] processor_handle The device handle of the GPU for which event
+ * @param[in] processor_handle The processor handle of the GPU for which event
  * notification resources will be free
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
