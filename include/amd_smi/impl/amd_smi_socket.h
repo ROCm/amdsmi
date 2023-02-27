@@ -48,7 +48,7 @@
 #include <algorithm>
 #include <vector>
 #include "amd_smi/amdsmi.h"
-#include "amd_smi/impl/amd_smi_device.h"
+#include "amd_smi/impl/amd_smi_processor.h"
 
 namespace amd {
 namespace smi {

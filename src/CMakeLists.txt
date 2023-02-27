@@ -41,7 +41,7 @@ set(SRC_LIST
 set(INC_LIST
     "${INC_DIR}/amdsmi.h"
     "${INC_DIR}/impl/amd_smi_common.h"
-    "${INC_DIR}/impl/amd_smi_device.h"
+    "${INC_DIR}/impl/amd_smi_processor.h"
     "${INC_DIR}/impl/amd_smi_drm.h"
     "${INC_DIR}/impl/amd_smi_gpu_device.h"
     "${INC_DIR}/impl/amd_smi_lib_loader.h"
