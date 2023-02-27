@@ -2396,7 +2396,7 @@ amdsmi_status_t  amdsmi_set_gpu_od_volt_info(amdsmi_processor_handle processor_h
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_get_od_volt_curve_regions(amdsmi_processor_handle processor_handle,
+amdsmi_status_t  amdsmi_get_gpu_od_volt_curve_regions(amdsmi_processor_handle processor_handle,
                       uint32_t *num_regions, amdsmi_freq_volt_region_t *buffer);
 
 /**

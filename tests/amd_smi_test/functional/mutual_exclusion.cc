@@ -243,7 +243,7 @@ void TestMutualExclusion::Run(void) {
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret =  amdsmi_get_gpu_od_volt_info(processor_handles_[0], &dmy_od_volt);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret =  amdsmi_dev_get_od_volt_curve_regions(processor_handles_[0], &dmy_ui32, &dmy_vlt_reg);
+    ret =  amdsmi_get_gpu_od_volt_curve_regions(processor_handles_[0], &dmy_ui32, &dmy_vlt_reg);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret =  amdsmi_dev_set_overdrive_level_v1(processor_handles_[0], dmy_i32);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
@@ -281,7 +281,7 @@ void TestMutualExclusion::Run(void) {
     amdsmi_get_gpu_fan_speed_max
      amdsmi_get_gpu_od_volt_info
      amdsmi_get_gpu_metrics_info
-     amdsmi_dev_get_od_volt_curve_regions
+     amdsmi_get_gpu_od_volt_curve_regions
     amdsmi_dev_power_max_get
     amdsmi_get_power_ave
     amdsmi_dev_power_cap_get

@@ -920,7 +920,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_vbios_version_get", "amdsmi_get_gpu_vbios_info"},
         {"rsmi_dev_od_volt_info_get", " amdsmi_get_gpu_od_volt_info"},
         {"rsmi_dev_od_volt_info_set", " amdsmi_set_gpu_od_volt_info"},
-        {"rsmi_dev_od_volt_curve_regions_get", " amdsmi_dev_get_od_volt_curve_regions"},
+        {"rsmi_dev_od_volt_curve_regions_get", " amdsmi_get_gpu_od_volt_curve_regions"},
         {"rsmi_dev_ecc_enabled_get", " amdsmi_dev_get_gpu_ecc_enabled"},
         {"rsmi_dev_ecc_status_get", " amdsmi_dev_get_gpu_ecc_status"},
         {"rsmi_dev_counter_group_supported", "amdsmi_gpu_counter_group_supported"},
@@ -1308,7 +1308,7 @@ amdsmi_status_t  amdsmi_get_gpu_od_volt_info(amdsmi_processor_handle processor_h
                     reinterpret_cast<rsmi_od_volt_freq_data_t*>(odv));
 }
 
-amdsmi_status_t  amdsmi_dev_get_od_volt_curve_regions(
+amdsmi_status_t  amdsmi_get_gpu_od_volt_curve_regions(
                     amdsmi_processor_handle processor_handle,
                     uint32_t *num_regions, amdsmi_freq_volt_region_t *buffer) {
     return rsmi_wrapper(rsmi_dev_od_volt_curve_regions_get, processor_handle,

@@ -1550,9 +1550,9 @@ amdsmi_set_gpu_od_clk_info.argtypes = [amdsmi_processor_handle, amdsmi_freq_ind_
 amdsmi_set_gpu_od_volt_info = _libraries['libamd_smi.so'].amdsmi_set_gpu_od_volt_info
 amdsmi_set_gpu_od_volt_info.restype = amdsmi_status_t
 amdsmi_set_gpu_od_volt_info.argtypes = [amdsmi_processor_handle, uint32_t, uint64_t, uint64_t]
-amdsmi_dev_get_od_volt_curve_regions = _libraries['libamd_smi.so'].amdsmi_dev_get_od_volt_curve_regions
-amdsmi_dev_get_od_volt_curve_regions.restype = amdsmi_status_t
-amdsmi_dev_get_od_volt_curve_regions.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(struct_c__SA_amdsmi_freq_volt_region_t)]
+amdsmi_get_gpu_od_volt_curve_regions = _libraries['libamd_smi.so'].amdsmi_get_gpu_od_volt_curve_regions
+amdsmi_get_gpu_od_volt_curve_regions.restype = amdsmi_status_t
+amdsmi_get_gpu_od_volt_curve_regions.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(struct_c__SA_amdsmi_freq_volt_region_t)]
 amdsmi_get_gpu_power_profile_presets = _libraries['libamd_smi.so'].amdsmi_get_gpu_power_profile_presets
 amdsmi_get_gpu_power_profile_presets.restype = amdsmi_status_t
 amdsmi_get_gpu_power_profile_presets.argtypes = [amdsmi_processor_handle, uint32_t, ctypes.POINTER(struct_c__SA_amdsmi_power_profile_status_t)]
@@ -1860,7 +1860,7 @@ __all__ = \
     'amdsmi_get_gpu_id', 'amdsmi_get_gpu_memory_busy_percent',
     'amdsmi_get_gpu_memory_reserved_pages',
     'amdsmi_get_gpu_memory_total', 'amdsmi_get_gpu_memory_usage',
-    'amdsmi_dev_get_od_volt_curve_regions',
+    'amdsmi_get_gpu_od_volt_curve_regions',
     'amdsmi_get_gpu_od_volt_info', 'amdsmi_get_gpu_overdrive_level',
     'amdsmi_get_gpu_pci_bandwidth', 'amdsmi_get_gpu_pci_id',
     'amdsmi_get_gpu_pci_replay_counter',
