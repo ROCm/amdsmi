@@ -313,7 +313,7 @@ class Formatter:
     |     """ + self.style.text("24   Get utilization count.                Api: amdsmi_get_utilization_count           <bdf>") + """                        |
     |     """ + self.style.text("25   Get device perf level.                Api: amdsmi_get_gpu_perf_level              <bdf>") + """                        |
     |     """ + self.style.text("26   Set perf determinism mode.            Api: amdsmi_set_gpu_perf_determinism_mode       <bdf><clock_value>") + """           |
-    |     """ + self.style.text("27   Get device overdrive level.           Api: amdsmi_dev_get_overdrive_level         <bdf>") + """                        |
+    |     """ + self.style.text("27   Get device overdrive level.           Api: amdsmi_get_gpu_overdrive_level         <bdf>") + """                        |
     |     """ + self.style.text("28   Get device gpu clk freq.              Api:  amdsmi_get_clk_freq            <bdf>") + """                        |
     |     """ + self.style.text("29   Get device od volt.                   Api:  amdsmi_dev_get_od_volt_info            <bdf>") + """                        |
     |     """ + self.style.text("30   Get device gpu metrics.               Api:  amdsmi_get_gpu_metrics_info        <bdf>") + """                        |
@@ -805,7 +805,7 @@ commands = {
         "device_identifier1": [None, True],
         "clock_value": [int, True]
     }],
-    27: [smi_api.amdsmi_dev_get_overdrive_level, {
+    27: [smi_api.amdsmi_get_gpu_overdrive_level, {
         "device_identifier1": [None, True]
     }],
     28: [amdsmi_tool_dev_gpu_clk_freq_get, {

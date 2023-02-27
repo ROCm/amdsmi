@@ -2267,7 +2267,7 @@ def amdsmi_set_gpu_perf_determinism_mode(
         processor_handle, clkvalue))
 
 
-def amdsmi_dev_get_overdrive_level(
+def amdsmi_get_gpu_overdrive_level(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> int:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -2277,7 +2277,7 @@ def amdsmi_dev_get_overdrive_level(
 
     od_level = ctypes.c_uint32()
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_get_overdrive_level(
+        amdsmi_wrapper.amdsmi_get_gpu_overdrive_level(
             processor_handle, ctypes.byref(od_level)
         )
     )

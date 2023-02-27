@@ -2011,7 +2011,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_get_overdrive_level
+## amdsmi_get_gpu_overdrive_level
 Description: Get the overdrive percent associated with the device with provided
 device handle
 
@@ -2020,7 +2020,7 @@ Input parameters:
 
 Output: Overdrive percentage as integer
 
-Exceptions that can be thrown by `amdsmi_dev_get_overdrive_level` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_overdrive_level` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2033,7 +2033,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            od_level = amdsmi_dev_get_overdrive_level(dev)
+            od_level = amdsmi_get_gpu_overdrive_level(dev)
             print(od_level)
 except AmdSmiException as e:
     print(e)
