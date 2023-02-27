@@ -1409,7 +1409,7 @@ def amdsmi_gpu_control_counter(
     )
 
 
-def amdsmi_read_counter(
+def amdsmi_gpu_read_counter(
     event_handle: amdsmi_wrapper.amdsmi_event_handle_t,
 ) -> Dict[str, Any]:
     if not isinstance(event_handle, amdsmi_wrapper.amdsmi_event_handle_t):
@@ -1420,7 +1420,7 @@ def amdsmi_read_counter(
     counter_value = amdsmi_wrapper.amdsmi_counter_value_t()
 
     _check_res(
-        amdsmi_wrapper.amdsmi_read_counter(
+        amdsmi_wrapper.amdsmi_gpu_read_counter(
             event_handle, ctypes.byref(counter_value))
     )
 

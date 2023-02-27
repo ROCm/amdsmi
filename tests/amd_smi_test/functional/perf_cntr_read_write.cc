@@ -136,7 +136,7 @@ void TestPerfCntrReadWrite::CountEvents(amdsmi_processor_handle dv_ind,
   }
   sleep(sleep_sec);
 
-  ret = amdsmi_read_counter(evt_handle, val);
+  ret = amdsmi_gpu_read_counter(evt_handle, val);
   CHK_ERR_ASRT(ret)
 
   IF_VERB(STANDARD) {
@@ -325,7 +325,7 @@ TestPerfCntrReadWrite::testEventsSimultaneously(amdsmi_processor_handle dv_ind) 
       for (j = 0; j < num_created; ++j) {
         tmp = static_cast<amdsmi_event_type_t>(evnt + j);
 
-        ret = amdsmi_read_counter(evt_handle.get()[j], &val);
+        ret = amdsmi_gpu_read_counter(evt_handle.get()[j], &val);
         CHK_ERR_ASRT(ret)
 
         IF_VERB(STANDARD) {

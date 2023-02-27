@@ -2783,7 +2783,7 @@ amdsmi_status_string(amdsmi_status_t status, const char **status_string);
  *  controlled (i.e., started, stopped,...) with ::amdsmi_gpu_control_counter() by
  *  passing ::amdsmi_counter_command_t commands. ::AMDSMI_CNTR_CMD_START starts an
  *  event counter and ::AMDSMI_CNTR_CMD_STOP stops a counter.
- *  ::amdsmi_read_counter() reads an event counter.
+ *  ::amdsmi_gpu_read_counter() reads an event counter.
  *
  *  Once the counter is no longer needed, the resources it uses should be freed
  *  by calling ::amdsmi_gpu_destroy_counter().
@@ -2794,12 +2794,12 @@ amdsmi_status_string(amdsmi_status_t status, const char **status_string);
  *  - A running "absolute" counter is kept internally. For the discussion that
  *  follows, we will call the internal counter value at time @a t @a
  *  val<sub>t</sub>
- *  - Issuing ::AMDSMI_CNTR_CMD_START or calling ::amdsmi_read_counter(), causes
+ *  - Issuing ::AMDSMI_CNTR_CMD_START or calling ::amdsmi_gpu_read_counter(), causes
  *  AMDSMI (in kernel) to internally record the current absolute counter value
- *  - ::amdsmi_read_counter() returns the number of events that have occurred
+ *  - ::amdsmi_gpu_read_counter() returns the number of events that have occurred
  *  since the previously recorded value (ie, a relative value,
  *  @a val<sub>t</sub> - val<sub>t-1</sub>) from the issuing of
- *  ::AMDSMI_CNTR_CMD_START or calling ::amdsmi_read_counter()
+ *  ::AMDSMI_CNTR_CMD_START or calling ::amdsmi_gpu_read_counter()
  *
  *  Example of event counting sequence:
  *
@@ -2836,12 +2836,12 @@ amdsmi_status_string(amdsmi_status_t status, const char **status_string);
  *    // Wait...
  *
  *    // Get the number of events since AMDSMI_CNTR_CMD_START was issued:
- *    ret = amdsmi_read_counter(amdsmi_event_handle_t evt_handle, &value)
+ *    ret = amdsmi_gpu_read_counter(amdsmi_event_handle_t evt_handle, &value)
  *
  *    // Wait...
  *
- *    // Get the number of events since amdsmi_read_counter() was last called:
- *    ret = amdsmi_read_counter(amdsmi_event_handle_t evt_handle, &value)
+ *    // Get the number of events since amdsmi_gpu_read_counter() was last called:
+ *    ret = amdsmi_gpu_read_counter(amdsmi_event_handle_t evt_handle, &value)
  *
  *    // Stop counting.
  *    ret = amdsmi_gpu_control_counter(evnt_handle, AMDSMI_CNTR_CMD_STOP, NULL);
@@ -2950,7 +2950,7 @@ amdsmi_gpu_control_counter(amdsmi_event_handle_t evt_handle,
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_read_counter(amdsmi_event_handle_t evt_handle,
+amdsmi_gpu_read_counter(amdsmi_event_handle_t evt_handle,
                     amdsmi_counter_value_t *value);
 
 /**
