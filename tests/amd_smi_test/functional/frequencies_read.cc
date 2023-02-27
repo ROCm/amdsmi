@@ -116,12 +116,12 @@ void TestFrequenciesRead::Run(void) {
   for (uint32_t x = 0; x < num_iterations(); ++x) {
     for (uint32_t i = 0; i < num_monitor_devs(); ++i) {
       auto freq_output = [&](amdsmi_clk_type_t t, const char *name) {
-        err =  amdsmi_dev_get_gpu_clk_freq(processor_handles_[i], t, &f);
+        err =  amdsmi_get_clk_freq(processor_handles_[i], t, &f);
         if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
           std::cout << "\t**Get " << name <<
                                ": Not supported on this machine" << std::endl;
           // Verify api support checking functionality is working
-          err =  amdsmi_dev_get_gpu_clk_freq(processor_handles_[i], t, nullptr);
+          err =  amdsmi_get_clk_freq(processor_handles_[i], t, nullptr);
           ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
         } else if (err == AMDSMI_STATUS_NOT_YET_IMPLEMENTED) {
           std::cout << "\t**Get " << name <<
@@ -133,7 +133,7 @@ void TestFrequenciesRead::Run(void) {
               std::cout << f.num_supported << std::endl;
               print_frequencies(&f);
               // Verify api support checking functionality is working
-              err =  amdsmi_dev_get_gpu_clk_freq(processor_handles_[i], t, nullptr);
+              err =  amdsmi_get_clk_freq(processor_handles_[i], t, nullptr);
               ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
             }
         }

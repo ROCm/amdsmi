@@ -113,7 +113,7 @@ void TestFrequenciesReadWrite::Run(void) {
         std::cout << amdsmi_clk << std::endl;
         if (amdsmi_clk == CLK_TYPE_PCIE)
           return false;
-        ret =  amdsmi_dev_get_gpu_clk_freq(processor_handles_[dv_ind], amdsmi_clk, &f);
+        ret =  amdsmi_get_clk_freq(processor_handles_[dv_ind], amdsmi_clk, &f);
         std::cout << ret << std::endl;
 
         if (ret == AMDSMI_STATUS_NOT_SUPPORTED ||
@@ -166,7 +166,7 @@ void TestFrequenciesReadWrite::Run(void) {
           return;
         }
         CHK_ERR_ASRT(ret)
-        ret =  amdsmi_dev_get_gpu_clk_freq(processor_handles_[dv_ind], amdsmi_clk, &f);
+        ret =  amdsmi_get_clk_freq(processor_handles_[dv_ind], amdsmi_clk, &f);
         if (ret != AMDSMI_STATUS_SUCCESS) {
           return;
         }
@@ -194,7 +194,7 @@ void TestFrequenciesReadWrite::Run(void) {
       freq_write();
       CHK_ERR_ASRT(ret)
 #if 0
-      ret =  amdsmi_dev_get_gpu_clk_freq(dv_ind, amdsmi_clk, &f);
+      ret =  amdsmi_get_clk_freq(dv_ind, amdsmi_clk, &f);
       CHK_ERR_ASRT(ret)
 
       IF_VERB(STANDARD) {
@@ -218,7 +218,7 @@ void TestFrequenciesReadWrite::Run(void) {
       ret =  amdsmi_dev_set_clk_freq(dv_ind, amdsmi_clk, freq_bitmask);
       CHK_ERR_ASRT(ret)
 
-      ret =  amdsmi_dev_get_gpu_clk_freq(dv_ind, amdsmi_clk, &f);
+      ret =  amdsmi_get_clk_freq(dv_ind, amdsmi_clk, &f);
       CHK_ERR_ASRT(ret)
 
       IF_VERB(STANDARD) {
