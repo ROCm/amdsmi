@@ -63,7 +63,7 @@ from .amdsmi_interface import amdsmi_get_process_list
 from .amdsmi_interface import amdsmi_get_process_info
 
 # # ECC Error Information
-from .amdsmi_interface import amdsmi_get_ecc_error_count
+from .amdsmi_interface import amdsmi_get_gpu_ecc_error_count
 
 # # Board Information
 from .amdsmi_interface import amdsmi_get_gpu_board_info

@@ -271,9 +271,9 @@ int main() {
 
             // Get ECC error counts
             amdsmi_error_count_t err_cnt_info = {};
-            ret = amdsmi_get_ecc_error_count(processor_handles[j], &err_cnt_info);
+            ret = amdsmi_get_gpu_ecc_error_count(processor_handles[j], &err_cnt_info);
             CHK_AMDSMI_RET(ret)
-            printf("    Output of amdsmi_get_ecc_error_count:\n");
+            printf("    Output of amdsmi_get_gpu_ecc_error_count:\n");
             printf("\tCorrectable errors: %lu\n", err_cnt_info.correctable_count);
             printf("\tUncorrectable errors: %lu\n\n",
                    err_cnt_info.uncorrectable_count);

@@ -3878,7 +3878,7 @@ amdsmi_get_process_info(amdsmi_processor_handle processor_handle, amdsmi_process
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_ecc_error_count(amdsmi_processor_handle processor_handle, amdsmi_error_count_t *ec);
+amdsmi_get_gpu_ecc_error_count(amdsmi_processor_handle processor_handle, amdsmi_error_count_t *ec);
 
 /** @} End eccinfo */
 

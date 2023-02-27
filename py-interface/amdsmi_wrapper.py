@@ -1715,9 +1715,9 @@ amdsmi_get_process_list.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctyp
 amdsmi_get_process_info = _libraries['libamd_smi.so'].amdsmi_get_process_info
 amdsmi_get_process_info.restype = amdsmi_status_t
 amdsmi_get_process_info.argtypes = [amdsmi_processor_handle, amdsmi_process_handle, ctypes.POINTER(struct_c__SA_amdsmi_proc_info_t)]
-amdsmi_get_ecc_error_count = _libraries['libamd_smi.so'].amdsmi_get_ecc_error_count
-amdsmi_get_ecc_error_count.restype = amdsmi_status_t
-amdsmi_get_ecc_error_count.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_c__SA_amdsmi_error_count_t)]
+amdsmi_get_gpu_ecc_error_count = _libraries['libamd_smi.so'].amdsmi_get_gpu_ecc_error_count
+amdsmi_get_gpu_ecc_error_count.restype = amdsmi_status_t
+amdsmi_get_gpu_ecc_error_count.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_c__SA_amdsmi_error_count_t)]
 __all__ = \
     ['AMDSMI_CNTR_CMD_START', 'AMDSMI_CNTR_CMD_STOP',
     'AMDSMI_COARSE_GRAIN_GFX_ACTIVITY',
@@ -1901,7 +1901,7 @@ __all__ = \
     'amdsmi_get_compute_process_info_by_pid', 'amdsmi_get_gpu_device_bdf',
     'amdsmi_get_processor_handle_from_bdf', 'amdsmi_get_processor_handles',
     'amdsmi_get_processor_type', 'amdsmi_get_gpu_device_uuid',
-    'amdsmi_get_gpu_driver_version', 'amdsmi_get_ecc_error_count',
+    'amdsmi_get_gpu_driver_version', 'amdsmi_get_gpu_ecc_error_count',
     'amdsmi_get_event_notification', 'amdsmi_get_func_iter_value',
     'amdsmi_get_fw_info', 'amdsmi_get_gpu_activity',
     'amdsmi_get_minmax_bandwidth', 'amdsmi_get_pcie_link_caps',
