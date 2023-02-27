@@ -2765,7 +2765,7 @@ amdsmi_status_string(amdsmi_status_t status, const char **status_string);
  *  The types of events available and the ability to count those
  *  events are dependent on which device is being targeted and if counters are
  *  still available for that device, respectively.
- *  ::amdsmi_dev_counter_group_supported() can be used to see which event types
+ *  ::amdsmi_gpu_counter_group_supported() can be used to see which event types
  *  (::amdsmi_event_group_t) are supported for a given device. Assuming a device
  *  supports a given event type, we can then check to see if there are counters
  *  available to count a specific event with
@@ -2811,7 +2811,7 @@ amdsmi_status_string(amdsmi_status_t status, const char **status_string);
  *    amdsmi_counter_value_t value;
  *
  *    // Determine if AMDSMI_EVNT_GRP_XGMI is supported for device dv_ind
- *    ret = amdsmi_dev_counter_group_supported(dv_ind, AMDSMI_EVNT_GRP_XGMI);
+ *    ret = amdsmi_gpu_counter_group_supported(dv_ind, AMDSMI_EVNT_GRP_XGMI);
  *
  *    // See if there are counters available for device dv_ind for event
  *    // AMDSMI_EVNT_GRP_XGMI
@@ -2868,7 +2868,7 @@ amdsmi_status_string(amdsmi_status_t status, const char **status_string);
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_counter_group_supported(amdsmi_processor_handle processor_handle, amdsmi_event_group_t group);
+amdsmi_gpu_counter_group_supported(amdsmi_processor_handle processor_handle, amdsmi_event_group_t group);
 
 /**
  *  @brief Create a performance counter object

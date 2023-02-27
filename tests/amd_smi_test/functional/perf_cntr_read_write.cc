@@ -202,7 +202,7 @@ TestPerfCntrReadWrite::testEventsIndividually(amdsmi_processor_handle dv_ind) {
     std::cout << "****************************" << std::endl;
   }
   for (PerfCntrEvtGrp grp : s_event_groups) {
-    ret = amdsmi_dev_counter_group_supported(dv_ind, grp.group());
+    ret = amdsmi_gpu_counter_group_supported(dv_ind, grp.group());
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
       continue;
     }
@@ -248,7 +248,7 @@ TestPerfCntrReadWrite::testEventsSimultaneously(amdsmi_processor_handle dv_ind) 
    * handling 1 event at a time.
    */
   for (PerfCntrEvtGrp grp : s_event_groups) {
-    ret = amdsmi_dev_counter_group_supported(dv_ind, grp.group());
+    ret = amdsmi_gpu_counter_group_supported(dv_ind, grp.group());
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
       IF_VERB(STANDARD) {
         std::cout << "\tEvent Group " << grp.name() <<

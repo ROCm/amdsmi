@@ -1344,7 +1344,7 @@ def amdsmi_get_xgmi_info(processor_handle: amdsmi_wrapper.amdsmi_processor_handl
     }
 
 
-def amdsmi_dev_counter_group_supported(
+def amdsmi_gpu_counter_group_supported(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     event_group: AmdSmiEventGroup,
 ):
@@ -1356,7 +1356,7 @@ def amdsmi_dev_counter_group_supported(
         raise AmdSmiParameterException(event_group, AmdSmiEventGroup)
 
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_counter_group_supported(
+        amdsmi_wrapper.amdsmi_gpu_counter_group_supported(
             processor_handle, event_group)
     )
 
