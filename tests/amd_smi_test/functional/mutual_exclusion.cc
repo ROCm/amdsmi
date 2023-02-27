@@ -259,7 +259,7 @@ void TestMutualExclusion::Run(void) {
     /* Other functions holding device mutexes. Listed for reference.
     amdsmi_dev_sku_get
      amdsmi_set_gpu_perf_level_v1
-     amdsmi_dev_set_od_clk_info
+     amdsmi_set_gpu_od_clk_info
      amdsmi_dev_set_od_volt_info
     amdsmi_dev_firmware_version_get
     amdsmi_dev_firmware_version_get

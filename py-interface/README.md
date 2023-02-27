@@ -1591,7 +1591,7 @@ except AmdSmiException as e:
 
 
 
-##  amdsmi_dev_set_od_clk_info
+##  amdsmi_set_gpu_od_clk_info
 Description: This function sets the clock frequency information
 
 Input parameters:
@@ -1603,7 +1603,7 @@ or maximum (1) speed
 
 Output: None
 
-Exceptions that can be thrown by ` amdsmi_dev_set_od_clk_info` function:
+Exceptions that can be thrown by ` amdsmi_set_gpu_od_clk_info` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1616,7 +1616,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-             amdsmi_dev_set_od_clk_info(
+             amdsmi_set_gpu_od_clk_info(
                 device,
                 AmdSmiFreqInd.AMDSMI_FREQ_IND_MAX,
                 1000,

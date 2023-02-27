@@ -83,7 +83,7 @@ from .amdsmi_interface import  amdsmi_set_gpu_pci_bandwidth
 from .amdsmi_interface import  amdsmi_set_power_cap
 from .amdsmi_interface import  amdsmi_set_gpu_power_profile
 from .amdsmi_interface import amdsmi_set_gpu_clk_range
-from .amdsmi_interface import  amdsmi_dev_set_od_clk_info
+from .amdsmi_interface import  amdsmi_set_gpu_od_clk_info
 from .amdsmi_interface import  amdsmi_dev_set_od_volt_info
 from .amdsmi_interface import  amdsmi_set_gpu_perf_level_v1
 from .amdsmi_interface import  amdsmi_set_gpu_perf_level

@@ -1323,7 +1323,7 @@ amdsmi_status_t  amdsmi_get_gpu_volt_metric(amdsmi_processor_handle processor_ha
                 static_cast<rsmi_voltage_metric_t>(metric), voltage);
 }
 
-amdsmi_status_t  amdsmi_dev_set_od_clk_info(amdsmi_processor_handle processor_handle,
+amdsmi_status_t  amdsmi_set_gpu_od_clk_info(amdsmi_processor_handle processor_handle,
                                         amdsmi_freq_ind_t level,
                                        uint64_t clkvalue,
                                        amdsmi_clk_type_t clkType) {

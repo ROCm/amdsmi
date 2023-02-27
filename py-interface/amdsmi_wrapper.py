@@ -1544,9 +1544,9 @@ amdsmi_get_gpu_metrics_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(
 amdsmi_set_gpu_clk_range = _libraries['libamd_smi.so'].amdsmi_set_gpu_clk_range
 amdsmi_set_gpu_clk_range.restype = amdsmi_status_t
 amdsmi_set_gpu_clk_range.argtypes = [amdsmi_processor_handle, uint64_t, uint64_t, amdsmi_clk_type_t]
-amdsmi_dev_set_od_clk_info = _libraries['libamd_smi.so'].amdsmi_dev_set_od_clk_info
-amdsmi_dev_set_od_clk_info.restype = amdsmi_status_t
-amdsmi_dev_set_od_clk_info.argtypes = [amdsmi_processor_handle, amdsmi_freq_ind_t, uint64_t, amdsmi_clk_type_t]
+amdsmi_set_gpu_od_clk_info = _libraries['libamd_smi.so'].amdsmi_set_gpu_od_clk_info
+amdsmi_set_gpu_od_clk_info.restype = amdsmi_status_t
+amdsmi_set_gpu_od_clk_info.argtypes = [amdsmi_processor_handle, amdsmi_freq_ind_t, uint64_t, amdsmi_clk_type_t]
 amdsmi_dev_set_od_volt_info = _libraries['libamd_smi.so'].amdsmi_dev_set_od_volt_info
 amdsmi_dev_set_od_volt_info.restype = amdsmi_status_t
 amdsmi_dev_set_od_volt_info.argtypes = [amdsmi_processor_handle, uint32_t, uint64_t, uint64_t]
@@ -1876,7 +1876,7 @@ __all__ = \
     'amdsmi_reset_gpu_fan', 'amdsmi_reset_gpu',
     'amdsmi_dev_reset_xgmi_error', 'amdsmi_set_clk_freq',
     'amdsmi_set_gpu_clk_range', 'amdsmi_set_gpu_fan_speed',
-    'amdsmi_dev_set_od_clk_info', 'amdsmi_dev_set_od_volt_info',
+    'amdsmi_set_gpu_od_clk_info', 'amdsmi_dev_set_od_volt_info',
     'amdsmi_dev_set_overdrive_level',
     'amdsmi_dev_set_overdrive_level_v1',
     'amdsmi_set_gpu_pci_bandwidth', 'amdsmi_set_gpu_perf_level',
