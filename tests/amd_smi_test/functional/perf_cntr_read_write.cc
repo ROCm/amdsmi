@@ -146,7 +146,7 @@ void TestPerfCntrReadWrite::CountEvents(amdsmi_processor_handle dv_ind,
     std::cout << "\t\t\tEvents/Second Running: " <<
             val->value/static_cast<float>(val->time_running) << std::endl;
   }
-  ret = amdsmi_dev_destroy_counter(evt_handle);
+  ret = amdsmi_gpu_destroy_counter(evt_handle);
   CHK_ERR_ASRT(ret)
 }
 
@@ -337,7 +337,7 @@ TestPerfCntrReadWrite::testEventsSimultaneously(amdsmi_processor_handle dv_ind) 
         }
       }
       for (j = 0; j < num_created; ++j) {
-        ret = amdsmi_dev_destroy_counter(evt_handle.get()[j]);
+        ret = amdsmi_gpu_destroy_counter(evt_handle.get()[j]);
         CHK_ERR_ASRT(ret)
       }
     }

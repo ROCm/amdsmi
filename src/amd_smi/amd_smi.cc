@@ -703,7 +703,7 @@ amdsmi_status_t amdsmi_gpu_create_counter(amdsmi_processor_handle processor_hand
                     static_cast<rsmi_event_handle_t*>(evnt_handle));
 }
 
-amdsmi_status_t amdsmi_dev_destroy_counter(amdsmi_event_handle_t evnt_handle) {
+amdsmi_status_t amdsmi_gpu_destroy_counter(amdsmi_event_handle_t evnt_handle) {
     rsmi_status_t r = rsmi_dev_counter_destroy(
         static_cast<rsmi_event_handle_t>(evnt_handle));
     return amd::smi::rsmi_to_amdsmi_status(r);

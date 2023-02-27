@@ -1595,9 +1595,9 @@ amdsmi_gpu_counter_group_supported.argtypes = [amdsmi_processor_handle, amdsmi_e
 amdsmi_gpu_create_counter = _libraries['libamd_smi.so'].amdsmi_gpu_create_counter
 amdsmi_gpu_create_counter.restype = amdsmi_status_t
 amdsmi_gpu_create_counter.argtypes = [amdsmi_processor_handle, amdsmi_event_type_t, ctypes.POINTER(ctypes.c_uint64)]
-amdsmi_dev_destroy_counter = _libraries['libamd_smi.so'].amdsmi_dev_destroy_counter
-amdsmi_dev_destroy_counter.restype = amdsmi_status_t
-amdsmi_dev_destroy_counter.argtypes = [amdsmi_event_handle_t]
+amdsmi_gpu_destroy_counter = _libraries['libamd_smi.so'].amdsmi_gpu_destroy_counter
+amdsmi_gpu_destroy_counter.restype = amdsmi_status_t
+amdsmi_gpu_destroy_counter.argtypes = [amdsmi_event_handle_t]
 amdsmi_control_counter = _libraries['libamd_smi.so'].amdsmi_control_counter
 amdsmi_control_counter.restype = amdsmi_status_t
 amdsmi_control_counter.argtypes = [amdsmi_event_handle_t, amdsmi_counter_command_t, ctypes.POINTER(None)]
@@ -1851,7 +1851,7 @@ __all__ = \
     'amdsmi_counter_get_available_counters', 'amdsmi_counter_value_t',
     'amdsmi_dev_close_supported_func_iterator',
     'amdsmi_gpu_counter_group_supported', 'amdsmi_gpu_create_counter',
-    'amdsmi_dev_destroy_counter', 'amdsmi_get_busy_percent',
+    'amdsmi_gpu_destroy_counter', 'amdsmi_get_busy_percent',
     'amdsmi_get_gpu_drm_render_minor', 'amdsmi_dev_get_gpu_ecc_count',
     'amdsmi_dev_get_gpu_ecc_enabled', 'amdsmi_dev_get_gpu_ecc_status',
     'amdsmi_get_energy_count', 'amdsmi_get_gpu_fan_rpms',
