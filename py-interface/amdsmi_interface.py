@@ -348,7 +348,7 @@ class AmdSmiEventReader:
         return ret
 
     def stop(self):
-        _check_res(amdsmi_wrapper.amdsmi_stop_event_notification(
+        _check_res(amdsmi_wrapper.amdsmi_stop_gpu_event_notification(
             self.processor_handle))
 
     def __enter__(self):

@@ -3462,7 +3462,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
  *
  * @details This function prepares to collect events for the GPU with device
  * ID @p processor_handle, by initializing any required system parameters. This call
- * may open files which will remain open until ::amdsmi_stop_event_notification()
+ * may open files which will remain open until ::amdsmi_stop_gpu_event_notification()
  * is called.
  *
  * @param processor_handle a processor handle corresponding to the device on which to
@@ -3555,7 +3555,7 @@ amdsmi_status_t
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_stop_event_notification(amdsmi_processor_handle processor_handle);
+amdsmi_status_t amdsmi_stop_gpu_event_notification(amdsmi_processor_handle processor_handle);
 
 /** @} End EvntNotif */
 

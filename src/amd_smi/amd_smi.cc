@@ -685,7 +685,7 @@ amdsmi_status_t
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_stop_event_notification(
+amdsmi_status_t amdsmi_stop_gpu_event_notification(
                 amdsmi_processor_handle processor_handle) {
     return rsmi_wrapper(rsmi_event_notification_stop, processor_handle);
 }

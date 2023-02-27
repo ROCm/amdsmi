@@ -340,7 +340,7 @@ class Formatter:
     |     """ + self.style.text("51   Get event notification.               Api:  amdsmi_get_gpu_event_notification          <bdf>") + """                        |
     |     """ + self.style.text("52   Init event notification.              Api: amdsmi_init_event_notification         <bdf>") + """                        |
     |     """ + self.style.text("53   Set event notification mask.          Api:  amdsmi_set_event_notification_mask     <bdf><mask>") + """                  |
-    |     """ + self.style.text("54   Get event notification.               Api: amdsmi_stop_event_notification         <bdf>") + """                        |
+    |     """ + self.style.text("54   Get event notification.               Api: amdsmi_stop_gpu_event_notification         <bdf>") + """                        |
     |     """ + self.style.text("55   Init.                                 Api: amdsmi_init                            <None>") + """                       |
     |     """ + self.style.text("56   Shut down.                            Api: amdsmi_shut_down                       <None>") + """                       |
     |     """ + self.style.text("57   Get fw info.                          Api: amdsmi_get_fw_info                     <bdf>") + """                        |
@@ -571,7 +571,7 @@ def amdsmi_tool_event_notification_mask_set(dev, dic):
     return smi_api.amdsmi_wrapper. amdsmi_set_event_notification_mask(dev, ctypes.c_uint64(mask))
 
 def amdsmi_tool_event_notification_stop(dev):
-    return smi_api.amdsmi_wrapper.amdsmi_stop_event_notification(dev)
+    return smi_api.amdsmi_wrapper.amdsmi_stop_gpu_event_notification(dev)
 
 def amdsmi_tool_shut_down():
     smi_api.amdsmi_init()
