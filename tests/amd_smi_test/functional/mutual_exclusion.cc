@@ -245,7 +245,7 @@ void TestMutualExclusion::Run(void) {
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret =  amdsmi_get_gpu_od_volt_curve_regions(processor_handles_[0], &dmy_ui32, &dmy_vlt_reg);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret =  amdsmi_dev_set_overdrive_level_v1(processor_handles_[0], dmy_i32);
+    ret =  amdsmi_set_gpu_overdrive_level_v1(processor_handles_[0], dmy_i32);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret =  amdsmi_set_clk_freq(processor_handles_[0], CLK_TYPE_SYS, 0);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);

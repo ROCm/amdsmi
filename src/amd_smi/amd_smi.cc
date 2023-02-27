@@ -916,7 +916,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_perf_level_set_v1", " amdsmi_set_gpu_perf_level_v1"},
         {"rsmi_dev_perf_level_get", "amdsmi_get_gpu_perf_level"},
         {"rsmi_perf_determinism_mode_set", "amdsmi_set_gpu_perf_determinism_mode"},
-        {"rsmi_dev_overdrive_level_set", " amdsmi_dev_set_overdrive_level"},
+        {"rsmi_dev_overdrive_level_set", " amdsmi_set_gpu_overdrive_level"},
         {"rsmi_dev_vbios_version_get", "amdsmi_get_gpu_vbios_info"},
         {"rsmi_dev_od_volt_info_get", " amdsmi_get_gpu_od_volt_info"},
         {"rsmi_dev_od_volt_info_set", " amdsmi_set_gpu_od_volt_info"},
@@ -1286,7 +1286,7 @@ amdsmi_status_t amdsmi_get_gpu_overdrive_level(
     return rsmi_wrapper(rsmi_dev_overdrive_level_get, processor_handle, od);
 }
 
-amdsmi_status_t  amdsmi_dev_set_overdrive_level(
+amdsmi_status_t  amdsmi_set_gpu_overdrive_level(
             amdsmi_processor_handle processor_handle, uint32_t od) {
     return rsmi_wrapper(rsmi_dev_overdrive_level_set, processor_handle, od);
 }
@@ -1347,7 +1347,7 @@ amdsmi_status_t amdsmi_set_gpu_clk_range(amdsmi_processor_handle processor_handl
                 static_cast<rsmi_clk_type_t>(clkType));
 }
 
-amdsmi_status_t  amdsmi_dev_set_overdrive_level_v1(
+amdsmi_status_t  amdsmi_set_gpu_overdrive_level_v1(
                     amdsmi_processor_handle processor_handle,
                     uint32_t od) {
     return rsmi_wrapper(rsmi_dev_overdrive_level_set_v1, processor_handle,

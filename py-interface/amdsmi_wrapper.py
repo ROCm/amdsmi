@@ -1562,12 +1562,12 @@ amdsmi_set_gpu_perf_level.argtypes = [amdsmi_processor_handle, amdsmi_dev_perf_l
 amdsmi_set_gpu_perf_level_v1 = _libraries['libamd_smi.so'].amdsmi_set_gpu_perf_level_v1
 amdsmi_set_gpu_perf_level_v1.restype = amdsmi_status_t
 amdsmi_set_gpu_perf_level_v1.argtypes = [amdsmi_processor_handle, amdsmi_dev_perf_level_t]
-amdsmi_dev_set_overdrive_level = _libraries['libamd_smi.so'].amdsmi_dev_set_overdrive_level
-amdsmi_dev_set_overdrive_level.restype = amdsmi_status_t
-amdsmi_dev_set_overdrive_level.argtypes = [amdsmi_processor_handle, uint32_t]
-amdsmi_dev_set_overdrive_level_v1 = _libraries['libamd_smi.so'].amdsmi_dev_set_overdrive_level_v1
-amdsmi_dev_set_overdrive_level_v1.restype = amdsmi_status_t
-amdsmi_dev_set_overdrive_level_v1.argtypes = [amdsmi_processor_handle, uint32_t]
+amdsmi_set_gpu_overdrive_level = _libraries['libamd_smi.so'].amdsmi_set_gpu_overdrive_level
+amdsmi_set_gpu_overdrive_level.restype = amdsmi_status_t
+amdsmi_set_gpu_overdrive_level.argtypes = [amdsmi_processor_handle, uint32_t]
+amdsmi_set_gpu_overdrive_level_v1 = _libraries['libamd_smi.so'].amdsmi_set_gpu_overdrive_level_v1
+amdsmi_set_gpu_overdrive_level_v1.restype = amdsmi_status_t
+amdsmi_set_gpu_overdrive_level_v1.argtypes = [amdsmi_processor_handle, uint32_t]
 amdsmi_set_clk_freq = _libraries['libamd_smi.so'].amdsmi_set_clk_freq
 amdsmi_set_clk_freq.restype = amdsmi_status_t
 amdsmi_set_clk_freq.argtypes = [amdsmi_processor_handle, amdsmi_clk_type_t, uint64_t]
@@ -1877,8 +1877,8 @@ __all__ = \
     'amdsmi_dev_reset_xgmi_error', 'amdsmi_set_clk_freq',
     'amdsmi_set_gpu_clk_range', 'amdsmi_set_gpu_fan_speed',
     'amdsmi_set_gpu_od_clk_info', 'amdsmi_set_gpu_od_volt_info',
-    'amdsmi_dev_set_overdrive_level',
-    'amdsmi_dev_set_overdrive_level_v1',
+    'amdsmi_set_gpu_overdrive_level',
+    'amdsmi_set_gpu_overdrive_level_v1',
     'amdsmi_set_gpu_pci_bandwidth', 'amdsmi_set_gpu_perf_level',
     'amdsmi_set_gpu_perf_level_v1', 'amdsmi_set_power_cap',
     'amdsmi_set_gpu_power_profile', 'amdsmi_gpu_xgmi_error_status',
