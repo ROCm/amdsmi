@@ -1998,7 +1998,7 @@ def amdsmi_get_gpu_memory_usage(processor_handle: amdsmi_wrapper.amdsmi_processo
     return used.value
 
 
-def amdsmi_dev_set_od_volt_info(
+def amdsmi_set_gpu_od_volt_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     vpoint: int,
     clk_value: int,
@@ -2019,7 +2019,7 @@ def amdsmi_dev_set_od_volt_info(
         raise AmdSmiParameterException(volt_value, int)
 
     _check_res(
-        amdsmi_wrapper. amdsmi_dev_set_od_volt_info(
+        amdsmi_wrapper. amdsmi_set_gpu_od_volt_info(
             processor_handle,
             ctypes.c_uint32(vpoint),
             ctypes.c_uint64(clk_value),

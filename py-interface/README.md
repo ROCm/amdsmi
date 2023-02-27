@@ -1658,7 +1658,7 @@ except AmdSmiException as e:
 ```
 
 
-##  amdsmi_dev_set_od_volt_info
+##  amdsmi_set_gpu_od_volt_info
 Description: This function sets  1 of the 3 voltage curve points
 
 Input parameters:
@@ -1669,7 +1669,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by ` amdsmi_dev_set_od_volt_info` function:
+Exceptions that can be thrown by ` amdsmi_set_gpu_od_volt_info` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1682,7 +1682,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-             amdsmi_dev_set_od_volt_info(device, 1, 1000, 980)
+             amdsmi_set_gpu_od_volt_info(device, 1, 1000, 980)
 except AmdSmiException as e:
     print(e)
 ```

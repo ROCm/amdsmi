@@ -2358,7 +2358,7 @@ amdsmi_status_t  amdsmi_set_gpu_od_clk_info(amdsmi_processor_handle processor_ha
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_set_od_volt_info(amdsmi_processor_handle processor_handle, uint32_t vpoint,
+amdsmi_status_t  amdsmi_set_gpu_od_volt_info(amdsmi_processor_handle processor_handle, uint32_t vpoint,
                                         uint64_t clkvalue, uint64_t voltvalue);
 
 /**
