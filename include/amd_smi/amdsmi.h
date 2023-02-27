@@ -2488,7 +2488,7 @@ amdsmi_status_t
  *  @brief Set the overdrive percent associated with the device with provided
  *  processor handle with the provided value. See details for WARNING.
  *
- *  @deprecated This function is deprecated. :: amdsmi_dev_set_overdrive_level_v1
+ *  @deprecated This function is deprecated. :: amdsmi_set_gpu_overdrive_level_v1
  *  has the same functionaltiy, with an interface that more closely
  *  matches the rest of the amd_smi API.
  *
@@ -2523,7 +2523,7 @@ amdsmi_status_t
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_set_overdrive_level(amdsmi_processor_handle processor_handle, uint32_t od);
+amdsmi_status_t  amdsmi_set_gpu_overdrive_level(amdsmi_processor_handle processor_handle, uint32_t od);
 
 /**
  *  @brief Set the overdrive percent associated with the device with provided
@@ -2562,7 +2562,7 @@ amdsmi_status_t  amdsmi_dev_set_overdrive_level(amdsmi_processor_handle processo
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_set_overdrive_level_v1(amdsmi_processor_handle processor_handle, uint32_t od);
+amdsmi_status_t  amdsmi_set_gpu_overdrive_level_v1(amdsmi_processor_handle processor_handle, uint32_t od);
 
 /**
  * @brief Control the set of allowed frequencies that can be used for the

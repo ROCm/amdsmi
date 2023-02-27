@@ -2576,7 +2576,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-##  amdsmi_dev_set_overdrive_level_v1
+##  amdsmi_set_gpu_overdrive_level_v1
 Description: Set the overdrive percent associated with the device with provided
 device handle with the provided value
 
@@ -2586,7 +2586,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by ` amdsmi_dev_set_overdrive_level_v1` function:
+Exceptions that can be thrown by ` amdsmi_set_gpu_overdrive_level_v1` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2599,11 +2599,11 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-             amdsmi_dev_set_overdrive_level_v1(device, 0)
+             amdsmi_set_gpu_overdrive_level_v1(device, 0)
 except AmdSmiException as e:
     print(e)
 ```
-##  amdsmi_dev_set_overdrive_level
+##  amdsmi_set_gpu_overdrive_level
 Description: **deprecated** Set the overdrive percent associated with the
 device with provided device handle with the provided value
 
@@ -2613,7 +2613,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by ` amdsmi_dev_set_overdrive_level` function:
+Exceptions that can be thrown by ` amdsmi_set_gpu_overdrive_level` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2626,7 +2626,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-             amdsmi_dev_set_overdrive_level(device, 0)
+             amdsmi_set_gpu_overdrive_level(device, 0)
 except AmdSmiException as e:
     print(e)
 ```

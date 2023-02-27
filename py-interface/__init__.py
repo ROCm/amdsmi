@@ -93,8 +93,8 @@ from .amdsmi_interface import amdsmi_set_gpu_perf_determinism_mode
 from .amdsmi_interface import amdsmi_set_gpu_fan_speed
 from .amdsmi_interface import amdsmi_reset_gpu_fan
 from .amdsmi_interface import  amdsmi_set_clk_freq
-from .amdsmi_interface import  amdsmi_dev_set_overdrive_level_v1
-from .amdsmi_interface import  amdsmi_dev_set_overdrive_level
+from .amdsmi_interface import  amdsmi_set_gpu_overdrive_level_v1
+from .amdsmi_interface import  amdsmi_set_gpu_overdrive_level
 
 # # Physical State Queries
 from .amdsmi_interface import amdsmi_get_gpu_fan_rpms

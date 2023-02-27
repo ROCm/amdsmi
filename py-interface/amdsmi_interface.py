@@ -1574,7 +1574,7 @@ def amdsmi_set_clk_freq(
     )
 
 
-def amdsmi_dev_set_overdrive_level_v1(
+def amdsmi_set_gpu_overdrive_level_v1(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, overdrive_value: int
 ):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -1586,12 +1586,12 @@ def amdsmi_dev_set_overdrive_level_v1(
     overdrive_value = ctypes.c_uint32(overdrive_value)
 
     _check_res(
-        amdsmi_wrapper. amdsmi_dev_set_overdrive_level_v1(
+        amdsmi_wrapper. amdsmi_set_gpu_overdrive_level_v1(
             processor_handle, overdrive_value)
     )
 
 
-def amdsmi_dev_set_overdrive_level(
+def amdsmi_set_gpu_overdrive_level(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, overdrive_value: int
 ):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -1603,7 +1603,7 @@ def amdsmi_dev_set_overdrive_level(
     overdrive_value = ctypes.c_uint32(overdrive_value)
 
     _check_res(
-        amdsmi_wrapper. amdsmi_dev_set_overdrive_level(
+        amdsmi_wrapper. amdsmi_set_gpu_overdrive_level(
             processor_handle, overdrive_value)
     )
 
