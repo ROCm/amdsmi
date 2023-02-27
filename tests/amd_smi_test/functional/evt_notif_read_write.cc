@@ -109,7 +109,7 @@ void TestEvtNotifReadWrite::Run(void) {
   }
 
   for (dv_ind = 0; dv_ind < num_monitor_devs(); ++dv_ind) {
-    ret = amdsmi_init_event_notification(processor_handles_[dv_ind]);
+    ret = amdsmi_init_gpu_event_notification(processor_handles_[dv_ind]);
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
       IF_VERB(STANDARD) {
         std::cout <<
