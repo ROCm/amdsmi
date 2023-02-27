@@ -727,7 +727,7 @@ amdsmi_gpu_read_counter(amdsmi_event_handle_t evt_handle,
 }
 
 amdsmi_status_t
- amdsmi_counter_get_available_counters(amdsmi_processor_handle processor_handle,
+ amdsmi_get_gpu_available_counters(amdsmi_processor_handle processor_handle,
                             amdsmi_event_group_t grp, uint32_t *available) {
     return rsmi_wrapper(rsmi_counter_available_counters_get, processor_handle,
                     static_cast<rsmi_event_group_t>(grp),
@@ -937,7 +937,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_gpu_clk_freq_set", " amdsmi_set_clk_freq"},
         {"rsmi_dev_firmware_version_get", "amdsmi_get_fw_info"},
         {"rsmi_dev_ecc_count_get", " amdsmi_dev_get_gpu_ecc_count"},
-        {"rsmi_counter_available_counters_get", " amdsmi_counter_get_available_counters"},
+        {"rsmi_counter_available_counters_get", " amdsmi_get_gpu_available_counters"},
         {"rsmi_dev_power_ave_get", "amdsmi_get_power_ave"},
         {"rsmi_dev_power_cap_get", "amdsmi_get_power_cap_info"},
         {"rsmi_dev_power_cap_default_get", "amdsmi_get_power_cap_info"},

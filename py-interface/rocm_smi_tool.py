@@ -345,7 +345,7 @@ class Formatter:
     |     """ + self.style.text("56   Shut down.                            Api: amdsmi_shut_down                       <None>") + """                       |
     |     """ + self.style.text("57   Get fw info.                          Api: amdsmi_get_fw_info                     <bdf>") + """                        |
     |     """ + self.style.text("58   Get vbios info.                       Api: amdsmi_get_gpu_vbios_info                  <bdf>") + """                        |
-    |     """ + self.style.text("59   Get counter available counters.       Api:  amdsmi_counter_get_available_counters  <bdf>") + """                        |
+    |     """ + self.style.text("59   Get counter available counters.       Api:  amdsmi_get_gpu_available_counters  <bdf>") + """                        |
     |     """ + self.style.text("60   Get counter control.                  Api: amdsmi_gpu_control_counter                 <bdf>") + """                        |
     |     """ + self.style.text("61   Get counter read.                     Api: amdsmi_gpu_read_counter                    <bdf>") + """                        |
     |     """ + self.style.text("62   Set dev clk range.                    Api: amdsmi_set_gpu_clk_range               <bdf><min_clk><max_clk>") + """      |
@@ -582,7 +582,7 @@ def amdsmi_tool_counter_available_counters_get(dev):
     result = {}
     for event_group in smi_api.AmdSmiEventGroup:
         try:
-            value = smi_api. amdsmi_counter_get_available_counters(dev, event_group)
+            value = smi_api. amdsmi_get_gpu_available_counters(dev, event_group)
             result.update({event_group.name: value})
         except smi_api.AmdSmiException as e:
             print("{}:\t{}".format(event_group.name, e))
