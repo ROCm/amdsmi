@@ -322,7 +322,7 @@ class Formatter:
     |     """ + self.style.text("33   Get the build version.                Api: amdsmi_get_version                     <None>") + """                       |
     |     """ + self.style.text("34   Get version string.                   Api: amdsmi_get_version_str                 <None>") + """                       |
     |     """ + self.style.text("35   Get device ecc counter.               Api:  amdsmi_dev_get_gpu_ecc_count               <bdf>") + """                        |
-    |     """ + self.style.text("36   Get device ecc enable.                Api:  amdsmi_dev_get_ecc_enabled             <bdf>") + """                        |
+    |     """ + self.style.text("36   Get device ecc enable.                Api:  amdsmi_dev_get_gpu_ecc_enabled             <bdf>") + """                        |
     |     """ + self.style.text("37   Get device ecc status.                Api:  amdsmi_dev_get_ecc_status              <bdf>") + """                        |
     |     """ + self.style.text("38   Get status string.                    Api: amdsmi_status_string                   <status>") + """                     |
     |     """ + self.style.text("39   Get compute process info.             Api: amdsmi_get_compute_process_info        <None>") + """                       |
@@ -830,7 +830,7 @@ commands = {
     35: [amdsmi_tool_dev_ecc_count_get, {
         "device_identifier1": [None, True]
     }],
-    36: [smi_api. amdsmi_dev_get_ecc_enabled, {
+    36: [smi_api. amdsmi_dev_get_gpu_ecc_enabled, {
         "device_identifier1": [None, True]
     }],
     37: [amdsmi_tool_dev_ecc_status_get, {

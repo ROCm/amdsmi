@@ -2485,7 +2485,7 @@ def amdsmi_dev_get_gpu_ecc_count(
     }
 
 
-def amdsmi_dev_get_ecc_enabled(
+def amdsmi_dev_get_gpu_ecc_enabled(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> int:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -2495,7 +2495,7 @@ def amdsmi_dev_get_ecc_enabled(
 
     blocks = ctypes.c_uint64(0)
     _check_res(
-        amdsmi_wrapper. amdsmi_dev_get_ecc_enabled(
+        amdsmi_wrapper. amdsmi_dev_get_gpu_ecc_enabled(
             processor_handle, ctypes.byref(blocks))
     )
 
