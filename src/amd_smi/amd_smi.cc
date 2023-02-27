@@ -921,8 +921,8 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_od_volt_info_get", " amdsmi_get_gpu_od_volt_info"},
         {"rsmi_dev_od_volt_info_set", " amdsmi_set_gpu_od_volt_info"},
         {"rsmi_dev_od_volt_curve_regions_get", " amdsmi_get_gpu_od_volt_curve_regions"},
-        {"rsmi_dev_ecc_enabled_get", " amdsmi_dev_get_gpu_ecc_enabled"},
-        {"rsmi_dev_ecc_status_get", " amdsmi_dev_get_gpu_ecc_status"},
+        {"rsmi_dev_ecc_enabled_get", " amdsmi_get_gpu_ecc_enabled"},
+        {"rsmi_dev_ecc_status_get", " amdsmi_get_gpu_ecc_status"},
         {"rsmi_dev_counter_group_supported", "amdsmi_gpu_counter_group_supported"},
         {"rsmi_dev_counter_create", "amdsmi_gpu_create_counter"},
         {"rsmi_dev_xgmi_error_status", "amdsmi_gpu_xgmi_error_status"},
@@ -936,7 +936,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_gpu_clk_freq_get", " amdsmi_get_clk_freq"},
         {"rsmi_dev_gpu_clk_freq_set", " amdsmi_set_clk_freq"},
         {"rsmi_dev_firmware_version_get", "amdsmi_get_fw_info"},
-        {"rsmi_dev_ecc_count_get", " amdsmi_dev_get_gpu_ecc_count"},
+        {"rsmi_dev_ecc_count_get", " amdsmi_get_gpu_ecc_count"},
         {"rsmi_counter_available_counters_get", " amdsmi_get_gpu_available_counters"},
         {"rsmi_dev_power_ave_get", "amdsmi_get_power_ave"},
         {"rsmi_dev_power_cap_get", "amdsmi_get_power_cap_info"},
@@ -1008,7 +1008,7 @@ amdsmi_get_gpu_compute_process_gpus(uint32_t pid, uint32_t *dv_indices,
     return amd::smi::rsmi_to_amdsmi_status(r);
 }
 
-amdsmi_status_t  amdsmi_dev_get_gpu_ecc_count(amdsmi_processor_handle processor_handle,
+amdsmi_status_t  amdsmi_get_gpu_ecc_count(amdsmi_processor_handle processor_handle,
                         amdsmi_gpu_block_t block, amdsmi_error_count_t *ec) {
     AMDSMI_CHECK_INIT();
 
@@ -1018,7 +1018,7 @@ amdsmi_status_t  amdsmi_dev_get_gpu_ecc_count(amdsmi_processor_handle processor_
                     static_cast<rsmi_gpu_block_t>(block),
                     reinterpret_cast<rsmi_error_count_t*>(ec));
 }
-amdsmi_status_t  amdsmi_dev_get_gpu_ecc_enabled(amdsmi_processor_handle processor_handle,
+amdsmi_status_t  amdsmi_get_gpu_ecc_enabled(amdsmi_processor_handle processor_handle,
                                                     uint64_t *enabled_blocks) {
     AMDSMI_CHECK_INIT();
 
@@ -1027,7 +1027,7 @@ amdsmi_status_t  amdsmi_dev_get_gpu_ecc_enabled(amdsmi_processor_handle processo
     return rsmi_wrapper(rsmi_dev_ecc_enabled_get, processor_handle,
                     enabled_blocks);
 }
-amdsmi_status_t  amdsmi_dev_get_gpu_ecc_status(amdsmi_processor_handle processor_handle,
+amdsmi_status_t  amdsmi_get_gpu_ecc_status(amdsmi_processor_handle processor_handle,
                                 amdsmi_gpu_block_t block,
                                 amdsmi_ras_err_state_t *state) {
     AMDSMI_CHECK_INIT();
