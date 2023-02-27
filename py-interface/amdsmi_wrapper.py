@@ -1478,9 +1478,9 @@ amdsmi_get_gpu_memory_usage.argtypes = [amdsmi_processor_handle, amdsmi_memory_t
 amdsmi_get_bad_page_info = _libraries['libamd_smi.so'].amdsmi_get_bad_page_info
 amdsmi_get_bad_page_info.restype = amdsmi_status_t
 amdsmi_get_bad_page_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(struct_c__SA_amdsmi_retired_page_record_t)]
-amdsmi_get_ras_block_features_enabled = _libraries['libamd_smi.so'].amdsmi_get_ras_block_features_enabled
-amdsmi_get_ras_block_features_enabled.restype = amdsmi_status_t
-amdsmi_get_ras_block_features_enabled.argtypes = [amdsmi_processor_handle, amdsmi_gpu_block_t, ctypes.POINTER(c__EA_amdsmi_ras_err_state_t)]
+amdsmi_get_gpu_ras_block_features_enabled = _libraries['libamd_smi.so'].amdsmi_get_gpu_ras_block_features_enabled
+amdsmi_get_gpu_ras_block_features_enabled.restype = amdsmi_status_t
+amdsmi_get_gpu_ras_block_features_enabled.argtypes = [amdsmi_processor_handle, amdsmi_gpu_block_t, ctypes.POINTER(c__EA_amdsmi_ras_err_state_t)]
 amdsmi_get_gpu_memory_busy_percent = _libraries['libamd_smi.so'].amdsmi_get_gpu_memory_busy_percent
 amdsmi_get_gpu_memory_busy_percent.restype = amdsmi_status_t
 amdsmi_get_gpu_memory_busy_percent.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32)]
@@ -1908,7 +1908,7 @@ __all__ = \
     'amdsmi_get_pcie_link_status', 'amdsmi_get_power_cap_info',
     'amdsmi_get_power_measure', 'amdsmi_get_process_info',
     'amdsmi_get_process_list',
-    'amdsmi_get_ras_block_features_enabled',
+    'amdsmi_get_gpu_ras_block_features_enabled',
     'amdsmi_get_socket_handles', 'amdsmi_get_socket_info',
     'amdsmi_get_gpu_target_frequency_range',
     'amdsmi_get_utilization_count', 'amdsmi_get_gpu_vbios_info',

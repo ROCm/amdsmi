@@ -69,7 +69,7 @@ from .amdsmi_interface import amdsmi_get_ecc_error_count
 from .amdsmi_interface import amdsmi_get_gpu_board_info
 
 # # Ras Information
-from .amdsmi_interface import amdsmi_get_ras_block_features_enabled
+from .amdsmi_interface import amdsmi_get_gpu_ras_block_features_enabled
 
 # # Supported Function Checks
 from .amdsmi_interface import amdsmi_dev_open_supported_func_iterator

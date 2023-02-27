@@ -442,11 +442,11 @@ int main() {
                                         "ENABLED"};
             amdsmi_ras_err_state_t state = {};
             int index = 0;
-            printf("    Output of amdsmi_get_ras_block_features_enabled:\n");
+            printf("    Output of amdsmi_get_gpu_ras_block_features_enabled:\n");
             for (auto block = AMDSMI_GPU_BLOCK_FIRST;
                  block <= AMDSMI_GPU_BLOCK_LAST;
                  block = (amdsmi_gpu_block_t)(block * 2)) {
-                ret = amdsmi_get_ras_block_features_enabled(processor_handles[j], block,
+                ret = amdsmi_get_gpu_ras_block_features_enabled(processor_handles[j], block,
                                                       &state);
                 CHK_AMDSMI_RET(ret)
                 printf("\tBlock: %s\n", block_names[index]);

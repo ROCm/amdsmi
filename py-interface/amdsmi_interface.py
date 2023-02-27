@@ -821,7 +821,7 @@ def amdsmi_get_gpu_board_info(
     }
 
 
-def amdsmi_get_ras_block_features_enabled(
+def amdsmi_get_gpu_ras_block_features_enabled(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -837,7 +837,7 @@ def amdsmi_get_ras_block_features_enabled(
         if gpu_block.name == "LAST":
             gpu_block.name = "FUSE"
         _check_res(
-            amdsmi_wrapper.amdsmi_get_ras_block_features_enabled(
+            amdsmi_wrapper.amdsmi_get_gpu_ras_block_features_enabled(
                 processor_handle,
                 amdsmi_wrapper.amdsmi_gpu_block_t(gpu_block.value),
                 ctypes.byref(ras_state),
