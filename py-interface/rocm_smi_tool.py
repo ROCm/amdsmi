@@ -355,7 +355,7 @@ class Formatter:
     |     """ + self.style.text("66   Set dev gpu clk freq.                 Api:  amdsmi_set_clk_freq            <bdf><freq_bitmask>") + """          |
     |     """ + self.style.text("67   Reset dev gpu.                        Api: amdsmi_reset_gpu                   <bdf>") + """                        |
     |     """ + self.style.text("68   Set dev od clk info.                  Api:  amdsmi_set_gpu_od_clk_info             <bdf><value>") + """                 |
-    |     """ + self.style.text("69   Set dev od volt info.                 Api:  amdsmi_dev_set_od_volt_info     <bdf><vpoint><clk_value><volt_value>") + """|
+    |     """ + self.style.text("69   Set dev od volt info.                 Api:  amdsmi_set_gpu_od_volt_info     <bdf><vpoint><clk_value><volt_value>") + """|
     |     """ + self.style.text("70   Set dev overdrive level.              Api:  amdsmi_dev_set_overdrive_level         <bdf><overdrive_value>") + """       |
     |     """ + self.style.text("71   Set v1 dev overdrive level.           Api:  amdsmi_dev_set_overdrive_level_v1      <bdf><overdrive_value>") + """       |
     |     """ + self.style.text("72   Set dev pci bandwidth.                Api:  amdsmi_set_gpu_pci_bandwidth           <bdf><bitmask>") + """               |
@@ -667,7 +667,7 @@ def amdsmi_tool_dev_od_volt_info_set(dev, dic):
     vpoint = dic["vpoint"]
     clk_value = dic["clk_value"]
     volt_value = dic["volt_value"]
-    return smi_api. amdsmi_dev_set_od_volt_info(dev, vpoint, clk_value, volt_value)
+    return smi_api. amdsmi_set_gpu_od_volt_info(dev, vpoint, clk_value, volt_value)
 
 def amdsmi_tool_dev_perf_level_set(dev):
     result = {}
