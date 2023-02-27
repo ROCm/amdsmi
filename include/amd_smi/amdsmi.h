@@ -2730,7 +2730,7 @@ amdsmi_status_t  amdsmi_dev_get_gpu_ecc_enabled(amdsmi_processor_handle processo
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_get_ecc_status(amdsmi_processor_handle processor_handle, amdsmi_gpu_block_t block,
+amdsmi_status_t  amdsmi_dev_get_gpu_ecc_status(amdsmi_processor_handle processor_handle, amdsmi_gpu_block_t block,
                                                   amdsmi_ras_err_state_t *state);
 
 /**
