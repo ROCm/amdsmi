@@ -127,7 +127,7 @@ void TestEvtNotifReadWrite::Run(void) {
   uint32_t num_elem = 10;
   bool read_again = false;
 
-  ret =  amdsmi_get_event_notification(10000, &num_elem, data);
+  ret =  amdsmi_get_gpu_event_notification(10000, &num_elem, data);
   if (ret == AMDSMI_STATUS_SUCCESS || ret == AMDSMI_STATUS_INSUFFICIENT_SIZE) {
     EXPECT_LE(num_elem, 10) <<
             "Expected the number of elements found to be <= buffer size (10)";
@@ -155,13 +155,13 @@ void TestEvtNotifReadWrite::Run(void) {
   } else {
     // This should always fail. We want to print out the return code.
     EXPECT_EQ(ret, AMDSMI_STATUS_SUCCESS) <<
-                  "Unexpected return code for  amdsmi_get_event_notification()";
+                  "Unexpected return code for  amdsmi_get_gpu_event_notification()";
   }
 
   // In case GPU Pre reset event was collected in the previous read,
   // read again to get the GPU Post reset event.
   if (read_again) {
-    ret =  amdsmi_get_event_notification(10000, &num_elem, data);
+    ret =  amdsmi_get_gpu_event_notification(10000, &num_elem, data);
     if (ret == AMDSMI_STATUS_SUCCESS || ret == AMDSMI_STATUS_INSUFFICIENT_SIZE) {
       EXPECT_LE(num_elem, 10) <<
               "Expected the number of elements found to be <= buffer size (10)";
@@ -186,7 +186,7 @@ void TestEvtNotifReadWrite::Run(void) {
     } else {
       // This should always fail. We want to print out the return code.
       EXPECT_EQ(ret, AMDSMI_STATUS_SUCCESS) <<
-                  "Unexpected return code for  amdsmi_get_event_notification()";
+                  "Unexpected return code for  amdsmi_get_gpu_event_notification()";
     }
   }
 

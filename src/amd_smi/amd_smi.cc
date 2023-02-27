@@ -655,7 +655,7 @@ amdsmi_status_t
 }
 
 amdsmi_status_t
- amdsmi_get_event_notification(int timeout_ms,
+ amdsmi_get_gpu_event_notification(int timeout_ms,
                      uint32_t *num_elem, amdsmi_evt_notification_data_t *data) {
     AMDSMI_CHECK_INIT();
 
