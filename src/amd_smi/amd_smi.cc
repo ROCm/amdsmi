@@ -1571,7 +1571,7 @@ amdsmi_get_gpu_ras_block_features_enabled(amdsmi_processor_handle processor_hand
 }
 
 amdsmi_status_t
-amdsmi_get_bad_page_info(amdsmi_processor_handle processor_handle, uint32_t *num_pages, amdsmi_retired_page_record_t *info) {
+amdsmi_get_gpu_bad_page_info(amdsmi_processor_handle processor_handle, uint32_t *num_pages, amdsmi_retired_page_record_t *info) {
     AMDSMI_CHECK_INIT();
 
     if (num_pages == nullptr) {

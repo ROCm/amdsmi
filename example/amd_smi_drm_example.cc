@@ -459,15 +459,15 @@ int main() {
             char bad_page_status_names[3][15] = {"RESERVED", "PENDING",
                                                  "UNRESERVABLE"};
             uint32_t num_pages = 0;
-            ret = amdsmi_get_bad_page_info(processor_handles[j], &num_pages,
+            ret = amdsmi_get_gpu_bad_page_info(processor_handles[j], &num_pages,
                                            nullptr);
             CHK_AMDSMI_RET(ret)
-            printf("    Output of amdsmi_get_bad_page_info:\n");
+            printf("    Output of amdsmi_get_gpu_bad_page_info:\n");
             if (!num_pages) {
                 printf("\tNo bad pages found.\n");
             } else {
                 std::vector<amdsmi_retired_page_record_t> bad_page_info(num_pages);
-                ret = amdsmi_get_bad_page_info(processor_handles[j], &num_pages,
+                ret = amdsmi_get_gpu_bad_page_info(processor_handles[j], &num_pages,
                                                bad_page_info.data());
                 CHK_AMDSMI_RET(ret)
                 for (uint32_t page_it = 0; page_it < num_pages; page_it += 1) {

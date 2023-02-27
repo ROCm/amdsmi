@@ -1475,9 +1475,9 @@ amdsmi_get_gpu_memory_total.argtypes = [amdsmi_processor_handle, amdsmi_memory_t
 amdsmi_get_gpu_memory_usage = _libraries['libamd_smi.so'].amdsmi_get_gpu_memory_usage
 amdsmi_get_gpu_memory_usage.restype = amdsmi_status_t
 amdsmi_get_gpu_memory_usage.argtypes = [amdsmi_processor_handle, amdsmi_memory_type_t, ctypes.POINTER(ctypes.c_uint64)]
-amdsmi_get_bad_page_info = _libraries['libamd_smi.so'].amdsmi_get_bad_page_info
-amdsmi_get_bad_page_info.restype = amdsmi_status_t
-amdsmi_get_bad_page_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(struct_c__SA_amdsmi_retired_page_record_t)]
+amdsmi_get_gpu_bad_page_info = _libraries['libamd_smi.so'].amdsmi_get_gpu_bad_page_info
+amdsmi_get_gpu_bad_page_info.restype = amdsmi_status_t
+amdsmi_get_gpu_bad_page_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(struct_c__SA_amdsmi_retired_page_record_t)]
 amdsmi_get_gpu_ras_block_features_enabled = _libraries['libamd_smi.so'].amdsmi_get_gpu_ras_block_features_enabled
 amdsmi_get_gpu_ras_block_features_enabled.restype = amdsmi_status_t
 amdsmi_get_gpu_ras_block_features_enabled.argtypes = [amdsmi_processor_handle, amdsmi_gpu_block_t, ctypes.POINTER(c__EA_amdsmi_ras_err_state_t)]
@@ -1894,7 +1894,7 @@ __all__ = \
     'amdsmi_func_id_iter_handle_t', 'amdsmi_func_id_value_t',
     'amdsmi_fw_block_t', 'amdsmi_fw_block_t__enumvalues',
     'amdsmi_fw_info_t', 'amdsmi_get_gpu_asic_info',
-    'amdsmi_get_bad_page_info', 'amdsmi_get_gpu_board_info',
+    'amdsmi_get_gpu_bad_page_info', 'amdsmi_get_gpu_board_info',
     'amdsmi_get_caps_info', 'amdsmi_get_clock_measure',
     'amdsmi_get_compute_process_gpus',
     'amdsmi_get_compute_process_info',

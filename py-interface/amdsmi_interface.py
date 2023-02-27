@@ -726,7 +726,7 @@ def amdsmi_get_clock_measure(
     }
 
 
-def amdsmi_get_bad_page_info(
+def amdsmi_get_gpu_bad_page_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Union[list, str]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -738,7 +738,7 @@ def amdsmi_get_bad_page_info(
     retired_page_record = ctypes.POINTER(
         amdsmi_wrapper.amdsmi_retired_page_record_t)()
     _check_res(
-        amdsmi_wrapper.amdsmi_get_bad_page_info(
+        amdsmi_wrapper.amdsmi_get_gpu_bad_page_info(
             processor_handle, ctypes.byref(num_pages), retired_page_record
         )
     )
