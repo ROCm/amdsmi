@@ -1950,7 +1950,7 @@ def amdsmi_get_gpu_memory_total(processor_handle: amdsmi_wrapper.amdsmi_processo
     return total.value
 
 
-def amdsmi_dev_set_od_clk_info(
+def amdsmi_set_gpu_od_clk_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     level: AmdSmiFreqInd,
     value: int,
@@ -1971,7 +1971,7 @@ def amdsmi_dev_set_od_clk_info(
         raise AmdSmiParameterException(clk_type, AmdSmiClkType)
 
     _check_res(
-        amdsmi_wrapper. amdsmi_dev_set_od_clk_info(
+        amdsmi_wrapper. amdsmi_set_gpu_od_clk_info(
             processor_handle, level, ctypes.c_uint64(value), clk_type
         )
     )
