@@ -1553,9 +1553,9 @@ amdsmi_dev_set_od_volt_info.argtypes = [amdsmi_processor_handle, uint32_t, uint6
 amdsmi_dev_get_od_volt_curve_regions = _libraries['libamd_smi.so'].amdsmi_dev_get_od_volt_curve_regions
 amdsmi_dev_get_od_volt_curve_regions.restype = amdsmi_status_t
 amdsmi_dev_get_od_volt_curve_regions.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(struct_c__SA_amdsmi_freq_volt_region_t)]
-amdsmi_dev_get_power_profile_presets = _libraries['libamd_smi.so'].amdsmi_dev_get_power_profile_presets
-amdsmi_dev_get_power_profile_presets.restype = amdsmi_status_t
-amdsmi_dev_get_power_profile_presets.argtypes = [amdsmi_processor_handle, uint32_t, ctypes.POINTER(struct_c__SA_amdsmi_power_profile_status_t)]
+amdsmi_get_gpu_power_profile_presets = _libraries['libamd_smi.so'].amdsmi_get_gpu_power_profile_presets
+amdsmi_get_gpu_power_profile_presets.restype = amdsmi_status_t
+amdsmi_get_gpu_power_profile_presets.argtypes = [amdsmi_processor_handle, uint32_t, ctypes.POINTER(struct_c__SA_amdsmi_power_profile_status_t)]
 amdsmi_set_gpu_perf_level = _libraries['libamd_smi.so'].amdsmi_set_gpu_perf_level
 amdsmi_set_gpu_perf_level.restype = amdsmi_status_t
 amdsmi_set_gpu_perf_level.argtypes = [amdsmi_processor_handle, amdsmi_dev_perf_level_t]
@@ -1866,7 +1866,7 @@ __all__ = \
     'amdsmi_get_gpu_pci_replay_counter',
     'amdsmi_get_gpu_pci_throughput', 'amdsmi_get_gpu_perf_level',
     'amdsmi_get_power_ave',
-    'amdsmi_dev_get_power_profile_presets',
+    'amdsmi_get_gpu_power_profile_presets',
     'amdsmi_get_gpu_subsystem_id', 'amdsmi_get_gpu_subsystem_name',
     'amdsmi_get_temp_metric', 'amdsmi_get_gpu_vendor_name',
     'amdsmi_get_gpu_volt_metric', 'amdsmi_get_gpu_vram_vendor',
