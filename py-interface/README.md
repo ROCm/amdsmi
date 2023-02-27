@@ -2289,7 +2289,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_destroy_counter
+## amdsmi_gpu_destroy_counter
 Description: Destroys a performance counter object
 
 Input parameters:
@@ -2298,7 +2298,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_dev_destroy_counter` function:
+Exceptions that can be thrown by `amdsmi_gpu_destroy_counter` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2312,7 +2312,7 @@ try:
     else:
         for device in devices:
             event_handle = amdsmi_gpu_create_counter(device, AmdSmiEventGroup.XGMI)
-            amdsmi_dev_destroy_counter(event_handle)
+            amdsmi_gpu_destroy_counter(event_handle)
 except AmdSmiException as e:
     print(e)
 ```

@@ -1382,12 +1382,12 @@ def amdsmi_gpu_create_counter(
     return event_handle
 
 
-def amdsmi_dev_destroy_counter(event_handle: amdsmi_wrapper.amdsmi_event_handle_t):
+def amdsmi_gpu_destroy_counter(event_handle: amdsmi_wrapper.amdsmi_event_handle_t):
     if not isinstance(event_handle, amdsmi_wrapper.amdsmi_event_handle_t):
         raise AmdSmiParameterException(
             event_handle, amdsmi_wrapper.amdsmi_event_handle_t
         )
-    _check_res(amdsmi_wrapper.amdsmi_dev_destroy_counter(event_handle))
+    _check_res(amdsmi_wrapper.amdsmi_gpu_destroy_counter(event_handle))
 
 
 def amdsmi_control_counter(

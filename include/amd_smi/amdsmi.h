@@ -2786,7 +2786,7 @@ amdsmi_status_string(amdsmi_status_t status, const char **status_string);
  *  ::amdsmi_read_counter() reads an event counter.
  *
  *  Once the counter is no longer needed, the resources it uses should be freed
- *  by calling ::amdsmi_dev_destroy_counter().
+ *  by calling ::amdsmi_gpu_destroy_counter().
  *
  *
  *  Important Notes about Counter Values
@@ -2848,7 +2848,7 @@ amdsmi_status_string(amdsmi_status_t status, const char **status_string);
  *
  *    // Release all resources (e.g., counter and memory resources) associated
  *    with evnt_handle.
- *    ret = amdsmi_dev_destroy_counter(evnt_handle);
+ *    ret = amdsmi_gpu_destroy_counter(evnt_handle);
  *  @endcode
  *  @{
  */
@@ -2877,7 +2877,7 @@ amdsmi_gpu_counter_group_supported(amdsmi_processor_handle processor_handle, amd
  *  with a processor handle of @p processor_handle, and write a handle to the object to the
  *  memory location pointed to by @p evnt_handle. @p evnt_handle can be used
  *  with other performance event operations. The handle should be deallocated
- *  with ::amdsmi_dev_destroy_counter() when no longer needed.
+ *  with ::amdsmi_gpu_destroy_counter() when no longer needed.
  *
  *  @note This function requires root access
  *
@@ -2911,7 +2911,7 @@ amdsmi_gpu_create_counter(amdsmi_processor_handle processor_handle, amdsmi_event
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_destroy_counter(amdsmi_event_handle_t evnt_handle);
+amdsmi_gpu_destroy_counter(amdsmi_event_handle_t evnt_handle);
 
 /**
  *  @brief Issue performance counter control commands
