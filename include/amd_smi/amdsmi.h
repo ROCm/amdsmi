@@ -693,7 +693,7 @@ typedef enum {
 /**
  * @brief Pre-set Profile Selections. These bitmasks can be AND'd with the
  * ::amdsmi_power_profile_status_t.available_profiles returned from
- * :: amdsmi_dev_get_power_profile_presets to determine which power profiles
+ * :: amdsmi_get_gpu_power_profile_presets to determine which power profiles
  * are supported by the system.
  */
 typedef enum {
@@ -1713,7 +1713,7 @@ amdsmi_status_t
  *  @details This function will attempt to set the current profile to the provided
  *  profile, given a processor handle @p processor_handle and a @p profile. The provided
  *  profile must be one of the currently supported profiles, as indicated by a
- *  call to :: amdsmi_dev_get_power_profile_presets()
+ *  call to :: amdsmi_get_gpu_power_profile_presets()
  *
  *  @param[in] processor_handle a processor handle
  *
@@ -2431,7 +2431,7 @@ amdsmi_status_t  amdsmi_dev_get_od_volt_curve_regions(amdsmi_processor_handle pr
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
- amdsmi_dev_get_power_profile_presets(amdsmi_processor_handle processor_handle, uint32_t sensor_ind,
+ amdsmi_get_gpu_power_profile_presets(amdsmi_processor_handle processor_handle, uint32_t sensor_ind,
                                          amdsmi_power_profile_status_t *status);
 
 /** @} End PerfQuer */

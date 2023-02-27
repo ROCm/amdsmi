@@ -2200,7 +2200,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-##  amdsmi_dev_get_power_profile_presets
+##  amdsmi_get_gpu_power_profile_presets
 Description:  Get the list of available preset power profiles and an indication of
 which profile is currently active
 
@@ -2216,7 +2216,7 @@ Field | Description
 `current`| Which power profile is currently active
 `num_profiles`| How many power profiles are available
 
-Exceptions that can be thrown by ` amdsmi_dev_get_power_profile_presets` function:
+Exceptions that can be thrown by ` amdsmi_get_gpu_power_profile_presets` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2229,7 +2229,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-             amdsmi_dev_get_power_profile_presets(device, 0)
+             amdsmi_get_gpu_power_profile_presets(device, 0)
 except AmdSmiException as e:
     print(e)
 ```
@@ -2431,7 +2431,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-##  amdsmi_dev_get_power_profile_presets
+##  amdsmi_get_gpu_power_profile_presets
 Description: Get the list of available preset power profiles and an indication of
 which profile is currently active.
 
@@ -2447,7 +2447,7 @@ Field | Description
 `current`| Which power profile is currently active
 `num_profiles`| How many power profiles are available
 
-Exceptions that can be thrown by ` amdsmi_dev_get_power_profile_presets` function:
+Exceptions that can be thrown by ` amdsmi_get_gpu_power_profile_presets` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2460,7 +2460,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            status =  amdsmi_dev_get_power_profile_presets(device, 0)
+            status =  amdsmi_get_gpu_power_profile_presets(device, 0)
             print(status)
 except AmdSmiException as e:
     print(e)

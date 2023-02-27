@@ -1467,7 +1467,7 @@ def amdsmi_set_gpu_perf_level(
         processor_handle, perf_level))
 
 
-def amdsmi_dev_get_power_profile_presets(
+def amdsmi_get_gpu_power_profile_presets(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_idx: int
 ) -> Dict[str, Any]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -1481,7 +1481,7 @@ def amdsmi_dev_get_power_profile_presets(
     status = amdsmi_wrapper.amdsmi_power_profile_status_t()
 
     _check_res(
-        amdsmi_wrapper. amdsmi_dev_get_power_profile_presets(
+        amdsmi_wrapper. amdsmi_get_gpu_power_profile_presets(
             processor_handle, sensor_idx, ctypes.byref(status)
         )
     )
@@ -2438,7 +2438,7 @@ def amdsmi_dev_get_od_volt_curve_regions(
     return result
 
 
-def amdsmi_dev_get_power_profile_presets(
+def amdsmi_get_gpu_power_profile_presets(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_idx: int
 ) -> Dict[str, Any]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -2450,7 +2450,7 @@ def amdsmi_dev_get_power_profile_presets(
 
     status = amdsmi_wrapper.amdsmi_power_profile_status_t()
     _check_res(
-        amdsmi_wrapper. amdsmi_dev_get_power_profile_presets(
+        amdsmi_wrapper. amdsmi_get_gpu_power_profile_presets(
             processor_handle, sensor_idx, ctypes.byref(status)
         )
     )

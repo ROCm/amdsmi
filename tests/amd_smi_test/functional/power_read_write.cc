@@ -122,7 +122,7 @@ void TestPowerReadWrite::Run(void) {
   for (uint32_t dv_ind = 0; dv_ind < num_monitor_devs(); ++dv_ind) {
     PrintDeviceHeader(processor_handles_[dv_ind]);
 
-    ret =  amdsmi_dev_get_power_profile_presets(processor_handles_[dv_ind], 0, &status);
+    ret =  amdsmi_get_gpu_power_profile_presets(processor_handles_[dv_ind], 0, &status);
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
       std::cout << "The power profile presets settings is not supported. "
                 << std::endl;
@@ -131,7 +131,7 @@ void TestPowerReadWrite::Run(void) {
     CHK_ERR_ASRT(ret)
 
     // Verify api support checking functionality is working
-    ret =  amdsmi_dev_get_power_profile_presets(processor_handles_[dv_ind], 0, nullptr);
+    ret =  amdsmi_get_gpu_power_profile_presets(processor_handles_[dv_ind], 0, nullptr);
     ASSERT_EQ(ret, AMDSMI_STATUS_INVAL);
 
     IF_VERB(STANDARD) {
@@ -180,7 +180,7 @@ void TestPowerReadWrite::Run(void) {
     CHK_ERR_ASRT(ret)
     ASSERT_EQ(pfl, AMDSMI_DEV_PERF_LEVEL_MANUAL);
 
-    ret =  amdsmi_dev_get_power_profile_presets(processor_handles_[dv_ind], 0, &status);
+    ret =  amdsmi_get_gpu_power_profile_presets(processor_handles_[dv_ind], 0, &status);
     CHK_ERR_ASRT(ret)
 
     ASSERT_EQ(status.current, new_prof);
@@ -192,7 +192,7 @@ void TestPowerReadWrite::Run(void) {
     CHK_ERR_ASRT(ret)
     ASSERT_EQ(pfl, AMDSMI_DEV_PERF_LEVEL_AUTO);
 
-    ret =  amdsmi_dev_get_power_profile_presets(processor_handles_[dv_ind], 0, &status);
+    ret =  amdsmi_get_gpu_power_profile_presets(processor_handles_[dv_ind], 0, &status);
     CHK_ERR_ASRT(ret)
 
     ASSERT_EQ(status.current, orig_profile);
