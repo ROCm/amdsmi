@@ -2780,7 +2780,7 @@ amdsmi_status_string(amdsmi_status_t status, const char **status_string);
  *  structure.
  *
  *  Once an event counter handle is obtained, the event counter can be
- *  controlled (i.e., started, stopped,...) with ::amdsmi_control_counter() by
+ *  controlled (i.e., started, stopped,...) with ::amdsmi_gpu_control_counter() by
  *  passing ::amdsmi_counter_command_t commands. ::AMDSMI_CNTR_CMD_START starts an
  *  event counter and ::AMDSMI_CNTR_CMD_STOP stops a counter.
  *  ::amdsmi_read_counter() reads an event counter.
@@ -2831,7 +2831,7 @@ amdsmi_status_string(amdsmi_status_t status, const char **status_string);
  *    // A program that generates the events of interest can be started
  *    // immediately before or after starting the counters.
  *    // Start counting:
- *    ret = amdsmi_control_counter(evnt_handle, AMDSMI_CNTR_CMD_START, NULL);
+ *    ret = amdsmi_gpu_control_counter(evnt_handle, AMDSMI_CNTR_CMD_START, NULL);
  *
  *    // Wait...
  *
@@ -2844,7 +2844,7 @@ amdsmi_status_string(amdsmi_status_t status, const char **status_string);
  *    ret = amdsmi_read_counter(amdsmi_event_handle_t evt_handle, &value)
  *
  *    // Stop counting.
- *    ret = amdsmi_control_counter(evnt_handle, AMDSMI_CNTR_CMD_STOP, NULL);
+ *    ret = amdsmi_gpu_control_counter(evnt_handle, AMDSMI_CNTR_CMD_STOP, NULL);
  *
  *    // Release all resources (e.g., counter and memory resources) associated
  *    with evnt_handle.
@@ -2930,7 +2930,7 @@ amdsmi_gpu_destroy_counter(amdsmi_event_handle_t evnt_handle);
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_control_counter(amdsmi_event_handle_t evt_handle,
+amdsmi_gpu_control_counter(amdsmi_event_handle_t evt_handle,
                                   amdsmi_counter_command_t cmd, void *cmd_args);
 
 /**

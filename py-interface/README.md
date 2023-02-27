@@ -2316,7 +2316,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_control_counter
+## amdsmi_gpu_control_counter
 Description: Issue performance counter control commands
 
 Input parameters:
@@ -2326,7 +2326,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_control_counter` function:
+Exceptions that can be thrown by `amdsmi_gpu_control_counter` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2340,7 +2340,7 @@ try:
     else:
         for device in devices:
             event_handle = amdsmi_gpu_create_counter(device, AmdSmiEventType.XGMI_1_REQUEST_TX)
-            amdsmi_control_counter(event_handle, AmdSmiCounterCommand.CMD_START)
+            amdsmi_gpu_control_counter(event_handle, AmdSmiCounterCommand.CMD_START)
 except AmdSmiException as e:
     print(e)
 ```
