@@ -60,7 +60,7 @@ from .amdsmi_interface import amdsmi_get_gpu_target_frequency_range
 
 # # Process Information
 from .amdsmi_interface import amdsmi_get_gpu_process_list
-from .amdsmi_interface import amdsmi_get_process_info
+from .amdsmi_interface import amdsmi_get_gpu_process_info
 
 # # ECC Error Information
 from .amdsmi_interface import amdsmi_get_gpu_ecc_error_count

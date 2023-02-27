@@ -536,10 +536,10 @@ int main() {
                     if (getpid() == process_list[it]) {
                         continue;
                     }
-                    ret = amdsmi_get_process_info(processor_handles[j],
+                    ret = amdsmi_get_gpu_process_info(processor_handles[j],
                                                   process_list[it], &process);
                     if (ret != AMDSMI_STATUS_SUCCESS) {
-                        printf("amdsmi_get_process_info() failed for "
+                        printf("amdsmi_get_gpu_process_info() failed for "
                                "process_list[%d], returned %d\n",
                                it, ret);
                         continue;
