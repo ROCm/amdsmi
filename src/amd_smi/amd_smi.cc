@@ -718,7 +718,7 @@ amdsmi_status_t amdsmi_gpu_control_counter(amdsmi_event_handle_t evt_handle,
 }
 
 amdsmi_status_t
-amdsmi_read_counter(amdsmi_event_handle_t evt_handle,
+amdsmi_gpu_read_counter(amdsmi_event_handle_t evt_handle,
                             amdsmi_counter_value_t *value) {
     rsmi_status_t r = rsmi_counter_read(
         static_cast<rsmi_event_handle_t>(evt_handle),

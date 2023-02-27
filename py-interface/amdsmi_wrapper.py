@@ -1601,9 +1601,9 @@ amdsmi_gpu_destroy_counter.argtypes = [amdsmi_event_handle_t]
 amdsmi_gpu_control_counter = _libraries['libamd_smi.so'].amdsmi_gpu_control_counter
 amdsmi_gpu_control_counter.restype = amdsmi_status_t
 amdsmi_gpu_control_counter.argtypes = [amdsmi_event_handle_t, amdsmi_counter_command_t, ctypes.POINTER(None)]
-amdsmi_read_counter = _libraries['libamd_smi.so'].amdsmi_read_counter
-amdsmi_read_counter.restype = amdsmi_status_t
-amdsmi_read_counter.argtypes = [amdsmi_event_handle_t, ctypes.POINTER(struct_c__SA_amdsmi_counter_value_t)]
+amdsmi_gpu_read_counter = _libraries['libamd_smi.so'].amdsmi_gpu_read_counter
+amdsmi_gpu_read_counter.restype = amdsmi_status_t
+amdsmi_gpu_read_counter.argtypes = [amdsmi_event_handle_t, ctypes.POINTER(struct_c__SA_amdsmi_counter_value_t)]
 amdsmi_counter_get_available_counters = _libraries['libamd_smi.so'].amdsmi_counter_get_available_counters
 amdsmi_counter_get_available_counters.restype = amdsmi_status_t
 amdsmi_counter_get_available_counters.argtypes = [amdsmi_processor_handle, amdsmi_event_group_t, ctypes.POINTER(ctypes.c_uint32)]
@@ -1930,7 +1930,7 @@ __all__ = \
     'amdsmi_power_profile_status_t', 'amdsmi_proc_info_t',
     'amdsmi_process_handle', 'amdsmi_process_info_t',
     'amdsmi_range_t', 'amdsmi_ras_err_state_t',
-    'amdsmi_ras_err_state_t__enumvalues', 'amdsmi_read_counter',
+    'amdsmi_ras_err_state_t__enumvalues', 'amdsmi_gpu_read_counter',
     'amdsmi_retired_page_record_t',
     'amdsmi_set_gpu_event_notification_mask',
     'amdsmi_set_gpu_perf_determinism_mode', 'amdsmi_shut_down',

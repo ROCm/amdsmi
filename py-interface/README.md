@@ -2344,7 +2344,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_read_counter
+## amdsmi_gpu_read_counter
 Description: Read the current value of a performance counter
 
 Input parameters:
@@ -2359,7 +2359,7 @@ Field | Description
 `time_enabled`| Time that the counter was enabled in nanoseconds
 `time_running`| Time that the counter was running in nanoseconds
 
-Exceptions that can be thrown by `amdsmi_read_counter` function:
+Exceptions that can be thrown by `amdsmi_gpu_read_counter` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2373,7 +2373,7 @@ try:
     else:
         for device in devices:
             event_handle = amdsmi_gpu_create_counter(device, AmdSmiEventType.XGMI_1_REQUEST_TX)
-            amdsmi_read_counter(event_handle)
+            amdsmi_gpu_read_counter(event_handle)
 except AmdSmiException as e:
     print(e)
 ```
