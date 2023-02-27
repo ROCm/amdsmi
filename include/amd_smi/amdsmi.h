@@ -2706,7 +2706,7 @@ amdsmi_status_t  amdsmi_dev_get_gpu_ecc_count(amdsmi_processor_handle processor_
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_get_ecc_enabled(amdsmi_processor_handle processor_handle,
+amdsmi_status_t  amdsmi_dev_get_gpu_ecc_enabled(amdsmi_processor_handle processor_handle,
                                                     uint64_t *enabled_blocks);
 
 /**

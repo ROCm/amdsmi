@@ -921,7 +921,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_od_volt_info_get", " amdsmi_dev_get_od_volt_info"},
         {"rsmi_dev_od_volt_info_set", " amdsmi_dev_set_od_volt_info"},
         {"rsmi_dev_od_volt_curve_regions_get", " amdsmi_dev_get_od_volt_curve_regions"},
-        {"rsmi_dev_ecc_enabled_get", " amdsmi_dev_get_ecc_enabled"},
+        {"rsmi_dev_ecc_enabled_get", " amdsmi_dev_get_gpu_ecc_enabled"},
         {"rsmi_dev_ecc_status_get", " amdsmi_dev_get_ecc_status"},
         {"rsmi_dev_counter_group_supported", "amdsmi_dev_counter_group_supported"},
         {"rsmi_dev_counter_create", "amdsmi_dev_create_counter"},
@@ -1018,7 +1018,7 @@ amdsmi_status_t  amdsmi_dev_get_gpu_ecc_count(amdsmi_processor_handle processor_
                     static_cast<rsmi_gpu_block_t>(block),
                     reinterpret_cast<rsmi_error_count_t*>(ec));
 }
-amdsmi_status_t  amdsmi_dev_get_ecc_enabled(amdsmi_processor_handle processor_handle,
+amdsmi_status_t  amdsmi_dev_get_gpu_ecc_enabled(amdsmi_processor_handle processor_handle,
                                                     uint64_t *enabled_blocks) {
     AMDSMI_CHECK_INIT();
 

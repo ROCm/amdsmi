@@ -2664,7 +2664,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-##  amdsmi_dev_get_ecc_enabled
+##  amdsmi_dev_get_gpu_ecc_enabled
 Description: Retrieve the enabled ECC bit-mask
 
 Input parameters:
@@ -2672,7 +2672,7 @@ Input parameters:
 
 Output: Enabled ECC bit-mask
 
-Exceptions that can be thrown by ` amdsmi_dev_get_ecc_enabled` function:
+Exceptions that can be thrown by ` amdsmi_dev_get_gpu_ecc_enabled` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2685,7 +2685,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            enabled =  amdsmi_dev_get_ecc_enabled(device)
+            enabled =  amdsmi_dev_get_gpu_ecc_enabled(device)
             print(enabled)
 except AmdSmiException as e:
     print(e)
