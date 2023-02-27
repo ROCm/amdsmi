@@ -1598,9 +1598,9 @@ amdsmi_gpu_create_counter.argtypes = [amdsmi_processor_handle, amdsmi_event_type
 amdsmi_gpu_destroy_counter = _libraries['libamd_smi.so'].amdsmi_gpu_destroy_counter
 amdsmi_gpu_destroy_counter.restype = amdsmi_status_t
 amdsmi_gpu_destroy_counter.argtypes = [amdsmi_event_handle_t]
-amdsmi_control_counter = _libraries['libamd_smi.so'].amdsmi_control_counter
-amdsmi_control_counter.restype = amdsmi_status_t
-amdsmi_control_counter.argtypes = [amdsmi_event_handle_t, amdsmi_counter_command_t, ctypes.POINTER(None)]
+amdsmi_gpu_control_counter = _libraries['libamd_smi.so'].amdsmi_gpu_control_counter
+amdsmi_gpu_control_counter.restype = amdsmi_status_t
+amdsmi_gpu_control_counter.argtypes = [amdsmi_event_handle_t, amdsmi_counter_command_t, ctypes.POINTER(None)]
 amdsmi_read_counter = _libraries['libamd_smi.so'].amdsmi_read_counter
 amdsmi_read_counter.restype = amdsmi_status_t
 amdsmi_read_counter.argtypes = [amdsmi_event_handle_t, ctypes.POINTER(struct_c__SA_amdsmi_counter_value_t)]
@@ -1845,7 +1845,7 @@ __all__ = \
     'amdsmi_bdf_t', 'amdsmi_bit_field_t', 'amdsmi_board_info_t',
     'amdsmi_clk_measure_t', 'amdsmi_clk_type_t',
     'amdsmi_clk_type_t__enumvalues', 'amdsmi_container_types_t',
-    'amdsmi_container_types_t__enumvalues', 'amdsmi_control_counter',
+    'amdsmi_container_types_t__enumvalues', 'amdsmi_gpu_control_counter',
     'amdsmi_counter_command_t',
     'amdsmi_counter_command_t__enumvalues',
     'amdsmi_counter_get_available_counters', 'amdsmi_counter_value_t',

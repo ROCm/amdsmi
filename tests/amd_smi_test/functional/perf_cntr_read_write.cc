@@ -126,9 +126,9 @@ void TestPerfCntrReadWrite::CountEvents(amdsmi_processor_handle dv_ind,
                        static_cast<amdsmi_event_type_t>(evnt), nullptr);
   ASSERT_EQ(ret, AMDSMI_STATUS_INVAL);
 
-  ret = amdsmi_control_counter(evt_handle, AMDSMI_CNTR_CMD_START, nullptr);
+  ret = amdsmi_gpu_control_counter(evt_handle, AMDSMI_CNTR_CMD_START, nullptr);
   if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
-     std::cout << "amdsmi_control_counter() returned "
+     std::cout << "amdsmi_gpu_control_counter() returned "
                                 "AMDSMI_STATUS_NOT_SUPPORTED" << std::endl;
      throw AMDSMI_STATUS_NOT_SUPPORTED;
   } else {
@@ -307,7 +307,7 @@ TestPerfCntrReadWrite::testEventsSimultaneously(amdsmi_processor_handle dv_ind) 
       for (j = 0; j < num_created; ++j) {
         tmp = static_cast<amdsmi_event_type_t>(evnt + j);
 
-        ret = amdsmi_control_counter(evt_handle.get()[j], AMDSMI_CNTR_CMD_START,
+        ret = amdsmi_gpu_control_counter(evt_handle.get()[j], AMDSMI_CNTR_CMD_START,
                                                                      nullptr);
         CHK_ERR_ASRT(ret)
 

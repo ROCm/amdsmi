@@ -1390,7 +1390,7 @@ def amdsmi_gpu_destroy_counter(event_handle: amdsmi_wrapper.amdsmi_event_handle_
     _check_res(amdsmi_wrapper.amdsmi_gpu_destroy_counter(event_handle))
 
 
-def amdsmi_control_counter(
+def amdsmi_gpu_control_counter(
     event_handle: amdsmi_wrapper.amdsmi_event_handle_t,
     counter_command: AmdSmiCounterCommand,
 ):
@@ -1403,7 +1403,7 @@ def amdsmi_control_counter(
     command_args = ctypes.c_void_p()
 
     _check_res(
-        amdsmi_wrapper.amdsmi_control_counter(
+        amdsmi_wrapper.amdsmi_gpu_control_counter(
             event_handle, counter_command, command_args
         )
     )
