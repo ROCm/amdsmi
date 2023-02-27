@@ -1361,7 +1361,7 @@ def amdsmi_gpu_counter_group_supported(
     )
 
 
-def amdsmi_dev_create_counter(
+def amdsmi_gpu_create_counter(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     event_type: AmdSmiEventType,
 ) -> amdsmi_wrapper.amdsmi_event_handle_t:
@@ -1374,7 +1374,7 @@ def amdsmi_dev_create_counter(
 
     event_handle = amdsmi_wrapper.amdsmi_event_handle_t()
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_create_counter(
+        amdsmi_wrapper.amdsmi_gpu_create_counter(
             processor_handle, event_type, ctypes.byref(event_handle)
         )
     )

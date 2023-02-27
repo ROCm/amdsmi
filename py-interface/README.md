@@ -2262,7 +2262,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_create_counter
+## amdsmi_gpu_create_counter
 Description: Creates a performance counter object
 
 Input parameters:
@@ -2272,7 +2272,7 @@ Input parameters:
 
 Output: An event handle of the newly created performance counter object
 
-Exceptions that can be thrown by `amdsmi_dev_create_counter` function:
+Exceptions that can be thrown by `amdsmi_gpu_create_counter` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2285,7 +2285,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            event_handle = amdsmi_dev_create_counter(device, AmdSmiEventGroup.XGMI)
+            event_handle = amdsmi_gpu_create_counter(device, AmdSmiEventGroup.XGMI)
 except AmdSmiException as e:
     print(e)
 ```
@@ -2311,7 +2311,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            event_handle = amdsmi_dev_create_counter(device, AmdSmiEventGroup.XGMI)
+            event_handle = amdsmi_gpu_create_counter(device, AmdSmiEventGroup.XGMI)
             amdsmi_dev_destroy_counter(event_handle)
 except AmdSmiException as e:
     print(e)
@@ -2339,7 +2339,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            event_handle = amdsmi_dev_create_counter(device, AmdSmiEventType.XGMI_1_REQUEST_TX)
+            event_handle = amdsmi_gpu_create_counter(device, AmdSmiEventType.XGMI_1_REQUEST_TX)
             amdsmi_control_counter(event_handle, AmdSmiCounterCommand.CMD_START)
 except AmdSmiException as e:
     print(e)
@@ -2372,7 +2372,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            event_handle = amdsmi_dev_create_counter(device, AmdSmiEventType.XGMI_1_REQUEST_TX)
+            event_handle = amdsmi_gpu_create_counter(device, AmdSmiEventType.XGMI_1_REQUEST_TX)
             amdsmi_read_counter(event_handle)
 except AmdSmiException as e:
     print(e)

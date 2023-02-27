@@ -117,7 +117,7 @@ from .amdsmi_interface import  amdsmi_get_gpu_power_profile_presets
 
 # # Performance Counters
 from .amdsmi_interface import amdsmi_gpu_counter_group_supported
-from .amdsmi_interface import amdsmi_dev_create_counter
+from .amdsmi_interface import amdsmi_gpu_create_counter
 from .amdsmi_interface import amdsmi_dev_destroy_counter
 from .amdsmi_interface import amdsmi_control_counter
 from .amdsmi_interface import amdsmi_read_counter

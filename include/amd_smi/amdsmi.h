@@ -2775,7 +2775,7 @@ amdsmi_status_string(amdsmi_status_t status, const char **status_string);
  *  Once it is determined that events are supported and counters are available,
  *  an event counter can be created/destroyed and controlled.
  *
- *  ::amdsmi_dev_create_counter() allocates internal data structures that will be
+ *  ::amdsmi_gpu_create_counter() allocates internal data structures that will be
  *  used to used to control the event counter, and return a handle to this data
  *  structure.
  *
@@ -2825,7 +2825,7 @@ amdsmi_status_string(amdsmi_status_t status, const char **status_string);
  *    // AMDSMI_EVNT_XGMI_0_BEATS_TX) and get the handle
  *    // (amdsmi_event_handle_t).
  *
- *    ret = amdsmi_dev_create_counter(dv_ind, AMDSMI_EVNT_XGMI_0_BEATS_TX,
+ *    ret = amdsmi_gpu_create_counter(dv_ind, AMDSMI_EVNT_XGMI_0_BEATS_TX,
  *                                                          &evnt_handle);
  *
  *    // A program that generates the events of interest can be started
@@ -2895,7 +2895,7 @@ amdsmi_gpu_counter_group_supported(amdsmi_processor_handle processor_handle, amd
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_create_counter(amdsmi_processor_handle processor_handle, amdsmi_event_type_t type,
+amdsmi_gpu_create_counter(amdsmi_processor_handle processor_handle, amdsmi_event_type_t type,
                                             amdsmi_event_handle_t *evnt_handle);
 
 /**
