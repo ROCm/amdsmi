@@ -3500,7 +3500,7 @@ amdsmi_init_event_notification(amdsmi_processor_handle processor_handle);
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
- amdsmi_set_event_notification_mask(amdsmi_processor_handle processor_handle, uint64_t mask);
+ amdsmi_set_gpu_event_notification_mask(amdsmi_processor_handle processor_handle, uint64_t mask);
 
 /**
  * @brief Collect event notifications, waiting a specified amount of time
@@ -3517,9 +3517,9 @@ amdsmi_status_t
  * buffer available to write any new events that would be found.
  *
  * This function requires prior calls to ::amdsmi_init_event_notification() and
- * :: amdsmi_set_event_notification_mask(). This function polls for the
+ * :: amdsmi_set_gpu_event_notification_mask(). This function polls for the
  * occurrance of the events on the respective devices that were previously
- * specified by :: amdsmi_set_event_notification_mask().
+ * specified by :: amdsmi_set_gpu_event_notification_mask().
  *
  * @param[in] timeout_ms number of milliseconds to wait for an event
  * to occur

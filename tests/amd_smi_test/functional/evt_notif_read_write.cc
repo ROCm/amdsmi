@@ -119,7 +119,7 @@ void TestEvtNotifReadWrite::Run(void) {
       return;
     }
     ASSERT_EQ(ret, AMDSMI_STATUS_SUCCESS);
-    ret =  amdsmi_set_event_notification_mask(processor_handles_[dv_ind], mask);
+    ret =  amdsmi_set_gpu_event_notification_mask(processor_handles_[dv_ind], mask);
     ASSERT_EQ(ret, AMDSMI_STATUS_SUCCESS);
   }
 

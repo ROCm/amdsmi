@@ -649,7 +649,7 @@ amdsmi_init_event_notification(amdsmi_processor_handle processor_handle) {
 }
 
 amdsmi_status_t
- amdsmi_set_event_notification_mask(amdsmi_processor_handle processor_handle,
+ amdsmi_set_gpu_event_notification_mask(amdsmi_processor_handle processor_handle,
             uint64_t mask) {
     return rsmi_wrapper(rsmi_event_notification_mask_set, processor_handle, mask);
 }

@@ -1655,9 +1655,9 @@ amdsmi_get_func_iter_value.argtypes = [amdsmi_func_id_iter_handle_t, ctypes.POIN
 amdsmi_init_event_notification = _libraries['libamd_smi.so'].amdsmi_init_event_notification
 amdsmi_init_event_notification.restype = amdsmi_status_t
 amdsmi_init_event_notification.argtypes = [amdsmi_processor_handle]
-amdsmi_set_event_notification_mask = _libraries['libamd_smi.so'].amdsmi_set_event_notification_mask
-amdsmi_set_event_notification_mask.restype = amdsmi_status_t
-amdsmi_set_event_notification_mask.argtypes = [amdsmi_processor_handle, uint64_t]
+amdsmi_set_gpu_event_notification_mask = _libraries['libamd_smi.so'].amdsmi_set_gpu_event_notification_mask
+amdsmi_set_gpu_event_notification_mask.restype = amdsmi_status_t
+amdsmi_set_gpu_event_notification_mask.argtypes = [amdsmi_processor_handle, uint64_t]
 amdsmi_get_gpu_event_notification = _libraries['libamd_smi.so'].amdsmi_get_gpu_event_notification
 amdsmi_get_gpu_event_notification.restype = amdsmi_status_t
 amdsmi_get_gpu_event_notification.argtypes = [ctypes.c_int32, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(struct_c__SA_amdsmi_evt_notification_data_t)]
@@ -1932,7 +1932,7 @@ __all__ = \
     'amdsmi_range_t', 'amdsmi_ras_err_state_t',
     'amdsmi_ras_err_state_t__enumvalues', 'amdsmi_read_counter',
     'amdsmi_retired_page_record_t',
-    'amdsmi_set_event_notification_mask',
+    'amdsmi_set_gpu_event_notification_mask',
     'amdsmi_set_gpu_perf_determinism_mode', 'amdsmi_shut_down',
     'amdsmi_socket_handle', 'amdsmi_status_string', 'amdsmi_status_t',
     'amdsmi_status_t__enumvalues', 'amdsmi_stop_gpu_event_notification',
