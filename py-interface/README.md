@@ -2799,7 +2799,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_get_compute_process_gpus
+## amdsmi_get_gpu_compute_process_gpus
 Description: Get the device indices currently being used by a process
 
 Input parameters:
@@ -2807,7 +2807,7 @@ Input parameters:
 
 Output: List of indices of devices currently being used by the process
 
-Exceptions that can be thrown by `amdsmi_get_compute_process_gpus` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_compute_process_gpus` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2816,7 +2816,7 @@ Example:
 ```python
 try:
     pid = 0 # << valid pid here
-    indices = amdsmi_get_compute_process_gpus(pid)
+    indices = amdsmi_get_gpu_compute_process_gpus(pid)
     print(indices)
 except AmdSmiException as e:
     print(e)

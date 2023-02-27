@@ -162,7 +162,7 @@ void TestProcInfoRead::Run(void) {
     uint32_t amt_allocd = num_devices;
 
     for (uint32_t j = 0; j < num_proc_found; j++) {
-      err = amdsmi_get_compute_process_gpus(procs[j].process_id, dev_inds,
+      err = amdsmi_get_gpu_compute_process_gpus(procs[j].process_id, dev_inds,
                                                                  &amt_allocd);
       if (err == AMDSMI_STATUS_NOT_FOUND) {
         std::cout << "\t** Process " << procs[j].process_id <<

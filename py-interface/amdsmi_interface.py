@@ -2581,21 +2581,21 @@ def amdsmi_get_gpu_compute_process_info_by_pid(pid: int) -> Dict[str, int]:
     }
 
 
-def amdsmi_get_compute_process_gpus(pid: int) -> List[int]:
+def amdsmi_get_gpu_compute_process_gpus(pid: int) -> List[int]:
     if not isinstance(pid, int):
         raise AmdSmiParameterException(pid, int)
 
     num_devices = ctypes.c_uint32(0)
     nullptr = ctypes.POINTER(ctypes.c_uint32)()
     _check_res(
-        amdsmi_wrapper.amdsmi_get_compute_process_gpus(
+        amdsmi_wrapper.amdsmi_get_gpu_compute_process_gpus(
             pid, nullptr, ctypes.byref(num_devices)
         )
     )
 
     dv_indices = (ctypes.c_uint32 * num_devices.value)()
     _check_res(
-        amdsmi_wrapper.amdsmi_get_compute_process_gpus(
+        amdsmi_wrapper.amdsmi_get_gpu_compute_process_gpus(
             pid, dv_indices, ctypes.byref(num_devices)
         )
     )

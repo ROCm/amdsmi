@@ -132,7 +132,7 @@ from .amdsmi_interface import amdsmi_status_string
 # # System Information Query
 from .amdsmi_interface import amdsmi_get_gpu_compute_process_info
 from .amdsmi_interface import amdsmi_get_gpu_compute_process_info_by_pid
-from .amdsmi_interface import amdsmi_get_compute_process_gpus
+from .amdsmi_interface import amdsmi_get_gpu_compute_process_gpus
 from .amdsmi_interface import amdsmi_dev_xgmi_error_status
 from .amdsmi_interface import amdsmi_dev_reset_xgmi_error
 
