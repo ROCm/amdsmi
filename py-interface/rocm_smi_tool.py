@@ -317,7 +317,7 @@ class Formatter:
     |     """ + self.style.text("28   Get device gpu clk freq.              Api:  amdsmi_get_clk_freq            <bdf>") + """                        |
     |     """ + self.style.text("29   Get device od volt.                   Api:  amdsmi_get_gpu_od_volt_info            <bdf>") + """                        |
     |     """ + self.style.text("30   Get device gpu metrics.               Api:  amdsmi_get_gpu_metrics_info        <bdf>") + """                        |
-    |     """ + self.style.text("31   Get device od volt curve regions.     Api:  amdsmi_dev_get_od_volt_curve_regions   <bdf><num_regions>") + """           |
+    |     """ + self.style.text("31   Get device od volt curve regions.     Api:  amdsmi_get_gpu_od_volt_curve_regions   <bdf><num_regions>") + """           |
     |     """ + self.style.text("32   Get device power profile presets.     Api:  amdsmi_get_gpu_power_profile_presets   <bdf><sensor_idx>") + """            |
     |     """ + self.style.text("33   Get the build version.                Api: amdsmi_get_version                     <None>") + """                       |
     |     """ + self.style.text("34   Get version string.                   Api: amdsmi_get_version_str                 <None>") + """                       |
@@ -502,7 +502,7 @@ def amdsmi_tool_dev_gpu_clk_freq_get(dev):
 
 def amdsmi_tool_dev_od_volt_curve_regions_get(dev, dic):
     num_regions = dic["num_regions"]
-    return smi_api. amdsmi_dev_get_od_volt_curve_regions(dev, num_regions)
+    return smi_api. amdsmi_get_gpu_od_volt_curve_regions(dev, num_regions)
 
 
 def amdsmi_tool_dev_ecc_count_get(dev):

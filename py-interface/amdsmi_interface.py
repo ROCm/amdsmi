@@ -2399,7 +2399,7 @@ def amdsmi_get_gpu_metrics_info(
     }
 
 
-def amdsmi_dev_get_od_volt_curve_regions(
+def amdsmi_get_gpu_od_volt_curve_regions(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, num_regions: int
 ) -> List[Dict[str, Any]]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -2412,7 +2412,7 @@ def amdsmi_dev_get_od_volt_curve_regions(
     region_count = ctypes.c_uint32(num_regions)
     buffer = (amdsmi_wrapper.amdsmi_freq_volt_region_t * num_regions)()
     _check_res(
-        amdsmi_wrapper. amdsmi_dev_get_od_volt_curve_regions(
+        amdsmi_wrapper. amdsmi_get_gpu_od_volt_curve_regions(
             processor_handle, ctypes.byref(region_count), buffer
         )
     )

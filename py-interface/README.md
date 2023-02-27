@@ -2168,7 +2168,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-##  amdsmi_dev_get_od_volt_curve_regions
+##  amdsmi_get_gpu_od_volt_curve_regions
 Description: This function will retrieve the current valid regions in the
 frequency/voltage space
 
@@ -2183,7 +2183,7 @@ Field | Description
 `freq_range` | <table> <thead><tr><th> Subfield </th><th>Description</th></tr></thead><tbody><tr><td>`lower_bound`</td><td>lower bound freq range</td></tr><tr><td>`upper_bound`</td><td>upper bound freq range</td></tr></tbody></table>
 `volt_range` |  <table> <thead><tr><th> Subfield </th><th>Description</th></tr></thead><tbody><tr><td>`lower_bound`</td><td>lower bound volt range</td></tr><tr><td>`upper_bound`</td><td>upper bound volt range</td></tr></tbody></table>
 
-Exceptions that can be thrown by ` amdsmi_dev_get_od_volt_curve_regions` function:
+Exceptions that can be thrown by ` amdsmi_get_gpu_od_volt_curve_regions` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2196,7 +2196,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-             amdsmi_dev_get_od_volt_curve_regions(device, 3)
+             amdsmi_get_gpu_od_volt_curve_regions(device, 3)
 except AmdSmiException as e:
     print(e)
 ```

@@ -184,7 +184,7 @@ void TestVoltCurvRead::Run(void) {
       ASSERT_TRUE(regions != nullptr);
 
       num_regions = odv.num_regions;
-      err =  amdsmi_dev_get_od_volt_curve_regions(processor_handles_[i], &num_regions, regions);
+      err =  amdsmi_get_gpu_od_volt_curve_regions(processor_handles_[i], &num_regions, regions);
       CHK_ERR_ASRT(err)
       ASSERT_TRUE(num_regions == odv.num_regions);
 
