@@ -1283,7 +1283,7 @@ except AmdSmiException as e:
 ```
 
 
-## amdsmi_dev_set_clk_range
+## amdsmi_set_gpu_clk_range
 Description: This function sets the clock range information
 
 Input parameters:
@@ -1294,7 +1294,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_dev_set_clk_range` function:
+Exceptions that can be thrown by `amdsmi_set_gpu_clk_range` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1307,7 +1307,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_dev_set_clk_range(device, 0, 1000, AmdSmiClkType.AMDSMI_CLK_TYPE_SYS)
+            amdsmi_set_gpu_clk_range(device, 0, 1000, AmdSmiClkType.AMDSMI_CLK_TYPE_SYS)
 except AmdSmiException as e:
     print(e)
 ```

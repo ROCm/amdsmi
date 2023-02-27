@@ -348,7 +348,7 @@ class Formatter:
     |     """ + self.style.text("59   Get counter available counters.       Api:  amdsmi_counter_get_available_counters  <bdf>") + """                        |
     |     """ + self.style.text("60   Get counter control.                  Api: amdsmi_control_counter                 <bdf>") + """                        |
     |     """ + self.style.text("61   Get counter read.                     Api: amdsmi_read_counter                    <bdf>") + """                        |
-    |     """ + self.style.text("62   Set dev clk range.                    Api: amdsmi_dev_set_clk_range               <bdf><min_clk><max_clk>") + """      |
+    |     """ + self.style.text("62   Set dev clk range.                    Api: amdsmi_set_gpu_clk_range               <bdf><min_clk><max_clk>") + """      |
     |     """ + self.style.text("63   Get dev counter group supported.      Api: amdsmi_dev_counter_group_supported     <bdf>") + """                        |
     |     """ + self.style.text("64   Reset dev fan.                        Api: amdsmi_reset_gpu_fan                   <bdf><sensor_idx>") + """            |
     |     """ + self.style.text("65   Set dev fan speed.                    Api: amdsmi_set_gpu_fan_speed               <bdf><sensor_idx><fan_speed>") + """ |
@@ -620,7 +620,7 @@ def amdsmi_tool_dev_clk_range_set(dev, dic):
     max_clk = dic["max_clk"]
     for clock_type in smi_api.AmdSmiClkType:
         try:
-            value = smi_api.amdsmi_dev_set_clk_range(dev, min_clk, max_clk, clock_type)
+            value = smi_api.amdsmi_set_gpu_clk_range(dev, min_clk, max_clk, clock_type)
             result.update({clock_type.name: value})
         except smi_api.AmdSmiException as e:
             print("{}:\t{}".format(clock_type.name, e))

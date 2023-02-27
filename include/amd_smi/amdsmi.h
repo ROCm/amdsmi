@@ -2313,7 +2313,7 @@ amdsmi_status_t  amdsmi_dev_get_gpu_metrics_info(amdsmi_processor_handle process
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_dev_set_clk_range(amdsmi_processor_handle processor_handle, uint64_t minclkvalue,
+amdsmi_status_t amdsmi_set_gpu_clk_range(amdsmi_processor_handle processor_handle, uint64_t minclkvalue,
                                        uint64_t maxclkvalue,
                                        amdsmi_clk_type_t clkType);
 
