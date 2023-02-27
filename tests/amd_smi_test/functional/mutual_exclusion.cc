@@ -249,7 +249,7 @@ void TestMutualExclusion::Run(void) {
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret =  amdsmi_set_clk_freq(processor_handles_[0], CLK_TYPE_SYS, 0);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret =  amdsmi_dev_get_ecc_count(processor_handles_[0], AMDSMI_GPU_BLOCK_UMC, &dmy_err_cnt);
+    ret =  amdsmi_dev_get_gpu_ecc_count(processor_handles_[0], AMDSMI_GPU_BLOCK_UMC, &dmy_err_cnt);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret =  amdsmi_dev_get_ecc_enabled(processor_handles_[0], &dmy_ui64);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);

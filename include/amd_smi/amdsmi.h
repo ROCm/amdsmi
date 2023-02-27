@@ -2679,7 +2679,7 @@ amdsmi_get_version_str(amdsmi_sw_component_t component, char *ver_str,
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_get_ecc_count(amdsmi_processor_handle processor_handle,
+amdsmi_status_t  amdsmi_dev_get_gpu_ecc_count(amdsmi_processor_handle processor_handle,
                               amdsmi_gpu_block_t block, amdsmi_error_count_t *ec);
 
 /**

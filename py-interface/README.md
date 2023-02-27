@@ -2631,7 +2631,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-##  amdsmi_dev_get_ecc_count
+##  amdsmi_dev_get_gpu_ecc_count
 Description: Retrieve the error counts for a GPU block
 
 Input parameters:
@@ -2645,7 +2645,7 @@ Field | Description
 `correctable_count`| Count of correctable errors
 `uncorrectable_count`| Count of uncorrectable errors
 
-Exceptions that can be thrown by ` amdsmi_dev_get_ecc_count` function:
+Exceptions that can be thrown by ` amdsmi_dev_get_gpu_ecc_count` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2658,7 +2658,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            ecc_count =  amdsmi_dev_get_ecc_count(device, AmdSmiGpuBlock.UMC)
+            ecc_count =  amdsmi_dev_get_gpu_ecc_count(device, AmdSmiGpuBlock.UMC)
             print(ecc_count)
 except AmdSmiException as e:
     print(e)

@@ -936,7 +936,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_gpu_clk_freq_get", " amdsmi_get_clk_freq"},
         {"rsmi_dev_gpu_clk_freq_set", " amdsmi_set_clk_freq"},
         {"rsmi_dev_firmware_version_get", "amdsmi_get_fw_info"},
-        {"rsmi_dev_ecc_count_get", " amdsmi_dev_get_ecc_count"},
+        {"rsmi_dev_ecc_count_get", " amdsmi_dev_get_gpu_ecc_count"},
         {"rsmi_counter_available_counters_get", " amdsmi_counter_get_available_counters"},
         {"rsmi_dev_power_ave_get", "amdsmi_get_power_ave"},
         {"rsmi_dev_power_cap_get", "amdsmi_get_power_cap_info"},
@@ -1008,7 +1008,7 @@ amdsmi_get_compute_process_gpus(uint32_t pid, uint32_t *dv_indices,
     return amd::smi::rsmi_to_amdsmi_status(r);
 }
 
-amdsmi_status_t  amdsmi_dev_get_ecc_count(amdsmi_processor_handle processor_handle,
+amdsmi_status_t  amdsmi_dev_get_gpu_ecc_count(amdsmi_processor_handle processor_handle,
                         amdsmi_gpu_block_t block, amdsmi_error_count_t *ec) {
     AMDSMI_CHECK_INIT();
 

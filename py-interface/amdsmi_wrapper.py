@@ -1577,9 +1577,9 @@ amdsmi_get_version.argtypes = [ctypes.POINTER(struct_c__SA_amdsmi_version_t)]
 amdsmi_get_version_str = _libraries['libamd_smi.so'].amdsmi_get_version_str
 amdsmi_get_version_str.restype = amdsmi_status_t
 amdsmi_get_version_str.argtypes = [amdsmi_sw_component_t, ctypes.POINTER(ctypes.c_char), uint32_t]
-amdsmi_dev_get_ecc_count = _libraries['libamd_smi.so'].amdsmi_dev_get_ecc_count
-amdsmi_dev_get_ecc_count.restype = amdsmi_status_t
-amdsmi_dev_get_ecc_count.argtypes = [amdsmi_processor_handle, amdsmi_gpu_block_t, ctypes.POINTER(struct_c__SA_amdsmi_error_count_t)]
+amdsmi_dev_get_gpu_ecc_count = _libraries['libamd_smi.so'].amdsmi_dev_get_gpu_ecc_count
+amdsmi_dev_get_gpu_ecc_count.restype = amdsmi_status_t
+amdsmi_dev_get_gpu_ecc_count.argtypes = [amdsmi_processor_handle, amdsmi_gpu_block_t, ctypes.POINTER(struct_c__SA_amdsmi_error_count_t)]
 amdsmi_dev_get_ecc_enabled = _libraries['libamd_smi.so'].amdsmi_dev_get_ecc_enabled
 amdsmi_dev_get_ecc_enabled.restype = amdsmi_status_t
 amdsmi_dev_get_ecc_enabled.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint64)]
@@ -1852,7 +1852,7 @@ __all__ = \
     'amdsmi_dev_close_supported_func_iterator',
     'amdsmi_dev_counter_group_supported', 'amdsmi_dev_create_counter',
     'amdsmi_dev_destroy_counter', 'amdsmi_get_busy_percent',
-    'amdsmi_get_gpu_drm_render_minor', 'amdsmi_dev_get_ecc_count',
+    'amdsmi_get_gpu_drm_render_minor', 'amdsmi_dev_get_gpu_ecc_count',
     'amdsmi_dev_get_ecc_enabled', 'amdsmi_dev_get_ecc_status',
     'amdsmi_get_energy_count', 'amdsmi_get_gpu_fan_rpms',
     'amdsmi_get_gpu_fan_speed', 'amdsmi_get_gpu_fan_speed_max',

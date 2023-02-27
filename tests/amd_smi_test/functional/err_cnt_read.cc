@@ -139,7 +139,7 @@ void TestErrCntRead::Run(void) {
                                                                        nullptr);
         ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
-        err =  amdsmi_dev_get_ecc_count(processor_handles_[i], static_cast<amdsmi_gpu_block_t>(b), &ec);
+        err =  amdsmi_dev_get_gpu_ecc_count(processor_handles_[i], static_cast<amdsmi_gpu_block_t>(b), &ec);
 
         if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
           IF_VERB(STANDARD) {
@@ -148,7 +148,7 @@ void TestErrCntRead::Run(void) {
                                  ": Not supported for this device" << std::endl;
           }
           // Verify api support checking functionality is working
-          err =  amdsmi_dev_get_ecc_count(processor_handles_[i], static_cast<amdsmi_gpu_block_t>(b),
+          err =  amdsmi_dev_get_gpu_ecc_count(processor_handles_[i], static_cast<amdsmi_gpu_block_t>(b),
                                                                        nullptr);
           ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
@@ -164,7 +164,7 @@ void TestErrCntRead::Run(void) {
                                                                    << std::endl;
             }
             // Verify api support checking functionality is working
-            err =  amdsmi_dev_get_ecc_count(processor_handles_[i], static_cast<amdsmi_gpu_block_t>(b),
+            err =  amdsmi_dev_get_gpu_ecc_count(processor_handles_[i], static_cast<amdsmi_gpu_block_t>(b),
                                                                        nullptr);
             ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
         }
