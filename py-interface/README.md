@@ -698,7 +698,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_get_bad_page_info
+## amdsmi_get_gpu_bad_page_info
 Description:  Returns bad page info for the given GPU
 
 Input parameters:
@@ -713,7 +713,7 @@ Field | Description
 `page_size` | Size of bad page
 `status` | Status of bad page
 
-Exceptions that can be thrown by `amdsmi_get_bad_page_info` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_bad_page_info` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -726,7 +726,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            bad_page_info = amdsmi_get_bad_page_info(device)
+            bad_page_info = amdsmi_get_gpu_bad_page_info(device)
             if not len(bad_page_info):
                 print("No bad pages found")
                 continue
