@@ -1706,9 +1706,9 @@ amdsmi_get_clock_measure.argtypes = [amdsmi_processor_handle, amdsmi_clk_type_t,
 amdsmi_get_gpu_vram_usage = _libraries['libamd_smi.so'].amdsmi_get_gpu_vram_usage
 amdsmi_get_gpu_vram_usage.restype = amdsmi_status_t
 amdsmi_get_gpu_vram_usage.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_c__SA_amdsmi_vram_info_t)]
-amdsmi_get_target_frequency_range = _libraries['libamd_smi.so'].amdsmi_get_target_frequency_range
-amdsmi_get_target_frequency_range.restype = amdsmi_status_t
-amdsmi_get_target_frequency_range.argtypes = [amdsmi_processor_handle, amdsmi_clk_type_t, ctypes.POINTER(struct_c__SA_amdsmi_frequency_range_t)]
+amdsmi_get_gpu_target_frequency_range = _libraries['libamd_smi.so'].amdsmi_get_gpu_target_frequency_range
+amdsmi_get_gpu_target_frequency_range.restype = amdsmi_status_t
+amdsmi_get_gpu_target_frequency_range.argtypes = [amdsmi_processor_handle, amdsmi_clk_type_t, ctypes.POINTER(struct_c__SA_amdsmi_frequency_range_t)]
 amdsmi_get_process_list = _libraries['libamd_smi.so'].amdsmi_get_process_list
 amdsmi_get_process_list.restype = amdsmi_status_t
 amdsmi_get_process_list.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_uint32)]
@@ -1910,7 +1910,7 @@ __all__ = \
     'amdsmi_get_process_list',
     'amdsmi_get_ras_block_features_enabled',
     'amdsmi_get_socket_handles', 'amdsmi_get_socket_info',
-    'amdsmi_get_target_frequency_range',
+    'amdsmi_get_gpu_target_frequency_range',
     'amdsmi_get_utilization_count', 'amdsmi_get_gpu_vbios_info',
     'amdsmi_get_version', 'amdsmi_get_version_str',
     'amdsmi_get_gpu_vram_usage', 'amdsmi_get_xgmi_info',
