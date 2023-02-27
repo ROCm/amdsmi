@@ -2462,7 +2462,7 @@ def amdsmi_get_gpu_power_profile_presets(
     }
 
 
-def amdsmi_dev_get_ecc_count(
+def amdsmi_dev_get_gpu_ecc_count(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, block: AmdSmiGpuBlock
 ) -> Dict[str, int]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -2475,7 +2475,7 @@ def amdsmi_dev_get_ecc_count(
 
     ec = amdsmi_wrapper.amdsmi_error_count_t()
     _check_res(
-        amdsmi_wrapper. amdsmi_dev_get_ecc_count(
+        amdsmi_wrapper. amdsmi_dev_get_gpu_ecc_count(
             processor_handle, block, ctypes.byref(ec))
     )
 
