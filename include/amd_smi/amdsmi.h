@@ -2596,7 +2596,7 @@ amdsmi_status_t  amdsmi_dev_set_overdrive_level_v1(amdsmi_processor_handle proce
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_set_clk_freq(amdsmi_processor_handle processor_handle,
+amdsmi_status_t  amdsmi_set_clk_freq(amdsmi_processor_handle processor_handle,
                              amdsmi_clk_type_t clk_type, uint64_t freq_bitmask);
 
 /** @} End PerfCont */

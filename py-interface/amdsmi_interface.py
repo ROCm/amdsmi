@@ -1553,7 +1553,7 @@ def amdsmi_reset_gpu_fan(
     _check_res(amdsmi_wrapper.amdsmi_reset_gpu_fan(processor_handle, sensor_idx))
 
 
-def amdsmi_dev_set_clk_freq(
+def amdsmi_set_clk_freq(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     clk_type: AmdSmiClkType,
     freq_bitmask: int,
@@ -1568,7 +1568,7 @@ def amdsmi_dev_set_clk_freq(
         raise AmdSmiParameterException(freq_bitmask, int)
     freq_bitmask = ctypes.c_uint64(freq_bitmask)
     _check_res(
-        amdsmi_wrapper. amdsmi_dev_set_clk_freq(
+        amdsmi_wrapper. amdsmi_set_clk_freq(
             processor_handle, clk_type, freq_bitmask
         )
     )

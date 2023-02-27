@@ -2544,7 +2544,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-##  amdsmi_dev_set_clk_freq
+##  amdsmi_set_clk_freq
 Description: Control the set of allowed frequencies that can be used for the
 specified clock
 
@@ -2558,7 +2558,7 @@ bits of this mask are relevant.
 
 Output: None
 
-Exceptions that can be thrown by ` amdsmi_dev_set_clk_freq` function:
+Exceptions that can be thrown by ` amdsmi_set_clk_freq` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2572,7 +2572,7 @@ try:
     else:
         for device in devices:
             freq_bitmask = 0
-             amdsmi_dev_set_clk_freq(device, AmdSmiClkType.GFX, freq_bitmask)
+             amdsmi_set_clk_freq(device, AmdSmiClkType.GFX, freq_bitmask)
 except AmdSmiException as e:
     print(e)
 ```

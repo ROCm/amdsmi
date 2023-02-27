@@ -352,7 +352,7 @@ class Formatter:
     |     """ + self.style.text("63   Get dev counter group supported.      Api: amdsmi_dev_counter_group_supported     <bdf>") + """                        |
     |     """ + self.style.text("64   Reset dev fan.                        Api: amdsmi_reset_gpu_fan                   <bdf><sensor_idx>") + """            |
     |     """ + self.style.text("65   Set dev fan speed.                    Api: amdsmi_set_gpu_fan_speed               <bdf><sensor_idx><fan_speed>") + """ |
-    |     """ + self.style.text("66   Set dev gpu clk freq.                 Api:  amdsmi_dev_set_clk_freq            <bdf><freq_bitmask>") + """          |
+    |     """ + self.style.text("66   Set dev gpu clk freq.                 Api:  amdsmi_set_clk_freq            <bdf><freq_bitmask>") + """          |
     |     """ + self.style.text("67   Reset dev gpu.                        Api: amdsmi_dev_reset_gpu                   <bdf>") + """                        |
     |     """ + self.style.text("68   Set dev od clk info.                  Api:  amdsmi_dev_set_od_clk_info             <bdf><value>") + """                 |
     |     """ + self.style.text("69   Set dev od volt info.                 Api:  amdsmi_dev_set_od_volt_info     <bdf><vpoint><clk_value><volt_value>") + """|
@@ -643,7 +643,7 @@ def amdsmi_tool_dev_gpu_clk_freq_set(dev, dic):
     freq_bitmask = dic["freq_bitmask"]
     for clock_type in smi_api.AmdSmiClkType:
         try:
-            value = smi_api. amdsmi_dev_set_clk_freq(dev, clock_type, freq_bitmask)
+            value = smi_api. amdsmi_set_clk_freq(dev, clock_type, freq_bitmask)
             result.update({clock_type.name: value})
         except smi_api.AmdSmiException as e:
             print("{}:\t{}".format(clock_type.name, e))

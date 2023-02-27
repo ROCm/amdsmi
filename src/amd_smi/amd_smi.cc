@@ -934,7 +934,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_memory_total_get", "amdsmi_get_gpu_memory_total"},
         {"rsmi_dev_memory_usage_get", "amdsmi_get_gpu_memory_usage"},
         {"rsmi_dev_gpu_clk_freq_get", " amdsmi_get_clk_freq"},
-        {"rsmi_dev_gpu_clk_freq_set", " amdsmi_dev_set_clk_freq"},
+        {"rsmi_dev_gpu_clk_freq_set", " amdsmi_set_clk_freq"},
         {"rsmi_dev_firmware_version_get", "amdsmi_get_fw_info"},
         {"rsmi_dev_ecc_count_get", " amdsmi_dev_get_ecc_count"},
         {"rsmi_counter_available_counters_get", " amdsmi_counter_get_available_counters"},
@@ -1246,7 +1246,7 @@ amdsmi_status_t  amdsmi_get_clk_freq(amdsmi_processor_handle processor_handle,
                     reinterpret_cast<rsmi_frequencies_t*>(f));
 }
 
-amdsmi_status_t  amdsmi_dev_set_clk_freq(amdsmi_processor_handle processor_handle,
+amdsmi_status_t  amdsmi_set_clk_freq(amdsmi_processor_handle processor_handle,
                          amdsmi_clk_type_t clk_type, uint64_t freq_bitmask) {
     AMDSMI_CHECK_INIT();
 
