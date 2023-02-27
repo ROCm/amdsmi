@@ -103,7 +103,7 @@ void TestGpuMetricsRead::Run(void) {
         std::cout << "\t**GPU METRICS:\n";
     }
     amdsmi_gpu_metrics_t smu;
-    err =  amdsmi_dev_get_gpu_metrics_info(processor_handles_[i], &smu);
+    err =  amdsmi_get_gpu_metrics_info(processor_handles_[i], &smu);
     if (err != AMDSMI_STATUS_SUCCESS) {
       if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
         IF_VERB(STANDARD) {
@@ -188,7 +188,7 @@ void TestGpuMetricsRead::Run(void) {
     }
 
     // Verify api support checking functionality is working
-    err =  amdsmi_dev_get_gpu_metrics_info(processor_handles_[i], nullptr);
+    err =  amdsmi_get_gpu_metrics_info(processor_handles_[i], nullptr);
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
   }
 }

@@ -280,7 +280,7 @@ void TestMutualExclusion::Run(void) {
     amdsmi_set_gpu_fan_speed
     amdsmi_get_gpu_fan_speed_max
      amdsmi_dev_get_od_volt_info
-     amdsmi_dev_get_gpu_metrics_info
+     amdsmi_get_gpu_metrics_info
      amdsmi_dev_get_od_volt_curve_regions
     amdsmi_dev_power_max_get
     amdsmi_get_power_ave

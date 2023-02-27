@@ -316,7 +316,7 @@ class Formatter:
     |     """ + self.style.text("27   Get device overdrive level.           Api: amdsmi_dev_get_overdrive_level         <bdf>") + """                        |
     |     """ + self.style.text("28   Get device gpu clk freq.              Api:  amdsmi_get_clk_freq            <bdf>") + """                        |
     |     """ + self.style.text("29   Get device od volt.                   Api:  amdsmi_dev_get_od_volt_info            <bdf>") + """                        |
-    |     """ + self.style.text("30   Get device gpu metrics.               Api:  amdsmi_dev_get_gpu_metrics_info        <bdf>") + """                        |
+    |     """ + self.style.text("30   Get device gpu metrics.               Api:  amdsmi_get_gpu_metrics_info        <bdf>") + """                        |
     |     """ + self.style.text("31   Get device od volt curve regions.     Api:  amdsmi_dev_get_od_volt_curve_regions   <bdf><num_regions>") + """           |
     |     """ + self.style.text("32   Get device power profile presets.     Api:  amdsmi_dev_get_power_profile_presets   <bdf><sensor_idx>") + """            |
     |     """ + self.style.text("33   Get the build version.                Api: amdsmi_get_version                     <None>") + """                       |
@@ -814,7 +814,7 @@ commands = {
     29: [smi_api. amdsmi_dev_get_od_volt_info, {
         "device_identifier1": [None, True]
     }],
-    30: [smi_api. amdsmi_dev_get_gpu_metrics_info, {
+    30: [smi_api. amdsmi_get_gpu_metrics_info, {
         "device_identifier1": [None, True]
     }],
     31: [amdsmi_tool_dev_od_volt_curve_regions_get, {

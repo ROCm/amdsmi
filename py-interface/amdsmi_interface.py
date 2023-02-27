@@ -2346,7 +2346,7 @@ def amdsmi_dev_get_od_volt_info(
     }
 
 
-def amdsmi_dev_get_gpu_metrics_info(
+def amdsmi_get_gpu_metrics_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -2356,7 +2356,7 @@ def amdsmi_dev_get_gpu_metrics_info(
 
     gpu_metrics = amdsmi_wrapper.amdsmi_gpu_metrics_t()
     _check_res(
-        amdsmi_wrapper. amdsmi_dev_get_gpu_metrics_info(
+        amdsmi_wrapper. amdsmi_get_gpu_metrics_info(
             processor_handle, ctypes.byref(gpu_metrics)
         )
     )

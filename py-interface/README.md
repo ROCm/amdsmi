@@ -2106,7 +2106,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-##  amdsmi_dev_get_gpu_metrics_info
+##  amdsmi_get_gpu_metrics_info
 Description: This function retrieves the gpu metrics information
 
 Input parameters:
@@ -2151,7 +2151,7 @@ Field | Description
 `mem_actvity_acc` | mem activity acc
 `temperature_hbm` | hbm temperature
 
-Exceptions that can be thrown by ` amdsmi_dev_get_gpu_metrics_info` function:
+Exceptions that can be thrown by ` amdsmi_get_gpu_metrics_info` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2164,7 +2164,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-             amdsmi_dev_get_gpu_metrics_info(dev)
+             amdsmi_get_gpu_metrics_info(dev)
 except AmdSmiException as e:
     print(e)
 ```
