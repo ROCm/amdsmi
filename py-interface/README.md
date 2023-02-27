@@ -941,7 +941,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_get_ras_block_features_enabled
+## amdsmi_get_gpu_ras_block_features_enabled
 Description: Returns status of each RAS block for the given GPU
 
 Input parameters:
@@ -955,7 +955,7 @@ Field | Description
 `block` | RAS block
 `status` | RAS block status
 
-Exceptions that can be thrown by `amdsmi_get_ras_block_features_enabled` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_ras_block_features_enabled` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -968,7 +968,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            ras_block_features = amdsmi_get_ras_block_features_enabled(device)
+            ras_block_features = amdsmi_get_gpu_ras_block_features_enabled(device)
             print(ras_block_features)
 except AmdSmiException as e:
     print(e)

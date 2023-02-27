@@ -1823,7 +1823,7 @@ amdsmi_get_bad_page_info(amdsmi_processor_handle processor_handle, uint32_t *num
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_ras_block_features_enabled(amdsmi_processor_handle processor_handle, amdsmi_gpu_block_t block,
+amdsmi_get_gpu_ras_block_features_enabled(amdsmi_processor_handle processor_handle, amdsmi_gpu_block_t block,
                                                                   amdsmi_ras_err_state_t *state);
 
 /**

@@ -1547,7 +1547,7 @@ amdsmi_get_clock_measure(amdsmi_processor_handle processor_handle, amdsmi_clk_ty
 }
 
 amdsmi_status_t
-amdsmi_get_ras_block_features_enabled(amdsmi_processor_handle processor_handle, amdsmi_gpu_block_t block, amdsmi_ras_err_state_t *state) {
+amdsmi_get_gpu_ras_block_features_enabled(amdsmi_processor_handle processor_handle, amdsmi_gpu_block_t block, amdsmi_ras_err_state_t *state) {
     AMDSMI_CHECK_INIT();
 
     if (state == nullptr || block > AMDSMI_GPU_BLOCK_LAST) {
