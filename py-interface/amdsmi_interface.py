@@ -315,7 +315,7 @@ class AmdSmiEventReader:
         for event_type in event_types:
             mask |= (1 << (int(event_type) - 1))
 
-        _check_res(amdsmi_wrapper.amdsmi_init_event_notification(processor_handle))
+        _check_res(amdsmi_wrapper.amdsmi_init_gpu_event_notification(processor_handle))
         _check_res(amdsmi_wrapper. amdsmi_set_gpu_event_notification_mask(
             processor_handle, ctypes.c_uint64(mask)))
 

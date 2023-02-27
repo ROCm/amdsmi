@@ -1652,9 +1652,9 @@ amdsmi_dev_close_supported_func_iterator.argtypes = [ctypes.POINTER(ctypes.POINT
 amdsmi_get_func_iter_value = _libraries['libamd_smi.so'].amdsmi_get_func_iter_value
 amdsmi_get_func_iter_value.restype = amdsmi_status_t
 amdsmi_get_func_iter_value.argtypes = [amdsmi_func_id_iter_handle_t, ctypes.POINTER(union_c__UA_amdsmi_func_id_value_t)]
-amdsmi_init_event_notification = _libraries['libamd_smi.so'].amdsmi_init_event_notification
-amdsmi_init_event_notification.restype = amdsmi_status_t
-amdsmi_init_event_notification.argtypes = [amdsmi_processor_handle]
+amdsmi_init_gpu_event_notification = _libraries['libamd_smi.so'].amdsmi_init_gpu_event_notification
+amdsmi_init_gpu_event_notification.restype = amdsmi_status_t
+amdsmi_init_gpu_event_notification.argtypes = [amdsmi_processor_handle]
 amdsmi_set_gpu_event_notification_mask = _libraries['libamd_smi.so'].amdsmi_set_gpu_event_notification_mask
 amdsmi_set_gpu_event_notification_mask.restype = amdsmi_status_t
 amdsmi_set_gpu_event_notification_mask.argtypes = [amdsmi_processor_handle, uint64_t]
@@ -1916,7 +1916,7 @@ __all__ = \
     'amdsmi_get_gpu_vram_usage', 'amdsmi_get_xgmi_info',
     'amdsmi_gpu_block_t', 'amdsmi_gpu_block_t__enumvalues',
     'amdsmi_gpu_caps_t', 'amdsmi_gpu_metrics_t', 'amdsmi_init',
-    'amdsmi_init_event_notification', 'amdsmi_init_flags_t',
+    'amdsmi_init_gpu_event_notification', 'amdsmi_init_flags_t',
     'amdsmi_init_flags_t__enumvalues', 'amdsmi_is_P2P_accessible',
     'amdsmi_memory_page_status_t',
     'amdsmi_memory_page_status_t__enumvalues', 'amdsmi_memory_type_t',

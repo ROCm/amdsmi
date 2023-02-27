@@ -3471,7 +3471,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_init_event_notification(amdsmi_processor_handle processor_handle);
+amdsmi_init_gpu_event_notification(amdsmi_processor_handle processor_handle);
 
 /**
  * @brief Specify which events to collect for a device
@@ -3494,7 +3494,7 @@ amdsmi_init_event_notification(amdsmi_processor_handle processor_handle);
  * AMDSMI_EVT_NOTIF_THERMAL_THROTTLE event (which has a value of 2).
  *
  * @note ::AMDSMI_STATUS_INIT_ERROR is returned if
- * ::amdsmi_init_event_notification() has not been called before a call to this
+ * ::amdsmi_init_gpu_event_notification() has not been called before a call to this
  * function
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
@@ -3516,7 +3516,7 @@ amdsmi_status_t
  * to the buffer then poll for new events if there is still caller-provided
  * buffer available to write any new events that would be found.
  *
- * This function requires prior calls to ::amdsmi_init_event_notification() and
+ * This function requires prior calls to ::amdsmi_init_gpu_event_notification() and
  * :: amdsmi_set_gpu_event_notification_mask(). This function polls for the
  * occurrance of the events on the respective devices that were previously
  * specified by :: amdsmi_set_gpu_event_notification_mask().
@@ -3548,7 +3548,7 @@ amdsmi_status_t
  * @details Any resources used by event notification for the GPU with
  * processor handle @p processor_handle will be free with this
  * function. This includes freeing any memory and closing file handles. This
- * should be called for every call to ::amdsmi_init_event_notification()
+ * should be called for every call to ::amdsmi_init_gpu_event_notification()
  *
  * @param[in] processor_handle The processor handle of the GPU for which event
  * notification resources will be free

@@ -644,7 +644,7 @@ amdsmi_status_t amdsmi_get_gpu_vram_vendor(amdsmi_processor_handle processor_han
 }
 
 amdsmi_status_t
-amdsmi_init_event_notification(amdsmi_processor_handle processor_handle) {
+amdsmi_init_gpu_event_notification(amdsmi_processor_handle processor_handle) {
     return rsmi_wrapper(rsmi_event_notification_init, processor_handle);
 }
 
