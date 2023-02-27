@@ -2271,7 +2271,7 @@ amdsmi_status_t amdsmi_reset_gpu(amdsmi_processor_handle processor_handle);
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_get_od_volt_info(amdsmi_processor_handle processor_handle,
+amdsmi_status_t  amdsmi_get_gpu_od_volt_info(amdsmi_processor_handle processor_handle,
                                                amdsmi_od_volt_freq_data_t *odv);
 
 /**
@@ -2374,7 +2374,7 @@ amdsmi_status_t  amdsmi_dev_set_od_volt_info(amdsmi_processor_handle processor_h
  *  be written to @p buffer in @p num_regions.
  *
  *  The number of regions to expect this function provide (@p num_regions) can
- *  be obtained by calling :: amdsmi_dev_get_od_volt_info().
+ *  be obtained by calling :: amdsmi_get_gpu_od_volt_info().
  *
  *  @param[in] processor_handle a processor handle
  *

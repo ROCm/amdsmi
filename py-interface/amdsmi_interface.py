@@ -2309,7 +2309,7 @@ def amdsmi_get_clk_freq(
     }
 
 
-def amdsmi_dev_get_od_volt_info(
+def amdsmi_get_gpu_od_volt_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -2319,7 +2319,7 @@ def amdsmi_dev_get_od_volt_info(
 
     freq_data = amdsmi_wrapper.amdsmi_od_volt_freq_data_t()
     _check_res(
-        amdsmi_wrapper. amdsmi_dev_get_od_volt_info(
+        amdsmi_wrapper. amdsmi_get_gpu_od_volt_info(
             processor_handle, ctypes.byref(freq_data)
         )
     )
