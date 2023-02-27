@@ -910,7 +910,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_memory_busy_percent_get", "amdsmi_get_gpu_memory_busy_percent"},
         {"rsmi_dev_busy_percent_get", "amdsmi_get_busy_percent"},
         {"rsmi_dev_memory_reserved_pages_get", "amdsmi_get_gpu_memory_reserved_pages"},
-        {"rsmi_dev_overdrive_level_get", "amdsmi_dev_get_overdrive_level"},
+        {"rsmi_dev_overdrive_level_get", "amdsmi_get_gpu_overdrive_level"},
         {"rsmi_dev_power_profile_presets_get", " amdsmi_get_gpu_power_profile_presets"},
         {"rsmi_dev_perf_level_set", " amdsmi_set_gpu_perf_level"},
         {"rsmi_dev_perf_level_set_v1", " amdsmi_set_gpu_perf_level_v1"},
@@ -1280,7 +1280,7 @@ amdsmi_status_t amdsmi_get_gpu_memory_usage(amdsmi_processor_handle processor_ha
                     static_cast<rsmi_memory_type_t>(mem_type), used);
 }
 
-amdsmi_status_t amdsmi_dev_get_overdrive_level(
+amdsmi_status_t amdsmi_get_gpu_overdrive_level(
             amdsmi_processor_handle processor_handle,
             uint32_t *od) {
     return rsmi_wrapper(rsmi_dev_overdrive_level_get, processor_handle, od);

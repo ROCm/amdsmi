@@ -1526,9 +1526,9 @@ amdsmi_get_gpu_perf_level.argtypes = [amdsmi_processor_handle, ctypes.POINTER(c_
 amdsmi_set_gpu_perf_determinism_mode = _libraries['libamd_smi.so'].amdsmi_set_gpu_perf_determinism_mode
 amdsmi_set_gpu_perf_determinism_mode.restype = amdsmi_status_t
 amdsmi_set_gpu_perf_determinism_mode.argtypes = [amdsmi_processor_handle, uint64_t]
-amdsmi_dev_get_overdrive_level = _libraries['libamd_smi.so'].amdsmi_dev_get_overdrive_level
-amdsmi_dev_get_overdrive_level.restype = amdsmi_status_t
-amdsmi_dev_get_overdrive_level.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32)]
+amdsmi_get_gpu_overdrive_level = _libraries['libamd_smi.so'].amdsmi_get_gpu_overdrive_level
+amdsmi_get_gpu_overdrive_level.restype = amdsmi_status_t
+amdsmi_get_gpu_overdrive_level.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32)]
 amdsmi_get_clk_freq = _libraries['libamd_smi.so'].amdsmi_get_clk_freq
 amdsmi_get_clk_freq.restype = amdsmi_status_t
 amdsmi_get_clk_freq.argtypes = [amdsmi_processor_handle, amdsmi_clk_type_t, ctypes.POINTER(struct_c__SA_amdsmi_frequencies_t)]
@@ -1861,7 +1861,7 @@ __all__ = \
     'amdsmi_get_gpu_memory_reserved_pages',
     'amdsmi_get_gpu_memory_total', 'amdsmi_get_gpu_memory_usage',
     'amdsmi_dev_get_od_volt_curve_regions',
-    'amdsmi_dev_get_od_volt_info', 'amdsmi_dev_get_overdrive_level',
+    'amdsmi_dev_get_od_volt_info', 'amdsmi_get_gpu_overdrive_level',
     'amdsmi_get_gpu_pci_bandwidth', 'amdsmi_get_gpu_pci_id',
     'amdsmi_get_gpu_pci_replay_counter',
     'amdsmi_get_gpu_pci_throughput', 'amdsmi_get_gpu_perf_level',

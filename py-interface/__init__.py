@@ -108,7 +108,7 @@ from .amdsmi_interface import amdsmi_get_busy_percent
 from .amdsmi_interface import amdsmi_get_utilization_count
 from .amdsmi_interface import amdsmi_get_gpu_perf_level
 from .amdsmi_interface import amdsmi_set_gpu_perf_determinism_mode
-from .amdsmi_interface import amdsmi_dev_get_overdrive_level
+from .amdsmi_interface import amdsmi_get_gpu_overdrive_level
 from .amdsmi_interface import  amdsmi_get_clk_freq
 from .amdsmi_interface import  amdsmi_dev_get_od_volt_info
 from .amdsmi_interface import  amdsmi_get_gpu_metrics_info

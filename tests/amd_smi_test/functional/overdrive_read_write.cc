@@ -107,7 +107,7 @@ void TestOverdriveReadWrite::Run(void) {
     }
     ret =  amdsmi_dev_set_overdrive_level(processor_handles_[dv_ind], 10);
     CHK_ERR_ASRT(ret)
-    ret = amdsmi_dev_get_overdrive_level(processor_handles_[dv_ind], &val);
+    ret = amdsmi_get_gpu_overdrive_level(processor_handles_[dv_ind], &val);
     CHK_ERR_ASRT(ret)
     IF_VERB(STANDARD) {
       std::cout << "\t**New OverDrive Level:" << val << std::endl;
@@ -115,7 +115,7 @@ void TestOverdriveReadWrite::Run(void) {
     }
     ret =  amdsmi_dev_set_overdrive_level(processor_handles_[dv_ind], 0);
     CHK_ERR_ASRT(ret)
-    ret = amdsmi_dev_get_overdrive_level(processor_handles_[dv_ind], &val);
+    ret = amdsmi_get_gpu_overdrive_level(processor_handles_[dv_ind], &val);
     CHK_ERR_ASRT(ret)
     IF_VERB(STANDARD) {
       std::cout << "\t**New OverDrive Level:" << val << std::endl;

@@ -2219,7 +2219,7 @@ amdsmi_set_gpu_perf_determinism_mode(amdsmi_processor_handle processor_handle, u
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 
-amdsmi_status_t amdsmi_dev_get_overdrive_level(amdsmi_processor_handle processor_handle, uint32_t *od);
+amdsmi_status_t amdsmi_get_gpu_overdrive_level(amdsmi_processor_handle processor_handle, uint32_t *od);
 
 /**
  *  @brief Get the list of possible system clock speeds of device for a
