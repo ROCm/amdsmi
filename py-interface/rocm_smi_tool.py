@@ -594,7 +594,7 @@ def amdsmi_tool_counter_control(dev):
     for event_type in smi_api.AmdSmiEventType:
         for counter_command in smi_api.AmdSmiCounterCommand:
             try:
-                event_handle = smi_api.amdsmi_dev_create_counter(dev, event_type)
+                event_handle = smi_api.amdsmi_gpu_create_counter(dev, event_type)
                 value = smi_api.amdsmi_control_counter(event_handle, counter_command)
                 result.update({event_type.name: value})
             except smi_api.AmdSmiException as e:
@@ -606,7 +606,7 @@ def amdsmi_tool_counter_read(dev):
     result = {}
     for event_type in smi_api.AmdSmiEventType:
         try:
-            event_handle = smi_api.amdsmi_dev_create_counter(dev, event_type)
+            event_handle = smi_api.amdsmi_gpu_create_counter(dev, event_type)
             value = smi_api.amdsmi_read_counter(event_handle)
             result.update({event_type.name: value})
         except smi_api.AmdSmiException as e:

@@ -115,14 +115,14 @@ void TestPerfCntrReadWrite::CountEvents(amdsmi_processor_handle dv_ind,
   amdsmi_event_handle_t evt_handle;
   amdsmi_status_t ret;
 
-  ret = amdsmi_dev_create_counter(dv_ind,
+  ret = amdsmi_gpu_create_counter(dv_ind,
                        static_cast<amdsmi_event_type_t>(evnt), &evt_handle);
   CHK_ERR_ASRT(ret)
 
-  // Note that amdsmi_dev_create_counter() should never return
+  // Note that amdsmi_gpu_create_counter() should never return
   // AMDSMI_STATUS_NOT_SUPPORTED. It will return AMDSMI_STATUS_OUT_OF_RESOURCES
   // if it is unable to create a counter.
-  ret = amdsmi_dev_create_counter(dv_ind,
+  ret = amdsmi_gpu_create_counter(dv_ind,
                        static_cast<amdsmi_event_type_t>(evnt), nullptr);
   ASSERT_EQ(ret, AMDSMI_STATUS_INVAL);
 
@@ -294,7 +294,7 @@ TestPerfCntrReadWrite::testEventsSimultaneously(amdsmi_processor_handle dv_ind) 
           std::cout << "\tEvent Type " << tmp << std::endl;
         }
 
-        ret = amdsmi_dev_create_counter(dv_ind,
+        ret = amdsmi_gpu_create_counter(dv_ind,
                      static_cast<amdsmi_event_type_t>(tmp), &evt_handle.get()[j]);
         CHK_ERR_ASRT(ret)
       }
