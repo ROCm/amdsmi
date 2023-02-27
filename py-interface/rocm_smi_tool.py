@@ -353,7 +353,7 @@ class Formatter:
     |     """ + self.style.text("64   Reset dev fan.                        Api: amdsmi_reset_gpu_fan                   <bdf><sensor_idx>") + """            |
     |     """ + self.style.text("65   Set dev fan speed.                    Api: amdsmi_set_gpu_fan_speed               <bdf><sensor_idx><fan_speed>") + """ |
     |     """ + self.style.text("66   Set dev gpu clk freq.                 Api:  amdsmi_set_clk_freq            <bdf><freq_bitmask>") + """          |
-    |     """ + self.style.text("67   Reset dev gpu.                        Api: amdsmi_dev_reset_gpu                   <bdf>") + """                        |
+    |     """ + self.style.text("67   Reset dev gpu.                        Api: amdsmi_reset_gpu                   <bdf>") + """                        |
     |     """ + self.style.text("68   Set dev od clk info.                  Api:  amdsmi_dev_set_od_clk_info             <bdf><value>") + """                 |
     |     """ + self.style.text("69   Set dev od volt info.                 Api:  amdsmi_dev_set_od_volt_info     <bdf><vpoint><clk_value><volt_value>") + """|
     |     """ + self.style.text("70   Set dev overdrive level.              Api:  amdsmi_dev_set_overdrive_level         <bdf><overdrive_value>") + """       |
@@ -926,7 +926,7 @@ commands = {
         "device_identifier1": [None, True],
         "freq_bitmask": [int, True]
     }],
-    67: [smi_api.amdsmi_dev_reset_gpu, {
+    67: [smi_api.amdsmi_reset_gpu, {
         "device_identifier1": [None, True]
     }],
     68: [amdsmi_tool_dev_od_clk_info_set, {

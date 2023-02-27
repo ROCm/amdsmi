@@ -88,7 +88,7 @@ from .amdsmi_interface import  amdsmi_dev_set_od_volt_info
 from .amdsmi_interface import  amdsmi_set_gpu_perf_level_v1
 from .amdsmi_interface import  amdsmi_set_gpu_perf_level
 from .amdsmi_interface import  amdsmi_dev_get_power_profile_presets
-from .amdsmi_interface import amdsmi_dev_reset_gpu
+from .amdsmi_interface import amdsmi_reset_gpu
 from .amdsmi_interface import amdsmi_set_gpu_perf_determinism_mode
 from .amdsmi_interface import amdsmi_set_gpu_fan_speed
 from .amdsmi_interface import amdsmi_reset_gpu_fan

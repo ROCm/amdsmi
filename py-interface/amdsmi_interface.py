@@ -1493,13 +1493,13 @@ def amdsmi_dev_get_power_profile_presets(
     }
 
 
-def amdsmi_dev_reset_gpu(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_reset_gpu(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    _check_res(amdsmi_wrapper.amdsmi_dev_reset_gpu(processor_handle))
+    _check_res(amdsmi_wrapper.amdsmi_reset_gpu(processor_handle))
 
 
 def amdsmi_set_gpu_perf_determinism_mode(

@@ -2252,7 +2252,7 @@ amdsmi_status_t  amdsmi_get_clk_freq(amdsmi_processor_handle processor_handle,
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_dev_reset_gpu(amdsmi_processor_handle processor_handle);
+amdsmi_status_t amdsmi_reset_gpu(amdsmi_processor_handle processor_handle);
 
 /**
  *  @brief This function retrieves the voltage/frequency curve information

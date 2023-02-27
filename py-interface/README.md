@@ -2465,7 +2465,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_dev_reset_gpu
+## amdsmi_reset_gpu
 Description: Reset the gpu associated with the device with provided device handle
 
 Input parameters:
@@ -2473,7 +2473,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_dev_reset_gpu` function:
+Exceptions that can be thrown by `amdsmi_reset_gpu` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2486,7 +2486,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_dev_reset_gpu(device)
+            amdsmi_reset_gpu(device)
 except AmdSmiException as e:
     print(e)
 ```
