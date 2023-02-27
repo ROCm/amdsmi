@@ -2462,7 +2462,7 @@ def amdsmi_get_gpu_power_profile_presets(
     }
 
 
-def amdsmi_dev_get_gpu_ecc_count(
+def amdsmi_get_gpu_ecc_count(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, block: AmdSmiGpuBlock
 ) -> Dict[str, int]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -2475,7 +2475,7 @@ def amdsmi_dev_get_gpu_ecc_count(
 
     ec = amdsmi_wrapper.amdsmi_error_count_t()
     _check_res(
-        amdsmi_wrapper. amdsmi_dev_get_gpu_ecc_count(
+        amdsmi_wrapper. amdsmi_get_gpu_ecc_count(
             processor_handle, block, ctypes.byref(ec))
     )
 
@@ -2485,7 +2485,7 @@ def amdsmi_dev_get_gpu_ecc_count(
     }
 
 
-def amdsmi_dev_get_gpu_ecc_enabled(
+def amdsmi_get_gpu_ecc_enabled(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> int:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -2495,14 +2495,14 @@ def amdsmi_dev_get_gpu_ecc_enabled(
 
     blocks = ctypes.c_uint64(0)
     _check_res(
-        amdsmi_wrapper. amdsmi_dev_get_gpu_ecc_enabled(
+        amdsmi_wrapper. amdsmi_get_gpu_ecc_enabled(
             processor_handle, ctypes.byref(blocks))
     )
 
     return blocks.value
 
 
-def amdsmi_dev_get_gpu_ecc_status(
+def amdsmi_get_gpu_ecc_status(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, block: AmdSmiGpuBlock
 ) -> AmdSmiRasErrState:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -2515,7 +2515,7 @@ def amdsmi_dev_get_gpu_ecc_status(
 
     state = amdsmi_wrapper.amdsmi_ras_err_state_t()
     _check_res(
-        amdsmi_wrapper. amdsmi_dev_get_gpu_ecc_status(
+        amdsmi_wrapper. amdsmi_get_gpu_ecc_status(
             processor_handle, block, ctypes.byref(state)
         )
     )

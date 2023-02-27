@@ -321,9 +321,9 @@ class Formatter:
     |     """ + self.style.text("32   Get device power profile presets.     Api:  amdsmi_get_gpu_power_profile_presets   <bdf><sensor_idx>") + """            |
     |     """ + self.style.text("33   Get the build version.                Api: amdsmi_get_version                     <None>") + """                       |
     |     """ + self.style.text("34   Get version string.                   Api: amdsmi_get_version_str                 <None>") + """                       |
-    |     """ + self.style.text("35   Get device ecc counter.               Api:  amdsmi_dev_get_gpu_ecc_count               <bdf>") + """                        |
-    |     """ + self.style.text("36   Get device ecc enable.                Api:  amdsmi_dev_get_gpu_ecc_enabled             <bdf>") + """                        |
-    |     """ + self.style.text("37   Get device ecc status.                Api:  amdsmi_dev_get_gpu_ecc_status              <bdf>") + """                        |
+    |     """ + self.style.text("35   Get device ecc counter.               Api:  amdsmi_get_gpu_ecc_count               <bdf>") + """                        |
+    |     """ + self.style.text("36   Get device ecc enable.                Api:  amdsmi_get_gpu_ecc_enabled             <bdf>") + """                        |
+    |     """ + self.style.text("37   Get device ecc status.                Api:  amdsmi_get_gpu_ecc_status              <bdf>") + """                        |
     |     """ + self.style.text("38   Get status string.                    Api: amdsmi_status_string                   <status>") + """                     |
     |     """ + self.style.text("39   Get compute process info.             Api: amdsmi_get_gpu_compute_process_info        <None>") + """                       |
     |     """ + self.style.text("40   Get compute process info by pid.      Api: amdsmi_get_gpu_compute_process_info_by_pid <pid>") + """                        |
@@ -509,7 +509,7 @@ def amdsmi_tool_dev_ecc_count_get(dev):
     result = {}
     for gpu_block in smi_api.AmdSmiGpuBlock:
         try:
-            value = smi_api. amdsmi_dev_get_gpu_ecc_count(dev, gpu_block)
+            value = smi_api. amdsmi_get_gpu_ecc_count(dev, gpu_block)
             result.update({gpu_block.name: value})
         except smi_api.AmdSmiException as e:
             print("{}:\t{}".format(gpu_block.name, e))
@@ -520,7 +520,7 @@ def amdsmi_tool_dev_ecc_status_get(dev):
     result = {}
     for gpu_block in smi_api.AmdSmiGpuBlock:
         try:
-            value = smi_api. amdsmi_dev_get_gpu_ecc_status(dev, gpu_block)
+            value = smi_api. amdsmi_get_gpu_ecc_status(dev, gpu_block)
             result.update({gpu_block.name: value})
         except smi_api.AmdSmiException as e:
             print("{}:\t{}".format(gpu_block.name, e))
@@ -830,7 +830,7 @@ commands = {
     35: [amdsmi_tool_dev_ecc_count_get, {
         "device_identifier1": [None, True]
     }],
-    36: [smi_api. amdsmi_dev_get_gpu_ecc_enabled, {
+    36: [smi_api. amdsmi_get_gpu_ecc_enabled, {
         "device_identifier1": [None, True]
     }],
     37: [amdsmi_tool_dev_ecc_status_get, {
