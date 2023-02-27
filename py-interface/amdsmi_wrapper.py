@@ -1616,9 +1616,9 @@ amdsmi_get_gpu_compute_process_info_by_pid.argtypes = [uint32_t, ctypes.POINTER(
 amdsmi_get_gpu_compute_process_gpus = _libraries['libamd_smi.so'].amdsmi_get_gpu_compute_process_gpus
 amdsmi_get_gpu_compute_process_gpus.restype = amdsmi_status_t
 amdsmi_get_gpu_compute_process_gpus.argtypes = [uint32_t, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_uint32)]
-amdsmi_dev_xgmi_error_status = _libraries['libamd_smi.so'].amdsmi_dev_xgmi_error_status
-amdsmi_dev_xgmi_error_status.restype = amdsmi_status_t
-amdsmi_dev_xgmi_error_status.argtypes = [amdsmi_processor_handle, ctypes.POINTER(c__EA_amdsmi_xgmi_status_t)]
+amdsmi_gpu_xgmi_error_status = _libraries['libamd_smi.so'].amdsmi_gpu_xgmi_error_status
+amdsmi_gpu_xgmi_error_status.restype = amdsmi_status_t
+amdsmi_gpu_xgmi_error_status.argtypes = [amdsmi_processor_handle, ctypes.POINTER(c__EA_amdsmi_xgmi_status_t)]
 amdsmi_dev_reset_xgmi_error = _libraries['libamd_smi.so'].amdsmi_dev_reset_xgmi_error
 amdsmi_dev_reset_xgmi_error.restype = amdsmi_status_t
 amdsmi_dev_reset_xgmi_error.argtypes = [amdsmi_processor_handle]
@@ -1881,7 +1881,7 @@ __all__ = \
     'amdsmi_dev_set_overdrive_level_v1',
     'amdsmi_set_gpu_pci_bandwidth', 'amdsmi_set_gpu_perf_level',
     'amdsmi_set_gpu_perf_level_v1', 'amdsmi_set_power_cap',
-    'amdsmi_set_gpu_power_profile', 'amdsmi_dev_xgmi_error_status',
+    'amdsmi_set_gpu_power_profile', 'amdsmi_gpu_xgmi_error_status',
     'amdsmi_processor_handle', 'amdsmi_engine_usage_t',
     'amdsmi_error_count_t', 'amdsmi_event_group_t',
     'amdsmi_event_group_t__enumvalues', 'amdsmi_event_handle_t',

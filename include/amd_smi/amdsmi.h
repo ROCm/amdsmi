@@ -3093,7 +3093,7 @@ amdsmi_get_gpu_compute_process_gpus(uint32_t pid, uint32_t *dv_indices,
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_xgmi_error_status(amdsmi_processor_handle processor_handle, amdsmi_xgmi_status_t *status);
+amdsmi_gpu_xgmi_error_status(amdsmi_processor_handle processor_handle, amdsmi_xgmi_status_t *status);
 
 /**
  * @brief Reset the XGMI error status for a device

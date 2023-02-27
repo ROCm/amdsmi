@@ -2822,7 +2822,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_xgmi_error_status
+## amdsmi_gpu_xgmi_error_status
 Description: Retrieve the XGMI error status for a device
 
 Input parameters:
@@ -2830,7 +2830,7 @@ Input parameters:
 
 Output: XGMI error status for a requested device
 
-Exceptions that can be thrown by `amdsmi_dev_xgmi_error_status` function:
+Exceptions that can be thrown by `amdsmi_gpu_xgmi_error_status` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2843,7 +2843,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            status = amdsmi_dev_xgmi_error_status(device)
+            status = amdsmi_gpu_xgmi_error_status(device)
             print(status)
 except AmdSmiException as e:
     print(e)
