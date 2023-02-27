@@ -930,7 +930,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_memory_reserved_pages_get", "amdsmi_get_gpu_memory_reserved_pages"},
         {"rsmi_topo_numa_affinity_get", "amdsmi_get_gpu_topo_numa_affinity"},
         {"rsmi_dev_gpu_metrics_info_get", " amdsmi_dev_get_gpu_metrics_info"},
-        {"rsmi_dev_gpu_reset", "amdsmi_dev_reset_gpu"},
+        {"rsmi_dev_gpu_reset", "amdsmi_reset_gpu"},
         {"rsmi_dev_memory_total_get", "amdsmi_get_gpu_memory_total"},
         {"rsmi_dev_memory_usage_get", "amdsmi_get_gpu_memory_usage"},
         {"rsmi_dev_gpu_clk_freq_get", " amdsmi_get_clk_freq"},
@@ -1354,7 +1354,7 @@ amdsmi_status_t  amdsmi_dev_set_overdrive_level_v1(
                 od);
 }
 
-amdsmi_status_t amdsmi_dev_reset_gpu(amdsmi_processor_handle processor_handle) {
+amdsmi_status_t amdsmi_reset_gpu(amdsmi_processor_handle processor_handle) {
     return rsmi_wrapper(rsmi_dev_gpu_reset, processor_handle);
 }
 
