@@ -998,7 +998,7 @@ amdsmi_status_t amdsmi_get_gpu_compute_process_info_by_pid(uint32_t pid,
 }
 
 amdsmi_status_t
-amdsmi_get_compute_process_gpus(uint32_t pid, uint32_t *dv_indices,
+amdsmi_get_gpu_compute_process_gpus(uint32_t pid, uint32_t *dv_indices,
                                                        uint32_t *num_devices) {
     AMDSMI_CHECK_INIT();
 
