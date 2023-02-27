@@ -853,7 +853,7 @@ def amdsmi_get_gpu_ras_block_features_enabled(
     return ras_states
 
 
-def amdsmi_get_process_list(
+def amdsmi_get_gpu_process_list(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> List[amdsmi_wrapper.amdsmi_process_handle]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -865,7 +865,7 @@ def amdsmi_get_process_list(
     process_list = (amdsmi_wrapper.amdsmi_process_handle *
                     max_processes.value)()
     _check_res(
-        amdsmi_wrapper.amdsmi_get_process_list(
+        amdsmi_wrapper.amdsmi_get_gpu_process_list(
             processor_handle, process_list, ctypes.byref(max_processes)
         )
     )
@@ -873,7 +873,7 @@ def amdsmi_get_process_list(
     process_list = (amdsmi_wrapper.amdsmi_process_handle *
                     max_processes.value)()
     _check_res(
-        amdsmi_wrapper.amdsmi_get_process_list(
+        amdsmi_wrapper.amdsmi_get_gpu_process_list(
             processor_handle, process_list, ctypes.byref(max_processes)
         )
     )
