@@ -875,7 +875,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_get_ecc_error_count
+## amdsmi_get_gpu_ecc_error_count
 Description: Returns the ECC error count for the given GPU
 
 Input parameters:
@@ -889,7 +889,7 @@ Field | Description
 `correctable_count`| Correctable ECC error count
 `uncorrectable_count`| Uncorrectable ECC error count
 
-Exceptions that can be thrown by `amdsmi_get_ecc_error_count` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_ecc_error_count` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -902,7 +902,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            ecc_error_count = amdsmi_get_ecc_error_count(device)
+            ecc_error_count = amdsmi_get_gpu_ecc_error_count(device)
             print(ecc_error_count["correctable_count"])
             print(ecc_error_count["uncorrectable_count"])
 except AmdSmiException as e:

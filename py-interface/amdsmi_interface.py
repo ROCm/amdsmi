@@ -779,7 +779,7 @@ def amdsmi_get_gpu_target_frequency_range(
     }
 
 
-def amdsmi_get_ecc_error_count(
+def amdsmi_get_gpu_ecc_error_count(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -789,7 +789,7 @@ def amdsmi_get_ecc_error_count(
 
     error_count = amdsmi_wrapper.amdsmi_error_count_t()
     _check_res(
-        amdsmi_wrapper.amdsmi_get_ecc_error_count(
+        amdsmi_wrapper.amdsmi_get_gpu_ecc_error_count(
             processor_handle, ctypes.byref(error_count)
         )
     )

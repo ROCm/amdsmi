@@ -1598,7 +1598,7 @@ amdsmi_get_gpu_bad_page_info(amdsmi_processor_handle processor_handle, uint32_t 
 }
 
 amdsmi_status_t
-amdsmi_get_ecc_error_count(amdsmi_processor_handle processor_handle, amdsmi_error_count_t *ec) {
+amdsmi_get_gpu_ecc_error_count(amdsmi_processor_handle processor_handle, amdsmi_error_count_t *ec) {
     AMDSMI_CHECK_INIT();
 
     if (ec == nullptr) {
