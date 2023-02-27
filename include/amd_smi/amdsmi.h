@@ -3857,7 +3857,7 @@ amdsmi_get_gpu_process_list(amdsmi_processor_handle processor_handle, amdsmi_pro
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_process_info(amdsmi_processor_handle processor_handle, amdsmi_process_handle process, amdsmi_proc_info_t *info);
+amdsmi_get_gpu_process_info(amdsmi_processor_handle processor_handle, amdsmi_process_handle process, amdsmi_proc_info_t *info);
 
 /** @} End processinfo */
 

@@ -881,7 +881,7 @@ def amdsmi_get_gpu_process_list(
     return [amdsmi_wrapper.amdsmi_process_handle(x) for x in list(process_list)]
 
 
-def amdsmi_get_process_info(
+def amdsmi_get_gpu_process_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     process: amdsmi_wrapper.amdsmi_process_handle,
 ) -> Dict[str, Any]:
@@ -896,7 +896,7 @@ def amdsmi_get_process_info(
 
     info = amdsmi_wrapper.amdsmi_proc_info_t()
     _check_res(
-        amdsmi_wrapper.amdsmi_get_process_info(
+        amdsmi_wrapper.amdsmi_get_gpu_process_info(
             processor_handle, process, ctypes.byref(info)
         )
     )
