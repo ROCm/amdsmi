@@ -2285,7 +2285,7 @@ def amdsmi_dev_get_overdrive_level(
     return od_level.value
 
 
-def amdsmi_dev_get_gpu_clk_freq(
+def amdsmi_get_clk_freq(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, clk_type: AmdSmiClkType
 ) -> Dict[str, Any]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -2297,7 +2297,7 @@ def amdsmi_dev_get_gpu_clk_freq(
 
     freq = amdsmi_wrapper.amdsmi_frequencies_t()
     _check_res(
-        amdsmi_wrapper. amdsmi_dev_get_gpu_clk_freq(
+        amdsmi_wrapper. amdsmi_get_clk_freq(
             processor_handle, clk_type, ctypes.byref(freq)
         )
     )

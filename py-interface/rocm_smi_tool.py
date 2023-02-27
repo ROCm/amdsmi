@@ -314,7 +314,7 @@ class Formatter:
     |     """ + self.style.text("25   Get device perf level.                Api: amdsmi_get_gpu_perf_level              <bdf>") + """                        |
     |     """ + self.style.text("26   Set perf determinism mode.            Api: amdsmi_set_gpu_perf_determinism_mode       <bdf><clock_value>") + """           |
     |     """ + self.style.text("27   Get device overdrive level.           Api: amdsmi_dev_get_overdrive_level         <bdf>") + """                        |
-    |     """ + self.style.text("28   Get device gpu clk freq.              Api:  amdsmi_dev_get_gpu_clk_freq            <bdf>") + """                        |
+    |     """ + self.style.text("28   Get device gpu clk freq.              Api:  amdsmi_get_clk_freq            <bdf>") + """                        |
     |     """ + self.style.text("29   Get device od volt.                   Api:  amdsmi_dev_get_od_volt_info            <bdf>") + """                        |
     |     """ + self.style.text("30   Get device gpu metrics.               Api:  amdsmi_dev_get_gpu_metrics_info        <bdf>") + """                        |
     |     """ + self.style.text("31   Get device od volt curve regions.     Api:  amdsmi_dev_get_od_volt_curve_regions   <bdf><num_regions>") + """           |
@@ -493,7 +493,7 @@ def amdsmi_tool_dev_gpu_clk_freq_get(dev):
     result = {}
     for clock_type in smi_api.AmdSmiClkType:
         try:
-            value = smi_api. amdsmi_dev_get_gpu_clk_freq(dev, clock_type)
+            value = smi_api. amdsmi_get_clk_freq(dev, clock_type)
             result.update({clock_type.name: value})
         except smi_api.AmdSmiException as e:
             print("{}:\t{}".format(clock_type.name, e))

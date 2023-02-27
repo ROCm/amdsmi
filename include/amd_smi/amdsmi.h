@@ -1592,7 +1592,7 @@ amdsmi_status_t  amdsmi_get_gpu_pci_replay_counter(amdsmi_processor_handle proce
  *  @details Given a processor handle @p processor_handle and a 64 bit bitmask @p bw_bitmask,
  *  this function will limit the set of allowable bandwidths. If a bit in @p
  *  bw_bitmask has a value of 1, then the frequency (as ordered in an
- *  ::amdsmi_frequencies_t returned by :: amdsmi_dev_get_gpu_clk_freq()) corresponding
+ *  ::amdsmi_frequencies_t returned by :: amdsmi_get_clk_freq()) corresponding
  *  to that bit index will be allowed.
  *
  *  This function will change the performance level to
@@ -2240,7 +2240,7 @@ amdsmi_status_t amdsmi_dev_get_overdrive_level(amdsmi_processor_handle processor
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_dev_get_gpu_clk_freq(amdsmi_processor_handle processor_handle,
+amdsmi_status_t  amdsmi_get_clk_freq(amdsmi_processor_handle processor_handle,
                              amdsmi_clk_type_t clk_type, amdsmi_frequencies_t *f);
 
 /**
@@ -2572,7 +2572,7 @@ amdsmi_status_t  amdsmi_dev_set_overdrive_level_v1(amdsmi_processor_handle proce
  * 64 bit bitmask @p freq_bitmask, this function will limit the set of
  * allowable frequencies. If a bit in @p freq_bitmask has a value of 1, then
  * the frequency (as ordered in an ::amdsmi_frequencies_t returned by
- *  amdsmi_dev_get_gpu_clk_freq()) corresponding to that bit index will be
+ *  amdsmi_get_clk_freq()) corresponding to that bit index will be
  * allowed.
  *
  * This function will change the performance level to

@@ -2038,7 +2038,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-##  amdsmi_dev_get_gpu_clk_freq
+##  amdsmi_get_clk_freq
 Description: Get the list of possible system clock speeds of device for a
 specified clock type
 
@@ -2054,7 +2054,7 @@ Field | Description
 `current`| The current frequency index
 `frequency`| List of frequencies, only the first num_supported frequencies are valid
 
-Exceptions that can be thrown by ` amdsmi_dev_get_gpu_clk_freq` function:
+Exceptions that can be thrown by ` amdsmi_get_clk_freq` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2067,7 +2067,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-             amdsmi_dev_get_gpu_clk_freq(device, AmdSmiClkType.SYS)
+             amdsmi_get_clk_freq(device, AmdSmiClkType.SYS)
 except AmdSmiException as e:
     print(e)
 ```
