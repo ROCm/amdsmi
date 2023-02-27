@@ -307,7 +307,7 @@ void TestMutualExclusion::Run(void) {
     amdsmi_topo_get_link_weight
      amdsmi_set_event_notification_mask
     amdsmi_init_event_notification
-    amdsmi_stop_event_notification
+    amdsmi_stop_gpu_event_notification
     */
 
     IF_VERB(STANDARD) {

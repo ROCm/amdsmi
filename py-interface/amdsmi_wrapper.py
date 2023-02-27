@@ -1661,9 +1661,9 @@ amdsmi_set_event_notification_mask.argtypes = [amdsmi_processor_handle, uint64_t
 amdsmi_get_gpu_event_notification = _libraries['libamd_smi.so'].amdsmi_get_gpu_event_notification
 amdsmi_get_gpu_event_notification.restype = amdsmi_status_t
 amdsmi_get_gpu_event_notification.argtypes = [ctypes.c_int32, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(struct_c__SA_amdsmi_evt_notification_data_t)]
-amdsmi_stop_event_notification = _libraries['libamd_smi.so'].amdsmi_stop_event_notification
-amdsmi_stop_event_notification.restype = amdsmi_status_t
-amdsmi_stop_event_notification.argtypes = [amdsmi_processor_handle]
+amdsmi_stop_gpu_event_notification = _libraries['libamd_smi.so'].amdsmi_stop_gpu_event_notification
+amdsmi_stop_gpu_event_notification.restype = amdsmi_status_t
+amdsmi_stop_gpu_event_notification.argtypes = [amdsmi_processor_handle]
 amdsmi_get_gpu_device_bdf = _libraries['libamd_smi.so'].amdsmi_get_gpu_device_bdf
 amdsmi_get_gpu_device_bdf.restype = amdsmi_status_t
 amdsmi_get_gpu_device_bdf.argtypes = [amdsmi_processor_handle, ctypes.POINTER(union_c__UA_amdsmi_bdf_t)]
@@ -1935,7 +1935,7 @@ __all__ = \
     'amdsmi_set_event_notification_mask',
     'amdsmi_set_gpu_perf_determinism_mode', 'amdsmi_shut_down',
     'amdsmi_socket_handle', 'amdsmi_status_string', 'amdsmi_status_t',
-    'amdsmi_status_t__enumvalues', 'amdsmi_stop_event_notification',
+    'amdsmi_status_t__enumvalues', 'amdsmi_stop_gpu_event_notification',
     'amdsmi_sw_component_t', 'amdsmi_sw_component_t__enumvalues',
     'amdsmi_temperature_metric_t',
     'amdsmi_temperature_metric_t__enumvalues',

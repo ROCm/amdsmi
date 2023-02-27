@@ -191,7 +191,7 @@ void TestEvtNotifReadWrite::Run(void) {
   }
 
   for (uint32_t dv_ind = 0; dv_ind < num_monitor_devs(); ++dv_ind) {
-    ret = amdsmi_stop_event_notification(processor_handles_[dv_ind]);
+    ret = amdsmi_stop_gpu_event_notification(processor_handles_[dv_ind]);
     ASSERT_EQ(ret, AMDSMI_STATUS_SUCCESS);
   }
 }
