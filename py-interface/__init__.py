@@ -85,8 +85,8 @@ from .amdsmi_interface import  amdsmi_set_gpu_power_profile
 from .amdsmi_interface import amdsmi_set_gpu_clk_range
 from .amdsmi_interface import  amdsmi_dev_set_od_clk_info
 from .amdsmi_interface import  amdsmi_dev_set_od_volt_info
-from .amdsmi_interface import  amdsmi_dev_set_perf_level_v1
-from .amdsmi_interface import  amdsmi_dev_set_perf_level
+from .amdsmi_interface import  amdsmi_set_gpu_perf_level_v1
+from .amdsmi_interface import  amdsmi_set_gpu_perf_level
 from .amdsmi_interface import  amdsmi_dev_get_power_profile_presets
 from .amdsmi_interface import amdsmi_dev_reset_gpu
 from .amdsmi_interface import amdsmi_set_gpu_perf_determinism_mode

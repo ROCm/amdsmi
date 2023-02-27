@@ -359,8 +359,8 @@ class Formatter:
     |     """ + self.style.text("70   Set dev overdrive level.              Api:  amdsmi_dev_set_overdrive_level         <bdf><overdrive_value>") + """       |
     |     """ + self.style.text("71   Set v1 dev overdrive level.           Api:  amdsmi_dev_set_overdrive_level_v1      <bdf><overdrive_value>") + """       |
     |     """ + self.style.text("72   Set dev pci bandwidth.                Api:  amdsmi_set_gpu_pci_bandwidth           <bdf><bitmask>") + """               |
-    |     """ + self.style.text("73   Set dev perf level.                   Api:  amdsmi_dev_set_perf_level              <bdf>") + """                        |
-    |     """ + self.style.text("74   Set dev perf level v1.                Api:  amdsmi_dev_set_perf_level_v1           <bdf>") + """                        |
+    |     """ + self.style.text("73   Set dev perf level.                   Api:  amdsmi_set_gpu_perf_level              <bdf>") + """                        |
+    |     """ + self.style.text("74   Set dev perf level v1.                Api:  amdsmi_set_gpu_perf_level_v1           <bdf>") + """                        |
     |     """ + self.style.text("75   Set dev power cap.                    Api:  amdsmi_set_power_cap               <bdf><sensor_ind><cap>") + """       |
     |     """ + self.style.text("76   Set dev power profile.                Api:  amdsmi_set_gpu_power_profile           <bdf><reserved>") + """              |
     |     """ + self.style.text("77   Close dev supported func iterator.    Api: amdsmi_dev_close_supported_func_iterator    <bdf>") + """                   |
@@ -673,7 +673,7 @@ def amdsmi_tool_dev_perf_level_set(dev):
     result = {}
     for dev_perf_level in smi_api.AmdSmiDevPerfLevel:
         try:
-            value = smi_api. amdsmi_dev_set_perf_level(dev, dev_perf_level)
+            value = smi_api. amdsmi_set_gpu_perf_level(dev, dev_perf_level)
             result.update({dev_perf_level.name: value})
         except smi_api.AmdSmiException as e:
             print("{}:\t{}".format(dev_perf_level.name, e))
@@ -684,7 +684,7 @@ def amdsmi_tool_dev_perf_level_set_v1(dev):
     result = {}
     for dev_perf_level in smi_api.AmdSmiDevPerfLevel:
         try:
-            value = smi_api. amdsmi_dev_set_perf_level_v1(dev, dev_perf_level)
+            value = smi_api. amdsmi_set_gpu_perf_level_v1(dev, dev_perf_level)
             result.update({dev_perf_level.name: value})
         except smi_api.AmdSmiException as e:
             print("{}:\t{}".format(dev_perf_level.name, e))
