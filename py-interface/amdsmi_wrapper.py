@@ -1538,9 +1538,9 @@ amdsmi_reset_gpu.argtypes = [amdsmi_processor_handle]
 amdsmi_dev_get_od_volt_info = _libraries['libamd_smi.so'].amdsmi_dev_get_od_volt_info
 amdsmi_dev_get_od_volt_info.restype = amdsmi_status_t
 amdsmi_dev_get_od_volt_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_c__SA_amdsmi_od_volt_freq_data_t)]
-amdsmi_dev_get_gpu_metrics_info = _libraries['libamd_smi.so'].amdsmi_dev_get_gpu_metrics_info
-amdsmi_dev_get_gpu_metrics_info.restype = amdsmi_status_t
-amdsmi_dev_get_gpu_metrics_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_c__SA_amdsmi_gpu_metrics_t)]
+amdsmi_get_gpu_metrics_info = _libraries['libamd_smi.so'].amdsmi_get_gpu_metrics_info
+amdsmi_get_gpu_metrics_info.restype = amdsmi_status_t
+amdsmi_get_gpu_metrics_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_c__SA_amdsmi_gpu_metrics_t)]
 amdsmi_set_gpu_clk_range = _libraries['libamd_smi.so'].amdsmi_set_gpu_clk_range
 amdsmi_set_gpu_clk_range.restype = amdsmi_status_t
 amdsmi_set_gpu_clk_range.argtypes = [amdsmi_processor_handle, uint64_t, uint64_t, amdsmi_clk_type_t]
@@ -1856,7 +1856,7 @@ __all__ = \
     'amdsmi_dev_get_ecc_enabled', 'amdsmi_dev_get_ecc_status',
     'amdsmi_get_energy_count', 'amdsmi_get_gpu_fan_rpms',
     'amdsmi_get_gpu_fan_speed', 'amdsmi_get_gpu_fan_speed_max',
-    'amdsmi_get_clk_freq', 'amdsmi_dev_get_gpu_metrics_info',
+    'amdsmi_get_clk_freq', 'amdsmi_get_gpu_metrics_info',
     'amdsmi_get_gpu_id', 'amdsmi_get_gpu_memory_busy_percent',
     'amdsmi_get_gpu_memory_reserved_pages',
     'amdsmi_get_gpu_memory_total', 'amdsmi_get_gpu_memory_usage',

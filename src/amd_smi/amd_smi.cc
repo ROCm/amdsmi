@@ -332,7 +332,7 @@ amdsmi_status_t  amdsmi_get_temp_metric(amdsmi_processor_handle processor_handle
     // Get the PLX temperature from the gpu_metrics
     if (sensor_type == TEMPERATURE_TYPE_PLX) {
         amdsmi_gpu_metrics_t metric_info;
-        auto r_status =  amdsmi_dev_get_gpu_metrics_info(
+        auto r_status =  amdsmi_get_gpu_metrics_info(
                 processor_handle, &metric_info);
         if (r_status != AMDSMI_STATUS_SUCCESS)
             return r_status;
@@ -929,7 +929,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_xgmi_error_reset", "amdsmi_dev_reset_xgmi_error"},
         {"rsmi_dev_memory_reserved_pages_get", "amdsmi_get_gpu_memory_reserved_pages"},
         {"rsmi_topo_numa_affinity_get", "amdsmi_get_gpu_topo_numa_affinity"},
-        {"rsmi_dev_gpu_metrics_info_get", " amdsmi_dev_get_gpu_metrics_info"},
+        {"rsmi_dev_gpu_metrics_info_get", " amdsmi_get_gpu_metrics_info"},
         {"rsmi_dev_gpu_reset", "amdsmi_reset_gpu"},
         {"rsmi_dev_memory_total_get", "amdsmi_get_gpu_memory_total"},
         {"rsmi_dev_memory_usage_get", "amdsmi_get_gpu_memory_usage"},
@@ -1049,7 +1049,7 @@ amdsmi_get_busy_percent(amdsmi_processor_handle processor_handle,
     return rsmi_wrapper(rsmi_dev_busy_percent_get, processor_handle,
                     busy_percent);
 }
-amdsmi_status_t  amdsmi_dev_get_gpu_metrics_info(
+amdsmi_status_t  amdsmi_get_gpu_metrics_info(
         amdsmi_processor_handle processor_handle,
         amdsmi_gpu_metrics_t *pgpu_metrics) {
     AMDSMI_CHECK_INIT();
@@ -1215,7 +1215,7 @@ amdsmi_status_t  amdsmi_get_clk_freq(amdsmi_processor_handle processor_handle,
         clk_type == CLK_TYPE_DCLK0 ||
         clk_type == CLK_TYPE_DCLK1 ) {
         amdsmi_gpu_metrics_t metric_info;
-        auto r_status =  amdsmi_dev_get_gpu_metrics_info(
+        auto r_status =  amdsmi_get_gpu_metrics_info(
                 processor_handle, &metric_info);
         if (r_status != AMDSMI_STATUS_SUCCESS)
             return r_status;
@@ -1480,7 +1480,7 @@ amdsmi_get_gpu_activity(amdsmi_processor_handle processor_handle, amdsmi_engine_
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
     amdsmi_status_t status;
-    status =  amdsmi_dev_get_gpu_metrics_info(processor_handle, &metrics);
+    status =  amdsmi_get_gpu_metrics_info(processor_handle, &metrics);
     if (status != AMDSMI_STATUS_SUCCESS) {
         return status;
     }
@@ -1510,7 +1510,7 @@ amdsmi_get_clock_measure(amdsmi_processor_handle processor_handle, amdsmi_clk_ty
         return r;
     amdsmi_status_t status;
 
-    status =  amdsmi_dev_get_gpu_metrics_info(processor_handle, &metrics);
+    status =  amdsmi_get_gpu_metrics_info(processor_handle, &metrics);
     if (status != AMDSMI_STATUS_SUCCESS) {
         return status;
     }
@@ -1713,7 +1713,7 @@ amdsmi_get_power_measure(amdsmi_processor_handle processor_handle, amdsmi_power_
 
     amdsmi_status_t status;
 
-    status =  amdsmi_dev_get_gpu_metrics_info(processor_handle, &metrics);
+    status =  amdsmi_get_gpu_metrics_info(processor_handle, &metrics);
     if (status != AMDSMI_STATUS_SUCCESS) {
         return status;
     }
@@ -1757,7 +1757,7 @@ amdsmi_get_target_frequency_range(amdsmi_processor_handle processor_handle, amds
     amdsmi_status_t status;
 
     int min = 0, max = 0;
-    status =  amdsmi_dev_get_gpu_metrics_info(processor_handle, &metrics);
+    status =  amdsmi_get_gpu_metrics_info(processor_handle, &metrics);
     if (status != AMDSMI_STATUS_SUCCESS) {
         return status;
     }
@@ -1866,7 +1866,7 @@ amdsmi_get_pcie_link_status(amdsmi_processor_handle processor_handle, amdsmi_pci
     }
     amdsmi_status_t status = AMDSMI_STATUS_SUCCESS;
     amdsmi_gpu_metrics_t metric_info = {};
-    status =  amdsmi_dev_get_gpu_metrics_info(
+    status =  amdsmi_get_gpu_metrics_info(
             processor_handle, &metric_info);
     if (status != AMDSMI_STATUS_SUCCESS)
         return status;
