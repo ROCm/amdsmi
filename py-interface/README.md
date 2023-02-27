@@ -2071,7 +2071,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-##  amdsmi_dev_get_od_volt_info
+##  amdsmi_get_gpu_od_volt_info
 Description: This function retrieves the voltage/frequency curve information
 
 Input parameters:
@@ -2089,7 +2089,7 @@ Field | Description
 `num_regions`| The current frequency index
 
 
-Exceptions that can be thrown by ` amdsmi_dev_get_od_volt_info` function:
+Exceptions that can be thrown by ` amdsmi_get_gpu_od_volt_info` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2102,7 +2102,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-             amdsmi_dev_get_od_volt_info(dev)
+             amdsmi_get_gpu_od_volt_info(dev)
 except AmdSmiException as e:
     print(e)
 ```

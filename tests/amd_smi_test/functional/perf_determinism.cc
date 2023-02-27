@@ -103,7 +103,7 @@ void TestPerfDeterminism::Run(void) {
 
   for (uint32_t i = 0; i < num_monitor_devs(); ++i) {
     PrintDeviceHeader(processor_handles_[i]);
-    err =  amdsmi_dev_get_od_volt_info(processor_handles_[i], &odv);
+    err =  amdsmi_get_gpu_od_volt_info(processor_handles_[i], &odv);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       IF_VERB(STANDARD) {
         std::cout << "\t** Not supported on this machine" << std::endl;
