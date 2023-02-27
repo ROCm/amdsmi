@@ -323,7 +323,7 @@ class AmdSmiEventReader:
         self.event_info = (
             amdsmi_wrapper.amdsmi_evt_notification_data_t * num_elem)()
         _check_res(
-            amdsmi_wrapper. amdsmi_get_event_notification(
+            amdsmi_wrapper. amdsmi_get_gpu_event_notification(
                 ctypes.c_int(timestamp),
                 ctypes.byref(ctypes.c_uint32(num_elem)),
                 self.event_info,
