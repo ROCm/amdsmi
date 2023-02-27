@@ -325,8 +325,8 @@ class Formatter:
     |     """ + self.style.text("36   Get device ecc enable.                Api:  amdsmi_dev_get_gpu_ecc_enabled             <bdf>") + """                        |
     |     """ + self.style.text("37   Get device ecc status.                Api:  amdsmi_dev_get_gpu_ecc_status              <bdf>") + """                        |
     |     """ + self.style.text("38   Get status string.                    Api: amdsmi_status_string                   <status>") + """                     |
-    |     """ + self.style.text("39   Get compute process info.             Api: amdsmi_get_compute_process_info        <None>") + """                       |
-    |     """ + self.style.text("40   Get compute process info by pid.      Api: amdsmi_get_compute_process_info_by_pid <pid>") + """                        |
+    |     """ + self.style.text("39   Get compute process info.             Api: amdsmi_get_gpu_compute_process_info        <None>") + """                       |
+    |     """ + self.style.text("40   Get compute process info by pid.      Api: amdsmi_get_gpu_compute_process_info_by_pid <pid>") + """                        |
     |     """ + self.style.text("41   Get compute process gpus.             Api: amdsmi_get_compute_process_gpus        <pid>") + """                        |
     |     """ + self.style.text("42   Get device xgmi_error_status.         Api: amdsmi_dev_xgmi_error_status           <bdf>") + """                        |
     |     """ + self.style.text("43   Get device xgmi error reset.          Api: amdsmi_dev_reset_xgmi_error            <bdf>") + """                        |
@@ -537,7 +537,7 @@ def amdsmi_tool_compute_process_gpus_get(dic):
 
 def amdsmi_tool_compute_process_info_by_pid_get(dic):
     pid = dic["pid"]
-    return smi_api.amdsmi_get_compute_process_info_by_pid(pid)
+    return smi_api.amdsmi_get_gpu_compute_process_info_by_pid(pid)
 
 def amdsmi_tool_topo_get_link_weight(dev):
     return smi_api.amdsmi_topo_get_link_weight(dev[0], dev[1])
@@ -839,7 +839,7 @@ commands = {
     38: [amdsmi_tool_status_string, {
         "status": [int, True]
     }],
-    39: [smi_api.amdsmi_get_compute_process_info, {}],
+    39: [smi_api.amdsmi_get_gpu_compute_process_info, {}],
     40: [amdsmi_tool_compute_process_info_by_pid_get, {
         "pid": [int, True]
     }],

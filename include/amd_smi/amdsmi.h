@@ -3011,7 +3011,7 @@ amdsmi_status_t
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_compute_process_info(amdsmi_process_info_t *procs, uint32_t *num_items);
+amdsmi_get_gpu_compute_process_info(amdsmi_process_info_t *procs, uint32_t *num_items);
 
 /**
  *  @brief Get process information about a specific process
@@ -3030,7 +3030,7 @@ amdsmi_get_compute_process_info(amdsmi_process_info_t *procs, uint32_t *num_item
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_compute_process_info_by_pid(uint32_t pid, amdsmi_process_info_t *proc);
+amdsmi_get_gpu_compute_process_info_by_pid(uint32_t pid, amdsmi_process_info_t *proc);
 
 /**
  *  @brief Get the device indices currently being used by a process

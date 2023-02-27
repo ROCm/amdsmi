@@ -975,7 +975,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
 }
 
 amdsmi_status_t
-amdsmi_get_compute_process_info(amdsmi_process_info_t *procs, uint32_t *num_items) {
+amdsmi_get_gpu_compute_process_info(amdsmi_process_info_t *procs, uint32_t *num_items) {
     AMDSMI_CHECK_INIT();
 
     if (num_items == nullptr)
@@ -986,7 +986,7 @@ amdsmi_get_compute_process_info(amdsmi_process_info_t *procs, uint32_t *num_item
     return amd::smi::rsmi_to_amdsmi_status(r);
 }
 
-amdsmi_status_t amdsmi_get_compute_process_info_by_pid(uint32_t pid,
+amdsmi_status_t amdsmi_get_gpu_compute_process_info_by_pid(uint32_t pid,
         amdsmi_process_info_t *proc) {
     AMDSMI_CHECK_INIT();
 

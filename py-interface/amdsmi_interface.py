@@ -2535,17 +2535,17 @@ def amdsmi_status_string(status: amdsmi_wrapper.amdsmi_status_t) -> str:
     return amdsmi_wrapper.string_cast(status_string_p_p.contents)
 
 
-def amdsmi_get_compute_process_info() -> List[Dict[str, int]]:
+def amdsmi_get_gpu_compute_process_info() -> List[Dict[str, int]]:
     num_items = ctypes.c_uint32(0)
     nullptr = ctypes.POINTER(amdsmi_wrapper.amdsmi_process_info_t)()
     _check_res(
-        amdsmi_wrapper.amdsmi_get_compute_process_info(
+        amdsmi_wrapper.amdsmi_get_gpu_compute_process_info(
             nullptr, ctypes.byref(num_items))
     )
 
     procs = (amdsmi_wrapper.amdsmi_process_info_t * num_items.value)()
     _check_res(
-        amdsmi_wrapper.amdsmi_get_compute_process_info(
+        amdsmi_wrapper.amdsmi_get_gpu_compute_process_info(
             procs, ctypes.byref(num_items))
     )
 
@@ -2561,13 +2561,13 @@ def amdsmi_get_compute_process_info() -> List[Dict[str, int]]:
     ]
 
 
-def amdsmi_get_compute_process_info_by_pid(pid: int) -> Dict[str, int]:
+def amdsmi_get_gpu_compute_process_info_by_pid(pid: int) -> Dict[str, int]:
     if not isinstance(pid, int):
         raise AmdSmiParameterException(pid, int)
 
     proc = amdsmi_wrapper.amdsmi_process_info_t()
     _check_res(
-        amdsmi_wrapper.amdsmi_get_compute_process_info_by_pid(
+        amdsmi_wrapper.amdsmi_get_gpu_compute_process_info_by_pid(
             ctypes.c_uint32(pid), ctypes.byref(proc)
         )
     )
