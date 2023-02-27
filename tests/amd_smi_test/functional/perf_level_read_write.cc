@@ -120,7 +120,7 @@ void TestPerfLevelReadWrite::Run(void) {
             GetPerfLevelStr(static_cast<amdsmi_dev_perf_level_t>(pfl_i)) <<
                                                             " ..." << std::endl;
       }
-      ret =  amdsmi_dev_set_perf_level(processor_handles_[dv_ind],
+      ret =  amdsmi_set_gpu_perf_level(processor_handles_[dv_ind],
                                      static_cast<amdsmi_dev_perf_level_t>(pfl_i));
       if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
           std::cout << "\t**" << GetPerfLevelStr(static_cast<amdsmi_dev_perf_level_t>(pfl_i)) 
@@ -139,7 +139,7 @@ void TestPerfLevelReadWrite::Run(void) {
       std::cout << "Reset Perf level to " << GetPerfLevelStr(orig_pfl) <<
                                                             " ..." << std::endl;
     }
-    ret =  amdsmi_dev_set_perf_level(processor_handles_[dv_ind], orig_pfl);
+    ret =  amdsmi_set_gpu_perf_level(processor_handles_[dv_ind], orig_pfl);
     CHK_ERR_ASRT(ret)
     ret = amdsmi_get_gpu_perf_level(processor_handles_[dv_ind], &pfl);
     CHK_ERR_ASRT(ret)

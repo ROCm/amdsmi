@@ -180,7 +180,7 @@ void TestFrequenciesReadWrite::Run(void) {
           return;
         }
 
-        ret =  amdsmi_dev_set_perf_level(processor_handles_[dv_ind], AMDSMI_DEV_PERF_LEVEL_AUTO);
+        ret =  amdsmi_set_gpu_perf_level(processor_handles_[dv_ind], AMDSMI_DEV_PERF_LEVEL_AUTO);
         if (ret != AMDSMI_STATUS_SUCCESS) {
           return;
         }
@@ -228,7 +228,7 @@ void TestFrequenciesReadWrite::Run(void) {
       ret =  amdsmi_dev_set_clk_freq(dv_ind, amdsmi_clk, 0xFFFFFFFF);
       CHK_ERR_ASRT(ret)
 
-      ret =  amdsmi_dev_set_perf_level(dv_ind, AMDSMI_DEV_PERF_LEVEL_AUTO);
+      ret =  amdsmi_set_gpu_perf_level(dv_ind, AMDSMI_DEV_PERF_LEVEL_AUTO);
       CHK_ERR_ASRT(ret)
 #endif
     }

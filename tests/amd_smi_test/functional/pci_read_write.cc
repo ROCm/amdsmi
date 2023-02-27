@@ -196,7 +196,7 @@ void TestPciReadWrite::Run(void) {
     ret =  amdsmi_set_gpu_pci_bandwidth(processor_handles_[dv_ind], 0xFFFFFFFF);
     CHK_ERR_ASRT(ret)
 
-    ret =  amdsmi_dev_set_perf_level(processor_handles_[dv_ind], AMDSMI_DEV_PERF_LEVEL_AUTO);
+    ret =  amdsmi_set_gpu_perf_level(processor_handles_[dv_ind], AMDSMI_DEV_PERF_LEVEL_AUTO);
     CHK_ERR_ASRT(ret)
   }
 }

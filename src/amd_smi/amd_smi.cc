@@ -912,8 +912,8 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_memory_reserved_pages_get", "amdsmi_get_gpu_memory_reserved_pages"},
         {"rsmi_dev_overdrive_level_get", "amdsmi_dev_get_overdrive_level"},
         {"rsmi_dev_power_profile_presets_get", " amdsmi_dev_get_power_profile_presets"},
-        {"rsmi_dev_perf_level_set", " amdsmi_dev_set_perf_level"},
-        {"rsmi_dev_perf_level_set_v1", " amdsmi_dev_set_perf_level_v1"},
+        {"rsmi_dev_perf_level_set", " amdsmi_set_gpu_perf_level"},
+        {"rsmi_dev_perf_level_set_v1", " amdsmi_set_gpu_perf_level_v1"},
         {"rsmi_dev_perf_level_get", "amdsmi_get_gpu_perf_level"},
         {"rsmi_perf_determinism_mode_set", "amdsmi_set_gpu_perf_determinism_mode"},
         {"rsmi_dev_overdrive_level_set", " amdsmi_dev_set_overdrive_level"},
@@ -1176,14 +1176,14 @@ amdsmi_status_t amdsmi_get_gpu_perf_level(amdsmi_processor_handle processor_hand
                     reinterpret_cast<rsmi_dev_perf_level_t*>(perf));
 }
 amdsmi_status_t
- amdsmi_dev_set_perf_level(amdsmi_processor_handle processor_handle,
+ amdsmi_set_gpu_perf_level(amdsmi_processor_handle processor_handle,
                 amdsmi_dev_perf_level_t perf_lvl) {
     return rsmi_wrapper(rsmi_dev_perf_level_set, processor_handle,
                     static_cast<rsmi_dev_perf_level_t>(perf_lvl));
 }
 
 amdsmi_status_t
- amdsmi_dev_set_perf_level_v1(amdsmi_processor_handle processor_handle,
+ amdsmi_set_gpu_perf_level_v1(amdsmi_processor_handle processor_handle,
                 amdsmi_dev_perf_level_t perf_lvl) {
     return rsmi_wrapper(rsmi_dev_perf_level_set_v1, processor_handle,
                     static_cast<rsmi_dev_perf_level_t>(perf_lvl));

@@ -185,7 +185,7 @@ void TestPowerReadWrite::Run(void) {
 
     ASSERT_EQ(status.current, new_prof);
 
-    ret =  amdsmi_dev_set_perf_level(processor_handles_[dv_ind], AMDSMI_DEV_PERF_LEVEL_AUTO);
+    ret =  amdsmi_set_gpu_perf_level(processor_handles_[dv_ind], AMDSMI_DEV_PERF_LEVEL_AUTO);
     CHK_ERR_ASRT(ret)
 
     ret = amdsmi_get_gpu_perf_level(processor_handles_[dv_ind], &pfl);

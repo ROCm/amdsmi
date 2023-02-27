@@ -1452,7 +1452,7 @@ def amdsmi_counter_get_available_counters(
     return available.value
 
 
-def amdsmi_dev_set_perf_level(
+def amdsmi_set_gpu_perf_level(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     perf_level: AmdSmiDevPerfLevel,
 ):
@@ -1463,7 +1463,7 @@ def amdsmi_dev_set_perf_level(
     if not isinstance(perf_level, AmdSmiDevPerfLevel):
         raise AmdSmiParameterException(perf_level, AmdSmiDevPerfLevel)
 
-    _check_res(amdsmi_wrapper. amdsmi_dev_set_perf_level(
+    _check_res(amdsmi_wrapper. amdsmi_set_gpu_perf_level(
         processor_handle, perf_level))
 
 
@@ -2044,7 +2044,7 @@ def amdsmi_get_gpu_memory_busy_percent(processor_handle: amdsmi_wrapper.amdsmi_p
     return busy_percent.value
 
 
-def amdsmi_dev_set_perf_level_v1(
+def amdsmi_set_gpu_perf_level_v1(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     perf_lvl: AmdSmiDevPerfLevel,
 ) -> None:
@@ -2056,7 +2056,7 @@ def amdsmi_dev_set_perf_level_v1(
     if not isinstance(perf_lvl, AmdSmiDevPerfLevel):
         raise AmdSmiParameterException(perf_lvl, AmdSmiDevPerfLevel)
 
-    _check_res(amdsmi_wrapper. amdsmi_dev_set_perf_level_v1(
+    _check_res(amdsmi_wrapper. amdsmi_set_gpu_perf_level_v1(
         processor_handle, perf_lvl))
 
 

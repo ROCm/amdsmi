@@ -1556,12 +1556,12 @@ amdsmi_dev_get_od_volt_curve_regions.argtypes = [amdsmi_processor_handle, ctypes
 amdsmi_dev_get_power_profile_presets = _libraries['libamd_smi.so'].amdsmi_dev_get_power_profile_presets
 amdsmi_dev_get_power_profile_presets.restype = amdsmi_status_t
 amdsmi_dev_get_power_profile_presets.argtypes = [amdsmi_processor_handle, uint32_t, ctypes.POINTER(struct_c__SA_amdsmi_power_profile_status_t)]
-amdsmi_dev_set_perf_level = _libraries['libamd_smi.so'].amdsmi_dev_set_perf_level
-amdsmi_dev_set_perf_level.restype = amdsmi_status_t
-amdsmi_dev_set_perf_level.argtypes = [amdsmi_processor_handle, amdsmi_dev_perf_level_t]
-amdsmi_dev_set_perf_level_v1 = _libraries['libamd_smi.so'].amdsmi_dev_set_perf_level_v1
-amdsmi_dev_set_perf_level_v1.restype = amdsmi_status_t
-amdsmi_dev_set_perf_level_v1.argtypes = [amdsmi_processor_handle, amdsmi_dev_perf_level_t]
+amdsmi_set_gpu_perf_level = _libraries['libamd_smi.so'].amdsmi_set_gpu_perf_level
+amdsmi_set_gpu_perf_level.restype = amdsmi_status_t
+amdsmi_set_gpu_perf_level.argtypes = [amdsmi_processor_handle, amdsmi_dev_perf_level_t]
+amdsmi_set_gpu_perf_level_v1 = _libraries['libamd_smi.so'].amdsmi_set_gpu_perf_level_v1
+amdsmi_set_gpu_perf_level_v1.restype = amdsmi_status_t
+amdsmi_set_gpu_perf_level_v1.argtypes = [amdsmi_processor_handle, amdsmi_dev_perf_level_t]
 amdsmi_dev_set_overdrive_level = _libraries['libamd_smi.so'].amdsmi_dev_set_overdrive_level
 amdsmi_dev_set_overdrive_level.restype = amdsmi_status_t
 amdsmi_dev_set_overdrive_level.argtypes = [amdsmi_processor_handle, uint32_t]
@@ -1879,8 +1879,8 @@ __all__ = \
     'amdsmi_dev_set_od_clk_info', 'amdsmi_dev_set_od_volt_info',
     'amdsmi_dev_set_overdrive_level',
     'amdsmi_dev_set_overdrive_level_v1',
-    'amdsmi_set_gpu_pci_bandwidth', 'amdsmi_dev_set_perf_level',
-    'amdsmi_dev_set_perf_level_v1', 'amdsmi_set_power_cap',
+    'amdsmi_set_gpu_pci_bandwidth', 'amdsmi_set_gpu_perf_level',
+    'amdsmi_set_gpu_perf_level_v1', 'amdsmi_set_power_cap',
     'amdsmi_set_gpu_power_profile', 'amdsmi_dev_xgmi_error_status',
     'amdsmi_processor_handle', 'amdsmi_engine_usage_t',
     'amdsmi_error_count_t', 'amdsmi_event_group_t',

@@ -2447,7 +2447,7 @@ amdsmi_status_t
  *  @brief Set the PowerPlay performance level associated with the device with
  *  provided processor handle with the provided value.
  *
- *  @deprecated :: amdsmi_dev_set_perf_level_v1() is preferred, with an
+ *  @deprecated :: amdsmi_set_gpu_perf_level_v1() is preferred, with an
  *  interface that more closely  matches the rest of the amd_smi API.
  *
  *  @details Given a processor handle @p processor_handle and an ::amdsmi_dev_perf_level_t @p
@@ -2463,7 +2463,7 @@ amdsmi_status_t
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
- amdsmi_dev_set_perf_level(amdsmi_processor_handle processor_handle, amdsmi_dev_perf_level_t perf_lvl);
+ amdsmi_set_gpu_perf_level(amdsmi_processor_handle processor_handle, amdsmi_dev_perf_level_t perf_lvl);
 
 /**
  *  @brief Set the PowerPlay performance level associated with the device with
@@ -2482,7 +2482,7 @@ amdsmi_status_t
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
- amdsmi_dev_set_perf_level_v1(amdsmi_processor_handle processor_handle, amdsmi_dev_perf_level_t perf_lvl);
+ amdsmi_set_gpu_perf_level_v1(amdsmi_processor_handle processor_handle, amdsmi_dev_perf_level_t perf_lvl);
 
 /**
  *  @brief Set the overdrive percent associated with the device with provided

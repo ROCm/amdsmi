@@ -1719,7 +1719,7 @@ except AmdSmiException as e:
 
 
 
-##  amdsmi_dev_set_perf_level_v1
+##  amdsmi_set_gpu_perf_level_v1
 Description: Set the PowerPlay performance level associated with the device
 with provided device handle with the provided value
 
@@ -1729,7 +1729,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by ` amdsmi_dev_set_perf_level_v1` function:
+Exceptions that can be thrown by ` amdsmi_set_gpu_perf_level_v1` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1742,7 +1742,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-             amdsmi_dev_set_perf_level_v1(device, AmdSmiDevPerfLevel.AMDSMI_DEV_PERF_LEVEL_HIGH)
+             amdsmi_set_gpu_perf_level_v1(device, AmdSmiDevPerfLevel.AMDSMI_DEV_PERF_LEVEL_HIGH)
 except AmdSmiException as e:
     print(e)
 ```
@@ -2405,7 +2405,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-##  amdsmi_dev_set_perf_level
+##  amdsmi_set_gpu_perf_level
 Description: Set a desired performance level for given device
 
 Input parameters:
@@ -2414,7 +2414,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by ` amdsmi_dev_set_perf_level` function:
+Exceptions that can be thrown by ` amdsmi_set_gpu_perf_level` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2427,7 +2427,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-             amdsmi_dev_set_perf_level(device, AmdSmiDevPerfLevel.STABLE_PEAK)
+             amdsmi_set_gpu_perf_level(device, AmdSmiDevPerfLevel.STABLE_PEAK)
 except AmdSmiException as e:
     print(e)
 ```
