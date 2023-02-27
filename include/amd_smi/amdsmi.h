@@ -3841,7 +3841,7 @@ amdsmi_get_gpu_target_frequency_range(amdsmi_processor_handle processor_handle, 
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_process_list(amdsmi_processor_handle processor_handle, amdsmi_process_handle *list, uint32_t *max_processes);
+amdsmi_get_gpu_process_list(amdsmi_processor_handle processor_handle, amdsmi_process_handle *list, uint32_t *max_processes);
 
 /**
  *  @brief          Returns the process information of a given process.

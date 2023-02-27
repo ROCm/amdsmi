@@ -1709,9 +1709,9 @@ amdsmi_get_gpu_vram_usage.argtypes = [amdsmi_processor_handle, ctypes.POINTER(st
 amdsmi_get_gpu_target_frequency_range = _libraries['libamd_smi.so'].amdsmi_get_gpu_target_frequency_range
 amdsmi_get_gpu_target_frequency_range.restype = amdsmi_status_t
 amdsmi_get_gpu_target_frequency_range.argtypes = [amdsmi_processor_handle, amdsmi_clk_type_t, ctypes.POINTER(struct_c__SA_amdsmi_frequency_range_t)]
-amdsmi_get_process_list = _libraries['libamd_smi.so'].amdsmi_get_process_list
-amdsmi_get_process_list.restype = amdsmi_status_t
-amdsmi_get_process_list.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_uint32)]
+amdsmi_get_gpu_process_list = _libraries['libamd_smi.so'].amdsmi_get_gpu_process_list
+amdsmi_get_gpu_process_list.restype = amdsmi_status_t
+amdsmi_get_gpu_process_list.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_uint32)]
 amdsmi_get_process_info = _libraries['libamd_smi.so'].amdsmi_get_process_info
 amdsmi_get_process_info.restype = amdsmi_status_t
 amdsmi_get_process_info.argtypes = [amdsmi_processor_handle, amdsmi_process_handle, ctypes.POINTER(struct_c__SA_amdsmi_proc_info_t)]
@@ -1907,7 +1907,7 @@ __all__ = \
     'amdsmi_get_minmax_bandwidth', 'amdsmi_get_pcie_link_caps',
     'amdsmi_get_pcie_link_status', 'amdsmi_get_power_cap_info',
     'amdsmi_get_power_measure', 'amdsmi_get_process_info',
-    'amdsmi_get_process_list',
+    'amdsmi_get_gpu_process_list',
     'amdsmi_get_gpu_ras_block_features_enabled',
     'amdsmi_get_socket_handles', 'amdsmi_get_socket_info',
     'amdsmi_get_gpu_target_frequency_range',

@@ -810,7 +810,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_get_process_list
+## amdsmi_get_gpu_process_list
 Description: Returns the list of processes for the given GPU
 
 Input parameters:
@@ -819,7 +819,7 @@ Input parameters:
 
 Output: List of process handles found
 
-Exceptions that can be thrown by `amdsmi_get_process_list` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_process_list` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -832,7 +832,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            processes = amdsmi_get_process_list(device)
+            processes = amdsmi_get_gpu_process_list(device)
             print(processes)
 except AmdSmiException as e:
     print(e)
@@ -868,7 +868,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            processes = amdsmi_get_process_list(device)
+            processes = amdsmi_get_gpu_process_list(device)
             for process in processes:
                 print(amdsmi_get_process_info(device, process))
 except AmdSmiException as e:

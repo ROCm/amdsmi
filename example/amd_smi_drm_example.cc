@@ -514,7 +514,7 @@ int main() {
                    freq_ranges.current_freq_range.upper_bound);
 
             uint32_t num_process = 0;
-            ret = amdsmi_get_process_list(processor_handles[j], nullptr,
+            ret = amdsmi_get_gpu_process_list(processor_handles[j], nullptr,
                                           &num_process);
             CHK_AMDSMI_RET(ret)
             if (!num_process) {
@@ -529,7 +529,7 @@ int main() {
                 sprintf(bdf_str, "%04lx:%02x:%02x.%d", bdf.domain_number,
                         bdf.bus_number, bdf.device_number, bdf.function_number);
                 int num = 0;
-                ret = amdsmi_get_process_list(processor_handles[j], process_list,
+                ret = amdsmi_get_gpu_process_list(processor_handles[j], process_list,
                                               &num_process);
                 CHK_AMDSMI_RET(ret)
                 for (uint32_t it = 0; it < num_process; it += 1) {

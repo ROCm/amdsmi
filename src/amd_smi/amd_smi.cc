@@ -1625,7 +1625,7 @@ amdsmi_get_gpu_ecc_error_count(amdsmi_processor_handle processor_handle, amdsmi_
 }
 
 amdsmi_status_t
-amdsmi_get_process_list(amdsmi_processor_handle processor_handle, amdsmi_process_handle *list, uint32_t *max_processes) {
+amdsmi_get_gpu_process_list(amdsmi_processor_handle processor_handle, amdsmi_process_handle *list, uint32_t *max_processes) {
     AMDSMI_CHECK_INIT();
 
     if (max_processes == nullptr) {
