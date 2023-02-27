@@ -2739,7 +2739,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_get_compute_process_info
+## amdsmi_get_gpu_compute_process_info
 Description: Get process information about processes currently using GPU
 
 Input parameters: None
@@ -2754,21 +2754,21 @@ Field | Description
 `sdma_usage` | SDMA usage in microseconds
 `cu_occupancy` | Compute Unit usage in percents
 
-Exceptions that can be thrown by `amdsmi_get_compute_process_info` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_compute_process_info` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 
 Example:
 ```python
 try:
-    procs = amdsmi_get_compute_process_info()
+    procs = amdsmi_get_gpu_compute_process_info()
     for proc in procs:
         print(proc)
 except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_get_compute_process_info_by_pid
+## amdsmi_get_gpu_compute_process_info_by_pid
 Description: Get process information about processes currently using GPU
 
 Input parameters:
@@ -2784,7 +2784,7 @@ Field | Description
 `sdma_usage` | SDMA usage in microseconds
 `cu_occupancy` | Compute Unit usage in percents
 
-Exceptions that can be thrown by `amdsmi_get_compute_process_info_by_pid` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_compute_process_info_by_pid` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2793,7 +2793,7 @@ Example:
 ```python
 try:
     pid = 0 # << valid pid here
-    proc = amdsmi_get_compute_process_info_by_pid(pid)
+    proc = amdsmi_get_gpu_compute_process_info_by_pid(pid)
     print(proc)
 except AmdSmiException as e:
     print(e)

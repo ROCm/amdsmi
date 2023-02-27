@@ -1607,12 +1607,12 @@ amdsmi_read_counter.argtypes = [amdsmi_event_handle_t, ctypes.POINTER(struct_c__
 amdsmi_counter_get_available_counters = _libraries['libamd_smi.so'].amdsmi_counter_get_available_counters
 amdsmi_counter_get_available_counters.restype = amdsmi_status_t
 amdsmi_counter_get_available_counters.argtypes = [amdsmi_processor_handle, amdsmi_event_group_t, ctypes.POINTER(ctypes.c_uint32)]
-amdsmi_get_compute_process_info = _libraries['libamd_smi.so'].amdsmi_get_compute_process_info
-amdsmi_get_compute_process_info.restype = amdsmi_status_t
-amdsmi_get_compute_process_info.argtypes = [ctypes.POINTER(struct_c__SA_amdsmi_process_info_t), ctypes.POINTER(ctypes.c_uint32)]
-amdsmi_get_compute_process_info_by_pid = _libraries['libamd_smi.so'].amdsmi_get_compute_process_info_by_pid
-amdsmi_get_compute_process_info_by_pid.restype = amdsmi_status_t
-amdsmi_get_compute_process_info_by_pid.argtypes = [uint32_t, ctypes.POINTER(struct_c__SA_amdsmi_process_info_t)]
+amdsmi_get_gpu_compute_process_info = _libraries['libamd_smi.so'].amdsmi_get_gpu_compute_process_info
+amdsmi_get_gpu_compute_process_info.restype = amdsmi_status_t
+amdsmi_get_gpu_compute_process_info.argtypes = [ctypes.POINTER(struct_c__SA_amdsmi_process_info_t), ctypes.POINTER(ctypes.c_uint32)]
+amdsmi_get_gpu_compute_process_info_by_pid = _libraries['libamd_smi.so'].amdsmi_get_gpu_compute_process_info_by_pid
+amdsmi_get_gpu_compute_process_info_by_pid.restype = amdsmi_status_t
+amdsmi_get_gpu_compute_process_info_by_pid.argtypes = [uint32_t, ctypes.POINTER(struct_c__SA_amdsmi_process_info_t)]
 amdsmi_get_compute_process_gpus = _libraries['libamd_smi.so'].amdsmi_get_compute_process_gpus
 amdsmi_get_compute_process_gpus.restype = amdsmi_status_t
 amdsmi_get_compute_process_gpus.argtypes = [uint32_t, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_uint32)]
@@ -1897,8 +1897,8 @@ __all__ = \
     'amdsmi_get_gpu_bad_page_info', 'amdsmi_get_gpu_board_info',
     'amdsmi_get_caps_info', 'amdsmi_get_clock_measure',
     'amdsmi_get_compute_process_gpus',
-    'amdsmi_get_compute_process_info',
-    'amdsmi_get_compute_process_info_by_pid', 'amdsmi_get_gpu_device_bdf',
+    'amdsmi_get_gpu_compute_process_info',
+    'amdsmi_get_gpu_compute_process_info_by_pid', 'amdsmi_get_gpu_device_bdf',
     'amdsmi_get_processor_handle_from_bdf', 'amdsmi_get_processor_handles',
     'amdsmi_get_processor_type', 'amdsmi_get_gpu_device_uuid',
     'amdsmi_get_gpu_driver_version', 'amdsmi_get_gpu_ecc_error_count',

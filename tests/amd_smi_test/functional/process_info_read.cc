@@ -104,7 +104,7 @@ void TestProcInfoRead::Run(void) {
 
   uint32_t num_devices = num_monitor_devs();
 
-  err = amdsmi_get_compute_process_info(nullptr, &num_proc_found);
+  err = amdsmi_get_gpu_compute_process_info(nullptr, &num_proc_found);
   if (err != AMDSMI_STATUS_SUCCESS) {
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       IF_VERB(STANDARD) {
@@ -129,7 +129,7 @@ void TestProcInfoRead::Run(void) {
   procs = new amdsmi_process_info_t[num_proc_found];
 
   val_ui32 = num_proc_found;
-  err = amdsmi_get_compute_process_info(procs, &val_ui32);
+  err = amdsmi_get_gpu_compute_process_info(procs, &val_ui32);
   if (err != AMDSMI_STATUS_SUCCESS) {
     if (err == AMDSMI_STATUS_INSUFFICIENT_SIZE) {
       IF_VERB(STANDARD) {
@@ -191,13 +191,13 @@ void TestProcInfoRead::Run(void) {
     amdsmi_process_info_t proc_info;
     for (uint32_t j = 0; j < num_proc_found; j++) {
       memset(&proc_info, 0x0, sizeof(amdsmi_process_info_t));
-      err = amdsmi_get_compute_process_info_by_pid(procs[j].process_id,
+      err = amdsmi_get_gpu_compute_process_info_by_pid(procs[j].process_id,
                                                                   &proc_info);
       if (err == AMDSMI_STATUS_NOT_FOUND) {
         std::cout <<
-         "\t** WARNING: amdsmi_get_compute_process_info() found process " <<
+         "\t** WARNING: amdsmi_get_gpu_compute_process_info() found process " <<
            procs[j].process_id << ", but subsequently, "
-                       "amdsmi_get_compute_process_info_by_pid() did not"
+                       "amdsmi_get_gpu_compute_process_info_by_pid() did not"
                                       " find this same process." << std::endl;
       } else {
         CHK_ERR_ASRT(err)
@@ -217,10 +217,10 @@ void TestProcInfoRead::Run(void) {
   if (num_proc_found > 1) {
     amdsmi_process_info_t tmp_proc;
     val_ui32 = 1;
-    err = amdsmi_get_compute_process_info(&tmp_proc, &val_ui32);
+    err = amdsmi_get_gpu_compute_process_info(&tmp_proc, &val_ui32);
 
     if (err != AMDSMI_STATUS_INSUFFICIENT_SIZE) {
-      std::cout << "Expected amdsmi_get_compute_process_info() to tell us"
+      std::cout << "Expected amdsmi_get_gpu_compute_process_info() to tell us"
         " there are more processes available, but instead go return code " <<
                                                               err << std::endl;
     }
