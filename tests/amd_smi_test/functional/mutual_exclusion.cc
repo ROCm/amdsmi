@@ -298,7 +298,7 @@ void TestMutualExclusion::Run(void) {
      amdsmi_get_gpu_pci_replay_counter
     amdsmi_dev_unique_id_get
     amdsmi_gpu_create_counter
-     amdsmi_counter_get_available_counters
+     amdsmi_get_gpu_available_counters
     amdsmi_gpu_counter_group_supported
     amdsmi_get_gpu_memory_reserved_pages
     amdsmi_dev_xgmi_error_status

@@ -2769,7 +2769,7 @@ amdsmi_status_string(amdsmi_status_t status, const char **status_string);
  *  (::amdsmi_event_group_t) are supported for a given device. Assuming a device
  *  supports a given event type, we can then check to see if there are counters
  *  available to count a specific event with
- *  :: amdsmi_counter_get_available_counters(). Counters may be occupied by other
+ *  :: amdsmi_get_gpu_available_counters(). Counters may be occupied by other
  *  perf based programs.
  *
  *  Once it is determined that events are supported and counters are available,
@@ -2816,7 +2816,7 @@ amdsmi_status_string(amdsmi_status_t status, const char **status_string);
  *    // See if there are counters available for device dv_ind for event
  *    // AMDSMI_EVNT_GRP_XGMI
  *
- *    ret =  amdsmi_counter_get_available_counters(dv_ind,
+ *    ret =  amdsmi_get_gpu_available_counters(dv_ind,
  *                                 AMDSMI_EVNT_GRP_XGMI, &counters_available);
  *
  *    // Assuming AMDSMI_EVNT_GRP_XGMI is supported and there is at least 1
@@ -2971,7 +2971,7 @@ amdsmi_gpu_read_counter(amdsmi_event_handle_t evt_handle,
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
- amdsmi_counter_get_available_counters(amdsmi_processor_handle processor_handle,
+ amdsmi_get_gpu_available_counters(amdsmi_processor_handle processor_handle,
                                  amdsmi_event_group_t grp, uint32_t *available);
 
 /** @} End PerfCntr */

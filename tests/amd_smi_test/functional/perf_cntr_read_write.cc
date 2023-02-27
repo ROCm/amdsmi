@@ -261,7 +261,7 @@ TestPerfCntrReadWrite::testEventsSimultaneously(amdsmi_processor_handle dv_ind) 
       std::cout << "Testing Event Group " << grp.name() << std::endl;
     }
 
-    ret =  amdsmi_counter_get_available_counters(dv_ind, grp.group(),
+    ret =  amdsmi_get_gpu_available_counters(dv_ind, grp.group(),
                                                              &avail_counters);
     IF_VERB(STANDARD) {
       std::cout << "Available Counters: " << avail_counters << std::endl;
@@ -311,7 +311,7 @@ TestPerfCntrReadWrite::testEventsSimultaneously(amdsmi_processor_handle dv_ind) 
                                                                      nullptr);
         CHK_ERR_ASRT(ret)
 
-        ret =  amdsmi_counter_get_available_counters(dv_ind, grp.group(),
+        ret =  amdsmi_get_gpu_available_counters(dv_ind, grp.group(),
                                                                   &tmp_cntrs);
         CHK_ERR_ASRT(ret)
         ASSERT_EQ(tmp_cntrs, (avail_counters - j - 1));

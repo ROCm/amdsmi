@@ -2377,7 +2377,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-##  amdsmi_counter_get_available_counters
+##  amdsmi_get_gpu_available_counters
 Description: Get the number of currently available counters
 
 Input parameters:
@@ -2387,7 +2387,7 @@ Input parameters:
 
 Output: Number of available counters for the given device of the inputted event group
 
-Exceptions that can be thrown by ` amdsmi_counter_get_available_counters` function:
+Exceptions that can be thrown by ` amdsmi_get_gpu_available_counters` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2400,7 +2400,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            available_counters =  amdsmi_counter_get_available_counters(device, AmdSmiEventGroup.XGMI)
+            available_counters =  amdsmi_get_gpu_available_counters(device, AmdSmiEventGroup.XGMI)
             print(available_counters)
 except AmdSmiException as e:
     print(e)

@@ -1431,7 +1431,7 @@ def amdsmi_gpu_read_counter(
     }
 
 
-def amdsmi_counter_get_available_counters(
+def amdsmi_get_gpu_available_counters(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     event_group: AmdSmiEventGroup,
 ) -> int:
@@ -1444,7 +1444,7 @@ def amdsmi_counter_get_available_counters(
     available = ctypes.c_uint32()
 
     _check_res(
-        amdsmi_wrapper. amdsmi_counter_get_available_counters(
+        amdsmi_wrapper. amdsmi_get_gpu_available_counters(
             processor_handle, event_group, ctypes.byref(available)
         )
     )
