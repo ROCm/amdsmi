@@ -1741,7 +1741,7 @@ amdsmi_get_power_measure(amdsmi_processor_handle processor_handle, amdsmi_power_
 }
 
 amdsmi_status_t
-amdsmi_get_target_frequency_range(amdsmi_processor_handle processor_handle, amdsmi_clk_type_t clk_type, amdsmi_frequency_range_t *range) {
+amdsmi_get_gpu_target_frequency_range(amdsmi_processor_handle processor_handle, amdsmi_clk_type_t clk_type, amdsmi_frequency_range_t *range) {
     AMDSMI_CHECK_INIT();
 
     if (range == nullptr || clk_type > CLK_TYPE__MAX) {

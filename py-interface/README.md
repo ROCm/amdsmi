@@ -739,7 +739,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_get_target_frequency_range
+## amdsmi_get_gpu_target_frequency_range
 Description: Returns the supported frequency target range for the given GPU
 
 `Note: Not Supported`
@@ -772,7 +772,7 @@ Field | Description
 `current_upper_bound` | Maximal value of target current frequency in MHz
 `current_lower_bound` | Minimal value of target current frequency in MHz
 
-Exceptions that can be thrown by `amdsmi_get_target_frequency_range` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_target_frequency_range` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -786,21 +786,21 @@ try:
     else:
         for device in devices:
             print("=============== GFX DOMAIN ================")
-            freq_range = amdsmi_get_target_frequency_range(device,
+            freq_range = amdsmi_get_gpu_target_frequency_range(device,
                 AmdSmiClkType.GFX)
             print(freq_range['supported_upper_bound'])
             print(freq_range['supported_lower_bound'])
             print(freq_range['current_upper_bound'])
             print(freq_range['current_lower_bound'])
             print("=============== MEM DOMAIN ================")
-            freq_range = amdsmi_get_target_frequency_range(device,
+            freq_range = amdsmi_get_gpu_target_frequency_range(device,
                 AmdSmiClkType.MEM)
             print(freq_range['supported_upper_bound'])
             print(freq_range['supported_lower_bound'])
             print(freq_range['current_upper_bound'])
             print(freq_range['current_lower_bound'])
             print("=============== VCLK0 DOMAIN ================")
-            freq_range = amdsmi_get_target_frequency_range(device,
+            freq_range = amdsmi_get_gpu_target_frequency_range(device,
                 AmdSmiClkType.VCLK0)
             print(freq_range['supported_upper_bound'])
             print(freq_range['supported_lower_bound'])

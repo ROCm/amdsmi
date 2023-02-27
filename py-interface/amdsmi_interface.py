@@ -751,7 +751,7 @@ def amdsmi_get_bad_page_info(
     return table_records
 
 
-def amdsmi_get_target_frequency_range(
+def amdsmi_get_gpu_target_frequency_range(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     clock_type: amdsmi_wrapper.amdsmi_clk_type_t,
 ) -> Dict[str, Any]:
@@ -764,7 +764,7 @@ def amdsmi_get_target_frequency_range(
 
     freq_range = amdsmi_wrapper.amdsmi_frequency_range_t()
     _check_res(
-        amdsmi_wrapper.amdsmi_get_target_frequency_range(
+        amdsmi_wrapper.amdsmi_get_gpu_target_frequency_range(
             processor_handle,
             amdsmi_wrapper.amdsmi_clk_type_t(clock_type),
             ctypes.byref(freq_range),
