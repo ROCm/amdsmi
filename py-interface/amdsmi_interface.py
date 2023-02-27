@@ -2603,7 +2603,7 @@ def amdsmi_get_gpu_compute_process_gpus(pid: int) -> List[int]:
     return [dv_index.value for dv_index in dv_indices]
 
 
-def amdsmi_dev_xgmi_error_status(
+def amdsmi_gpu_xgmi_error_status(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> AmdSmiXgmiStatus:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -2613,7 +2613,7 @@ def amdsmi_dev_xgmi_error_status(
 
     status = amdsmi_wrapper.amdsmi_xgmi_status_t()
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_xgmi_error_status(
+        amdsmi_wrapper.amdsmi_gpu_xgmi_error_status(
             processor_handle, ctypes.byref(status))
     )
 

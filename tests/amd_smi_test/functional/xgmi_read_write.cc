@@ -116,7 +116,7 @@ void TestXGMIReadWrite::Run(void) {
         }
     }
 
-    err = amdsmi_dev_xgmi_error_status(device, &err_stat);
+    err = amdsmi_gpu_xgmi_error_status(device, &err_stat);
 
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       IF_VERB(STANDARD) {
@@ -124,7 +124,7 @@ void TestXGMIReadWrite::Run(void) {
                                                                << std::endl;
       }
       // Verify api support checking functionality is working
-      err = amdsmi_dev_xgmi_error_status(device, nullptr);
+      err = amdsmi_gpu_xgmi_error_status(device, nullptr);
       ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
 
       continue;
@@ -135,7 +135,7 @@ void TestXGMIReadWrite::Run(void) {
                                static_cast<uint32_t>(err_stat) << std::endl;
     }
     // Verify api support checking functionality is working
-    err = amdsmi_dev_xgmi_error_status(device, nullptr);
+    err = amdsmi_gpu_xgmi_error_status(device, nullptr);
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
     // TODO(cfree) We need to find a way to generate xgmi errors so this

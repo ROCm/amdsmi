@@ -824,7 +824,7 @@ amdsmi_get_xgmi_info(amdsmi_processor_handle processor_handle, amdsmi_xgmi_info_
 }
 
 amdsmi_status_t
-amdsmi_dev_xgmi_error_status(amdsmi_processor_handle processor_handle, amdsmi_xgmi_status_t *status) {
+amdsmi_gpu_xgmi_error_status(amdsmi_processor_handle processor_handle, amdsmi_xgmi_status_t *status) {
     return rsmi_wrapper(rsmi_dev_xgmi_error_status, processor_handle,
                     reinterpret_cast<rsmi_xgmi_status_t*>(status));
 }
@@ -925,7 +925,7 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_ecc_status_get", " amdsmi_dev_get_gpu_ecc_status"},
         {"rsmi_dev_counter_group_supported", "amdsmi_gpu_counter_group_supported"},
         {"rsmi_dev_counter_create", "amdsmi_gpu_create_counter"},
-        {"rsmi_dev_xgmi_error_status", "amdsmi_dev_xgmi_error_status"},
+        {"rsmi_dev_xgmi_error_status", "amdsmi_gpu_xgmi_error_status"},
         {"rsmi_dev_xgmi_error_reset", "amdsmi_dev_reset_xgmi_error"},
         {"rsmi_dev_memory_reserved_pages_get", "amdsmi_get_gpu_memory_reserved_pages"},
         {"rsmi_topo_numa_affinity_get", "amdsmi_get_gpu_topo_numa_affinity"},
