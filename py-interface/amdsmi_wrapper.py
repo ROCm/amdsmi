@@ -1637,18 +1637,18 @@ amdsmi_topo_get_link_type.argtypes = [amdsmi_processor_handle, amdsmi_processor_
 amdsmi_is_P2P_accessible = _libraries['libamd_smi.so'].amdsmi_is_P2P_accessible
 amdsmi_is_P2P_accessible.restype = amdsmi_status_t
 amdsmi_is_P2P_accessible.argtypes = [amdsmi_processor_handle, amdsmi_processor_handle, ctypes.POINTER(ctypes.c_bool)]
-amdsmi_dev_open_supported_func_iterator = _libraries['libamd_smi.so'].amdsmi_dev_open_supported_func_iterator
-amdsmi_dev_open_supported_func_iterator.restype = amdsmi_status_t
-amdsmi_dev_open_supported_func_iterator.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.POINTER(struct_amdsmi_func_id_iter_handle))]
-amdsmi_dev_open_supported_variant_iterator = _libraries['libamd_smi.so'].amdsmi_dev_open_supported_variant_iterator
-amdsmi_dev_open_supported_variant_iterator.restype = amdsmi_status_t
-amdsmi_dev_open_supported_variant_iterator.argtypes = [amdsmi_func_id_iter_handle_t, ctypes.POINTER(ctypes.POINTER(struct_amdsmi_func_id_iter_handle))]
+amdsmi_open_supported_func_iterator = _libraries['libamd_smi.so'].amdsmi_open_supported_func_iterator
+amdsmi_open_supported_func_iterator.restype = amdsmi_status_t
+amdsmi_open_supported_func_iterator.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.POINTER(struct_amdsmi_func_id_iter_handle))]
+amdsmi_open_supported_variant_iterator = _libraries['libamd_smi.so'].amdsmi_open_supported_variant_iterator
+amdsmi_open_supported_variant_iterator.restype = amdsmi_status_t
+amdsmi_open_supported_variant_iterator.argtypes = [amdsmi_func_id_iter_handle_t, ctypes.POINTER(ctypes.POINTER(struct_amdsmi_func_id_iter_handle))]
 amdsmi_next_func_iter = _libraries['libamd_smi.so'].amdsmi_next_func_iter
 amdsmi_next_func_iter.restype = amdsmi_status_t
 amdsmi_next_func_iter.argtypes = [amdsmi_func_id_iter_handle_t]
-amdsmi_dev_close_supported_func_iterator = _libraries['libamd_smi.so'].amdsmi_dev_close_supported_func_iterator
-amdsmi_dev_close_supported_func_iterator.restype = amdsmi_status_t
-amdsmi_dev_close_supported_func_iterator.argtypes = [ctypes.POINTER(ctypes.POINTER(struct_amdsmi_func_id_iter_handle))]
+amdsmi_close_supported_func_iterator = _libraries['libamd_smi.so'].amdsmi_close_supported_func_iterator
+amdsmi_close_supported_func_iterator.restype = amdsmi_status_t
+amdsmi_close_supported_func_iterator.argtypes = [ctypes.POINTER(ctypes.POINTER(struct_amdsmi_func_id_iter_handle))]
 amdsmi_get_func_iter_value = _libraries['libamd_smi.so'].amdsmi_get_func_iter_value
 amdsmi_get_func_iter_value.restype = amdsmi_status_t
 amdsmi_get_func_iter_value.argtypes = [amdsmi_func_id_iter_handle_t, ctypes.POINTER(union_c__UA_amdsmi_func_id_value_t)]
@@ -1849,7 +1849,7 @@ __all__ = \
     'amdsmi_counter_command_t',
     'amdsmi_counter_command_t__enumvalues',
     'amdsmi_get_gpu_available_counters', 'amdsmi_counter_value_t',
-    'amdsmi_dev_close_supported_func_iterator',
+    'amdsmi_close_supported_func_iterator',
     'amdsmi_gpu_counter_group_supported', 'amdsmi_gpu_create_counter',
     'amdsmi_gpu_destroy_counter', 'amdsmi_get_busy_percent',
     'amdsmi_get_gpu_drm_render_minor', 'amdsmi_get_gpu_ecc_count',
@@ -1870,8 +1870,8 @@ __all__ = \
     'amdsmi_get_gpu_subsystem_id', 'amdsmi_get_gpu_subsystem_name',
     'amdsmi_get_temp_metric', 'amdsmi_get_gpu_vendor_name',
     'amdsmi_get_gpu_volt_metric', 'amdsmi_get_gpu_vram_vendor',
-    'amdsmi_dev_open_supported_func_iterator',
-    'amdsmi_dev_open_supported_variant_iterator',
+    'amdsmi_open_supported_func_iterator',
+    'amdsmi_open_supported_variant_iterator',
     'amdsmi_dev_perf_level_t', 'amdsmi_dev_perf_level_t__enumvalues',
     'amdsmi_reset_gpu_fan', 'amdsmi_reset_gpu',
     'amdsmi_reset_gpu_xgmi_error', 'amdsmi_set_clk_freq',

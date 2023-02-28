@@ -1608,7 +1608,7 @@ def amdsmi_set_gpu_overdrive_level(
     )
 
 
-def amdsmi_dev_open_supported_func_iterator(
+def amdsmi_open_supported_func_iterator(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> amdsmi_wrapper.amdsmi_func_id_iter_handle_t:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -1618,7 +1618,7 @@ def amdsmi_dev_open_supported_func_iterator(
 
     obj_handle = amdsmi_wrapper.amdsmi_func_id_iter_handle_t()
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_open_supported_func_iterator(
+        amdsmi_wrapper.amdsmi_open_supported_func_iterator(
             processor_handle, ctypes.byref(obj_handle)
         )
     )
@@ -1641,7 +1641,7 @@ def amdsmi_get_gpu_pci_id(processor_handle: amdsmi_wrapper.amdsmi_processor_hand
     return bdfid.value
 
 
-def amdsmi_dev_open_supported_variant_iterator(
+def amdsmi_open_supported_variant_iterator(
     obj_handle: amdsmi_wrapper.amdsmi_func_id_iter_handle_t,
 ) -> amdsmi_wrapper.amdsmi_func_id_iter_handle_t:
     if not isinstance(obj_handle, amdsmi_wrapper.amdsmi_func_id_iter_handle_t):
@@ -1651,7 +1651,7 @@ def amdsmi_dev_open_supported_variant_iterator(
 
     var_iter = amdsmi_wrapper.amdsmi_func_id_iter_handle_t()
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_open_supported_variant_iterator(
+        amdsmi_wrapper.amdsmi_open_supported_variant_iterator(
             obj_handle, ctypes.byref(var_iter)
         )
     )
@@ -1659,7 +1659,7 @@ def amdsmi_dev_open_supported_variant_iterator(
     return var_iter
 
 
-def amdsmi_dev_close_supported_func_iterator(
+def amdsmi_close_supported_func_iterator(
     obj_handle: amdsmi_wrapper.amdsmi_func_id_iter_handle_t,
 ) -> None:
     if not isinstance(obj_handle, amdsmi_wrapper.amdsmi_func_id_iter_handle_t):
@@ -1668,7 +1668,7 @@ def amdsmi_dev_close_supported_func_iterator(
         )
 
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_close_supported_func_iterator(
+        amdsmi_wrapper.amdsmi_close_supported_func_iterator(
             obj_handle, ctypes.byref(obj_handle)
         )
     )

@@ -72,9 +72,9 @@ from .amdsmi_interface import amdsmi_get_gpu_board_info
 from .amdsmi_interface import amdsmi_get_gpu_ras_block_features_enabled
 
 # # Supported Function Checks
-from .amdsmi_interface import amdsmi_dev_open_supported_func_iterator
-from .amdsmi_interface import amdsmi_dev_open_supported_variant_iterator
-from .amdsmi_interface import amdsmi_dev_close_supported_func_iterator
+from .amdsmi_interface import amdsmi_open_supported_func_iterator
+from .amdsmi_interface import amdsmi_open_supported_variant_iterator
+from .amdsmi_interface import amdsmi_close_supported_func_iterator
 from .amdsmi_interface import amdsmi_next_func_iter
 from .amdsmi_interface import amdsmi_get_func_iter_value
 

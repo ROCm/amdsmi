@@ -106,7 +106,7 @@ void TestAPISupportRead::Run(void) {
         std::cout << "Supported AMDSMI Functions:" << std::endl;
         std::cout << "\tVariants (Monitors)" << std::endl;
       }
-      err = amdsmi_dev_open_supported_func_iterator(processor_handles_[i], &iter_handle);
+      err = amdsmi_open_supported_func_iterator(processor_handles_[i], &iter_handle);
       CHK_ERR_ASRT(err)
 
       while (1) {
@@ -115,7 +115,7 @@ void TestAPISupportRead::Run(void) {
         IF_VERB(STANDARD) {
           std::cout << "Function Name: " << value.name << std::endl;
         }
-        err = amdsmi_dev_open_supported_variant_iterator(iter_handle, &var_iter);
+        err = amdsmi_open_supported_variant_iterator(iter_handle, &var_iter);
         if (err != AMDSMI_STATUS_NO_DATA) {
           CHK_ERR_ASRT(err)
           IF_VERB(STANDARD) {
@@ -133,7 +133,7 @@ void TestAPISupportRead::Run(void) {
               std::cout << " (";
             }
             err =
-              amdsmi_dev_open_supported_variant_iterator(var_iter, &sub_var_iter);
+              amdsmi_open_supported_variant_iterator(var_iter, &sub_var_iter);
             if (err != AMDSMI_STATUS_NO_DATA) {
               CHK_ERR_ASRT(err)
 
@@ -150,7 +150,7 @@ void TestAPISupportRead::Run(void) {
                 }
                 CHK_ERR_ASRT(err)
               }
-              err = amdsmi_dev_close_supported_func_iterator(&sub_var_iter);
+              err = amdsmi_close_supported_func_iterator(&sub_var_iter);
               CHK_ERR_ASRT(err)
             }
 
@@ -167,7 +167,7 @@ void TestAPISupportRead::Run(void) {
           IF_VERB(STANDARD) {
             std::cout << std::endl;
           }
-          err = amdsmi_dev_close_supported_func_iterator(&var_iter);
+          err = amdsmi_close_supported_func_iterator(&var_iter);
           CHK_ERR_ASRT(err)
         }
 
@@ -178,10 +178,10 @@ void TestAPISupportRead::Run(void) {
         }
         CHK_ERR_ASRT(err)
 
-    //  err = amdsmi_dev_open_supported_variant_iterator(iter_handle, &var_iter);
+    //  err = amdsmi_open_supported_variant_iterator(iter_handle, &var_iter);
     //
       }
-      err = amdsmi_dev_close_supported_func_iterator(&iter_handle);
+      err = amdsmi_close_supported_func_iterator(&iter_handle);
       CHK_ERR_ASRT(err)
     }
   }
