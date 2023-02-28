@@ -3107,7 +3107,7 @@ amdsmi_gpu_xgmi_error_status(amdsmi_processor_handle processor_handle, amdsmi_xg
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_reset_xgmi_error(amdsmi_processor_handle processor_handle);
+amdsmi_reset_gpu_xgmi_error(amdsmi_processor_handle processor_handle);
 
 /** @} End SysInfo */
 

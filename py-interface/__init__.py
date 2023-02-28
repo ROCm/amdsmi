@@ -134,7 +134,7 @@ from .amdsmi_interface import amdsmi_get_gpu_compute_process_info
 from .amdsmi_interface import amdsmi_get_gpu_compute_process_info_by_pid
 from .amdsmi_interface import amdsmi_get_gpu_compute_process_gpus
 from .amdsmi_interface import amdsmi_gpu_xgmi_error_status
-from .amdsmi_interface import amdsmi_dev_reset_xgmi_error
+from .amdsmi_interface import amdsmi_reset_gpu_xgmi_error
 
 # # PCIE information
 from .amdsmi_interface import amdsmi_get_gpu_pci_id
