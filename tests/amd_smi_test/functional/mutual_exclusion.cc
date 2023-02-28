@@ -302,7 +302,7 @@ void TestMutualExclusion::Run(void) {
     amdsmi_gpu_counter_group_supported
     amdsmi_get_gpu_memory_reserved_pages
     amdsmi_gpu_xgmi_error_status
-    amdsmi_dev_reset_xgmi_error
+    amdsmi_reset_gpu_xgmi_error
     amdsmi_dev_xgmi_hive_id_get
     amdsmi_topo_get_link_weight
      amdsmi_set_gpu_event_notification_mask

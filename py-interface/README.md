@@ -2849,7 +2849,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_reset_xgmi_error
+## amdsmi_reset_gpu_xgmi_error
 Description: Reset the XGMI error status for a device
 
 Input parameters:
@@ -2857,7 +2857,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_dev_reset_xgmi_error` function:
+Exceptions that can be thrown by `amdsmi_reset_gpu_xgmi_error` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -2870,7 +2870,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_dev_reset_xgmi_error(device)
+            amdsmi_reset_gpu_xgmi_error(device)
 except AmdSmiException as e:
     print(e)
 ```

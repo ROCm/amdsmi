@@ -1619,9 +1619,9 @@ amdsmi_get_gpu_compute_process_gpus.argtypes = [uint32_t, ctypes.POINTER(ctypes.
 amdsmi_gpu_xgmi_error_status = _libraries['libamd_smi.so'].amdsmi_gpu_xgmi_error_status
 amdsmi_gpu_xgmi_error_status.restype = amdsmi_status_t
 amdsmi_gpu_xgmi_error_status.argtypes = [amdsmi_processor_handle, ctypes.POINTER(c__EA_amdsmi_xgmi_status_t)]
-amdsmi_dev_reset_xgmi_error = _libraries['libamd_smi.so'].amdsmi_dev_reset_xgmi_error
-amdsmi_dev_reset_xgmi_error.restype = amdsmi_status_t
-amdsmi_dev_reset_xgmi_error.argtypes = [amdsmi_processor_handle]
+amdsmi_reset_gpu_xgmi_error = _libraries['libamd_smi.so'].amdsmi_reset_gpu_xgmi_error
+amdsmi_reset_gpu_xgmi_error.restype = amdsmi_status_t
+amdsmi_reset_gpu_xgmi_error.argtypes = [amdsmi_processor_handle]
 amdsmi_topo_get_numa_node_number = _libraries['libamd_smi.so'].amdsmi_topo_get_numa_node_number
 amdsmi_topo_get_numa_node_number.restype = amdsmi_status_t
 amdsmi_topo_get_numa_node_number.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32)]
@@ -1874,7 +1874,7 @@ __all__ = \
     'amdsmi_dev_open_supported_variant_iterator',
     'amdsmi_dev_perf_level_t', 'amdsmi_dev_perf_level_t__enumvalues',
     'amdsmi_reset_gpu_fan', 'amdsmi_reset_gpu',
-    'amdsmi_dev_reset_xgmi_error', 'amdsmi_set_clk_freq',
+    'amdsmi_reset_gpu_xgmi_error', 'amdsmi_set_clk_freq',
     'amdsmi_set_gpu_clk_range', 'amdsmi_set_gpu_fan_speed',
     'amdsmi_set_gpu_od_clk_info', 'amdsmi_set_gpu_od_volt_info',
     'amdsmi_set_gpu_overdrive_level',

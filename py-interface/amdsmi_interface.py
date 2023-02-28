@@ -2620,7 +2620,7 @@ def amdsmi_gpu_xgmi_error_status(
     return AmdSmiXgmiStatus(status.value)
 
 
-def amdsmi_dev_reset_xgmi_error(
+def amdsmi_reset_gpu_xgmi_error(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> None:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -2628,7 +2628,7 @@ def amdsmi_dev_reset_xgmi_error(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    _check_res(amdsmi_wrapper.amdsmi_dev_reset_xgmi_error(processor_handle))
+    _check_res(amdsmi_wrapper.amdsmi_reset_gpu_xgmi_error(processor_handle))
 
 
 def amdsmi_get_gpu_memory_reserved_pages(
