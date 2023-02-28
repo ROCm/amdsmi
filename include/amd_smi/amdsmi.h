@@ -3283,13 +3283,13 @@ amdsmi_is_P2P_accessible(amdsmi_processor_handle processor_handle_src, amdsmi_pr
  *     // ... ...
  *
  *     std::cout << "Supported AMDSMI Functions:" << std::endl; *
- *     err = amdsmi_dev_open_supported_func_iterator(device, &iter_handle);
+ *     err = amdsmi_open_supported_func_iterator(device, &iter_handle);
  *
  *     while (1) {
  *        err = amdsmi_get_func_iter_value(iter_handle, &value);
  *        std::cout << "Function Name: " << value.name << std::endl;
  *
- *        err = amdsmi_dev_open_supported_variant_iterator(iter_handle, &var_iter);
+ *        err = amdsmi_open_supported_variant_iterator(iter_handle, &var_iter);
  *        if (err != AMDSMI_STATUS_NO_DATA) {
  *          std::cout << "\tVariants/Monitors: ";
  *          while (1) {
@@ -3302,7 +3302,7 @@ amdsmi_is_P2P_accessible(amdsmi_processor_handle processor_handle_src, amdsmi_pr
  *            std::cout << " (";
  *
  *            err =
- *              amdsmi_dev_open_supported_variant_iterator(var_iter, &sub_var_iter);
+ *              amdsmi_open_supported_variant_iterator(var_iter, &sub_var_iter);
  *            if (err != AMDSMI_STATUS_NO_DATA) {
  *
  *              while (1) {
@@ -3315,7 +3315,7 @@ amdsmi_is_P2P_accessible(amdsmi_processor_handle processor_handle_src, amdsmi_pr
  *                  break;
  *                }
  *              }
- *              err = amdsmi_dev_close_supported_func_iterator(&sub_var_iter);
+ *              err = amdsmi_close_supported_func_iterator(&sub_var_iter);
  *            }
  *
  *            std::cout << "), ";
@@ -3328,7 +3328,7 @@ amdsmi_is_P2P_accessible(amdsmi_processor_handle processor_handle_src, amdsmi_pr
  *          }
  *          std::cout << std::endl;
  *
- *          err = amdsmi_dev_close_supported_func_iterator(&var_iter);
+ *          err = amdsmi_close_supported_func_iterator(&var_iter);
  *        }
  *
  *        err = amdsmi_next_func_iter(iter_handle);
@@ -3337,7 +3337,7 @@ amdsmi_is_P2P_accessible(amdsmi_processor_handle processor_handle_src, amdsmi_pr
  *          break;
  *        }
  *      }
- *      err = amdsmi_dev_close_supported_func_iterator(&iter_handle);
+ *      err = amdsmi_close_supported_func_iterator(&iter_handle);
  *    }
  * @endcode
  *
@@ -3352,9 +3352,9 @@ amdsmi_is_P2P_accessible(amdsmi_processor_handle processor_handle_src, amdsmi_pr
  * handle can be used to iterate through all the supported functions.
  *
  * Note that although this function takes in @p processor_handle as an argument,
- * ::amdsmi_dev_open_supported_func_iterator itself will not be among the
+ * ::amdsmi_open_supported_func_iterator itself will not be among the
  * functions listed as supported. This is because
- * ::amdsmi_dev_open_supported_func_iterator does not depend on hardware or
+ * ::amdsmi_open_supported_func_iterator does not depend on hardware or
  * driver support and should always be supported.
  *
  * @param[in] processor_handle a processor handle of device for which support information is
@@ -3366,7 +3366,7 @@ amdsmi_is_P2P_accessible(amdsmi_processor_handle processor_handle_src, amdsmi_pr
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_open_supported_func_iterator(amdsmi_processor_handle processor_handle,
+amdsmi_open_supported_func_iterator(amdsmi_processor_handle processor_handle,
                                           amdsmi_func_id_iter_handle_t *handle);
 
 /**
@@ -3376,13 +3376,13 @@ amdsmi_dev_open_supported_func_iterator(amdsmi_processor_handle processor_handle
  * write a function iterator handle to the caller-provided memory pointed to
  * by @p var_iter. This handle can be used to iterate through all the supported
  * variants of the provided handle. @p obj_h may be a handle to a function
- * object, as provided by a call to ::amdsmi_dev_open_supported_func_iterator, or
+ * object, as provided by a call to ::amdsmi_open_supported_func_iterator, or
  * it may be a variant itself (from a call to
- * ::amdsmi_dev_open_supported_variant_iterator), it which case @p var_iter will
+ * ::amdsmi_open_supported_variant_iterator), it which case @p var_iter will
  * be an iterator of the sub-variants of @p obj_h (e.g., monitors).
  *
  * This call allocates a small amount of memory to @p var_iter. To free this memory
- * ::amdsmi_dev_close_supported_func_iterator should be called on the returned
+ * ::amdsmi_close_supported_func_iterator should be called on the returned
  * iterator handle @p var_iter when it is no longer needed.
  *
  * @param[in] obj_h an iterator handle for which the variants are being requested
@@ -3393,7 +3393,7 @@ amdsmi_dev_open_supported_func_iterator(amdsmi_processor_handle processor_handle
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_open_supported_variant_iterator(amdsmi_func_id_iter_handle_t obj_h,
+amdsmi_open_supported_variant_iterator(amdsmi_func_id_iter_handle_t obj_h,
                                         amdsmi_func_id_iter_handle_t *var_iter);
 
 /**
@@ -3425,7 +3425,7 @@ amdsmi_next_func_iter(amdsmi_func_id_iter_handle_t handle);
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_dev_close_supported_func_iterator(amdsmi_func_id_iter_handle_t *handle);
+amdsmi_close_supported_func_iterator(amdsmi_func_id_iter_handle_t *handle);
 
 /**
  * @brief Get the value associated with a function/variant iterator

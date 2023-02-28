@@ -835,7 +835,7 @@ amdsmi_reset_gpu_xgmi_error(amdsmi_processor_handle processor_handle) {
 }
 
 amdsmi_status_t
-amdsmi_dev_open_supported_func_iterator(amdsmi_processor_handle processor_handle,
+amdsmi_open_supported_func_iterator(amdsmi_processor_handle processor_handle,
                                 amdsmi_func_id_iter_handle_t *handle) {
     AMDSMI_CHECK_INIT();
 
@@ -846,7 +846,7 @@ amdsmi_dev_open_supported_func_iterator(amdsmi_processor_handle processor_handle
 }
 
 amdsmi_status_t
-amdsmi_dev_open_supported_variant_iterator(amdsmi_func_id_iter_handle_t obj_h,
+amdsmi_open_supported_variant_iterator(amdsmi_func_id_iter_handle_t obj_h,
                                     amdsmi_func_id_iter_handle_t *var_iter) {
     AMDSMI_CHECK_INIT();
 
@@ -868,7 +868,7 @@ amdsmi_next_func_iter(amdsmi_func_id_iter_handle_t handle) {
 }
 
 amdsmi_status_t
-amdsmi_dev_close_supported_func_iterator(amdsmi_func_id_iter_handle_t *handle) {
+amdsmi_close_supported_func_iterator(amdsmi_func_id_iter_handle_t *handle) {
     AMDSMI_CHECK_INIT();
 
     if (handle == nullptr)

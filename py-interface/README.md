@@ -1041,7 +1041,7 @@ except AmdSmiException as e:
 
 ```
 
-## amdsmi_dev_open_supported_func_iterator
+## amdsmi_open_supported_func_iterator
 Description: Get a function name iterator of supported AMDSMI functions for a device
 
 Input parameters:
@@ -1050,7 +1050,7 @@ Input parameters:
 
 Output: Handle for a function iterator
 
-Exceptions that can be thrown by `amdsmi_dev_open_supported_func_iterator` function:
+Exceptions that can be thrown by `amdsmi_open_supported_func_iterator` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1063,14 +1063,14 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            obj_handle = amdsmi_dev_open_supported_func_iterator(device)
+            obj_handle = amdsmi_open_supported_func_iterator(device)
             print(obj_handle)
-            amdsmi_dev_close_supported_func_iterator(obj_handle)
+            amdsmi_close_supported_func_iterator(obj_handle)
 except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_open_supported_variant_iterator
+## amdsmi_open_supported_variant_iterator
 Description: Get a variant iterator for a given handle
 
 Input parameters:
@@ -1079,7 +1079,7 @@ Input parameters:
 
 Output: Variant iterator handle
 
-Exceptions that can be thrown by `amdsmi_dev_open_supported_variant_iterator` function:
+Exceptions that can be thrown by `amdsmi_open_supported_variant_iterator` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1092,11 +1092,11 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            obj_handle = amdsmi_dev_open_supported_func_iterator(device)
-            var_iter = amdsmi_dev_open_supported_variant_iterator(obj_handle)
+            obj_handle = amdsmi_open_supported_func_iterator(device)
+            var_iter = amdsmi_open_supported_variant_iterator(obj_handle)
             print(var_iter)
-            amdsmi_dev_close_supported_func_iterator(obj_handle)
-            amdsmi_dev_close_supported_func_iterator(var_iter)
+            amdsmi_close_supported_func_iterator(obj_handle)
+            amdsmi_close_supported_func_iterator(var_iter)
 except AmdSmiException as e:
     print(e)
 ```
@@ -1123,16 +1123,16 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            obj_handle = amdsmi_dev_open_supported_func_iterator(device)
+            obj_handle = amdsmi_open_supported_func_iterator(device)
             print(obj_handle)
             obj_handle = amdsmi_next_func_iter(obj_handle)
             print(obj_handle)
-            amdsmi_dev_close_supported_func_iterator(obj_handle)
+            amdsmi_close_supported_func_iterator(obj_handle)
 except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_dev_close_supported_func_iterator
+## amdsmi_close_supported_func_iterator
 Description: Close a variant iterator handle
 
 Input parameters:
@@ -1141,7 +1141,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_dev_close_supported_func_iterator` function:
+Exceptions that can be thrown by `amdsmi_close_supported_func_iterator` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -1154,8 +1154,8 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            obj_handle = amdsmi_dev_open_supported_func_iterator(device)
-            amdsmi_dev_close_supported_func_iterator(obj_handle)
+            obj_handle = amdsmi_open_supported_func_iterator(device)
+            amdsmi_close_supported_func_iterator(obj_handle)
 except AmdSmiException as e:
     print(e)
 ```
@@ -1188,10 +1188,10 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            obj_handle = amdsmi_dev_open_supported_func_iterator(device)
+            obj_handle = amdsmi_open_supported_func_iterator(device)
             value = amdsmi_get_func_iter_value(obj_handle)
             print(value)
-            amdsmi_dev_close_supported_func_iterator(obj_handle)
+            amdsmi_close_supported_func_iterator(obj_handle)
 except AmdSmiException as e:
     print(e)
 ```

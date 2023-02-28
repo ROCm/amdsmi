@@ -363,8 +363,8 @@ class Formatter:
     |     """ + self.style.text("74   Set dev perf level v1.                Api:  amdsmi_set_gpu_perf_level_v1           <bdf>") + """                        |
     |     """ + self.style.text("75   Set dev power cap.                    Api:  amdsmi_set_power_cap               <bdf><sensor_ind><cap>") + """       |
     |     """ + self.style.text("76   Set dev power profile.                Api:  amdsmi_set_gpu_power_profile           <bdf><reserved>") + """              |
-    |     """ + self.style.text("77   Close dev supported func iterator.    Api: amdsmi_dev_close_supported_func_iterator    <bdf>") + """                   |
-    |     """ + self.style.text("78   Pen dev supported func iterator.      Api: amdsmi_dev_open_supported_func_iterator     <bdf>") + """                   |
+    |     """ + self.style.text("77   Close dev supported func iterator.    Api: amdsmi_close_supported_func_iterator    <bdf>") + """                   |
+    |     """ + self.style.text("78   Pen dev supported func iterator.      Api: amdsmi_open_supported_func_iterator     <bdf>") + """                   |
     |     """ + self.style.text("79   Get func iter next.                   Api: amdsmi_next_func_iter                  <bdf>") + """                        |
     |     """ + self.style.text("80   Get power cap info.                   Api: amdsmi_get_power_cap_info              <bdf>") + """                        |
     |     """ + self.style.text("81   Get xgmi info.                        Api: amdsmi_get_xgmi_info                   <bdf>") + """                        |
@@ -709,11 +709,11 @@ def amdsmi_tool_dev_power_profile_set(dev, dic):
     return result
 
 def amdsmi_tool_dev_supported_func_iterator_close(dev):
-    obj_handle = smi_api.amdsmi_dev_open_supported_func_iterator(dev)
-    return smi_api.amdsmi_dev_close_supported_func_iterator(obj_handle)
+    obj_handle = smi_api.amdsmi_open_supported_func_iterator(dev)
+    return smi_api.amdsmi_close_supported_func_iterator(obj_handle)
 
 def amdsmi_tool_func_iter_next(dev):
-    obj_handle = smi_api.amdsmi_dev_open_supported_func_iterator(dev)
+    obj_handle = smi_api.amdsmi_open_supported_func_iterator(dev)
     return smi_api.amdsmi_next_func_iter(obj_handle)
 
 ##############################################
@@ -969,7 +969,7 @@ commands = {
     77: [amdsmi_tool_dev_supported_func_iterator_close, {
         "device_identifier1": [None, True]
     }],
-    78: [smi_api.amdsmi_dev_open_supported_func_iterator, {
+    78: [smi_api.amdsmi_open_supported_func_iterator, {
         "device_identifier1": [None, True]
     }],
     79: [amdsmi_tool_func_iter_next, {
