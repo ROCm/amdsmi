@@ -551,8 +551,8 @@ Output: Dictionary with fields
 
 Field | Description
 ---|---
-`vram_used`| VRAM currently in use
 `vram_total` | VRAM total
+`vram_used`| VRAM currently in use
 
 Exceptions that can be thrown by `amdsmi_get_vram_usage` function:
 * `AmdSmiLibraryException`
