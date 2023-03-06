@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2022 Advanced Micro Devices. All rights reserved.
+# Copyright (C) 2023 Advanced Micro Devices. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -26,7 +26,7 @@ from enum import IntEnum
 from collections.abc import Iterable
 
 from . import amdsmi_wrapper
-from .amdsmi_exception import *
+from amdsmi_exception import *
 
 
 class AmdSmiInitFlags(IntEnum):
@@ -292,18 +292,6 @@ class AmdSmiUtilizationCounterType(IntEnum):
     COARSE_GRAIN_MEM_ACTIVITY = amdsmi_wrapper.AMDSMI_COARSE_GRAIN_MEM_ACTIVITY
 
 
-class AmdSmiSwComponent(IntEnum):
-    DRIVER = amdsmi_wrapper.AMDSMI_SW_COMP_DRIVER
-
-
-class AmdSmiIoLinkType(IntEnum):
-    UNDEFINED = amdsmi_wrapper.AMDSMI_IOLINK_TYPE_UNDEFINED
-    PCIEXPRESS = amdsmi_wrapper.AMDSMI_IOLINK_TYPE_PCIEXPRESS
-    XGMI = amdsmi_wrapper.AMDSMI_IOLINK_TYPE_XGMI
-    NUMIOLINKTYPES = amdsmi_wrapper.AMDSMI_IOLINK_TYPE_NUMIOLINKTYPES
-    SIZE = amdsmi_wrapper.AMDSMI_IOLINK_TYPE_SIZE
-
-
 class AmdSmiEventReader:
     def __init__(
         self, device_handle: amdsmi_wrapper.amdsmi_device_handle, *event_types
@@ -498,8 +486,7 @@ def amdsmi_get_socket_handles() -> List[amdsmi_wrapper.amdsmi_socket_handle]:
                       socket_count.value)()
     _check_res(
         amdsmi_wrapper.amdsmi_get_socket_handles(
-            ctypes.byref(socket_count), socket_handles
-        )
+            ctypes.byref(socket_count), socket_handles)
     )
     sockets = [
         amdsmi_wrapper.amdsmi_socket_handle(socket_handles[sock_idx])
@@ -513,11 +500,14 @@ def amdsmi_get_socket_info(socket_handle):
     if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_socket_handle):
         raise AmdSmiParameterException(
             socket_handle, amdsmi_wrapper.amdsmi_socket_handle)
+    socket_info = ctypes.create_string_buffer(128)
 
-    return {
-        "name": ""
-    }
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_socket_info(
+            socket_handle, ctypes.byref(socket_info), ctypes.c_size_t(128))
+    )
 
+    return socket_info.value.decode()
 
 def amdsmi_get_device_handles() -> List[amdsmi_wrapper.amdsmi_device_handle]:
     socket_handles = amdsmi_get_socket_handles()
@@ -677,10 +667,10 @@ def amdsmi_get_vbios_info(
 
     return {
         "name": vbios_info.name.decode("utf-8"),
-        "vbios_version": vbios_info.vbios_version,
+        "vbios_version_string": vbios_info.vbios_version_string.decode("utf-8"),
         "build_date": vbios_info.build_date.decode("utf-8"),
         "part_number": vbios_info.part_number.decode("utf-8"),
-        "vbios_version_string": vbios_info.vbios_version_string.decode("utf-8"),
+        "vbios_version": vbios_info.vbios_version,
     }
 
 
@@ -2261,20 +2251,6 @@ def amdsmi_dev_get_perf_level(
     return result
 
 
-def amdsmi_set_perf_determinism_mode(
-    device_handle: amdsmi_wrapper.amdsmi_device_handle, clkvalue: int
-) -> None:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_device_handle):
-        raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_device_handle
-        )
-    if not isinstance(clkvalue, int):
-        raise AmdSmiParameterException(clkvalue, int)
-
-    _check_res(amdsmi_wrapper.amdsmi_set_perf_determinism_mode(
-        device_handle, clkvalue))
-
-
 def amdsmi_dev_get_overdrive_level(
     device_handle: amdsmi_wrapper.amdsmi_device_handle,
 ) -> int:
@@ -2444,30 +2420,6 @@ def amdsmi_dev_get_od_volt_curve_regions(
         )
 
     return result
-
-
-def amdsmi_dev_get_power_profile_presets(
-    device_handle: amdsmi_wrapper.amdsmi_device_handle, sensor_idx: int
-) -> Dict[str, Any]:
-    if not isinstance(device_handle, amdsmi_wrapper.amdsmi_device_handle):
-        raise AmdSmiParameterException(
-            device_handle, amdsmi_wrapper.amdsmi_device_handle
-        )
-    if not isinstance(sensor_idx, int):
-        raise AmdSmiParameterException(sensor_idx, int)
-
-    status = amdsmi_wrapper.amdsmi_power_profile_status_t()
-    _check_res(
-        amdsmi_wrapper. amdsmi_dev_get_power_profile_presets(
-            device_handle, sensor_idx, ctypes.byref(status)
-        )
-    )
-
-    return {
-        "available_profiles": status.available_profiles,
-        "current": status.current,
-        "num_profiles": status.num_profiles,
-    }
 
 
 def amdsmi_dev_get_ecc_count(

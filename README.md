@@ -35,7 +35,7 @@ After the AMD SMI library git repository has been cloned to a local Linux machin
 ```bash
 mkdir -p build
 cd build
-cmake <location of root of AMD SMI library CMakeLists.txt>
+cmake ..
 make -j $(nproc)
 # Install library file and header; default location is /opt/rocm
 make install```

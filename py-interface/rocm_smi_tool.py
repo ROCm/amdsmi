@@ -159,14 +159,14 @@ class CmdLineParser:
     def get_device_handle(self):
         device_handles = []
 
-        def parse_device_handle(possition):
-            self._check_if_arg_exists("Device identifier", "device bdf or device id", possition)
+        def parse_device_handle(position):
+            self._check_if_arg_exists("Device identifier", "device bdf or device id", position)
 
             ids = self._parse_vf_id_if_exists()
             if ids["gpu_id"] is not None and ids["vf_id"] is not None:
                 device_handle = self._get_device_handle_from_id(ids["gpu_id"], ids["vf_id"])
             else:
-                gpu_arg = self.cmd_args[possition]
+                gpu_arg = self.cmd_args[position]
                 if gpu_arg.isdigit():
                     device_handle = self._get_device_handle_from_id(int(gpu_arg))
                 else:
