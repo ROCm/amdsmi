@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2022 Advanced Micro Devices. All rights reserved.
+# Copyright (C) 2023 Advanced Micro Devices. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -21,7 +21,6 @@
 
 from enum import IntEnum
 from . import amdsmi_wrapper
-
 
 class AmdSmiRetCode(IntEnum):
     SUCCESS = amdsmi_wrapper.AMDSMI_STATUS_SUCCESS
@@ -71,6 +70,9 @@ class AmdSmiLibraryException(AmdSmiException):
         return "An error occured with code: {err_code}({err_info})".format(
             err_code=self.err_code, err_info=self.err_info
         )
+
+    def get_error_info(self):
+        return self.err_info
 
     def get_error_code(self):
         return self.err_code
