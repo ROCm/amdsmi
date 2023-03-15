@@ -493,12 +493,6 @@ amdsmi_status_t smi_amdgpu_get_market_name_from_dev_id(uint32_t device_id, char 
 	case 0x73ae:
 		strcpy(market_name, "NAVI21");
 		break;
-	case 0x7408:
-	case 0x740C:
-	case 0x740F:
-	case 0x7410:
-		strcpy(market_name, "Instinct MI200");
-		break;
 	default:
 		return AMDSMI_STATUS_API_FAILED;
 	}
