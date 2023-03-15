@@ -591,7 +591,10 @@ amdsmi_get_asic_info(amdsmi_device_handle device_handle, amdsmi_asic_info_t *inf
         }
 
         status = smi_amdgpu_get_market_name_from_dev_id(dev_info.device_id, info->market_name);
-        if (status != AMDSMI_STATUS_SUCCESS) return status;
+        if (status != AMDSMI_STATUS_SUCCESS) {
+            rsmi_wrapper(rsmi_dev_brand_get, device_handle,
+                info->market_name, AMDSMI_NORMAL_STRING_LENGTH);
+        }
 
         info->device_id = dev_info.device_id;
         info->family = dev_info.family;
