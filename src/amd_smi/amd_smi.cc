@@ -568,9 +568,6 @@ amdsmi_get_asic_info(amdsmi_device_handle device_handle, amdsmi_asic_info_t *inf
     }
 
     struct drm_amdgpu_info_device dev_info = {};
-    struct drm_amdgpu_info_vbios vbios = {};
-    char* name;
-    char *tmp;
     uint16_t vendor_id = 0;
     uint16_t subvendor_id = 0;
 
@@ -583,8 +580,6 @@ amdsmi_get_asic_info(amdsmi_device_handle device_handle, amdsmi_asic_info_t *inf
     if (gpu_device->check_if_drm_is_supported()){
         status = gpu_device->amdgpu_query_info(AMDGPU_INFO_DEV_INFO, sizeof(struct drm_amdgpu_info_device), &dev_info);
         if (status != AMDSMI_STATUS_SUCCESS) return status;
-        status = gpu_device->amdgpu_query_vbios(&vbios);
-        if (status != AMDSMI_STATUS_SUCCESS) return status;
 
         SMIGPUDEVICE_MUTEX(gpu_device->get_mutex())
 
@@ -595,9 +590,11 @@ amdsmi_get_asic_info(amdsmi_device_handle device_handle, amdsmi_asic_info_t *inf
             fclose(fp);
         }
 
-        name = strtok_r((char *) vbios.name, " ", &tmp);
-        if (name)
-            strncpy(info->market_name, name, AMDSMI_MAX_STRING_LENGTH);
+        status = smi_amdgpu_get_market_name_from_dev_id(dev_info.device_id, info->market_name);
+        if (status != AMDSMI_STATUS_SUCCESS) {
+            rsmi_wrapper(rsmi_dev_brand_get, device_handle,
+                info->market_name, AMDSMI_NORMAL_STRING_LENGTH);
+        }
 
         info->device_id = dev_info.device_id;
         info->family = dev_info.family;
@@ -1855,7 +1852,7 @@ amdsmi_get_pcie_link_status(amdsmi_device_handle device_handle, amdsmi_pcie_info
         return status;
 
     info->pcie_lanes = metric_info.pcie_link_width;
-    info->pcie_speed = metric_info.pcie_link_speed * 100; // convert to MT/s
+    status = smi_amdgpu_get_pcie_speed_from_pcie_type(metric_info.pcie_link_speed, &info->pcie_speed); // mapping to MT/s
 
     return status;
 }
