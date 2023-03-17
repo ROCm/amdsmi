@@ -1,10 +1,9 @@
-
-
 # AMD System Management Interface (AMD SMI) Library
 
 The AMD System Management Interface Library, or AMD SMI library, is a C library for Linux that provides a user space interface for applications to monitor and control AMD devices.
 
 ## Supported platforms
+
 At initial release, the AMD SMI library will support Linux bear metal and Linux virtual machine guest for AMD GPUs. In the future release, the library will be extended to support AMD EPYC™ CPUs.
 
 AMD SMI library can run on AMD ROCm supported platforms, please refer to [List of Supported Operating Systems and GPUs](https://docs.amd.com/bundle/ROCm-Getting-Started-Guide-v5.3/page/Introduction_to_ROCm_Getting_Started_Guide_for_Linux.html)
@@ -12,9 +11,9 @@ AMD SMI library can run on AMD ROCm supported platforms, please refer to [List o
 To run the AMD SMI library, the amdgpu driver needs to be installed. Optionally, the libdrm can be
 installed to query firmware information and hardware IPs.
 
-# Building AMD SMI
+## Building AMD SMI
 
-## Additional Required software for building
+### Additional Required software for building
 
 In order to build the AMD SMI library, the following components are required. Note that the software versions listed are what was used in development. Earlier versions are not guaranteed to work:
 * CMake (v3.11.0) - `pip3 install cmake`
@@ -26,31 +25,35 @@ In order to build the AMD SMI python package, the following components are requi
 * virtualenv - `pip3 install virtualenv`
 
 In order to build the latest documentation, the following are required:
+
 * DOxygen (1.8.11)
 * latex (pdfTeX 3.14159265-2.6-1.40.16)
 
 The source code for AMD SMI is available on Github.
 
-After the AMD SMI library git repository has been cloned to a local Linux machine, building the library is achieved by following the typical CMake build sequence. Specifically,
+After the AMD SMI library git repository has been cloned to a local Linux machine, the Default location for the library and headers is /opt/rocm. Building the library is achieved by following the typical CMake build sequence, specifically:
+
 ```bash
 mkdir -p build
 cd build
 cmake ..
 make -j $(nproc)
-# Install library file and header; default location is /opt/rocm
-make install```
+make install
+```
 
 The built library will appear in the `build` folder.
 
 To build the rpm and deb packages follow the above steps with:
-```bash
-make package```
 
-## Documentation
+```bash
+make package
+```
+
+### Documentation
 
 The reference manual, `refman.pdf` will be in the `latex` directory upon a successful build.
 
-## Building the Tests
+### Building the Tests
 
 In order to verify the build and capability of AMD SMI on your system and to see an example of how AMD SMI can be used, you may build and run the tests that are available in the repo. To build the tests, follow these steps:
 
@@ -61,21 +64,23 @@ cmake -DBUILD_TESTS=ON <location of root of AMD SMI library CMakeLists.txt>
 make -j $(nproc)
 ```
 
-## Run the Tests
+### Run the Tests
 
 To run the test, execute the program `amdsmitst` that is built from the steps above.
 
-# Usage Basics
+## Usage Basics
 
-## Device/Socket handles
+### Device/Socket handles
+
 Many of the functions in the library take a "socket handle" or "device handle". The socket is an abstraction of hardware physical socket. This will enable amd-smi to provide a better representation of the hardware to user. Although there is always one distinct GPU for a socket, the APU may have both
 GPU device and CPU device on the same socket. Moreover, for MI200, it may have multiple GCDs.
 
 To discover the sockets in the system, `amdsmi_get_socket_handles()` is called to get list of sockets
 handles, which in turn can be used to query the devices in that socket using `amdsmi_get_device_handles()`. The device handler is used to distinguish the detected devices from one another. It is important to note that a device may end up with a different device handles after restart application, so a device handle should not be relied upon to be constant over process.
 
-# Hello AMD SMI
-The only required AMD-SMI call for any program that wants to use AMD-SMI is the `amdsmi_init()` call. This call initializes some internal data structures that will be used by subsequent AMD-SMI calls. In the call, a flag can be passed if the application is only interested in a specific device type. 
+## Hello AMD SMI
+
+The only required AMD-SMI call for any program that wants to use AMD-SMI is the `amdsmi_init()` call. This call initializes some internal data structures that will be used by subsequent AMD-SMI calls. In the call, a flag can be passed if the application is only interested in a specific device type.
 
 When AMD-SMI is no longer being used, `amdsmi_shut_down()` should be called. This provides a way to do any releasing of resources that AMD-SMI may have held.
 

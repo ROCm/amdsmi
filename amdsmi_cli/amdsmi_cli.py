@@ -25,10 +25,18 @@ import sys
 
 from amdsmi_commands import AMDSMICommands
 from amdsmi_parser import AMDSMIParser
-
+from amdsmi_logger import AMDSMILogger
 
 if __name__ == "__main__":
-    amd_smi_commands = AMDSMICommands()
+    # Set compatability mode based on which cli mapping user selects
+    if 'gpuv-smi' in sys.argv[0]:
+        compatibility = AMDSMILogger.LoggerCompatibility.gpuvsmi.value
+    elif 'rocm-smi' in sys.argv[0]:
+        compatibility = AMDSMILogger.LoggerCompatibility.rocmsmi.value
+    else:
+        compatibility = AMDSMILogger.LoggerCompatibility.amdsmi.value
+
+    amd_smi_commands = AMDSMICommands(compatibility=compatibility)
     amd_smi_parser = AMDSMIParser(amd_smi_commands.version,
                                     amd_smi_commands.discovery,
                                     amd_smi_commands.static,
@@ -59,8 +67,6 @@ if __name__ == "__main__":
                         'ERROR': logging.ERROR,
                         'CRITICAL': logging.CRITICAL}
         logging.basicConfig(format='%(levelname)s: %(message)s', level=logging_dict[args.loglevel])
-    if args.compatibility:
-        amd_smi_commands.logger.compatibility = args.compatibility
 
     # Execute subcommands
     args.func(args)

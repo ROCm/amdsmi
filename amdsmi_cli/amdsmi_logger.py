@@ -34,7 +34,7 @@ class AMDSMILogger():
         self.output = {}
         self.multiple_device_output = []
         self.watch_output = []
-        self.compatibility = compatibility # amdsmi, gpuvsmi, or rocmsmi
+        self.compatibility = compatibility # amd-smi, gpuv-smi, or rocm-smi
         self.format = format # csv, json, or human_readable
         self.destination = destination # stdout, path to a file (append)
         self.amd_smi_helpers = AMDSMIHelpers()
@@ -46,7 +46,7 @@ class AMDSMILogger():
         csv = 'csv'
         human_readable = 'human_readable'
 
-    class Loggercompatibility(Enum):
+    class LoggerCompatibility(Enum):
         """Enum for logger compatibility"""
         amdsmi = 'amdsmi'
         rocmsmi = 'rocmsmi'
@@ -66,15 +66,15 @@ class AMDSMILogger():
 
 
     def is_amdsmi_compatibility(self):
-        return self.compatibility == self.Loggercompatibility.amdsmi.value
+        return self.compatibility == self.LoggerCompatibility.amdsmi.value
 
 
     def is_rocmsmi_compatibility(self):
-        return self.compatibility == self.Loggercompatibility.rocmsmi.value
+        return self.compatibility == self.LoggerCompatibility.rocmsmi.value
 
 
     def is_gpuvsmi_compatibility(self):
-        return self.compatibility == self.Loggercompatibility.gpuvsmi.value
+        return self.compatibility == self.LoggerCompatibility.gpuvsmi.value
 
 
     def store_output(self, device_handle, argument, data):

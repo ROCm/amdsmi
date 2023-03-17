@@ -20,7 +20,6 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
-import os
 # -*- coding: utf-8 -*-
 #
 # TARGET arch is: ['-I/usr/lib/llvm-14/lib/clang/14.0.0/include']
@@ -28,8 +27,10 @@ import os
 # POINTER_SIZE is: 8
 # LONGDOUBLE_SIZE is: 16
 #
-import ctypes
 
+import os
+import ctypes
+from pathlib import Path
 
 c_int128 = ctypes.c_ubyte*16
 c_uint128 = c_int128
@@ -168,16 +169,23 @@ def char_pointer_cast(string, encoding='utf-8'):
 
 _libraries = {}
 
-if os.path.isfile('@CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@/libamd_smi.so'):
-    # try to find library in install directory provided by CMake
-    _libraries['libamd_smi.so'] = ctypes.CDLL(os.path.join('@CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@', 'libamd_smi.so'))
-elif os.path.isfile('/opt/rocm/lib/libamd_smi.so'):
-    # try /opt/rocm/lib as a fallback
-    _libraries['libamd_smi.so'] = ctypes.CDLL(os.path.join('/opt/rocm/lib', 'libamd_smi.so'))
-else:
-    # lastly - search in current directory
-    _libraries['libamd_smi.so'] = ctypes.CDLL(os.path.join(os.path.dirname(__file__), 'libamd_smi.so'))
+libamd_smi_cpack = Path("@CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@/libamd_smi.so")
+libamd_smi_optrocm = Path("/opt/rocm/lib/libamd_smi.so")
+libamd_smi_parent_dir = Path(__file__).resolve().parent / "libamd_smi.so"
+libamd_smi_cwd = Path.cwd()
 
+if libamd_smi_cpack.is_file():
+    # try to find library in install directory provided by CMake
+    _libraries['libamd_smi.so'] = ctypes.CDLL(libamd_smi_cpack)
+elif libamd_smi_optrocm.is_file():
+    # try /opt/rocm/lib as a fallback
+    _libraries['libamd_smi.so'] = ctypes.CDLL(libamd_smi_optrocm)
+elif libamd_smi_parent_dir.is_file():
+    # try to fall back to parent directory
+    _libraries['libamd_smi.so'] = ctypes.CDLL(libamd_smi_parent_dir)
+else:
+    # lastly - search in current working directory
+    _libraries['libamd_smi.so'] = ctypes.CDLL(libamd_smi_cwd)
 
 
 

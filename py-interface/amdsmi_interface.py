@@ -26,8 +26,7 @@ from enum import IntEnum
 from collections.abc import Iterable
 
 from . import amdsmi_wrapper
-from amdsmi_exception import *
-
+from .amdsmi_exception import *
 
 class AmdSmiInitFlags(IntEnum):
     ALL_DEVICES = amdsmi_wrapper.AMDSMI_INIT_ALL_DEVICES

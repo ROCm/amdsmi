@@ -29,8 +29,7 @@ import sys
 
 from pathlib import Path
 
-sys.path.insert( 0, "../build/python_package/amdsmi")
-import amdsmi_interface
+import amdsmi as amdsmi_interface
 
 # Using basic python logging for user errors and development
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.ERROR) # User level logging

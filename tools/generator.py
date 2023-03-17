@@ -21,7 +21,6 @@
 
 
 import os
-import sys
 import argparse
 import tempfile
 import shutil
@@ -73,7 +72,7 @@ def replace_line(full_path_file_name, string_to_repalce, new_string):
     fh, abs_path = tempfile.mkstemp()
     with os.fdopen(fh, 'w') as new_file:
         new_file.write(HEADER)
-        with open(full_path_file_name, 'r+') as old_file:
+        with open(full_path_file_name, 'r+', encoding='UTF-8') as old_file:
             for line in old_file:
                 new_file.write(line.replace(string_to_repalce, new_string))
 
@@ -106,22 +105,29 @@ def main():
         arguments = [input_file, "-o", output_file, "-l", library]
         library_path = os.path.join(os.path.dirname(__file__), library)
         line_to_replace = "_libraries['{}'] = ctypes.CDLL('{}')".format(library_name, library_path)
-        new_line = """
-if os.path.isfile('@CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@/{0}'):
+        new_line = f"""from pathlib import Path
+libamd_smi_cpack = Path("@CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@/{library_name}")
+libamd_smi_optrocm = Path("/opt/rocm/lib/{library_name}")
+libamd_smi_parent_dir = Path(__file__).resolve().parent / "{library_name}"
+libamd_smi_cwd = Path.cwd()
+
+if libamd_smi_cpack.is_file():
     # try to find library in install directory provided by CMake
-    _libraries['{0}'] = ctypes.CDLL(os.path.join('@CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@', '{0}'))
-elif os.path.isfile('/opt/rocm/lib/{0}'):
+    _libraries['{library_name}'] = ctypes.CDLL(libamd_smi_cpack)
+elif libamd_smi_optrocm.is_file():
     # try /opt/rocm/lib as a fallback
-    _libraries['{0}'] = ctypes.CDLL(os.path.join('/opt/rocm/lib', '{0}'))
+    _libraries['{library_name}'] = ctypes.CDLL(libamd_smi_optrocm)
+elif libamd_smi_parent_dir.is_file():
+    # try to fall back to parent directory
+    _libraries['{library_name}'] = ctypes.CDLL(libamd_smi_parent_dir)
 else:
-    # lastly - search in current directory
-    _libraries['{0}'] = ctypes.CDLL(os.path.join(os.path.dirname(__file__), '{0}'))
-""".format(library_name)
+    # lastly - search in current working directory
+    _libraries['{library_name}'] = ctypes.CDLL(libamd_smi_cwd)"""
     else:
         print("Unknown operating system. It is only supporing Linux and Windows.")
         return
 
-    arguments.append(f"--clang-args=-I" + clang_include_dir)
+    arguments.append("--clang-args=-I" + clang_include_dir)
     clangToPy(arguments)
 
     replace_line(output_file, line_to_replace, new_line)
