@@ -26,9 +26,12 @@ import errno
 import os
 import time
 from pathlib import Path
+import sys
 
 from _version import __version__
 from amdsmi_helpers import AMDSMIHelpers
+import amdsmi_cli_exceptions
+from BDF import BDF
 
 
 class AMDSMIParser(argparse.ArgumentParser):
@@ -80,8 +83,13 @@ class AMDSMIParser(argparse.ArgumentParser):
         if int_value.isdigit():  # Is digit works only on positive numbers
             return int(int_value)
         else:
-            raise argparse.ArgumentTypeError(
-                f"invalid input:{int_value} integer provided must be positive")
+            args = sys.argv[1:]
+            outputformat = "human"
+            if "--json" in args or "--j" in args:
+                outputformat = "json"
+            elif "--csv" in args or "-c" in args:
+                outputformat = "csv"
+            raise amdsmi_cli_exceptions.AmdSmiInvalidParameterValueException(int_value, outputformat)
 
 
     def _check_output_file_path(self):
@@ -99,8 +107,13 @@ class AMDSMIParser(argparse.ArgumentParser):
                     if path.parent.is_dir():
                         path.touch()
                     else:
-                        raise argparse.ArgumentTypeError(
-                            f"Invalid path:{path} Could not find parent directory of given path")
+                        args = sys.argv[1:]
+                        outputformat = "human"
+                        if "--json" in args or "--j" in args:
+                            outputformat = "json"
+                        elif "--csv" in args or "-c" in args:
+                            outputformat = "csv"
+                        raise amdsmi_cli_exceptions.AmdSmiInvalidFilePathException(path, outputformat)
 
                 if path.is_dir():
                     path = path / f"{int(time.time())}-amdsmi-output.txt"
@@ -109,8 +122,13 @@ class AMDSMIParser(argparse.ArgumentParser):
                 elif path.is_file():
                     setattr(args, self.dest, path)
                 else:
-                    raise argparse.ArgumentTypeError(
-                        f"Invalid path:{path} Could not determine if value given is a valid path")
+                    args = sys.argv[1:]
+                    outputformat = "human"
+                    if "--json" in args or "--j" in args:
+                        outputformat = "json"
+                    elif "--csv" in args or "-c" in args:
+                        outputformat = "csv"
+                    raise amdsmi_cli_exceptions.AmdSmiInvalidFilePathException(path, outputformat)
         return CheckOutputFilePath
 
 
@@ -142,26 +160,24 @@ class AMDSMIParser(argparse.ArgumentParser):
 
 
     def _check_watch_selected(self):
-        """ Argument action validator:
-            Validate that the -w/--watch argument was selected
+        """ Validate that the -w/--watch argument was selected
             This is because -W/--watch_time and -i/--iterations are dependent on watch
         """
-        class _WatchSelectedAction(argparse.Action):
+        class WatchSelectedAction(argparse.Action):
             # Checks the values
             def __call__(self, parser, args, values, option_string=None):
                 if args.watch is None:
-                    raise argparse.ArgumentError(self,
-                                                 f"Invalid argument: '{self.dest}' needs to be paired with -w/--watch")
-                setattr(args, self.dest, values)
-        return _WatchSelectedAction
-
+                    raise argparse.ArgumentError(self, f"invalid argument: '{self.dest}' needs to be paired with -w/--watch")
+                else:
+                    setattr(args, self.dest, values)
+        return WatchSelectedAction
 
     def _gpu_select(self, gpu_choices):
-        """ Argument action validator:
-            Custom argparse action to return the device handle(s) for the gpu(s) selected
+        """ Custom argparse action to return the device handle(s) for the gpu(s) selected
             This will set the destination (args.gpu) to a list of 1 or more device handles
             If 1 or more device handles are not found then raise an ArgumentError for the first invalid gpu seen
         """
+
         amdsmi_helpers = self.amdsmi_helpers
         class _GPUSelectAction(argparse.Action):
             # Checks the values
@@ -172,7 +188,17 @@ class AMDSMIParser(argparse.ArgumentParser):
                     setattr(args, self.dest, selected_device_handles)
                 else:
                     invalid_selection = selected_device_handles
-                    raise argparse.ArgumentError(self, f"invalid choice: '{invalid_selection}' (see available choices with -h)")
+                    args = sys.argv[1:]
+                    outputformat = "human"
+                    if "--json" in args or "--j" in args:
+                        outputformat = "json"
+                    elif "--csv" in args or "-c" in args:
+                        outputformat = "csv"
+                    if invalid_selection == '':
+                        raise amdsmi_cli_exceptions.AmdSmiMissingParameterValueException("--gpu", outputformat)
+                    else:
+                        raise amdsmi_cli_exceptions.AmdSmiDeviceNotFoundException(invalid_selection, outputformat)
+
         return _GPUSelectAction
 
 
@@ -679,6 +705,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         class _ValidateFanSpeed(argparse.Action):
             # Checks the values
             def __call__(self, parser, args, values, option_string=None):
+
                 # Convert percentage to fan level
                 if isinstance(values, str):
                     try:
@@ -804,3 +831,22 @@ class AMDSMIParser(argparse.ArgumentParser):
         rocm_smi_parser.add_argument('-p', '--showproductname', action='store_true', required=False, help=showproductname_help)
         rocm_smi_parser.add_argument('-v', '--showclkvolt', action='store_true', required=False, help=showclkvolt_help)
         rocm_smi_parser.add_argument('-f', '--showclkfrq', action='store_true', required=False, help=showclkfrq_help)
+
+    def error(self, message):
+        args = sys.argv[1:]
+        outputformat = "human"
+        if "--json" in args or "--j" in args:
+            outputformat = "json"
+        elif "--csv" in args or "-c" in args:
+            outputformat = "csv"
+        if "argument : invalid choice: " in message:
+            l = len("argument : invalid choice: ") + 1
+            message = message[l:]
+            message = message.split("'")[0]
+            raise amdsmi_cli_exceptions.AmdSmiInvalidCommandException(message, outputformat)
+        elif "unrecognized arguments: " in message:
+            l = len("unrecognized arguments: ")
+            message = message[l:]
+            raise amdsmi_cli_exceptions.AmdSmiInvalidParameterException(message, outputformat)
+        else:
+            print(message)
