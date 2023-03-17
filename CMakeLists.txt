@@ -53,6 +53,8 @@ project(${AMD_SMI_LIBS_TARGET})
 include(GNUInstallDirs)
 
 option(BUILD_TESTS "Build test suite" OFF)
+# TODO: Enable once virtualenv is installed on CI machines
+option(BUILD_PACKAGE "Build python package" OFF)
 option(ENABLE_LDCONFIG "Set library links and caches using ldconfig." ON)
 
 # Set share path here because project name != amd_smi
@@ -128,57 +130,9 @@ if(BUILD_TESTS)
     add_subdirectory("tests/amd_smi_test")
 endif()
 
-# Generate python_wrapper and package targets
-find_program(PYTHON3 "python3")
-find_program(PIP3 "pip3")
-
-if(PYTHON3 AND PIP3)
-    add_custom_command(
-        OUTPUT clang_tools_extract
-        COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper
-        COMMAND pip3 download ctypeslib2==2.3.2 -d ${CMAKE_CURRENT_BINARY_DIR}/dl
-        COMMAND pip3 download clang==10.0.1 -d ${CMAKE_CURRENT_BINARY_DIR}/dl
-        COMMAND unzip -o ${CMAKE_CURRENT_BINARY_DIR}/dl/ctypeslib2-2.3.2-py3-none-any.whl -d
-                ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper
-        COMMAND unzip -o ${CMAKE_CURRENT_BINARY_DIR}/dl/clang-10.0.1-py3-none-any.whl -d
-                ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-
-    add_custom_target(
-        python_wrapper
-        DEPENDS clang_tools_extract
-        COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper
-        COMMAND cp -r ${CMAKE_CURRENT_SOURCE_DIR}/include/amd_smi/amdsmi.h ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper
-        COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/amd_smi
-        COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/rocm_smi/include/rocm_smi/kfd_ioctl.h
-                ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/amd_smi/
-        COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/tools/generator.py ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/
-        COMMAND
-            python3 ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/generator.py -o ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/amdsmi_wrapper.py
-            -i ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/amdsmi.h -l ${CMAKE_CURRENT_BINARY_DIR}/src/libamd_smi.so
-        COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper/amdsmi_wrapper.py
-                ${CMAKE_CURRENT_SOURCE_DIR}/py-interface/
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper)
-
-    set(PY_INTERFACE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/py-interface")
-    set(PACKAGE_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/python_package/amdsmi")
-
-    add_custom_target(
-        python_package
-        DEPENDS python_wrapper
-        COMMAND mkdir -p ${PACKAGE_OUTPUT_DIR}
-        COMMAND cp ${PY_INTERFACE_DIR}/__init__.py ${PACKAGE_OUTPUT_DIR}
-        COMMAND cp ${PY_INTERFACE_DIR}/amdsmi_exception.py ${PACKAGE_OUTPUT_DIR}
-        COMMAND cp ${PY_INTERFACE_DIR}/amdsmi_interface.py ${PACKAGE_OUTPUT_DIR}
-        COMMAND cp ${PY_INTERFACE_DIR}/amdsmi_wrapper.py ${PACKAGE_OUTPUT_DIR}
-        COMMAND cp ${PY_INTERFACE_DIR}/README.md ${PACKAGE_OUTPUT_DIR}
-        COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/src/libamd_smi.so ${PACKAGE_OUTPUT_DIR}
-        COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE ${PACKAGE_OUTPUT_DIR}
-        COMMAND echo ${PACKAGE_OUTPUT_DIR})
-
-else()
-    message("Python3 or Pip3 not found.")
-endif(PYTHON3 AND PIP3)
+if(BUILD_PACKAGE)
+    add_subdirectory("py-interface")
+endif()
 
 include(CMakePackageConfigHelpers)
 

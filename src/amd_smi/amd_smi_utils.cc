@@ -458,3 +458,43 @@ amdsmi_status_t smi_amdgpu_get_driver_version(amd::smi::AMDSmiGPUDevice* device,
 
 	return status;
 }
+
+amdsmi_status_t smi_amdgpu_get_pcie_speed_from_pcie_type(uint16_t pcie_type, uint32_t *pcie_speed)
+{
+	switch (pcie_type) {
+	case 0:
+		*pcie_speed = 2500;
+		break;
+	case 1:
+		*pcie_speed = 5000;
+		break;
+	case 2:
+		*pcie_speed = 8000;
+		break;
+	case 3:
+	case 4:
+		*pcie_speed = 16000;
+		break;
+	default:
+		return AMDSMI_STATUS_API_FAILED;
+	}
+	return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t smi_amdgpu_get_market_name_from_dev_id(uint32_t device_id, char *market_name)
+{
+	switch (device_id) {
+	case 0x73c8:
+	case 0x73c4:
+	case 0x73c5:
+		strcpy(market_name, "NAVI32");
+		break;
+	case 0x73a1:
+	case 0x73ae:
+		strcpy(market_name, "NAVI21");
+		break;
+	default:
+		return AMDSMI_STATUS_API_FAILED;
+	}
+	return AMDSMI_STATUS_SUCCESS;
+}

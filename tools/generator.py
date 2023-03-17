@@ -106,8 +106,17 @@ def main():
         arguments = [input_file, "-o", output_file, "-l", library]
         library_path = os.path.join(os.path.dirname(__file__), library)
         line_to_replace = "_libraries['{}'] = ctypes.CDLL('{}')".format(library_name, library_path)
-        new_line = "_libraries['{}'] = ctypes.CDLL(os.path.join(os.path.dirname(__file__), '{}'))" \
-            .format(library_name, library_name)
+        new_line = """
+if os.path.isfile('@CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@/{0}'):
+    # try to find library in install directory provided by CMake
+    _libraries['{0}'] = ctypes.CDLL(os.path.join('@CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@', '{0}'))
+elif os.path.isfile('/opt/rocm/lib/{0}'):
+    # try /opt/rocm/lib as a fallback
+    _libraries['{0}'] = ctypes.CDLL(os.path.join('/opt/rocm/lib', '{0}'))
+else:
+    # lastly - search in current directory
+    _libraries['{0}'] = ctypes.CDLL(os.path.join(os.path.dirname(__file__), '{0}'))
+""".format(library_name)
     else:
         print("Unknown operating system. It is only supporing Linux and Windows.")
         return

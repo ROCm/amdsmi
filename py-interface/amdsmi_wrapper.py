@@ -23,7 +23,7 @@
 import os
 # -*- coding: utf-8 -*-
 #
-# TARGET arch is: ['-I/usr/lib/llvm-6.0/lib/clang/6.0.0/include']
+# TARGET arch is: ['-I/usr/lib/llvm-14/lib/clang/14.0.0/include']
 # WORD_SIZE is: 8
 # POINTER_SIZE is: 8
 # LONGDOUBLE_SIZE is: 16
@@ -167,7 +167,17 @@ def char_pointer_cast(string, encoding='utf-8'):
 
 
 _libraries = {}
-_libraries['libamd_smi.so'] = ctypes.CDLL(os.path.join(os.path.dirname(__file__), 'libamd_smi.so'))
+
+if os.path.isfile('@CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@/libamd_smi.so'):
+    # try to find library in install directory provided by CMake
+    _libraries['libamd_smi.so'] = ctypes.CDLL(os.path.join('@CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@', 'libamd_smi.so'))
+elif os.path.isfile('/opt/rocm/lib/libamd_smi.so'):
+    # try /opt/rocm/lib as a fallback
+    _libraries['libamd_smi.so'] = ctypes.CDLL(os.path.join('/opt/rocm/lib', 'libamd_smi.so'))
+else:
+    # lastly - search in current directory
+    _libraries['libamd_smi.so'] = ctypes.CDLL(os.path.join(os.path.dirname(__file__), 'libamd_smi.so'))
+
 
 
 
@@ -697,6 +707,16 @@ amdsmi_process_handle = ctypes.c_uint32
 class struct_c__SA_amdsmi_proc_info_t(Structure):
     pass
 
+class struct_c__SA_amdsmi_proc_info_t_1(Structure):
+    pass
+
+struct_c__SA_amdsmi_proc_info_t_1._pack_ = 1 # source:False
+struct_c__SA_amdsmi_proc_info_t_1._fields_ = [
+    ('gtt_mem', ctypes.c_uint64),
+    ('cpu_mem', ctypes.c_uint64),
+    ('vram_mem', ctypes.c_uint64),
+]
+
 class struct_c__SA_amdsmi_proc_info_t_0(Structure):
     pass
 
@@ -707,16 +727,6 @@ struct_c__SA_amdsmi_proc_info_t_0._fields_ = [
     ('dma', ctypes.c_uint64),
     ('enc', ctypes.c_uint64),
     ('dec', ctypes.c_uint64),
-]
-
-class struct_c__SA_amdsmi_proc_info_t_1(Structure):
-    pass
-
-struct_c__SA_amdsmi_proc_info_t_1._pack_ = 1 # source:False
-struct_c__SA_amdsmi_proc_info_t_1._fields_ = [
-    ('gtt_mem', ctypes.c_uint64),
-    ('cpu_mem', ctypes.c_uint64),
-    ('vram_mem', ctypes.c_uint64),
 ]
 
 struct_c__SA_amdsmi_proc_info_t._pack_ = 1 # source:False
