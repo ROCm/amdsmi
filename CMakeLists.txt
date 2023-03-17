@@ -55,6 +55,7 @@ include(GNUInstallDirs)
 option(BUILD_TESTS "Build test suite" OFF)
 # TODO: Enable once virtualenv is installed on CI machines
 option(BUILD_PACKAGE "Build python package" OFF)
+option(ENABLE_CLI "Enable AMDSMI-CLI install" OFF)
 option(ENABLE_LDCONFIG "Set library links and caches using ldconfig." ON)
 
 # Set share path here because project name != amd_smi
@@ -134,11 +135,15 @@ if(BUILD_PACKAGE)
     add_subdirectory("py-interface")
 endif()
 
+if(ENABLE_CLI)
+    add_subdirectory("amdsmi_cli")
+endif()
+
 include(CMakePackageConfigHelpers)
 
 configure_package_config_file(
     amd_smi-config.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/amd_smi-config.cmake
-    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/amd_smi
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${AMD_SMI}
     PATH_VARS CMAKE_INSTALL_LIBDIR CMAKE_INSTALL_INCLUDEDIR CMAKE_INSTALL_BINDIR)
 
 write_basic_package_version_file(

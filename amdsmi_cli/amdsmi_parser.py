@@ -183,7 +183,6 @@ class AMDSMIParser(argparse.ArgumentParser):
         csv_help = "Displays output in CSV format (human readable by default)."
         file_help = "Saves output into a file on the provided path (stdout by default)."
         loglevel_help = "Set the logging level for the parser commands"
-        compatibility_help = "Display output in gpuvsmi or rocmsmi legacy format if possible"
 
         command_modifier_group = subcommand_parser.add_argument_group('Command Modifiers')
 
@@ -196,10 +195,6 @@ class AMDSMIParser(argparse.ArgumentParser):
         # Placing loglevel outside the subcommands so it can be used with any subcommand
         command_modifier_group.add_argument('--loglevel', action='store', required=False, help=loglevel_help, default='ERROR',
                                             choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
-
-        # Output Compatibility options
-        command_modifier_group.add_argument('--compatibility', action='store', required=False, help=compatibility_help,
-                                            choices=["amdsmi", "gpuvsmi", "rocmsmi"], default='amdsmi')
 
 
     def _add_device_arguments(self, subcommand_parser, required=False):

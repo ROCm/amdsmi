@@ -31,8 +31,9 @@ destination.
 
 from _version import __version__
 
-from amdsmi_helpers import *
+from amdsmi_helpers import AMDSMIHelpers
 from amdsmi_logger import AMDSMILogger
+from amdsmi import amdsmi_interface
 
 
 class AMDSMICommands():
@@ -744,9 +745,14 @@ class AMDSMICommands():
                                     'rpm' : fan_rpm,
                                     'usage' : fan_percent}
         if args.pcie_usage:
-            pcie_link_status = amdsmi_interface.amdsmi_get_pcie_link_status(args.gpu)
+            try:
+                pcie_link_status = amdsmi_interface.amdsmi_get_pcie_link_status(args.gpu)
+                pcie_link_status_call = True
+            except amdsmi_interface.AmdSmiLibraryException as err:
+                pcie_link_status = err.get_error_info()
+                pcie_link_status_call = False
 
-            if self.logger.is_human_readable_format():
+            if self.logger.is_human_readable_format() and pcie_link_status_call:
                 unit ='MT/s'
                 pcie_link_status['pcie_speed'] = f"{pcie_link_status['pcie_speed']} {unit}"
 
