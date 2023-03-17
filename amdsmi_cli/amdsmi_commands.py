@@ -51,6 +51,8 @@ class AMDSMICommands():
         except amdsmi_exception.AmdSmiLibraryException as e:
             raise e
         self.stop = ''
+        self.all_arguments = False
+
 
     def version(self, args):
         """Print Version String
@@ -198,99 +200,111 @@ class AMDSMICommands():
         handled_multiple_gpus, device_handle = self.helpers.handle_gpus(args, self.logger, self.static)
         if handled_multiple_gpus:
             return # This function is recursive
-
         args.gpu = device_handle
 
         # If all arguments are False, it means that no argument was passed and the entire static should be printed
         if not any([args.asic, args.bus, args.vbios, args.limit, args.driver, args.caps, args.ras, args.board]):
-            args.asic = args.bus = args.vbios = args.limit = args.driver = args.caps = args.ras = args.board = True
+            args.asic = args.bus = args.vbios = args.limit = args.driver = args.caps = args.ras = args.board = self.all_arguments = True
 
         values_dict = {}
 
         if args.asic:
             try:
                 asic_info = amdsmi_interface.amdsmi_get_asic_info(args.gpu)
+                asic_info['family'] = hex(asic_info['family'])
+                asic_info['vendor_id'] = hex(asic_info['vendor_id'])
+                asic_info['device_id'] = hex(asic_info['device_id'])
+                asic_info['rev_id'] = hex(asic_info['rev_id'])
+                if asic_info['asic_serial'] != '':
+                    asic_info['asic_serial'] = '0x' + asic_info['asic_serial']
+
+                values_dict['asic'] = asic_info
             except amdsmi_exception.AmdSmiLibraryException as e:
-                asic_info = e.get_error_info()
-
-            asic_info['family'] = hex(asic_info['family'])
-            asic_info['vendor_id'] = hex(asic_info['vendor_id'])
-            asic_info['device_id'] = hex(asic_info['device_id'])
-            asic_info['rev_id'] = hex(asic_info['rev_id'])
-            if asic_info['asic_serial'] != '':
-                asic_info['asic_serial'] = '0x' + asic_info['asic_serial']
-
-            values_dict['asic'] = asic_info
+                values_dict['asic'] = e.get_error_info()
+                if not self.all_arguments:
+                    raise e
         if args.bus:
+            bus_output_info = {}
+
             try:
                 bus_info = amdsmi_interface.amdsmi_get_pcie_link_caps(args.gpu)
+
+                if self.logger.is_human_readable_format():
+                    unit ='MT/s'
+                    bus_info['pcie_speed'] = f"{bus_info['pcie_speed']} {unit}"
             except amdsmi_exception.AmdSmiLibraryException as e:
                 bus_info = e.get_error_info()
-
-            if self.logger.is_human_readable_format():
-                unit ='MT/s'
-                bus_info['pcie_speed'] = f"{bus_info['pcie_speed']} {unit}"
-
-            bus_output_info = {}
+                if not self.all_arguments:
+                    raise e
             try:
                 bus_output_info['bdf'] = amdsmi_interface.amdsmi_get_device_bdf(args.gpu)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 bus_output_info['bdf'] = e.get_error_info()
+                if not self.all_arguments:
+                    raise e
 
             bus_output_info.update(bus_info)
-
             values_dict['bus'] = bus_output_info
+
         if args.vbios:
             try:
                 vbios_info = amdsmi_interface.amdsmi_get_vbios_info(args.gpu)
+                if self.logger.is_gpuvsmi_compatibility():
+                    vbios_info['version'] = vbios_info.pop('vbios_version_string')
+                    vbios_info['build_date'] = vbios_info.pop('build_date')
+                    vbios_info['part_number'] = vbios_info.pop('part_number')
+                    vbios_info['vbios_version'] = vbios_info.pop('vbios_version')
+
+                values_dict['vbios'] = vbios_info
             except amdsmi_exception.AmdSmiLibraryException as e:
-                vbios_info = e.get_error_info()
-
-
-            if self.logger.is_gpuvsmi_compatibility():
-                vbios_info['version'] = vbios_info.pop('vbios_version_string')
-                vbios_info['build_date'] = vbios_info.pop('build_date')
-                vbios_info['part_number'] = vbios_info.pop('part_number')
-                vbios_info['vbios_version'] = vbios_info.pop('vbios_version')
-
-            values_dict['vbios'] = vbios_info
+                values_dict['vbios'] = e.get_error_info()
+                if not self.all_arguments:
+                    raise e
         if args.board:
             try:
                 board_info = amdsmi_interface.amdsmi_get_board_info(args.gpu)
+                board_info['serial_number'] = hex(board_info['serial_number'])
+                board_info['product_serial'] = '0x' + board_info['product_serial']
+
+                if self.logger.is_gpuvsmi_compatibility():
+                    board_info['product_number'] = board_info.pop('product_serial')
+                    board_info['product_name'] = board_info.pop('product_name')
+
+                values_dict['board'] = board_info
             except amdsmi_exception.AmdSmiLibraryException as e:
-                board_info = e.get_error_info()
-
-            board_info['serial_number'] = hex(board_info['serial_number'])
-            board_info['product_serial'] = '0x' + board_info['product_serial']
-            board_info['product_name'] = board_info['product_name'].strip()
-
-            if self.logger.is_gpuvsmi_compatibility():
-                board_info['product_number'] = board_info.pop('product_serial')
-
-            values_dict['board'] = board_info
+                values_dict['board'] = e.get_error_info()
+                if not self.all_arguments:
+                    raise e
         if args.limit:
             try:
                 power_limit = amdsmi_interface.amdsmi_get_power_measure(args.gpu)['power_limit']
             except amdsmi_exception.AmdSmiLibraryException as e:
                 power_limit = e.get_error_info()
-
+                if not self.all_arguments:
+                    raise e
             try:
                 temp_edge_limit = amdsmi_interface.amdsmi_dev_get_temp_metric(args.gpu,
                     amdsmi_interface.AmdSmiTemperatureType.EDGE, amdsmi_interface.AmdSmiTemperatureMetric.CRITICAL)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 temp_edge_limit = e.get_error_info()
+                if not self.all_arguments:
+                    raise e
 
             try:
                 temp_junction_limit = amdsmi_interface.amdsmi_dev_get_temp_metric(args.gpu,
                     amdsmi_interface.AmdSmiTemperatureType.JUNCTION, amdsmi_interface.AmdSmiTemperatureMetric.CRITICAL)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 temp_junction_limit = e.get_error_info()
+                if not self.all_arguments:
+                    raise e
 
             try:
                 temp_vram_limit = amdsmi_interface.amdsmi_dev_get_temp_metric(args.gpu,
                     amdsmi_interface.AmdSmiTemperatureType.VRAM, amdsmi_interface.AmdSmiTemperatureMetric.CRITICAL)
             except amdsmi_exception.AmdSmiLibraryException as e:
-                temp_vram_limit = e.get_error_info()
+                temp_junction_limit = e.get_error_info()
+                if not self.all_arguments:
+                    raise e
 
             if self.logger.is_human_readable_format():
                 unit = 'W'
@@ -309,35 +323,40 @@ class AMDSMICommands():
 
             values_dict['limit'] = limit_info
         if args.driver:
-            driver_info = {}
             try:
+                driver_info = {}
                 driver_info['driver_version'] = amdsmi_interface.amdsmi_get_driver_version(args.gpu)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                driver_info['driver_version'] = e.get_error_info()
 
-            values_dict['driver'] = driver_info
+                values_dict['driver'] = driver_info
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                values_dict['driver'] = e.get_error_info()
+                if not self.all_arguments:
+                    raise e
         if args.ras:
             try:
                 values_dict['ras'] = amdsmi_interface.amdsmi_get_ras_block_features_enabled(args.gpu)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 values_dict['ras'] = e.get_error_info()
-
+                if not self.all_arguments:
+                    raise e
         if args.caps:
             try:
                 caps_info = amdsmi_interface.amdsmi_get_caps_info(args.gpu)
+
+                if self.logger.is_gpuvsmi_compatibility():
+                    del caps_info['ras_supported']
+                    caps_info['gfx'] = caps_info.pop('gfx')
+
+                if self.logger.is_human_readable_format():
+                    for capability_name, capability_value in caps_info.items():
+                        if isinstance(capability_value, list):
+                            caps_info[capability_name] = f"{capability_value}"
+
+                values_dict['caps'] = caps_info
             except amdsmi_exception.AmdSmiLibraryException as e:
-                caps_info = e.get_error_info()
-
-            if self.logger.is_gpuvsmi_compatibility():
-                del caps_info['ras_supported']
-                caps_info['gfx'] = caps_info.pop('gfx')
-
-            if self.logger.is_human_readable_format():
-                for capability_name, capability_value in caps_info.items():
-                    if isinstance(capability_value, list):
-                        caps_info[capability_name] = f"{capability_value}"
-
-            values_dict['caps'] = caps_info
+                values_dict['caps'] = e.get_error_info()
+                if not self.all_arguments:
+                    raise e
 
         # Store values in logger.output
         self.logger.store_output(args.gpu, 'values', values_dict)
@@ -384,30 +403,30 @@ class AMDSMICommands():
         if args.fw_list:
             try:
                 fw_info = amdsmi_interface.amdsmi_get_fw_info(args.gpu)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                fw_info = e.get_error_info()
 
-            for fw_index, fw_entry in enumerate(fw_info['fw_list']):
-                # Change fw_name to fw_id
-                fw_entry['fw_id'] = fw_entry.pop('fw_name').name.strip('FW_ID_')
-                fw_entry['fw_version'] = fw_entry.pop('fw_version')
-                firmware_identifier = 'FW'
+                for fw_index, fw_entry in enumerate(fw_info['fw_list']):
+                    # Change fw_name to fw_id
+                    fw_entry['fw_id'] = fw_entry.pop('fw_name').name.strip('FW_ID_')
+                    fw_entry['fw_version'] = fw_entry.pop('fw_version')
+                    firmware_identifier = 'FW'
+
+                    if self.logger.is_gpuvsmi_compatibility():
+                        firmware_identifier = 'UCODE'
+                        fw_entry['name'] = fw_entry.pop('fw_id')
+                        fw_entry['version'] = fw_entry.pop('fw_version')
+
+                    # Add custom human readable formatting
+                    if self.logger.is_human_readable_format():
+                        fw_info['fw_list'][fw_index] = {f'{firmware_identifier} {fw_index}': fw_entry}
+                    else:
+                        fw_info['fw_list'][fw_index] = fw_entry
 
                 if self.logger.is_gpuvsmi_compatibility():
-                    firmware_identifier = 'UCODE'
-                    fw_entry['name'] = fw_entry.pop('fw_id')
-                    fw_entry['version'] = fw_entry.pop('fw_version')
+                    fw_info['ucode_list'] = fw_info.pop('fw_list')
 
-                # Add custom human readable formatting
-                if self.logger.is_human_readable_format():
-                    fw_info['fw_list'][fw_index] = {f'{firmware_identifier} {fw_index}': fw_entry}
-                else:
-                    fw_info['fw_list'][fw_index] = fw_entry
-
-            if self.logger.is_gpuvsmi_compatibility():
-                fw_info['ucode_list'] = fw_info.pop('fw_list')
-
-            values_dict.update(fw_info)
+                values_dict.update(fw_info)
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                raise e
 
         # Store values in logger.output
         self.logger.store_output(args.gpu, 'values', values_dict)
@@ -471,6 +490,7 @@ class AMDSMICommands():
             bad_page_info = ""
             bad_page_err_output = e.get_error_info()
             bad_page_error = True
+            raise e
 
         if isinstance(bad_page_info, str):
             pass
@@ -582,6 +602,7 @@ class AMDSMICommands():
         Returns:
             None: Print output via AMDSMILogger to destination
         """
+
         # Set args.* to passed in arguments
         if gpu:
             args.gpu = gpu
@@ -655,158 +676,144 @@ class AMDSMICommands():
             else:
                 raise IndexError("args.gpu should not be an empty list")
 
+
         # Check if any of the options have been set, if not then set them all to true
         if not any([args.usage, args.fb_usage, args.power, args.clock, args.temperature, args.ecc, args.pcie, args.voltage, args.fan,
                     args.pcie_usage, args.voltage_curve, args.overdrive, args.mem_overdrive, args.perf_level,
                     args.replay_count, args.xgmi_err, args.energy, args.mem_usage]):
             args.usage = args.fb_usage = args.power = args.clock = args.temperature = args.ecc = args.pcie = args.voltage = args.fan = \
             args.pcie_usage = args.voltage_curve = args.overdrive = args.mem_overdrive = args.perf_level = \
-            args.replay_count = args.xgmi_err = args.energy = args.mem_usage = True
+            args.replay_count = args.xgmi_err = args.energy = args.mem_usage = self.all_arguments = True
+
 
         # Add timestamp and store values for specified arguments
         values_dict = {}
         if args.usage:
             try:
                 engine_usage = amdsmi_interface.amdsmi_get_gpu_activity(args.gpu)
+
+                if self.logger.is_gpuvsmi_compatibility():
+                    engine_usage['gfx_usage'] = engine_usage.pop('gfx_activity')
+                    engine_usage['mem_usage'] = engine_usage.pop('umc_activity')
+                    engine_usage['mm_usage_list'] = engine_usage.pop('mm_activity')
+
+                if self.logger.is_human_readable_format():
+                    unit = '%'
+                    for usage_name, usage_value in engine_usage.items():
+                        engine_usage[usage_name] = f"{usage_value} {unit}"
+
+                values_dict['usage'] = engine_usage
             except amdsmi_exception.AmdSmiLibraryException as e:
-                engine_usage = e.get_error_info()
-
-            if self.logger.is_gpuvsmi_compatibility():
-                engine_usage['gfx_usage'] = engine_usage.pop('gfx_activity')
-                engine_usage['mem_usage'] = engine_usage.pop('umc_activity')
-                engine_usage['mm_usage_list'] = engine_usage.pop('mm_activity')
-
-            if self.logger.is_human_readable_format():
-                unit = '%'
-                for usage_name, usage_value in engine_usage.items():
-                    engine_usage[usage_name] = f"{usage_value} {unit}"
-
-            values_dict['usage'] = engine_usage
+                raise e
         if args.fb_usage:
             try:
                 vram_usage = amdsmi_interface.amdsmi_get_vram_usage(args.gpu)
+
+                if self.logger.is_gpuvsmi_compatibility():
+                    vram_usage['fb_total'] = vram_usage.pop('vram_total')
+                    vram_usage['fb_used'] = vram_usage.pop('vram_used')
+
+                if self.logger.is_human_readable_format():
+                    unit = 'MB'
+                    for vram_name, vram_value in vram_usage.items():
+                        vram_usage[vram_name] = f"{vram_value} {unit}"
+
+                values_dict['fb_usage'] = vram_usage
             except amdsmi_exception.AmdSmiLibraryException as e:
-                vram_usage = e.get_error_info()
-
-            if self.logger.is_gpuvsmi_compatibility():
-                vram_usage['fb_total'] = vram_usage.pop('vram_total')
-                vram_usage['fb_used'] = vram_usage.pop('vram_used')
-
-            if self.logger.is_human_readable_format():
-                unit = 'MB'
-                for vram_name, vram_value in vram_usage.items():
-                    vram_usage[vram_name] = f"{vram_value} {unit}"
-
-            values_dict['fb_usage'] = vram_usage
+                raise e
         if args.power:
             try:
                 average_socket_power = amdsmi_interface.amdsmi_get_power_measure(args.gpu)['average_socket_power']
+
+                if self.logger.is_gpuvsmi_compatibility():
+                    pass
+
+                if self.logger.is_human_readable_format():
+                    unit = 'W'
+                    average_socket_power = f"{average_socket_power} {unit}"
+
+                values_dict['power'] = average_socket_power
             except amdsmi_exception.AmdSmiLibraryException as e:
-                average_socket_power = e.get_error_info()
-
-            if self.logger.is_gpuvsmi_compatibility():
-                pass
-
-            if self.logger.is_human_readable_format():
-                unit = 'W'
-                average_socket_power = f"{average_socket_power} {unit}"
-
-            values_dict['power'] = average_socket_power
+                raise e
         if args.clock:
             try:
                 clock_gfx = amdsmi_interface.amdsmi_get_clock_measure(args.gpu, amdsmi_interface.AmdSmiClkType.GFX)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                clock_gfx = e.get_error_info()
-
-            try:
                 clock_mem = amdsmi_interface.amdsmi_get_clock_measure(args.gpu, amdsmi_interface.AmdSmiClkType.MEM)
+
+                clocks = {'gfx': clock_gfx,
+                        'mem': clock_mem}
+
+                if self.logger.is_human_readable_format():
+                    unit = 'MHz'
+                    for clock_target, clock_metric_values in clocks.items():
+                        for clock_type, clock_value in clock_metric_values.items():
+                            clocks[clock_target][clock_type] = f"{clock_value} {unit}"
+
+                values_dict['clock'] = clocks
             except amdsmi_exception.AmdSmiLibraryException as e:
-                clock_mem = e.get_error_info()
-
-            clocks = {'gfx': clock_gfx,
-                     'mem': clock_mem}
-
-            if self.logger.is_human_readable_format():
-                unit = 'MHz'
-                for clock_target, clock_metric_values in clocks.items():
-                    for clock_type, clock_value in clock_metric_values.items():
-                        clocks[clock_target][clock_type] = f"{clock_value} {unit}"
-
-            values_dict['clock'] = clocks
+                raise e
         if args.temperature:
             try:
                 temperature_edge_current = amdsmi_interface.amdsmi_dev_get_temp_metric(
                     args.gpu, amdsmi_interface.AmdSmiTemperatureType.EDGE, amdsmi_interface.AmdSmiTemperatureMetric.CURRENT)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                temperature_edge_current = e.get_error_info()
-
-            try:
                 temperature_junction_current = amdsmi_interface.amdsmi_dev_get_temp_metric(
                     args.gpu, amdsmi_interface.AmdSmiTemperatureType.JUNCTION, amdsmi_interface.AmdSmiTemperatureMetric.CURRENT)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                temperature_junction_current = e.get_error_info()
-
-            try:
                 temperature_vram_current = amdsmi_interface.amdsmi_dev_get_temp_metric(
                     args.gpu, amdsmi_interface.AmdSmiTemperatureType.VRAM, amdsmi_interface.AmdSmiTemperatureMetric.CURRENT)
+
+                temperatures = { 'edge': temperature_edge_current,
+                                'hotspot': temperature_junction_current,
+                                'mem': temperature_vram_current}
+
+                if self.logger.is_gpuvsmi_compatibility():
+                    temperatures = { 'edge_temperature': temperature_edge_current,
+                                    'hotspot_temperature': temperature_junction_current,
+                                    'mem_temperature': temperature_vram_current}
+
+                if self.logger.is_human_readable_format():
+                    unit = '\N{DEGREE SIGN}C'
+                    for temperature_value in temperatures:
+                        temperatures[temperature_value] = f"{temperatures[temperature_value]} {unit}"
+
+                values_dict['temperature'] = temperatures
             except amdsmi_exception.AmdSmiLibraryException as e:
-                temperature_vram_current = e.get_error_info()
-
-            temperatures = { 'edge': temperature_edge_current,
-                             'hotspot': temperature_junction_current,
-                             'mem': temperature_vram_current}
-
-            if self.logger.is_gpuvsmi_compatibility():
-                temperatures = { 'edge_temperature': temperature_edge_current,
-                                'hotspot_temperature': temperature_junction_current,
-                                'mem_temperature': temperature_vram_current}
-
-            if self.logger.is_human_readable_format():
-                unit = '\N{DEGREE SIGN}C'
-                for temperature_value in temperatures:
-                    temperatures[temperature_value] = f"{temperatures[temperature_value]} {unit}"
-
-            values_dict['temperature'] = temperatures
+                raise e
         if args.ecc:
             try:
                 values_dict['ecc'] = amdsmi_interface.amdsmi_get_ecc_error_count(args.gpu)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 values_dict['ecc'] = e.get_error_info()
-
+                raise e
         if args.pcie:
             try:
                 pcie_link_status = amdsmi_interface.amdsmi_get_pcie_link_caps(args.gpu)
+
+                if self.logger.is_human_readable_format():
+                    unit ='MT/s'
+                    pcie_link_status['pcie_speed'] = f"{pcie_link_status['pcie_speed']} {unit}"
+
+                if self.logger.is_gpuvsmi_compatibility():
+                    pcie_link_status['current_width'] = pcie_link_status.pop('pcie_lanes')
+                    pcie_link_status['current_speed'] = pcie_link_status.pop('pcie_speed')
+
+                values_dict['pcie'] = pcie_link_status
             except amdsmi_exception.AmdSmiLibraryException as e:
-                pcie_link_status = e.get_error_info()
-
-            if self.logger.is_human_readable_format():
-                unit ='MT/s'
-                pcie_link_status['pcie_speed'] = f"{pcie_link_status['pcie_speed']} {unit}"
-
-            if self.logger.is_gpuvsmi_compatibility():
-                pcie_link_status['current_width'] = pcie_link_status.pop('pcie_lanes')
-                pcie_link_status['current_speed'] = pcie_link_status.pop('pcie_speed')
-
-            values_dict['pcie'] = pcie_link_status
+                raise e
         if args.voltage:
             try:
                 volt_metric = amdsmi_interface.amdsmi_dev_get_volt_metric(
                     args.gpu, amdsmi_interface.AmdSmiVoltageType.VDDGFX, amdsmi_interface.AmdSmiVoltageMetric.CURRENT)
+
+                if self.logger.is_human_readable_format():
+                    unit = 'mV'
+                    volt_metric = f"{volt_metric} {unit}"
+
+                values_dict['voltage'] = volt_metric
             except amdsmi_exception.AmdSmiLibraryException as e:
-                volt_metric = e.get_error_info()
-
-            if self.logger.is_human_readable_format():
-                unit = 'mV'
-                volt_metric = f"{volt_metric} {unit}"
-
-            values_dict['voltage'] = volt_metric
+                raise e
         if args.fan:
             try:
                 fan_speed = amdsmi_interface.amdsmi_dev_get_fan_speed(args.gpu, 0)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                fan_speed = e.get_error_info()
-
-            try:
                 fan_max = amdsmi_interface.amdsmi_dev_get_fan_speed_max(args.gpu, 0)
                 if isinstance(fan_speed, int) and fan_max > 0:
                     fan_percent = round((float(fan_speed) / float(fan_max)) * 100, 2)
@@ -815,42 +822,30 @@ class AMDSMICommands():
                         fan_percent = f"{fan_percent} {unit}"
                 else:
                     fan_percent = 'Unable to detect fan speed'
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                fan_max = e.get_error_info()
-                fan_percent = 'Unable to detect fan speed'
 
-            try:
                 fan_rpm = amdsmi_interface.amdsmi_dev_get_fan_rpms(args.gpu, 0)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                fan_rpm = e.get_error_info()
 
-            values_dict['fan'] = {'speed': fan_speed,
-                                    'max' : fan_max,
-                                    'rpm' : fan_rpm,
-                                    'usage' : fan_percent}
+                values_dict['fan'] = {'speed': fan_speed,
+                                        'max' : fan_max,
+                                        'rpm' : fan_rpm,
+                                        'usage' : fan_percent}
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                raise e
         if args.pcie_usage:
             try:
                 pcie_link_status = amdsmi_interface.amdsmi_get_pcie_link_status(args.gpu)
-                pcie_link_status_call = True
+
+                if self.logger.is_human_readable_format():
+                    unit ='MT/s'
+                    pcie_link_status['pcie_speed'] = f"{pcie_link_status['pcie_speed']} {unit}"
+
+                values_dict['pcie_usage'] = pcie_link_status
             except amdsmi_exception.AmdSmiLibraryException as e:
-                pcie_link_status = e.get_error_info()
-                pcie_link_status_call = False
-
-            if self.logger.is_human_readable_format() and pcie_link_status_call:
-                unit ='MT/s'
-                pcie_link_status['pcie_speed'] = f"{pcie_link_status['pcie_speed']} {unit}"
-
-            values_dict['pcie_usage'] = pcie_link_status
+                raise e
         if args.voltage_curve:
             try:
                 od_volt = amdsmi_interface.amdsmi_dev_get_od_volt_info(args.gpu)
-                voltage_curve_error = False
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                od_volt = None
-                values_dict["voltage_curve"] = e.get_error_info()
-                voltage_curve_error = True
 
-            if not voltage_curve_error:
                 voltage_point_dict = {}
 
                 for point in range(3):
@@ -863,100 +858,79 @@ class AMDSMICommands():
                     voltage_point_dict[f'voltage_point_{point}'] = f"{frequency}Mhz {voltage}mV"
 
                 values_dict['voltage_curve'] = voltage_point_dict
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                values_dict['voltage_curve'] = e.get_error_info()
+                if not self.all_arguments:
+                    raise e
+
         if args.overdrive:
             try:
                 overdrive_level = amdsmi_interface.amdsmi_dev_get_overdrive_level(args.gpu)
+
                 if self.logger.is_human_readable_format():
                     unit = '%'
                     overdrive_level = f"{overdrive_level} {unit}"
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                overdrive_level = e.get_error_info()
 
-            values_dict['overdrive'] = overdrive_level
+                values_dict['overdrive'] = overdrive_level
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                raise e
         if args.mem_overdrive:
             values_dict['mem_overdrive'] = amdsmi_interface.AmdSmiRetCode.NOT_IMPLEMENTED
 
         if args.perf_level:
             try:
-                values_dict['perf_level'] = amdsmi_interface.amdsmi_dev_get_perf_level(args.gpu)
+                perf_level = amdsmi_interface.amdsmi_dev_get_perf_level(args.gpu)
+                values_dict['perf_level'] = perf_level
             except amdsmi_exception.AmdSmiLibraryException as e:
-                values_dict['perf_level'] = e.get_error_info()
-
+                raise e
         if args.replay_count:
             try:
-                values_dict['replay_count'] = amdsmi_interface.amdsmi_dev_get_pci_replay_counter(args.gpu)
+                pci_replay_counter = amdsmi_interface.amdsmi_dev_get_pci_replay_counter(args.gpu)
+                values_dict['replay_count'] = pci_replay_counter
             except amdsmi_exception.AmdSmiLibraryException as e:
-                values_dict['replay_count'] = e.get_error_info()
-
+                raise e
         if args.xgmi_err:
             try:
                 values_dict['xgmi_err'] = amdsmi_interface.amdsmi_dev_xgmi_error_status(args.gpu)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                values_dict['xgmi_err'] = e.get_error_info()
-
+            except amdsmi_interface.AmdSmiLibraryException as e:
+                if e.get_error_code() == amdsmi_interface.AmdSmiRetCode.ERR_NOT_SUPPORTED:
+                    values_dict['xgmi_err'] = 'N/A'
+                else:
+                    raise e
         if args.energy:
             try:
                 energy = amdsmi_interface.amdsmi_get_power_measure(args.gpu)['energy_accumulator']
+
                 if self.logger.is_human_readable_format():
                     unit = 'J'
                     energy = f"{energy} {unit}"
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                energy = e.get_error_info()
 
-            values_dict['energy'] = energy
+                values_dict['energy'] = energy
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                raise e
         if args.mem_usage:
-            unit = 'MB'
-            memory_total = {}
-
             try:
-                total_vram = amdsmi_interface.amdsmi_dev_get_memory_total(args.gpu, amdsmi_interface.AmdSmiMemoryType.VRAM)
-                memory_total['vram'] = total_vram // (1024*1024)
+                memory_total_vram = amdsmi_interface.amdsmi_dev_get_memory_total(args.gpu, amdsmi_interface.AmdSmiMemoryType.VRAM)
+                memory_total_vis_vram = amdsmi_interface.amdsmi_dev_get_memory_total(args.gpu, amdsmi_interface.AmdSmiMemoryType.VIS_VRAM)
+                memory_total_gtt = amdsmi_interface.amdsmi_dev_get_memory_total(args.gpu, amdsmi_interface.AmdSmiMemoryType.GTT)
+
+                memory_total = {}
+                # Convert mem_usage to megabytes
+                memory_total['vram'] = memory_total_vram // (1024*1024)
+                memory_total['vis_vram'] = memory_total_vis_vram // (1024*1024)
+                memory_total['gtt'] = memory_total_gtt // (1024*1024)
+
                 if self.logger.is_human_readable_format():
+                    unit = 'MB'
+                    energy = f"{energy} {unit}"
                     memory_total['vram'] = f"{memory_total['vram']} {unit}"
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                memory_total['vram'] = e.get_error_info()
-
-            try:
-                total_vis_vram = amdsmi_interface.amdsmi_dev_get_memory_total(args.gpu, amdsmi_interface.AmdSmiMemoryType.VIS_VRAM)
-                memory_total['vis_vram'] = total_vis_vram // (1024*1024)
-                if self.logger.is_human_readable_format():
                     memory_total['vis_vram'] = f"{memory_total['vis_vram']} {unit}"
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                memory_total['vis_vram'] = e.get_error_info()
-
-            try:
-                total_gtt = amdsmi_interface.amdsmi_dev_get_memory_total(args.gpu, amdsmi_interface.AmdSmiMemoryType.GTT)
-                memory_total['gtt'] = total_gtt // (1024*1024)
-                if self.logger.is_human_readable_format():
                     memory_total['gtt'] = f"{memory_total['gtt']} {unit}"
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                memory_total['gtt'] = e.get_error_info()
 
-            try:
-                total_used_vram = amdsmi_interface.amdsmi_dev_get_memory_usage(args.gpu, amdsmi_interface.AmdSmiMemoryType.VRAM)
-                memory_total['used_vram'] = total_used_vram // (1024*1024)
-                if self.logger.is_human_readable_format():
-                    memory_total['used_vram'] = f"{memory_total['used_vram']} {unit}"
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                memory_total['used_vram'] = e.get_error_info()
 
-            try:
-                total_used_vis_vram = amdsmi_interface.amdsmi_dev_get_memory_usage(args.gpu, amdsmi_interface.AmdSmiMemoryType.VIS_VRAM)
-                memory_total['used_vis_vram'] = total_used_vis_vram // (1024*1024)
-                if self.logger.is_human_readable_format():
-                    memory_total['used_vis_vram'] = f"{memory_total['used_vis_vram']} {unit}"
+                values_dict['mem_usage'] = memory_total
             except amdsmi_exception.AmdSmiLibraryException as e:
-                memory_total['used_vis_vram'] = e.get_error_info()
-
-            try:
-                total_used_gtt = amdsmi_interface.amdsmi_dev_get_memory_usage(args.gpu, amdsmi_interface.AmdSmiMemoryType.GTT)
-                memory_total['used_gtt'] = total_used_gtt // (1024*1024)
-                if self.logger.is_human_readable_format():
-                    memory_total['used_gtt'] = f"{memory_total['used_gtt']} {unit}"
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                memory_total['used_gtt'] = e.get_error_info()
-
-            values_dict['mem_usage'] = memory_total
+                raise e
 
         # Store values in logger.output
         self.logger.store_output(args.gpu, 'values', values_dict)
@@ -1190,11 +1164,6 @@ class AMDSMICommands():
             args.gpu = self.device_handles
 
         # Handle all args being false
-
-        # If all arguments are False, it means that no argument was passed and the entire topology should be printed
-        # if not any([args.asic, args.bus, args.vbios, args.limit, args.driver, args.caps, args.ras, args.board]):
-        #     args.asic = args.bus = args.vbios = args.limit = args.driver = args.caps = args.ras = args.board = True
-
         if not any([args.access, args.weight, args.hops, args.type, args.numa, args.numa_bw]):
             args.access = args.weight = args.hops = args.type = args.numa = args.numa_bw = True
 
