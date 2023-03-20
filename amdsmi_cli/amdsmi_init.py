@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 #
 # Copyright (C) 2023 Advanced Micro Devices. All rights reserved.
 #
@@ -28,6 +28,8 @@ import signal
 import sys
 
 from pathlib import Path
+
+sys.path.append(f'{Path(__file__).resolve().parent}/../../share/amd_smi')
 
 import amdsmi as amdsmi_interface
 

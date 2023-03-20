@@ -20,6 +20,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
+import os
 # -*- coding: utf-8 -*-
 #
 # TARGET arch is: ['-I/usr/lib/llvm-14/lib/clang/14.0.0/include']
@@ -27,10 +28,8 @@
 # POINTER_SIZE is: 8
 # LONGDOUBLE_SIZE is: 16
 #
-
-import os
 import ctypes
-from pathlib import Path
+
 
 c_int128 = ctypes.c_ubyte*16
 c_uint128 = c_int128
@@ -168,7 +167,7 @@ def char_pointer_cast(string, encoding='utf-8'):
 
 
 _libraries = {}
-
+from pathlib import Path
 libamd_smi_cpack = Path("@CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@/libamd_smi.so")
 libamd_smi_optrocm = Path("/opt/rocm/lib/libamd_smi.so")
 libamd_smi_parent_dir = Path(__file__).resolve().parent / "libamd_smi.so"
