@@ -54,8 +54,8 @@ include(GNUInstallDirs)
 
 option(BUILD_TESTS "Build test suite" OFF)
 # TODO: Enable once virtualenv is installed on CI machines
-option(BUILD_PACKAGE "Build python package" OFF)
-option(ENABLE_CLI "Enable AMDSMI-CLI install" OFF)
+option(BUILD_WRAPPER "Rebuild AMDSMI-wrapper" OFF)
+option(BUILD_CLI "Build AMDSMI-CLI and install" ON)
 option(ENABLE_LDCONFIG "Set library links and caches using ldconfig." ON)
 
 # Set share path here because project name != amd_smi
@@ -131,11 +131,9 @@ if(BUILD_TESTS)
     add_subdirectory("tests/amd_smi_test")
 endif()
 
-if(BUILD_PACKAGE)
-    add_subdirectory("py-interface")
-endif()
+add_subdirectory("py-interface")
 
-if(ENABLE_CLI)
+if(BUILD_CLI)
     add_subdirectory("amdsmi_cli")
 endif()
 
@@ -207,6 +205,8 @@ if(CPACK_RPM_PACKAGE_RELEASE)
 endif()
 set(CPACK_RPM_PACKAGE_PROVIDES "amd-smi")
 set(CPACK_RPM_PACKAGE_REQUIRES "python3")
+# don't terminate if bytecompile of python files fails
+set(CPACK_RPM_SPEC_MORE_DEFINE "%define _python_bytecompile_errors_terminate_build 0")
 
 # Add rocm-core dependency if -DROCM_DEP_ROCMCORE=ON is passed
 if(ROCM_DEP_ROCMCORE)
