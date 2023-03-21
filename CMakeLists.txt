@@ -54,7 +54,8 @@ include(GNUInstallDirs)
 
 option(BUILD_TESTS "Build test suite" OFF)
 # TODO: Enable once virtualenv is installed on CI machines
-option(BUILD_PACKAGE "Build python package" OFF)
+option(BUILD_WRAPPER "Rebuild AMDSMI-wrapper" OFF)
+option(BUILD_CLI "Build AMDSMI-CLI and install" ON)
 option(ENABLE_LDCONFIG "Set library links and caches using ldconfig." ON)
 
 # Set share path here because project name != amd_smi
@@ -130,15 +131,17 @@ if(BUILD_TESTS)
     add_subdirectory("tests/amd_smi_test")
 endif()
 
-if(BUILD_PACKAGE)
-    add_subdirectory("py-interface")
+add_subdirectory("py-interface")
+
+if(BUILD_CLI)
+    add_subdirectory("amdsmi_cli")
 endif()
 
 include(CMakePackageConfigHelpers)
 
 configure_package_config_file(
     amd_smi-config.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/amd_smi-config.cmake
-    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/amd_smi
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${AMD_SMI}
     PATH_VARS CMAKE_INSTALL_LIBDIR CMAKE_INSTALL_INCLUDEDIR CMAKE_INSTALL_BINDIR)
 
 write_basic_package_version_file(
@@ -202,6 +205,8 @@ if(CPACK_RPM_PACKAGE_RELEASE)
 endif()
 set(CPACK_RPM_PACKAGE_PROVIDES "amd-smi")
 set(CPACK_RPM_PACKAGE_REQUIRES "python3")
+# don't terminate if bytecompile of python files fails
+set(CPACK_RPM_SPEC_MORE_DEFINE "%define _python_bytecompile_errors_terminate_build 0")
 
 # Add rocm-core dependency if -DROCM_DEP_ROCMCORE=ON is passed
 if(ROCM_DEP_ROCMCORE)

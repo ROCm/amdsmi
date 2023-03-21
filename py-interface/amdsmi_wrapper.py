@@ -1,6 +1,6 @@
 
 #
-# Copyright (C) 2022 Advanced Micro Devices. All rights reserved.
+# Copyright (C) 2023 Advanced Micro Devices. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -167,17 +167,24 @@ def char_pointer_cast(string, encoding='utf-8'):
 
 
 _libraries = {}
+from pathlib import Path
+libamd_smi_cpack = Path("@CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@/libamd_smi.so")
+libamd_smi_optrocm = Path("/opt/rocm/lib/libamd_smi.so")
+libamd_smi_parent_dir = Path(__file__).resolve().parent / "libamd_smi.so"
+libamd_smi_cwd = Path.cwd()
 
-if os.path.isfile('@CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@/libamd_smi.so'):
+if libamd_smi_cpack.is_file():
     # try to find library in install directory provided by CMake
-    _libraries['libamd_smi.so'] = ctypes.CDLL(os.path.join('@CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@', 'libamd_smi.so'))
-elif os.path.isfile('/opt/rocm/lib/libamd_smi.so'):
+    _libraries['libamd_smi.so'] = ctypes.CDLL(libamd_smi_cpack)
+elif libamd_smi_optrocm.is_file():
     # try /opt/rocm/lib as a fallback
-    _libraries['libamd_smi.so'] = ctypes.CDLL(os.path.join('/opt/rocm/lib', 'libamd_smi.so'))
+    _libraries['libamd_smi.so'] = ctypes.CDLL(libamd_smi_optrocm)
+elif libamd_smi_parent_dir.is_file():
+    # try to fall back to parent directory
+    _libraries['libamd_smi.so'] = ctypes.CDLL(libamd_smi_parent_dir)
 else:
-    # lastly - search in current directory
-    _libraries['libamd_smi.so'] = ctypes.CDLL(os.path.join(os.path.dirname(__file__), 'libamd_smi.so'))
-
+    # lastly - search in current working directory
+    _libraries['libamd_smi.so'] = ctypes.CDLL(libamd_smi_cwd)
 
 
 
