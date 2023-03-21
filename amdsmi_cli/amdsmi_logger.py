@@ -372,9 +372,18 @@ class AMDSMILogger():
 
         if self.destination == 'stdout':
             if watch_output:
-                return
                 # print_output may need another value: flush_output vs watch_output
-            print(human_readable)
+                return
+            # printing as unicode may fail if locale is not set properly
+            # see: https://stackoverflow.com/questions/9942594/unicodeencodeerror-ascii-codec-cant-encode-character-u-xa0-in-position-20
+            # export PYTHONIOENCODING=utf8
+            try:
+                # print as unicode
+                print(human_readable)
+            except UnicodeEncodeError:
+                # print as ascii, ignore incompatible characters
+                print(human_readable.encode('ascii', 'ignore').decode('ascii'))
+
         else:
             if watch_output:
                 return

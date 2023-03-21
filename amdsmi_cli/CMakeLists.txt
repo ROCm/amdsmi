@@ -9,18 +9,7 @@ set(PY_CLI_INSTALL_DIR
     "${CMAKE_INSTALL_LIBEXECDIR}" CACHE STRING
     "CLI tool installation directory")
 
-# if Python3 is found but the version is below 3.7 - Python3_FOUND is set to FALSE
-find_package(Python3 3.7 COMPONENTS Interpreter Development)
-
-# WARN: This is a HACK to pass compile on AMD rhel8 and centos7 CI systems!
-#       Those still use python3.6 which is too old for this project!
-# TODO: Promote to an error when python3.7 or above is installed on CI
-if(NOT Python3_FOUND)
-    message(AUTHOR_WARNING "Python3 DOESN'T EXIST OR VERSION IS TOO OLD!: ${Python3_VERSION}")
-    message(AUTHOR_WARNING "The CLI tool will not be created and the project will not be packaged!")
-    # WARN: EXIT CURRENT CMAKE FILE
-    return()
-endif()
+find_package(Python3 3.6 COMPONENTS Interpreter Development REQUIRED)
 
 # hard-linking instead of copying avoids unnecessarry regeneration of packaged files
 add_custom_command(
