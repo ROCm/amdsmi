@@ -11,19 +11,6 @@ set(PY_BUILD_DIR "python_package")
 set(PY_PACKAGE_DIR "${PY_BUILD_DIR}/amdsmi")
 set(PY_WRAPPER_INSTALL_DIR "${SHARE_INSTALL_PREFIX}" CACHE STRING "Wrapper installation directory")
 
-# if Python3 is found but the version is below 3.7 - Python3_FOUND is set to FALSE
-find_package(Python3 3.7 COMPONENTS Interpreter Development)
-
-# WARN: This is a HACK to pass compile on AMD rhel8 and centos7 CI systems!
-#       Those still use python3.6 which is too old for this project!
-# TODO: Promote to an error when python3.7 or above is installed on CI
-if(NOT Python3_FOUND)
-    message(AUTHOR_WARNING "Python3 DOESN'T EXIST OR VERSION IS TOO OLD!: ${Python3_VERSION}")
-    message(AUTHOR_WARNING "The wrapper will not be created and the project will not be packaged!")
-    # WARN: EXIT CURRENT CMAKE FILE
-    return()
-endif()
-
 # TODO: Figure out how python-clang and clang are related
 #       Currently only a very specific combination works
 
@@ -59,6 +46,7 @@ if(NOT GOOD_CLANG_FOUND)
         COMMAND mkdir -p ${PY_PACKAGE_DIR}
         COMMAND ln -Pf ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper.py ${PY_PACKAGE_DIR}/)
 else()
+    find_package(Python3 3.7 COMPONENTS Interpreter Development REQUIRED)
     add_custom_target(
         python_pre_reqs
         COMMAND ${Python3_EXECUTABLE} -m pip install clang==${clang_ver} ctypeslib2==${ctypeslib_ver})

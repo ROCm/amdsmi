@@ -21,7 +21,7 @@ In order to build the AMD SMI library, the following components are required. No
 
 In order to build the AMD SMI python package, the following components are required:
 * clang (14.0 or above)
-* python (3.7 or above)
+* python (3.6 or above)
 * virtualenv - `pip3 install virtualenv`
 
 In order to build the latest documentation, the following are required:
@@ -169,7 +169,7 @@ make python_wrapper # or simply 'make'
 
 After this command, the file in `py-interface/amdsmi_wrapper.py` will be automatically updated on each compile.
 
-Note: To be able to re-generate python wrapper you need several tools installed on your system: clang-14, clang-format, libclang-dev
+Note: To be able to re-generate python wrapper you need several tools installed on your system: clang-14, clang-format, libclang-dev, and ***python3.7 or newer***.
 
 Note: python_wrapper is NOT automatically re-generated. You must run `cmake` with `-DBUILD_WRAPPER=on` argument.
 
