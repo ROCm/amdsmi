@@ -9,8 +9,6 @@ set(PY_CLI_INSTALL_DIR
     "${CMAKE_INSTALL_LIBEXECDIR}" CACHE STRING
     "CLI tool installation directory")
 
-find_package(Python3 3.6 COMPONENTS Interpreter Development REQUIRED)
-
 # hard-linking instead of copying avoids unnecessarry regeneration of packaged files
 add_custom_command(
     OUTPUT ${PY_PACKAGE_DIR}/__init__.py
