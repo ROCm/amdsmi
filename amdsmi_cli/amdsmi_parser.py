@@ -56,9 +56,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         subparsers = self.add_subparsers(
             title="AMD-SMI Commands",
             parser_class=argparse.ArgumentParser,
-            required=True,
             help="Descriptions:",
-            # dest='cmd',
             metavar="")
 
         # Add all subparsers
