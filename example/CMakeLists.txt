@@ -5,6 +5,7 @@
 install(
     DIRECTORY ./
     DESTINATION ${SHARE_INSTALL_PREFIX}/example
+    COMPONENT dev
     FILES_MATCHING
     PATTERN "*.cc")
 
@@ -12,7 +13,8 @@ install(
 install(
     FILES CMakeLists.txt.in
     RENAME CMakeLists.txt
-    DESTINATION ${SHARE_INSTALL_PREFIX}/example)
+    DESTINATION ${SHARE_INSTALL_PREFIX}/example
+    COMPONENT dev)
 
 # compile example files but do not install
 # this is only useful if running from build directory
