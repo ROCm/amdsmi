@@ -110,14 +110,26 @@ endif()
 install(
     TARGETS ${AMD_SMI_TARGET}
     EXPORT amd_smiTargets
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT ${AMD_SMI_COMPONENT})
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT dev)
+    #COMPONENT ${AMD_SMI_COMPONENT})
 
-install(FILES ${PROJECT_SOURCE_DIR}/include/amd_smi/amdsmi.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/amd_smi)
-install(FILES ${PROJECT_SOURCE_DIR}/include/amd_smi/${AMD_SMI_TARGET}Config.h
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/amd_smi)
-install(FILES ${PROJECT_SOURCE_DIR}/rocm_smi/include/rocm_smi/kfd_ioctl.h
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/amd_smi)
+install(
+    TARGETS ${AMD_SMI_TARGET}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    COMPONENT asan)
+
+install(
+    FILES ${PROJECT_SOURCE_DIR}/include/amd_smi/amdsmi.h
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/amd_smii
+    COMPONENT dev)
+install(
+    FILES ${PROJECT_SOURCE_DIR}/include/amd_smi/${AMD_SMI_TARGET}Config.h
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/amd_smi
+    COMPONENT dev)
+install(
+    FILES ${PROJECT_SOURCE_DIR}/rocm_smi/include/rocm_smi/kfd_ioctl.h
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/amd_smi
+    COMPONENT dev)
 #install(FILES ${PROJECT_SOURCE_DIR}/rocm_smi/python_smi_tools/rsmiBindings.py
 #                                        DESTINATION libexec/${AMD_SMI})
 #install(FILES ${PROJECT_SOURCE_DIR}/rocm_smi/python_smi_tools/rocm_smi.py
@@ -153,8 +165,12 @@ if(DOXYGEN_FOUND AND LATEX_FOUND)
     install(
         FILES ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf
         DESTINATION share/doc/${AMD_SMI}
-        RENAME ${ASMI_MANUAL_NAME}.pdf)
-    install(FILES ${PROJECT_SOURCE_DIR}/README.md DESTINATION share/doc/${AMD_SMI})
+        RENAME ${ASMI_MANUAL_NAME}.pdf
+        COMPONENT dev)
+    install(
+        FILES ${PROJECT_SOURCE_DIR}/README.md
+        DESTINATION share/doc/${AMD_SMI}
+        COMPONENT dev)
 else()
     message("Doxygen or Latex is not found. Will not generate documents.")
 endif(DOXYGEN_FOUND AND LATEX_FOUND)
