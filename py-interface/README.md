@@ -335,8 +335,11 @@ Output: Dictionary with fields
 
 Field | Description
 ---|---
-`dpm_cap` |  dynamic power management capability
 `power_cap` |  power capability
+`dpm_cap` |  dynamic power management capability
+`power_cap_default` |  default power capability
+`min_power_cap` | min power capability
+`max_power_cap` | max power capability
 
 Exceptions that can be thrown by `amdsmi_get_power_cap_info` function:
 * `AmdSmiLibraryException`
@@ -352,8 +355,11 @@ try:
     else:
         for device in devices:
             power_info = amdsmi_get_power_cap_info(device)
-            print(power_info['dpm_cap'])
             print(power_info['power_cap'])
+            print(power_info['dpm_cap'])
+            print(power_info['power_cap_default'])
+            print(power_info['min_power_cap'])
+            print(power_info['max_power_cap'])
 except AmdSmiException as e:
     print(e)
 ```
@@ -1486,7 +1492,7 @@ except AmdSmiException as e:
 
 ## amdsmi_dev_get_power_ave
 
-Description: Get the average power consumption of the device 
+Description: Get the average power consumption of the device
 
 Input parameters:
 
@@ -1630,7 +1636,7 @@ Input parameters:
 * `device_handle` device which to query
 * `mem_type` enum AmdSmiMemoryType
 
-Output: the amount of memory currently being used 
+Output: the amount of memory currently being used
 
 Exceptions that can be thrown by `amdsmi_dev_get_memory_usage` function:
 * `AmdSmiLibraryException`

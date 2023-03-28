@@ -194,6 +194,37 @@ class AMDSMIHelpers():
         return True, selected_device_handles
 
 
+    def handle_gpus(self, args, logger, subcommand):
+        """This function will run execute the subcommands based on the number
+            of gpus passed in via args.
+        params:
+            args - argparser args to pass to subcommand
+            logger (AMDSMILogger) - Logger to print out output
+            subcommand (AMDSMICommands) - Function that can handle multiple gpus
+
+        return:
+            tuple(bool, device_handle) :
+                bool - True if executed subcommand for multiple devices
+                device_handle - Return the device_handle if the list of devices is a length of 1
+            (handled_multiple_gpus, device_handle)
+
+        """
+        if isinstance(args.gpu, list):
+            if len(args.gpu) > 1:
+                for device_handle in args.gpu:
+                    # Handle multiple_devices to print all output at once
+                    subcommand(args, multiple_devices=True, gpu=device_handle)
+                logger.print_output(multiple_device_output=True)
+                return True, args.gpu
+            elif len(args.gpu) == 1:
+                args.gpu = args.gpu[0]
+                return False, args.gpu
+            else:
+                raise IndexError("args.gpu should not be an empty list")
+        else:
+            return False, args.gpu
+
+
     def handle_watch(self, args, subcommand):
         """This function will run the subcommand multiple times based
             on the passed watch, watch_time, and iterations passed in.
@@ -266,10 +297,6 @@ class AMDSMIHelpers():
         return gpu_bdfs
 
 
-    # def get_amd_cpu_bdfs(self):
-    #     pass
-
-
     def is_amd_device(self, device_handle):
         """ Return whether the specified device is an AMD device or not
 
@@ -278,3 +305,58 @@ class AMDSMIHelpers():
         # Get card vendor id
         asic_info = amdsmi_interface.amdsmi_get_asic_info(device_handle)
         return asic_info['vendor_id'] == AMD_VENDOR_ID
+
+
+    def is_valid_clock_type(self, clock_type):
+        if clock_type in amdsmi_interface.amdsmi_wrapper.amdsmi_clk_type_t__enumvalues:
+            return True, amdsmi_interface.amdsmi_wrapper.amdsmi_clk_type_t__enumvalues.keys()
+        else:
+            return False, amdsmi_interface.amdsmi_wrapper.amdsmi_clk_type_t__enumvalues.keys()
+
+
+    def confirm_out_of_spec_warning(self, auto_respond=False):
+        """ Print the warning for running outside of specification and prompt user to accept the terms.
+
+        @param auto_respond: Response to automatically provide for all prompts
+        """
+        print('''
+            ******WARNING******\n
+            Operating your AMD GPU outside of official AMD specifications or outside of
+            factory settings, including but not limited to the conducting of overclocking,
+            over-volting or under-volting (including use of this interface software,
+            even if such software has been directly or indirectly provided by AMD or otherwise
+            affiliated in any way with AMD), may cause damage to your AMD GPU, system components
+            and/or result in system failure, as well as cause other problems.
+            DAMAGES CAUSED BY USE OF YOUR AMD GPU OUTSIDE OF OFFICIAL AMD SPECIFICATIONS OR
+            OUTSIDE OF FACTORY SETTINGS ARE NOT COVERED UNDER ANY AMD PRODUCT WARRANTY AND
+            MAY NOT BE COVERED BY YOUR BOARD OR SYSTEM MANUFACTURER'S WARRANTY.
+            Please use this utility with caution.
+            ''')
+        if not auto_respond:
+            user_input = input('Do you accept these terms? [y/n] ')
+        else:
+            user_input = auto_respond
+        if user_input in ['y', 'Y', 'yes', 'Yes', 'YES']:
+            return
+        else:
+            sys.exit('Confirmation not given. Exiting without setting value')
+
+
+    def is_valid_profile(self, profile):
+        profile_presets = amdsmi_interface.amdsmi_wrapper.amdsmi_power_profile_preset_masks_t__enumvalues
+        if profile in profile_presets:
+            return True, profile_presets[profile]
+        else:
+            return False, profile_presets.values()
+
+
+    def get_perf_level(self, device_handle):
+        """ Return the current performance level of a given device
+
+        @param device_handle: DRM device identifier
+        """
+
+        try:
+            ret = amdsmi_interface.amdsmi_dev_get_perf_level(device_handle)
+        except amdsmi_exception.AmdSmiLibraryException as e:
+            raise ValueError(self, f"Unable to get performance level of {device_handle}")

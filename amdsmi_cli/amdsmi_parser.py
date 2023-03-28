@@ -36,12 +36,12 @@ class AMDSMIParser(argparse.ArgumentParser):
                  process, profile, event, topology, set_value, reset, rocmsmi):
 
         # Helper variables
-        self.amd_smi_helpers = AMDSMIHelpers()
-        self.gpu_choices, self.gpu_choices_str = self.amd_smi_helpers.get_gpu_choices()
+        self.amdsmi_helpers = AMDSMIHelpers()
+        self.gpu_choices, self.gpu_choices_str = self.amdsmi_helpers.get_gpu_choices()
         self.vf_choices = ['3', '2', '1']
 
         version_string = f"Version: {__version__}"
-        platform_string = f"Platform: {self.amd_smi_helpers.os_info()}"
+        platform_string = f"Platform: {self.amdsmi_helpers.os_info()}"
 
         # Adjust argument parser options
         super().__init__(
@@ -133,8 +133,7 @@ class AMDSMIParser(argparse.ArgumentParser):
 
                 if path.is_file():
                     if os.stat(values).st_size == 0:
-                        raise argparse.ArgumentTypeError(
-                            f"Invalid Path: {path} Input file is empty")
+                        raise argparse.ArgumentTypeError(f"Invalid Path: {path} Input file is empty")
                     setattr(args, self.dest, path)
                 else:
                     raise argparse.ArgumentTypeError(
@@ -151,7 +150,8 @@ class AMDSMIParser(argparse.ArgumentParser):
             # Checks the values
             def __call__(self, parser, args, values, option_string=None):
                 if args.watch is None:
-                    raise argparse.ArgumentError(self, f"Invalid argument: '{self.dest}' needs to be paired with -w/--watch")
+                    raise argparse.ArgumentError(self,
+                                                 f"Invalid argument: '{self.dest}' needs to be paired with -w/--watch")
                 setattr(args, self.dest, values)
         return _WatchSelectedAction
 
@@ -162,11 +162,11 @@ class AMDSMIParser(argparse.ArgumentParser):
             This will set the destination (args.gpu) to a list of 1 or more device handles
             If 1 or more device handles are not found then raise an ArgumentError for the first invalid gpu seen
         """
-        amd_smi_helpers = self.amd_smi_helpers
+        amdsmi_helpers = self.amdsmi_helpers
         class _GPUSelectAction(argparse.Action):
             # Checks the values
             def __call__(self, parser, args, values, option_string=None):
-                status, selected_device_handles = amd_smi_helpers.get_device_handles_from_gpu_selections(gpu_selections=values,
+                status, selected_device_handles = amdsmi_helpers.get_device_handles_from_gpu_selections(gpu_selections=values,
                                                                                                          gpu_choices=gpu_choices)
                 if status:
                     setattr(args, self.dest, selected_device_handles)
@@ -206,7 +206,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         device_args.add_argument('-g', '--gpu', action=self._gpu_select(self.gpu_choices),
                                     nargs='+', help=gpu_help)
 
-        if self.amd_smi_helpers.is_hypervisor():
+        if self.amdsmi_helpers.is_hypervisor():
             device_args.add_argument('-v', '--vf', action='store', nargs='+',
                                         help=vf_help, choices=self.vf_choices)
 
@@ -287,13 +287,13 @@ class AMDSMIParser(argparse.ArgumentParser):
         static_parser.add_argument('-c', '--caps', action='store_true', required=False, help=caps_help)
 
         # Options to display on Hypervisors and Baremetal
-        if self.amd_smi_helpers.is_hypervisor() or self.amd_smi_helpers.is_baremetal():
+        if self.amdsmi_helpers.is_hypervisor() or self.amdsmi_helpers.is_baremetal():
             static_parser.add_argument('-r', '--ras', action='store_true', required=False, help=ras_help)
-            if self.amd_smi_helpers.is_linux():
+            if self.amdsmi_helpers.is_linux():
                 static_parser.add_argument('-B', '--board', action='store_true', required=False, help=board_help)
 
         # Options to only display on a Hypervisor
-        if self.amd_smi_helpers.is_hypervisor():
+        if self.amdsmi_helpers.is_hypervisor():
             static_parser.add_argument('-d', '--dfc-ucode', action='store_true', required=False, help=dfc_help)
             static_parser.add_argument('-f', '--fb-info', action='store_true', required=False, help=fb_help)
             static_parser.add_argument('-n', '--num-vf', action='store_true', required=False, help=num_vf_help)
@@ -323,12 +323,12 @@ class AMDSMIParser(argparse.ArgumentParser):
         firmware_parser.add_argument('-f', '--ucode-list', '--fw-list', dest='fw_list', action='store_true', required=False, help=fw_list_help, default=True)
 
         # Options to only display on a Hypervisor
-        if self.amd_smi_helpers.is_hypervisor():
+        if self.amdsmi_helpers.is_hypervisor():
             firmware_parser.add_argument('-e', '--error-records', action='store_true', required=False, help=err_records_help)
 
 
     def _add_bad_pages_parser(self, subparsers, func):
-        if not (self.amd_smi_helpers.is_baremetal() and self.amd_smi_helpers.is_linux()):
+        if not (self.amdsmi_helpers.is_baremetal() and self.amdsmi_helpers.is_linux()):
             # The bad_pages subcommand is only applicable to Linux Baremetal systems
             return
 
@@ -419,11 +419,11 @@ class AMDSMIParser(argparse.ArgumentParser):
             type=self._positive_int, required=False, help=iterations_help)
 
         # Optional Args for Virtual OS and Baremetal systems
-        if self.amd_smi_helpers.is_virtual_os() or self.amd_smi_helpers.is_baremetal():
+        if self.amdsmi_helpers.is_virtual_os() or self.amdsmi_helpers.is_baremetal():
             metric_parser.add_argument('-b', '--fb-usage', action='store_true', required=False, help=fb_usage_help)
 
         # Optional Args for Hypervisors and Baremetal systems
-        if self.amd_smi_helpers.is_hypervisor() or self.amd_smi_helpers.is_baremetal():
+        if self.amdsmi_helpers.is_hypervisor() or self.amdsmi_helpers.is_baremetal():
             metric_parser.add_argument('-p', '--power', action='store_true', required=False, help=power_help)
             metric_parser.add_argument('-c', '--clock', action='store_true', required=False, help=clock_help)
             metric_parser.add_argument('-t', '--temperature', action='store_true', required=False, help=temperature_help)
@@ -432,7 +432,7 @@ class AMDSMIParser(argparse.ArgumentParser):
             metric_parser.add_argument('-V', '--voltage', action='store_true', required=False, help=voltage_help)
 
         # Optional Args for Linux Baremetal Systems
-        if self.amd_smi_helpers.is_baremetal() and self.amd_smi_helpers.is_linux():
+        if self.amdsmi_helpers.is_baremetal() and self.amdsmi_helpers.is_linux():
             metric_parser.add_argument('-f', '--fan', action='store_true', required=False, help=fan_help)
             metric_parser.add_argument('-s', '--pcie-usage', action='store_true', required=False, help=pcie_usage_help)
             metric_parser.add_argument('-C', '--voltage-curve', action='store_true', required=False, help=vc_help)
@@ -445,14 +445,14 @@ class AMDSMIParser(argparse.ArgumentParser):
             metric_parser.add_argument('-m', '--mem-usage', action='store_true', required=False, help=mem_usage_help)
 
         # Options to only display to Hypervisors
-        if self.amd_smi_helpers.is_hypervisor():
+        if self.amdsmi_helpers.is_hypervisor():
             metric_parser.add_argument('-s', '--schedule', action='store_true', required=False, help=schedule_help)
             metric_parser.add_argument('-G', '--guard', action='store_true', required=False, help=guard_help)
             metric_parser.add_argument('-u', '--guest', action='store_true', required=False, help=guest_help)
 
 
     def _add_process_parser(self, subparsers, func):
-        if self.amd_smi_helpers.is_hypervisor():
+        if self.amdsmi_helpers.is_hypervisor():
             # Don't add this subparser on Hypervisors
             # This subparser is only available to Guest and Baremetal systems
             return
@@ -497,7 +497,7 @@ class AMDSMIParser(argparse.ArgumentParser):
 
 
     def _add_profile_parser(self, subparsers, func):
-        if not (self.amd_smi_helpers.is_windows() and self.amd_smi_helpers.is_hypervisor()):
+        if not (self.amdsmi_helpers.is_windows() and self.amdsmi_helpers.is_hypervisor()):
             # This subparser only applies to Hypervisors
             return
 
@@ -518,8 +518,8 @@ class AMDSMIParser(argparse.ArgumentParser):
 
 
     def _add_event_parser(self, subparsers, func):
-        if self.amd_smi_helpers.is_linux() and not self.amd_smi_helpers.is_virtual_os():
-            # This subparser only applies to Linux BareMetal & Linux Hypervisors
+        if self.amdsmi_helpers.is_linux() and not self.amdsmi_helpers.is_virtual_os():
+            # This subparser only applies to Linux BareMetal & Linux Hypervisors, NOT Linux Guest
             return
 
         # Subparser help text
@@ -539,7 +539,7 @@ class AMDSMIParser(argparse.ArgumentParser):
 
 
     def _add_topology_parser(self, subparsers, func):
-        if not(self.amd_smi_helpers.is_baremetal() and self.amd_smi_helpers.is_linux()):
+        if not(self.amdsmi_helpers.is_baremetal() and self.amdsmi_helpers.is_linux()):
             # This subparser is only applicable to Baremetal Linux
             return
 
@@ -549,11 +549,12 @@ class AMDSMIParser(argparse.ArgumentParser):
         topology_optionals_title = "Topology arguments"
 
         # Help text for Arguments only on Guest and BM platforms
-        topo_access_help = "Displays link accessibility between GPUs"
-        topo_weight_help = "Displays relative weight between GPUs"
-        topo_hops_help = "Displays the number of hops between GPUs"
-        topo_type_help = "Displays the link type between GPUs."
-        topo_numa_help = "Displays the numa nodes."
+        access_help = "Displays link accessibility between GPUs"
+        weight_help = "Displays relative weight between GPUs"
+        hops_help = "Displays the number of hops between GPUs"
+        type_help = "Displays the link type between GPUs"
+        numa_help = "Display the HW Topology Information for numa nodes"
+        numa_bw_help = "Display max and min bandwidth between nodes"
 
         # Create topology subparser
         topology_parser = subparsers.add_parser('topology', help=topology_help, description=topology_subcommand_help)
@@ -566,15 +567,16 @@ class AMDSMIParser(argparse.ArgumentParser):
         self._add_device_arguments(topology_parser, required=False)
 
         # Optional Args
-        topology_parser.add_argument('-a', '--topo-access', action='store_true', required=False, help=topo_access_help)
-        topology_parser.add_argument('-w', '--topo-weight', action='store_true', required=False, help=topo_weight_help)
-        topology_parser.add_argument('-o', '--topo-hops', action='store_true', required=False, help=topo_hops_help)
-        topology_parser.add_argument('-t', '--topo-type', action='store_true', required=False, help=topo_type_help)
-        topology_parser.add_argument('-n', '--topo-numa', action='store_true', required=False, help=topo_numa_help)
+        topology_parser.add_argument('-a', '--access', action='store_true', required=False, help=access_help)
+        topology_parser.add_argument('-w', '--weight', action='store_true', required=False, help=weight_help)
+        topology_parser.add_argument('-o', '--hops', action='store_true', required=False, help=hops_help)
+        topology_parser.add_argument('-t', '--type', action='store_true', required=False, help=type_help)
+        topology_parser.add_argument('-n', '--numa', action='store_true', required=False, help=numa_help)
+        topology_parser.add_argument('-b', '--numa_bw', action='store_true', required=False, help=numa_bw_help)
 
 
     def _add_set_value_parser(self, subparsers, func):
-        if not(self.amd_smi_helpers.is_baremetal() and self.amd_smi_helpers.is_linux()):
+        if not(self.amdsmi_helpers.is_baremetal() and self.amdsmi_helpers.is_linux()):
             # This subparser is only applicable to Baremetal Linux
             return
 
@@ -584,24 +586,22 @@ class AMDSMIParser(argparse.ArgumentParser):
         set_value_optionals_title = "Set Arguments"
 
         # Help text for Arguments only on Guest and BM platforms
-        set_clk_help = "Sets clock frequency levels for specified clocks"
+        set_clock_help = "Sets clock frequency levels for specified clocks"
         set_sclk_help = "Sets GPU clock frequency levels"
         set_mclk_help = "Sets memory clock frequency levels"
-        set_pcie_help = "Sets PCIe Bandwith "
+        set_pcie_help = "Sets PCIe Bandwith"
         set_slevel_help = "Change GPU clock frequency and voltage for a specific level"
         set_mlevel_help = "Change GPU memory frequency and voltage for a specific level"
         set_vc_help = "Change SCLK voltage curve for a specified point"
         set_srange_help = "Sets min and max SCLK speed"
         set_mrange_help = "Sets min and max MCLK speed"
-        set_fan_help = "Sets GPU fan speed (level or %)"
+        set_fan_help = "Sets GPU fan speed (0-255 or 0-100%%)"
         set_perf_level_help = "Sets performance level"
-        set_overdrive_help = "Set GPU overdrive level"
-        set_mem_overdrive_help = "Set memory overclock overdrive level"
+        set_overdrive_help = "Set GPU overdrive (0-20%%) ***DEPRECATED IN NEWER KERNEL VERSIONS (use --slevel instead)***"
+        set_mem_overdrive_help = "Set memory overclock overdrive level ***DEPRECATED IN NEWER KERNEL VERSIONS (use --mlevel instead)***"
         set_power_overdrive_help = "Set the maximum GPU power using power overdrive in Watts"
         set_profile_help = "Set power profile level (#) or a quoted string of custom profile attributes"
         set_perf_det_help = "Set GPU clock frequency limit to get minimal performance variation"
-        ras_enable_help = "Enable RAS for specified block and error type"
-        ras_disable_help = "Disable RAS for specified block and error type."
 
         # Create set_value subparser
         set_value_parser = subparsers.add_parser('set', help=set_value_help, description=set_value_subcommand_help)
@@ -614,28 +614,116 @@ class AMDSMIParser(argparse.ArgumentParser):
         self._add_device_arguments(set_value_parser, required=True)
 
         # Optional Args
-        set_value_parser.add_argument('-c', '--clk', action='store', required=False, help=set_clk_help)
-        set_value_parser.add_argument('-s', '--sclk', action='store', required=False, help=set_sclk_help)
-        set_value_parser.add_argument('-m', '--mclk', action='store', required=False, help=set_mclk_help)
-        set_value_parser.add_argument('-p', '--pcie', action='store', required=False, help=set_pcie_help)
-        set_value_parser.add_argument('-S', '--slevel', action='store', required=False, help=set_slevel_help)
-        set_value_parser.add_argument('-M', '--mlevel', action='store', required=False, help=set_mlevel_help)
-        set_value_parser.add_argument('-V', '--vc', action='store', required=False, help=set_vc_help)
-        set_value_parser.add_argument('-r', '--srange', action='store', required=False, help=set_srange_help)
-        set_value_parser.add_argument('-R', '--mrange', action='store', required=False, help=set_mrange_help)
-        set_value_parser.add_argument('-f', '--fan', action='store', required=False, help=set_fan_help)
-        set_value_parser.add_argument('-l', '--perflevel', action='store', required=False, help=set_perf_level_help)
-        set_value_parser.add_argument('-o', '--overdrive', action='store', required=False, help=set_overdrive_help)
-        set_value_parser.add_argument('-O', '--memoverdrive', action='store', required=False, help=set_mem_overdrive_help)
-        set_value_parser.add_argument('-w', '--poweroverdrive', action='store', required=False, help=set_power_overdrive_help)
-        set_value_parser.add_argument('-P', '--profile', action='store', required=False, help=set_profile_help)
-        set_value_parser.add_argument('-d', '--perfdet', action='store', required=False, help=set_perf_det_help)
-        set_value_parser.add_argument('-e', '--rasenable', action='store', required=False, help=ras_enable_help)
-        set_value_parser.add_argument('-D', '--rasdisable', action='store', required=False, help=ras_disable_help)
+        set_value_parser.add_argument('-c', '--clock', action=self._validate_set_clock(True), nargs='+', type=self._positive_int, required=False, help=set_clock_help, metavar=('CLK_TYPE', 'CLK_LEVELS'))
+        set_value_parser.add_argument('-s', '--sclk', action=self._validate_set_clock(False), nargs='+', type=self._positive_int, required=False, help=set_sclk_help, metavar='CLK_LEVELS')
+        set_value_parser.add_argument('-m', '--mclk', action=self._validate_set_clock(False), nargs='+', type=self._positive_int, required=False, help=set_mclk_help, metavar='CLK_LEVELS')
+        set_value_parser.add_argument('-p', '--pcie', action=self._validate_set_clock(False), nargs='+', type=self._positive_int, required=False, help=set_pcie_help, metavar='CLK_LEVELS')
+        set_value_parser.add_argument('-S', '--slevel', action=self._prompt_spec_warning(), nargs=2, type=self._positive_int, required=False, help=set_slevel_help, metavar=('SCLKLEVEL', 'SCLK'))
+        set_value_parser.add_argument('-M', '--mlevel', action=self._prompt_spec_warning(), nargs=2, type=self._positive_int, required=False, help=set_mlevel_help, metavar=('MCLKLEVEL', 'MCLK'))
+        set_value_parser.add_argument('-V', '--vc', action=self._prompt_spec_warning(), nargs=3, type=self._positive_int, required=False, help=set_vc_help, metavar=('POINT', 'SCLK', 'SVOLT'))
+        set_value_parser.add_argument('-r', '--srange', action=self._prompt_spec_warning(), nargs=2, type=self._positive_int, required=False, help=set_srange_help, metavar=('SCLKMIN', 'SCLKMAX'))
+        set_value_parser.add_argument('-R', '--mrange', action=self._prompt_spec_warning(), nargs=2, type=self._positive_int, required=False, help=set_mrange_help, metavar=('MCLKMIN', 'MCLKMAX'))
+        set_value_parser.add_argument('-f', '--fan', action=self._validate_fan_speed(), required=False, help=set_fan_help, metavar='%')
+        set_value_parser.add_argument('-l', '--perflevel', action='store', choices=['auto', 'low', 'high', 'manual'], required=False, help=set_perf_level_help, metavar='LEVEL')
+        set_value_parser.add_argument('-o', '--overdrive', action=self._validate_overdrive_percent(), required=False, help=set_overdrive_help, metavar='%')
+        set_value_parser.add_argument('-O', '--memoverdrive', action=self._validate_overdrive_percent(), required=False, help=set_mem_overdrive_help, metavar='%')
+        set_value_parser.add_argument('-w', '--poweroverdrive', action=self._prompt_spec_warning(), type=self._positive_int, required=False, help=set_power_overdrive_help, metavar="WATTS")
+        set_value_parser.add_argument('-P', '--profile', action='store', required=False, help=set_profile_help, metavar='SETPROFILE')
+        set_value_parser.add_argument('-d', '--perfdeterminism', action='store', type=self._positive_int, required=False, help=set_perf_det_help, metavar='SCLK')
+
+
+    def _validate_set_clock(self, validate_clock_type=True):
+        """ Validate Clock input"""
+        amdsmi_helpers = self.amdsmi_helpers
+        class _ValidateClockType(argparse.Action):
+            # Checks the values
+            def __call__(self, parser, args, values, option_string=None):
+                if validate_clock_type:
+                    clock_type = values[0]
+                    valid_clock_type, clock_types = amdsmi_helpers.is_valid_clock_type(clock_type=clock_type)
+                    if not valid_clock_type:
+                        raise argparse.ArgumentError(self, f"Invalid argument: '{clock_type}' needs to be a valid clock type:{clock_types}")
+
+                    clock_levels = values[1:]
+                else:
+                    clock_levels = values
+
+                freq_bitmask = 0
+                for level in clock_levels:
+                    if level > 63:
+                        raise argparse.ArgumentError(self, f"Invalid argument: '{level}' needs to be a valid clock level 0-63")
+                    freq_bitmask |= (1 << level)
+
+                if validate_clock_type:
+                    setattr(args, self.dest, (clock_type, freq_bitmask))
+                else:
+                    setattr(args, self.dest, freq_bitmask)
+        return _ValidateClockType
+
+
+    def _prompt_spec_warning(self):
+        """ Prompt out of spec warning"""
+        amdsmi_helpers = self.amdsmi_helpers
+        class _PromptSpecWarning(argparse.Action):
+            # Checks the values
+            def __call__(self, parser, args, values, option_string=None):
+                amdsmi_helpers.confirm_out_of_spec_warning()
+                setattr(args, self.dest, values)
+        return _PromptSpecWarning
+
+
+    def _validate_fan_speed(self):
+        """ Validate fan speed input"""
+        amdsmi_helpers = self.amdsmi_helpers
+        class _ValidateFanSpeed(argparse.Action):
+            # Checks the values
+            def __call__(self, parser, args, values, option_string=None):
+                # Convert percentage to fan level
+                if isinstance(values, str):
+                    try:
+                        values = int(values[:-1]) // 100 * 255
+                    except ValueError as e:
+                        raise argparse.ArgumentError(self, f"Invalid argument: '{values}' needs to be 0-255 or 0-100%")
+
+                # Store the fan level as fan_speed
+                if isinstance(values, int):
+                    if 0 <= values <= 255:
+                        amdsmi_helpers.confirm_out_of_spec_warning()
+                        setattr(args, self.dest, values)
+                    else:
+                        raise argparse.ArgumentError(self, f"Invalid argument: '{values}' needs to be 0-255 or 0-100%")
+
+        return _ValidateFanSpeed
+
+
+    def _validate_overdrive_percent(self):
+        """ Validate overdrive percentage input"""
+        amdsmi_helpers = self.amdsmi_helpers
+        class _ValidateOverdrivePercent(argparse.Action):
+            # Checks the values
+            def __call__(self, parser, args, values, option_string=None):
+                if isinstance(values, str):
+                    try:
+                        if values[-1] == '%':
+                            values = int(values[:-1])
+                        else:
+                            values = int(values)
+                    except ValueError as e:
+                        raise argparse.ArgumentError(self, f"Invalid argument: '{values}' needs to be 0-20 or 0-20%")
+
+                if isinstance(values, int):
+                    if 0 <= values <= 20:
+                        over_drive_percent = values
+                    else:
+                        raise argparse.ArgumentError(self, f"Invalid argument: '{values}' needs to be 0-20 or 0-20%")
+
+                amdsmi_helpers.confirm_out_of_spec_warning()
+                setattr(args, self.dest, over_drive_percent)
+        return _ValidateOverdrivePercent
 
 
     def _add_reset_parser(self, subparsers, func):
-        if not(self.amd_smi_helpers.is_baremetal() and self.amd_smi_helpers.is_linux()):
+        if not(self.amdsmi_helpers.is_baremetal() and self.amdsmi_helpers.is_linux()):
             # This subparser is only applicable to Baremetal Linux
             return
 
@@ -665,15 +753,16 @@ class AMDSMIParser(argparse.ArgumentParser):
 
         # Optional Args
         reset_parser.add_argument('-G', '--gpureset', action='store_true', required=False, help=gpureset_help)
-        reset_parser.add_argument('-c', '--resetclocks', action='store_true', required=False, help=resetclocks_help)
-        reset_parser.add_argument('-f', '--resetfans', action='store_true', required=False, help=resetfans_help)
-        reset_parser.add_argument('-p', '--resetprofile', action='store_true', required=False, help=resetprofile_help)
-        reset_parser.add_argument('-o', '--resetpoweroverdrive', action='store_true', required=False, help=resetpoweroverdrive_help)
-        reset_parser.add_argument('-x', '--resetxgmierr', action='store_true', required=False, help=resetxgmierr_help)
-        reset_parser.add_argument('-d', '--resetperfdet', action='store_true', required=False, help=resetperfdet_help)
+        reset_parser.add_argument('-c', '--clocks', action='store_true', required=False, help=resetclocks_help)
+        reset_parser.add_argument('-f', '--fans', action='store_true', required=False, help=resetfans_help)
+        reset_parser.add_argument('-p', '--profile', action='store_true', required=False, help=resetprofile_help)
+        reset_parser.add_argument('-o', '--poweroverdrive', action='store_true', required=False, help=resetpoweroverdrive_help)
+        reset_parser.add_argument('-x', '--xgmierr', action='store_true', required=False, help=resetxgmierr_help)
+        reset_parser.add_argument('-d', '--perfdeterminism', action='store_true', required=False, help=resetperfdet_help)
 
 
     def _add_rocm_smi_parser(self, subparsers, func):
+        return
         # Subparser help text
         rocm_smi_help = "Legacy rocm_smi commands ported for backward compatibility"
         rocm_smi_subcommand_help = "If no argument is provided, return showall and print the information for all\
@@ -683,15 +772,17 @@ class AMDSMIParser(argparse.ArgumentParser):
         # Optional arguments help text
         load_help = "Load clock, fan, performance, and profile settings from a given file."
         save_help = "Save clock, fan, performance, and profile settings to a given file."
-        showpidgpus_help = "Display's all the pids in a table sorted by gpu's"
-        showtopo_help = "Show combinded table to individual topo info"
-        showallinfo_help = "Show Temperature, Fan and Clock values"
-        showcompactview_help = "Show main points of interest"
-        showuse_help = "Show gpu usage"
-        showmemuse_help = "Show usage of gpu and memory"
+        showtempgraph_help = "Show Temperature Graph"
+        showmclkrange_help = "Show mclk range"
+        showsclkrange_help = "Show sclk range"
+        showmaxpower_help = "Show maximum graphics package power this GPU will consume"
+        showmemvendor_help = "Show GPU memory vendor"
+        showproductname_help = "Show SKU/Vendor name"
+        showclkvolt_help = "Show supported GPU and Memory Clocks and Voltages"
+        showclkfrq_help = "Show supported GPU and Memory Clock"
 
         # Create rocm_smi subparser
-        rocm_smi_parser = subparsers.add_parser('rocm-smi', help=rocm_smi_help, description=rocm_smi_subcommand_help, aliases=['rocm_smi'])
+        rocm_smi_parser = subparsers.add_parser('rocm-smi', help=rocm_smi_help, description=rocm_smi_subcommand_help)
         rocm_smi_parser._optionals.title = rocm_smi_optionals_title
         rocm_smi_parser.formatter_class=lambda prog: argparse.RawTextHelpFormatter(prog, max_help_position=80, width=90)
         rocm_smi_parser.set_defaults(func=func)
@@ -704,14 +795,11 @@ class AMDSMIParser(argparse.ArgumentParser):
         rocm_smi_parser.add_argument('-l', '--load', action=self._check_input_file_path(), type=str, required=False, help=load_help)
         rocm_smi_parser.add_argument('-s', '--save', action=self._check_output_file_path(), type=str, required=False, help=save_help)
 
-        rocm_smi_parser.add_argument('-T', '--showtempgraph', action='store_true', required=False, help=showpidgpus_help)
-        rocm_smi_parser.add_argument('-P', '--showprofile', action='store_true', required=False, help=showpidgpus_help)
-        rocm_smi_parser.add_argument('-M', '--showmaxpower', action='store_true', required=False, help=showpidgpus_help)
-
-        rocm_smi_parser.add_argument('-p', '--showpidgpus', action='store_true', required=False, help=showpidgpus_help)
-        rocm_smi_parser.add_argument('-t', '--showtopo', action='store_true', required=False, help=showtopo_help)
-        rocm_smi_parser.add_argument('-a', '--showallinfo', action='store_true', required=False, help=showallinfo_help)
-
-        rocm_smi_parser.add_argument('-c', '--showcompactview', action='store_true', required=False, help=showcompactview_help)
-        rocm_smi_parser.add_argument('-u', '--showuse', action='store_true', required=False, help=showuse_help)
-        rocm_smi_parser.add_argument('-m', '--showmemuse', action='store_true', required=False, help=showmemuse_help)
+        rocm_smi_parser.add_argument('-t', '--showtempgraph', action='store_true', required=False, help=showtempgraph_help)
+        rocm_smi_parser.add_argument('-m', '--showmclkrange', action='store_true', required=False, help=showmclkrange_help)
+        rocm_smi_parser.add_argument('-c', '--showsclkrange', action='store_true', required=False, help=showsclkrange_help)
+        rocm_smi_parser.add_argument('-P', '--showmaxpower', action='store_true', required=False, help=showmaxpower_help)
+        rocm_smi_parser.add_argument('-M', '--showmemvendor', action='store_true', required=False, help=showmemvendor_help)
+        rocm_smi_parser.add_argument('-p', '--showproductname', action='store_true', required=False, help=showproductname_help)
+        rocm_smi_parser.add_argument('-v', '--showclkvolt', action='store_true', required=False, help=showclkvolt_help)
+        rocm_smi_parser.add_argument('-f', '--showclkfrq', action='store_true', required=False, help=showclkfrq_help)
