@@ -1091,14 +1091,15 @@ amdsmi_get_power_cap_info(amdsmi_device_handle device_handle,
         info->dpm_cap = dpm;
     }
     else {
-        // Get other information from rocm-smi
-        auto rsmi_status = rsmi_dev_power_cap_default_get(gpudevice->get_gpu_id(),
-                    &(info->default_power_cap));
-        rsmi_status = rsmi_dev_power_cap_range_get(gpudevice->get_gpu_id(),
-                    sensor_ind, &(info->max_power_cap), &(info->min_power_cap));
-        rsmi_status = rsmi_dev_power_cap_get(gpudevice->get_gpu_id(),
+        auto rsmi_status = rsmi_dev_power_cap_get(gpudevice->get_gpu_id(),
                     sensor_ind, &(info->power_cap));
     }
+
+    // Get other information from rocm-smi
+    auto rsmi_status = rsmi_dev_power_cap_default_get(gpudevice->get_gpu_id(),
+                &(info->default_power_cap));
+    rsmi_status = rsmi_dev_power_cap_range_get(gpudevice->get_gpu_id(),
+                sensor_ind, &(info->max_power_cap), &(info->min_power_cap));
 
     return AMDSMI_STATUS_SUCCESS;
 }

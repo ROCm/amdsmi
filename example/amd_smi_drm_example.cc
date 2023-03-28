@@ -673,7 +673,13 @@ int main() {
             printf("    Output of amdsmi_get_power_cap_info:\n");
             std::cout << "\t\t Power Cap: " << cap_info.power_cap
                       << "W\n";
+            std::cout << "\t\t Default Power Cap: " << cap_info.default_power_cap
+                      << "\n\n";
             std::cout << "\t\t Dpm Cap: " << cap_info.dpm_cap
+                      << "\n\n";
+            std::cout << "\t\t Min Power Cap: " << cap_info.min_power_cap
+                      << "\n\n";
+            std::cout << "\t\t Max Power Cap: " << cap_info.max_power_cap
                       << "\n\n";
         }
     }

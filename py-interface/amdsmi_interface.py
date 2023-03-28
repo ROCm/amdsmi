@@ -620,8 +620,11 @@ def amdsmi_get_power_cap_info(
         )
     )
 
-    return {"dpm_cap": power_info.dpm_cap, "power_cap": power_info.power_cap}
-
+    return {"power_cap": power_info.power_cap,
+            "dpm_cap": power_info.dpm_cap,
+            "power_cap_default": power_info.default_power_cap,
+            "min_power_cap": power_info.min_power_cap,
+            "max_power_cap": power_info.max_power_cap}
 
 def amdsmi_get_caps_info(
     device_handle: amdsmi_wrapper.amdsmi_device_handle,
