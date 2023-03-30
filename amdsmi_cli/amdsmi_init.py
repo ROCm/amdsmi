@@ -31,7 +31,8 @@ from pathlib import Path
 
 sys.path.append(f'{Path(__file__).resolve().parent}/../../share/amd_smi')
 
-import amdsmi as amdsmi_interface
+from amdsmi import amdsmi_interface
+from amdsmi import amdsmi_exception
 
 # Using basic python logging for user errors and development
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.ERROR) # User level logging
@@ -79,7 +80,7 @@ def shut_down_amdsmi():
     """
     try:
         amdsmi_interface.amdsmi_shut_down()
-    except amdsmi_interface.AmdSmiLibraryException as err:
+    except amdsmi_exception.AmdSmiLibraryException as err:
         raise err
 
 
