@@ -113,9 +113,9 @@ class AMDSMICommands():
         # Handle multiple GPUs
         handled_multiple_gpus, device_handle = self.helpers.handle_gpus(args, self.logger, self.discovery)
         if handled_multiple_gpus:
-            return
-        else:
-            args.gpu = device_handle
+            return # This function is recursive
+
+        args.gpu = device_handle
 
         try:
             bdf = amdsmi_interface.amdsmi_get_device_bdf(args.gpu)
@@ -197,9 +197,9 @@ class AMDSMICommands():
         # Handle multiple GPUs
         handled_multiple_gpus, device_handle = self.helpers.handle_gpus(args, self.logger, self.static)
         if handled_multiple_gpus:
-            return
-        else:
-            args.gpu = device_handle
+            return # This function is recursive
+
+        args.gpu = device_handle
 
         # If all arguments are False, it means that no argument was passed and the entire static should be printed
         if not any([args.asic, args.bus, args.vbios, args.limit, args.driver, args.caps, args.ras, args.board]):
@@ -375,9 +375,9 @@ class AMDSMICommands():
         # Handle multiple GPUs
         handled_multiple_gpus, device_handle = self.helpers.handle_gpus(args, self.logger, self.firmware)
         if handled_multiple_gpus:
-            return
-        else:
-            args.gpu = device_handle
+            return # This function is recursive
+
+        args.gpu = device_handle
 
         values_dict = {}
 
@@ -453,9 +453,9 @@ class AMDSMICommands():
         # Handle multiple GPUs
         handled_multiple_gpus, device_handle = self.helpers.handle_gpus(args, self.logger, self.bad_pages)
         if handled_multiple_gpus:
-            return
-        else:
-            args.gpu = device_handle
+            return # This function is recursive
+
+        args.gpu = device_handle
 
         # If all arguments are False, the print all bad_page information
         if not any([args.retired, args.pending, args.un_res]):
@@ -846,7 +846,7 @@ class AMDSMICommands():
                 od_volt = amdsmi_interface.amdsmi_dev_get_od_volt_info(args.gpu)
                 voltage_curve_error = False
             except amdsmi_exception.AmdSmiLibraryException as e:
-                od_volt = None;
+                od_volt = None
                 values_dict["voltage_curve"] = e.get_error_info()
                 voltage_curve_error = True
 
@@ -1140,7 +1140,7 @@ class AMDSMICommands():
         print('EVENT LISTENING:\n')
         print('Press q and hit ENTER when you want to stop (listening will stop inside 10 seconds)')
 
-        threads = list()
+        threads = []
         for i in range(len(self.device_handles)):
             x = threading.Thread(target=self._event_thread, args=(self, i))
             threads.append(x)
@@ -1304,9 +1304,9 @@ class AMDSMICommands():
         # Handle multiple GPUs
         handled_multiple_gpus, device_handle = self.helpers.handle_gpus(args, self.logger, self.set_value)
         if handled_multiple_gpus:
-            return
-        else:
-            args.gpu = device_handle
+            return # This function is recursive
+
+        args.gpu = device_handle
 
         if args.clock:
             clock_type, freq_bitmask = args.clock
@@ -1591,9 +1591,9 @@ class AMDSMICommands():
         # Handle multiple GPUs
         handled_multiple_gpus, device_handle = self.helpers.handle_gpus(args, self.logger, self.reset)
         if handled_multiple_gpus:
-            return
-        else:
-            args.gpu = device_handle
+            return # This function is recursive
+
+        args.gpu = device_handle
 
         if args.gpureset:
             if self.helpers.is_amd_device(args.gpu):

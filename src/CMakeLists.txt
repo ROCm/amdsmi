@@ -120,7 +120,7 @@ install(
 
 install(
     FILES ${PROJECT_SOURCE_DIR}/include/amd_smi/amdsmi.h
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/amd_smii
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/amd_smi
     COMPONENT dev)
 install(
     FILES ${PROJECT_SOURCE_DIR}/include/amd_smi/${AMD_SMI_TARGET}Config.h
