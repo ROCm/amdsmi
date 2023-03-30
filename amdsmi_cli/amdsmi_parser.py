@@ -539,6 +539,7 @@ class AMDSMIParser(argparse.ArgumentParser):
 
 
     def _add_topology_parser(self, subparsers, func):
+        return
         if not(self.amdsmi_helpers.is_baremetal() and self.amdsmi_helpers.is_linux()):
             # This subparser is only applicable to Baremetal Linux
             return
