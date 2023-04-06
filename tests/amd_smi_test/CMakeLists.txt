@@ -70,3 +70,8 @@ install(
     TARGETS ${TEST} gtest gtest_main
     DESTINATION ${SHARE_INSTALL_PREFIX}/tests
     COMPONENT tests)
+
+install(
+    FILES amdsmitst.exclude
+    DESTINATION ${SHARE_INSTALL_PREFIX}/tests
+    COMPONENT tests)
