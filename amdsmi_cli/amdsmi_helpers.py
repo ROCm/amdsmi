@@ -26,6 +26,8 @@ import sys
 import time
 
 from pathlib import Path
+from subprocess import run
+from subprocess import PIPE, STDOUT
 
 from amdsmi_init import *
 from BDF import BDF
@@ -53,18 +55,11 @@ class AMDSMIHelpers():
             self._is_linux = True
             logging.debug(f"AMDSMIHelpers: Platform is linux:{self._is_linux}")
 
-            product_name = ""
-            product_name_path = Path("/sys/class/dmi/id/product_name")
-            if product_name_path.exists():
-                product_name = product_name_path.read_text().strip()
-
-            if product_name == "":
-                # Unable to determine product_name default to baremetal
+            output = run(["lscpu"], stdout=PIPE, stderr=STDOUT, encoding="UTF-8").stdout
+            if "hypervisor" not in output:
                 self._is_baremetal = True
-
-            # Determine if a system is baremetal by deduction
-            self._is_baremetal = not self._is_hypervisor and not self._is_virtual_os
-
+            else:
+                self._is_virtual_os = True
 
     def os_info(self, string_format=True):
         """Return operating_system and type information ex. (Linux, Baremetal)
