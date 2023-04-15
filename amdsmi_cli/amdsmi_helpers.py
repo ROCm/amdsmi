@@ -22,6 +22,7 @@
 
 import logging
 import platform
+import sys
 import time
 
 from pathlib import Path
@@ -116,6 +117,20 @@ class AMDSMIHelpers():
 
     def is_windows(self):
         return self._is_windows
+
+
+    def get_output_format(self):
+        """Returns the output format read from sys.argv
+        Returns:
+            str: outputformat
+        """
+        args = sys.argv[1:]
+        outputformat = "human"
+        if "--json" in args or "--j" in args:
+            outputformat = "json"
+        elif "--csv" in args or "--c" in args:
+            outputformat = "csv"
+        return outputformat
 
 
     def get_gpu_choices(self):
@@ -307,11 +322,34 @@ class AMDSMIHelpers():
         return asic_info['vendor_id'] == AMD_VENDOR_ID
 
 
-    def is_valid_clock_type(self, clock_type):
-        if clock_type in amdsmi_interface.amdsmi_wrapper.amdsmi_clk_type_t__enumvalues:
-            return True, amdsmi_interface.amdsmi_wrapper.amdsmi_clk_type_t__enumvalues.keys()
-        else:
-            return False, amdsmi_interface.amdsmi_wrapper.amdsmi_clk_type_t__enumvalues.keys()
+    def get_perf_levels(self):
+        perf_levels_str = [clock.name for clock in amdsmi_interface.AmdSmiDevPerfLevel]
+        perf_levels_int = list(set(clock.value for clock in amdsmi_interface.AmdSmiDevPerfLevel))
+        return perf_levels_str, perf_levels_int
+
+
+    def get_clock_types(self):
+        clock_types_str = [clock.name for clock in amdsmi_interface.AmdSmiClkType]
+        clock_types_int = list(set(clock.value for clock in amdsmi_interface.AmdSmiClkType))
+        return clock_types_str, clock_types_int
+
+
+    def validate_clock_type(self, input_clock_type):
+        valid_clock_types_str, valid_clock_types_int = self.get_clock_types()
+
+        valid_clock_input = False
+        if isinstance(input_clock_type, str):
+            for clock_type in valid_clock_types_str:
+                if input_clock_type.lower() == clock_type.lower():
+                    input_clock_type = clock_type # Set input_clock_type to enum value in AmdSmiClkType
+                    valid_clock_input = True
+                    break
+        elif isinstance(input_clock_type, int):
+            if input_clock_type in valid_clock_types_int:
+                input_clock_type = amdsmi_interface.AmdSmiClkType(input_clock_type)
+                valid_clock_input = True
+
+        return valid_clock_input, input_clock_type
 
 
     def confirm_out_of_spec_warning(self, auto_respond=False):
@@ -348,15 +386,3 @@ class AMDSMIHelpers():
             return True, profile_presets[profile]
         else:
             return False, profile_presets.values()
-
-
-    def get_perf_level(self, device_handle):
-        """ Return the current performance level of a given device
-
-        @param device_handle: DRM device identifier
-        """
-
-        try:
-            ret = amdsmi_interface.amdsmi_dev_get_perf_level(device_handle)
-        except amdsmi_exception.AmdSmiLibraryException as e:
-            raise ValueError(self, f"Unable to get performance level of {device_handle}")

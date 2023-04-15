@@ -1,6 +1,26 @@
+#!/usr/bin/env python3
+#
+# Copyright (C) 2023 Advanced Micro Devices. All rights reserved.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to
+# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+# the Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
 
 import json
-import sys
 
 AMDSMI_ERROR_MESSAGES = {
     0: "Sucess",
@@ -23,12 +43,12 @@ AMDSMI_ERROR_MESSAGES = {
     17: "Out of bounds",
     18: "Initialization error",
     19: "Internal reference counter exceeded",
-
+    # Reserved for future error messages
     30: "Device busy",
     31: "Device Not found",
     32: "Device not initialized",
     33: "No more free slot",
-
+    # Reserved for future error messages
     40: "No data was found for given input",
     41: "Insufficient size for operation",
     42: "Unexpected size of data was read",
@@ -41,142 +61,152 @@ def _get_error_message(error_code):
     return "Generic error"
 
 class AmdSmiException(Exception):
+    def __init__(self):
+        self.json_message = {}
+        self.csv_message = ''
+        self.stdout_message = ''
+        self.message = ''
+        self.output_format = ''
+
     def __str__(self):
+        # Return message according to the current output format
+        if self.output_format == 'json':
+            self.message = json.dumps(self.json_message)
+        elif self.output_format == 'csv':
+            self.message = self.csv_message
+        else:
+            self.message = self.stdout_message
+
         return self.message
 
 
 class AmdSmiInvalidCommandException(AmdSmiException):
     def __init__(self, command, outputformat):
+        super().__init__()
         self.value = -1
         self.command = command
-        if outputformat == "json":
-            values = {}
-            values["error"] = "Command '{}' is invalid. Run '--help' for more info.".format(self.command)
-            values["code"] = self.value
-            self.message = json.dumps(values)
-        elif outputformat == "csv":
-            self.message = "error,code\n" + "Command '{}' is invalid. Run '--help' for more info.,".format(self.command) + str(self.value)
-        else:
-            self.message = "Command '{}' is invalid. Run '--help' for more info. Error code: {}".format(self.command, self.value)
+        self.output_format = outputformat
 
+        common_message = f"Command '{self.command}' is invalid. Run '--help' for more info."
+
+        self.json_message["error"] = common_message
+        self.json_message["code"] = self.value
+        self.csv_message = f"error,code\n{common_message}, {self.value}"
+        self.stdout_message = f"{common_message} Error code: {self.value}"
 
 
 class AmdSmiInvalidParameterException(AmdSmiException):
     def __init__(self, command, outputformat):
+        super().__init__()
         self.value = -2
         self.command = command
-        if outputformat == "json":
-            values = {}
-            values["error"] = "Parameter '{}' is invalid. Run '--help' for more info.".format(self.command)
-            values["code"] = self.value
-            self.message = json.dumps(values)
-        elif outputformat == "csv":
-            self.message = "error,code\n" + "Parameter '{}' is invalid. Run '--help' for more info.,".format(self.command) + str(self.value)
-        else:
-            self.message = "Parameter '{}' is invalid. Run '--help' for more info. Error code: {}".format(self.command, self.value)
+        self.output_format = outputformat
+
+        common_message = f"Parameter '{self.command}' is invalid. Run '--help' for more info."
+
+        self.json_message["error"] = common_message
+        self.json_message["code"] = self.value
+        self.csv_message = f"error,code\n{common_message}, {self.value}"
+        self.stdout_message = f"{common_message} Error code: {self.value}"
 
 
 class AmdSmiDeviceNotFoundException(AmdSmiException):
     def __init__(self, command, outputformat):
+        super().__init__()
         self.value = -3
         self.command = command
-        if outputformat == "json":
-            values = {}
-            values["error"] = "GPU Device with GPU_INDEX '{}' cannot be found on the system.".format(self.command)
-            values["code"] = self.value
-            self.message = json.dumps(values)
-        elif outputformat == "csv":
-            self.message = "error,code\n" + "GPU Device with GPU_INDEX '{}' cannot be found on the system.,".format(self.command) + str(self.value)
-        else:
-            self.message = "GPU Device with GPU_INDEX '{}' cannot be found on the system. Error code: {}".format(self.command, self.value)
+        self.output_format = outputformat
 
+        common_message = f"GPU Device with GPU_INDEX '{self.command}' cannot be found on the system."
+
+        self.json_message["error"] = common_message
+        self.json_message["code"] = self.value
+        self.csv_message = f"error,code\n{common_message}, {self.value}"
+        self.stdout_message = f"{common_message} Error code: {self.value}"
 
 class AmdSmiInvalidFilePathException(AmdSmiException):
     def __init__(self, command, outputformat):
+        super().__init__()
         self.value = -4
         self.command = command
-        if outputformat == "json":
-            values = {}
-            values["error"] = "Path '{}' cannot be found.".format(self.command)
-            values["code"] = self.value
-            self.message = json.dumps(values)
-        elif outputformat == "csv":
-            self.message = "error,code\n" + "Path '{}' cannot be found.,".format(self.command) + str(self.value)
-        else:
-            self.message = "Path '{}' cannot be found. Error code: {}".format(self.command, self.value)
+        self.output_format = outputformat
+
+        common_message = f"Path '{self.command}' cannot be found."
+
+        self.json_message["error"] = common_message
+        self.json_message["code"] = self.value
+        self.csv_message = f"error,code\n{common_message}, {self.value}"
+        self.stdout_message = f"{common_message} Error code: {self.value}"
 
 
 class AmdSmiInvalidParameterValueException(AmdSmiException):
     def __init__(self, command, outputformat):
+        super().__init__()
         self.value = -5
         self.command = command
-        if outputformat == "json":
-            values = {}
-            values["error"] = "Value '{}' is not of valid type or format. Run '--help' for more info.".format(self.command)
-            values["code"] = self.value
-            self.message = json.dumps(values)
-        elif outputformat == "csv":
-            self.message = "error,code\n" + "Value '{}' is not of valid type or format. Run '--help' for more info.,".format(self.command) + str(self.value)
-        else:
-            self.message = "Value '{}' is not of valid type or format. Run '--help' for more info. Error code: {}".format(self.command, self.value)
+        self.output_format = outputformat
+
+        common_message = f"Value '{self.command}' is not of valid type or format. Run '--help' for more info."
+
+        self.json_message["error"] = common_message
+        self.json_message["code"] = self.value
+        self.csv_message = f"error,code\n{common_message}, {self.value}"
+        self.stdout_message = f"{common_message} Error code: {self.value}"
 
 
 class AmdSmiMissingParameterValueException(AmdSmiException):
     def __init__(self, command, outputformat):
+        super().__init__()
         self.value = -6
         self.command = command
-        if outputformat == "json":
-            values = {}
-            values["error"] = "Parameter '{}' requires a value. Run '--help' for more info.".format(self.command)
-            values["code"] = self.value
-            self.message = json.dumps(values)
-        elif outputformat == "csv":
-            self.message = "error,code\n" + "Parameter '{}' requires a value. Run '--help' for more info.,".format(self.command) + str(self.value)
-        else:
-            self.message = "Parameter '{}' requires a value. Run '--help' for more info. Error code: {}".format(self.command, self.value)
+        self.output_format = outputformat
+
+        common_message = f"Parameter '{self.command}' requires a value. Run '--help' for more info."
+
+        self.json_message["error"] = common_message
+        self.json_message["code"] = self.value
+        self.csv_message = f"error,code\n{common_message}, {self.value}"
+        self.stdout_message = f"{common_message} Error code: {self.value}"
+
 
 class AmdSmiParameterNotSupportedException(AmdSmiException):
     def __init__(self, command, outputformat):
+        super().__init__()
         self.value = -8
         self.command = command
-        if outputformat == "json":
-            values = {}
-            values["error"] = "Parameter '{}' is not supported on the system. Run '--help' for more info.".format(self.command)
-            values["code"] = self.value
-            self.message = json.dumps(values)
-        elif outputformat == "csv":
-            self.message = "error,code\n" + "Parameter '{}' is not supported on the system. Run '--help' for more info.,".format(self.command) + str(self.value)
-        else:
-            self.message = "Parameter '{}' is not supported on the system. Run '--help' for more info. Error code: {}".format(self.command, self.value)
+        self.output_format = outputformat
 
+        common_message = f"Parameter '{self.command}' is not supported on the system. Run '--help' for more info."
+
+        self.json_message["error"] = common_message
+        self.json_message["code"] = self.value
+        self.csv_message = f"error,code\n{common_message}, {self.value}"
+        self.stdout_message = f"{common_message} Error code: {self.value}"
 
 class AmdSmiUnknownErrorException(AmdSmiException):
     def __init__(self, command, outputformat):
+        super().__init__()
         self.value = -100
         self.command = command
-        if outputformat == "json":
-            values = {}
-            values["error"] = "An unknown error has occurred. Run 'help' for more info."
-            values["code"] = self.value
-            self.message = json.dumps(values)
-        elif outputformat == "csv":
-            self.message = "error,code\n" + "An unknown error has occurred. Run 'help' for more info.," + str(self.value)
-        else:
-            self.message = "An unknown error has occurred. Run 'help' for more info. Error code: {}".format(self.value)
+        self.output_format = outputformat
 
+        common_message = "An unknown error has occurred. Run 'help' for more info."
+
+        self.json_message["error"] = common_message
+        self.json_message["code"] = self.value
+        self.csv_message = f"error,code\n{common_message}, {self.value}"
+        self.stdout_message = f"{common_message} Error code: {self.value}"
 
 class AmdSmiAMDSMIErrorException(AmdSmiException):
     def __init__(self, outputformat, error_code):
+        super().__init__()
         self.value = -1000 - abs(error_code)
         self.smilibcode = error_code
+        self.output_format = outputformat
 
-        if outputformat == "json":
-            values = {}
-            values["error"] = "AMDSMI has returned error '{}' - '{}'".format(self.value, 
-                                AMDSMI_ERROR_MESSAGES[abs(self.smilibcode)])
-            values["code"] = self.value
-            self.message = json.dumps(values)
-        elif outputformat == "csv":
-            self.message = "error,code\n" + "AMDSMI has returned error '{}' - '{}',".format(self.value, _get_error_message(self.smilibcode)) + str(self.value)
-        else:
-            self.message = "AMDSMI has returned error '{}' - '{}' Error code: {}".format(self.value, _get_error_message(self.smilibcode), self.value)
+        common_message = f"AMDSMI has returned error '{self.value}' - '{AMDSMI_ERROR_MESSAGES[abs(self.smilibcode)]}'"
+
+        self.json_message["error"] = common_message
+        self.json_message["code"] = self.value
+        self.csv_message = f"error,code\n{common_message}, {self.value}"
+        self.stdout_message = f"{common_message} Error code: {self.value}"
