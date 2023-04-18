@@ -2437,7 +2437,7 @@ def amdsmi_dev_get_ecc_count(
 
     ec = amdsmi_wrapper.amdsmi_error_count_t()
     _check_res(
-        amdsmi_wrapper. amdsmi_dev_get_ecc_count(
+        amdsmi_wrapper.amdsmi_dev_get_ecc_count(
             device_handle, block, ctypes.byref(ec))
     )
 
