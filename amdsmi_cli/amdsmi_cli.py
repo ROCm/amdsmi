@@ -26,6 +26,20 @@ import sys
 from amdsmi_commands import AMDSMICommands
 from amdsmi_parser import AMDSMIParser
 from amdsmi_logger import AMDSMILogger
+import amdsmi_cli_exceptions
+from amdsmi import amdsmi_interface
+
+def _print_error(e, destination):
+    if destination == 'stdout':
+        print(e)
+    else:
+        f = open(destination, "w")
+        f.write(e)
+        f.close()
+        print("Error occured. Result written to " +
+                str(destination) + " file")
+
+
 
 if __name__ == "__main__":
     # Set compatability mode based on which cli mapping user selects
@@ -50,23 +64,28 @@ if __name__ == "__main__":
                                     amd_smi_commands.set_value,
                                     amd_smi_commands.reset,
                                     amd_smi_commands.rocm_smi)
+    try:
+        args = amd_smi_parser.parse_args(args=None if sys.argv[1:] else ['--help'])
 
-    args = amd_smi_parser.parse_args(args=None if sys.argv[1:] else ['--help'])
+        # Handle command modifiers before subcommand execution
+        if args.json:
+            amd_smi_commands.logger.format = amd_smi_commands.logger.LoggerFormat.json.value
+        if args.csv:
+            amd_smi_commands.logger.format = amd_smi_commands.logger.LoggerFormat.csv.value
+        if args.file:
+            amd_smi_commands.logger.destination = args.file
+        if args.loglevel:
+            logging_dict = {'DEBUG' : logging.DEBUG,
+                    'INFO' : logging.INFO,
+                    'WARNING': logging.WARNING,
+                    'ERROR': logging.ERROR,
+                    'CRITICAL': logging.CRITICAL}
+            logging.basicConfig(format='%(levelname)s: %(message)s', level=logging_dict[args.loglevel])
 
-    # Handle command modifiers before subcommand execution
-    if args.json:
-        amd_smi_commands.logger.format = amd_smi_commands.logger.LoggerFormat.json.value
-    if args.csv:
-        amd_smi_commands.logger.format = amd_smi_commands.logger.LoggerFormat.csv.value
-    if args.file:
-        amd_smi_commands.logger.destination = args.file
-    if args.loglevel:
-        logging_dict = {'DEBUG' : logging.DEBUG,
-                        'INFO' : logging.INFO,
-                        'WARNING': logging.WARNING,
-                        'ERROR': logging.ERROR,
-                        'CRITICAL': logging.CRITICAL}
-        logging.basicConfig(format='%(levelname)s: %(message)s', level=logging_dict[args.loglevel])
-
-    # Execute subcommands
-    args.func(args)
+        # Execute subcommands
+        args.func(args)
+    except amdsmi_cli_exceptions.AmdSmiException as e:
+        _print_error(str(e), amd_smi_commands.logger.destination)
+    except amdsmi_interface.AmdSmiLibraryException as e:
+        exc = amdsmi_cli_exceptions.AmdSmiAMDSMIErrorException(amd_smi_commands.logger.format, e.get_error_code())
+        _print_error(str(exc), amd_smi_commands.logger.destination)
