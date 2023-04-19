@@ -1069,13 +1069,15 @@ amdsmi_get_power_cap_info(amdsmi_device_handle device_handle,
     if (info == nullptr)
         return AMDSMI_STATUS_INVAL;
 
+    bool set_ret_success = false;
     amd::smi::AMDSmiGPUDevice* gpudevice = nullptr;
-    amdsmi_status_t r = get_gpu_device_from_handle(device_handle, &gpudevice);
-    if (r != AMDSMI_STATUS_SUCCESS)
-        return r;
-
     amdsmi_status_t status;
 
+    status = get_gpu_device_from_handle(device_handle, &gpudevice);
+    if (status != AMDSMI_STATUS_SUCCESS)
+    {
+        return status;
+    }
     // Ignore errors to get as much as possible info.
     memset(info, 0, sizeof(amdsmi_power_cap_info_t));
 
@@ -1084,24 +1086,37 @@ amdsmi_get_power_cap_info(amdsmi_device_handle device_handle,
         int power_cap = 0;
         int dpm = 0;
         status = smi_amdgpu_get_power_cap(gpudevice, &power_cap);
+        if ((status == AMDSMI_STATUS_SUCCESS) && !set_ret_success)
+            set_ret_success = true;
 
         info->power_cap = power_cap;
         status = smi_amdgpu_get_ranges(gpudevice, CLK_TYPE_GFX,
                 NULL, NULL, &dpm);
+        if ((status == AMDSMI_STATUS_SUCCESS) && !set_ret_success)
+            set_ret_success = true;
         info->dpm_cap = dpm;
     }
     else {
-        auto rsmi_status = rsmi_dev_power_cap_get(gpudevice->get_gpu_id(),
+        status = rsmi_wrapper(rsmi_dev_power_cap_get, device_handle,
                     sensor_ind, &(info->power_cap));
+        if ((status == AMDSMI_STATUS_SUCCESS) && !set_ret_success)
+            set_ret_success = true;
     }
 
     // Get other information from rocm-smi
-    auto rsmi_status = rsmi_dev_power_cap_default_get(gpudevice->get_gpu_id(),
-                &(info->default_power_cap));
-    rsmi_status = rsmi_dev_power_cap_range_get(gpudevice->get_gpu_id(),
-                sensor_ind, &(info->max_power_cap), &(info->min_power_cap));
+    status = rsmi_wrapper(rsmi_dev_power_cap_default_get, device_handle,
+                        &(info->default_power_cap));
 
-    return AMDSMI_STATUS_SUCCESS;
+    if ((status == AMDSMI_STATUS_SUCCESS) && !set_ret_success)
+        set_ret_success = true;
+
+    status = rsmi_wrapper(rsmi_dev_power_cap_range_get, device_handle, sensor_ind,
+                        &(info->max_power_cap), &(info->min_power_cap));
+
+    if ((status == AMDSMI_STATUS_SUCCESS) && !set_ret_success)
+        set_ret_success = true;
+
+    return set_ret_success ? AMDSMI_STATUS_SUCCESS : AMDSMI_STATUS_NOT_SUPPORTED;
 }
 
 amdsmi_status_t
