@@ -320,7 +320,6 @@ class AMDSMIParser(argparse.ArgumentParser):
         static_parser.add_argument('-a', '--asic', action='store_true', required=False, help=asic_help)
         static_parser.add_argument('-b', '--bus', action='store_true', required=False, help=bus_help)
         static_parser.add_argument('-V', '--vbios', action='store_true', required=False, help=vbios_help)
-        static_parser.add_argument('-l', '--limit', action='store_true', required=False, help=limit_help)
         static_parser.add_argument('-d', '--driver', action='store_true', required=False, help=driver_help)
         static_parser.add_argument('-c', '--caps', action='store_true', required=False, help=caps_help)
 
@@ -329,6 +328,7 @@ class AMDSMIParser(argparse.ArgumentParser):
             static_parser.add_argument('-r', '--ras', action='store_true', required=False, help=ras_help)
             if self.helpers.is_linux():
                 static_parser.add_argument('-B', '--board', action='store_true', required=False, help=board_help)
+                static_parser.add_argument('-l', '--limit', action='store_true', required=False, help=limit_help)
                 static_parser.add_argument('-u', '--numa', action='store_true', required=False, help=numa_help)
 
         # Options to only display on a Hypervisor
@@ -447,12 +447,11 @@ class AMDSMIParser(argparse.ArgumentParser):
         # Add Watch args
         self._add_watch_arguments(metric_parser)
 
-        # Optional Args
-        metric_parser.add_argument('-u', '--usage', action='store_true', required=False, help=usage_help)
-
         # Optional Args for Virtual OS and Baremetal systems
         if self.helpers.is_virtual_os() or self.helpers.is_baremetal():
             metric_parser.add_argument('-b', '--fb-usage', action='store_true', required=False, help=fb_usage_help)
+            metric_parser.add_argument('-m', '--mem-usage', action='store_true', required=False, help=mem_usage_help)
+            metric_parser.add_argument('-r', '--replay-count', action='store_true', required=False, help=replay_count_help)
 
         # Optional Args for Hypervisors and Baremetal systems
         if self.helpers.is_hypervisor() or self.helpers.is_baremetal():
@@ -462,6 +461,7 @@ class AMDSMIParser(argparse.ArgumentParser):
             metric_parser.add_argument('-e', '--ecc', action='store_true', required=False, help=ecc_help)
             metric_parser.add_argument('-P', '--pcie', action='store_true', required=False, help=pcie_help)
             metric_parser.add_argument('-V', '--voltage', action='store_true', required=False, help=voltage_help)
+            metric_parser.add_argument('-u', '--usage', action='store_true', required=False, help=usage_help)
 
         # Optional Args for Linux Baremetal Systems
         if self.helpers.is_baremetal() and self.helpers.is_linux():
@@ -470,10 +470,8 @@ class AMDSMIParser(argparse.ArgumentParser):
             metric_parser.add_argument('-o', '--overdrive', action='store_true', required=False, help=overdrive_help)
             metric_parser.add_argument('-M', '--mem-overdrive', action='store_true', required=False, help=mo_help)
             metric_parser.add_argument('-l', '--perf-level', action='store_true', required=False, help=perf_level_help)
-            metric_parser.add_argument('-r', '--replay-count', action='store_true', required=False, help=replay_count_help)
             metric_parser.add_argument('-x', '--xgmi-err', action='store_true', required=False, help=xgmi_err_help)
             metric_parser.add_argument('-E', '--energy', action='store_true', required=False, help=energy_help)
-            metric_parser.add_argument('-m', '--mem-usage', action='store_true', required=False, help=mem_usage_help)
 
         # Options to only display to Hypervisors
         if self.helpers.is_hypervisor():
