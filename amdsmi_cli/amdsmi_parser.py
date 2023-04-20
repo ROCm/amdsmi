@@ -59,7 +59,7 @@ class AMDSMIParser(argparse.ArgumentParser):
                                                                        width=90),
             description=f"AMD System Management Interface | {version_string} | {platform_string}",
             add_help=True,
-            prog="amdsmi_cli")
+            prog="amd-smi")
 
         # Setup subparsers
         subparsers = self.add_subparsers(
@@ -112,7 +112,14 @@ class AMDSMIParser(argparse.ArgumentParser):
                         raise amdsmi_cli_exceptions.AmdSmiInvalidFilePathException(path, CheckOutputFilePath.outputformat)
 
                 if path.is_dir():
-                    path = path / f"{int(time.time())}-amdsmi-output.txt"
+                    file_name = f"{int(time.time())}-amdsmi-output"
+                    if args.json:
+                        file_name += ".json"
+                    elif args.csv:
+                        file_name += ".csv"
+                    else:
+                        file_name += "txt"
+                    path = path / file_name
                     path.touch()
                     setattr(args, self.dest, path)
                 elif path.is_file():
