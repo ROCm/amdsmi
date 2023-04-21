@@ -145,7 +145,7 @@ class AMDSMILogger():
         return clean_yaml_output
 
 
-    def flatten_dict(self, target_dict):
+    def flatten_dict(self, target_dict, topology_override=False):
         """This will flatten a dictionary out to a single level of key value stores
             removing key's with dictionaries and wrapping each value to in a list
             ex:
@@ -178,7 +178,7 @@ class AMDSMILogger():
         for key, value in target_dict.items():
             if isinstance(value, dict):
                 # Check number of items in the dict
-                if len(value.values()) > 1:
+                if len(value.values()) > 1 or topology_override:
                     value_with_parent_key = {}
                     for parent_key, child_dict in value.items():
                         if isinstance(child_dict, dict):
@@ -189,7 +189,10 @@ class AMDSMILogger():
                                 for child_key, value1 in child_dict.items():
                                     value_with_parent_key[parent_key + '_' + child_key] = value1
                         else:
-                            value_with_parent_key[parent_key] = child_dict
+                            if topology_override:
+                                value_with_parent_key[key + '_' + parent_key] = child_dict
+                            else:
+                                value_with_parent_key[parent_key] = child_dict
                     value = value_with_parent_key
 
                 if self.is_gpuvsmi_compatibility():

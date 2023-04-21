@@ -229,7 +229,7 @@ class AMDSMIHelpers():
                 for device_handle in args.gpu:
                     # Handle multiple_devices to print all output at once
                     subcommand(args, multiple_devices=True, gpu=device_handle)
-                logger.print_output(multiple_devices_enabled=True)
+                logger.print_output(multiple_device_enabled=True)
                 return True, args.gpu
             elif len(args.gpu) == 1:
                 args.gpu = args.gpu[0]
