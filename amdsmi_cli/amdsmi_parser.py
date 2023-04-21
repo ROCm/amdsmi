@@ -118,7 +118,7 @@ class AMDSMIParser(argparse.ArgumentParser):
                     elif args.csv:
                         file_name += ".csv"
                     else:
-                        file_name += "txt"
+                        file_name += ".txt"
                     path = path / file_name
                     path.touch()
                     setattr(args, self.dest, path)
@@ -168,6 +168,7 @@ class AMDSMIParser(argparse.ArgumentParser):
                 else:
                     setattr(args, self.dest, values)
         return WatchSelectedAction
+
 
     def _gpu_select(self, gpu_choices):
         """ Custom argparse action to return the device handle(s) for the gpu(s) selected
@@ -279,8 +280,8 @@ class AMDSMIParser(argparse.ArgumentParser):
     def _add_static_parser(self, subparsers, func):
         # Subparser help text
         static_help = "Gets static information about the specified GPU"
-        static_subcommand_help = "If no argument is provided, return static information for all GPUs on the system.\
-                                \nIf no static argument is specified all static information will be displayed."
+        static_subcommand_help = "If no GPU is specified, returns static information for all GPUs on the system.\
+                                \nIf no static argument is provided, all static information will be displayed."
         static_optionals_title = "Static Arguments"
 
         # Optional arguments help text
@@ -334,7 +335,7 @@ class AMDSMIParser(argparse.ArgumentParser):
     def _add_firmware_parser(self, subparsers, func):
         # Subparser help text
         firmware_help = "Gets firmware information about the specified GPU"
-        firmware_subcommand_help = "If no argument is provided, return firmware information for all GPUs on the system."
+        firmware_subcommand_help = "If no GPU is specified, return firmware information for all GPUs on the system."
         firmware_optionals_title = "Firmware Arguments"
 
         # Optional arguments help text
@@ -366,8 +367,8 @@ class AMDSMIParser(argparse.ArgumentParser):
 
         # Subparser help text
         bad_pages_help = "Gets bad page information about the specified GPU"
-        bad_pages_subcommand_help = "If no argument is provided, return bad page information for all GPUs on the system."
-        bad_pages_optionals_title = "Bad pages Arguments"
+        bad_pages_subcommand_help = "If no GPU is specified, return bad page information for all GPUs on the system."
+        bad_pages_optionals_title = "Bad Pages Arguments"
 
         # Optional arguments help text
         pending_help = "Displays all pending retired pages"
@@ -393,8 +394,8 @@ class AMDSMIParser(argparse.ArgumentParser):
     def _add_metric_parser(self, subparsers, func):
         # Subparser help text
         metric_help = "Gets metric/performance information about the specified GPU"
-        metric_subcommand_help = "If no argument is provided, return metric information for all GPUs on the system.\
-                                \nIf no metric argument is specified all metric information will be displayed."
+        metric_subcommand_help = "If no GPU is specified, returns metric information for all GPUs on the system.\
+                                \nIf no metric argument is provided all metric information will be displayed."
         metric_optionals_title = "Metric arguments"
 
         # Optional arguments help text
@@ -483,8 +484,8 @@ class AMDSMIParser(argparse.ArgumentParser):
 
         # Subparser help text
         process_help = "Lists general process information running on the specified GPU"
-        process_subcommand_help = "If no argument is provided, returns information for all GPUs on the system.\
-                                \nIf no argument is provided all process information will be displayed."
+        process_subcommand_help = "If no GPU is specified, returns information for all GPUs on the system.\
+                                \nIf no process argument is provided all process information will be displayed."
         process_optionals_title = "Process arguments"
 
         # Optional Arguments help text
@@ -522,7 +523,7 @@ class AMDSMIParser(argparse.ArgumentParser):
 
         # Subparser help text
         profile_help = "Displays information about all profiles and current profile"
-        profile_subcommand_help = "If no argument is provided, returns information for all GPUs on the system."
+        profile_subcommand_help = "If no GPU is specified, returns information for all GPUs on the system."
         profile_optionals_title = "Profile Arguments"
 
         # Create profile subparser
@@ -543,7 +544,7 @@ class AMDSMIParser(argparse.ArgumentParser):
 
         # Subparser help text
         event_help = "Displays event information for the given GPU"
-        event_subcommand_help = "If no argument is provided, returns event information for all GPUs on the system."
+        event_subcommand_help = "If no GPU is specified, returns event information for all GPUs on the system."
         event_optionals_title = "Event Arguments"
 
         # Create event subparser
@@ -558,14 +559,14 @@ class AMDSMIParser(argparse.ArgumentParser):
 
 
     def _add_topology_parser(self, subparsers, func):
-        return
         if not(self.helpers.is_baremetal() and self.helpers.is_linux()):
             # This subparser is only applicable to Baremetal Linux
             return
 
         # Subparser help text
         topology_help = "Displays topology information of the devices."
-        topology_subcommand_help = "If no argument is provided, returns information for all GPUs on the system."
+        topology_subcommand_help = "If no GPU is specified, returns information for all GPUs on the system.\
+                                \nIf no topology argument is provided all topology information will be displayed."
         topology_optionals_title = "Topology arguments"
 
         # Help text for Arguments only on Guest and BM platforms
@@ -602,7 +603,8 @@ class AMDSMIParser(argparse.ArgumentParser):
 
         # Subparser help text
         set_value_help = "Set options for devices."
-        set_value_subcommand_help = "The user must specify one of the options for the set configuration."
+        set_value_subcommand_help = "A GPU must be specified to set a configuration.\
+                                    \nA set argument must be provided; Multiple set arguments are accepted"
         set_value_optionals_title = "Set Arguments"
 
         # Help text for Arguments only on Guest and BM platforms
@@ -649,7 +651,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         set_value_parser.add_argument('-O', '--memoverdrive', action=self._validate_overdrive_percent(), required=False, help=set_mem_overdrive_help, metavar='%')
         set_value_parser.add_argument('-w', '--poweroverdrive', action=self._prompt_spec_warning(), type=self._positive_int, required=False, help=set_power_overdrive_help, metavar="WATTS")
         set_value_parser.add_argument('-P', '--profile', action='store', required=False, help=set_profile_help, metavar='SETPROFILE')
-        set_value_parser.add_argument('-d', '--perfdeterminism', action='store', type=self._positive_int, required=False, help=set_perf_det_help, metavar='SCLK')
+        set_value_parser.add_argument('-d', '--perfdeterminism', action='store', type=self._positive_int, required=False, help=set_perf_det_help, metavar='SCLKMAX')
 
 
     def _validate_set_clock(self, validate_clock_type=True):
@@ -752,7 +754,8 @@ class AMDSMIParser(argparse.ArgumentParser):
 
         # Subparser help text
         reset_help = "Reset options for devices."
-        reset_subcommand_help = "The user must specify one of the options to reset devices."
+        reset_subcommand_help = "A GPU must be specified to reset a configuration.\
+                                \nA reset argument must be provided; Multiple reset arguments are accepted"
         reset_optionals_title = "Reset Arguments"
 
         # Help text for Arguments only on Guest and BM platforms
@@ -788,7 +791,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         return
         # Subparser help text
         rocm_smi_help = "Legacy rocm_smi commands ported for backward compatibility"
-        rocm_smi_subcommand_help = "If no argument is provided, return showall and print the information for all\
+        rocm_smi_subcommand_help = "If no GPU is specified, returns showall and print the information for all\
                                   GPUs on the system."
         rocm_smi_optionals_title = "rocm_smi Arguments"
 
