@@ -147,7 +147,7 @@ class AMDSMICommands():
 
     def static(self, args, multiple_devices=False, gpu=None, asic=None,
                 bus=None, vbios=None, limit=None, driver=None, caps=None,
-                ras=None, board=None):
+                ras=None, board=None, numa=None):
         """Get Static information for target gpu
 
         Args:
@@ -162,6 +162,7 @@ class AMDSMICommands():
             caps (bool, optional): Value override for args.caps. Defaults to None.
             ras (bool, optional): Value override for args.ras. Defaults to None.
             board (bool, optional): Value override for args.board. Defaults to None.
+            numa (bool, optional): Value override for args.numa. Defaults to None.
 
         Raises:
             IndexError: Index error if gpu list is empty
@@ -188,6 +189,8 @@ class AMDSMICommands():
             args.ras = ras
         if board:
             args.board = board
+        if numa:
+            args.numa = numa
 
         # Handle No GPU passed
         if args.gpu is None:
@@ -200,8 +203,10 @@ class AMDSMICommands():
         args.gpu = device_handle
 
         # If all arguments are False, it means that no argument was passed and the entire static should be printed
-        if not any([args.asic, args.bus, args.vbios, args.limit, args.driver, args.caps, args.ras, args.board]):
-            args.asic = args.bus = args.vbios = args.limit = args.driver = args.caps = args.ras = args.board = self.all_arguments = True
+        if not any([args.asic, args.bus, args.vbios, args.limit, args.driver,
+                     args.caps, args.ras, args.board, args.numa]):
+            args.asic = args.bus = args.vbios = args.limit = args.driver = \
+            args.caps = args.ras = args.board = args.numa = self.all_arguments = True
 
         static_dict = {}
 
@@ -362,6 +367,23 @@ class AMDSMICommands():
                 static_dict['caps'] = e.get_error_info()
                 if not self.all_arguments:
                     raise e
+        if args.numa:
+            try:
+                numa_node_number = amdsmi_interface.amdsmi_topo_get_numa_node_number(args.gpu)
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                numa_node_number = e.get_error_info()
+                if not self.all_arguments:
+                    raise e
+
+            try:
+                numa_affinity = amdsmi_interface.amdsmi_topo_get_numa_affinity(args.gpu)
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                numa_affinity = e.get_error_info()
+                if not self.all_arguments:
+                    raise e
+
+            static_dict['numa'] = {'node' : numa_node_number,
+                                    'affinity' : numa_affinity}
 
         multiple_devices_csv_override = False
         # Convert and store output by pid for csv format
@@ -1284,7 +1306,7 @@ class AMDSMICommands():
 
 
     def topology(self, args, multiple_devices=False, gpu=None, access=None,
-                weight=None, hops=None, type=None, numa=None, numa_bw=None):
+                weight=None, hops=None, link_type=None, numa=None, numa_bw=None):
         """ Get topology information for target gpus
             The compatibility mode for this will only be in amdsmi & rocm-smi
             params:
@@ -1309,8 +1331,8 @@ class AMDSMICommands():
             args.weight = weight
         if hops:
             args.hops = hops
-        if type:
-            args.type = type
+        if link_type:
+            args.link_type = link_type
         if numa:
             args.numa = numa
         if numa_bw:
@@ -1320,56 +1342,137 @@ class AMDSMICommands():
         if args.gpu is None:
             args.gpu = self.device_handles
 
-        # Handle multiple GPUs
-        handled_multiple_gpus, device_handle = self.helpers.handle_gpus(args, self.logger, self.topology)
-        if handled_multiple_gpus:
-            return # This function is recursive
+        if not isinstance(args.gpu, list):
+            args.gpu = [args.gpu]
+
+        # # Handle multiple GPUs
+        # handled_multiple_gpus, device_handle = self.helpers.handle_gpus(args, self.logger, self.topology)
+        # if handled_multiple_gpus:
+        #     return # This function is recursive
 
         # Handle all args being false
-        if not any([args.access, args.weight, args.hops, args.type, args.numa, args.numa_bw]):
-            args.access = args.weight = args.hops = args.type = args.numa = args.numa_bw = True
+        if not any([args.access, args.weight, args.hops, args.link_type, args.numa, args.numa_bw]):
+            args.access = args.weight = args.hops = args.link_type = args.numa = args.numa_bw = True
 
-        topo_dict = {}
+        # Populate the possible gpus
+        topo_values = []
+        for gpu in args.gpu:
+            gpu_id = self.helpers.get_gpu_id_from_device_handle(gpu)
+            topo_values.append({"gpu" : gpu_id})
+
         if args.access:
-            topo_dict['access'] = amdsmi_exception.AmdSmiLibraryException(amdsmi_exception.AmdSmiRetCode.NOT_IMPLEMENTED).err_info
+            for src_gpu_index, src_gpu in enumerate(args.gpu):
+                src_gpu_links = {}
+                for dest_gpu in args.gpu:
+                    dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(src_gpu)
+
+                    try:
+                        dest_gpu_link_status = amdsmi_interface.amdsmi_is_P2P_accessible(src_gpu, dest_gpu)
+                        src_gpu_links[f'gpu_{dest_gpu_id}'] = bool(dest_gpu_link_status)
+                    except amdsmi_exception.AmdSmiLibraryException as e:
+                        src_gpu_links[f'gpu_{dest_gpu_id}'] = e.get_error_info()
+
+                topo_values[src_gpu_index]['link_accessibility'] = src_gpu_links
 
         if args.weight:
-            topo_dict['weight'] = amdsmi_exception.AmdSmiLibraryException(amdsmi_exception.AmdSmiRetCode.NOT_IMPLEMENTED).err_info
+            for src_gpu_index, src_gpu in enumerate(args.gpu):
+                src_gpu_weight = {}
+                for dest_gpu in args.gpu:
+                    dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(src_gpu)
+
+                    if src_gpu == dest_gpu:
+                        src_gpu_weight[f'gpu_{dest_gpu_id}'] = 0
+                        continue
+
+                    try:
+                        dest_gpu_link_weight = amdsmi_interface.amdsmi_topo_get_link_weight(src_gpu, dest_gpu)
+                        src_gpu_weight[f'gpu_{dest_gpu_id}'] = dest_gpu_link_weight
+                    except amdsmi_exception.AmdSmiLibraryException as e:
+                        src_gpu_weight[f'gpu_{dest_gpu_id}'] = e.get_error_info()
+
+                topo_values[src_gpu_index]['weight'] = src_gpu_weight
 
         if args.hops:
-            topo_dict['hops'] = amdsmi_exception.AmdSmiLibraryException(amdsmi_exception.AmdSmiRetCode.NOT_IMPLEMENTED).err_info
+            for src_gpu_index, src_gpu in enumerate(args.gpu):
+                src_gpu_hops = {}
+                for dest_gpu in args.gpu:
+                    dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(src_gpu)
 
-        if args.type:
-            topo_dict['type'] = amdsmi_exception.AmdSmiLibraryException(amdsmi_exception.AmdSmiRetCode.NOT_IMPLEMENTED).err_info
+                    if src_gpu == dest_gpu:
+                        src_gpu_hops[f'gpu_{dest_gpu_id}'] = 0
+                        continue
 
-        if args.numa:
-            topo_dict['numa'] = amdsmi_exception.AmdSmiLibraryException(amdsmi_exception.AmdSmiRetCode.NOT_IMPLEMENTED).err_info
+                    try:
+                        dest_gpu_hops = amdsmi_interface.amdsmi_topo_get_link_type(src_gpu, dest_gpu)['hops']
+                        src_gpu_hops[f'gpu_{dest_gpu_id}'] = dest_gpu_hops
+                    except amdsmi_exception.AmdSmiLibraryException as e:
+                        src_gpu_hops[f'gpu_{dest_gpu_id}'] = e.get_error_info()
 
-            # numa_numbers = c_uint32()
-            # for device in deviceList:
-            #     ret = rocmsmi.rsmi_get_numa_node_number(device, byref(numa_numbers))
-            #     if rsmi_ret_ok(ret, device):
-            #         printLog(device, "(Topology) Numa Node", numa_numbers.value)
-            #     else:
-            #         printErrLog(device, "Cannot read Numa Node")
+                topo_values[src_gpu_index]['hops'] = src_gpu_hops
 
-            #     ret = rocmsmi.rsmi_numa_affinity_get(device, byref(numa_numbers))
-            #     if rsmi_ret_ok(ret):
-            #         printLog(device, "(Topology) Numa Affinity", numa_numbers.value)
-            #     else:
-            #         printErrLog(device, 'Cannot read Numa Affinity')
+        if args.link_type:
+            for src_gpu_index, src_gpu in enumerate(args.gpu):
+                src_gpu_link_type = {}
+                for dest_gpu in args.gpu:
+                    dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(src_gpu)
+
+                    if src_gpu == dest_gpu:
+                        src_gpu_link_type[f'gpu_{dest_gpu_id}'] = 0
+                        continue
+
+                    try:
+                        link_type = amdsmi_interface.amdsmi_topo_get_link_type(src_gpu, dest_gpu)['type']
+                        if isinstance(link_type, int):
+                            if link_type == 1:
+                                src_gpu_link_type[f'gpu_{dest_gpu_id}'] = "PCIE"
+                            elif link_type == 2:
+                                src_gpu_link_type[f'gpu_{dest_gpu_id}'] = "XMGI"
+                        else:
+                            src_gpu_link_type[f'gpu_{dest_gpu_id}'] = "XXXX"
+                    except amdsmi_exception.AmdSmiLibraryException as e:
+                        src_gpu_link_type[f'gpu_{dest_gpu_id}'] = e.get_error_info()
+
+                topo_values[src_gpu_index]['link_type'] = src_gpu_link_type
+
         if args.numa_bw:
-            topo_dict['numa_bw'] = amdsmi_exception.AmdSmiLibraryException(amdsmi_exception.AmdSmiRetCode.NOT_IMPLEMENTED).err_info
+            for src_gpu_index, src_gpu in enumerate(args.gpu):
+                src_gpu_link_type = {}
+                for dest_gpu in args.gpu:
+                    dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(src_gpu)
 
+                    if src_gpu == dest_gpu:
+                        src_gpu_link_type[f'gpu_{dest_gpu_id}'] = 'N/A'
+                        continue
 
-        # Store values in logger.output
-        self.logger.store_output(args.gpu, 'values', topo_dict)
+                    try:
+                        link_type = amdsmi_interface.amdsmi_topo_get_link_type(src_gpu, dest_gpu)['type']
+                        if isinstance(link_type, int):
+                            if link_type != 2:
+                                non_xgmi = True
+                                src_gpu_link_type[f'gpu_{dest_gpu_id}'] = 'N/A'
+                                continue
+                    except amdsmi_exception.AmdSmiLibraryException as e:
+                        src_gpu_link_type[f'gpu_{dest_gpu_id}'] = e.get_error_info()
 
-        if multiple_devices:
-            self.logger.store_multiple_device_output()
-            return # Skip printing when there are multiple devices
+                    try:
+                        min_bw = amdsmi_interface.amdsmi_get_minmax_bandwidth(src_gpu, dest_gpu)['min_bandwidth']
+                        max_bw = amdsmi_interface.amdsmi_get_minmax_bandwidth(src_gpu, dest_gpu)['max_bandwidth']
 
-        self.logger.print_output()
+                        src_gpu_link_type[f'gpu_{dest_gpu_id}'] = f'{min_bw}-{max_bw}'
+                    except amdsmi_exception.AmdSmiLibraryException as e:
+                        src_gpu_link_type[f'gpu_{dest_gpu_id}'] =  e.get_error_info()
+
+                topo_values[src_gpu_index]['numa_bandwidth'] = src_gpu_link_type
+
+        self.logger.multiple_device_output = topo_values
+
+        if self.logger.is_csv_format():
+            new_output = []
+            for elem in self.logger.multiple_device_output:
+                new_output.append(self.logger.flatten_dict(elem, topology_override=True))
+            self.logger.multiple_device_output = new_output
+
+        self.logger.print_output(multiple_device_enabled=True)
 
 
     def set_value(self, args, multiple_devices=False, gpu=None, clock=None, sclk=None, mclk=None,

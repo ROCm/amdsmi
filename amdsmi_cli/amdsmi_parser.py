@@ -295,6 +295,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         # Options arguments help text for Hypervisors and Baremetal
         ras_help = "Displays RAS features information"
         board_help = "All board information" # Linux Baremetal only
+        numa_help = "All numa node information" # Linux Baremetal only
 
         # Options arguments help text for Hypervisors
         dfc_help = "All DFC FW table information"
@@ -324,6 +325,7 @@ class AMDSMIParser(argparse.ArgumentParser):
             static_parser.add_argument('-r', '--ras', action='store_true', required=False, help=ras_help)
             if self.helpers.is_linux():
                 static_parser.add_argument('-B', '--board', action='store_true', required=False, help=board_help)
+                static_parser.add_argument('-u', '--numa', action='store_true', required=False, help=numa_help)
 
         # Options to only display on a Hypervisor
         if self.helpers.is_hypervisor():
@@ -573,7 +575,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         access_help = "Displays link accessibility between GPUs"
         weight_help = "Displays relative weight between GPUs"
         hops_help = "Displays the number of hops between GPUs"
-        type_help = "Displays the link type between GPUs"
+        link_type_help = "Displays the link type between GPUs"
         numa_help = "Display the HW Topology Information for numa nodes"
         numa_bw_help = "Display max and min bandwidth between nodes"
 
@@ -591,7 +593,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         topology_parser.add_argument('-a', '--access', action='store_true', required=False, help=access_help)
         topology_parser.add_argument('-w', '--weight', action='store_true', required=False, help=weight_help)
         topology_parser.add_argument('-o', '--hops', action='store_true', required=False, help=hops_help)
-        topology_parser.add_argument('-t', '--type', action='store_true', required=False, help=type_help)
+        topology_parser.add_argument('-t', '--link-type', action='store_true', required=False, help=link_type_help)
         topology_parser.add_argument('-n', '--numa', action='store_true', required=False, help=numa_help)
         topology_parser.add_argument('-b', '--numa-bw', action='store_true', required=False, help=numa_bw_help)
 
