@@ -503,7 +503,7 @@ def amdsmi_get_socket_info(socket_handle):
 
     _check_res(
         amdsmi_wrapper.amdsmi_get_socket_info(
-            socket_handle, ctypes.byref(socket_info), ctypes.c_size_t(128))
+            socket_handle, socket_info, ctypes.c_size_t(128))
     )
 
     return socket_info.value.decode()
@@ -2489,11 +2489,12 @@ def amdsmi_status_string(status: amdsmi_wrapper.amdsmi_status_t) -> str:
     if not isinstance(status, amdsmi_wrapper.amdsmi_status_t):
         raise AmdSmiParameterException(status, amdsmi_wrapper.amdsmi_status_t)
 
-    status_string = ctypes.c_char_p()
-    _check_res(amdsmi_wrapper.amdsmi_status_string(
-        status, ctypes.byref(status_string)))
+    status_string_p_p = ctypes.pointer(ctypes.pointer(ctypes.c_char()))
 
-    return amdsmi_wrapper.string_cast(status_string)
+    _check_res(amdsmi_wrapper.amdsmi_status_string(
+        status, status_string_p_p))
+
+    return amdsmi_wrapper.string_cast(status_string_p_p.contents)
 
 
 def amdsmi_get_compute_process_info() -> List[Dict[str, int]]:
