@@ -39,7 +39,7 @@ class AMDSMILogger():
         self.compatibility = compatibility # amd-smi, gpuv-smi, or rocm-smi
         self.format = format # csv, json, or human_readable
         self.destination = destination # stdout, path to a file (append)
-        self.amd_smi_helpers = AMDSMIHelpers()
+        self.helpers = AMDSMIHelpers()
 
 
     class LoggerFormat(Enum):
@@ -182,8 +182,12 @@ class AMDSMILogger():
                     value_with_parent_key = {}
                     for parent_key, child_dict in value.items():
                         if isinstance(child_dict, dict):
-                            for child_key, value1 in child_dict.items():
-                                value_with_parent_key[parent_key + '_' + child_key] = value1
+                            if parent_key in ('gfx'):
+                                for child_key, value1 in child_dict.items():
+                                    value_with_parent_key[child_key] = value1
+                            else:
+                                for child_key, value1 in child_dict.items():
+                                    value_with_parent_key[parent_key + '_' + child_key] = value1
                         else:
                             value_with_parent_key[parent_key] = child_dict
                     value = value_with_parent_key
@@ -212,7 +216,7 @@ class AMDSMILogger():
             return:
                 Nothing
         """
-        gpu_id = self.amd_smi_helpers.get_gpu_id_from_device_handle(device_handle)
+        gpu_id = self.helpers.get_gpu_id_from_device_handle(device_handle)
         if self.is_amdsmi_compatibility():
             self._store_output_amdsmi(gpu_id=gpu_id, argument=argument, data=data)
         elif self.is_rocmsmi_compatibility():
@@ -222,6 +226,9 @@ class AMDSMILogger():
 
 
     def _store_output_amdsmi(self, gpu_id, argument, data):
+        if argument == 'timestamp': # Make sure timestamp is the first element in the output
+            self.output['timestamp'] = int(time.time())
+
         if self.is_json_format() or self.is_human_readable_format():
             self.output['gpu'] = int(gpu_id)
             if argument == 'values' and isinstance(data, dict):
@@ -237,7 +244,6 @@ class AMDSMILogger():
                 self.output.update(flat_dict)
             else:
                 self.output[argument] = data
-
         else:
             raise amdsmi_cli_exceptions(self, "Invalid output format given, only json, csv, and human_readable supported")
 
@@ -257,6 +263,9 @@ class AMDSMILogger():
 
 
     def _store_output_gpuvsmi(self, gpu_id, argument, data):
+        if argument == 'timestamp': # Make sure timestamp is the first element in the output
+            self.output['timestamp'] = int(time.time())
+
         if self.is_json_format() or self.is_human_readable_format():
             self.output['gpu'] = int(gpu_id)
             self.output[argument] = data
@@ -299,60 +308,68 @@ class AMDSMILogger():
         """
         if not self.output:
             return
+        output = {}
+        for key, value in self.output.items():
+            output[key] = value
 
-        self.multiple_device_output.append(self.output)
+        self.multiple_device_output.append(output)
         self.output = {}
 
 
-    def store_watch_output(self, multiple_devices=False):
+    def store_watch_output(self, multiple_device_enabled=False):
         """ Add the current output or multiple_devices_output
             params:
-                multiple_devices (bool) - True if watching multiple devices
+                multiple_device_enabled (bool) - True if watching multiple devices
             return:
                 Nothing
         """
-        values = self.output
-        if multiple_devices:
-            values = self.multiple_device_output
+        if multiple_device_enabled:
+            for output in self.multiple_device_output:
+                self.watch_output.append(output)
 
-        self.watch_output.append({'timestamp': int(time.time()),
-                                    'values': values})
+            self.multiple_device_output = []
+        else:
+            output = {}
+
+            for key, value in self.output.items():
+                output[key] = value
+            self.watch_output.append(output)
+
+            self.output = {}
 
 
-    def print_output(self, multiple_device_output=False, watch_output=False):
+    def print_output(self, multiple_device_enabled=False, watching_output=False):
         """ Print current output acording to format and then destination
             params:
-                multiple_device_output (bool) - True if printing output from
+                multiple_device_enabled (bool) - True if printing output from
                     multiple devices
-                watch_output (bool) - True if printing watch output
+                watching_output (bool) - True if printing watch output
             return:
                 Nothing
         """
         if self.is_json_format():
-            self._print_json_output(multiple_device_output=multiple_device_output,
-                                    watch_output=watch_output)
+            self._print_json_output(multiple_device_enabled=multiple_device_enabled,
+                                    watching_output=watching_output)
         elif self.is_csv_format():
-            self._print_csv_output(multiple_device_output=multiple_device_output,
-                                    watch_output=watch_output)
+            self._print_csv_output(multiple_device_enabled=multiple_device_enabled,
+                                    watching_output=watching_output)
         elif self.is_human_readable_format():
-            self._print_human_readable_output(multiple_device_output=multiple_device_output,
-                                                watch_output=watch_output)
+            self._print_human_readable_output(multiple_device_enabled=multiple_device_enabled,
+                                                watching_output=watching_output)
 
 
-    def _print_json_output(self, multiple_device_output=False, watch_output=False):
-        if multiple_device_output:
+    def _print_json_output(self, multiple_device_enabled=False, watching_output=False):
+        if multiple_device_enabled:
             json_output = self.multiple_device_output
         else:
             json_output = self.output
 
         if self.destination == 'stdout':
-            if watch_output:
-                return # We don't need to print to stdout at the end of watch
-            else:
-                json_std_output = json.dumps(json_output, indent = 4)
+            if json_output:
+                json_std_output = json.dumps(json_output, indent=4)
                 print(json_std_output)
         else: # Write output to file
-            if watch_output: # Flush the full JSON output to the file on watch command completion
+            if watching_output: # Flush the full JSON output to the file on watch command completion
                 with self.destination.open('w') as output_file:
                     json.dump(self.watch_output, output_file, indent=4)
             else:
@@ -360,43 +377,42 @@ class AMDSMILogger():
                     json.dump(json_output, output_file, indent=4)
 
 
-    def _print_csv_output(self, multiple_device_output=False, watch_output=False):
-        if watch_output: # Don't print output if it's for watch
-            return
-
-        if multiple_device_output:
+    def _print_csv_output(self, multiple_device_enabled=False, watching_output=False):
+        if multiple_device_enabled:
             stored_csv_output = self.multiple_device_output
         else:
             if not isinstance(self.output, list):
                 stored_csv_output = [self.output]
 
         if self.destination == 'stdout':
-            csv_header = stored_csv_output[0].keys()
-            csv_stdout_output = self.CsvStdoutBuilder()
-            writer = csv.DictWriter(csv_stdout_output, csv_header)
-            writer.writeheader()
-            writer.writerows(stored_csv_output)
-
-            if self.is_gpuvsmi_compatibility():
-                print(str(csv_stdout_output).replace('"',''))
-            else:
-                print(str(csv_stdout_output))
-        else:
-            with self.destination.open('a', newline = '') as output_file:
+            if stored_csv_output:
                 csv_header = stored_csv_output[0].keys()
-                writer = csv.DictWriter(output_file, csv_header)
+                csv_stdout_output = self.CsvStdoutBuilder()
+                writer = csv.DictWriter(csv_stdout_output, csv_header)
                 writer.writeheader()
                 writer.writerows(stored_csv_output)
+                print(str(csv_stdout_output))
+        else:
+            if watching_output:
+                with self.destination.open('w', newline = '') as output_file:
+                    if self.watch_output:
+                        csv_header = self.watch_output[0].keys()
+                        writer = csv.DictWriter(output_file, csv_header)
+                        writer.writeheader()
+                        writer.writerows(self.watch_output)
+            else:
+                with self.destination.open('a', newline = '') as output_file:
+                    csv_header = stored_csv_output[0].keys()
+                    writer = csv.DictWriter(output_file, csv_header)
+                    writer.writeheader()
+                    writer.writerows(stored_csv_output)
 
 
-    def _print_human_readable_output(self, multiple_device_output=False, watch_output=False):
-        if watch_output: # Don't print output if it's for watch
-            return
-
-        if multiple_device_output:
+    def _print_human_readable_output(self, multiple_device_enabled=False, watching_output=False):
+        if multiple_device_enabled:
             human_readable_output = ''
             for output in self.multiple_device_output:
-                human_readable_output += (self._convert_json_to_human_readable(output))
+                human_readable_output += self._convert_json_to_human_readable(output)
         else:
             human_readable_output = self._convert_json_to_human_readable(self.output)
 
@@ -408,5 +424,12 @@ class AMDSMILogger():
                 # print as ascii, ignore incompatible characters
                 print(human_readable_output.encode('ascii', 'ignore').decode('ascii'))
         else:
-            with self.destination.open('a') as output_file:
-                output_file.write(human_readable_output)
+            if watching_output:
+                with self.destination.open('w') as output_file:
+                    human_readable_output = ''
+                    for output in self.watch_output:
+                        human_readable_output +=  self._convert_json_to_human_readable(output)
+                    output_file.write(human_readable_output)
+            else:
+                with self.destination.open('a') as output_file:
+                    output_file.write(human_readable_output)
