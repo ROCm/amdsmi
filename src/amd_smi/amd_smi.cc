@@ -144,7 +144,7 @@ amdsmi_status_string(amdsmi_status_t status, const char **status_string) {
             *status_string = "FAIL_LOAD_MODULE: Fail to load module.";
             break;
         case AMDSMI_STATUS_FAIL_LOAD_SYMBOL:
-            *status_string = "FAIL_LOAD_SYMOBL: Fail to load symbol.";
+            *status_string = "FAIL_LOAD_SYMBOL: Fail to load symbol.";
             break;
         case AMDSMI_STATUS_DRM_ERROR:
             *status_string = "DRM_ERROR: Fail to run function in libdrm.";
