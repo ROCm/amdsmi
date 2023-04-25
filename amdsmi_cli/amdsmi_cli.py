@@ -29,6 +29,7 @@ from amdsmi_logger import AMDSMILogger
 import amdsmi_cli_exceptions
 from amdsmi import amdsmi_interface
 
+
 def _print_error(e, destination):
     if destination == 'stdout':
         print(e)
@@ -36,9 +37,7 @@ def _print_error(e, destination):
         f = open(destination, "w")
         f.write(e)
         f.close()
-        print("Error occured. Result written to " +
-                str(destination) + " file")
-
+        print("Error occured. Result written to " + str(destination) + " file")
 
 
 if __name__ == "__main__":
