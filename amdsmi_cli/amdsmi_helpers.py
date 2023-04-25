@@ -26,6 +26,8 @@ import sys
 import time
 
 from pathlib import Path
+from subprocess import run
+from subprocess import PIPE, STDOUT
 
 from amdsmi_init import *
 from BDF import BDF
@@ -53,18 +55,11 @@ class AMDSMIHelpers():
             self._is_linux = True
             logging.debug(f"AMDSMIHelpers: Platform is linux:{self._is_linux}")
 
-            product_name = ""
-            product_name_path = Path("/sys/class/dmi/id/product_name")
-            if product_name_path.exists():
-                product_name = product_name_path.read_text().strip()
-
-            if product_name == "":
-                # Unable to determine product_name default to baremetal
+            output = run(["lscpu"], stdout=PIPE, stderr=STDOUT, encoding="UTF-8").stdout
+            if "hypervisor" not in output:
                 self._is_baremetal = True
-
-            # Determine if a system is baremetal by deduction
-            self._is_baremetal = not self._is_hypervisor and not self._is_virtual_os
-
+            else:
+                self._is_virtual_os = True
 
     def os_info(self, string_format=True):
         """Return operating_system and type information ex. (Linux, Baremetal)
@@ -229,7 +224,7 @@ class AMDSMIHelpers():
                 for device_handle in args.gpu:
                     # Handle multiple_devices to print all output at once
                     subcommand(args, multiple_devices=True, gpu=device_handle)
-                logger.print_output(multiple_device_output=True)
+                logger.print_output(multiple_device_enabled=True)
                 return True, args.gpu
             elif len(args.gpu) == 1:
                 args.gpu = args.gpu[0]
@@ -240,13 +235,14 @@ class AMDSMIHelpers():
             return False, args.gpu
 
 
-    def handle_watch(self, args, subcommand):
+    def handle_watch(self, args, subcommand, logger):
         """This function will run the subcommand multiple times based
             on the passed watch, watch_time, and iterations passed in.
         params:
             args - argparser args to pass to subcommand
             subcommand (AMDSMICommands) - Function that can handle
                 watching output (Currently: metric & process)
+            logger (AMDSMILogger) - Logger for accessing config values
         return:
             Nothing
         """
@@ -260,6 +256,8 @@ class AMDSMIHelpers():
         args.watch_time = None
         args.iterations = None
 
+        # Set the signal handler to flush a delmiter to file if the format is json
+        print("'CTRL' + 'C' to stop watching output:")
         if watch_time:  # Run for set amount of time
             iterations_ran = 0
             end_time = time.time() + watch_time
@@ -267,11 +265,11 @@ class AMDSMIHelpers():
                 subcommand(args, watching_output=True)
                 # Handle iterations limit
                 iterations_ran += 1
-                if iterations:
-                    if iterations >= iterations_ran:
+                if iterations is not None:
+                    if iterations <= iterations_ran:
                         break
                 time.sleep(watch)
-        elif iterations:  # Run for a set amount of iterations
+        elif iterations is not None:  # Run for a set amount of iterations
             for iteration in range(iterations):
                 subcommand(args, watching_output=True)
                 if iteration == iterations - 1:  # Break on iteration completion
@@ -386,3 +384,15 @@ class AMDSMIHelpers():
             return True, profile_presets[profile]
         else:
             return False, profile_presets.values()
+
+
+    def has_ras_support(self, device_handle):
+        try:
+            caps_info = amdsmi_interface.amdsmi_get_caps_info(device_handle)
+
+            if caps_info['ras_supported']:
+                return True
+            else:
+                return False
+        except amdsmi_exception.AmdSmiLibraryException:
+            return False
