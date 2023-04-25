@@ -823,7 +823,7 @@ def amdsmi_get_board_info(
 
 def amdsmi_get_ras_block_features_enabled(
     device_handle: amdsmi_wrapper.amdsmi_device_handle,
-) -> Dict[str, Any]:
+) -> List[Dict[str, str]]:
     if not isinstance(device_handle, amdsmi_wrapper.amdsmi_device_handle):
         raise AmdSmiParameterException(
             device_handle, amdsmi_wrapper.amdsmi_device_handle

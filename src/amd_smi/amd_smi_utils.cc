@@ -171,7 +171,6 @@ amdsmi_status_t smi_amdgpu_get_power_cap(amd::smi::AMDSmiGPUDevice* device, int 
 	fullpath += "/power1_cap_max";
 	std::ifstream file(fullpath.c_str(), std::ifstream::in);
 	if (!file.is_open()) {
-		printf("Failed to open file: %s \n", fullpath.c_str());
 		return AMDSMI_STATUS_API_FAILED;
 	}
 
@@ -218,7 +217,6 @@ amdsmi_status_t smi_amdgpu_get_ranges(amd::smi::AMDSmiGPUDevice* device, amdsmi_
 	std::ifstream ranges(fullpath.c_str());
 
 	if (ranges.fail()) {
-		printf("Failed to open file: %s \n", fullpath.c_str());
 		return AMDSMI_STATUS_API_FAILED;
 	}
 
@@ -259,7 +257,6 @@ amdsmi_status_t smi_amdgpu_get_enabled_blocks(amd::smi::AMDSmiGPUDevice* device,
 	std::string tmp_str;
 
 	if (f.fail()) {
-		printf("Failed to open file: %s \n", fullpath.c_str());
 		return AMDSMI_STATUS_API_FAILED;
 	}
 
@@ -295,7 +292,6 @@ amdsmi_status_t smi_amdgpu_get_bad_page_info(amd::smi::AMDSmiGPUDevice* device, 
 	std::ifstream fs(fullpath.c_str());
 
 	if (fs.fail()) {
-		printf("Failed to open file: %s \n", fullpath.c_str());
 		return AMDSMI_STATUS_NOT_SUPPORTED;
 	}
 
@@ -365,7 +361,6 @@ amdsmi_status_t smi_amdgpu_get_ecc_error_count(amd::smi::AMDSmiGPUDevice* device
 	std::ifstream f(fullpath.c_str());
 
 	if (f.fail()) {
-		printf("Failed to open file: %s \n", fullpath.c_str());
 		return AMDSMI_STATUS_NOT_SUPPORTED;
 	}
 
