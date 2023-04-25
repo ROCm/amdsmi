@@ -354,6 +354,8 @@ class AMDSMICommands():
         if args.caps:
             try:
                 caps_info = amdsmi_interface.amdsmi_get_caps_info(args.gpu)
+                caps_info.pop('mm_ip_list')
+                caps_info.pop('ras_supported')
 
                 if self.logger.is_human_readable_format():
                     for capability_name, capability_value in caps_info.items():
@@ -361,11 +363,6 @@ class AMDSMICommands():
                             caps_info[capability_name] = f"{capability_value}"
                         if isinstance(capability_value, bool):
                             caps_info[capability_name] = f"{bool(capability_value)}"
-
-                if self.logger.is_csv_format() and self.logger.is_gpuvsmi_compatibility():
-                    if 'mm_ip_list' in caps_info:
-                        if caps_info['mm_ip_list']: # Don't index if it's not populated
-                            caps_info['mm_ip_list'] = caps_info['mm_ip_list'][0]
 
                 static_dict['caps'] = caps_info
             except amdsmi_exception.AmdSmiLibraryException as e:
