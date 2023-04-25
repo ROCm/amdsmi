@@ -52,6 +52,10 @@ class AMDSMIParser(argparse.ArgumentParser):
         version_string = f"Version: {__version__}"
         platform_string = f"Platform: {self.helpers.os_info()}"
 
+        program_name = 'amd-smi'
+        if 'gpuv-smi' in sys.argv[0]:
+            program_name = 'gpuv-smi'
+
         # Adjust argument parser options
         super().__init__(
             formatter_class=lambda prog: argparse.RawTextHelpFormatter(prog,
@@ -59,14 +63,14 @@ class AMDSMIParser(argparse.ArgumentParser):
                                                                        width=90),
             description=f"AMD System Management Interface | {version_string} | {platform_string}",
             add_help=True,
-            prog="amd-smi")
+            prog=program_name)
 
         # Setup subparsers
         subparsers = self.add_subparsers(
             title="AMD-SMI Commands",
             parser_class=argparse.ArgumentParser,
             help="Descriptions:",
-            metavar="")
+            metavar='')
 
         # Add all subparsers
         self._add_version_parser(subparsers, version)
@@ -262,7 +266,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         discovery_subcommand_help = "Lists all the devices on the system and the links between devices.\
                             \nLists all the sockets and for each socket, GPUs and/or CPUs associated to\
                             \nthat socket alongside some basic information for each device.\
-                            \nIn virtualization environment, it can also list VFs associated to each\
+                            \nIn virtualization environments, it can also list VFs associated to each\
                             \nGPU with some basic information for each VF."
 
         # Create discovery subparser
@@ -576,7 +580,6 @@ class AMDSMIParser(argparse.ArgumentParser):
         weight_help = "Displays relative weight between GPUs"
         hops_help = "Displays the number of hops between GPUs"
         link_type_help = "Displays the link type between GPUs"
-        numa_help = "Display the HW Topology Information for numa nodes"
         numa_bw_help = "Display max and min bandwidth between nodes"
 
         # Create topology subparser
@@ -594,7 +597,6 @@ class AMDSMIParser(argparse.ArgumentParser):
         topology_parser.add_argument('-w', '--weight', action='store_true', required=False, help=weight_help)
         topology_parser.add_argument('-o', '--hops', action='store_true', required=False, help=hops_help)
         topology_parser.add_argument('-t', '--link-type', action='store_true', required=False, help=link_type_help)
-        topology_parser.add_argument('-n', '--numa', action='store_true', required=False, help=numa_help)
         topology_parser.add_argument('-b', '--numa-bw', action='store_true', required=False, help=numa_bw_help)
 
 

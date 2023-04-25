@@ -1306,7 +1306,7 @@ class AMDSMICommands():
 
 
     def topology(self, args, multiple_devices=False, gpu=None, access=None,
-                weight=None, hops=None, link_type=None, numa=None, numa_bw=None):
+                weight=None, hops=None, link_type=None, numa_bw=None):
         """ Get topology information for target gpus
             The compatibility mode for this will only be in amdsmi & rocm-smi
             params:
@@ -1317,7 +1317,6 @@ class AMDSMICommands():
                 weight (bool) - Value override for args.weight
                 hops (bool) - Value override for args.hops
                 type (bool) - Value override for args.type
-                numa (bool) - Value override for args.numa
                 numa_bw (bool) - Value override for args.numa_bw
             return:
                 Nothing
@@ -1333,8 +1332,6 @@ class AMDSMICommands():
             args.hops = hops
         if link_type:
             args.link_type = link_type
-        if numa:
-            args.numa = numa
         if numa_bw:
             args.numa_bw = numa_bw
 
@@ -1345,14 +1342,9 @@ class AMDSMICommands():
         if not isinstance(args.gpu, list):
             args.gpu = [args.gpu]
 
-        # # Handle multiple GPUs
-        # handled_multiple_gpus, device_handle = self.helpers.handle_gpus(args, self.logger, self.topology)
-        # if handled_multiple_gpus:
-        #     return # This function is recursive
-
         # Handle all args being false
-        if not any([args.access, args.weight, args.hops, args.link_type, args.numa, args.numa_bw]):
-            args.access = args.weight = args.hops = args.link_type = args.numa = args.numa_bw = True
+        if not any([args.access, args.weight, args.hops, args.link_type, args.numa_bw]):
+            args.access = args.weight = args.hops = args.link_type= args.numa_bw = True
 
         # Populate the possible gpus
         topo_values = []
@@ -1364,13 +1356,14 @@ class AMDSMICommands():
             for src_gpu_index, src_gpu in enumerate(args.gpu):
                 src_gpu_links = {}
                 for dest_gpu in args.gpu:
-                    dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(src_gpu)
+                    dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(dest_gpu)
+                    dest_gpu_key = f'gpu_{dest_gpu_id}'
 
                     try:
                         dest_gpu_link_status = amdsmi_interface.amdsmi_is_P2P_accessible(src_gpu, dest_gpu)
-                        src_gpu_links[f'gpu_{dest_gpu_id}'] = bool(dest_gpu_link_status)
+                        src_gpu_links[dest_gpu_key] = bool(dest_gpu_link_status)
                     except amdsmi_exception.AmdSmiLibraryException as e:
-                        src_gpu_links[f'gpu_{dest_gpu_id}'] = e.get_error_info()
+                        src_gpu_links[dest_gpu_key] = e.get_error_info()
 
                 topo_values[src_gpu_index]['link_accessibility'] = src_gpu_links
 
@@ -1378,17 +1371,18 @@ class AMDSMICommands():
             for src_gpu_index, src_gpu in enumerate(args.gpu):
                 src_gpu_weight = {}
                 for dest_gpu in args.gpu:
-                    dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(src_gpu)
+                    dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(dest_gpu)
+                    dest_gpu_key = f'gpu_{dest_gpu_id}'
 
                     if src_gpu == dest_gpu:
-                        src_gpu_weight[f'gpu_{dest_gpu_id}'] = 0
+                        src_gpu_weight[dest_gpu_key] = 0
                         continue
 
                     try:
                         dest_gpu_link_weight = amdsmi_interface.amdsmi_topo_get_link_weight(src_gpu, dest_gpu)
-                        src_gpu_weight[f'gpu_{dest_gpu_id}'] = dest_gpu_link_weight
+                        src_gpu_weight[dest_gpu_key] = dest_gpu_link_weight
                     except amdsmi_exception.AmdSmiLibraryException as e:
-                        src_gpu_weight[f'gpu_{dest_gpu_id}'] = e.get_error_info()
+                        src_gpu_weight[dest_gpu_key] = e.get_error_info()
 
                 topo_values[src_gpu_index]['weight'] = src_gpu_weight
 
@@ -1396,17 +1390,18 @@ class AMDSMICommands():
             for src_gpu_index, src_gpu in enumerate(args.gpu):
                 src_gpu_hops = {}
                 for dest_gpu in args.gpu:
-                    dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(src_gpu)
+                    dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(dest_gpu)
+                    dest_gpu_key = f'gpu_{dest_gpu_id}'
 
                     if src_gpu == dest_gpu:
-                        src_gpu_hops[f'gpu_{dest_gpu_id}'] = 0
+                        src_gpu_hops[dest_gpu_key] = 0
                         continue
 
                     try:
                         dest_gpu_hops = amdsmi_interface.amdsmi_topo_get_link_type(src_gpu, dest_gpu)['hops']
-                        src_gpu_hops[f'gpu_{dest_gpu_id}'] = dest_gpu_hops
+                        src_gpu_hops[dest_gpu_key] = dest_gpu_hops
                     except amdsmi_exception.AmdSmiLibraryException as e:
-                        src_gpu_hops[f'gpu_{dest_gpu_id}'] = e.get_error_info()
+                        src_gpu_hops[dest_gpu_key] = e.get_error_info()
 
                 topo_values[src_gpu_index]['hops'] = src_gpu_hops
 
@@ -1414,23 +1409,24 @@ class AMDSMICommands():
             for src_gpu_index, src_gpu in enumerate(args.gpu):
                 src_gpu_link_type = {}
                 for dest_gpu in args.gpu:
-                    dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(src_gpu)
+                    dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(dest_gpu)
+                    dest_gpu_key = f'gpu_{dest_gpu_id}'
 
                     if src_gpu == dest_gpu:
-                        src_gpu_link_type[f'gpu_{dest_gpu_id}'] = 0
+                        src_gpu_link_type[dest_gpu_key] = 0
                         continue
 
                     try:
                         link_type = amdsmi_interface.amdsmi_topo_get_link_type(src_gpu, dest_gpu)['type']
                         if isinstance(link_type, int):
                             if link_type == 1:
-                                src_gpu_link_type[f'gpu_{dest_gpu_id}'] = "PCIE"
+                                src_gpu_link_type[dest_gpu_key] = "PCIE"
                             elif link_type == 2:
-                                src_gpu_link_type[f'gpu_{dest_gpu_id}'] = "XMGI"
+                                src_gpu_link_type[dest_gpu_key] = "XMGI"
                         else:
-                            src_gpu_link_type[f'gpu_{dest_gpu_id}'] = "XXXX"
+                            src_gpu_link_type[dest_gpu_key] = "XXXX"
                     except amdsmi_exception.AmdSmiLibraryException as e:
-                        src_gpu_link_type[f'gpu_{dest_gpu_id}'] = e.get_error_info()
+                        src_gpu_link_type[dest_gpu_key] = e.get_error_info()
 
                 topo_values[src_gpu_index]['link_type'] = src_gpu_link_type
 
@@ -1438,10 +1434,11 @@ class AMDSMICommands():
             for src_gpu_index, src_gpu in enumerate(args.gpu):
                 src_gpu_link_type = {}
                 for dest_gpu in args.gpu:
-                    dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(src_gpu)
+                    dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(dest_gpu)
+                    dest_gpu_key = f'gpu_{dest_gpu_id}'
 
                     if src_gpu == dest_gpu:
-                        src_gpu_link_type[f'gpu_{dest_gpu_id}'] = 'N/A'
+                        src_gpu_link_type[dest_gpu_key] = 'N/A'
                         continue
 
                     try:
@@ -1449,18 +1446,18 @@ class AMDSMICommands():
                         if isinstance(link_type, int):
                             if link_type != 2:
                                 non_xgmi = True
-                                src_gpu_link_type[f'gpu_{dest_gpu_id}'] = 'N/A'
+                                src_gpu_link_type[dest_gpu_key] = 'N/A'
                                 continue
                     except amdsmi_exception.AmdSmiLibraryException as e:
-                        src_gpu_link_type[f'gpu_{dest_gpu_id}'] = e.get_error_info()
+                        src_gpu_link_type[dest_gpu_key] = e.get_error_info()
 
                     try:
                         min_bw = amdsmi_interface.amdsmi_get_minmax_bandwidth(src_gpu, dest_gpu)['min_bandwidth']
                         max_bw = amdsmi_interface.amdsmi_get_minmax_bandwidth(src_gpu, dest_gpu)['max_bandwidth']
 
-                        src_gpu_link_type[f'gpu_{dest_gpu_id}'] = f'{min_bw}-{max_bw}'
+                        src_gpu_link_type[dest_gpu_key] = f'{min_bw}-{max_bw}'
                     except amdsmi_exception.AmdSmiLibraryException as e:
-                        src_gpu_link_type[f'gpu_{dest_gpu_id}'] =  e.get_error_info()
+                        src_gpu_link_type[dest_gpu_key] =  e.get_error_info()
 
                 topo_values[src_gpu_index]['numa_bandwidth'] = src_gpu_link_type
 
