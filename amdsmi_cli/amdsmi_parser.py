@@ -415,6 +415,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         clock_help = "Average, max, and current clock frequencies"
         temperature_help = "Current temperatures"
         ecc_help = "Number of ECC errors"
+        ecc_block_help = "Number of ECC errors per block"
         pcie_help = "Current PCIe speed and width"
         voltage_help = "Current GPU voltages"
 
@@ -459,6 +460,8 @@ class AMDSMIParser(argparse.ArgumentParser):
             metric_parser.add_argument('-c', '--clock', action='store_true', required=False, help=clock_help)
             metric_parser.add_argument('-t', '--temperature', action='store_true', required=False, help=temperature_help)
             metric_parser.add_argument('-e', '--ecc', action='store_true', required=False, help=ecc_help)
+            metric_parser.add_argument('-k', '--ecc-block', action='store_true', required=False, help=ecc_block_help)
+
             metric_parser.add_argument('-P', '--pcie', action='store_true', required=False, help=pcie_help)
             metric_parser.add_argument('-V', '--voltage', action='store_true', required=False, help=voltage_help)
             metric_parser.add_argument('-u', '--usage', action='store_true', required=False, help=usage_help)
