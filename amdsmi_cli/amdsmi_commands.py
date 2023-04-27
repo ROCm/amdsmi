@@ -342,13 +342,12 @@ class AMDSMICommands():
         if (self.helpers.is_linux() and self.helpers.is_baremetal()):
             if args.ras:
                 try:
-                    if self.helpers.has_ras_support(args.gpu):
-                        static_dict['ras'] = amdsmi_interface.amdsmi_get_ras_block_features_enabled(args.gpu)
-                    else:
-                        static_dict['ras'] = 'N/A'
-
+                    static_dict['ras'] = amdsmi_interface.amdsmi_get_ras_block_features_enabled(args.gpu)
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict['ras'] = e.get_error_info()
+                    if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NOT_SUPPORTED:
+                        static_dict['ras'] = 'N/A'
+                    else:
+                        static_dict['ras'] = e.get_error_info()
                     if not self.all_arguments:
                         raise e
         if args.caps:
@@ -399,7 +398,7 @@ class AMDSMICommands():
                     for ras_dict in ras_dicts:
                         for key, value in ras_dict.items():
                             self.logger.store_output(args.gpu, key, value)
-                            self.logger.store_output(args.gpu, 'values', static_dict)
+                        self.logger.store_output(args.gpu, 'values', static_dict)
                         self.logger.store_multiple_device_output()
                 else:
                     # Store values if ras has an error
@@ -628,8 +627,8 @@ class AMDSMICommands():
 
     def metric(self, args, multiple_devices=False, watching_output=False, gpu=None,
                 usage=None, watch=None, watch_time=None, iterations=None, fb_usage=None, power=None,
-                clock=None, temperature=None, ecc=None, pcie=None, voltage=None, fan=None,
-                voltage_curve=None, overdrive=None, mem_overdrive=None, perf_level=None,
+                clock=None, temperature=None, ecc=None, ecc_block=None, pcie=None, voltage=None,
+                fan=None, voltage_curve=None, overdrive=None, mem_overdrive=None, perf_level=None,
                 replay_count=None, xgmi_err=None, energy=None, mem_usage=None):
         """Get Metric information for target gpu
 
@@ -647,6 +646,7 @@ class AMDSMICommands():
             clock (bool, optional): Value override for args.clock. Defaults to None.
             temperature (bool, optional): Value override for args.temperature. Defaults to None.
             ecc (bool, optional): Value override for args.ecc. Defaults to None.
+            ecc_block (bool, optional): Value override for args.ecc. Defaults to None.
             pcie (bool, optional): Value override for args.pcie. Defaults to None.
             voltage (bool, optional): Value override for args.voltage. Defaults to None.
             fan (bool, optional): Value override for args.fan. Defaults to None.
@@ -692,6 +692,8 @@ class AMDSMICommands():
                 args.temperature = temperature
             if ecc:
                 args.ecc = ecc
+            if ecc_block:
+                args.ecc_block = ecc_block
             if pcie:
                 args.pcie = pcie
             if voltage:
@@ -757,10 +759,10 @@ class AMDSMICommands():
                 args.fb_usage = args.replay_count = args.mem_usage = self.all_arguments = True
 
         if (self.helpers.is_linux() and self.helpers.is_baremetal()):
-            if not any([args.usage, args.fb_usage, args.power, args.clock, args.temperature, args.ecc, args.pcie, args.voltage, args.fan,
+            if not any([args.usage, args.fb_usage, args.power, args.clock, args.temperature, args.ecc,  args.ecc_block, args.pcie, args.voltage, args.fan,
                         args.voltage_curve, args.overdrive, args.mem_overdrive, args.perf_level,
                         args.replay_count, args.xgmi_err, args.energy, args.mem_usage]):
-                args.usage = args.fb_usage = args.power = args.clock = args.temperature = args.ecc = args.pcie = args.voltage = args.fan = \
+                args.usage = args.fb_usage = args.power = args.clock = args.temperature = args.ecc = args.ecc_block = args.pcie = args.voltage = args.fan = \
                 args.voltage_curve = args.overdrive = args.mem_overdrive = args.perf_level = \
                 args.replay_count = args.xgmi_err = args.energy = args.mem_usage = self.all_arguments = True
 
@@ -896,6 +898,23 @@ class AMDSMICommands():
                     if not self.all_arguments:
                         raise e
             if args.ecc:
+                try:
+                    ecc_count = amdsmi_interface.amdsmi_get_ecc_error_count(args.gpu)
+                    ecc_count['correctable'] = ecc_count.pop('correctable_count')
+                    ecc_count['uncorrectable'] = ecc_count.pop('uncorrectable_count')
+
+                    values_dict['ecc'] = ecc_count
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NOT_SUPPORTED:
+                        ecc_count['correctable'] = 'N/A'
+                        ecc_count['uncorrectable'] = 'N/A'
+                        values_dict['ecc'] = ecc_count
+                    else:
+                        values_dict['ecc'] = e.get_error_info()
+                    if not self.all_arguments:
+                        raise e
+
+            if args.ecc_block:
                 ecc_dict = {}
                 try:
                     if self.helpers.has_ras_support(args.gpu):
@@ -907,12 +926,12 @@ class AMDSMICommands():
                                 ecc_dict[state['block']] = {'correctable' : ecc_count['correctable_count'],
                                             'uncorrectable': ecc_count['uncorrectable_count']}
                     if not ecc_dict:
-                        ecc_dict['correctable'] = 'N/A'
-                        ecc_dict['uncorrectable'] = 'N/A'
+                        ecc_dict['correctable_per_block'] = 'N/A'
+                        ecc_dict['uncorrectable_per_block'] = 'N/A'
 
-                    values_dict['ecc'] = ecc_dict
+                    values_dict['ecc_block'] = ecc_dict
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    values_dict['ecc'] = e.get_error_info()
+                    values_dict['ecc_block'] = e.get_error_info()
                     if not self.all_arguments:
                         raise e
 
