@@ -101,6 +101,12 @@ void TestOverdriveReadWrite::Run(void) {
       std::cout << "Set Overdrive level to 0%..." << std::endl;
     }
     ret =  amdsmi_set_gpu_overdrive_level(processor_handles_[dv_ind], 0);
+    if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
+      IF_VERB(STANDARD) {
+        std::cout << "\t** Not supported on this machine" << std::endl;
+      }
+      continue;
+    }
     CHK_ERR_ASRT(ret)
     IF_VERB(STANDARD) {
       std::cout << "Set Overdrive level to 10%..." << std::endl;

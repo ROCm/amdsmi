@@ -125,6 +125,12 @@ void TestPowerCapReadWrite::Run(void) {
     end = clock();
     cpu_time_used = ((double) (end - start)) * 1000000UL / CLOCKS_PER_SEC;
 
+    if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
+      IF_VERB(STANDARD) {
+        std::cout << "\t** Not supported on this machine" << std::endl;
+      }
+      continue;
+    }
     CHK_ERR_ASRT(ret)
 
     ret = amdsmi_get_power_cap_info(processor_handles_[dv_ind], 0, &info);

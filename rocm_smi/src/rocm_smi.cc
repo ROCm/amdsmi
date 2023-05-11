@@ -850,6 +850,11 @@ rsmi_dev_overdrive_level_get(uint32_t dv_ind, uint32_t *od) {
   CHK_SUPPORT_NAME_ONLY(od)
   DEVICE_MUTEX
 
+  // Bare Metal only feature
+  if (amd::smi::is_vm_guest()) {
+    return RSMI_STATUS_NOT_SUPPORTED;
+  }
+
   rsmi_status_t ret = get_dev_value_str(amd::smi::kDevOverDriveLevel, dv_ind,
                                                                     &val_str);
   if (ret != RSMI_STATUS_SUCCESS) {
@@ -886,6 +891,12 @@ rsmi_dev_overdrive_level_set_v1(uint32_t dv_ind, uint32_t od) {
   if (od > kMaxOverdriveLevel) {
     return RSMI_STATUS_INVALID_ARGS;
   }
+
+  // Bare Metal only feature
+  if (amd::smi::is_vm_guest()) {
+    return RSMI_STATUS_NOT_SUPPORTED;
+  }
+
   DEVICE_MUTEX
   return set_dev_value(amd::smi::kDevOverDriveLevel, dv_ind, od);
   CATCH
@@ -903,6 +914,11 @@ rsmi_dev_perf_level_set_v1(uint32_t dv_ind, rsmi_dev_perf_level_t perf_level) {
 
   if (perf_level > RSMI_DEV_PERF_LEVEL_LAST) {
     return RSMI_STATUS_INVALID_ARGS;
+  }
+
+  // Bare Metal only feature
+  if (amd::smi::is_vm_guest()) {
+    return RSMI_STATUS_NOT_SUPPORTED;
   }
 
   DEVICE_MUTEX
@@ -992,6 +1008,10 @@ static rsmi_status_t get_power_profiles(uint32_t dv_ind,
   }
   assert(val_vec.size() <= RSMI_MAX_NUM_POWER_PROFILES);
   if (val_vec.size() > RSMI_MAX_NUM_POWER_PROFILES + 1 || val_vec.size() < 1) {
+    // Guest may not have power related information.
+    if (amd::smi::is_vm_guest()) {
+      return RSMI_STATUS_NOT_SUPPORTED;
+    }
     return RSMI_STATUS_UNEXPECTED_SIZE;
   }
   // -1 for the header line, below
@@ -1175,6 +1195,11 @@ rsmi_status_t rsmi_dev_clk_range_set(uint32_t dv_ind, uint64_t minclkvalue,
 
   if (minclkvalue >= maxclkvalue) {
     return RSMI_STATUS_INVALID_ARGS;
+  }
+
+  // Bare Metal only feature
+  if (amd::smi::is_vm_guest()) {
+    return RSMI_STATUS_NOT_SUPPORTED;
   }
 
   // Can only set the clock type for sys and mem type
@@ -1599,6 +1624,11 @@ rsmi_dev_gpu_clk_freq_set(uint32_t dv_ind,
 
   if (clk_type > RSMI_CLK_TYPE_LAST) {
     return RSMI_STATUS_INVALID_ARGS;
+  }
+
+  // Bare Metal only feature
+  if (amd::smi::is_vm_guest()) {
+    return RSMI_STATUS_NOT_SUPPORTED;
   }
 
   ret = rsmi_dev_gpu_clk_freq_get(dv_ind, clk_type, &freqs);
@@ -2058,6 +2088,10 @@ rsmi_dev_pci_bandwidth_set(uint32_t dv_ind, uint64_t bw_bitmask) {
   TRY
   REQUIRE_ROOT_ACCESS
   DEVICE_MUTEX
+  // Bare Metal only feature
+  if (amd::smi::is_vm_guest()) {
+    return RSMI_STATUS_NOT_SUPPORTED;
+  }
   ret = rsmi_dev_pci_bandwidth_get(dv_ind, &bws);
 
   if (ret != RSMI_STATUS_SUCCESS) {
@@ -2369,6 +2403,11 @@ rsmi_dev_fan_speed_set(uint32_t dv_ind, uint32_t sensor_ind, uint64_t speed) {
   REQUIRE_ROOT_ACCESS
   DEVICE_MUTEX
 
+  // Bare Metal only feature
+  if (amd::smi::is_vm_guest()) {
+    return RSMI_STATUS_NOT_SUPPORTED;
+  }
+
   ret = rsmi_dev_fan_speed_max_get(dv_ind, sensor_ind, &max_speed);
 
   if (ret != RSMI_STATUS_SUCCESS) {
@@ -2580,6 +2619,11 @@ rsmi_dev_power_cap_set(uint32_t dv_ind, uint32_t sensor_ind, uint64_t cap) {
   REQUIRE_ROOT_ACCESS
   DEVICE_MUTEX
 
+  // Bare Metal only feature
+  if (amd::smi::is_vm_guest()) {
+    return RSMI_STATUS_NOT_SUPPORTED;
+  }
+
   ret = rsmi_dev_power_cap_range_get(dv_ind, sensor_ind, &max, &min);
   if (ret != RSMI_STATUS_SUCCESS) {
     return ret;
@@ -2622,6 +2666,10 @@ rsmi_dev_power_profile_set(uint32_t dv_ind, uint32_t dummy,
 
   (void)dummy;
   DEVICE_MUTEX
+  // Bare Metal only feature
+  if (amd::smi::is_vm_guest()) {
+    return RSMI_STATUS_NOT_SUPPORTED;
+  }
   rsmi_status_t ret = set_power_profile(dv_ind, profile);
   return ret;
   CATCH
