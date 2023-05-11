@@ -140,6 +140,12 @@ void TestPerfLevelReadWrite::Run(void) {
                                                             " ..." << std::endl;
     }
     ret =  amdsmi_set_gpu_perf_level(processor_handles_[dv_ind], orig_pfl);
+    if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
+      IF_VERB(STANDARD) {
+        std::cout << "\t** Not supported on this machine" << std::endl;
+      }
+      continue;
+    }
     CHK_ERR_ASRT(ret)
     ret = amdsmi_get_gpu_perf_level(processor_handles_[dv_ind], &pfl);
     CHK_ERR_ASRT(ret)

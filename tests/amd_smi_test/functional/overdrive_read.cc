@@ -99,6 +99,12 @@ void TestOverdriveRead::Run(void) {
     PrintDeviceHeader(processor_handles_[i]);
 
     err = amdsmi_get_gpu_overdrive_level(processor_handles_[i], &val_ui32);
+    if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
+      IF_VERB(STANDARD) {
+        std::cout << "\t** Not supported on this machine" << std::endl;
+      }
+      continue;
+    }
     CHK_ERR_ASRT(err)
     IF_VERB(STANDARD) {
     std::cout << "\t**OverDrive Level:" << val_ui32 << std::endl;
