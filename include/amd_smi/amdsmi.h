@@ -379,12 +379,12 @@ typedef struct {
 typedef struct {
   uint32_t average_socket_power;
   uint64_t energy_accumulator;      // v1 mod. (32->64)
-  uint32_t voltage_gfx;   // GFX voltage measurement in mV
-  uint32_t voltage_soc;  // SOC voltage measurement in mV
-  uint32_t voltage_mem;  // MEM voltage measurement in mV
+  uint32_t gfx_voltage;   // GFX voltage measurement in mV
+  uint32_t soc_voltage;  // SOC voltage measurement in mV
+  uint32_t mem_voltage;  // MEM voltage measurement in mV
   uint32_t power_limit;  // The power limit;
   uint32_t reserved[9];
-} amdsmi_power_measure_t;
+} amdsmi_power_info_t;
 
 typedef struct {
   uint32_t cur_clk;
@@ -392,7 +392,7 @@ typedef struct {
   uint32_t min_clk;
   uint32_t max_clk;
   uint32_t reserved[4];
-} amdsmi_clk_measure_t;
+} amdsmi_clk_info_t;
 
 typedef struct {
   uint32_t gfx_activity;
@@ -3754,7 +3754,7 @@ amdsmi_get_gpu_activity(amdsmi_processor_handle processor_handle, amdsmi_engine_
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_power_measure(amdsmi_processor_handle processor_handle, amdsmi_power_measure_t *info);
+amdsmi_get_power_info(amdsmi_processor_handle processor_handle, amdsmi_power_info_t *info);
 
 /**
  *  @brief          Returns the measurements of the clocks in the GPU
@@ -3771,7 +3771,7 @@ amdsmi_get_power_measure(amdsmi_processor_handle processor_handle, amdsmi_power_
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_clock_measure(amdsmi_processor_handle processor_handle, amdsmi_clk_type_t clk_type, amdsmi_clk_measure_t *info);
+amdsmi_get_clock_info(amdsmi_processor_handle processor_handle, amdsmi_clk_type_t clk_type, amdsmi_clk_info_t *info);
 
 /**
  *  @brief          Returns the VRAM usage (both total and used memory)

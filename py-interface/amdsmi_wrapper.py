@@ -23,7 +23,7 @@
 import os
 # -*- coding: utf-8 -*-
 #
-# TARGET arch is: ['-I/usr/lib64/clang/10.0.1/include']
+# TARGET arch is: ['-I/usr/lib/llvm-14/lib/clang/14.0.0/include']
 # WORD_SIZE is: 8
 # POINTER_SIZE is: 8
 # LONGDOUBLE_SIZE is: 16
@@ -185,6 +185,7 @@ elif libamd_smi_parent_dir.is_file():
 else:
     # lastly - search in current working directory
     _libraries['libamd_smi.so'] = ctypes.CDLL(libamd_smi_cwd)
+
 
 
 # values for enumeration 'c__EA_amdsmi_init_flags_t'
@@ -667,28 +668,28 @@ struct_c__SA_amdsmi_board_info_t._fields_ = [
 ]
 
 amdsmi_board_info_t = struct_c__SA_amdsmi_board_info_t
-class struct_c__SA_amdsmi_power_measure_t(Structure):
+class struct_c__SA_amdsmi_power_info_t(Structure):
     pass
 
-struct_c__SA_amdsmi_power_measure_t._pack_ = 1 # source:False
-struct_c__SA_amdsmi_power_measure_t._fields_ = [
+struct_c__SA_amdsmi_power_info_t._pack_ = 1 # source:False
+struct_c__SA_amdsmi_power_info_t._fields_ = [
     ('average_socket_power', ctypes.c_uint32),
     ('PADDING_0', ctypes.c_ubyte * 4),
     ('energy_accumulator', ctypes.c_uint64),
-    ('voltage_gfx', ctypes.c_uint32),
-    ('voltage_soc', ctypes.c_uint32),
-    ('voltage_mem', ctypes.c_uint32),
+    ('gfx_voltage', ctypes.c_uint32),
+    ('soc_voltage', ctypes.c_uint32),
+    ('mem_voltage', ctypes.c_uint32),
     ('power_limit', ctypes.c_uint32),
     ('reserved', ctypes.c_uint32 * 9),
     ('PADDING_1', ctypes.c_ubyte * 4),
 ]
 
-amdsmi_power_measure_t = struct_c__SA_amdsmi_power_measure_t
-class struct_c__SA_amdsmi_clk_measure_t(Structure):
+amdsmi_power_info_t = struct_c__SA_amdsmi_power_info_t
+class struct_c__SA_amdsmi_clk_info_t(Structure):
     pass
 
-struct_c__SA_amdsmi_clk_measure_t._pack_ = 1 # source:False
-struct_c__SA_amdsmi_clk_measure_t._fields_ = [
+struct_c__SA_amdsmi_clk_info_t._pack_ = 1 # source:False
+struct_c__SA_amdsmi_clk_info_t._fields_ = [
     ('cur_clk', ctypes.c_uint32),
     ('avg_clk', ctypes.c_uint32),
     ('min_clk', ctypes.c_uint32),
@@ -696,7 +697,7 @@ struct_c__SA_amdsmi_clk_measure_t._fields_ = [
     ('reserved', ctypes.c_uint32 * 4),
 ]
 
-amdsmi_clk_measure_t = struct_c__SA_amdsmi_clk_measure_t
+amdsmi_clk_info_t = struct_c__SA_amdsmi_clk_info_t
 class struct_c__SA_amdsmi_engine_usage_t(Structure):
     pass
 
@@ -1697,12 +1698,12 @@ amdsmi_get_gpu_vbios_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(st
 amdsmi_get_gpu_activity = _libraries['libamd_smi.so'].amdsmi_get_gpu_activity
 amdsmi_get_gpu_activity.restype = amdsmi_status_t
 amdsmi_get_gpu_activity.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_c__SA_amdsmi_engine_usage_t)]
-amdsmi_get_power_measure = _libraries['libamd_smi.so'].amdsmi_get_power_measure
-amdsmi_get_power_measure.restype = amdsmi_status_t
-amdsmi_get_power_measure.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_c__SA_amdsmi_power_measure_t)]
-amdsmi_get_clock_measure = _libraries['libamd_smi.so'].amdsmi_get_clock_measure
-amdsmi_get_clock_measure.restype = amdsmi_status_t
-amdsmi_get_clock_measure.argtypes = [amdsmi_processor_handle, amdsmi_clk_type_t, ctypes.POINTER(struct_c__SA_amdsmi_clk_measure_t)]
+amdsmi_get_power_info = _libraries['libamd_smi.so'].amdsmi_get_power_info
+amdsmi_get_power_info.restype = amdsmi_status_t
+amdsmi_get_power_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_c__SA_amdsmi_power_info_t)]
+amdsmi_get_clock_info = _libraries['libamd_smi.so'].amdsmi_get_clock_info
+amdsmi_get_clock_info.restype = amdsmi_status_t
+amdsmi_get_clock_info.argtypes = [amdsmi_processor_handle, amdsmi_clk_type_t, ctypes.POINTER(struct_c__SA_amdsmi_clk_info_t)]
 amdsmi_get_gpu_vram_usage = _libraries['libamd_smi.so'].amdsmi_get_gpu_vram_usage
 amdsmi_get_gpu_vram_usage.restype = amdsmi_status_t
 amdsmi_get_gpu_vram_usage.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_c__SA_amdsmi_vram_info_t)]
@@ -1843,7 +1844,7 @@ __all__ = \
     'TEMPERATURE_TYPE_VRAM', 'TEMPERATURE_TYPE__MAX', 'UNKNOWN',
     'amd_metrics_table_header_t', 'amdsmi_asic_info_t',
     'amdsmi_bdf_t', 'amdsmi_bit_field_t', 'amdsmi_board_info_t',
-    'amdsmi_clk_measure_t', 'amdsmi_clk_type_t',
+    'amdsmi_clk_info_t', 'amdsmi_clk_type_t',
     'amdsmi_clk_type_t__enumvalues',
     'amdsmi_close_supported_func_iterator',
     'amdsmi_container_types_t',
@@ -1864,7 +1865,7 @@ __all__ = \
     'amdsmi_fw_block_t', 'amdsmi_fw_block_t__enumvalues',
     'amdsmi_fw_info_t', 'amdsmi_get_busy_percent',
     'amdsmi_get_caps_info', 'amdsmi_get_clk_freq',
-    'amdsmi_get_clock_measure', 'amdsmi_get_energy_count',
+    'amdsmi_get_clock_info', 'amdsmi_get_energy_count',
     'amdsmi_get_func_iter_value', 'amdsmi_get_fw_info',
     'amdsmi_get_gpu_activity', 'amdsmi_get_gpu_asic_info',
     'amdsmi_get_gpu_available_counters',
@@ -1898,7 +1899,7 @@ __all__ = \
     'amdsmi_get_gpu_vram_usage', 'amdsmi_get_gpu_vram_vendor',
     'amdsmi_get_minmax_bandwidth', 'amdsmi_get_pcie_link_caps',
     'amdsmi_get_pcie_link_status', 'amdsmi_get_power_ave',
-    'amdsmi_get_power_cap_info', 'amdsmi_get_power_measure',
+    'amdsmi_get_power_cap_info', 'amdsmi_get_power_info',
     'amdsmi_get_processor_handle_from_bdf',
     'amdsmi_get_processor_handles', 'amdsmi_get_processor_type',
     'amdsmi_get_socket_handles', 'amdsmi_get_socket_info',
@@ -1922,7 +1923,7 @@ __all__ = \
     'amdsmi_open_supported_func_iterator',
     'amdsmi_open_supported_variant_iterator',
     'amdsmi_pcie_bandwidth_t', 'amdsmi_pcie_info_t',
-    'amdsmi_power_cap_info_t', 'amdsmi_power_measure_t',
+    'amdsmi_power_cap_info_t', 'amdsmi_power_info_t',
     'amdsmi_power_profile_preset_masks_t',
     'amdsmi_power_profile_preset_masks_t__enumvalues',
     'amdsmi_power_profile_status_t', 'amdsmi_proc_info_t',
@@ -1977,7 +1978,7 @@ __all__ = \
     'struct_c__SA_amd_metrics_table_header_t',
     'struct_c__SA_amdsmi_asic_info_t',
     'struct_c__SA_amdsmi_board_info_t',
-    'struct_c__SA_amdsmi_clk_measure_t',
+    'struct_c__SA_amdsmi_clk_info_t',
     'struct_c__SA_amdsmi_counter_value_t',
     'struct_c__SA_amdsmi_engine_usage_t',
     'struct_c__SA_amdsmi_error_count_t',
@@ -1997,7 +1998,7 @@ __all__ = \
     'struct_c__SA_amdsmi_pcie_bandwidth_t',
     'struct_c__SA_amdsmi_pcie_info_t',
     'struct_c__SA_amdsmi_power_cap_info_t',
-    'struct_c__SA_amdsmi_power_measure_t',
+    'struct_c__SA_amdsmi_power_info_t',
     'struct_c__SA_amdsmi_power_profile_status_t',
     'struct_c__SA_amdsmi_proc_info_t',
     'struct_c__SA_amdsmi_proc_info_t_0',

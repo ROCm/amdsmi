@@ -48,8 +48,8 @@ from .amdsmi_interface import amdsmi_get_fw_info
 # # GPU Monitoring
 from .amdsmi_interface import amdsmi_get_gpu_activity
 from .amdsmi_interface import amdsmi_get_gpu_vram_usage
-from .amdsmi_interface import amdsmi_get_power_measure
-from .amdsmi_interface import amdsmi_get_clock_measure
+from .amdsmi_interface import amdsmi_get_power_info
+from .amdsmi_interface import amdsmi_get_clock_info
 
 from .amdsmi_interface import amdsmi_get_pcie_link_status
 from .amdsmi_interface import amdsmi_get_pcie_link_caps

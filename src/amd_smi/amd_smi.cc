@@ -1492,7 +1492,7 @@ amdsmi_get_gpu_activity(amdsmi_processor_handle processor_handle, amdsmi_engine_
 }
 
 amdsmi_status_t
-amdsmi_get_clock_measure(amdsmi_processor_handle processor_handle, amdsmi_clk_type_t clk_type, amdsmi_clk_measure_t *info) {
+amdsmi_get_clock_info(amdsmi_processor_handle processor_handle, amdsmi_clk_type_t clk_type, amdsmi_clk_info_t *info) {
     AMDSMI_CHECK_INIT();
 
     if (info == nullptr) {
@@ -1698,7 +1698,7 @@ amdsmi_get_gpu_process_info(amdsmi_processor_handle processor_handle, amdsmi_pro
 }
 
 amdsmi_status_t
-amdsmi_get_power_measure(amdsmi_processor_handle processor_handle, amdsmi_power_measure_t *info) {
+amdsmi_get_power_info(amdsmi_processor_handle processor_handle, amdsmi_power_info_t *info) {
     AMDSMI_CHECK_INIT();
 
     if (info == nullptr) {
@@ -1732,7 +1732,7 @@ amdsmi_get_power_measure(amdsmi_processor_handle processor_handle, amdsmi_power_
     }
     info->power_limit = power_limit;
 
-    info->voltage_gfx = voltage_read;
+    info->gfx_voltage = voltage_read;
 
     info->average_socket_power = metrics.average_socket_power;
     info->energy_accumulator = metrics.energy_accumulator;
