@@ -17,3 +17,9 @@ docs/*.pdf
 __pycache__/
 *.py[cod]
 *.egg-*
+
+# documentation artifacts
+_toc.yml
+_build/
+_doxygen/
+docBin/
