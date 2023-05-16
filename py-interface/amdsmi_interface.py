@@ -698,7 +698,7 @@ def amdsmi_get_gpu_activity(
     }
 
 
-def amdsmi_get_clock_measure(
+def amdsmi_get_clock_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     clock_type: amdsmi_wrapper.amdsmi_clk_type_t,
 ) -> Dict[str, Any]:
@@ -709,9 +709,9 @@ def amdsmi_get_clock_measure(
     if not isinstance(clock_type, AmdSmiClkType):
         raise AmdSmiParameterException(clock_type, AmdSmiClkType)
 
-    clock_measure = amdsmi_wrapper.amdsmi_clk_measure_t()
+    clock_measure = amdsmi_wrapper.amdsmi_clk_info_t()
     _check_res(
-        amdsmi_wrapper.amdsmi_get_clock_measure(
+        amdsmi_wrapper.amdsmi_get_clock_info(
             processor_handle,
             amdsmi_wrapper.amdsmi_clk_type_t(clock_type),
             ctypes.byref(clock_measure),
@@ -962,7 +962,7 @@ def amdsmi_get_gpu_driver_version(
     return version.value.decode("utf-8")
 
 
-def amdsmi_get_power_measure(
+def amdsmi_get_power_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -970,16 +970,16 @@ def amdsmi_get_power_measure(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    power_measure = amdsmi_wrapper.amdsmi_power_measure_t()
+    power_measure = amdsmi_wrapper.amdsmi_power_info_t()
     _check_res(
-        amdsmi_wrapper.amdsmi_get_power_measure(
+        amdsmi_wrapper.amdsmi_get_power_info(
             processor_handle, ctypes.byref(power_measure)
         )
     )
 
     return {
         "average_socket_power": power_measure.average_socket_power,
-        "voltage_gfx": power_measure.voltage_gfx,
+        "gfx_voltage": power_measure.gfx_voltage,
         "energy_accumulator": power_measure.energy_accumulator,
         "power_limit" : power_measure.power_limit,
     }

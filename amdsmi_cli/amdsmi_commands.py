@@ -283,7 +283,7 @@ class AMDSMICommands():
                         raise e
             if args.limit:
                 try:
-                    power_limit = amdsmi_interface.amdsmi_get_power_measure(args.gpu)['power_limit']
+                    power_limit = amdsmi_interface.amdsmi_get_power_info(args.gpu)['power_limit']
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     power_limit = e.get_error_info()
                     if not self.all_arguments:
@@ -811,32 +811,32 @@ class AMDSMICommands():
             if args.power:
                 power_dict = {}
                 try:
-                    power_measure = amdsmi_interface.amdsmi_get_power_measure(args.gpu)
+                    power_measure = amdsmi_interface.amdsmi_get_power_info(args.gpu)
                     power_dict = {'average_socket_power': power_measure['average_socket_power'],
-                                    'voltage_gfx': power_measure['voltage_gfx'],
-                                    'voltage_soc': amdsmi_exception.AmdSmiLibraryException(amdsmi_exception.AmdSmiRetCode.NOT_IMPLEMENTED).err_info,
-                                    'voltage_mem': amdsmi_exception.AmdSmiLibraryException(amdsmi_exception.AmdSmiRetCode.NOT_IMPLEMENTED).err_info}
+                                    'gfx_voltage': power_measure['gfx_voltage'],
+                                    'soc_voltage': amdsmi_exception.AmdSmiLibraryException(amdsmi_exception.AmdSmiRetCode.NOT_IMPLEMENTED).err_info,
+                                    'mem_voltage': amdsmi_exception.AmdSmiLibraryException(amdsmi_exception.AmdSmiRetCode.NOT_IMPLEMENTED).err_info}
 
                     if self.logger.is_human_readable_format():
                         power_dict['average_socket_power'] = f"{power_dict['average_socket_power']} W"
-                        power_dict['voltage_gfx'] = f"{power_dict['voltage_gfx']} mV"
-                        power_dict['voltage_soc'] = amdsmi_exception.AmdSmiLibraryException(amdsmi_exception.AmdSmiRetCode.NOT_IMPLEMENTED).err_info
-                        power_dict['voltage_mem'] = amdsmi_exception.AmdSmiLibraryException(amdsmi_exception.AmdSmiRetCode.NOT_IMPLEMENTED).err_info
+                        power_dict['gfx_voltage'] = f"{power_dict['gfx_voltage']} mV"
+                        power_dict['soc_voltage'] = amdsmi_exception.AmdSmiLibraryException(amdsmi_exception.AmdSmiRetCode.NOT_IMPLEMENTED).err_info
+                        power_dict['mem_voltage'] = amdsmi_exception.AmdSmiLibraryException(amdsmi_exception.AmdSmiRetCode.NOT_IMPLEMENTED).err_info
 
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     power_dict = {'average_socket_power': e.get_error_info(),
-                                    'voltage_gfx': e.get_error_info(),
-                                    'voltage_soc': e.get_error_info(),
-                                    'voltage_mem': e.get_error_info()}
+                                    'gfx_voltage': e.get_error_info(),
+                                    'soc_voltage': e.get_error_info(),
+                                    'mem_voltage': e.get_error_info()}
 
                     if not self.all_arguments:
                         raise e
 
                 if self.logger.is_gpuvsmi_compatibility():
                     power_dict['current_power'] = power_dict.pop('average_socket_power')
-                    power_dict['current_voltage'] = power_dict.pop('voltage_gfx')
-                    power_dict['current_voltage_soc'] = power_dict.pop('voltage_soc')
-                    power_dict['current_voltage_mem'] = power_dict.pop('voltage_mem')
+                    power_dict['current_voltage'] = power_dict.pop('gfx_voltage')
+                    power_dict['current_soc_voltage'] = power_dict.pop('soc_voltage')
+                    power_dict['current_mem_voltage'] = power_dict.pop('mem_voltage')
 
                     try:
                         power_dict['current_fan_rpm'] = amdsmi_interface.amdsmi_dev_get_fan_rpms(args.gpu, 0)
@@ -850,8 +850,8 @@ class AMDSMICommands():
                 values_dict['power'] = power_dict
             if args.clock:
                 try:
-                    clock_gfx = amdsmi_interface.amdsmi_get_clock_measure(args.gpu, amdsmi_interface.AmdSmiClkType.GFX)
-                    clock_mem = amdsmi_interface.amdsmi_get_clock_measure(args.gpu, amdsmi_interface.AmdSmiClkType.MEM)
+                    clock_gfx = amdsmi_interface.amdsmi_get_clock_info(args.gpu, amdsmi_interface.AmdSmiClkType.GFX)
+                    clock_mem = amdsmi_interface.amdsmi_get_clock_info(args.gpu, amdsmi_interface.AmdSmiClkType.MEM)
 
                     clocks = {'gfx': clock_gfx,
                             'mem': clock_mem}
@@ -1056,7 +1056,7 @@ class AMDSMICommands():
                         raise e
             if args.energy:
                 try:
-                    energy = amdsmi_interface.amdsmi_get_power_measure(args.gpu)['energy_accumulator']
+                    energy = amdsmi_interface.amdsmi_get_power_info(args.gpu)['energy_accumulator']
 
                     if self.logger.is_human_readable_format():
                         unit = 'J'

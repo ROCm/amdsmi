@@ -511,7 +511,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_get_power_measure
+## amdsmi_get_power_info
 Description: Returns the current power and voltage for the given GPU
 
 Input parameters:
@@ -522,11 +522,11 @@ Output: Dictionary with fields
 Field | Description
 ---|---
 `average_socket_power`| average socket power
-`voltage_gfx` | voltage gfx
+`gfx_voltage` | voltage gfx
 `energy_accumulator` | energy accumulator
 `power_limit` | power limit
 
-Exceptions that can be thrown by `amdsmi_get_power_measure` function:
+Exceptions that can be thrown by `amdsmi_get_power_info` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -539,9 +539,9 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            power_measure = amdsmi_get_power_measure(device)
+            power_measure = amdsmi_get_power_info(device)
             print(power_measure['average_socket_power'])
-            print(power_measure['voltage_gfx'])
+            print(power_measure['gfx_voltage'])
             print(power_measure['energy_accumulator'])
             print(power_measure['power_limit'])
 except AmdSmiException as e:
@@ -579,7 +579,7 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-## amdsmi_get_clock_measure
+## amdsmi_get_clock_info
 Description: Returns the clock measure for the given GPU
 
 Input parameters:
@@ -609,7 +609,7 @@ Field | Description
 `min_clk` | Minimum clock for given clock type
 `max_clk` | Maximum clock for given clock type
 
-Exceptions that can be thrown by `amdsmi_get_clock_measure` function:
+Exceptions that can be thrown by `amdsmi_get_clock_info` function:
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
@@ -622,7 +622,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            clock_measure = amdsmi_get_clock_measure(device, AmdSmiClkType.GFX)
+            clock_measure = amdsmi_get_clock_info(device, AmdSmiClkType.GFX)
             print(clock_measure['cur_clk'])
             print(clock_measure['avg_clk'])
             print(clock_measure['min_clk'])

@@ -305,12 +305,12 @@ int main() {
                    vbios_info.vbios_version_string);
 
             // Get power measure
-            amdsmi_power_measure_t power_measure = {};
-            ret = amdsmi_get_power_measure(processor_handles[j], &power_measure);
+            amdsmi_power_info_t power_measure = {};
+            ret = amdsmi_get_power_info(processor_handles[j], &power_measure);
             CHK_AMDSMI_RET(ret)
-            printf("    Output of amdsmi_get_power_measure:\n");
+            printf("    Output of amdsmi_get_power_info:\n");
             printf("\tCurrent GFX Voltage: %d\n",
-                   power_measure.voltage_gfx);
+                   power_measure.gfx_voltage);
             printf("\tAverage socket power: %d\n",
                    power_measure.average_socket_power);
             printf("\tEnergy accumulator: %ld\n\n",
@@ -358,18 +358,18 @@ int main() {
             }
 
             // Get GFX clock measurements
-            amdsmi_clk_measure_t gfx_clk_values = {};
-            ret = amdsmi_get_clock_measure(processor_handles[j], CLK_TYPE_GFX,
+            amdsmi_clk_info_t gfx_clk_values = {};
+            ret = amdsmi_get_clock_info(processor_handles[j], CLK_TYPE_GFX,
                                            &gfx_clk_values);
             CHK_AMDSMI_RET(ret)
-            printf("    Output of amdsmi_get_clock_measure:\n");
+            printf("    Output of amdsmi_get_clock_info:\n");
             printf("\tGPU GFX Max Clock: %d\n", gfx_clk_values.max_clk);
             printf("\tGPU GFX Average Clock: %d\n", gfx_clk_values.avg_clk);
             printf("\tGPU GFX Current Clock: %d\n", gfx_clk_values.cur_clk);
 
             // Get MEM clock measurements
-            amdsmi_clk_measure_t mem_clk_values = {};
-            ret = amdsmi_get_clock_measure(processor_handles[j], CLK_TYPE_MEM,
+            amdsmi_clk_info_t mem_clk_values = {};
+            ret = amdsmi_get_clock_info(processor_handles[j], CLK_TYPE_MEM,
                                            &mem_clk_values);
             CHK_AMDSMI_RET(ret)
             printf("\tGPU MEM Max Clock: %d\n", mem_clk_values.max_clk);
