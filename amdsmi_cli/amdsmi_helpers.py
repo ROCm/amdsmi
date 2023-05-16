@@ -396,3 +396,11 @@ class AMDSMIHelpers():
                 return False
         except amdsmi_exception.AmdSmiLibraryException:
             return False
+
+
+    def convert_bytes_to_readable(self, bytes_input):
+        for unit in ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB"]:
+            if abs(bytes_input) < 1024:
+                return f"{bytes_input:3.1f} {unit}"
+            bytes_input /= 1024
+        return f"{bytes_input:.1f} YB"
