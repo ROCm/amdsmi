@@ -1206,24 +1206,15 @@ class AMDSMICommands():
             process_info['mem_usage'] = process_info.pop('mem')
             process_info['usage'] = process_info.pop('engine_usage')
 
-            # Convert mem_usage to megabytes
-
-            mem_usage_mb = (process_info['mem_usage']//1024) // 1024
-            if mem_usage_mb < 0:
-                process_info['mem_usage'] = process_info['mem_usage']//1024
-                mem_usage_unit = 'B'
-            else:
-                process_info['mem_usage'] = mem_usage_mb
-
             if self.logger.is_human_readable_format():
-                mem_usage_unit = 'MB'
-                engine_usage_unit = '%'
-                process_info['mem_usage'] = f"{process_info['mem_usage']} {mem_usage_unit}"
+                process_info['mem_usage'] = self.helpers.convert_bytes_to_readable(process_info['mem_usage'])
 
+                engine_usage_unit = "ns"
                 for usage_metric in process_info['usage']:
                     process_info['usage'][usage_metric] = f"{process_info['usage'][usage_metric]} {engine_usage_unit}"
+
                 for usage_metric in process_info['memory_usage']:
-                    process_info['memory_usage'][usage_metric] = f"{process_info['memory_usage'][usage_metric]} {engine_usage_unit}"
+                    process_info['memory_usage'][usage_metric] = self.helpers.convert_bytes_to_readable(process_info['memory_usage'][usage_metric])
 
             filtered_process_values.append({'process_info': process_info})
 
