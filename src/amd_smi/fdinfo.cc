@@ -191,20 +191,6 @@ amdsmi_status_t gpuvsmi_get_pid_info(const amdsmi_bdf_t &bdf, long int pid,
 					continue;
 
 				info.engine_usage.gfx = engine_gfx;
-			} else if (line.find("drm-engine-compute") != std::string::npos) {
-				uint64_t engine_compute;
-
-				if (sscanf(line.c_str(), "drm-engine-compute:  %lu", &engine_compute) != 1)
-					continue;
-
-				info.engine_usage.compute = engine_compute;
-			} else if (line.find("drm-engine-dma") != std::string::npos) {
-				uint64_t engine_dma;
-
-				if (sscanf(line.c_str(), "drm-engine-dma:  %lu", &engine_dma) != 1)
-					continue;
-
-				info.engine_usage.dma = engine_dma;
 			} else if (line.find("drm-engine-enc") != std::string::npos) {
 				uint64_t engine_enc;
 
@@ -212,13 +198,6 @@ amdsmi_status_t gpuvsmi_get_pid_info(const amdsmi_bdf_t &bdf, long int pid,
 					continue;
 
 				info.engine_usage.enc = engine_enc;
-			} else if (line.find("drm-engine-dec") != std::string::npos) {
-				uint64_t engine_dec;
-
-				if (sscanf(line.c_str(), "drm-engine-dec:  %lu", &engine_dec) != 1)
-					continue;
-
-				info.engine_usage.dec = engine_dec;
 			}
 		}
 	}

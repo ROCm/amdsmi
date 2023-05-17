@@ -131,7 +131,6 @@ int main() {
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_gpu_asic_info:\n");
             printf("\tMarket Name: %s\n", asic_info.market_name);
-            printf("\tFamilyID: 0x%x\n", asic_info.family);
             printf("\tDeviceID: 0x%lx\n", asic_info.device_id);
             printf("\tVendorID: 0x%x\n", asic_info.vendor_id);
             printf("\tRevisionID: 0x%x\n", asic_info.rev_id);
@@ -145,9 +144,8 @@ int main() {
             printf("\tVBios Name: %s\n", vbios_info.name);
             printf("\tBuild Date: %s\n", vbios_info.build_date);
             printf("\tPart Number: %s\n", vbios_info.part_number);
-            printf("\tVBios Version: %d\n", vbios_info.vbios_version);
             printf("\tVBios Version String: %s\n\n",
-                   vbios_info.vbios_version_string);
+                   vbios_info.version);
 
             // Get engine usage info
             amdsmi_engine_usage_t engine_usage = {};
@@ -157,7 +155,7 @@ int main() {
             printf("\tAverage GFX Activity: %d\n",
                    engine_usage.gfx_activity);
             printf("\tAverage MM Activity: %d\n",
-                   engine_usage.mm_activity[0]);
+                   engine_usage.mm_activity);
             printf("\tAverage UMC Activity: %d\n\n",
                    engine_usage.umc_activity);
 
@@ -314,22 +312,6 @@ int main() {
             printf("    Output of amdsmi_get_gpu_vram_usage:\n");
             std::cout << "\t\tFrame buffer usage (MB): " << vram_usage.vram_used
                       << "/" << vram_usage.vram_total << "\n\n";
-
-            // Get Cap info
-            amdsmi_gpu_caps_t caps_info = {};
-            ret = amdsmi_get_caps_info(processor_handles[j], &caps_info);
-            CHK_AMDSMI_RET(ret)
-            printf("    Output of amdsmi_get_caps_info:\n");
-            std::cout << "\t\tGFX IP Major: " << caps_info.gfx.gfxip_major
-                      << "\n"
-                      << "\t\tGFX IP Minor: " << caps_info.gfx.gfxip_minor
-                      << "\n"
-                      << "\t\tCU IP Count: " << caps_info.gfx.gfxip_cu_count
-                      << "\n"
-                      << "\t\tDMA IP Count: " << caps_info.dma_ip_count << "\n"
-                      << "\t\tGFX IP Count: " << caps_info.gfx_ip_count << "\n"
-                      << "\t\tMM IP Count: " << int(caps_info.mm.mm_ip_count)
-                      << "\n\n";
 
             amdsmi_power_cap_info_t cap_info = {};
             ret = amdsmi_get_power_cap_info(processor_handles[j], 0, &cap_info);

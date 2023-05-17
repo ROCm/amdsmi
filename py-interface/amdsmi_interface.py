@@ -597,7 +597,6 @@ def amdsmi_get_gpu_asic_info(
 
     return {
         "market_name": asic_info.market_name.decode("utf-8"),
-        "family": asic_info.family,
         "vendor_id": asic_info.vendor_id,
         "device_id": asic_info.device_id,
         "rev_id": asic_info.rev_id,
@@ -626,32 +625,6 @@ def amdsmi_get_power_cap_info(
             "min_power_cap": power_info.min_power_cap,
             "max_power_cap": power_info.max_power_cap}
 
-def amdsmi_get_caps_info(
-    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
-) -> Dict[str, Any]:
-    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
-        raise AmdSmiParameterException(
-            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
-        )
-
-    gpu_caps = amdsmi_wrapper.amdsmi_gpu_caps_t()
-    _check_res(
-        amdsmi_wrapper.amdsmi_get_caps_info(
-            processor_handle, ctypes.byref(gpu_caps))
-    )
-
-    return {
-        "gfx": {
-            "gfxip_major": gpu_caps.gfx.gfxip_major,
-            "gfxip_minor": gpu_caps.gfx.gfxip_minor,
-            "gfxip_cu_count": gpu_caps.gfx.gfxip_cu_count,
-        },
-        "mm_ip_list": list(gpu_caps.mm.mm_ip_list),
-        "ras_supported": gpu_caps.ras_supported,
-        "gfx_ip_count": gpu_caps.gfx_ip_count,
-        "dma_ip_count": gpu_caps.dma_ip_count,
-    }
-
 
 def amdsmi_get_gpu_vbios_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
@@ -669,10 +642,9 @@ def amdsmi_get_gpu_vbios_info(
 
     return {
         "name": vbios_info.name.decode("utf-8"),
-        "vbios_version_string": vbios_info.vbios_version_string.decode("utf-8"),
+        "version": vbios_info.version.decode("utf-8"),
         "build_date": vbios_info.build_date.decode("utf-8"),
         "part_number": vbios_info.part_number.decode("utf-8"),
-        "vbios_version": vbios_info.vbios_version,
     }
 
 
@@ -694,7 +666,7 @@ def amdsmi_get_gpu_activity(
     return {
         "gfx_activity": engine_usage.gfx_activity,
         "umc_activity": engine_usage.umc_activity,
-        "mm_activity": list(engine_usage.mm_activity),
+        "mm_activity": engine_usage.mm_activity,
     }
 
 
@@ -720,7 +692,6 @@ def amdsmi_get_clock_info(
 
     return {
         "cur_clk": clock_measure.cur_clk,
-        "avg_clk": clock_measure.avg_clk,
         "min_clk": clock_measure.min_clk,
         "max_clk": clock_measure.max_clk,
     }
@@ -907,10 +878,7 @@ def amdsmi_get_gpu_process_info(
         "mem": info.mem,
         "engine_usage": {
             "gfx": info.engine_usage.gfx,
-            "compute": info.engine_usage.compute,
-            "dma": info.engine_usage.dma,
-            "enc": info.engine_usage.enc,
-            "dec": info.engine_usage.dec,
+            "enc": info.engine_usage.enc
         },
         "memory_usage": {
             "gtt_mem": info.memory_usage.gtt_mem,
@@ -980,7 +948,6 @@ def amdsmi_get_power_info(
     return {
         "average_socket_power": power_measure.average_socket_power,
         "gfx_voltage": power_measure.gfx_voltage,
-        "energy_accumulator": power_measure.energy_accumulator,
         "power_limit" : power_measure.power_limit,
     }
 
@@ -1836,22 +1803,6 @@ def amdsmi_set_power_cap(
             processor_handle, ctypes.c_uint32(sensor_ind), ctypes.c_uint64(cap)
         )
     )
-
-
-def amdsmi_get_power_ave(processor_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_id: ctypes.c_uint32):
-    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
-        raise AmdSmiParameterException(
-            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
-        )
-
-    power = ctypes.c_uint64()
-
-    _check_res(
-        amdsmi_wrapper.amdsmi_get_power_ave(
-            processor_handle, sensor_id, ctypes.byref(power))
-    )
-
-    return power.value
 
 
 def amdsmi_set_gpu_power_profile(
