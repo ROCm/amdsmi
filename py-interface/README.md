@@ -295,7 +295,6 @@ Output: Dictionary with fields
 Field | Content
 ---|---
 `market_name` |  market name
-`family` |  family
 `vendor_id` |  vendor id
 `device_id` |  device id
 `rev_id` |  revision id
@@ -316,7 +315,6 @@ try:
         for device in devices:
             asic_info = amdsmi_get_gpu_asic_info(device)
             print(asic_info['market_name'])
-            print(hex(asic_info['family']))
             print(hex(asic_info['vendor_id']))
             print(hex(asic_info['device_id']))
             print(hex(asic_info['rev_id']))
@@ -364,46 +362,6 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## amdsmi_get_caps_info
-Description: Returns capabilities as currently configured for the given GPU
-
-Input parameters:
-* `processor_handle` device which to query
-
-Output: Dictionary with fields
-
-Field | Description
----|---
- `gfx` | <table> <thead><tr><th> Subfield </th><th>Description</th></tr></thead><tbody><tr><td>`gfxip_major`</td><td> major revision of GFX IP</td></tr><tr><td>`gfxip_minor`</td><td>minor revision of GFX IP</td></tr><tr><td>`gfxip_cu_count`</td><td>number of GFX compute units</td></tr></tbody></table>
- `mm_ip_list` |  List of MM engines on the device, of AmdSmiMmIp type
- `ras_supported` |  `True` if ecc is supported, `False` if not
- `gfx_ip_count` |  Number of GFX engines on the device
- `dma_ip_count` | Number of DMA engines on the device
-
-Exceptions that can be thrown by `amdsmi_get_caps_info` function:
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on machine")
-    else:
-        for device in devices:
-            caps_info =  amdsmi_get_caps_info(device)
-            print(caps_info['ras_supported'])
-            print(caps_info['gfx']['gfxip_major'])
-            print(caps_info['gfx']['gfxip_minor'])
-            print(caps_info['gfx']['gfxip_cu_count'])
-            print(caps_info['mm_ip_list'])
-            print(caps_info['gfx_ip_count'])
-            print(caps_info['dma_ip_count'])
-except AmdSmiException as e:
-    print(e)
-```
 
 ## amdsmi_get_gpu_vbios_info
 Description:  Returns the static information for the VBIOS on the device.
@@ -416,10 +374,9 @@ Output: Dictionary with fields
 Field | Description
 ---|---
 `name` | vbios name
-`vbios_version` | vbios current version
 `build_date` | vbios build date
 `part_number` | vbios part number
-`vbios_version_string` | vbios version string
+`version` | vbios version string
 
 Exceptions that can be thrown by `amdsmi_get_gpu_vbios_info` function:
 * `AmdSmiLibraryException`
@@ -436,10 +393,9 @@ try:
         for device in devices:
             vbios_info = amdsmi_get_gpu_vbios_info(device)
             print(vbios_info['name'])
-            print(vbios_info['vbios_version'])
             print(vbios_info['build_date'])
             print(vbios_info['part_number'])
-            print(vbios_info['vbios_version_string'])
+            print(vbios_info['version'])
 except AmdSmiException as e:
     print(e)
 ```
@@ -489,7 +445,7 @@ Field | Description
 ---|---
 `gfx_activity`| graphics engine usage percentage (0 - 100)
 `umc_activity` | memory engine usage percentage (0 - 100)
-`mm_activity` | list of multimedia engine usages in percentage (0 - 100)
+`mm_activity` | average multimedia engine usages in percentage (0 - 100)
 
 Exceptions that can be thrown by `amdsmi_get_gpu_activity` function:
 * `AmdSmiLibraryException`
@@ -523,7 +479,6 @@ Field | Description
 ---|---
 `average_socket_power`| average socket power
 `gfx_voltage` | voltage gfx
-`energy_accumulator` | energy accumulator
 `power_limit` | power limit
 
 Exceptions that can be thrown by `amdsmi_get_power_info` function:
@@ -542,7 +497,6 @@ try:
             power_measure = amdsmi_get_power_info(device)
             print(power_measure['average_socket_power'])
             print(power_measure['gfx_voltage'])
-            print(power_measure['energy_accumulator'])
             print(power_measure['power_limit'])
 except AmdSmiException as e:
     print(e)
@@ -605,7 +559,6 @@ Output: Dictionary with fields
 Field | Description
 ---|---
 `cur_clk`| Current clock for given clock type
-`avg_clk` | Average clock for given clock type
 `min_clk` | Minimum clock for given clock type
 `max_clk` | Maximum clock for given clock type
 
@@ -624,7 +577,6 @@ try:
         for device in devices:
             clock_measure = amdsmi_get_clock_info(device, AmdSmiClkType.GFX)
             print(clock_measure['cur_clk'])
-            print(clock_measure['avg_clk'])
             print(clock_measure['min_clk'])
             print(clock_measure['max_clk'])
 except AmdSmiException as e:
@@ -852,7 +804,7 @@ Field | Description
 `name` | Name of process
 `pid` | Process ID
 `mem` | Process memory usage
-`engine_usage`| <table><thead><tr> <th> Subfield </th> <th> Description</th> </tr></thead><tbody><tr><td>`gfx`</td><td>GFX engine usage in ns</td></tr><tr><td>`compute`</td><td>Compute engine usage in ns</td></tr><tr><td>`dma`</td><td>DMA engine usage in ns </td></tr><tr><td>`enc`</td><td>Encode engine usage in ns</td></tr><tr><td>`dec`</td><td>Decode engine usage in ns</td></tr></tbody></table>
+`engine_usage`| <table><thead><tr> <th> Subfield </th> <th> Description</th> </tr></thead><tbody><tr><td>`gfx`</td><td>GFX engine usage in ns</td></tr><tr><td>`enc`</td><td>Encode engine usage in ns</td></tr></tbody></table>
 `memory_usage`| <table><thead><tr> <th> Subfield </th> <th> Description</th> </tr></thead><tbody><tr><td>`gtt_mem`</td><td>GTT memory usage</td></tr><tr><td>`cpu_mem`</td><td>CPU memory usage</td></tr><tr><td>`vram_mem`</td><td>VRAM memory usage</td></tr> </tbody></table>
 
 Exceptions that can be thrown by `amdsmi_get_gpu_process_info` function:
@@ -1486,37 +1438,6 @@ try:
         for device in devices:
             numa_node = amdsmi_get_gpu_topo_numa_affinity(device)
             print(numa_node)
-except AmdSmiException as e:
-    print(e)
-```
-
-## amdsmi_get_power_ave
-
-Description: Get the average power consumption of the device
-
-Input parameters:
-
-* `processor_handle` device which to query
-* `sensor_id` a 0-based sensor index. Normally, this will be 0.
-If a device has more than one sensor, it could be greater than 0.
-
-Output: the average power consumption
-
-Exceptions that can be thrown by `amdsmi_get_power_ave` function:
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-```python
-try:
-    devices = gpuvsmi_get_devices()
-    if len(devices) == 0:
-        print("No GPUs on machine")
-    else:
-        for device in devices:
-            power = amdsmi_get_power_ave(device)
-            print(power)
 except AmdSmiException as e:
     print(e)
 ```

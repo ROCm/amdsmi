@@ -39,7 +39,6 @@ from .amdsmi_interface import amdsmi_get_gpu_driver_version
 # # ASIC and Bus Static Information
 from .amdsmi_interface import amdsmi_get_gpu_asic_info
 from .amdsmi_interface import amdsmi_get_power_cap_info
-from .amdsmi_interface import amdsmi_get_caps_info
 
 # # Microcode and VBIOS Information
 from .amdsmi_interface import amdsmi_get_gpu_vbios_info
@@ -144,7 +143,6 @@ from .amdsmi_interface import  amdsmi_get_gpu_pci_replay_counter
 from .amdsmi_interface import amdsmi_get_gpu_topo_numa_affinity
 
 # # Power information
-from .amdsmi_interface import amdsmi_get_power_ave
 from .amdsmi_interface import amdsmi_get_energy_count
 
 # # Memory information

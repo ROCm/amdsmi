@@ -111,18 +111,6 @@ void TestPowerRead::Run(void) {
         std::cout << "\t**Power Cap Range: " << info.min_power_cap << " to " <<
                                                  info.max_power_cap << " uW" << std::endl;
       }
-
-      err = amdsmi_get_power_ave(processor_handles_[i], 0, &val_ui64);
-      IF_VERB(STANDARD) {
-        std::cout << "\t**Averge Power Usage: ";
-        CHK_AMDSMI_PERM_ERR(err)
-        if (err == AMDSMI_STATUS_SUCCESS) {
-          std::cout << static_cast<float>(val_ui64)/1000 << " mW" << std::endl;
-        }
-        // Verify api support checking functionality is working
-        err = amdsmi_get_power_ave(processor_handles_[i], 0, nullptr);
-        ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
-      }
     }
   }
 }

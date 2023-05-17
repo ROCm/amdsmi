@@ -284,29 +284,6 @@ typedef struct {
   uint32_t reserved[9];
 } amdsmi_xgmi_info_t;
 
-/**
- * GPU Capability info
- */
-typedef struct {
-  struct {
-    uint32_t gfxip_major;
-    uint32_t gfxip_minor;
-    uint16_t gfxip_cu_count;
-    uint32_t reserved[5];
-  } gfx;
-  struct {
-    uint8_t mm_ip_count;
-    uint8_t mm_ip_list[AMDSMI_MAX_MM_IP_COUNT];
-    uint32_t reserved[5];
-  } mm;
-
-  bool ras_supported;
-  uint8_t max_vf_num;
-  uint32_t gfx_ip_count;
-  uint32_t dma_ip_count;
-  uint32_t reserved[5];
-} amdsmi_gpu_caps_t;
-
 typedef struct {
   uint32_t vram_total;
   uint32_t vram_used;
@@ -339,10 +316,9 @@ typedef struct {
 
 typedef struct {
   char    name[AMDSMI_MAX_STRING_LENGTH];
-  uint32_t vbios_version;
   char    build_date[AMDSMI_MAX_DATE_LENGTH];
   char    part_number[AMDSMI_MAX_STRING_LENGTH];
-  char    vbios_version_string[AMDSMI_NORMAL_STRING_LENGTH];
+  char    version[AMDSMI_NORMAL_STRING_LENGTH];
   uint32_t reserved[15];
 } amdsmi_vbios_info_t;
 
@@ -358,7 +334,6 @@ typedef struct {
 
 typedef struct {
   char  market_name[AMDSMI_MAX_STRING_LENGTH];
-  uint32_t family; /**< Has zero value */
   uint32_t vendor_id;   //< Use 32 bit to be compatible with other platform.
   uint32_t subvendor_id;   //< The subsystem vendor id
   uint64_t device_id;   //< The unique id of a GPU
@@ -378,17 +353,15 @@ typedef struct {
 
 typedef struct {
   uint32_t average_socket_power;
-  uint64_t energy_accumulator;      // v1 mod. (32->64)
   uint32_t gfx_voltage;   // GFX voltage measurement in mV
   uint32_t soc_voltage;  // SOC voltage measurement in mV
   uint32_t mem_voltage;  // MEM voltage measurement in mV
   uint32_t power_limit;  // The power limit;
-  uint32_t reserved[9];
+  uint32_t reserved[11];
 } amdsmi_power_info_t;
 
 typedef struct {
   uint32_t cur_clk;
-  uint32_t avg_clk;
   uint32_t min_clk;
   uint32_t max_clk;
   uint32_t reserved[4];
@@ -397,8 +370,8 @@ typedef struct {
 typedef struct {
   uint32_t gfx_activity;
   uint32_t umc_activity;
-  uint32_t mm_activity[AMDSMI_MAX_MM_IP_COUNT];
-  uint32_t reserved[6];
+  uint32_t mm_activity;
+  uint32_t reserved[13];
 } amdsmi_engine_usage_t;
 
 typedef uint32_t amdsmi_process_handle;
@@ -409,10 +382,7 @@ typedef struct {
 	uint64_t              mem; /** in bytes */
 	struct {
 		uint64_t gfx;
-		uint64_t compute;
-		uint64_t dma;
 		uint64_t enc;
-		uint64_t dec;
 	} engine_usage; /** How much time the process spend using these engines in ns */
   struct {
     uint64_t gtt_mem;
@@ -420,7 +390,7 @@ typedef struct {
     uint64_t vram_mem;
   } memory_usage; /** in bytes */
   char container_name[AMDSMI_NORMAL_STRING_LENGTH];
-  uint32_t reserved[10];
+  uint32_t reserved[4];
 } amdsmi_proc_info_t;
 
 //! Guaranteed maximum possible number of supported frequencies
@@ -1624,30 +1594,6 @@ amdsmi_status_t  amdsmi_set_gpu_pci_bandwidth(amdsmi_processor_handle processor_
  *  These functions provide information about power usage.
  *  @{
  */
-
-/**
- *  @brief Get the average power consumption of a processor
- *
- *  @details This function will write the current average power consumption
- *  (in microwatts) to the uint64_t pointed to by @p power, for the given
- *  processor handle @p processor_handle and a pointer to a uint64_t @p power
- *
- *  @param[in] processor_handle a processor handle
- *
- *  @param[in] sensor_ind a 0-based sensor index. Normally, this will be 0.
- *  If a processor has more than one sensor, it could be greater than 0.
- *
- *  @param[in,out] power a pointer to uint64_t to which the average power
- *  consumption will be written
- *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
- *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
- *  provided arguments.
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t
-amdsmi_get_power_ave(amdsmi_processor_handle processor_handle, uint32_t sensor_ind, uint64_t *power);
 
 /**
  *  @brief Get the energy accumulator counter of the processor with provided
@@ -3621,7 +3567,7 @@ amdsmi_get_gpu_driver_version(amdsmi_processor_handle processor_handle, int *len
  *  @brief          Returns the ASIC information for the device
  * 
  *  @details        This function returns ASIC information such as the product name,
- *                  the family, the vendor ID, the subvendor ID, the device ID,
+ *                  the vendor ID, the subvendor ID, the device ID,
  *                  the revision ID and the serial number.
  *
  *  @param[in]      processor_handle Device which to query
@@ -3676,20 +3622,6 @@ amdsmi_get_power_cap_info(amdsmi_processor_handle processor_handle, uint32_t sen
  */
 amdsmi_status_t
 amdsmi_get_xgmi_info(amdsmi_processor_handle processor_handle, amdsmi_xgmi_info_t *info);
-
-/**
- *  @brief          Returns the device capabilities as currently configured in
- *                  the system
- *
- *  @param[in]      processor_handle Device which to query
- *
- *  @param[out]     info Reference to caps information structure. Must be
- *                  allocated by user.
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t
-amdsmi_get_caps_info(amdsmi_processor_handle processor_handle, amdsmi_gpu_caps_t *info);
 
 /** @} End asicinfo */
 

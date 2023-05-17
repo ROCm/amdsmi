@@ -216,7 +216,6 @@ class AMDSMICommands():
         if args.asic:
             try:
                 asic_info = amdsmi_interface.amdsmi_get_asic_info(args.gpu)
-                asic_info['family'] = hex(asic_info['family'])
                 asic_info['vendor_id'] = hex(asic_info['vendor_id'])
                 asic_info['device_id'] = hex(asic_info['device_id'])
                 asic_info['rev_id'] = hex(asic_info['rev_id'])
@@ -255,10 +254,9 @@ class AMDSMICommands():
             try:
                 vbios_info = amdsmi_interface.amdsmi_get_vbios_info(args.gpu)
                 if self.logger.is_gpuvsmi_compatibility():
-                    vbios_info['version'] = vbios_info.pop('vbios_version_string')
+                    vbios_info['version'] = vbios_info.pop('version')
                     vbios_info['build_date'] = vbios_info.pop('build_date')
                     vbios_info['part_number'] = vbios_info.pop('part_number')
-                    vbios_info['vbios_version'] = vbios_info.pop('vbios_version')
 
                 static_dict['vbios'] = vbios_info
             except amdsmi_exception.AmdSmiLibraryException as e:
@@ -351,23 +349,7 @@ class AMDSMICommands():
                     if not self.all_arguments:
                         raise e
         if args.caps:
-            try:
-                caps_info = amdsmi_interface.amdsmi_get_caps_info(args.gpu)
-                caps_info.pop('mm_ip_list')
-                caps_info.pop('ras_supported')
-
-                if self.logger.is_human_readable_format():
-                    for capability_name, capability_value in caps_info.items():
-                        if isinstance(capability_value, list):
-                            caps_info[capability_name] = f"{capability_value}"
-                        if isinstance(capability_value, bool):
-                            caps_info[capability_name] = f"{bool(capability_value)}"
-
-                static_dict['caps'] = caps_info
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                static_dict['caps'] = e.get_error_info()
-                if not self.all_arguments:
-                    raise e
+            pass
         if (self.helpers.is_linux() and self.helpers.is_baremetal()):
             if args.numa:
                 try:
@@ -1055,18 +1037,7 @@ class AMDSMICommands():
                     elif not self.all_arguments:
                         raise e
             if args.energy:
-                try:
-                    energy = amdsmi_interface.amdsmi_get_power_info(args.gpu)['energy_accumulator']
-
-                    if self.logger.is_human_readable_format():
-                        unit = 'J'
-                        energy = f"{energy} {unit}"
-
-                    values_dict['energy'] = energy
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    values_dict['energy'] = e.get_error_info()
-                    if not self.all_arguments:
-                        raise e
+                pass
         if args.mem_usage:
             memory_total = {}
             try:

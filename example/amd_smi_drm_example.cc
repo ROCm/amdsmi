@@ -286,7 +286,6 @@ int main() {
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_gpu_asic_info:\n");
             printf("\tMarket Name: %s\n", asic_info.market_name);
-            printf("\tFamilyID: 0x%x\n", asic_info.family);
             printf("\tDeviceID: 0x%lx\n", asic_info.device_id);
             printf("\tVendorID: 0x%x\n", asic_info.vendor_id);
             printf("\tRevisionID: 0x%x\n", asic_info.rev_id);
@@ -300,9 +299,8 @@ int main() {
             printf("\tVBios Name: %s\n", vbios_info.name);
             printf("\tBuild Date: %s\n", vbios_info.build_date);
             printf("\tPart Number: %s\n", vbios_info.part_number);
-            printf("\tVBios Version: %d\n", vbios_info.vbios_version);
             printf("\tVBios Version String: %s\n\n",
-                   vbios_info.vbios_version_string);
+                   vbios_info.version);
 
             // Get power measure
             amdsmi_power_info_t power_measure = {};
@@ -313,8 +311,6 @@ int main() {
                    power_measure.gfx_voltage);
             printf("\tAverage socket power: %d\n",
                    power_measure.average_socket_power);
-            printf("\tEnergy accumulator: %ld\n\n",
-                   power_measure.energy_accumulator);
             printf("\tGPU Power limit: %d\n\n", power_measure.power_limit);
 
             // Get driver version
@@ -341,7 +337,7 @@ int main() {
             printf("\tAverage GFX Activity: %d\n",
                    engine_usage.gfx_activity);
             printf("\tAverage MM Activity: %d\n",
-                   engine_usage.mm_activity[0]);
+                   engine_usage.mm_activity);
             printf("\tAverage UMC Activity: %d\n\n",
                    engine_usage.umc_activity);
 
@@ -364,7 +360,6 @@ int main() {
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_clock_info:\n");
             printf("\tGPU GFX Max Clock: %d\n", gfx_clk_values.max_clk);
-            printf("\tGPU GFX Average Clock: %d\n", gfx_clk_values.avg_clk);
             printf("\tGPU GFX Current Clock: %d\n", gfx_clk_values.cur_clk);
 
             // Get MEM clock measurements
@@ -373,7 +368,6 @@ int main() {
                                            &mem_clk_values);
             CHK_AMDSMI_RET(ret)
             printf("\tGPU MEM Max Clock: %d\n", mem_clk_values.max_clk);
-            printf("\tGPU MEM Average Clock: %d\n", mem_clk_values.avg_clk);
             printf("\tGPU MEM Current Clock: %d\n\n", mem_clk_values.cur_clk);
 
             // Get PCIe status
@@ -524,7 +518,7 @@ int main() {
                 amdsmi_proc_info_t info_list[num_process];
                 amdsmi_proc_info_t process = {};
                 uint64_t mem = 0, gtt_mem = 0, cpu_mem = 0, vram_mem = 0;
-                uint64_t gfx = 0, comp = 0, dma = 0, enc = 0, dec = 0;
+                uint64_t gfx = 0, enc = 0;
                 char bdf_str[20];
                 sprintf(bdf_str, "%04lx:%02x:%02x.%d", bdf.domain_number,
                         bdf.bus_number, bdf.device_number, bdf.function_number);
@@ -556,8 +550,8 @@ int main() {
                     "engine usage (ns)                       |\n");
                 printf("|       |                  |            |              "
                        "|             |             |             |            "
-                       "  | gfx     comp    dma     enc     dec     |\n");
-                printf("+=======+==================+============+=============="
+                       "  | gfx     enc     |\n");
+                printf("+=======+"
                        "+=============+=============+=============+============"
                        "==+=========================================+\n");
                 for (int it = 0; it < num; it++) {
@@ -571,41 +565,30 @@ int main() {
                     pwd = getpwuid(st.st_uid);
                     if (!pwd)
                         printf("| %5d | %16s | %10d | %s | %7ld KiB | %7ld KiB "
-                               "| %7ld KiB | %7ld KiB  | %lu  %lu  %lu  "
-                               "%lu  %lu  |\n",
+                               "| %7ld KiB | %7ld KiB  | %lu  %lu |\n",
                                info_list[it].pid, info_list[it].name, st.st_uid,
                                bdf_str, info_list[it].mem / 1024,
                                info_list[it].memory_usage.gtt_mem / 1024,
                                info_list[it].memory_usage.cpu_mem / 1024,
                                info_list[it].memory_usage.vram_mem / 1024,
                                info_list[it].engine_usage.gfx,
-                               info_list[it].engine_usage.compute,
-                               info_list[it].engine_usage.dma,
-                               info_list[it].engine_usage.enc,
-                               info_list[it].engine_usage.dec);
+                               info_list[it].engine_usage.enc);
                     else
                         printf("| %5d | %16s | %10s | %s | %7ld KiB | %7ld KiB "
-                               "| %7ld KiB | %7ld KiB  | %lu  %lu  %lu  "
-                               "%lu  %lu  |\n",
+                               "| %7ld KiB | %7ld KiB  | %lu  %lu |\n",
                                info_list[it].pid, info_list[it].name,
                                pwd->pw_name, bdf_str, info_list[it].mem / 1024,
                                info_list[it].memory_usage.gtt_mem / 1024,
                                info_list[it].memory_usage.cpu_mem / 1024,
                                info_list[it].memory_usage.vram_mem / 1024,
                                info_list[it].engine_usage.gfx,
-                               info_list[it].engine_usage.compute,
-                               info_list[it].engine_usage.dma,
-                               info_list[it].engine_usage.enc,
-                               info_list[it].engine_usage.dec);
+                               info_list[it].engine_usage.enc);
                     mem += info_list[it].mem / 1024;
                     gtt_mem += info_list[it].memory_usage.gtt_mem / 1024;
                     cpu_mem += info_list[it].memory_usage.cpu_mem / 1024;
                     vram_mem += info_list[it].memory_usage.vram_mem / 1024;
                     gfx = info_list[it].engine_usage.gfx;
-                    comp = info_list[it].engine_usage.compute;
-                    dma = info_list[it].engine_usage.dma;
                     enc = info_list[it].engine_usage.enc;
-                    dec = info_list[it].engine_usage.dec;
                     printf(
                         "+-------+------------------+------------+-------------"
                         "-+-------------+-------------+-------------+----------"
@@ -614,8 +597,8 @@ int main() {
                 printf("|                                 TOTAL:| %s | %7ld "
                        "KiB | %7ld KiB | %7ld KiB | %7ld KiB | %lu  %lu  "
                        "%lu  %lu  %lu   |\n",
-                       bdf_str, mem, gtt_mem, cpu_mem, vram_mem, gfx, comp, dma,
-                       enc, dec);
+                       bdf_str, mem, gtt_mem, cpu_mem, vram_mem, gfx,
+                       enc);
                 printf("+=======+==================+============+=============="
                        "+=============+=============+=============+============"
                        "=+==========================================+\n");
@@ -650,22 +633,6 @@ int main() {
             printf("    Output of amdsmi_get_gpu_vram_usage:\n");
             std::cout << "\t\tFrame buffer usage (MB): " << vram_usage.vram_used
                       << "/" << vram_usage.vram_total << "\n\n";
-
-            // Get Cap info
-            amdsmi_gpu_caps_t caps_info = {};
-            ret = amdsmi_get_caps_info(processor_handles[j], &caps_info);
-            CHK_AMDSMI_RET(ret)
-            printf("    Output of amdsmi_get_caps_info:\n");
-            std::cout << "\t\tGFX IP Major: " << caps_info.gfx.gfxip_major
-                      << "\n"
-                      << "\t\tGFX IP Minor: " << caps_info.gfx.gfxip_minor
-                      << "\n"
-                      << "\t\tCU IP Count: " << caps_info.gfx.gfxip_cu_count
-                      << "\n"
-                      << "\t\tDMA IP Count: " << caps_info.dma_ip_count << "\n"
-                      << "\t\tGFX IP Count: " << caps_info.gfx_ip_count << "\n"
-                      << "\t\tMM IP Count: " << int(caps_info.mm.mm_ip_count)
-                      << "\n\n";
 
             amdsmi_power_cap_info_t cap_info = {};
             ret = amdsmi_get_power_cap_info(processor_handles[j], 0, &cap_info);

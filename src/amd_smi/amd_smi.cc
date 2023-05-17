@@ -388,96 +388,6 @@ amdsmi_status_t amdsmi_get_gpu_vram_usage(amdsmi_processor_handle processor_hand
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_caps_info(amdsmi_processor_handle processor_handle,
-            amdsmi_gpu_caps_t *info) {
-
-    AMDSMI_CHECK_INIT();
-
-    if (info == nullptr) {
-        return AMDSMI_STATUS_INVAL;
-    }
-
-    amd::smi::AMDSmiProcessor* amd_device = nullptr;
-    amdsmi_status_t ret = amd::smi::AMDSmiSystem::getInstance()
-                    .handle_to_processor(processor_handle, &amd_device);
-    if (ret != AMDSMI_STATUS_SUCCESS) return ret;
-
-    if (amd_device->get_processor_type() != AMD_GPU) {
-        return AMDSMI_STATUS_NOT_SUPPORTED;
-    }
-    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
-    amdsmi_status_t r = get_gpu_device_from_handle(processor_handle, &gpu_device);
-    if (r != AMDSMI_STATUS_SUCCESS)
-        return r;
-
-    unsigned uvd, vce, uvd_enc, vcn_enc;
-    struct drm_amdgpu_info_hw_ip ip;
-    struct drm_amdgpu_info_device device;
-    unsigned count, j;
-
-    r = gpu_device->amdgpu_query_info(AMDGPU_INFO_DEV_INFO,
-            sizeof(struct drm_amdgpu_info_device), &device);
-    if (r != AMDSMI_STATUS_SUCCESS)  return r;
-
-    info->gfx.gfxip_cu_count = (uint16_t)device.cu_active_number;
-
-    r = gpu_device->amdgpu_query_hw_ip(AMDGPU_INFO_HW_IP_INFO,
-        AMDGPU_HW_IP_GFX, sizeof(ip), &ip);
-    if (r != AMDSMI_STATUS_SUCCESS)  return r;
-
-    info->gfx.gfxip_major = ip.hw_ip_version_major;
-    info->gfx.gfxip_minor = ip.hw_ip_version_minor;
-
-    r = gpu_device->amdgpu_query_hw_ip(AMDGPU_INFO_HW_IP_COUNT,
-            AMDGPU_HW_IP_GFX, sizeof(unsigned), &count);
-    if (r != AMDSMI_STATUS_SUCCESS)  return r;
-    info->gfx_ip_count = count;
-
-    r = gpu_device->amdgpu_query_hw_ip(AMDGPU_INFO_HW_IP_COUNT,
-        AMDGPU_HW_IP_DMA, sizeof(unsigned), &count);
-    if (r != AMDSMI_STATUS_SUCCESS)  return r;
-    info->dma_ip_count = count;
-
-
-    count = 0;
-    /* Count multimedia engines */
-    r = gpu_device->amdgpu_query_hw_ip(AMDGPU_INFO_HW_IP_COUNT,
-        AMDGPU_HW_IP_UVD, sizeof(struct drm_amdgpu_info_device), &uvd);
-    if (r != AMDSMI_STATUS_SUCCESS)  return r;
-
-    for (j = 0; j < uvd; j++)
-        info->mm.mm_ip_list[count++] = AMDSMI_MM_UVD;
-
-    r = gpu_device->amdgpu_query_hw_ip(AMDGPU_INFO_HW_IP_COUNT,
-        AMDGPU_HW_IP_UVD_ENC, sizeof(struct drm_amdgpu_info_device), &uvd_enc);
-    if (r != AMDSMI_STATUS_SUCCESS)  return r;
-
-    for (j = 0; j < uvd_enc; j++)
-        info->mm.mm_ip_list[count++] = AMDSMI_MM_UVD;
-
-    r = gpu_device->amdgpu_query_hw_ip(AMDGPU_INFO_HW_IP_COUNT,
-        AMDGPU_HW_IP_VCE, sizeof(struct drm_amdgpu_info_device), &vce);
-    if (r != AMDSMI_STATUS_SUCCESS)  return r;
-
-    for (j = 0; j < vce; j++)
-        info->mm.mm_ip_list[count++] = AMDSMI_MM_VCE;
-
-    /* VCN is shared DEC/ENC check only ENC */
-    r = gpu_device->amdgpu_query_hw_ip(AMDGPU_INFO_HW_IP_COUNT,
-            AMDGPU_HW_IP_VCN_ENC, sizeof(struct drm_amdgpu_info_device),
-            &vcn_enc);
-    if (r != AMDSMI_STATUS_SUCCESS)  return r;
-
-    for (j = 0; j < vcn_enc; j++)
-        info->mm.mm_ip_list[count++] = AMDSMI_MM_VCN;
-
-    info->mm.mm_ip_count = static_cast<uint8_t>(count);
-
-    info->ras_supported = false;
-
-    return AMDSMI_STATUS_SUCCESS;
-}
-
 amdsmi_status_t amdsmi_get_gpu_fan_rpms(amdsmi_processor_handle processor_handle,
                             uint32_t sensor_ind, int64_t *speed) {
     return rsmi_wrapper(rsmi_dev_fan_rpms_get, processor_handle, sensor_ind,
@@ -597,7 +507,6 @@ amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_i
         }
 
         info->device_id = dev_info.device_id;
-        info->family = dev_info.family;
         info->rev_id = dev_info.pci_rev;
         info->vendor_id = gpu_device->get_vendor_id();
     }
@@ -938,7 +847,6 @@ amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
         {"rsmi_dev_firmware_version_get", "amdsmi_get_fw_info"},
         {"rsmi_dev_ecc_count_get", " amdsmi_get_gpu_ecc_count"},
         {"rsmi_counter_available_counters_get", " amdsmi_get_gpu_available_counters"},
-        {"rsmi_dev_power_ave_get", "amdsmi_get_power_ave"},
         {"rsmi_dev_power_cap_get", "amdsmi_get_power_cap_info"},
         {"rsmi_dev_power_cap_default_get", "amdsmi_get_power_cap_info"},
         {"rsmi_dev_power_cap_range_get", "amdsmi_get_power_cap_info"},
@@ -1130,16 +1038,6 @@ amdsmi_status_t
             sensor_ind, cap);
 }
 
-amdsmi_status_t
-amdsmi_get_power_ave(amdsmi_processor_handle processor_handle,
-                    uint32_t sensor_ind, uint64_t *power) {
-    AMDSMI_CHECK_INIT();
-
-    if (power == nullptr)
-        return AMDSMI_STATUS_INVAL;
-    return rsmi_wrapper(rsmi_dev_power_ave_get, processor_handle,
-            sensor_ind, power);
-}
 amdsmi_status_t
  amdsmi_get_gpu_power_profile_presets(amdsmi_processor_handle processor_handle,
                         uint32_t sensor_ind,
@@ -1446,8 +1344,7 @@ amdsmi_get_gpu_vbios_info(amdsmi_processor_handle processor_handle, amdsmi_vbios
         strncpy(info->name, (char *) vbios.name, AMDSMI_MAX_STRING_LENGTH);
         strncpy(info->build_date, (char *) vbios.date, AMDSMI_MAX_DATE_LENGTH);
         strncpy(info->part_number, (char *) vbios.vbios_pn, AMDSMI_MAX_STRING_LENGTH);
-        strncpy(info->vbios_version_string, (char *) vbios.vbios_ver_str, AMDSMI_NORMAL_STRING_LENGTH);
-        info->vbios_version = vbios.version;
+        strncpy(info->version, (char *) vbios.vbios_ver_str, AMDSMI_NORMAL_STRING_LENGTH);
     }
     else {
         // get vbios version string from rocm_smi
@@ -1458,7 +1355,7 @@ amdsmi_get_gpu_vbios_info(amdsmi_processor_handle processor_handle, amdsmi_vbios
 
         // ignore the errors so that it can populate as many fields as possible.
         if (status == AMDSMI_STATUS_SUCCESS) {
-            strncpy(info->vbios_version_string,
+            strncpy(info->version,
                 vbios_version, AMDSMI_NORMAL_STRING_LENGTH);
         }
     }
@@ -1485,7 +1382,7 @@ amdsmi_get_gpu_activity(amdsmi_processor_handle processor_handle, amdsmi_engine_
         return status;
     }
     info->gfx_activity = metrics.average_gfx_activity;
-    info->mm_activity[0] = metrics.average_mm_activity;
+    info->mm_activity = metrics.average_mm_activity;
     info->umc_activity = metrics.average_umc_activity;
 
     return AMDSMI_STATUS_SUCCESS;
@@ -1524,19 +1421,15 @@ amdsmi_get_clock_info(amdsmi_processor_handle processor_handle, amdsmi_clk_type_
 
     switch (clk_type) {
     case CLK_TYPE_GFX:
-        info->avg_clk = metrics.average_gfxclk_frequency;
         info->cur_clk = metrics.current_gfxclk;
         break;
     case CLK_TYPE_MEM:
-        info->avg_clk = metrics.average_uclk_frequency;
         info->cur_clk = metrics.current_uclk;
         break;
     case CLK_TYPE_VCLK0:
-        info->avg_clk = metrics.average_vclk0_frequency;
         info->cur_clk = metrics.current_vclk0;
         break;
     case CLK_TYPE_VCLK1:
-        info->avg_clk = metrics.average_vclk1_frequency;
         info->cur_clk = metrics.current_vclk1;
         break;
     default:
@@ -1735,7 +1628,6 @@ amdsmi_get_power_info(amdsmi_processor_handle processor_handle, amdsmi_power_inf
     info->gfx_voltage = voltage_read;
 
     info->average_socket_power = metrics.average_socket_power;
-    info->energy_accumulator = metrics.energy_accumulator;
 
     return status;
 }
