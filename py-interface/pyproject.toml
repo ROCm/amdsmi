@@ -10,11 +10,14 @@ name = "amdsmi"
 authors = [
     {name = "AMD", email = "amd-smi.support@amd.com"},
 ]
-version = '0.3'
+version = '0.4'
 license = {file = "amdsmi/LICENSE"}
 readme = {file = "amdsmi/README.md", content-type = "text/markdown"}
 description = "SMI LIB - AMD GPU Monitoring Library"
 requires-python = ">=3.7"
+dependencies = [
+    'PyYAML >= 5.0',
+]
 
 [project.urls]
 "Homepage" = "https://github.com/RadeonOpenCompute/amdsmi"
