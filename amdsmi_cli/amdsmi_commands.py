@@ -185,7 +185,7 @@ class AMDSMICommands():
             args.caps = caps
         if numa:
             args.numa = numa
-        if (self.helpers.is_linux() and self.helpers.is_baremetal()):
+        if self.helpers.is_linux() and self.helpers.is_baremetal():
             if ras:
                 args.ras = ras
             if limit:
@@ -204,10 +204,10 @@ class AMDSMICommands():
         args.gpu = device_handle
 
         # If all arguments are False, it means that no argument was passed and the entire static should be printed
-        if (self.helpers.is_linux() and self.helpers.is_baremetal()):
+        if self.helpers.is_linux() and self.helpers.is_baremetal():
             if not any([args.asic, args.bus, args.vbios, args.limit, args.driver, args.caps, args.ras, args.board]):
                 args.asic = args.bus = args.vbios = args.limit = args.driver = args.caps = args.ras = args.board = args.numa = self.all_arguments = True
-        if (self.helpers.is_linux() and self.helpers.is_virtual_os()):
+        if self.helpers.is_linux() and self.helpers.is_virtual_os():
             if not any([args.asic, args.bus, args.vbios, args.driver, args.caps]):
                 args.asic = args.bus = args.vbios = args.driver = args.caps = self.all_arguments = True
 
