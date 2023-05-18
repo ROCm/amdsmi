@@ -149,76 +149,92 @@ amdsmi_status_t gpuvsmi_get_pid_info(const amdsmi_bdf_t &bdf, long int pid,
 		std::string file = path + dir->d_name;
 		std::ifstream fdinfo(file.c_str());
 
-		for (std::string line; getline(fdinfo, line);) {
-			if (line.find("pasid:") != std::string::npos) {
-				int pasid;
+		for (std::string bdfline; getline(fdinfo, bdfline);) {
+			if (bdfline.find("drm-pdev:") != std::string::npos) {
+				char fd_bdf_str[13];
 
-				if (sscanf(line.c_str(), "pasid:  %d", &pasid) != 1)
+				/* Only check against fdinfo files that contain a bdf */
+				if (sscanf(bdfline.c_str(), "drm-pdev:       %s", &fd_bdf_str) != 1)
 					continue;
 
-				auto it = std::find(pasids.begin(), pasids.end(), pasid);
+				/* Populate amdsmi_proc_info_t struct only if the bdf in
+				* the fdinfo file matches the passed bdf */
+				if (strncmp(bdf_str, fd_bdf_str, 13) == 0){
+					std::ifstream fdinfo(file.c_str());
 
-				if (it == pasids.end())
-					pasids.push_back(pasid);
-			} else if (line.find("drm-memory-gtt:") != std::string::npos) {
-				unsigned long mem;
+					for (std::string line; getline(fdinfo, line);) {
+						if (line.find("pasid:") != std::string::npos) {
+							int pasid;
 
-				if (sscanf(line.c_str(), "drm-memory-gtt:  %lu", &mem) != 1)
-					continue;
+							if (sscanf(line.c_str(), "pasid:  %d", &pasid) != 1)
+								continue;
 
-				info.mem += mem * 1024;
-				info.memory_usage.gtt_mem += mem * 1024;
-			} else if (line.find("drm-memory-cpu:") != std::string::npos) {
-				unsigned long mem;
+							auto it = std::find(pasids.begin(), pasids.end(), pasid);
 
-				if (sscanf(line.c_str(), "drm-memory-cpu:  %lu", &mem) != 1)
-					continue;
+							if (it == pasids.end())
+								pasids.push_back(pasid);
+						} else if (line.find("drm-memory-gtt:") != std::string::npos) {
+							unsigned long mem;
 
-				info.mem += mem * 1024;
-				info.memory_usage.cpu_mem += mem * 1024;
-			} else if (line.find("drm-memory-vram:") != std::string::npos) {
-				unsigned long mem;
+							if (sscanf(line.c_str(), "drm-memory-gtt:  %lu", &mem) != 1)
+								continue;
 
-				if (sscanf(line.c_str(), "drm-memory-vram:  %lu", &mem) != 1)
-					continue;
+							info.mem += mem * 1024;
+							info.memory_usage.gtt_mem += mem * 1024;
+						} else if (line.find("drm-memory-cpu:") != std::string::npos) {
+							unsigned long mem;
 
-				info.mem += mem * 1024;
-				info.memory_usage.vram_mem += mem * 1024;
-			} else if (line.find("drm-engine-gfx") != std::string::npos) {
-				uint64_t engine_gfx;
+							if (sscanf(line.c_str(), "drm-memory-cpu:  %lu", &mem) != 1)
+								continue;
 
-				if (sscanf(line.c_str(), "drm-engine-gfx:  %lu", &engine_gfx) != 1)
-					continue;
+							info.mem += mem * 1024;
+							info.memory_usage.cpu_mem += mem * 1024;
+						} else if (line.find("drm-memory-vram:") != std::string::npos) {
+							unsigned long mem;
 
-				info.engine_usage.gfx = engine_gfx;
-			} else if (line.find("drm-engine-compute") != std::string::npos) {
-				uint64_t engine_compute;
+							if (sscanf(line.c_str(), "drm-memory-vram:  %lu", &mem) != 1)
+								continue;
 
-				if (sscanf(line.c_str(), "drm-engine-compute:  %lu", &engine_compute) != 1)
-					continue;
+							info.mem += mem * 1024;
+							info.memory_usage.vram_mem += mem * 1024;
+						} else if (line.find("drm-engine-gfx") != std::string::npos) {
+							uint64_t engine_gfx;
 
-				info.engine_usage.compute = engine_compute;
-			} else if (line.find("drm-engine-dma") != std::string::npos) {
-				uint64_t engine_dma;
+							if (sscanf(line.c_str(), "drm-engine-gfx:  %lu", &engine_gfx) != 1)
+								continue;
 
-				if (sscanf(line.c_str(), "drm-engine-dma:  %lu", &engine_dma) != 1)
-					continue;
+							info.engine_usage.gfx = engine_gfx;
+						} else if (line.find("drm-engine-compute") != std::string::npos) {
+							uint64_t engine_compute;
 
-				info.engine_usage.dma = engine_dma;
-			} else if (line.find("drm-engine-enc") != std::string::npos) {
-				uint64_t engine_enc;
+							if (sscanf(line.c_str(), "drm-engine-compute:  %lu", &engine_compute) != 1)
+								continue;
 
-				if (sscanf(line.c_str(), "drm-engine-enc:  %lu", &engine_enc) != 1)
-					continue;
+							info.engine_usage.compute = engine_compute;
+						} else if (line.find("drm-engine-dma") != std::string::npos) {
+							uint64_t engine_dma;
 
-				info.engine_usage.enc = engine_enc;
-			} else if (line.find("drm-engine-dec") != std::string::npos) {
-				uint64_t engine_dec;
+							if (sscanf(line.c_str(), "drm-engine-dma:  %lu", &engine_dma) != 1)
+								continue;
 
-				if (sscanf(line.c_str(), "drm-engine-dec:  %lu", &engine_dec) != 1)
-					continue;
+							info.engine_usage.dma = engine_dma;
+						} else if (line.find("drm-engine-enc") != std::string::npos) {
+							uint64_t engine_enc;
 
-				info.engine_usage.dec = engine_dec;
+							if (sscanf(line.c_str(), "drm-engine-enc:  %lu", &engine_enc) != 1)
+								continue;
+
+							info.engine_usage.enc = engine_enc;
+						} else if (line.find("drm-engine-dec") != std::string::npos) {
+							uint64_t engine_dec;
+
+							if (sscanf(line.c_str(), "drm-engine-dec:  %lu", &engine_dec) != 1)
+								continue;
+
+							info.engine_usage.dec = engine_dec;
+						}
+					}
+				}
 			}
 		}
 	}
