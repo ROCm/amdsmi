@@ -29,7 +29,8 @@ import sys
 
 from pathlib import Path
 
-sys.path.append(f'{Path(__file__).resolve().parent}/../../share/amd_smi')
+sys.path.append(f"{Path(__file__).resolve().parent}/../../share/amd_smi")
+sys.path.append("/opt/rocm/share/amd_smi")
 
 from amdsmi import amdsmi_interface
 from amdsmi import amdsmi_exception
