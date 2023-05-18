@@ -787,8 +787,10 @@ def amdsmi_get_gpu_board_info(
 
     return {
         "serial_number": board_info.serial_number,
+        "model_number": board_info.model_number.decode("utf-8"),
         "product_serial": board_info.product_serial.decode("utf-8"),
         "product_name": board_info.product_name.decode("utf-8"),
+        "manufacturer_name" : board_info.product_name.decode("utf-8")
     }
 
 
@@ -803,7 +805,7 @@ def amdsmi_get_gpu_ras_block_features_enabled(
     ras_state = amdsmi_wrapper.amdsmi_ras_err_state_t()
     ras_states = []
     for gpu_block in AmdSmiGpuBlock:
-        if gpu_block.name == "RESERVED":
+        if gpu_block.name == "RESERVED" or gpu_block.name == "INVALID":
             continue
         if gpu_block.name == "LAST":
             gpu_block.name = "FUSE"

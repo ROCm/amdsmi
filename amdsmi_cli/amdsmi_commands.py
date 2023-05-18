@@ -263,16 +263,15 @@ class AMDSMICommands():
                 static_dict['vbios'] = e.get_error_info()
                 if not self.all_arguments:
                     raise e
-        if (self.helpers.is_linux() and self.helpers.is_baremetal()):
+        if self.helpers.is_linux() and self.helpers.is_baremetal():
             if args.board:
                 try:
                     board_info = amdsmi_interface.amdsmi_get_gpu_board_info(args.gpu)
                     board_info['serial_number'] = hex(board_info['serial_number'])
+                    board_info['model_number'] = board_info['model_number'].strip()
                     board_info['product_serial'] = '0x' + board_info['product_serial']
-
-                    if self.logger.is_gpuvsmi_compatibility():
-                        board_info['product_number'] = board_info.pop('product_serial')
-                        board_info['product_name'] = board_info.pop('product_name')
+                    board_info['product_name'] = board_info['product_name'].strip()
+                    board_info['manufacturer_name'] = board_info['manufacturer_name'].strip()
 
                     static_dict['board'] = board_info
                 except amdsmi_exception.AmdSmiLibraryException as e:
@@ -337,7 +336,7 @@ class AMDSMICommands():
                 static_dict['driver'] = e.get_error_info()
                 if not self.all_arguments:
                     raise e
-        if (self.helpers.is_linux() and self.helpers.is_baremetal()):
+        if self.helpers.is_linux() and self.helpers.is_baremetal():
             if args.ras:
                 try:
                     static_dict['ras'] = amdsmi_interface.amdsmi_get_gpu_ras_block_features_enabled(args.gpu)
@@ -373,7 +372,7 @@ class AMDSMICommands():
         # Convert and store output by pid for csv format
         if self.logger.is_csv_format():
             # expand if ras blocks are populated
-            if (self.helpers.is_linux() and self.helpers.is_baremetal() and args.ras):
+            if self.helpers.is_linux() and self.helpers.is_baremetal() and args.ras:
                 if isinstance(static_dict['ras'], list):
                     ras_dicts = static_dict.pop('ras')
                     multiple_devices_csv_override = True
@@ -385,7 +384,7 @@ class AMDSMICommands():
                 else:
                     # Store values if ras has an error
                     self.logger.store_output(args.gpu, 'values', static_dict)
-                if (self.helpers.is_linux() and self.helpers.is_virtual_os()):
+                if self.helpers.is_linux() and self.helpers.is_virtual_os():
                     self.logger.store_output(args.gpu, 'values', static_dict)
             else:
                 self.logger.store_output(args.gpu, 'values', static_dict)
@@ -663,7 +662,7 @@ class AMDSMICommands():
         if mem_usage:
             args.mem_usage = mem_usage
 
-        if (self.helpers.is_linux() and self.helpers.is_baremetal()):
+        if self.helpers.is_linux() and self.helpers.is_baremetal():
             if usage:
                 args.usage = usage
             if power:
@@ -736,11 +735,11 @@ class AMDSMICommands():
                 raise IndexError("args.gpu should not be an empty list")
 
         # Check if any of the options have been set, if not then set them all to true
-        if (self.helpers.is_linux() and self.helpers.is_virtual_os()):
+        if self.helpers.is_linux() and self.helpers.is_virtual_os():
             if not any([args.fb_usage, args.replay_count, args.mem_usage]):
                 args.fb_usage = args.replay_count = args.mem_usage = self.all_arguments = True
 
-        if (self.helpers.is_linux() and self.helpers.is_baremetal()):
+        if self.helpers.is_linux() and self.helpers.is_baremetal():
             if not any([args.usage, args.fb_usage, args.power, args.clock, args.temperature, args.ecc,  args.ecc_block, args.pcie, args.voltage, args.fan,
                         args.voltage_curve, args.overdrive, args.mem_overdrive, args.perf_level,
                         args.replay_count, args.xgmi_err, args.energy, args.mem_usage]):
@@ -750,7 +749,7 @@ class AMDSMICommands():
 
         # Add timestamp and store values for specified arguments
         values_dict = {}
-        if (self.helpers.is_linux() and self.helpers.is_baremetal()):
+        if self.helpers.is_linux() and self.helpers.is_baremetal():
             if args.usage:
                 try:
                     engine_usage = amdsmi_interface.amdsmi_get_gpu_activity(args.gpu)
@@ -789,7 +788,7 @@ class AMDSMICommands():
                 if not self.all_arguments:
                     raise e
 
-        if (self.helpers.is_linux() and self.helpers.is_baremetal()):
+        if self.helpers.is_linux() and self.helpers.is_baremetal():
             if args.power:
                 power_dict = {}
                 try:
@@ -880,6 +879,7 @@ class AMDSMICommands():
                     if not self.all_arguments:
                         raise e
             if args.ecc:
+                ecc_count = {}
                 try:
                     ecc_count = amdsmi_interface.amdsmi_get_gpu_ecc_error_count(args.gpu)
                     ecc_count['correctable'] = ecc_count.pop('correctable_count')
@@ -899,18 +899,21 @@ class AMDSMICommands():
             if args.ecc_block:
                 ecc_dict = {}
                 try:
-                    if self.helpers.has_ras_support(args.gpu):
-                        ras_states = amdsmi_interface.amdsmi_get_gpu_ras_block_features_enabled(args.gpu)
-                        for state in ras_states:
-                            if state['status'] == amdsmi_interface.AmdSmiRasErrState.ENABLED:
-                                gpu_block = amdsmi_interface.AmdSmiGpuBlock[state['block']]
+                    ras_states = amdsmi_interface.amdsmi_get_ras_block_features_enabled(args.gpu)
+                    for state in ras_states:
+                        if state['status'] == amdsmi_interface.AmdSmiRasErrState.ENABLED.name:
+                            gpu_block = amdsmi_interface.AmdSmiGpuBlock[state['block']]
+                            try:
                                 ecc_count = amdsmi_interface.amdsmi_get_gpu_ecc_count(args.gpu, gpu_block)
                                 ecc_dict[state['block']] = {'correctable' : ecc_count['correctable_count'],
-                                            'uncorrectable': ecc_count['uncorrectable_count']}
-                    if not ecc_dict:
-                        ecc_dict['correctable_per_block'] = 'N/A'
-                        ecc_dict['uncorrectable_per_block'] = 'N/A'
+                                                            'uncorrectable': ecc_count['uncorrectable_count']}
+                            except amdsmi_exception.AmdSmiLibraryException as e:
+                                ecc_count = e.get_error_info()
+                                if self.logger.is_gpuvsmi_compatibility():
+                                    ecc_count = "N/A"
 
+                                ecc_dict[state['block']] = {'correctable' : ecc_count,
+                                                            'uncorrectable': ecc_count}
                     values_dict['ecc_block'] = ecc_dict
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     values_dict['ecc_block'] = e.get_error_info()
@@ -989,7 +992,7 @@ class AMDSMICommands():
                         else:
                             frequency = 0
                             voltage = 0
-                        voltage_point_dict[f'voltage_point_{point}'] = f"{frequency}Mhz {voltage}mV"
+                        voltage_point_dict[f'voltage_point_{point}'] = f"{frequency} Mhz {voltage} mV"
 
                     values_dict['voltage_curve'] = voltage_point_dict
                 except amdsmi_exception.AmdSmiLibraryException as e:
@@ -1027,7 +1030,7 @@ class AMDSMICommands():
                 values_dict['replay_count'] = e.get_error_info()
                 if not self.all_arguments:
                     raise e
-        if (self.helpers.is_linux() and self.helpers.is_baremetal()):
+        if self.helpers.is_linux() and self.helpers.is_baremetal():
             if args.xgmi_err:
                 try:
                     values_dict['xgmi_err'] = amdsmi_interface.amdsmi_gpu_xgmi_error_status(args.gpu)
