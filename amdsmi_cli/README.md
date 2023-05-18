@@ -1,4 +1,5 @@
 # AMD System Management Interface
+
 This tool acts as a command line interface for manipulating
 and monitoring the amdgpu kernel, and is intended to replace
 and deprecate the existing rocm_smi CLI tool & gpuv-smi tool.
@@ -6,27 +7,47 @@ It uses Ctypes to call the amd_smi_lib API.
 Recommended: At least one AMD GPU with AMD driver installed
 
 ## Requirements
-* python 3.7+ 64-bit
-* driver must be loaded for amdsmi_init() to pass
+
+- python 3.7+ 64-bit
+- driver must be loaded for amdsmi_init() to pass
 
 ## Installation
+
 - Install amdgpu driver
-- Through package manager install amd-smi-lib
+- Install amd-smi-lib package through package manager
 - cd /opt/<rocm_instance>/share/amd_smi
 - pip install .
-- /opt/<rocm_instance>/bin/amd-smi
+
+or
+
+- pip3 install .
+- /opt/<rocm_instance>/bin/amd-smi --help
+
+### RHEL 8
+
+The default python version in RHEL 8 is python 3.6.8
+
+To install the python library you need to upgrade to python 3.7+
+
+The package's dependency manager will attempt to install python 3.8+
+
+Verify that your pip version is 3.7+ and if not you can use pip3.8 instead
 
 ### Example of Ubuntu 22.04 post amdgpu driver install
+
 ```  shell
 apt install amd-smi-lib
 cd /opt/rocm/share/amd_smi
 pip install .
 /opt/rocm/bin/amd-smi
 ```
-Add /opt/rocm/bin to your local path to access amd-smi via the cmdline
+
+Add /opt/rocm/bin to your shell's path to access amd-smi via the cmdline
 
 ## Usage
+
 amd-smi will report the version and current platform detected when running the command without arguments:
+
 ``` bash
 amd-smi
 usage: amd-smi [-h]  ...
@@ -51,12 +72,15 @@ AMD-SMI Commands:
     set             Set options for devices.
     reset           Reset options for devices.
 ```
+
 More detailed verison information can be give when running `amd-smi version`
 
 Each command will have detailed information via `amd-smi [command] --help`
 
 ## Commands
+
 For convenience, here is the help output for each command
+
 ``` bash
 amd-smi discovery --help
 usage: amd-smi discovery [-h] [--json | --csv] [--file FILE]
@@ -330,4 +354,3 @@ The information contained herein is for informational purposes only, and is subj
 AMD, the AMD Arrow logo, and combinations thereof are trademarks of Advanced Micro Devices, Inc. Other product names used in this publication are for identification purposes only and may be trademarks of their respective companies.
 
 Copyright (c) 2014-2023 Advanced Micro Devices, Inc. All rights reserved.
-
