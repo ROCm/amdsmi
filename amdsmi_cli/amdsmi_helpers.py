@@ -61,6 +61,7 @@ class AMDSMIHelpers():
             else:
                 self._is_virtual_os = True
 
+
     def os_info(self, string_format=True):
         """Return operating_system and type information ex. (Linux, Baremetal)
         params:
@@ -386,13 +387,9 @@ class AMDSMIHelpers():
             return False, profile_presets.values()
 
 
-    def has_ras_support(self, device_handle):
-        try:
-            caps_info = amdsmi_interface.amdsmi_get_caps_info(device_handle)
-
-            if caps_info['ras_supported']:
-                return True
-            else:
-                return False
-        except amdsmi_exception.AmdSmiLibraryException:
-            return False
+    def convert_bytes_to_readable(self, bytes_input):
+        for unit in ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB"]:
+            if abs(bytes_input) < 1024:
+                return f"{bytes_input:3.1f} {unit}"
+            bytes_input /= 1024
+        return f"{bytes_input:.1f} YB"
