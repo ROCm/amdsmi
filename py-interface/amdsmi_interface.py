@@ -626,6 +626,7 @@ def amdsmi_get_power_cap_info(
             "min_power_cap": power_info.min_power_cap,
             "max_power_cap": power_info.max_power_cap}
 
+
 def amdsmi_get_caps_info(
     device_handle: amdsmi_wrapper.amdsmi_device_handle,
 ) -> Dict[str, Any]:
@@ -816,8 +817,10 @@ def amdsmi_get_board_info(
 
     return {
         "serial_number": board_info.serial_number,
+        "model_number": board_info.model_number.decode("utf-8"),
         "product_serial": board_info.product_serial.decode("utf-8"),
         "product_name": board_info.product_name.decode("utf-8"),
+        "manufacturer_name" : board_info.product_name.decode("utf-8")
     }
 
 
@@ -832,7 +835,7 @@ def amdsmi_get_ras_block_features_enabled(
     ras_state = amdsmi_wrapper.amdsmi_ras_err_state_t()
     ras_states = []
     for gpu_block in AmdSmiGpuBlock:
-        if gpu_block.name == "RESERVED":
+        if gpu_block.name == "RESERVED" or gpu_block.name == "INVALID":
             continue
         if gpu_block.name == "LAST":
             gpu_block.name = "FUSE"
