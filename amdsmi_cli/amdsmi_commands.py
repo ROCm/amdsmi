@@ -44,7 +44,7 @@ class AMDSMICommands():
                                     format=format,
                                     destination=destination)
         try:
-            self.device_handles = amdsmi_interface.amdsmi_get_device_handles()
+            self.device_handles = amdsmi_interface.amdsmi_get_processor_handles()
         except amdsmi_exception.AmdSmiLibraryException as e:
             raise e
         self.stop = ''
@@ -117,12 +117,12 @@ class AMDSMICommands():
         args.gpu = device_handle
 
         try:
-            bdf = amdsmi_interface.amdsmi_get_device_bdf(args.gpu)
+            bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(args.gpu)
         except amdsmi_exception.AmdSmiLibraryException as e:
             bdf = e.get_error_info()
 
         try:
-            uuid = amdsmi_interface.amdsmi_get_device_uuid(args.gpu)
+            uuid = amdsmi_interface.amdsmi_get_gpu_device_uuid(args.gpu)
         except amdsmi_exception.AmdSmiLibraryException as e:
             uuid = e.get_error_info()
 
@@ -215,7 +215,7 @@ class AMDSMICommands():
 
         if args.asic:
             try:
-                asic_info = amdsmi_interface.amdsmi_get_asic_info(args.gpu)
+                asic_info = amdsmi_interface.amdsmi_get_gpu_asic_info(args.gpu)
                 asic_info['vendor_id'] = hex(asic_info['vendor_id'])
                 asic_info['device_id'] = hex(asic_info['device_id'])
                 asic_info['rev_id'] = hex(asic_info['rev_id'])
@@ -242,7 +242,7 @@ class AMDSMICommands():
                     raise e
 
             try:
-                bus_output_info['bdf'] = amdsmi_interface.amdsmi_get_device_bdf(args.gpu)
+                bus_output_info['bdf'] = amdsmi_interface.amdsmi_get_gpu_device_bdf(args.gpu)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 bus_output_info['bdf'] = e.get_error_info()
                 if not self.all_arguments:
@@ -252,7 +252,7 @@ class AMDSMICommands():
             static_dict['bus'] = bus_output_info
         if args.vbios:
             try:
-                vbios_info = amdsmi_interface.amdsmi_get_vbios_info(args.gpu)
+                vbios_info = amdsmi_interface.amdsmi_get_gpu_vbios_info(args.gpu)
                 if self.logger.is_gpuvsmi_compatibility():
                     vbios_info['version'] = vbios_info.pop('version')
                     vbios_info['build_date'] = vbios_info.pop('build_date')
@@ -266,7 +266,7 @@ class AMDSMICommands():
         if (self.helpers.is_linux() and self.helpers.is_baremetal()):
             if args.board:
                 try:
-                    board_info = amdsmi_interface.amdsmi_get_board_info(args.gpu)
+                    board_info = amdsmi_interface.amdsmi_get_gpu_board_info(args.gpu)
                     board_info['serial_number'] = hex(board_info['serial_number'])
                     board_info['product_serial'] = '0x' + board_info['product_serial']
 
@@ -288,7 +288,7 @@ class AMDSMICommands():
                         raise e
 
                 try:
-                    temp_edge_limit = amdsmi_interface.amdsmi_dev_get_temp_metric(args.gpu,
+                    temp_edge_limit = amdsmi_interface.amdsmi_get_temp_metric(args.gpu,
                         amdsmi_interface.AmdSmiTemperatureType.EDGE, amdsmi_interface.AmdSmiTemperatureMetric.CRITICAL)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     temp_edge_limit = e.get_error_info()
@@ -296,7 +296,7 @@ class AMDSMICommands():
                         raise e
 
                 try:
-                    temp_junction_limit = amdsmi_interface.amdsmi_dev_get_temp_metric(args.gpu,
+                    temp_junction_limit = amdsmi_interface.amdsmi_get_temp_metric(args.gpu,
                         amdsmi_interface.AmdSmiTemperatureType.JUNCTION, amdsmi_interface.AmdSmiTemperatureMetric.CRITICAL)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     temp_junction_limit = e.get_error_info()
@@ -304,7 +304,7 @@ class AMDSMICommands():
                         raise e
 
                 try:
-                    temp_vram_limit = amdsmi_interface.amdsmi_dev_get_temp_metric(args.gpu,
+                    temp_vram_limit = amdsmi_interface.amdsmi_get_temp_metric(args.gpu,
                         amdsmi_interface.AmdSmiTemperatureType.VRAM, amdsmi_interface.AmdSmiTemperatureMetric.CRITICAL)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     temp_junction_limit = e.get_error_info()
@@ -330,7 +330,7 @@ class AMDSMICommands():
         if args.driver:
             try:
                 driver_info = {}
-                driver_info['driver_version'] = amdsmi_interface.amdsmi_get_driver_version(args.gpu)
+                driver_info['driver_version'] = amdsmi_interface.amdsmi_get_gpu_driver_version(args.gpu)
 
                 static_dict['driver'] = driver_info
             except amdsmi_exception.AmdSmiLibraryException as e:
@@ -340,7 +340,7 @@ class AMDSMICommands():
         if (self.helpers.is_linux() and self.helpers.is_baremetal()):
             if args.ras:
                 try:
-                    static_dict['ras'] = amdsmi_interface.amdsmi_get_ras_block_features_enabled(args.gpu)
+                    static_dict['ras'] = amdsmi_interface.amdsmi_get_gpu_ras_block_features_enabled(args.gpu)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NOT_SUPPORTED:
                         static_dict['ras'] = 'N/A'
@@ -360,7 +360,7 @@ class AMDSMICommands():
                         raise e
 
                 try:
-                    numa_affinity = amdsmi_interface.amdsmi_topo_get_numa_affinity(args.gpu)
+                    numa_affinity = amdsmi_interface.amdsmi_get_gpu_topo_numa_affinity(args.gpu)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     numa_affinity = e.get_error_info()
                     if not self.all_arguments:
@@ -529,7 +529,7 @@ class AMDSMICommands():
         bad_page_err_output = ''
 
         try:
-            bad_page_info = amdsmi_interface.amdsmi_get_bad_page_info(args.gpu)
+            bad_page_info = amdsmi_interface.amdsmi_get_gpu_bad_page_info(args.gpu)
             bad_page_error = False
         except amdsmi_exception.AmdSmiLibraryException as e:
             bad_page_info = ""
@@ -772,7 +772,7 @@ class AMDSMICommands():
                         raise e
         if args.fb_usage:
             try:
-                vram_usage = amdsmi_interface.amdsmi_get_vram_usage(args.gpu)
+                vram_usage = amdsmi_interface.amdsmi_get_gpu_vram_usage(args.gpu)
 
                 if self.logger.is_gpuvsmi_compatibility():
                     vram_usage['fb_total'] = vram_usage.pop('vram_total')
@@ -821,7 +821,7 @@ class AMDSMICommands():
                     power_dict['current_mem_voltage'] = power_dict.pop('mem_voltage')
 
                     try:
-                        power_dict['current_fan_rpm'] = amdsmi_interface.amdsmi_dev_get_fan_rpms(args.gpu, 0)
+                        power_dict['current_fan_rpm'] = amdsmi_interface.amdsmi_get_gpu_fan_rpms(args.gpu, 0)
                         if self.logger.is_human_readable_format():
                             power_dict['current_fan_rpm'] = f"{power_dict['current_fan_rpm']} RPM"
                     except amdsmi_exception.AmdSmiLibraryException as e:
@@ -851,11 +851,11 @@ class AMDSMICommands():
                         raise e
             if args.temperature:
                 try:
-                    temperature_edge_current = amdsmi_interface.amdsmi_dev_get_temp_metric(
+                    temperature_edge_current = amdsmi_interface.amdsmi_get_temp_metric(
                         args.gpu, amdsmi_interface.AmdSmiTemperatureType.EDGE, amdsmi_interface.AmdSmiTemperatureMetric.CURRENT)
-                    temperature_junction_current = amdsmi_interface.amdsmi_dev_get_temp_metric(
+                    temperature_junction_current = amdsmi_interface.amdsmi_get_temp_metric(
                         args.gpu, amdsmi_interface.AmdSmiTemperatureType.JUNCTION, amdsmi_interface.AmdSmiTemperatureMetric.CURRENT)
-                    temperature_vram_current = amdsmi_interface.amdsmi_dev_get_temp_metric(
+                    temperature_vram_current = amdsmi_interface.amdsmi_get_temp_metric(
                         args.gpu, amdsmi_interface.AmdSmiTemperatureType.VRAM, amdsmi_interface.AmdSmiTemperatureMetric.CURRENT)
 
                     temperatures = {'edge': temperature_edge_current,
@@ -881,7 +881,7 @@ class AMDSMICommands():
                         raise e
             if args.ecc:
                 try:
-                    ecc_count = amdsmi_interface.amdsmi_get_ecc_error_count(args.gpu)
+                    ecc_count = amdsmi_interface.amdsmi_get_gpu_ecc_error_count(args.gpu)
                     ecc_count['correctable'] = ecc_count.pop('correctable_count')
                     ecc_count['uncorrectable'] = ecc_count.pop('uncorrectable_count')
 
@@ -900,11 +900,11 @@ class AMDSMICommands():
                 ecc_dict = {}
                 try:
                     if self.helpers.has_ras_support(args.gpu):
-                        ras_states = amdsmi_interface.amdsmi_get_ras_block_features_enabled(args.gpu)
+                        ras_states = amdsmi_interface.amdsmi_get_gpu_ras_block_features_enabled(args.gpu)
                         for state in ras_states:
                             if state['status'] == amdsmi_interface.AmdSmiRasErrState.ENABLED:
                                 gpu_block = amdsmi_interface.AmdSmiGpuBlock[state['block']]
-                                ecc_count = amdsmi_interface.amdsmi_dev_get_ecc_count(args.gpu, gpu_block)
+                                ecc_count = amdsmi_interface.amdsmi_get_gpu_ecc_count(args.gpu, gpu_block)
                                 ecc_dict[state['block']] = {'correctable' : ecc_count['correctable_count'],
                                             'uncorrectable': ecc_count['uncorrectable_count']}
                     if not ecc_dict:
@@ -934,7 +934,7 @@ class AMDSMICommands():
 
             if args.voltage:
                 try:
-                    volt_metric = amdsmi_interface.amdsmi_dev_get_volt_metric(
+                    volt_metric = amdsmi_interface.amdsmi_get_gpu_volt_metric(
                     args.gpu, amdsmi_interface.AmdSmiVoltageType.VDDGFX, amdsmi_interface.AmdSmiVoltageMetric.CURRENT)
 
                     if self.logger.is_human_readable_format():
@@ -948,14 +948,14 @@ class AMDSMICommands():
                         raise e
             if args.fan:
                 try:
-                    fan_speed = amdsmi_interface.amdsmi_dev_get_fan_speed(args.gpu, 0)
+                    fan_speed = amdsmi_interface.amdsmi_get_gpu_fan_speed(args.gpu, 0)
                     fan_speed_error = False
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     fan_speed = e.get_error_info()
                     fan_speed_error = True
 
                 try:
-                    fan_max = amdsmi_interface.amdsmi_dev_get_fan_speed_max(args.gpu, 0)
+                    fan_max = amdsmi_interface.amdsmi_get_gpu_fan_speed_max(args.gpu, 0)
                     if not fan_speed_error and fan_max > 0:
                         fan_percent = round((float(fan_speed) / float(fan_max)) * 100, 2)
                         if self.logger.is_human_readable_format():
@@ -968,7 +968,7 @@ class AMDSMICommands():
                     fan_percent = 'Unable to detect fan speed'
 
                 try:
-                    fan_rpm = amdsmi_interface.amdsmi_dev_get_fan_rpms(args.gpu, 0)
+                    fan_rpm = amdsmi_interface.amdsmi_get_gpu_fan_rpms(args.gpu, 0)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     fan_rpm = e.get_error_info()
 
@@ -978,7 +978,7 @@ class AMDSMICommands():
                                         'usage' : fan_percent}
             if args.voltage_curve:
                 try:
-                    od_volt = amdsmi_interface.amdsmi_dev_get_od_volt_info(args.gpu)
+                    od_volt = amdsmi_interface.amdsmi_get_gpu_od_volt_info(args.gpu)
 
                     voltage_point_dict = {}
 
@@ -998,7 +998,7 @@ class AMDSMICommands():
                         raise e
             if args.overdrive:
                 try:
-                    overdrive_level = amdsmi_interface.amdsmi_dev_get_overdrive_level(args.gpu)
+                    overdrive_level = amdsmi_interface.amdsmi_get_gpu_overdrive_level(args.gpu)
 
                     if self.logger.is_human_readable_format():
                         unit = '%'
@@ -1013,7 +1013,7 @@ class AMDSMICommands():
                 values_dict['mem_overdrive'] = amdsmi_exception.AmdSmiLibraryException(amdsmi_exception.AmdSmiRetCode.NOT_IMPLEMENTED).err_info
             if args.perf_level:
                 try:
-                    perf_level = amdsmi_interface.amdsmi_dev_get_perf_level(args.gpu)
+                    perf_level = amdsmi_interface.amdsmi_get_gpu_perf_level(args.gpu)
                     values_dict['perf_level'] = perf_level
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     values_dict['perf_level'] = e.get_error_info()
@@ -1021,7 +1021,7 @@ class AMDSMICommands():
                         raise e
         if args.replay_count:
             try:
-                pci_replay_counter = amdsmi_interface.amdsmi_dev_get_pci_replay_counter(args.gpu)
+                pci_replay_counter = amdsmi_interface.amdsmi_get_gpu_pci_replay_counter(args.gpu)
                 values_dict['replay_count'] = pci_replay_counter
             except amdsmi_exception.AmdSmiLibraryException as e:
                 values_dict['replay_count'] = e.get_error_info()
@@ -1030,7 +1030,7 @@ class AMDSMICommands():
         if (self.helpers.is_linux() and self.helpers.is_baremetal()):
             if args.xgmi_err:
                 try:
-                    values_dict['xgmi_err'] = amdsmi_interface.amdsmi_dev_xgmi_error_status(args.gpu)
+                    values_dict['xgmi_err'] = amdsmi_interface.amdsmi_gpu_xgmi_error_status(args.gpu)
                 except amdsmi_interface.AmdSmiLibraryException as e:
                     if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NOT_SUPPORTED:
                         values_dict['xgmi_err'] = 'N/A'
@@ -1041,9 +1041,9 @@ class AMDSMICommands():
         if args.mem_usage:
             memory_total = {}
             try:
-                memory_total_vram = amdsmi_interface.amdsmi_dev_get_memory_total(args.gpu, amdsmi_interface.AmdSmiMemoryType.VRAM)
-                memory_total_vis_vram = amdsmi_interface.amdsmi_dev_get_memory_total(args.gpu, amdsmi_interface.AmdSmiMemoryType.VIS_VRAM)
-                memory_total_gtt = amdsmi_interface.amdsmi_dev_get_memory_total(args.gpu, amdsmi_interface.AmdSmiMemoryType.GTT)
+                memory_total_vram = amdsmi_interface.amdsmi_get_gpu_memory_total(args.gpu, amdsmi_interface.AmdSmiMemoryType.VRAM)
+                memory_total_vis_vram = amdsmi_interface.amdsmi_get_gpu_memory_total(args.gpu, amdsmi_interface.AmdSmiMemoryType.VIS_VRAM)
+                memory_total_gtt = amdsmi_interface.amdsmi_get_gpu_memory_total(args.gpu, amdsmi_interface.AmdSmiMemoryType.GTT)
 
                 # Convert mem_usage to megabytes
                 memory_total['vram'] = memory_total_vram // (1024*1024)
@@ -1065,9 +1065,9 @@ class AMDSMICommands():
                     raise e
 
             try:
-                total_used_vram = amdsmi_interface.amdsmi_dev_get_memory_usage(args.gpu, amdsmi_interface.AmdSmiMemoryType.VRAM)
-                total_used_vis_vram = amdsmi_interface.amdsmi_dev_get_memory_usage(args.gpu, amdsmi_interface.AmdSmiMemoryType.VIS_VRAM)
-                total_used_gtt = amdsmi_interface.amdsmi_dev_get_memory_usage(args.gpu, amdsmi_interface.AmdSmiMemoryType.GTT)
+                total_used_vram = amdsmi_interface.amdsmi_get_gpu_memory_usage(args.gpu, amdsmi_interface.AmdSmiMemoryType.VRAM)
+                total_used_vis_vram = amdsmi_interface.amdsmi_get_gpu_memory_usage(args.gpu, amdsmi_interface.AmdSmiMemoryType.VIS_VRAM)
+                total_used_gtt = amdsmi_interface.amdsmi_get_gpu_memory_usage(args.gpu, amdsmi_interface.AmdSmiMemoryType.GTT)
 
                 # Convert mem_usage to megabytes
                 memory_total['used_vram'] = total_used_vram // (1024*1024)
@@ -1187,14 +1187,14 @@ class AMDSMICommands():
 
         # Populate initial processes
         try:
-            process_list = amdsmi_interface.amdsmi_get_process_list(args.gpu)
+            process_list = amdsmi_interface.amdsmi_get_gpu_process_list(args.gpu)
         except amdsmi_exception.AmdSmiLibraryException as e:
             raise e
 
         filtered_process_values = []
         for process_handle in process_list:
             try:
-                process_info = amdsmi_interface.amdsmi_get_process_info(args.gpu, process_handle)
+                process_info = amdsmi_interface.amdsmi_get_gpu_process_info(args.gpu, process_handle)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 process_info = e.get_error_info()
                 filtered_process_values.append({'process_info': process_info})
@@ -1563,7 +1563,7 @@ class AMDSMICommands():
 
         # Build GPU string for errors
         try:
-            gpu_bdf = amdsmi_interface.amdsmi_get_device_bdf(args.gpu)
+            gpu_bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(args.gpu)
         except amdsmi_exception.AmdSmiLibraryException:
             gpu_bdf = f'BDF Unavailable for {args.gpu}'
         try:
@@ -1578,7 +1578,7 @@ class AMDSMICommands():
 
             # Check if the performance level is manual, if not then set it to manual
             try:
-                perf_level = amdsmi_interface.amdsmi_dev_get_perf_level(args.gpu)
+                perf_level = amdsmi_interface.amdsmi_get_gpu_perf_level(args.gpu)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
@@ -1586,7 +1586,7 @@ class AMDSMICommands():
 
             if 'manual' in perf_level.lower():
                 try:
-                    amdsmi_interface.amdsmi_dev_set_perf_level_v1(args.gpu, amdsmi_interface.AmdSmiDevPerfLevel.MANUAL)
+                    amdsmi_interface.amdsmi_set_gpu_perf_level_v1(args.gpu, amdsmi_interface.AmdSmiDevPerfLevel.MANUAL)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                         raise PermissionError('Command requires elevation') from e
@@ -1594,14 +1594,14 @@ class AMDSMICommands():
 
             if clock_type != amdsmi_interface.AmdSmiClkType.PCIE:
                 try:
-                    amdsmi_interface.amdsmi_dev_set_clk_freq(args.gpu, clock_type, freq_bitmask)
+                    amdsmi_interface.amdsmi_set_clk_freq(args.gpu, clock_type, freq_bitmask)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                         raise PermissionError('Command requires elevation') from e
                     raise ValueError(f"Unable to set the {clock_type} clock frequency on {gpu_string}") from e
             else:
                 try:
-                    amdsmi_interface.amdsmi_dev_set_pci_bandwidth(args.gpu, freq_bitmask)
+                    amdsmi_interface.amdsmi_set_gpu_pci_bandwidth(args.gpu, freq_bitmask)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                         raise PermissionError('Command requires elevation') from e
@@ -1613,7 +1613,7 @@ class AMDSMICommands():
             clock_type = amdsmi_interface.AmdSmiClkType.SYS
             # Check if the performance level is manual, if not then set it to manual
             try:
-                perf_level = amdsmi_interface.amdsmi_dev_get_perf_level(args.gpu)
+                perf_level = amdsmi_interface.amdsmi_get_gpu_perf_level(args.gpu)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
@@ -1621,14 +1621,14 @@ class AMDSMICommands():
 
             if 'manual' in perf_level.lower():
                 try:
-                    amdsmi_interface.amdsmi_dev_set_perf_level_v1(args.gpu, amdsmi_interface.AmdSmiDevPerfLevel.MANUAL)
+                    amdsmi_interface.amdsmi_set_gpu_perf_level_v1(args.gpu, amdsmi_interface.AmdSmiDevPerfLevel.MANUAL)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                         raise PermissionError('Command requires elevation') from e
                     raise ValueError(f"Unable to set the performance level of {gpu_string} to manual") from e
 
             try:
-                amdsmi_interface.amdsmi_dev_set_clk_freq(args.gpu, clock_type, freq_bitmask)
+                amdsmi_interface.amdsmi_set_clk_freq(args.gpu, clock_type, freq_bitmask)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
@@ -1640,7 +1640,7 @@ class AMDSMICommands():
             clock_type = amdsmi_interface.AmdSmiClkType.MEM
             # Check if the performance level is manual, if not then set it to manual
             try:
-                perf_level = amdsmi_interface.amdsmi_dev_get_perf_level(args.gpu)
+                perf_level = amdsmi_interface.amdsmi_get_gpu_perf_level(args.gpu)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
@@ -1648,14 +1648,14 @@ class AMDSMICommands():
 
             if 'manual' in perf_level.lower():
                 try:
-                    amdsmi_interface.amdsmi_dev_set_perf_level_v1(args.gpu, amdsmi_interface.AmdSmiDevPerfLevel.MANUAL)
+                    amdsmi_interface.amdsmi_set_gpu_perf_level_v1(args.gpu, amdsmi_interface.AmdSmiDevPerfLevel.MANUAL)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                         raise PermissionError('Command requires elevation') from e
                     raise ValueError(f"Unable to set the performance level of {gpu_string} to manual") from e
 
             try:
-                amdsmi_interface.amdsmi_dev_set_clk_freq(args.gpu, clock_type, freq_bitmask)
+                amdsmi_interface.amdsmi_set_clk_freq(args.gpu, clock_type, freq_bitmask)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
@@ -1667,7 +1667,7 @@ class AMDSMICommands():
             clock_type = amdsmi_interface.AmdSmiClkType.PCIE
             # Check if the performance level is manual, if not then set it to manual
             try:
-                perf_level = amdsmi_interface.amdsmi_dev_get_perf_level(args.gpu)
+                perf_level = amdsmi_interface.amdsmi_get_gpu_perf_level(args.gpu)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
@@ -1675,13 +1675,13 @@ class AMDSMICommands():
 
             if 'manual' in perf_level.lower():
                 try:
-                    amdsmi_interface.amdsmi_dev_set_perf_level_v1(args.gpu, amdsmi_interface.AmdSmiDevPerfLevel.MANUAL)
+                    amdsmi_interface.amdsmi_set_gpu_perf_level_v1(args.gpu, amdsmi_interface.AmdSmiDevPerfLevel.MANUAL)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                         raise PermissionError('Command requires elevation') from e
                     raise ValueError(f"Unable to set the performance level of {gpu_string} to manual") from e
             try:
-                amdsmi_interface.amdsmi_dev_set_pci_bandwidth(args.gpu, freq_bitmask)
+                amdsmi_interface.amdsmi_set_gpu_pci_bandwidth(args.gpu, freq_bitmask)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
@@ -1694,7 +1694,7 @@ class AMDSMICommands():
             level = amdsmi_interface.AmdSmiFreqInd(level)
             clock_type = amdsmi_interface.AmdSmiClkType.SYS
             try:
-                amdsmi_interface.amdsmi_dev_set_od_clk_info(args.gpu, level, value, clock_type)
+                amdsmi_interface.amdsmi_set_gpu_od_clk_info(args.gpu, level, value, clock_type)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
@@ -1706,7 +1706,7 @@ class AMDSMICommands():
             level = amdsmi_interface.AmdSmiFreqInd(level)
             clock_type = amdsmi_interface.AmdSmiClkType.MEM
             try:
-                amdsmi_interface.amdsmi_dev_set_od_clk_info(args.gpu, level, value, clock_type)
+                amdsmi_interface.amdsmi_set_gpu_od_clk_info(args.gpu, level, value, clock_type)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
@@ -1716,7 +1716,7 @@ class AMDSMICommands():
         if isinstance(args.vc, int):
             point, clk, volt = args.vc
             try:
-                amdsmi_interface.amdsmi_dev_set_od_volt_info(args.gpu, point, clk, volt)
+                amdsmi_interface.amdsmi_set_gpu_od_volt_info(args.gpu, point, clk, volt)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
@@ -1727,7 +1727,7 @@ class AMDSMICommands():
             min_value, max_value = args.srange
             clock_type = amdsmi_interface.AmdSmiClkType.SYS
             try:
-                amdsmi_interface.amdsmi_dev_set_clk_range(args.gpu, min_value, max_value, clock_type)
+                amdsmi_interface.amdsmi_set_gpu_clk_range(args.gpu, min_value, max_value, clock_type)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
@@ -1738,7 +1738,7 @@ class AMDSMICommands():
             min_value, max_value = args.srange
             clock_type = amdsmi_interface.AmdSmiClkType.MEM
             try:
-                amdsmi_interface.amdsmi_dev_set_clk_range(args.gpu, min_value, max_value, clock_type)
+                amdsmi_interface.amdsmi_set_gpu_clk_range(args.gpu, min_value, max_value, clock_type)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
@@ -1747,7 +1747,7 @@ class AMDSMICommands():
             self.logger.store_output(args.gpu, 'mrange', f"Successfully set {clock_type} from {min_value}(MHz) to {max_value}(MHz)")
         if isinstance(args.fan, int):
             try:
-                amdsmi_interface.amdsmi_dev_set_fan_speed(args.gpu, 0, args.fan)
+                amdsmi_interface.amdsmi_set_gpu_fan_speed(args.gpu, 0, args.fan)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
@@ -1757,7 +1757,7 @@ class AMDSMICommands():
         if args.perflevel:
             perf_level = amdsmi_interface.AmdSmiDevPerfLevel[args.perflevel]
             try:
-                amdsmi_interface.amdsmi_dev_set_perf_level_v1(args.gpu, perf_level)
+                amdsmi_interface.amdsmi_set_gpu_perf_level_v1(args.gpu, perf_level)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
@@ -1767,7 +1767,7 @@ class AMDSMICommands():
         if isinstance(args.overdrive, int):
             # Check if the performance level is manual, if not then set it to manual
             try:
-                perf_level = amdsmi_interface.amdsmi_dev_get_perf_level(args.gpu)
+                perf_level = amdsmi_interface.amdsmi_get_gpu_perf_level(args.gpu)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
@@ -1775,14 +1775,14 @@ class AMDSMICommands():
 
             if 'manual' in perf_level.lower():
                 try:
-                    amdsmi_interface.amdsmi_dev_set_perf_level_v1(args.gpu, amdsmi_interface.AmdSmiDevPerfLevel.MANUAL)
+                    amdsmi_interface.amdsmi_set_gpu_perf_level_v1(args.gpu, amdsmi_interface.AmdSmiDevPerfLevel.MANUAL)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                         raise PermissionError('Command requires elevation') from e
                     raise ValueError(f"Unable to set the performance level of {gpu_string} to manual") from e
 
             try:
-                amdsmi_interface.amdsmi_dev_set_overdrive_level_v1(args.gpu, args.overdrive)
+                amdsmi_interface.amdsmi_set_gpu_overdrive_level_v1(args.gpu, args.overdrive)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
@@ -1792,7 +1792,7 @@ class AMDSMICommands():
         if isinstance(args.memoverdrive, int):
             # Check if the performance level is manual, if not then set it to manual
             try:
-                perf_level = amdsmi_interface.amdsmi_dev_get_perf_level(args.gpu)
+                perf_level = amdsmi_interface.amdsmi_get_gpu_perf_level(args.gpu)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
@@ -1800,7 +1800,7 @@ class AMDSMICommands():
 
             if 'manual' in perf_level.lower():
                 try:
-                    amdsmi_interface.amdsmi_dev_set_perf_level_v1(args.gpu, amdsmi_interface.AmdSmiDevPerfLevel.MANUAL)
+                    amdsmi_interface.amdsmi_set_gpu_perf_level_v1(args.gpu, amdsmi_interface.AmdSmiDevPerfLevel.MANUAL)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                         raise PermissionError('Command requires elevation') from e
@@ -1830,7 +1830,7 @@ class AMDSMICommands():
                 raise ValueError(f"Requested power cap: {overdrive_power_cap} is the same as the current power cap: {power_caps['power_cap']}")
 
             try:
-                amdsmi_interface.amdsmi_dev_set_power_cap(args.gpu, 0, overdrive_power_cap)
+                amdsmi_interface.amdsmi_set_power_cap(args.gpu, 0, overdrive_power_cap)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
@@ -1851,7 +1851,7 @@ class AMDSMICommands():
             self.logger.store_output(args.gpu, 'profile', "Not Yet Implemented")
         if isinstance(args.perfdeterminism, int):
             try:
-                amdsmi_interface.amdsmi_set_perf_determinism_mode(args.gpu, args.perfdeterminism)
+                amdsmi_interface.amdsmi_set_gpu_perf_determinism_mode(args.gpu, args.perfdeterminism)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
@@ -1922,7 +1922,7 @@ class AMDSMICommands():
         if args.gpureset:
             if self.helpers.is_amd_device(args.gpu):
                 try:
-                    amdsmi_interface.amdsmi_dev_reset_gpu(args.gpu)
+                    amdsmi_interface.amdsmi_reset_gpu(args.gpu)
                     result = 'Successfully reset GPU'
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
@@ -1937,7 +1937,7 @@ class AMDSMICommands():
                                     'clocks' : '',
                                     'performance': ''}
             try:
-                amdsmi_interface.amdsmi_dev_set_overdrive_level_v1(args.gpu, 0)
+                amdsmi_interface.amdsmi_set_gpu_overdrive_level_v1(args.gpu, 0)
                 reset_clocks_results['overdrive'] = 'Overdrive set to 0'
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
@@ -1946,7 +1946,7 @@ class AMDSMICommands():
 
             try:
                 level_auto = amdsmi_interface.AmdSmiDevPerfLevel.AUTO
-                amdsmi_interface.amdsmi_dev_set_perf_level_v1(args.gpu, level_auto)
+                amdsmi_interface.amdsmi_set_gpu_perf_level_v1(args.gpu, level_auto)
                 reset_clocks_results['clocks'] = 'Successfully reset clocks'
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
@@ -1955,7 +1955,7 @@ class AMDSMICommands():
 
             try:
                 level_auto = amdsmi_interface.AmdSmiDevPerfLevel.AUTO
-                amdsmi_interface.amdsmi_dev_set_perf_level_v1(args.gpu, level_auto)
+                amdsmi_interface.amdsmi_set_gpu_perf_level_v1(args.gpu, level_auto)
                 reset_clocks_results['performance'] = 'Performance level reset to auto'
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
@@ -1965,7 +1965,7 @@ class AMDSMICommands():
             self.logger.store_output(args.gpu, 'reset_clocks', reset_clocks_results)
         if args.fans:
             try:
-                amdsmi_interface.amdsmi_dev_reset_fan(args.gpu, 0)
+                amdsmi_interface.amdsmi_reset_gpu_fan(args.gpu, 0)
                 result = 'Successfully reset fan speed to driver control'
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
@@ -1978,7 +1978,7 @@ class AMDSMICommands():
                                      'performance_level': ''}
             try:
                 power_profile_mask = amdsmi_interface.AmdSmiPowerProfilePresetMasks.BOOTUP_DEFAULT
-                amdsmi_interface.amdsmi_dev_set_power_profile(args.gpu, 0, power_profile_mask)
+                amdsmi_interface.amdsmi_set_gpu_power_profile(args.gpu, 0, power_profile_mask)
                 reset_profile_results['power_profile'] = 'Successfully reset Power Profile'
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
@@ -1987,7 +1987,7 @@ class AMDSMICommands():
 
             try:
                 level_auto = amdsmi_interface.AmdSmiDevPerfLevel.AUTO
-                amdsmi_interface.amdsmi_dev_set_perf_level_v1(args.gpu, level_auto)
+                amdsmi_interface.amdsmi_set_gpu_perf_level_v1(args.gpu, level_auto)
                 reset_profile_results['performance_level'] = 'Successfully reset Performance Level'
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
@@ -1997,7 +1997,7 @@ class AMDSMICommands():
             self.logger.store_output(args.gpu, 'reset_profile', reset_profile_results)
         if args.xgmierr:
             try:
-                amdsmi_interface.amdsmi_dev_reset_xgmi_error(args.gpu)
+                amdsmi_interface.amdsmi_reset_gpu_xgmi_error(args.gpu)
                 result = 'Successfully reset XGMI Error count'
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
@@ -2007,7 +2007,7 @@ class AMDSMICommands():
         if args.perfdeterminism:
             try:
                 level_auto = amdsmi_interface.AmdSmiDevPerfLevel.AUTO
-                amdsmi_interface.amdsmi_dev_set_perf_level_v1(args.gpu, level_auto)
+                amdsmi_interface.amdsmi_set_gpu_perf_level_v1(args.gpu, level_auto)
                 result = 'Successfully disabled performance determinism'
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.ERR_NO_PERM:
