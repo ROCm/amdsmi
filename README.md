@@ -157,7 +157,32 @@ int main() {
 }
 ```
 
-# Python wrapper
+# Insall Python Library and CLI Tool
+
+## Requirements
+
+- python 3.7+ 64-bit
+- driver must be loaded for amdsmi_init() to pass
+
+## Installation
+
+- Install amdgpu driver
+- Install amd-smi-lib package through package manager
+- cd /opt/<rocm_instance>/share/amd_smi
+- pip install .
+
+or
+
+- pip3 install .
+- /opt/<rocm_instance>/bin/amd-smi --help
+
+Add /opt/<rocm_instance>/bin to your shell's path to call amd-smi from the cmdline
+
+## Documentation
+
+Documentation for AMDSMI-CLI is available post install in /opt/<rocm_instance>/libexec/amdsmi_cli/README.md
+
+## Rebuilding Python wrapper
 The python wrapper (binding) is an auto-generated file `py-interface/amdsmi_wrapper.py`
 
 Wrapper should be re-generated on each C++ API change, by doing:
@@ -173,7 +198,7 @@ Note: To be able to re-generate python wrapper you need several tools installed 
 
 Note: python_wrapper is NOT automatically re-generated. You must run `cmake` with `-DBUILD_WRAPPER=on` argument.
 
-## DISCLAIMER
+# DISCLAIMER
 
 The information contained herein is for informational purposes only, and is subject to change without notice. In addition, any stated support is planned and is also subject to change. While every precaution has been taken in the preparation of this document, it may contain technical inaccuracies, omissions and typographical errors, and AMD is under no obligation to update or otherwise correct this information. Advanced Micro Devices, Inc. makes no representations or warranties with respect to the accuracy or completeness of the contents of this document, and assumes no liability of any kind, including the implied warranties of noninfringement, merchantability or fitness for particular purposes, with respect to the operation or use of AMD hardware, software or other products described herein.
 
