@@ -97,9 +97,9 @@ void TestGPUBusyRead::Run(void) {
 
   for (uint32_t x = 0; x < num_iterations(); ++x) {
     for (uint32_t i = 0; i < num_monitor_devs(); ++i) {
-      PrintDeviceHeader(device_handles_[i]);
+      PrintDeviceHeader(processor_handles_[i]);
 
-      err = amdsmi_dev_get_busy_percent(device_handles_[i], &val_ui32);
+      err = amdsmi_get_busy_percent(processor_handles_[i], &val_ui32);
       if (err != AMDSMI_STATUS_SUCCESS) {
         if (err == AMDSMI_STATUS_FILE_ERROR) {
           IF_VERB(STANDARD) {

@@ -28,6 +28,7 @@ from amdsmi_parser import AMDSMIParser
 from amdsmi_logger import AMDSMILogger
 import amdsmi_cli_exceptions
 from amdsmi import amdsmi_interface
+from amdsmi import amdsmi_exception
 
 
 def _print_error(e, destination):
@@ -85,6 +86,6 @@ if __name__ == "__main__":
         args.func(args)
     except amdsmi_cli_exceptions.AmdSmiException as e:
         _print_error(str(e), amd_smi_commands.logger.destination)
-    except amdsmi_interface.AmdSmiLibraryException as e:
+    except amdsmi_exception.AmdSmiLibraryException as e:
         exc = amdsmi_cli_exceptions.AmdSmiAMDSMIErrorException(amd_smi_commands.logger.format, e.get_error_code())
         _print_error(str(exc), amd_smi_commands.logger.destination)

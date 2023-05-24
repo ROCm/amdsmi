@@ -49,14 +49,14 @@ namespace amd {
 namespace smi {
 
 AMDSmiSocket::~AMDSmiSocket() {
-    for (uint32_t i = 0; i < devices_.size(); i++) {
-        delete devices_[i];
+    for (uint32_t i = 0; i < processors_.size(); i++) {
+        delete processors_[i];
     }
-    devices_.clear();
+    processors_.clear();
 }
 
-amdsmi_status_t AMDSmiSocket::get_device_count(uint32_t* device_count) const {
-    *device_count = static_cast<uint32_t>(devices_.size());
+amdsmi_status_t AMDSmiSocket::get_processor_count(uint32_t* processor_count) const {
+    *processor_count = static_cast<uint32_t>(processors_.size());
     return AMDSMI_STATUS_SUCCESS;
 }
 

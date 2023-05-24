@@ -113,7 +113,7 @@ void TestHWTopologyRead::Run(void) {
   std::vector<uint32_t> numa_numbers(num_devices);
 
   for (uint32_t dv_ind = 0; dv_ind < num_devices; ++dv_ind) {
-    amdsmi_device_handle dev_handle = device_handles_[dv_ind];
+    amdsmi_processor_handle dev_handle = processor_handles_[dv_ind];
     err = amdsmi_topo_get_numa_node_number(dev_handle, &numa_numbers[dv_ind]);
     if (err != AMDSMI_STATUS_SUCCESS) {
       if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
@@ -138,8 +138,8 @@ void TestHWTopologyRead::Run(void) {
         gpu_links[dv_ind_src][dv_ind_dst].accessible = true;
       } else {
         AMDSMI_IO_LINK_TYPE type;
-        err = amdsmi_topo_get_link_type(device_handles_[dv_ind_src], 
-                device_handles_[dv_ind_dst],
+        err = amdsmi_topo_get_link_type(processor_handles_[dv_ind_src], 
+                processor_handles_[dv_ind_dst],
                 &gpu_links[dv_ind_src][dv_ind_dst].hops, &type);
         if (err != AMDSMI_STATUS_SUCCESS) {
           if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
@@ -170,8 +170,8 @@ void TestHWTopologyRead::Run(void) {
               }
           }
         }
-        err = amdsmi_topo_get_link_weight(device_handles_[dv_ind_src],
-                    device_handles_[dv_ind_dst],
+        err = amdsmi_topo_get_link_weight(processor_handles_[dv_ind_src],
+                    processor_handles_[dv_ind_dst],
                                    &gpu_links[dv_ind_src][dv_ind_dst].weight);
         if (err != AMDSMI_STATUS_SUCCESS) {
           if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
@@ -185,8 +185,8 @@ void TestHWTopologyRead::Run(void) {
             CHK_ERR_ASRT(err)
           }
         }
-        err = amdsmi_is_P2P_accessible(device_handles_[dv_ind_src],
-                    device_handles_[dv_ind_dst],
+        err = amdsmi_is_P2P_accessible(processor_handles_[dv_ind_src],
+                    processor_handles_[dv_ind_dst],
                     &gpu_links[dv_ind_src][dv_ind_dst].accessible);
         if (err != AMDSMI_STATUS_SUCCESS) {
           if (err == AMDSMI_STATUS_NOT_SUPPORTED) {

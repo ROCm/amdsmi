@@ -57,7 +57,7 @@ namespace smi {
 amdsmi_status_t AMDSmiSystem::init(uint64_t flags) {
     init_flag_ = flags;
     amdsmi_status_t amd_smi_status;
-    // populate sockets and devices
+    // populate sockets and processors
     if (flags & AMDSMI_INIT_AMD_GPUS) {
         amd_smi_status = populate_amd_gpu_devices();
         if (amd_smi_status != AMDSMI_STATUS_SUCCESS)
@@ -104,9 +104,9 @@ amdsmi_status_t AMDSmiSystem::populate_amd_gpu_devices() {
             sockets_.push_back(socket);
         }
 
-        AMDSmiDevice* device = new AMDSmiGPUDevice(i, drm_);
-        socket->add_device(device);
-        devices_.insert(device);
+        AMDSmiProcessor* device = new AMDSmiGPUDevice(i, drm_);
+        socket->add_processor(device);
+        processors_.insert(device);
     }
     return AMDSMI_STATUS_SUCCESS;
 }
@@ -136,7 +136,7 @@ amdsmi_status_t AMDSmiSystem::cleanup() {
     for (uint32_t i = 0; i < sockets_.size(); i++) {
         delete sockets_[i];
     }
-    devices_.clear();
+    processors_.clear();
     sockets_.clear();
     init_flag_ = AMDSMI_INIT_ALL_DEVICES;
     rsmi_status_t ret = rsmi_shut_down();
@@ -164,37 +164,37 @@ amdsmi_status_t AMDSmiSystem::handle_to_socket(
     return AMDSMI_STATUS_INVAL;
     }
 
-amdsmi_status_t AMDSmiSystem::handle_to_device(
-            amdsmi_device_handle device_handle,
-            AMDSmiDevice** device) {
-    if (device_handle == nullptr || device == nullptr) {
+amdsmi_status_t AMDSmiSystem::handle_to_processor(
+            amdsmi_processor_handle processor_handle,
+            AMDSmiProcessor** processor) {
+    if (processor_handle == nullptr || processor == nullptr) {
         return AMDSMI_STATUS_INVAL;
     }
-    *device = static_cast<AMDSmiDevice*>(device_handle);
+    *processor = static_cast<AMDSmiProcessor*>(processor_handle);
 
     // double check handlers is here
-    if (std::find(devices_.begin(), devices_.end(), *device)
-            != devices_.end()) {
+    if (std::find(processors_.begin(), processors_.end(), *processor)
+            != processors_.end()) {
         return AMDSMI_STATUS_SUCCESS;
     }
     return AMDSMI_STATUS_NOT_FOUND;
 }
 
 amdsmi_status_t AMDSmiSystem::gpu_index_to_handle(uint32_t gpu_index,
-                    amdsmi_device_handle* device_handle) {
-    if (device_handle == nullptr)
+                    amdsmi_processor_handle* processor_handle) {
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    auto iter = devices_.begin();
-    for (; iter != devices_.end(); iter++) {
+    auto iter = processors_.begin();
+    for (; iter != processors_.end(); iter++) {
         auto cur_device = (*iter);
-        if (cur_device->get_device_type() != AMD_GPU)
+        if (cur_device->get_processor_type() != AMD_GPU)
             continue;
         amd::smi::AMDSmiGPUDevice* gpu_device =
                 static_cast<amd::smi::AMDSmiGPUDevice*>(cur_device);
         uint32_t cur_gpu_index = gpu_device->get_gpu_id();
         if (gpu_index == cur_gpu_index) {
-            *device_handle = cur_device;
+            *processor_handle = cur_device;
             return AMDSMI_STATUS_SUCCESS;
         }
     }

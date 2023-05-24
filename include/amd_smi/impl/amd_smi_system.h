@@ -48,7 +48,7 @@
 #include <set>
 #include "amd_smi/amdsmi.h"
 #include "amd_smi/impl/amd_smi_socket.h"
-#include "amd_smi/impl/amd_smi_device.h"
+#include "amd_smi/impl/amd_smi_processor.h"
 #include "amd_smi/impl/amd_smi_drm.h"
 
 namespace amd {
@@ -69,11 +69,11 @@ class AMDSmiSystem {
     amdsmi_status_t handle_to_socket(amdsmi_socket_handle socket_handle,
             AMDSmiSocket** socket);
 
-    amdsmi_status_t handle_to_device(amdsmi_device_handle device_handle,
-            AMDSmiDevice** device);
+    amdsmi_status_t handle_to_processor(amdsmi_processor_handle processor_handle,
+            AMDSmiProcessor** device);
 
     amdsmi_status_t gpu_index_to_handle(uint32_t gpu_index,
-                    amdsmi_device_handle* device_handle);
+                    amdsmi_processor_handle* processor_handle);
 
  private:
     AMDSmiSystem() : init_flag_(AMDSMI_INIT_AMD_GPUS) {}
@@ -82,7 +82,7 @@ class AMDSmiSystem {
     uint64_t init_flag_;
     AMDSmiDrm drm_;
     std::vector<AMDSmiSocket*> sockets_;
-    std::set<AMDSmiDevice*> devices_;     // Track valid devices
+    std::set<AMDSmiProcessor*> processors_;     // Track valid processors
 };
 
 

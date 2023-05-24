@@ -96,16 +96,16 @@ void TestPerfLevelRead::Run(void) {
   }
 
   for (uint32_t i = 0; i < num_monitor_devs(); ++i) {
-    PrintDeviceHeader(device_handles_[i]);
+    PrintDeviceHeader(processor_handles_[i]);
 
-    err = amdsmi_dev_get_perf_level(device_handles_[i], &pfl);
+    err = amdsmi_get_gpu_perf_level(processor_handles_[i], &pfl);
     CHK_ERR_ASRT(err)
     IF_VERB(STANDARD) {
       std::cout << "\t**Performance Level:" << std::dec << (uint32_t)pfl <<
                                                                     std::endl;
     }
     // Verify api support checking functionality is working
-    err = amdsmi_dev_get_perf_level(device_handles_[i], nullptr);
+    err = amdsmi_get_gpu_perf_level(processor_handles_[i], nullptr);
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
   }
 }

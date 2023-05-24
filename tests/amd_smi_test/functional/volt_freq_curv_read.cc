@@ -155,22 +155,22 @@ void TestVoltCurvRead::Run(void) {
   }
 
   for (uint32_t i = 0; i < num_monitor_devs(); ++i) {
-    PrintDeviceHeader(device_handles_[i]);
+    PrintDeviceHeader(processor_handles_[i]);
 
-    err =  amdsmi_dev_get_od_volt_info(device_handles_[i], &odv);
+    err =  amdsmi_get_gpu_od_volt_info(processor_handles_[i], &odv);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       IF_VERB(STANDARD) {
         std::cout <<
-            "\t** amdsmi_dev_get_od_volt_info: Not supported on this machine"
+            "\t** amdsmi_get_gpu_od_volt_info: Not supported on this machine"
                                                                << std::endl;
       }
       // Verify api support checking functionality is working
-      err =  amdsmi_dev_get_od_volt_info(device_handles_[i], nullptr);
+      err =  amdsmi_get_gpu_od_volt_info(processor_handles_[i], nullptr);
       ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
     } else {
       CHK_ERR_ASRT(err)
       // Verify api support checking functionality is working
-      err =  amdsmi_dev_get_od_volt_info(device_handles_[i], nullptr);
+      err =  amdsmi_get_gpu_od_volt_info(processor_handles_[i], nullptr);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
     }
 
@@ -184,7 +184,7 @@ void TestVoltCurvRead::Run(void) {
       ASSERT_TRUE(regions != nullptr);
 
       num_regions = odv.num_regions;
-      err =  amdsmi_dev_get_od_volt_curve_regions(device_handles_[i], &num_regions, regions);
+      err =  amdsmi_get_gpu_od_volt_curve_regions(processor_handles_[i], &num_regions, regions);
       CHK_ERR_ASRT(err)
       ASSERT_TRUE(num_regions == odv.num_regions);
 
