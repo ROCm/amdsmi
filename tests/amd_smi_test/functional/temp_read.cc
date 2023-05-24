@@ -110,11 +110,11 @@ void TestTempRead::Run(void) {
   uint32_t type;
   for (uint32_t x = 0; x < num_iterations(); ++x) {
     for (uint32_t i = 0; i < num_monitor_devs(); ++i) {
-      PrintDeviceHeader(device_handles_[i]);
+      PrintDeviceHeader(processor_handles_[i]);
 
       auto print_temp_metric = [&](amdsmi_temperature_metric_t met,
                                                           std::string label) {
-        err =  amdsmi_dev_get_temp_metric(device_handles_[i], static_cast<amdsmi_temperature_type_t>(type), met, &val_i64);
+        err =  amdsmi_get_temp_metric(processor_handles_[i], static_cast<amdsmi_temperature_type_t>(type), met, &val_i64);
 
         if (err != AMDSMI_STATUS_SUCCESS) {
           if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
@@ -124,7 +124,7 @@ void TestTempRead::Run(void) {
             }
 
             // Verify api support checking functionality is working
-            err =  amdsmi_dev_get_temp_metric(device_handles_[i],  static_cast<amdsmi_temperature_type_t>(type), met, nullptr);
+            err =  amdsmi_get_temp_metric(processor_handles_[i],  static_cast<amdsmi_temperature_type_t>(type), met, nullptr);
             ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
             return;
           } else {
@@ -132,7 +132,7 @@ void TestTempRead::Run(void) {
           }
         }
         // Verify api support checking functionality is working
-        err =  amdsmi_dev_get_temp_metric(device_handles_[i],  static_cast<amdsmi_temperature_type_t>(type), met, nullptr);
+        err =  amdsmi_get_temp_metric(processor_handles_[i],  static_cast<amdsmi_temperature_type_t>(type), met, nullptr);
         ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
         IF_VERB(STANDARD) {

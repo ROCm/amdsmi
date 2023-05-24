@@ -48,11 +48,23 @@ class AMDSMILogger():
         csv = 'csv'
         human_readable = 'human_readable'
 
+
     class LoggerCompatibility(Enum):
         """Enum for logger compatibility"""
         amdsmi = 'amdsmi'
         rocmsmi = 'rocmsmi'
         gpuvsmi = 'gpuvsmi'
+
+
+    class CsvStdoutBuilder(object):
+        def __init__(self):
+            self.csv_string = []
+
+        def write(self, row):
+            self.csv_string.append(row)
+
+        def __str__(self):
+            return ''.join(self.csv_string)
 
 
     def is_json_format(self):
@@ -77,17 +89,6 @@ class AMDSMILogger():
 
     def is_gpuvsmi_compatibility(self):
         return self.compatibility == self.LoggerCompatibility.gpuvsmi.value
-
-
-    class CsvStdoutBuilder(object):
-        def __init__(self):
-            self.csv_string = []
-
-        def write(self, row):
-            self.csv_string.append(row)
-
-        def __str__(self):
-            return ''.join(self.csv_string)
 
 
     def _capitalize_keys(self, input_dict):
@@ -239,7 +240,6 @@ class AMDSMILogger():
             else:
                 self.output[argument] = data
         elif self.is_csv_format():
-            # New way is in gpuvsmi func
             self.output['gpu'] = int(gpu_id)
 
             if argument == 'values' or isinstance(data, dict):
@@ -416,6 +416,7 @@ class AMDSMILogger():
             human_readable_output = ''
             for output in self.multiple_device_output:
                 human_readable_output += self._convert_json_to_human_readable(output)
+                human_readable_output += '\n'
         else:
             human_readable_output = self._convert_json_to_human_readable(self.output)
 
@@ -432,7 +433,7 @@ class AMDSMILogger():
                     human_readable_output = ''
                     for output in self.watch_output:
                         human_readable_output +=  self._convert_json_to_human_readable(output)
-                    output_file.write(human_readable_output)
+                    output_file.write(human_readable_output + '\n')
             else:
                 with self.destination.open('a') as output_file:
-                    output_file.write(human_readable_output)
+                    output_file.write(human_readable_output + '\n')

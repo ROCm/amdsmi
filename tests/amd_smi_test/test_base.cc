@@ -124,16 +124,16 @@ void TestBase::SetUp(uint64_t init_flags) {
   for (uint32_t i=0; i < socket_count_; i++) {
     // Get all devices of the socket
     uint32_t device_count = 0;
-    err = amdsmi_get_device_handles(sockets_[i],
+    err = amdsmi_get_processor_handles(sockets_[i],
             &device_count, nullptr);
     if (err != AMDSMI_STATUS_SUCCESS) {
       setup_failed_ = true;
     }
     ASSERT_EQ(err, AMDSMI_STATUS_SUCCESS);
 
-    std::vector<amdsmi_device_handle> device_handles(device_count);
-    err = amdsmi_get_device_handles(sockets_[i],
-            &device_count, &device_handles[0]);
+    std::vector<amdsmi_processor_handle> processor_handles(device_count);
+    err = amdsmi_get_processor_handles(sockets_[i],
+            &device_count, &processor_handles[0]);
     if (err != AMDSMI_STATUS_SUCCESS) {
       setup_failed_ = true;
     }
@@ -144,7 +144,7 @@ void TestBase::SetUp(uint64_t init_flags) {
         setup_failed_ = true;
         ASSERT_EQ(AMDSMI_STATUS_INPUT_OUT_OF_BOUNDS, AMDSMI_STATUS_SUCCESS);
       }
-      device_handles_[num_monitor_devs_] = device_handles[j];
+      processor_handles_[num_monitor_devs_] = processor_handles[j];
       num_monitor_devs_++;
     }
   }
@@ -159,7 +159,7 @@ void TestBase::SetUp(uint64_t init_flags) {
   return;
 }
 
-void TestBase::PrintDeviceHeader(amdsmi_device_handle dv_ind) {
+void TestBase::PrintDeviceHeader(amdsmi_processor_handle dv_ind) {
   amdsmi_status_t err;
   uint16_t val_ui16;
   amdsmi_asic_info_t info;
@@ -167,19 +167,19 @@ void TestBase::PrintDeviceHeader(amdsmi_device_handle dv_ind) {
   IF_VERB(STANDARD) {
     std::cout << "\t**Device handle: " << dv_ind << std::endl;
   }
-  err = amdsmi_dev_get_id(dv_ind, &val_ui16);
+  err = amdsmi_get_gpu_id(dv_ind, &val_ui16);
   CHK_ERR_ASRT(err)
   IF_VERB(STANDARD) {
     std::cout << "\t**Device ID: 0x" << std::hex << val_ui16 << std::endl;
   }
 
   amdsmi_board_info_t board_info;
-  err = amdsmi_get_board_info(dv_ind, &board_info);
+  err = amdsmi_get_gpu_board_info(dv_ind, &board_info);
   CHK_ERR_ASRT(err)
   IF_VERB(STANDARD) {
     std::cout << "\t**Device name: " << board_info.product_name  << std::endl;
 
-    err = amdsmi_get_asic_info(dv_ind, &info);
+    err = amdsmi_get_gpu_asic_info(dv_ind, &info);
     CHK_ERR_ASRT(err)
     IF_VERB(STANDARD) {
       std::cout << "\t**Device Vendor ID: 0x" << std::hex <<
@@ -187,7 +187,7 @@ void TestBase::PrintDeviceHeader(amdsmi_device_handle dv_ind) {
     }
   }
 
-  err = amdsmi_dev_get_subsystem_id(dv_ind, &val_ui16);
+  err = amdsmi_get_gpu_subsystem_id(dv_ind, &val_ui16);
   CHK_ERR_ASRT(err)
   IF_VERB(STANDARD) {
     std::cout << "\t**Subsystem ID: 0x" << std::hex << val_ui16 << std::endl;

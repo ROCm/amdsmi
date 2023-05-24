@@ -97,10 +97,10 @@ void TestPowerRead::Run(void) {
 
   for (uint32_t x = 0; x < num_iterations(); ++x) {
     for (uint32_t i = 0; i < num_monitor_devs(); ++i) {
-      PrintDeviceHeader(device_handles_[i]);
+      PrintDeviceHeader(processor_handles_[i]);
 
       amdsmi_power_cap_info_t info;
-      err = amdsmi_get_power_cap_info(device_handles_[i], 0, &info);
+      err = amdsmi_get_power_cap_info(processor_handles_[i], 0, &info);
       CHK_ERR_ASRT(err)
       IF_VERB(STANDARD) {
         std::cout << "\t**Current Power Cap: " << info.power_cap << "uW" <<std::endl;
@@ -110,18 +110,6 @@ void TestPowerRead::Run(void) {
         std::cout << "\t**Default Power Cap: " << info.default_power_cap << "uW" <<std::endl;
         std::cout << "\t**Power Cap Range: " << info.min_power_cap << " to " <<
                                                  info.max_power_cap << " uW" << std::endl;
-      }
-
-      err = amdsmi_dev_get_power_ave(device_handles_[i], 0, &val_ui64);
-      IF_VERB(STANDARD) {
-        std::cout << "\t**Averge Power Usage: ";
-        CHK_AMDSMI_PERM_ERR(err)
-        if (err == AMDSMI_STATUS_SUCCESS) {
-          std::cout << static_cast<float>(val_ui64)/1000 << " mW" << std::endl;
-        }
-        // Verify api support checking functionality is working
-        err = amdsmi_dev_get_power_ave(device_handles_[i], 0, nullptr);
-        ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
       }
     }
   }

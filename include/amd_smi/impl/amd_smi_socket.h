@@ -48,7 +48,7 @@
 #include <algorithm>
 #include <vector>
 #include "amd_smi/amdsmi.h"
-#include "amd_smi/impl/amd_smi_device.h"
+#include "amd_smi/impl/amd_smi_processor.h"
 
 namespace amd {
 namespace smi {
@@ -58,12 +58,12 @@ class AMDSmiSocket {
     explicit AMDSmiSocket(const std::string& id) : socket_identifier_(id) {}
     ~AMDSmiSocket();
     const std::string& get_socket_id() const { return socket_identifier_;}
-    void add_device(AMDSmiDevice* device) { devices_.push_back(device); }
-    std::vector<AMDSmiDevice*>& get_devices() { return devices_;}
-    amdsmi_status_t get_device_count(uint32_t* device_count) const;
+    void add_processor(AMDSmiProcessor* processor) { processors_.push_back(processor); }
+    std::vector<AMDSmiProcessor*>& get_processors() { return processors_;}
+    amdsmi_status_t get_processor_count(uint32_t* processor_count) const;
  private:
     std::string socket_identifier_;
-    std::vector<AMDSmiDevice*> devices_;
+    std::vector<AMDSmiProcessor*> processors_;
 };
 
 }  // namespace smi

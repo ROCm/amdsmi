@@ -109,7 +109,7 @@ void TestEvtNotifReadWrite::Run(void) {
   }
 
   for (dv_ind = 0; dv_ind < num_monitor_devs(); ++dv_ind) {
-    ret = amdsmi_init_event_notification(device_handles_[dv_ind]);
+    ret = amdsmi_init_gpu_event_notification(processor_handles_[dv_ind]);
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
       IF_VERB(STANDARD) {
         std::cout <<
@@ -119,7 +119,7 @@ void TestEvtNotifReadWrite::Run(void) {
       return;
     }
     ASSERT_EQ(ret, AMDSMI_STATUS_SUCCESS);
-    ret =  amdsmi_set_event_notification_mask(device_handles_[dv_ind], mask);
+    ret =  amdsmi_set_gpu_event_notification_mask(processor_handles_[dv_ind], mask);
     ASSERT_EQ(ret, AMDSMI_STATUS_SUCCESS);
   }
 
@@ -127,13 +127,13 @@ void TestEvtNotifReadWrite::Run(void) {
   uint32_t num_elem = 10;
   bool read_again = false;
 
-  ret =  amdsmi_get_event_notification(10000, &num_elem, data);
+  ret =  amdsmi_get_gpu_event_notification(10000, &num_elem, data);
   if (ret == AMDSMI_STATUS_SUCCESS || ret == AMDSMI_STATUS_INSUFFICIENT_SIZE) {
     EXPECT_LE(num_elem, 10) <<
             "Expected the number of elements found to be <= buffer size (10)";
     IF_VERB(STANDARD) {
       for (uint32_t i = 0; i < num_elem; ++i) {
-        std::cout << "\tdv_handle=" << data[i].device_handle <<
+        std::cout << "\tdv_handle=" << data[i].processor_handle <<
                    "  Type: " << NameFromEvtNotifType(data[i].event) <<
                    "  Mesg: " << data[i].message << std::endl;
         if (data[i].event == AMDSMI_EVT_NOTIF_GPU_PRE_RESET) {
@@ -155,19 +155,19 @@ void TestEvtNotifReadWrite::Run(void) {
   } else {
     // This should always fail. We want to print out the return code.
     EXPECT_EQ(ret, AMDSMI_STATUS_SUCCESS) <<
-                  "Unexpected return code for  amdsmi_get_event_notification()";
+                  "Unexpected return code for  amdsmi_get_gpu_event_notification()";
   }
 
   // In case GPU Pre reset event was collected in the previous read,
   // read again to get the GPU Post reset event.
   if (read_again) {
-    ret =  amdsmi_get_event_notification(10000, &num_elem, data);
+    ret =  amdsmi_get_gpu_event_notification(10000, &num_elem, data);
     if (ret == AMDSMI_STATUS_SUCCESS || ret == AMDSMI_STATUS_INSUFFICIENT_SIZE) {
       EXPECT_LE(num_elem, 10) <<
               "Expected the number of elements found to be <= buffer size (10)";
       IF_VERB(STANDARD) {
         for (uint32_t i = 0; i < num_elem; ++i) {
-          std::cout << "\tdv_handle=" << data[i].device_handle <<
+          std::cout << "\tdv_handle=" << data[i].processor_handle <<
                      "  Type: " << NameFromEvtNotifType(data[i].event) <<
                      "  Mesg: " << data[i].message << std::endl;
         }
@@ -186,12 +186,12 @@ void TestEvtNotifReadWrite::Run(void) {
     } else {
       // This should always fail. We want to print out the return code.
       EXPECT_EQ(ret, AMDSMI_STATUS_SUCCESS) <<
-                  "Unexpected return code for  amdsmi_get_event_notification()";
+                  "Unexpected return code for  amdsmi_get_gpu_event_notification()";
     }
   }
 
   for (uint32_t dv_ind = 0; dv_ind < num_monitor_devs(); ++dv_ind) {
-    ret = amdsmi_stop_event_notification(device_handles_[dv_ind]);
+    ret = amdsmi_stop_gpu_event_notification(processor_handles_[dv_ind]);
     ASSERT_EQ(ret, AMDSMI_STATUS_SUCCESS);
   }
 }

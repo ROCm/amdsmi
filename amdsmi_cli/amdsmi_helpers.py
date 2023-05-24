@@ -61,6 +61,7 @@ class AMDSMIHelpers():
             else:
                 self._is_virtual_os = True
 
+
     def os_info(self, string_format=True):
         """Return operating_system and type information ex. (Linux, Baremetal)
         params:
@@ -141,11 +142,11 @@ class AMDSMIHelpers():
         gpu_choices = {}
         gpu_choices_str = ""
 
-        # amdsmi_get_device_handles returns the device_handles storted by gpu_id
-        device_handles = amdsmi_interface.amdsmi_get_device_handles()
+        # amdsmi_get_processor_handles returns the device_handles storted for gpu_id
+        device_handles = amdsmi_interface.amdsmi_get_processor_handles()
         for gpu_id, device_handle in enumerate(device_handles):
-            bdf = amdsmi_interface.amdsmi_get_device_bdf(device_handle)
-            uuid = amdsmi_interface.amdsmi_get_device_uuid(device_handle)
+            bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(device_handle)
+            uuid = amdsmi_interface.amdsmi_get_gpu_device_uuid(device_handle)
             gpu_choices[str(gpu_id)] = {
                 "BDF": bdf,
                 "UUID": uuid,
@@ -285,9 +286,9 @@ class AMDSMIHelpers():
 
     def get_gpu_id_from_device_handle(self, input_device_handle):
         """Get the gpu index from the device_handle.
-        amdsmi_get_device_handles() returns the list of device_handles in order of gpu_index
+        amdsmi_get_processor_handles() returns the list of device_handles in order of gpu_index
         """
-        device_handles = amdsmi_interface.amdsmi_get_device_handles()
+        device_handles = amdsmi_interface.amdsmi_get_processor_handles()
         for gpu_index, device_handle in enumerate(device_handles):
             if input_device_handle.value == device_handle.value:
                 return gpu_index
@@ -301,10 +302,10 @@ class AMDSMIHelpers():
             list[BDF]: List of GPU BDFs
         """
         gpu_bdfs = []
-        device_handles = amdsmi_interface.amdsmi_get_device_handles()
+        device_handles = amdsmi_interface.amdsmi_get_processor_handles()
 
         for device_handle in device_handles:
-            bdf = amdsmi_interface.amdsmi_get_device_bdf(device_handle)
+            bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(device_handle)
             gpu_bdfs.append(bdf)
 
         return gpu_bdfs
@@ -316,7 +317,7 @@ class AMDSMIHelpers():
         param device: DRM device identifier
         """
         # Get card vendor id
-        asic_info = amdsmi_interface.amdsmi_get_asic_info(device_handle)
+        asic_info = amdsmi_interface.amdsmi_get_gpu_asic_info(device_handle)
         return asic_info['vendor_id'] == AMD_VENDOR_ID
 
 
@@ -396,3 +397,11 @@ class AMDSMIHelpers():
                 return False
         except amdsmi_exception.AmdSmiLibraryException:
             return False
+
+
+    def convert_bytes_to_readable(self, bytes_input):
+        for unit in ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB"]:
+            if abs(bytes_input) < 1024:
+                return f"{bytes_input:3.1f} {unit}"
+            bytes_input /= 1024
+        return f"{bytes_input:.1f} YB"

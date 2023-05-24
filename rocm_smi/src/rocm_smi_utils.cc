@@ -234,5 +234,24 @@ rsmi_status_t ErrnoToRsmiStatus(int err) {
   }
 }
 
+bool is_vm_guest() {
+  // the cpuinfo will set hypervisor flag in VM guest
+  const std::string hypervisor = "hypervisor";
+  std::string line;
+
+  // default to false if cannot find the file
+  std::ifstream infile("/proc/cpuinfo");
+  if (infile.fail()) {
+    return false;
+  }
+
+  while (std::getline(infile, line)) {
+    if (line.find(hypervisor) != std::string::npos) {
+      return true;
+    }
+  }
+  return false;
+}
+
 }  // namespace smi
 }  // namespace amd

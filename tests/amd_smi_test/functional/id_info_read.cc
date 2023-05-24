@@ -105,11 +105,11 @@ void TestIdInfoRead::Run(void) {
     }
 
     // Get the device ID, name, vendor ID and vendor name for the device
-    err = amdsmi_dev_get_id(device_handles_[i], &id);
+    err = amdsmi_get_gpu_id(processor_handles_[i], &id);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       amdsmi_status_t ret;
       // Verify api support checking functionality is working
-      ret = amdsmi_dev_get_id(device_handles_[i], nullptr);
+      ret = amdsmi_get_gpu_id(processor_handles_[i], nullptr);
       ASSERT_EQ(ret, AMDSMI_STATUS_NOT_SUPPORTED);
     } else {
       CHK_ERR_ASRT(err)
@@ -118,25 +118,25 @@ void TestIdInfoRead::Run(void) {
         std::cout << "\t**Device ID: 0x" << std::hex << id << std::endl;
       }
       // Verify api support checking functionality is working
-      err = amdsmi_dev_get_id(device_handles_[i], nullptr);
+      err = amdsmi_get_gpu_id(processor_handles_[i], nullptr);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
     }
 
        // vendor_id, unique_id
     amdsmi_asic_info_t asci_info;
-    err = amdsmi_get_asic_info(device_handles_[0], &asci_info);
+    err = amdsmi_get_gpu_asic_info(processor_handles_[0], &asci_info);
     CHK_ERR_ASRT(err)
 
     // device name, brand, serial_number
     amdsmi_board_info_t board_info;
-    err = amdsmi_get_board_info(device_handles_[0], &board_info);
+    err = amdsmi_get_gpu_board_info(processor_handles_[0], &board_info);
     CHK_ERR_ASRT(err)
 
-    err = amdsmi_dev_get_vram_vendor(device_handles_[i], buffer, kBufferLen);
+    err = amdsmi_get_gpu_vram_vendor(processor_handles_[i], buffer, kBufferLen);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       std::cout <<
         "\t**Vram Vendor string not supported on this system." << std::endl;
-      err = amdsmi_dev_get_vram_vendor(device_handles_[i], nullptr, kBufferLen);
+      err = amdsmi_get_gpu_vram_vendor(processor_handles_[i], nullptr, kBufferLen);
       ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
     } else {
       CHK_ERR_ASRT(err)
@@ -145,10 +145,10 @@ void TestIdInfoRead::Run(void) {
       }
     }
 
-    err = amdsmi_dev_get_drm_render_minor(device_handles_[i], &drm_render_minor);
+    err = amdsmi_get_gpu_drm_render_minor(processor_handles_[i], &drm_render_minor);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       // Verify api support checking functionality is working
-      err = amdsmi_dev_get_drm_render_minor(device_handles_[i], nullptr);
+      err = amdsmi_get_gpu_drm_render_minor(processor_handles_[i], nullptr);
       ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
     } else {
       CHK_ERR_ASRT(err)
@@ -156,15 +156,15 @@ void TestIdInfoRead::Run(void) {
         std::cout << "\t**DRM Render Minor: " << drm_render_minor << std::endl;
       }
       // Verify api support checking functionality is working
-      err = amdsmi_dev_get_drm_render_minor(device_handles_[i], nullptr);
+      err = amdsmi_get_gpu_drm_render_minor(processor_handles_[i], nullptr);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
     }
-    err = amdsmi_dev_get_vendor_name(device_handles_[i], buffer, kBufferLen);
+    err = amdsmi_get_gpu_vendor_name(processor_handles_[i], buffer, kBufferLen);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       std::cout << "\t**Device Vendor name string not found on this system." <<
                                                                      std::endl;
       // Verify api support checking functionality is working
-      err = amdsmi_dev_get_vendor_name(device_handles_[i], nullptr, kBufferLen);
+      err = amdsmi_get_gpu_vendor_name(processor_handles_[i], nullptr, kBufferLen);
       ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
     } else {
       CHK_ERR_ASRT(err)
@@ -172,15 +172,15 @@ void TestIdInfoRead::Run(void) {
         std::cout << "\t**Device Vendor name: " << buffer << std::endl;
       }
       // Verify api support checking functionality is working
-      err = amdsmi_dev_get_vendor_name(device_handles_[i], nullptr, kBufferLen);
+      err = amdsmi_get_gpu_vendor_name(processor_handles_[i], nullptr, kBufferLen);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
     }
 
     // Get the device ID, name, vendor ID and vendor name for the sub-device
-    err = amdsmi_dev_get_subsystem_id(device_handles_[i], &id);
+    err = amdsmi_get_gpu_subsystem_id(processor_handles_[i], &id);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       // Verify api support checking functionality is working
-      err = amdsmi_dev_get_subsystem_id(device_handles_[i], nullptr);
+      err = amdsmi_get_gpu_subsystem_id(processor_handles_[i], nullptr);
       ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
     } else {
       CHK_ERR_ASRT(err)
@@ -188,15 +188,15 @@ void TestIdInfoRead::Run(void) {
         std::cout << "\t**Subsystem ID: 0x" << std::hex << id << std::endl;
       }
       // Verify api support checking functionality is working
-      err = amdsmi_dev_get_subsystem_id(device_handles_[i], nullptr);
+      err = amdsmi_get_gpu_subsystem_id(processor_handles_[i], nullptr);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
     }
-    err = amdsmi_dev_get_subsystem_name(device_handles_[i], buffer, kBufferLen);
+    err = amdsmi_get_gpu_subsystem_name(processor_handles_[i], buffer, kBufferLen);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       std::cout << "\t**Subsystem name string not found on this system." <<
                                                                     std::endl;
       // Verify api support checking functionality is working
-      err = amdsmi_dev_get_subsystem_name(device_handles_[i], nullptr, kBufferLen);
+      err = amdsmi_get_gpu_subsystem_name(processor_handles_[i], nullptr, kBufferLen);
       ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
     } else {
       CHK_ERR_ASRT(err)
@@ -204,7 +204,7 @@ void TestIdInfoRead::Run(void) {
         std::cout << "\t**Subsystem name: " << buffer << std::endl;
       }
       // Verify api support checking functionality is working
-      err = amdsmi_dev_get_subsystem_name(device_handles_[i], nullptr, kBufferLen);
+      err = amdsmi_get_gpu_subsystem_name(processor_handles_[i], nullptr, kBufferLen);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
     }
 
@@ -213,13 +213,13 @@ void TestIdInfoRead::Run(void) {
                                             asci_info.subvendor_id << std::endl;
     }
 
-    err = amdsmi_dev_get_vendor_name(device_handles_[i], buffer, kBufferLen);
+    err = amdsmi_get_gpu_vendor_name(processor_handles_[i], buffer, kBufferLen);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       std::cout <<
            "\t**Subsystem Vendor name string not found on this system." <<
                                                                     std::endl;
      // Verify api support checking functionality is working
-     err = amdsmi_dev_get_vendor_name(device_handles_[i], nullptr, kBufferLen);
+     err = amdsmi_get_gpu_vendor_name(processor_handles_[i], nullptr, kBufferLen);
      ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
     } else {
       CHK_ERR_ASRT(err)
@@ -227,11 +227,11 @@ void TestIdInfoRead::Run(void) {
         std::cout << "\t**Subsystem Vendor name: " << buffer << std::endl;
       }
       // Verify api support checking functionality is working
-      err = amdsmi_dev_get_vendor_name(device_handles_[i], nullptr, kBufferLen);
+      err = amdsmi_get_gpu_vendor_name(processor_handles_[i], nullptr, kBufferLen);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
     }
 
-    err = amdsmi_dev_get_pci_id(device_handles_[i], &val_ui64);
+    err = amdsmi_get_gpu_pci_id(processor_handles_[i], &val_ui64);
     // Don't check for AMDSMI_STATUS_NOT_SUPPORTED since this should always be
     // supported. It is not based on a sysfs file.
     CHK_ERR_ASRT(err)
@@ -240,7 +240,7 @@ void TestIdInfoRead::Run(void) {
       std::cout << " (" << std::dec << val_ui64 << ")" << std::endl;
     }
     // Verify api support checking functionality is working
-    err = amdsmi_dev_get_pci_id(device_handles_[i], nullptr);
+    err = amdsmi_get_gpu_pci_id(processor_handles_[i], nullptr);
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
   }
 }
