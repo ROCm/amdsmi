@@ -899,7 +899,7 @@ class AMDSMICommands():
             if args.ecc_block:
                 ecc_dict = {}
                 try:
-                    ras_states = amdsmi_interface.amdsmi_get_ras_block_features_enabled(args.gpu)
+                    ras_states = amdsmi_interface.amdsmi_get_gpu_ras_block_features_enabled(args.gpu)
                     for state in ras_states:
                         if state['status'] == amdsmi_interface.AmdSmiRasErrState.ENABLED.name:
                             gpu_block = amdsmi_interface.AmdSmiGpuBlock[state['block']]
