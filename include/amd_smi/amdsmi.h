@@ -433,16 +433,6 @@ typedef enum {
  * @brief Available clock types.
  */
 
-/**
- * @brief Software components
- */
-typedef enum {
-  AMDSMI_SW_COMP_FIRST = 0x0,
-
-  AMDSMI_SW_COMP_DRIVER = AMDSMI_SW_COMP_FIRST,    //!< Driver
-
-  AMDSMI_SW_COMP_LAST = AMDSMI_SW_COMP_DRIVER
-} amdsmi_sw_component_t;
 
 /**
  * Event counter types
@@ -1064,40 +1054,9 @@ typedef struct {
     uint32_t cu_occupancy;    //!< Compute Unit usage in percent
 } amdsmi_process_info_t;
 
-/**
- * @brief Opaque handle to function-support object
- */
-typedef struct amdsmi_func_id_iter_handle * amdsmi_func_id_iter_handle_t;
-
 //! Place-holder "variant" for functions that have don't have any variants,
 //! but do have monitors or sensors.
 #define AMDSMI_DEFAULT_VARIANT 0xFFFFFFFFFFFFFFFF
-
-/**
- * @brief This union holds the value of an ::amdsmi_func_id_iter_handle_t. The
- * value may be a function name, or an ennumerated variant value of types
- * such as ::amdsmi_memory_type_t, ::amdsmi_temperature_metric_t, etc.
- */
-typedef union {
-        uint64_t id;           //!< uint64_t representation of value
-        const char *name;      //!< name string (applicable to functions only)
-        union {
-            //!< Used for ::amdsmi_memory_type_t variants
-            amdsmi_memory_type_t memory_type;
-            //!< Used for ::amdsmi_temperature_metric_t variants
-            amdsmi_temperature_metric_t temp_metric;
-            //!< Used for ::amdsmi_event_type_t variants
-            amdsmi_event_type_t evnt_type;
-            //!< Used for ::amdsmi_event_group_t variants
-            amdsmi_event_group_t evnt_group;
-            //!< Used for ::amdsmi_clk_type_t variants
-            amdsmi_clk_type_t clk_type;
-            //!< Used for ::amdsmi_fw_block_t variants
-            amdsmi_fw_block_t fw_block;
-            //!< Used for ::amdsmi_gpu_block_t variants
-            amdsmi_gpu_block_t gpu_block_type;
-        };
-} amdsmi_func_id_value_t;
 
 /*****************************************************************************/
 /** @defgroup InitShutAdmin Initialization and Shutdown
@@ -1273,7 +1232,7 @@ amdsmi_status_t amdsmi_get_processor_handle_from_bdf(amdsmi_bdf_t bdf, amdsmi_pr
  *  @p id. This ID is an identification of the type of device, so calling this
  *  function for different devices will give the same value if they are kind
  *  of device. Consequently, this function should not be used to distinguish
- *  one device from another. amdsmi_get_gpu_pci_id() should be used to get a
+ *  one device from another. admsmi_get_gpu_bdf_id() should be used to get a
  *  unique identifier.
  *
  *  @param[in] processor_handle a processor handle
@@ -1403,22 +1362,6 @@ amdsmi_status_t amdsmi_get_gpu_subsystem_id(amdsmi_processor_handle processor_ha
 amdsmi_status_t
 amdsmi_get_gpu_subsystem_name(amdsmi_processor_handle processor_handle, char *name, size_t len);
 
-/**
- *  @brief Get the drm minor number associated with this device
- *
- *  @details Given a processor handle @p processor_handle, find its render device file
- *  /dev/dri/renderDN where N corresponds to its minor number.
- *
- *  @param[in] processor_handle a processor handle
- *
- *  @param[in,out] minor a pointer to a uint32_t into which minor number will
- *  be copied
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t
-amdsmi_get_gpu_drm_render_minor(amdsmi_processor_handle processor_handle, uint32_t *minor);
-
 /** @} End IDQuer */
 
 /*****************************************************************************/
@@ -1478,7 +1421,7 @@ amdsmi_get_gpu_pci_bandwidth(amdsmi_processor_handle processor_handle, amdsmi_pc
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_gpu_pci_id(amdsmi_processor_handle processor_handle, uint64_t *bdfid);
+amdsmi_status_t admsmi_get_gpu_bdf_id(amdsmi_processor_handle processor_handle, uint64_t *bdfid);
 
 /**
  *  @brief Get the NUMA node associated with a device
@@ -1732,12 +1675,13 @@ amdsmi_get_gpu_memory_usage(amdsmi_processor_handle processor_handle, amdsmi_mem
                                                               uint64_t *used);
 
 /**
- * @brief The first call to this API returns the number of bad pages which
- * should be used to allocate the buffer that should contain the bad page
- * records.
+ * @brief Get the bad pages of a processor.
  * @details This call will query the device @p processor_handle for the
  * number of bad pages (written to @p num_pages address). The results are
  * written to address held by the @p info pointer.
+ * The first call to this API returns the number of bad pages which
+ * should be used to allocate the buffer that should contain the bad page
+ * records.
  * @param[in] processor_handle a processor handle
  * @param[out] num_pages Number of bad page records.
  * @param[out] info The results will be written to the 
@@ -1771,27 +1715,6 @@ amdsmi_get_gpu_bad_page_info(amdsmi_processor_handle processor_handle, uint32_t 
 amdsmi_status_t
 amdsmi_get_gpu_ras_block_features_enabled(amdsmi_processor_handle processor_handle, amdsmi_gpu_block_t block,
                                                                   amdsmi_ras_err_state_t *state);
-
-/**
- *  @brief Get percentage of time any device memory is being used
- *
- *  @details Given a processor handle @p processor_handle, this function returns the
- *  percentage of time that any device memory is being used for the specified
- *  device.
- *
- *  @param[in] processor_handle a processor handle
- *
- *  @param[in,out] busy_percent a pointer to the uint32_t to which the busy
- *  percent will be written
- *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
- *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
- *  provided arguments.
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t
-amdsmi_get_gpu_memory_busy_percent(amdsmi_processor_handle processor_handle, uint32_t *busy_percent);
 
 /**
  *  @brief Get information about reserved ("retired") memory pages
@@ -2023,28 +1946,6 @@ amdsmi_status_t amdsmi_set_gpu_fan_speed(amdsmi_processor_handle processor_handl
  *  performance.
  *  @{
  */
-
-/**
- *  @brief Get percentage of time device is busy doing any processing
- *
- *  @details Given a processor handle @p processor_handle, this function returns the
- *  percentage of time that the specified device is busy. The device is
- *  considered busy if any one or more of its sub-blocks are working, and idle
- *  if none of the sub-blocks are working.
- *
- *  @param[in] processor_handle a processor handle
- *
- *  @param[in,out] busy_percent a pointer to the uint32_t to which the busy
- *  percent will be written
- *  If this parameter is nullptr, this function will return
- *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
- *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
- *  provided arguments.
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t
-amdsmi_get_busy_percent(amdsmi_processor_handle processor_handle, uint32_t *busy_percent);
 
 /**
  *  @brief Get coarse grain utilization counter of the specified device
@@ -2393,9 +2294,6 @@ amdsmi_status_t
  *  @brief Set the PowerPlay performance level associated with the device with
  *  provided processor handle with the provided value.
  *
- *  @deprecated :: amdsmi_set_gpu_perf_level_v1() is preferred, with an
- *  interface that more closely  matches the rest of the amd_smi API.
- *
  *  @details Given a processor handle @p processor_handle and an ::amdsmi_dev_perf_level_t @p
  *  perf_level, this function will set the PowerPlay performance level for the
  *  device to the value @p perf_lvl.
@@ -2412,31 +2310,9 @@ amdsmi_status_t
  amdsmi_set_gpu_perf_level(amdsmi_processor_handle processor_handle, amdsmi_dev_perf_level_t perf_lvl);
 
 /**
- *  @brief Set the PowerPlay performance level associated with the device with
- *  provided processor handle with the provided value.
- *
- *  @details Given a processor handle @p processor_handle and an ::amdsmi_dev_perf_level_t @p
- *  perf_level, this function will set the PowerPlay performance level for the
- *  device to the value @p perf_lvl.
- *
- *  @note This function requires root access
- *
- *  @param[in] processor_handle a processor handle
- *
- *  @param[in] perf_lvl the value to which the performance level should be set
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t
- amdsmi_set_gpu_perf_level_v1(amdsmi_processor_handle processor_handle, amdsmi_dev_perf_level_t perf_lvl);
-
-/**
  *  @brief Set the overdrive percent associated with the device with provided
  *  processor handle with the provided value. See details for WARNING.
  *
- *  @deprecated This function is deprecated. :: amdsmi_set_gpu_overdrive_level_v1
- *  has the same functionaltiy, with an interface that more closely
- *  matches the rest of the amd_smi API.
  *
  *  @details Given a processor handle @p processor_handle and an overdrive level @p od,
  *  this function will set the overdrive level for the device to the value
@@ -2470,45 +2346,6 @@ amdsmi_status_t
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t  amdsmi_set_gpu_overdrive_level(amdsmi_processor_handle processor_handle, uint32_t od);
-
-/**
- *  @brief Set the overdrive percent associated with the device with provided
- *  processor handle with the provided value. See details for WARNING.
- *
- *  @details Given a processor handle @p processor_handle and an overdrive level @p od,
- *  this function will set the overdrive level for the device to the value
- *  @p od. The overdrive level is an integer value between 0 and 20, inclusive,
- *  which represents the overdrive percentage; e.g., a value of 5 specifies
- *  an overclocking of 5%.
- *
- *  The overdrive level is specific to the gpu system clock.
- *
- *  The overdrive level is the percentage above the maximum Performance Level
- *  to which overclocking will be limited. The overclocking percentage does
- *  not apply to clock speeds other than the maximum. This percentage is
- *  limited to 20%.
- *
- *   ******WARNING******
- *  Operating your AMD GPU outside of official AMD specifications or outside of
- *  factory settings, including but not limited to the conducting of
- *  overclocking (including use of this overclocking software, even if such
- *  software has been directly or indirectly provided by AMD or otherwise
- *  affiliated in any way with AMD), may cause damage to your AMD GPU, system
- *  components and/or result in system failure, as well as cause other problems.
- *  DAMAGES CAUSED BY USE OF YOUR AMD GPU OUTSIDE OF OFFICIAL AMD SPECIFICATIONS
- *  OR OUTSIDE OF FACTORY SETTINGS ARE NOT COVERED UNDER ANY AMD PRODUCT
- *  WARRANTY AND MAY NOT BE COVERED BY YOUR BOARD OR SYSTEM MANUFACTURER'S
- *  WARRANTY. Please use this utility with caution.
- *
- *  @note This function requires root access
- *
- *  @param[in] processor_handle a processor handle
- *
- *  @param[in] od the value to which the overdrive level should be set
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t  amdsmi_set_gpu_overdrive_level_v1(amdsmi_processor_handle processor_handle, uint32_t od);
 
 /**
  * @brief Control the set of allowed frequencies that can be used for the
@@ -2566,34 +2403,7 @@ amdsmi_status_t  amdsmi_set_clk_freq(amdsmi_processor_handle processor_handle,
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_version(amdsmi_version_t *version);
-
-/**
- *  @brief Get the driver version string for the current system.
- *
- *  @details Given a software component @p component, a pointer to a char
- *  buffer, @p ver_str, this function will write the driver version string
- *  (up to @p len characters) for the current system to @p ver_str. The caller
- *  must ensure that it is safe to write at least @p len characters to @p
- *  ver_str.
- *
- *  @param[in] component The component for which the version string is being
- *  requested
- *
- *  @param[in,out] ver_str A pointer to a buffer of char's to which the version
- *  of @p component will be written
- *
- *  @param[in] len the length of the caller provided buffer @p name.
- *
- *  @note ::AMDSMI_STATUS_INSUFFICIENT_SIZE is returned if @p len bytes is not
- *  large enough to hold the entire name. In this case, only @p len bytes will
- *  be written.
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t
-amdsmi_get_version_str(amdsmi_sw_component_t component, char *ver_str,
-                                                                uint32_t len);
+amdsmi_get_lib_version(amdsmi_version_t *version);
 
 /** @} End VersQuer */
 
@@ -2693,7 +2503,7 @@ amdsmi_status_t  amdsmi_get_gpu_ecc_status(amdsmi_processor_handle processor_han
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_status_string(amdsmi_status_t status, const char **status_string);
+amdsmi_status_code_to_string(amdsmi_status_t status, const char **status_string);
 
 /** @} End ErrQuer */
 
@@ -3125,7 +2935,7 @@ amdsmi_topo_get_link_weight(amdsmi_processor_handle processor_handle_src, amdsmi
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
- amdsmi_get_minmax_bandwidth(amdsmi_processor_handle processor_handle_src, amdsmi_processor_handle processor_handle_dst,
+ admsmi_get_minmax_bandwith_between_processors(amdsmi_processor_handle processor_handle_src, amdsmi_processor_handle processor_handle_dst,
                           uint64_t *min_bandwidth, uint64_t *max_bandwidth);
 
 /**
@@ -3178,223 +2988,6 @@ amdsmi_is_P2P_accessible(amdsmi_processor_handle processor_handle_src, amdsmi_pr
                        bool *accessible);
 
 /** @} End HWTopo */
-
-/*****************************************************************************/
-/** @defgroup APISupport Supported Functions
- *  API function support varies by both GPU type and the version of the
- *  installed ROCm stack.  The functions described in this section can be used
- *  to determine, up front, which functions are supported for a given device
- *  on a system. If such "up front" knowledge of support for a function is not
- *  needed, alternatively, one can call a device related function and check the
- *  return code.
- *
- *  Some functions have several variations ("variants") where some variants are
- *  supported and others are not. For example, on a given device,
- *  :: amdsmi_get_temp_metric may support some types of temperature metrics
- *  (e.g., ::AMDSMI_TEMP_CRITICAL_HYST), but not others
- *  (e.g., ::AMDSMI_TEMP_EMERGENCY).
- *
- *  In addition to a top level of variant support for a function, a function
- *  may have varying support for monitors/sensors. These are considered
- *  "sub-variants" in functions described in this section. Continuing the
- *  :: amdsmi_get_temp_metric example, if variant
- *  ::AMDSMI_TEMP_CRITICAL_HYST is supported, perhaps
- *  only the sub-variant sensors ::AMDSMI_TEMP_TYPE_EDGE
- *  and ::AMDSMI_TEMP_TYPE_EDGE are supported, but not
- *  ::AMDSMI_TEMP_TYPE_MEMORY.
- *
- *  In cases where a function takes in a sensor id parameter but does not have
- *  any "top level" variants, the functions in this section will indicate a
- *  default "variant", ::AMDSMI_DEFAULT_VARIANT, for the top level variant, and
- *  the various monitor support will be sub-variants of this.
- *
- *  The functions in this section use the "iterator" concept to list which
- *  functions are supported; to list which variants of the supported functions
- *  are supported; and finally which monitors/sensors are supported for a
- *  variant.
- *
- *  Here is example code that prints out all supported functions, their
- *  supported variants and sub-variants. Please see the related descriptions
- *  functions and AMDSMI types.
- *  @latexonly
- *  \pagebreak
- *  @endlatexonly
- *  @code{.cpp}
- *     amdsmi_func_id_iter_handle_t iter_handle, var_iter, sub_var_iter;
- *     amdsmi_func_id_value_t value;
- *     amdsmi_status_t err;
- *     amdsmi_processor_handle device;
- *
- *     // Get the processor handle via amdsmi_get_processor_handles()
- *     // ... ...
- *
- *     std::cout << "Supported AMDSMI Functions:" << std::endl; *
- *     err = amdsmi_open_supported_func_iterator(device, &iter_handle);
- *
- *     while (1) {
- *        err = amdsmi_get_func_iter_value(iter_handle, &value);
- *        std::cout << "Function Name: " << value.name << std::endl;
- *
- *        err = amdsmi_open_supported_variant_iterator(iter_handle, &var_iter);
- *        if (err != AMDSMI_STATUS_NO_DATA) {
- *          std::cout << "\tVariants/Monitors: ";
- *          while (1) {
- *            err = amdsmi_get_func_iter_value(var_iter, &value);
- *            if (value.id == AMDSMI_DEFAULT_VARIANT) {
- *              std::cout << "Default Variant ";
- *            } else {
- *              std::cout << value.id;
- *            }
- *            std::cout << " (";
- *
- *            err =
- *              amdsmi_open_supported_variant_iterator(var_iter, &sub_var_iter);
- *            if (err != AMDSMI_STATUS_NO_DATA) {
- *
- *              while (1) {
- *                err = amdsmi_get_func_iter_value(sub_var_iter, &value);
- *                std::cout << value.id << ", ";
- *
- *                err = amdsmi_next_func_iter(sub_var_iter);
- *
- *                if (err == AMDSMI_STATUS_NO_DATA) {
- *                  break;
- *                }
- *              }
- *              err = amdsmi_close_supported_func_iterator(&sub_var_iter);
- *            }
- *
- *            std::cout << "), ";
- *
- *            err = amdsmi_next_func_iter(var_iter);
- *
- *            if (err == AMDSMI_STATUS_NO_DATA) {
- *              break;
- *            }
- *          }
- *          std::cout << std::endl;
- *
- *          err = amdsmi_close_supported_func_iterator(&var_iter);
- *        }
- *
- *        err = amdsmi_next_func_iter(iter_handle);
- *
- *        if (err == AMDSMI_STATUS_NO_DATA) {
- *          break;
- *        }
- *      }
- *      err = amdsmi_close_supported_func_iterator(&iter_handle);
- *    }
- * @endcode
- *
- *  @{
- */
-
-/**
- * @brief Get a function name iterator of supported AMDSMI functions for a device
- *
- * @details Given a processor handle @p processor_handle, this function will write a function
- * iterator handle to the caller-provided memory pointed to by @p handle. This
- * handle can be used to iterate through all the supported functions.
- *
- * Note that although this function takes in @p processor_handle as an argument,
- * ::amdsmi_open_supported_func_iterator itself will not be among the
- * functions listed as supported. This is because
- * ::amdsmi_open_supported_func_iterator does not depend on hardware or
- * driver support and should always be supported.
- *
- * @param[in] processor_handle a processor handle of device for which support information is
- * requested
- *
- * @param[in,out] handle A pointer to caller-provided memory to which the
- * function iterator will be written.
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t
-amdsmi_open_supported_func_iterator(amdsmi_processor_handle processor_handle,
-                                          amdsmi_func_id_iter_handle_t *handle);
-
-/**
- * @brief Get a variant iterator for a given handle
- *
- * @details Given a ::amdsmi_func_id_iter_handle_t @p obj_h, this function will
- * write a function iterator handle to the caller-provided memory pointed to
- * by @p var_iter. This handle can be used to iterate through all the supported
- * variants of the provided handle. @p obj_h may be a handle to a function
- * object, as provided by a call to ::amdsmi_open_supported_func_iterator, or
- * it may be a variant itself (from a call to
- * ::amdsmi_open_supported_variant_iterator), it which case @p var_iter will
- * be an iterator of the sub-variants of @p obj_h (e.g., monitors).
- *
- * This call allocates a small amount of memory to @p var_iter. To free this memory
- * ::amdsmi_close_supported_func_iterator should be called on the returned
- * iterator handle @p var_iter when it is no longer needed.
- *
- * @param[in] obj_h an iterator handle for which the variants are being requested
- *
- * @param[in,out] var_iter A pointer to caller-provided memory to which the
- * sub-variant iterator will be written.
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t
-amdsmi_open_supported_variant_iterator(amdsmi_func_id_iter_handle_t obj_h,
-                                        amdsmi_func_id_iter_handle_t *var_iter);
-
-/**
- * @brief Advance a function identifer iterator
- *
- * @details Given a function id iterator handle (::amdsmi_func_id_iter_handle_t)
- * @p handle, this function will increment the iterator to point to the next
- * identifier. After a successful call to this function, obtaining the value
- * of the iterator @p handle will provide the value of the next item in the
- * list of functions/variants.
- *
- * If there are no more items in the list, ::AMDSMI_STATUS_NO_DATA is returned.
- *
- * @param[in] handle A pointer to an iterator handle to be incremented
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t
-amdsmi_next_func_iter(amdsmi_func_id_iter_handle_t handle);
-
-/**
- * @brief Close a variant iterator handle
- *
- * @details Given a pointer to an ::amdsmi_func_id_iter_handle_t @p handle, this
- * function will free the resources being used by the handle
- *
- * @param[in] handle A pointer to an iterator handle to be closed
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t
-amdsmi_close_supported_func_iterator(amdsmi_func_id_iter_handle_t *handle);
-
-/**
- * @brief Get the value associated with a function/variant iterator
- *
- * @details Given an ::amdsmi_func_id_iter_handle_t @p handle, this function
- * will write the identifier of the function/variant to the user provided
- * memory pointed to by @p value.
- *
- * @p value may point to a function name, a variant id, or a monitor/sensor
- * index, depending on what kind of iterator @p handle is
- *
- * @param[in] handle An iterator for which the value is being requested
- *
- * @param[in,out] value A pointer to an ::amdsmi_func_id_value_t provided by the
- * caller to which this function will write the value assocaited with @p handle
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t
-amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
-                                                 amdsmi_func_id_value_t *value);
-
-/** @} End APISupport */
 
 /*****************************************************************************/
 /** @defgroup EvntNotif Event Notification Functions
@@ -3799,7 +3392,7 @@ amdsmi_get_gpu_process_info(amdsmi_processor_handle processor_handle, amdsmi_pro
  */
 
 /**
- *  @brief          Returns the number of ECC errors (correctable and
+ *  @brief          Returns the total number of ECC errors (correctable and
  *                  uncorrectable) in the given GPU.
  *
  *  @param[in]      processor_handle Device which to query
@@ -3810,7 +3403,7 @@ amdsmi_get_gpu_process_info(amdsmi_processor_handle processor_handle, amdsmi_pro
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_gpu_ecc_error_count(amdsmi_processor_handle processor_handle, amdsmi_error_count_t *ec);
+amdsmi_get_gpu_total_ecc_count(amdsmi_processor_handle processor_handle, amdsmi_error_count_t *ec);
 
 /** @} End eccinfo */
 

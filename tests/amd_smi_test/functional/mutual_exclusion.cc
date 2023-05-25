@@ -215,7 +215,7 @@ void TestMutualExclusion::Run(void) {
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret = amdsmi_get_gpu_subsystem_id(processor_handles_[0], &dmy_ui16);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret = amdsmi_get_gpu_pci_id(processor_handles_[0], &dmy_ui64);
+    ret = admsmi_get_gpu_bdf_id(processor_handles_[0], &dmy_ui64);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret = amdsmi_get_gpu_pci_throughput(processor_handles_[0], &dmy_ui64, &dmy_ui64, &dmy_ui64);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
@@ -245,8 +245,6 @@ void TestMutualExclusion::Run(void) {
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret =  amdsmi_get_gpu_od_volt_curve_regions(processor_handles_[0], &dmy_ui32, &dmy_vlt_reg);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret =  amdsmi_set_gpu_overdrive_level_v1(processor_handles_[0], dmy_i32);
-    CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret =  amdsmi_set_clk_freq(processor_handles_[0], CLK_TYPE_SYS, 0);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret =  amdsmi_get_gpu_ecc_count(processor_handles_[0], AMDSMI_GPU_BLOCK_UMC, &dmy_err_cnt);
@@ -258,7 +256,6 @@ void TestMutualExclusion::Run(void) {
 
     /* Other functions holding device mutexes. Listed for reference.
     amdsmi_dev_sku_get
-     amdsmi_set_gpu_perf_level_v1
      amdsmi_set_gpu_od_clk_info
      amdsmi_set_gpu_od_volt_info
     amdsmi_dev_firmware_version_get
@@ -267,7 +264,6 @@ void TestMutualExclusion::Run(void) {
     amdsmi_dev_brand_get
     amdsmi_get_gpu_vram_vendor
     amdsmi_get_gpu_subsystem_name
-    amdsmi_get_gpu_drm_render_minor
     amdsmi_get_gpu_vendor_name
     amdsmi_get_gpu_pci_bandwidth
      amdsmi_set_gpu_pci_bandwidth
@@ -283,6 +279,7 @@ void TestMutualExclusion::Run(void) {
      amdsmi_get_gpu_metrics_info
      amdsmi_get_gpu_od_volt_curve_regions
     amdsmi_dev_power_max_get
+    amdsmi_get_power_ave
     amdsmi_dev_power_cap_get
     amdsmi_dev_power_cap_range_get
      amdsmi_set_power_cap
@@ -290,8 +287,6 @@ void TestMutualExclusion::Run(void) {
      amdsmi_set_gpu_power_profile
     amdsmi_get_gpu_memory_total
     amdsmi_get_gpu_memory_usage
-    amdsmi_get_gpu_memory_busy_percent
-    amdsmi_get_busy_percent
     amdsmi_dev_vbios_version_get
     amdsmi_dev_serial_number_get
      amdsmi_get_gpu_pci_replay_counter

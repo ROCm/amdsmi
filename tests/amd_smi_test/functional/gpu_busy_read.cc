@@ -94,27 +94,4 @@ void TestGPUBusyRead::Run(void) {
     std::cout << "** SetUp Failed for this test. Skipping.**" << std::endl;
     return;
   }
-
-  for (uint32_t x = 0; x < num_iterations(); ++x) {
-    for (uint32_t i = 0; i < num_monitor_devs(); ++i) {
-      PrintDeviceHeader(processor_handles_[i]);
-
-      err = amdsmi_get_busy_percent(processor_handles_[i], &val_ui32);
-      if (err != AMDSMI_STATUS_SUCCESS) {
-        if (err == AMDSMI_STATUS_FILE_ERROR) {
-          IF_VERB(STANDARD) {
-            std::cout << "\t**GPU Busy Percent: Not supported on this machine"
-                                                                 << std::endl;
-          }
-        } else {
-          CHK_ERR_ASRT(err)
-        }
-      } else {
-        IF_VERB(STANDARD) {
-          std::cout << "\t**GPU Busy Percent (Percent Idle):" << std::dec <<
-                       val_ui32 << " (" << 100 - val_ui32 << ")" << std::endl;
-        }
-      }
-    }
-  }
 }
