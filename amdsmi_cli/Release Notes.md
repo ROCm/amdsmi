@@ -4,7 +4,7 @@
 
 Documentation for AMDSMI-CLI is available post install in /opt/<rocm_instance>/libexec/amdsmi_cli/README.md
 
-## AMDSMI-CLI 0.0.4
+## AMDSMI-CLI 23.0.0.4
 
 ### Added
 
