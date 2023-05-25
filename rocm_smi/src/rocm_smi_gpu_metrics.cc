@@ -129,8 +129,8 @@ typedef struct {
 
   /* Voltage (mV) */
   uint16_t			voltage_soc;
-  uint16_t			voltage_gfx;
-  uint16_t			voltage_mem;
+  uint16_t			gfx_voltage;
+  uint16_t			mem_voltage;
 
   uint16_t          padding1;
 

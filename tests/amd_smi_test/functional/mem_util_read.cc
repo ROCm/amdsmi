@@ -118,17 +118,6 @@ void TestMemUtilRead::Run(void) {
     for (uint32_t i = 0; i < num_monitor_devs(); ++i) {
       PrintDeviceHeader(processor_handles_[i]);
 
-#if 0
-      err = amdsmi_get_gpu_memory_busy_percent(i, &mem_busy_percent);
-      err_chk("amdsmi_get_gpu_memory_busy_percent()");
-      if (err != AMDSMI_STATUS_SUCCESS) {
-        return;
-      }
-      IF_VERB(STANDARD) {
-        std::cout << "\t**" << "GPU Memory Busy %: " << mem_busy_percent <<
-                                                                      std::endl;
-      }
-#endif
       for (uint32_t mem_type = AMDSMI_MEM_TYPE_FIRST;
                                    mem_type <= AMDSMI_MEM_TYPE_LAST; ++mem_type) {
         err = amdsmi_get_gpu_memory_total(processor_handles_[i],

@@ -145,20 +145,6 @@ void TestIdInfoRead::Run(void) {
       }
     }
 
-    err = amdsmi_get_gpu_drm_render_minor(processor_handles_[i], &drm_render_minor);
-    if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
-      // Verify api support checking functionality is working
-      err = amdsmi_get_gpu_drm_render_minor(processor_handles_[i], nullptr);
-      ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
-    } else {
-      CHK_ERR_ASRT(err)
-      IF_VERB(STANDARD) {
-        std::cout << "\t**DRM Render Minor: " << drm_render_minor << std::endl;
-      }
-      // Verify api support checking functionality is working
-      err = amdsmi_get_gpu_drm_render_minor(processor_handles_[i], nullptr);
-      ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
-    }
     err = amdsmi_get_gpu_vendor_name(processor_handles_[i], buffer, kBufferLen);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       std::cout << "\t**Device Vendor name string not found on this system." <<
@@ -231,7 +217,7 @@ void TestIdInfoRead::Run(void) {
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
     }
 
-    err = amdsmi_get_gpu_pci_id(processor_handles_[i], &val_ui64);
+    err = admsmi_get_gpu_bdf_id(processor_handles_[i], &val_ui64);
     // Don't check for AMDSMI_STATUS_NOT_SUPPORTED since this should always be
     // supported. It is not based on a sysfs file.
     CHK_ERR_ASRT(err)
@@ -240,7 +226,7 @@ void TestIdInfoRead::Run(void) {
       std::cout << " (" << std::dec << val_ui64 << ")" << std::endl;
     }
     // Verify api support checking functionality is working
-    err = amdsmi_get_gpu_pci_id(processor_handles_[i], nullptr);
+    err = admsmi_get_gpu_bdf_id(processor_handles_[i], nullptr);
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
   }
 }

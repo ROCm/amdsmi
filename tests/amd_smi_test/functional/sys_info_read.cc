@@ -128,14 +128,14 @@ void TestSysInfoRead::Run(void) {
       }
     }
 
-    err = amdsmi_get_gpu_pci_id(processor_handles_[i], &val_ui64);
+    err = admsmi_get_gpu_bdf_id(processor_handles_[i], &val_ui64);
     CHK_ERR_ASRT(err)
     IF_VERB(STANDARD) {
       std::cout << "\t**PCI ID (BDFID): 0x" << std::hex << val_ui64;
       std::cout << " (" << std::dec << val_ui64 << ")" << std::endl;
     }
     // Verify api support checking functionality is working
-    err = amdsmi_get_gpu_pci_id(processor_handles_[i], nullptr);
+    err = admsmi_get_gpu_bdf_id(processor_handles_[i], nullptr);
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
     err = amdsmi_get_gpu_topo_numa_affinity(processor_handles_[i], &val_ui32);
@@ -177,7 +177,7 @@ void TestSysInfoRead::Run(void) {
         }
     }
 
-    err = amdsmi_get_version(&ver);
+    err = amdsmi_get_lib_version(&ver);
     CHK_ERR_ASRT(err)
 
     ASSERT_TRUE(ver.major != 0xFFFFFFFF && ver.minor != 0xFFFFFFFF &&
