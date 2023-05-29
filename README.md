@@ -93,37 +93,37 @@ A simple "Hello World" type program that displays the temperature of detected de
 
 int main() {
   amdsmi_status_t ret;
- 
+
   // Init amdsmi for sockets and devices. Here we are only interested in AMD_GPUS.
   ret = amdsmi_init(AMD_SMI_INIT_AMD_GPUS);
- 
+
   // Get the socket count available in the system.
   ret = amdsmi_get_socket_handles(&socket_count, nullptr);
- 
+
   // Allocate the memory for the sockets
   std::vector<amdsmi_socket_handle> sockets(socket_count);
   // Get the socket handles in the system
   ret = amdsmi_get_socket_handles(&socket_count, &sockets[0]);
-     
+
   std::cout << "Total Socket: " << socket_count << std::endl;
- 
+
   // For each socket, get identifier and devices
   for (uint32_t i=0; i < socket_count; i++) {
     // Get Socket info
     char socket_info[128];
     ret = amdsmi_get_socket_info(sockets[i], socket_info, 128);
     std::cout << "Socket " << socket_info<< std::endl;
- 
+
     // Get the device count for the socket.
     uint32_t device_count = 0;
     ret = amdsmi_get_device_handles(sockets[i], &device_count, nullptr);
- 
+
     // Allocate the memory for the device handlers on the socket
     std::vector<amdsmi_device_handle> device_handles(device_count);
     // Get all devices of the socket
     ret = amdsmi_get_device_handles(sockets[i],
               &device_count, &device_handles[0]);
-      
+
     // For each device of the socket, get name and temperature.
     for (uint32_t j=0; j < device_count; j++) {
       // Get device type. Since the amdsmi is initialized with
@@ -134,13 +134,13 @@ int main() {
         std::cout << "Expect AMD_GPU device type!\n";
         return 1;
       }
- 
+
       // Get device name
       amdsmi_board_info_t board_info;
       ret = amdsmi_get_board_info(device_handles[j], &board_info);
       std::cout << "\tdevice "
                   << j <<"\n\t\tName:" << board_info.product_name << std::endl;
- 
+
       // Get temperature
       int64_t val_i64 = 0;
       ret =  amdsmi_dev_get_temp_metric(device_handles[j], TEMPERATURE_TYPE_EDGE,
@@ -148,11 +148,11 @@ int main() {
       std::cout << "\t\tTemperature: " << val_i64 << "C" << std::endl;
     }
   }
- 
+
   // Clean up resources allocated at amdsmi_init. It will invalidate sockets
   // and devices pointers
   ret = amdsmi_shut_down();
- 
+
   return 0;
 }
 ```
@@ -170,18 +170,15 @@ int main() {
 - Install amdgpu driver
 - Install amd-smi-lib package through package manager
 - cd /opt/<rocm_instance>/share/amd_smi
-- pip install .
-
-or
-
-- pip3 install .
+- python3 -m pip install --upgrade pip
+- python3 -m pip install --user .
 - /opt/<rocm_instance>/bin/amd-smi --help
 
-Add /opt/<rocm_instance>/bin to your shell's path to call amd-smi from the cmdline
+Add /opt/rocm/bin to your shell's path to access amd-smi via the cmdline
 
 ## Documentation
 
-Documentation for AMDSMI-CLI is available post install in /opt/<rocm_instance>/libexec/amdsmi_cli/README.md
+Documentation for AMDSMI-CLI is available in /opt/<rocm_instance>/libexec/amdsmi_cli/README.md
 
 ## Rebuilding Python wrapper
 The python wrapper (binding) is an auto-generated file `py-interface/amdsmi_wrapper.py`
