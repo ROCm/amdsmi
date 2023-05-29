@@ -16,12 +16,11 @@ Recommended: At least one AMD GPU with AMD driver installed
 - Install amdgpu driver
 - Install amd-smi-lib package through package manager
 - cd /opt/<rocm_instance>/share/amd_smi
-- pip install .
-
-or
-
-- pip3 install .
+- python3 -m pip install --upgrade pip
+- python3 -m pip install --user .
 - /opt/<rocm_instance>/bin/amd-smi --help
+
+Add /opt/rocm/bin to your shell's path to access amd-smi via the cmdline
 
 ### RHEL 8
 
@@ -31,14 +30,15 @@ To install the python library you need to upgrade to python 3.7+
 
 The package's dependency manager will attempt to install python 3.8+
 
-Verify that your pip version is 3.7+ and if not you can use pip3.8 instead
+Verify that your python version is 3.7+ and if not you can use python3.8 instead of python3
 
 ### Example of Ubuntu 22.04 post amdgpu driver install
 
 ```  shell
 apt install amd-smi-lib
 cd /opt/rocm/share/amd_smi
-pip install .
+python3 -m pip install --upgrade pip
+python3 -m pip install --user .
 /opt/rocm/bin/amd-smi
 ```
 
