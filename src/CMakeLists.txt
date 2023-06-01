@@ -138,39 +138,3 @@ install(
 #                                        DESTINATION libexec/${AMD_SMI})
 #install(FILES ${CMAKE_CURRENT_BINARY_DIR}/bin/rocm-smi
 #                                        DESTINATION bin)
-
-# Generate Doxygen documentation
-find_package(Doxygen)
-find_package(LATEX COMPONENTS PDFLATEX)
-
-if(DOXYGEN_FOUND AND LATEX_FOUND)
-    set(ASMI_MANUAL_NAME "AMD_SMI_Manual")
-    configure_file(${PROJECT_SOURCE_DIR}/docs/amd_smi_doxygen.cfg ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
-
-    add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.tex
-        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
-        DEPENDS ${PROJECT_SOURCE_DIR}/docs/amd_smi_doxygen.cfg "${PROJECT_SOURCE_DIR}/include/amd_smi/amdsmi.h"
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-    add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf
-        COMMAND make > /dev/null
-        COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf ${PROJECT_SOURCE_DIR}/docs/${ASMI_MANUAL_NAME}_new.pdf
-        DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.tex
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/latex)
-
-    add_custom_target(docs DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf)
-
-    add_dependencies(${AMD_SMI_TARGET} docs)
-    install(
-        FILES ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf
-        DESTINATION share/doc/${AMD_SMI}
-        RENAME ${ASMI_MANUAL_NAME}.pdf
-        COMPONENT dev)
-    install(
-        FILES ${PROJECT_SOURCE_DIR}/README.md
-        DESTINATION share/doc/${AMD_SMI}
-        COMPONENT dev)
-else()
-    message("Doxygen or Latex is not found. Will not generate documents.")
-endif(DOXYGEN_FOUND AND LATEX_FOUND)
