@@ -52,7 +52,7 @@ try:
         print("No GPUs on machine")
 except AmdSmiException as e:
     print("Error code: {}".format(e.err_code))
-    if e.err_code == AmdSmiRetCode.ERR_RETRY:
+    if e.err_code == AmdSmiRetCode.STATUS_RETRY:
         print("Error info: {}".format(e.err_info))
 ```
 * `AmdSmiRetryException` : Derives `AmdSmiLibraryException` class and signals device is busy and call should be retried.
@@ -335,7 +335,7 @@ Field | Description
 ---|---
 `power_cap` |  power capability
 `dpm_cap` |  dynamic power management capability
-`power_cap_default` |  default power capability
+`default_power_cap` |  default power capability
 `min_power_cap` | min power capability
 `max_power_cap` | max power capability
 
@@ -355,7 +355,7 @@ try:
             power_info = amdsmi_get_power_cap_info(device)
             print(power_info['power_cap'])
             print(power_info['dpm_cap'])
-            print(power_info['power_cap_default'])
+            print(power_info['default_power_cap'])
             print(power_info['min_power_cap'])
             print(power_info['max_power_cap'])
 except AmdSmiException as e:
@@ -559,8 +559,8 @@ Output: Dictionary with fields
 Field | Description
 ---|---
 `cur_clk`| Current clock for given clock type
-`min_clk` | Minimum clock for given clock type
 `max_clk` | Maximum clock for given clock type
+`min_clk` | Minimum clock for given clock type
 
 Exceptions that can be thrown by `amdsmi_get_clock_info` function:
 * `AmdSmiLibraryException`
