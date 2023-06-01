@@ -9,11 +9,15 @@ import subprocess
 from rocm_docs import ROCmDocs
 
 
-name = "AMD SMI"
-get_version = r'sed -n -e "s/^get_package_version_number(.*\"\([0-9\.]\{1,\}\).*/\1/p" ../CMakeLists.txt'
-version = subprocess.getoutput(get_version)
-if len(version) > 0:
-    name = f"{name} {version}"
+get_version_year = r'sed -n -e "s/^#define\ AMDSMI_LIB_VERSION_YEAR\ //p" ../include/amd_smi/amdsmi.h'
+get_version_major = r'sed -n -e "s/^#define\ AMDSMI_LIB_VERSION_MAJOR\ //p" ../include/amd_smi/amdsmi.h'
+get_version_minor = r'sed -n -e "s/^#define\ AMDSMI_LIB_VERSION_MINOR\ //p" ../include/amd_smi/amdsmi.h'
+get_version_release = r'sed -n -e "s/^#define\ AMDSMI_LIB_VERSION_RELEASE\ //p" ../include/amd_smi/amdsmi.h'
+version_year = subprocess.getoutput(get_version_year)
+version_major = subprocess.getoutput(get_version_major)
+version_minor = subprocess.getoutput(get_version_minor)
+version_release = subprocess.getoutput(get_version_release)
+name = f"AMD SMI {version_year}.{version_major}.{version_minor}.{version_release}"
 
 external_toc_path = "./sphinx/_toc.yml"
 
