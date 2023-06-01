@@ -77,7 +77,7 @@ void DumpMonitorInfo(const TestBase *test);
   if (RET != AMDSMI_STATUS_SUCCESS) { \
     const char *err_str; \
     std::cout << "\t===> ERROR: AMDSMI call returned " << (RET) << std::endl; \
-    amdsmi_status_string((RET), &err_str); \
+    amdsmi_status_code_to_string((RET), &err_str); \
     std::cout << "\t===> (" << err_str << ")" << std::endl; \
     std::cout << "\t===> at " << __FILE__ << ":" << std::dec << __LINE__ << \
                                                                   std::endl; \

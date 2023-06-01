@@ -138,7 +138,7 @@ amdsmi_shut_down() {
 }
 
 amdsmi_status_t
-amdsmi_status_string(amdsmi_status_t status, const char **status_string) {
+amdsmi_status_code_to_string(amdsmi_status_t status, const char **status_string) {
     switch (status) {
         case AMDSMI_STATUS_FAIL_LOAD_MODULE:
             *status_string = "FAIL_LOAD_MODULE: Fail to load module.";
@@ -667,7 +667,7 @@ amdsmi_topo_get_link_weight(amdsmi_processor_handle processor_handle_src, amdsmi
 }
 
 amdsmi_status_t
- amdsmi_get_minmax_bandwidth(amdsmi_processor_handle processor_handle_src, amdsmi_processor_handle processor_handle_dst,
+ admsmi_get_minmax_bandwith_between_processors(amdsmi_processor_handle processor_handle_src, amdsmi_processor_handle processor_handle_dst,
                           uint64_t *min_bandwidth, uint64_t *max_bandwidth) {
     AMDSMI_CHECK_INIT();
 
@@ -744,145 +744,6 @@ amdsmi_reset_gpu_xgmi_error(amdsmi_processor_handle processor_handle) {
 }
 
 amdsmi_status_t
-amdsmi_open_supported_func_iterator(amdsmi_processor_handle processor_handle,
-                                amdsmi_func_id_iter_handle_t *handle) {
-    AMDSMI_CHECK_INIT();
-
-    if (handle == nullptr)
-        return AMDSMI_STATUS_INVAL;
-    return rsmi_wrapper(rsmi_dev_supported_func_iterator_open, processor_handle,
-                reinterpret_cast<rsmi_func_id_iter_handle_t*>(handle));
-}
-
-amdsmi_status_t
-amdsmi_open_supported_variant_iterator(amdsmi_func_id_iter_handle_t obj_h,
-                                    amdsmi_func_id_iter_handle_t *var_iter) {
-    AMDSMI_CHECK_INIT();
-
-    if (var_iter == nullptr)
-        return AMDSMI_STATUS_INVAL;
-    auto r = rsmi_dev_supported_variant_iterator_open(
-            reinterpret_cast<rsmi_func_id_iter_handle_t>(obj_h),
-            reinterpret_cast<rsmi_func_id_iter_handle_t*>(var_iter));
-    return amd::smi::rsmi_to_amdsmi_status(r);
-}
-
-amdsmi_status_t
-amdsmi_next_func_iter(amdsmi_func_id_iter_handle_t handle) {
-    AMDSMI_CHECK_INIT();
-
-    auto r = rsmi_func_iter_next(
-            reinterpret_cast<rsmi_func_id_iter_handle_t>(handle));
-    return amd::smi::rsmi_to_amdsmi_status(r);
-}
-
-amdsmi_status_t
-amdsmi_close_supported_func_iterator(amdsmi_func_id_iter_handle_t *handle) {
-    AMDSMI_CHECK_INIT();
-
-    if (handle == nullptr)
-        return AMDSMI_STATUS_INVAL;
-    auto r = rsmi_dev_supported_func_iterator_close(
-        reinterpret_cast<rsmi_func_id_iter_handle_t*>(handle));
-    return amd::smi::rsmi_to_amdsmi_status(r);
-}
-
-amdsmi_status_t
-amdsmi_get_func_iter_value(amdsmi_func_id_iter_handle_t handle,
-                            amdsmi_func_id_value_t *value) {
-
-    AMDSMI_CHECK_INIT();
-
-    if (value == nullptr)
-        return AMDSMI_STATUS_INVAL;
-
-    static const std::map<std::string, const char*> rsmi_2_amdsmi = {
-        {"rsmi_dev_vram_vendor_get", "amdsmi_get_gpu_vram_vendor"},
-        {"rsmi_dev_id_get", "amdsmi_get_gpu_id"},
-        {"rsmi_dev_vendor_id_get", "amdsmi_get_gpu_asic_info"},
-        {"rsmi_dev_name_get", "amdsmi_get_gpu_board_info"},
-        {"rsmi_dev_sku_get", "amdsmi_get_gpu_board_info"},
-        {"rsmi_dev_brand_get", "amdsmi_get_gpu_asic_info"},
-        {"rsmi_dev_vendor_name_get", "amdsmi_get_gpu_vendor_name"},
-        {"rsmi_dev_serial_number_get", "amdsmi_get_gpu_asic_info"},
-        {"rsmi_dev_subsystem_id_get", "amdsmi_get_gpu_subsystem_id"},
-        {"rsmi_dev_subsystem_name_get", "amdsmi_get_gpu_subsystem_name"},
-        {"rsmi_dev_drm_render_minor_get", "amdsmi_get_gpu_drm_render_minor"},
-        {"rsmi_dev_subsystem_vendor_id_get", "amdsmi_get_gpu_asic_info"},
-        {"rsmi_dev_unique_id_get", "amdsmi_get_gpu_board_info"},
-        {"rsmi_dev_pci_bandwidth_get", "amdsmi_get_gpu_pci_bandwidth"},
-        {"rsmi_dev_pci_id_get", "amdsmi_get_gpu_pci_id"},
-        {"rsmi_dev_pci_throughput_get", "amdsmi_get_gpu_pci_throughput"},
-        {"rsmi_dev_pci_replay_counter_get", " amdsmi_get_gpu_pci_replay_counter"},
-        {"rsmi_dev_pci_bandwidth_set", " amdsmi_set_gpu_pci_bandwidth"},
-        {"rsmi_dev_power_profile_set", " amdsmi_set_gpu_power_profile"},
-        {"rsmi_dev_memory_busy_percent_get", "amdsmi_get_gpu_memory_busy_percent"},
-        {"rsmi_dev_busy_percent_get", "amdsmi_get_busy_percent"},
-        {"rsmi_dev_memory_reserved_pages_get", "amdsmi_get_gpu_memory_reserved_pages"},
-        {"rsmi_dev_overdrive_level_get", "amdsmi_get_gpu_overdrive_level"},
-        {"rsmi_dev_power_profile_presets_get", " amdsmi_get_gpu_power_profile_presets"},
-        {"rsmi_dev_perf_level_set", " amdsmi_set_gpu_perf_level"},
-        {"rsmi_dev_perf_level_set_v1", " amdsmi_set_gpu_perf_level_v1"},
-        {"rsmi_dev_perf_level_get", "amdsmi_get_gpu_perf_level"},
-        {"rsmi_perf_determinism_mode_set", "amdsmi_set_gpu_perf_determinism_mode"},
-        {"rsmi_dev_overdrive_level_set", " amdsmi_set_gpu_overdrive_level"},
-        {"rsmi_dev_vbios_version_get", "amdsmi_get_gpu_vbios_info"},
-        {"rsmi_dev_od_volt_info_get", " amdsmi_get_gpu_od_volt_info"},
-        {"rsmi_dev_od_volt_info_set", " amdsmi_set_gpu_od_volt_info"},
-        {"rsmi_dev_od_volt_curve_regions_get", " amdsmi_get_gpu_od_volt_curve_regions"},
-        {"rsmi_dev_ecc_enabled_get", " amdsmi_get_gpu_ecc_enabled"},
-        {"rsmi_dev_ecc_status_get", " amdsmi_get_gpu_ecc_status"},
-        {"rsmi_dev_counter_group_supported", "amdsmi_gpu_counter_group_supported"},
-        {"rsmi_dev_counter_create", "amdsmi_gpu_create_counter"},
-        {"rsmi_dev_xgmi_error_status", "amdsmi_gpu_xgmi_error_status"},
-        {"rsmi_dev_xgmi_error_reset", "amdsmi_reset_gpu_xgmi_error"},
-        {"rsmi_dev_memory_reserved_pages_get", "amdsmi_get_gpu_memory_reserved_pages"},
-        {"rsmi_topo_numa_affinity_get", "amdsmi_get_gpu_topo_numa_affinity"},
-        {"rsmi_dev_gpu_metrics_info_get", " amdsmi_get_gpu_metrics_info"},
-        {"rsmi_dev_gpu_reset", "amdsmi_reset_gpu"},
-        {"rsmi_dev_memory_total_get", "amdsmi_get_gpu_memory_total"},
-        {"rsmi_dev_memory_usage_get", "amdsmi_get_gpu_memory_usage"},
-        {"rsmi_dev_gpu_clk_freq_get", " amdsmi_get_clk_freq"},
-        {"rsmi_dev_gpu_clk_freq_set", " amdsmi_set_clk_freq"},
-        {"rsmi_dev_firmware_version_get", "amdsmi_get_fw_info"},
-        {"rsmi_dev_ecc_count_get", " amdsmi_get_gpu_ecc_count"},
-        {"rsmi_counter_available_counters_get", " amdsmi_get_gpu_available_counters"},
-        {"rsmi_dev_power_cap_get", "amdsmi_get_power_cap_info"},
-        {"rsmi_dev_power_cap_default_get", "amdsmi_get_power_cap_info"},
-        {"rsmi_dev_power_cap_range_get", "amdsmi_get_power_cap_info"},
-        {"rsmi_dev_power_cap_set", " amdsmi_set_power_cap"},
-        {"rsmi_dev_fan_rpms_get", "amdsmi_get_gpu_fan_rpms"},
-        {"rsmi_dev_fan_speed_get", "amdsmi_get_gpu_fan_speed"},
-        {"rsmi_dev_fan_speed_max_get", "amdsmi_get_gpu_fan_speed_max"},
-        {"rsmi_dev_temp_metric_get", " amdsmi_get_temp_metric"},
-        {"rsmi_dev_fan_reset", "amdsmi_reset_gpu_fan"},
-        {"rsmi_dev_fan_speed_set", "amdsmi_set_gpu_fan_speed"},
-        {"rsmi_dev_volt_metric_get", " amdsmi_get_gpu_volt_metric"}
-    };
-
-    auto rocm_func_handle =
-        reinterpret_cast<rsmi_func_id_iter_handle_t>(handle);
-
-    auto r = rsmi_func_iter_value_get(
-        rocm_func_handle,
-        reinterpret_cast<rsmi_func_id_value_t*>(value));
-
-    if ( r != RSMI_STATUS_SUCCESS )
-        return amd::smi::rsmi_to_amdsmi_status(r);
-
-    // Only change the function name, FUNC_ITER == 0
-    if (rocm_func_handle->id_type != 0)
-        return amd::smi::rsmi_to_amdsmi_status(r);
-
-    auto iter = rsmi_2_amdsmi.find(value->name);
-    if (iter != rsmi_2_amdsmi.end()) {
-        value->name = (*iter).second;
-    }
-
-    return amd::smi::rsmi_to_amdsmi_status(r);
-}
-
-amdsmi_status_t
 amdsmi_get_gpu_compute_process_info(amdsmi_process_info_t *procs, uint32_t *num_items) {
     AMDSMI_CHECK_INIT();
 
@@ -947,16 +808,6 @@ amdsmi_status_t  amdsmi_get_gpu_ecc_status(amdsmi_processor_handle processor_han
                     reinterpret_cast<rsmi_ras_err_state_t*>(state));
 }
 
-amdsmi_status_t
-amdsmi_get_busy_percent(amdsmi_processor_handle processor_handle,
-                            uint32_t *busy_percent) {
-    AMDSMI_CHECK_INIT();
-
-    if (busy_percent == nullptr)
-        return AMDSMI_STATUS_INVAL;
-    return rsmi_wrapper(rsmi_dev_busy_percent_get, processor_handle,
-                    busy_percent);
-}
 amdsmi_status_t  amdsmi_get_gpu_metrics_info(
         amdsmi_processor_handle processor_handle,
         amdsmi_gpu_metrics_t *pgpu_metrics) {
@@ -1076,13 +927,6 @@ amdsmi_status_t amdsmi_get_gpu_perf_level(amdsmi_processor_handle processor_hand
 amdsmi_status_t
  amdsmi_set_gpu_perf_level(amdsmi_processor_handle processor_handle,
                 amdsmi_dev_perf_level_t perf_lvl) {
-    return rsmi_wrapper(rsmi_dev_perf_level_set, processor_handle,
-                    static_cast<rsmi_dev_perf_level_t>(perf_lvl));
-}
-
-amdsmi_status_t
- amdsmi_set_gpu_perf_level_v1(amdsmi_processor_handle processor_handle,
-                amdsmi_dev_perf_level_t perf_lvl) {
     return rsmi_wrapper(rsmi_dev_perf_level_set_v1, processor_handle,
                     static_cast<rsmi_dev_perf_level_t>(perf_lvl));
 }
@@ -1186,7 +1030,7 @@ amdsmi_status_t amdsmi_get_gpu_overdrive_level(
 
 amdsmi_status_t  amdsmi_set_gpu_overdrive_level(
             amdsmi_processor_handle processor_handle, uint32_t od) {
-    return rsmi_wrapper(rsmi_dev_overdrive_level_set, processor_handle, od);
+    return rsmi_wrapper(rsmi_dev_overdrive_level_set_v1, processor_handle, od);
 }
 amdsmi_status_t  amdsmi_get_gpu_pci_replay_counter(
             amdsmi_processor_handle processor_handle, uint64_t *counter) {
@@ -1245,13 +1089,6 @@ amdsmi_status_t amdsmi_set_gpu_clk_range(amdsmi_processor_handle processor_handl
                 static_cast<rsmi_clk_type_t>(clkType));
 }
 
-amdsmi_status_t  amdsmi_set_gpu_overdrive_level_v1(
-                    amdsmi_processor_handle processor_handle,
-                    uint32_t od) {
-    return rsmi_wrapper(rsmi_dev_overdrive_level_set_v1, processor_handle,
-                od);
-}
-
 amdsmi_status_t amdsmi_reset_gpu(amdsmi_processor_handle processor_handle) {
     return rsmi_wrapper(rsmi_dev_gpu_reset, processor_handle);
 }
@@ -1264,12 +1101,6 @@ amdsmi_status_t amdsmi_get_utilization_count(amdsmi_processor_handle processor_h
             reinterpret_cast<rsmi_utilization_counter_t*>(utilization_counters),
             count, timestamp);
 }
-amdsmi_status_t amdsmi_get_gpu_memory_busy_percent(
-            amdsmi_processor_handle processor_handle,
-            uint32_t *busy_percent) {
-    return rsmi_wrapper(rsmi_dev_memory_busy_percent_get, processor_handle,
-            busy_percent);
-}
 
 amdsmi_status_t amdsmi_get_energy_count(amdsmi_processor_handle processor_handle,
             uint64_t *power, float *counter_resolution, uint64_t *timestamp) {
@@ -1277,13 +1108,7 @@ amdsmi_status_t amdsmi_get_energy_count(amdsmi_processor_handle processor_handle
             power, counter_resolution, timestamp);
 }
 
-amdsmi_status_t amdsmi_get_gpu_drm_render_minor(
-        amdsmi_processor_handle processor_handle, uint32_t *minor) {
-    return rsmi_wrapper(rsmi_dev_drm_render_minor_get, processor_handle,
-            minor);
-}
-
-amdsmi_status_t amdsmi_get_gpu_pci_id(
+amdsmi_status_t admsmi_get_gpu_bdf_id(
         amdsmi_processor_handle processor_handle, uint64_t *bdfid) {
     return rsmi_wrapper(rsmi_dev_pci_id_get, processor_handle,
             bdfid);
@@ -1295,7 +1120,7 @@ amdsmi_status_t amdsmi_get_gpu_topo_numa_affinity(
             numa_node);
 }
 
-amdsmi_status_t amdsmi_get_version(amdsmi_version_t *version) {
+amdsmi_status_t amdsmi_get_lib_version(amdsmi_version_t *version) {
     AMDSMI_CHECK_INIT();
 
     if (version == nullptr)
@@ -1304,19 +1129,6 @@ amdsmi_status_t amdsmi_get_version(amdsmi_version_t *version) {
     auto rstatus = rsmi_version_get(
         reinterpret_cast<rsmi_version_t*>(version));
     return amd::smi::rsmi_to_amdsmi_status(rstatus);
-}
-
-amdsmi_status_t amdsmi_get_version_str(amdsmi_sw_component_t component,
-                    char *ver_str,
-                    uint32_t len) {
-    AMDSMI_CHECK_INIT();
-
-    if (ver_str == nullptr)
-        return AMDSMI_STATUS_INVAL;
-
-    auto status = rsmi_version_str_get(
-        static_cast<rsmi_sw_component_t>(component), ver_str, len);
-    return amd::smi::rsmi_to_amdsmi_status(status);
 }
 
 amdsmi_status_t
@@ -1491,7 +1303,7 @@ amdsmi_get_gpu_bad_page_info(amdsmi_processor_handle processor_handle, uint32_t 
 }
 
 amdsmi_status_t
-amdsmi_get_gpu_ecc_error_count(amdsmi_processor_handle processor_handle, amdsmi_error_count_t *ec) {
+amdsmi_get_gpu_total_ecc_count(amdsmi_processor_handle processor_handle, amdsmi_error_count_t *ec) {
     AMDSMI_CHECK_INIT();
 
     if (ec == nullptr) {
