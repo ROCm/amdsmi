@@ -63,7 +63,7 @@ extern "C" {
  * Initialization flags may be OR'd together and passed to ::amdsmi_init().
  */
 typedef enum {
-  AMDSMI_INIT_ALL_DEVICES = 0x0,           // Default option
+  AMDSMI_INIT_ALL_PROCESSORS = 0x0,           // Default option
   AMDSMI_INIT_AMD_CPUS = (1 << 0),
   AMDSMI_INIT_AMD_GPUS = (1 << 1),
   AMDSMI_INIT_NON_AMD_CPUS = (1 << 2),
@@ -257,6 +257,38 @@ typedef enum {
     FW_ID_MC,
     FW_ID_PSP_BL,
     FW_ID_CP_PM4,
+    FW_ID_RLC_P,
+    FW_ID_SEC_POLICY_STAGE2,
+    FW_ID_REG_ACCESS_WHITELIST,
+    FW_ID_IMU_DRAM,
+    FW_ID_IMU_IRAM,
+    FW_ID_SDMA_TH0,
+    FW_ID_SDMA_TH1,
+    FW_ID_CP_MES,
+    FW_ID_MES_STACK,
+    FW_ID_MES_THREAD1,
+    FW_ID_MES_THREAD1_STACK,
+    FW_ID_RLX6,
+    FW_ID_RLX6_DRAM_BOOT,
+    FW_ID_RS64_ME,
+    FW_ID_RS64_ME_P0_DATA,
+    FW_ID_RS64_ME_P1_DATA,
+    FW_ID_RS64_PFP,
+    FW_ID_RS64_PFP_P0_DATA,
+    FW_ID_RS64_PFP_P1_DATA,
+    FW_ID_RS64_MEC,
+    FW_ID_RS64_MEC_P0_DATA,
+    FW_ID_RS64_MEC_P1_DATA,
+    FW_ID_RS64_MEC_P2_DATA,
+    FW_ID_RS64_MEC_P3_DATA,
+    FW_ID_PPTABLE,
+    FW_ID_PSP_SOC,
+    FW_ID_PSP_DBG,
+    FW_ID_PSP_INTF,
+    FW_ID_RLX6_CORE1,
+    FW_ID_RLX6_DRAM_BOOT_CORE1,
+    FW_ID_RLCV_LX7,
+    FW_ID_RLC_SAVE_RESTORE_LIST,
     FW_ID_ASD,
     FW_ID_TA_RAS,
     FW_ID_XGMI,
@@ -287,6 +319,7 @@ typedef struct {
 typedef struct {
   uint32_t vram_total;
   uint32_t vram_used;
+  uint32_t reserved[2];
 } amdsmi_vram_info_t;
 
 typedef struct {
@@ -319,7 +352,7 @@ typedef struct {
   char    build_date[AMDSMI_MAX_DATE_LENGTH];
   char    part_number[AMDSMI_MAX_STRING_LENGTH];
   char    version[AMDSMI_NORMAL_STRING_LENGTH];
-  uint32_t reserved[15];
+  uint32_t reserved[16];
 } amdsmi_vbios_info_t;
 
 typedef struct {
@@ -339,6 +372,7 @@ typedef struct {
   uint64_t device_id;   //< The unique id of a GPU
   uint32_t rev_id;
   char asic_serial[AMDSMI_NORMAL_STRING_LENGTH];
+  uint32_t reserved[3];
 } amdsmi_asic_info_t;
 
 typedef struct {
@@ -364,7 +398,7 @@ typedef struct {
   uint32_t cur_clk;
   uint32_t min_clk;
   uint32_t max_clk;
-  uint32_t reserved[4];
+  uint32_t reserved[5];
 } amdsmi_clk_info_t;
 
 typedef struct {
@@ -374,20 +408,22 @@ typedef struct {
   uint32_t reserved[13];
 } amdsmi_engine_usage_t;
 
-typedef uint32_t amdsmi_process_handle;
+typedef uint32_t amdsmi_process_handle_t;
 
 typedef struct {
 	char                  name[AMDSMI_NORMAL_STRING_LENGTH];
-	amdsmi_process_handle pid;
+	amdsmi_process_handle_t pid;
 	uint64_t              mem; /** in bytes */
 	struct {
 		uint64_t gfx;
 		uint64_t enc;
+    uint32_t reserved[12];
 	} engine_usage; /** How much time the process spend using these engines in ns */
   struct {
     uint64_t gtt_mem;
     uint64_t cpu_mem;
     uint64_t vram_mem;
+    uint32_t reserved[10];
   } memory_usage; /** in bytes */
   char container_name[AMDSMI_NORMAL_STRING_LENGTH];
   uint32_t reserved[4];
@@ -1147,7 +1183,7 @@ amdsmi_status_t amdsmi_get_socket_handles(uint32_t *socket_count,
  */
 amdsmi_status_t amdsmi_get_socket_info(
                 amdsmi_socket_handle socket_handle,
-                char *name, size_t len);
+                size_t len, char *name);
 
 /**
  *  @brief Get the list of the processor handles associated to a socket.
@@ -3354,19 +3390,19 @@ amdsmi_get_gpu_target_frequency_range(amdsmi_processor_handle processor_handle, 
  *
  *  @param[in]      processor_handle Device which to query
  *
+ *  @param[in,out]  max_processes Reference to the size of the list buffer in
+ *                  number of elements. Returns the return number of elements
+ *                  in list or the number of running processes if equal to 0.
+ *
  *  @param[out]     list Reference to a user-provided buffer where the process
  *                  list will be returned. This buffer must contain at least
  *                  max_processes entries of type smi_process_handle. Must be allocated
  *                  by user.
  *
- *  @param[in,out]  max_processes Reference to the size of the list buffer in
- *                  number of elements. Returns the return number of elements
- *                  in list or the number of running processes if equal to 0.
- *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_gpu_process_list(amdsmi_processor_handle processor_handle, amdsmi_process_handle *list, uint32_t *max_processes);
+amdsmi_get_gpu_process_list(amdsmi_processor_handle processor_handle, uint32_t *max_processes, amdsmi_process_handle_t *list);
 
 /**
  *  @brief          Returns the process information of a given process.
@@ -3382,7 +3418,7 @@ amdsmi_get_gpu_process_list(amdsmi_processor_handle processor_handle, amdsmi_pro
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_gpu_process_info(amdsmi_processor_handle processor_handle, amdsmi_process_handle process, amdsmi_proc_info_t *info);
+amdsmi_get_gpu_process_info(amdsmi_processor_handle processor_handle, amdsmi_process_handle_t process, amdsmi_proc_info_t *info);
 
 /** @} End processinfo */
 

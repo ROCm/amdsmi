@@ -138,7 +138,7 @@ amdsmi_status_t AMDSmiSystem::cleanup() {
     }
     processors_.clear();
     sockets_.clear();
-    init_flag_ = AMDSMI_INIT_ALL_DEVICES;
+    init_flag_ = AMDSMI_INIT_ALL_PROCESSORS;
     rsmi_status_t ret = rsmi_shut_down();
     if (ret != RSMI_STATUS_SUCCESS) {
         return amd::smi::rsmi_to_amdsmi_status(ret);

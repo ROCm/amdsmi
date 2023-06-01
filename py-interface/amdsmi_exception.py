@@ -24,32 +24,32 @@ from . import amdsmi_wrapper
 
 class AmdSmiRetCode(IntEnum):
     SUCCESS = amdsmi_wrapper.AMDSMI_STATUS_SUCCESS
-    ERR_INVAL = amdsmi_wrapper.AMDSMI_STATUS_INVAL
-    ERR_NOT_SUPPORTED = amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED
-    FILE_ERROR = amdsmi_wrapper.AMDSMI_STATUS_FILE_ERROR
-    ERR_NO_PERM = amdsmi_wrapper.AMDSMI_STATUS_NO_PERM
-    ERR_OUT_OF_RESOURCES = amdsmi_wrapper.AMDSMI_STATUS_OUT_OF_RESOURCES
-    INTERNAL_EXCEPTION = amdsmi_wrapper.AMDSMI_STATUS_INTERNAL_EXCEPTION
-    INPUT_OUT_OF_BOUNDS = amdsmi_wrapper.AMDSMI_STATUS_INPUT_OUT_OF_BOUNDS
-    INIT_ERROR = amdsmi_wrapper.AMDSMI_STATUS_INIT_ERROR
-    NOT_IMPLEMENTED = amdsmi_wrapper.AMDSMI_STATUS_NOT_YET_IMPLEMENTED
-    ERR_NOT_FOUND = amdsmi_wrapper.AMDSMI_STATUS_NOT_FOUND
-    INSUFFICIENT_SIZE = amdsmi_wrapper.AMDSMI_STATUS_INSUFFICIENT_SIZE
-    INTERRUPT = amdsmi_wrapper.AMDSMI_STATUS_INTERRUPT
-    UNEXPECTED_SIZE = amdsmi_wrapper.AMDSMI_STATUS_UNEXPECTED_SIZE
-    NO_DATA = amdsmi_wrapper.AMDSMI_STATUS_NO_DATA
-    UNEXPECTED_DATA = amdsmi_wrapper.AMDSMI_STATUS_UNEXPECTED_DATA
-    ERR_BUSY = amdsmi_wrapper.AMDSMI_STATUS_BUSY
-    REFCOUNT_OVERFLOW = amdsmi_wrapper.AMDSMI_STATUS_REFCOUNT_OVERFLOW
-    FAIL_LOAD_MODULE = amdsmi_wrapper.AMDSMI_STATUS_FAIL_LOAD_MODULE
-    FAIL_LOAD_SYMBOL = amdsmi_wrapper.AMDSMI_STATUS_FAIL_LOAD_SYMBOL
-    DRM_ERROR = amdsmi_wrapper.AMDSMI_STATUS_DRM_ERROR
-    ERR_IO = amdsmi_wrapper.AMDSMI_STATUS_IO
-    API_FAILED = amdsmi_wrapper.AMDSMI_STATUS_API_FAILED
-    TIMEOUT = amdsmi_wrapper.AMDSMI_STATUS_TIMEOUT
-    NO_SLOT = amdsmi_wrapper.AMDSMI_STATUS_NO_SLOT
-    RETRY = amdsmi_wrapper.AMDSMI_STATUS_RETRY
-    NOT_INIT = amdsmi_wrapper.AMDSMI_STATUS_NOT_INIT
+    STATUS_INVAL = amdsmi_wrapper.AMDSMI_STATUS_INVAL
+    STATUS_NOT_SUPPORTED = amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED
+    STATUS_FILE_ERROR = amdsmi_wrapper.AMDSMI_STATUS_FILE_ERROR
+    STATUS_NO_PERM = amdsmi_wrapper.AMDSMI_STATUS_NO_PERM
+    STATUS_OUT_OF_RESOURCES = amdsmi_wrapper.AMDSMI_STATUS_OUT_OF_RESOURCES
+    STATUS_INTERNAL_EXCEPTION = amdsmi_wrapper.AMDSMI_STATUS_INTERNAL_EXCEPTION
+    STATUS_INPUT_OUT_OF_BOUNDS = amdsmi_wrapper.AMDSMI_STATUS_INPUT_OUT_OF_BOUNDS
+    STATUS_INIT_ERROR = amdsmi_wrapper.AMDSMI_STATUS_INIT_ERROR
+    STATUS_NOT_YET_IMPLEMENTED = amdsmi_wrapper.AMDSMI_STATUS_NOT_YET_IMPLEMENTED
+    STATUS_NOT_FOUND = amdsmi_wrapper.AMDSMI_STATUS_NOT_FOUND
+    STATUS_INSUFFICIENT_SIZE = amdsmi_wrapper.AMDSMI_STATUS_INSUFFICIENT_SIZE
+    STATUS_INTERRUPT = amdsmi_wrapper.AMDSMI_STATUS_INTERRUPT
+    STATUS_UNEXPECTED_SIZE = amdsmi_wrapper.AMDSMI_STATUS_UNEXPECTED_SIZE
+    STATUS_NO_DATA = amdsmi_wrapper.AMDSMI_STATUS_NO_DATA
+    STATUS_UNEXPECTED_DATA = amdsmi_wrapper.AMDSMI_STATUS_UNEXPECTED_DATA
+    STATUS_BUSY = amdsmi_wrapper.AMDSMI_STATUS_BUSY
+    STATUS_REFCOUNT_OVERFLOW = amdsmi_wrapper.AMDSMI_STATUS_REFCOUNT_OVERFLOW
+    STATUS_FAIL_LOAD_MODULE = amdsmi_wrapper.AMDSMI_STATUS_FAIL_LOAD_MODULE
+    STATUS_FAIL_LOAD_SYMBOL = amdsmi_wrapper.AMDSMI_STATUS_FAIL_LOAD_SYMBOL
+    STATUS_DRM_ERROR = amdsmi_wrapper.AMDSMI_STATUS_DRM_ERROR
+    STATUS_IO = amdsmi_wrapper.AMDSMI_STATUS_IO
+    STATUS_API_FAILED = amdsmi_wrapper.AMDSMI_STATUS_API_FAILED
+    STATUS_TIMEOUT = amdsmi_wrapper.AMDSMI_STATUS_TIMEOUT
+    STATUS_NO_SLOT = amdsmi_wrapper.AMDSMI_STATUS_NO_SLOT
+    STATUS_RETRY = amdsmi_wrapper.AMDSMI_STATUS_RETRY
+    STATUS_NOT_INIT = amdsmi_wrapper.AMDSMI_STATUS_NOT_INIT
     UNKNOWN_ERROR = amdsmi_wrapper.AMDSMI_STATUS_UNKNOWN_ERROR
 
 
@@ -79,32 +79,32 @@ class AmdSmiLibraryException(AmdSmiException):
 
     def set_err_info(self):
         switch = {
-            AmdSmiRetCode.ERR_INVAL: "AMDSMI_STATUS_INVAL - Invalid parameters",
-            AmdSmiRetCode.ERR_NOT_SUPPORTED: "AMDSMI_STATUS_NOT_SUPPORTED - Feature not supported",
-            AmdSmiRetCode.FILE_ERROR: "AMDSMI_STATUS_FILE_ERROR - Error opening file",
-            AmdSmiRetCode.ERR_OUT_OF_RESOURCES: "AMDSMI_STATUS_OUT_OF_RESOURCES - Not enough memory",
-            AmdSmiRetCode.INTERNAL_EXCEPTION: "AMDSMI_STATUS_INTERNAL_EXCEPTION -  Internal error",
-            AmdSmiRetCode.ERR_NO_PERM: "AMDSMI_STATUS_NO_PERM - Permission Denied",
-            AmdSmiRetCode.INPUT_OUT_OF_BOUNDS: "AMDSMI_STATUS_INPUT_OUT_OF_BOUNDS - Out of bounds",
-            AmdSmiRetCode.INIT_ERROR: "AMDSMI_STATUS_INIT_ERROR - Initialization error",
-            AmdSmiRetCode.ERR_BUSY: "AMDSMI_STATUS_BUSY - Device busy",
-            AmdSmiRetCode.ERR_NOT_FOUND: "AMDSMI_STATUS_NOT_FOUND - Device Not found",
-            AmdSmiRetCode.ERR_IO: "AMDSMI_STATUS_IO - I/O Error",
-            AmdSmiRetCode.NOT_IMPLEMENTED: "AMDSMI_STATUS_NOT_YET_IMPLEMENTED - Feature not yet implemented",
-            AmdSmiRetCode.INSUFFICIENT_SIZE: "AMDSMI_STATUS_INSUFFICIENT_SIZE - Insufficient size for operation",
-            AmdSmiRetCode.INTERRUPT: "AMDSMI_STATUS_INTERRUPT - Interrupt ocurred during execution",
-            AmdSmiRetCode.UNEXPECTED_SIZE: "AMDSMI_STATUS_UNEXPECTED_SIZE - unexpected size of data was read",
-            AmdSmiRetCode.NO_DATA: "AMDSMI_STATUS_NO_DATA - No data was found for given input",
-            AmdSmiRetCode.UNEXPECTED_DATA: "AMDSMI_STATUS_UNEXPECTED_DATA - The data read or provided was unexpected",
-            AmdSmiRetCode.REFCOUNT_OVERFLOW: "AMDSMI_STATUS_REFCOUNT_OVERFLOW - Internal reference counter exceeded INT32_MAX",
-            AmdSmiRetCode.FAIL_LOAD_MODULE: "AMDSMI_STATUS_FAIL_LOAD_MODULE - Fail to load lib",
-            AmdSmiRetCode.FAIL_LOAD_SYMBOL: "AMDSMI_STATUS_FAIL_LOAD_SYMBOL - Fail to load symbol",
-            AmdSmiRetCode.DRM_ERROR: "AMDSMI_STATUS_DRM_ERROR - Error when called libdrm",
-            AmdSmiRetCode.API_FAILED: "AMDSMI_STATUS_API_FAILED - API call failed",
-            AmdSmiRetCode.TIMEOUT: "AMDSMI_STATUS_TIMEOUT - Timeout in API call",
-            AmdSmiRetCode.NO_SLOT: "AMDSMI_STATUS_NO_SLOT - No more free slot",
-            AmdSmiRetCode.RETRY: "AMDSMI_STATUS_RETRY - Retry operation",
-            AmdSmiRetCode.NOT_INIT: "AMDSMI_STATUS_NOT_INIT - Device not initialized",
+            AmdSmiRetCode.STATUS_INVAL: "AMDSMI_STATUS_INVAL - Invalid parameters",
+            AmdSmiRetCode.STATUS_NOT_SUPPORTED: "AMDSMI_STATUS_NOT_SUPPORTED - Feature not supported",
+            AmdSmiRetCode.STATUS_FILE_ERROR: "AMDSMI_STATUS_FILE_ERROR - Error opening file",
+            AmdSmiRetCode.STATUS_OUT_OF_RESOURCES: "AMDSMI_STATUS_OUT_OF_RESOURCES - Not enough memory",
+            AmdSmiRetCode.STATUS_INTERNAL_EXCEPTION: "AMDSMI_STATUS_INTERNAL_EXCEPTION -  Internal error",
+            AmdSmiRetCode.STATUS_NO_PERM: "AMDSMI_STATUS_NO_PERM - Permission Denied",
+            AmdSmiRetCode.STATUS_INPUT_OUT_OF_BOUNDS: "AMDSMI_STATUS_INPUT_OUT_OF_BOUNDS - Out of bounds",
+            AmdSmiRetCode.STATUS_INIT_ERROR: "AMDSMI_STATUS_INIT_ERROR - Initialization error",
+            AmdSmiRetCode.STATUS_BUSY: "AMDSMI_STATUS_BUSY - Device busy",
+            AmdSmiRetCode.STATUS_NOT_FOUND: "AMDSMI_STATUS_NOT_FOUND - Device Not found",
+            AmdSmiRetCode.STATUS_IO: "AMDSMI_STATUS_IO - I/O Error",
+            AmdSmiRetCode.STATUS_NOT_YET_IMPLEMENTED: "AMDSMI_STATUS_NOT_YET_IMPLEMENTED - Feature not yet implemented",
+            AmdSmiRetCode.STATUS_INSUFFICIENT_SIZE: "AMDSMI_STATUS_INSUFFICIENT_SIZE - Insufficient size for operation",
+            AmdSmiRetCode.STATUS_INTERRUPT: "AMDSMI_STATUS_INTERRUPT - Interrupt ocurred during execution",
+            AmdSmiRetCode.STATUS_UNEXPECTED_SIZE: "AMDSMI_STATUS_UNEXPECTED_SIZE - unexpected size of data was read",
+            AmdSmiRetCode.STATUS_NO_DATA: "AMDSMI_STATUS_NO_DATA - No data was found for given input",
+            AmdSmiRetCode.STATUS_UNEXPECTED_DATA: "AMDSMI_STATUS_UNEXPECTED_DATA - The data read or provided was unexpected",
+            AmdSmiRetCode.STATUS_REFCOUNT_OVERFLOW: "AMDSMI_STATUS_REFCOUNT_OVERFLOW - Internal reference counter exceeded INT32_MAX",
+            AmdSmiRetCode.STATUS_FAIL_LOAD_MODULE: "AMDSMI_STATUS_FAIL_LOAD_MODULE - Fail to load lib",
+            AmdSmiRetCode.STATUS_FAIL_LOAD_SYMBOL: "AMDSMI_STATUS_FAIL_LOAD_SYMBOL - Fail to load symbol",
+            AmdSmiRetCode.STATUS_DRM_ERROR: "AMDSMI_STATUS_DRM_ERROR - Error when called libdrm",
+            AmdSmiRetCode.STATUS_API_FAILED: "AMDSMI_STATUS_API_FAILED - API call failed",
+            AmdSmiRetCode.STATUS_TIMEOUT: "AMDSMI_STATUS_TIMEOUT - Timeout in API call",
+            AmdSmiRetCode.STATUS_NO_SLOT: "AMDSMI_STATUS_NO_SLOT - No more free slot",
+            AmdSmiRetCode.STATUS_RETRY: "AMDSMI_STATUS_RETRY - Retry operation",
+            AmdSmiRetCode.STATUS_NOT_INIT: "AMDSMI_STATUS_NOT_INIT - Device not initialized",
         }
 
         self.err_info = switch.get(self.err_code, "AMDSMI_STATUS_UNKNOWN_ERROR - An unknown error occurred")

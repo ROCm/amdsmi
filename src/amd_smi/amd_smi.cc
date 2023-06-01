@@ -196,7 +196,7 @@ amdsmi_status_t amdsmi_get_socket_handles(uint32_t *socket_count,
 
 amdsmi_status_t amdsmi_get_socket_info(
                 amdsmi_socket_handle socket_handle,
-                char *name, size_t len) {
+                size_t len, char *name) {
     AMDSMI_CHECK_INIT();
 
     if (socket_handle == nullptr || name == nullptr) {
@@ -1330,7 +1330,7 @@ amdsmi_get_gpu_total_ecc_count(amdsmi_processor_handle processor_handle, amdsmi_
 }
 
 amdsmi_status_t
-amdsmi_get_gpu_process_list(amdsmi_processor_handle processor_handle, amdsmi_process_handle *list, uint32_t *max_processes) {
+amdsmi_get_gpu_process_list(amdsmi_processor_handle processor_handle, uint32_t *max_processes, amdsmi_process_handle_t *list) {
     AMDSMI_CHECK_INIT();
 
     if (max_processes == nullptr) {
@@ -1378,7 +1378,7 @@ amdsmi_get_gpu_process_list(amdsmi_processor_handle processor_handle, amdsmi_pro
 }
 
 amdsmi_status_t
-amdsmi_get_gpu_process_info(amdsmi_processor_handle processor_handle, amdsmi_process_handle process, amdsmi_proc_info_t *info) {
+amdsmi_get_gpu_process_info(amdsmi_processor_handle processor_handle, amdsmi_process_handle_t process, amdsmi_proc_info_t *info) {
     AMDSMI_CHECK_INIT();
 
     if (info == nullptr) {
