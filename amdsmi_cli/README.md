@@ -1,4 +1,4 @@
-# AMD System Management Interface
+# AMD SMI CLI Tool
 
 This tool acts as a command line interface for manipulating
 and monitoring the amdgpu kernel, and is intended to replace
@@ -8,17 +8,17 @@ Recommended: At least one AMD GPU with AMD driver installed
 
 ## Requirements
 
-- python 3.7+ 64-bit
-- driver must be loaded for amdsmi_init() to pass
+* python 3.7+ 64-bit
+* driver must be loaded for amdsmi_init() to pass
 
 ## Installation
 
-- Install amdgpu driver
-- Install amd-smi-lib package through package manager
-- cd /opt/<rocm_instance>/share/amd_smi
-- python3 -m pip install --upgrade pip
-- python3 -m pip install --user .
-- /opt/<rocm_instance>/bin/amd-smi --help
+* Install amdgpu driver
+* Install amd-smi-lib package through package manager
+* cd /opt/rocm/share/amd_smi
+* python3 -m pip install --upgrade pip
+* python3 -m pip install --user .
+* /opt/rocm/bin/amd-smi --help
 
 Add /opt/rocm/bin to your shell's path to access amd-smi via the cmdline
 
@@ -34,7 +34,7 @@ Verify that your python version is 3.7+ and if not you can use python3.8 instead
 
 ### Example of Ubuntu 22.04 post amdgpu driver install
 
-```  shell
+``` bash
 apt install amd-smi-lib
 cd /opt/rocm/share/amd_smi
 python3 -m pip install --upgrade pip
