@@ -563,7 +563,7 @@ def amdsmi_tool_event_notification_init(dev):
 
 def amdsmi_tool_event_notification_mask_set(dev, dic):
     mask = dic["mask"]
-    return smi_api.amdsmi_wrapper. amdsmi_set_gpu_event_notification_mask(dev, ctypes.c_uint64(mask))
+    return smi_api.amdsmi_wrapper.amdsmi_set_gpu_event_notification_mask(dev, ctypes.c_uint64(mask))
 
 def amdsmi_tool_event_notification_stop(dev):
     return smi_api.amdsmi_wrapper.amdsmi_stop_gpu_event_notification(dev)

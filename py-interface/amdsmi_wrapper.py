@@ -1418,9 +1418,9 @@ amdsmi_get_gpu_subsystem_name.argtypes = [amdsmi_processor_handle, ctypes.POINTE
 amdsmi_get_gpu_pci_bandwidth = _libraries['libamd_smi.so'].amdsmi_get_gpu_pci_bandwidth
 amdsmi_get_gpu_pci_bandwidth.restype = amdsmi_status_t
 amdsmi_get_gpu_pci_bandwidth.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_c__SA_amdsmi_pcie_bandwidth_t)]
-admsmi_get_gpu_bdf_id = _libraries['libamd_smi.so'].admsmi_get_gpu_bdf_id
-admsmi_get_gpu_bdf_id.restype = amdsmi_status_t
-admsmi_get_gpu_bdf_id.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint64)]
+amdsmi_get_gpu_bdf_id = _libraries['libamd_smi.so'].amdsmi_get_gpu_bdf_id
+amdsmi_get_gpu_bdf_id.restype = amdsmi_status_t
+amdsmi_get_gpu_bdf_id.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint64)]
 amdsmi_get_gpu_topo_numa_affinity = _libraries['libamd_smi.so'].amdsmi_get_gpu_topo_numa_affinity
 amdsmi_get_gpu_topo_numa_affinity.restype = amdsmi_status_t
 amdsmi_get_gpu_topo_numa_affinity.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32)]
@@ -1586,9 +1586,9 @@ amdsmi_topo_get_numa_node_number.argtypes = [amdsmi_processor_handle, ctypes.POI
 amdsmi_topo_get_link_weight = _libraries['libamd_smi.so'].amdsmi_topo_get_link_weight
 amdsmi_topo_get_link_weight.restype = amdsmi_status_t
 amdsmi_topo_get_link_weight.argtypes = [amdsmi_processor_handle, amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint64)]
-admsmi_get_minmax_bandwith_between_processors = _libraries['libamd_smi.so'].admsmi_get_minmax_bandwith_between_processors
-admsmi_get_minmax_bandwith_between_processors.restype = amdsmi_status_t
-admsmi_get_minmax_bandwith_between_processors.argtypes = [amdsmi_processor_handle, amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(ctypes.c_uint64)]
+amdsmi_get_minmax_bandwith_between_processors = _libraries['libamd_smi.so'].amdsmi_get_minmax_bandwith_between_processors
+amdsmi_get_minmax_bandwith_between_processors.restype = amdsmi_status_t
+amdsmi_get_minmax_bandwith_between_processors.argtypes = [amdsmi_processor_handle, amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(ctypes.c_uint64)]
 amdsmi_topo_get_link_type = _libraries['libamd_smi.so'].amdsmi_topo_get_link_type
 amdsmi_topo_get_link_type.restype = amdsmi_status_t
 amdsmi_topo_get_link_type.argtypes = [amdsmi_processor_handle, amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(c__EA_AMDSMI_IO_LINK_TYPE)]
@@ -1791,8 +1791,8 @@ __all__ = \
     'TEMPERATURE_TYPE_HBM_2', 'TEMPERATURE_TYPE_HBM_3',
     'TEMPERATURE_TYPE_JUNCTION', 'TEMPERATURE_TYPE_PLX',
     'TEMPERATURE_TYPE_VRAM', 'TEMPERATURE_TYPE__MAX', 'UNKNOWN',
-    'admsmi_get_gpu_bdf_id',
-    'admsmi_get_minmax_bandwith_between_processors',
+    'amdsmi_get_gpu_bdf_id',
+    'amdsmi_get_minmax_bandwith_between_processors',
     'amd_metrics_table_header_t', 'amdsmi_asic_info_t',
     'amdsmi_bdf_t', 'amdsmi_bit_field_t', 'amdsmi_board_info_t',
     'amdsmi_clk_info_t', 'amdsmi_clk_type_t',
