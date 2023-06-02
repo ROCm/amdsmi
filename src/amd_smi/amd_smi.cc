@@ -667,7 +667,7 @@ amdsmi_topo_get_link_weight(amdsmi_processor_handle processor_handle_src, amdsmi
 }
 
 amdsmi_status_t
- admsmi_get_minmax_bandwith_between_processors(amdsmi_processor_handle processor_handle_src, amdsmi_processor_handle processor_handle_dst,
+ amdsmi_get_minmax_bandwith_between_processors(amdsmi_processor_handle processor_handle_src, amdsmi_processor_handle processor_handle_dst,
                           uint64_t *min_bandwidth, uint64_t *max_bandwidth) {
     AMDSMI_CHECK_INIT();
 
@@ -1108,7 +1108,7 @@ amdsmi_status_t amdsmi_get_energy_count(amdsmi_processor_handle processor_handle
             power, counter_resolution, timestamp);
 }
 
-amdsmi_status_t admsmi_get_gpu_bdf_id(
+amdsmi_status_t amdsmi_get_gpu_bdf_id(
         amdsmi_processor_handle processor_handle, uint64_t *bdfid) {
     return rsmi_wrapper(rsmi_dev_pci_id_get, processor_handle,
             bdfid);

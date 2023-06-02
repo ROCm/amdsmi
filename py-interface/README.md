@@ -1237,7 +1237,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-### admsmi_get_gpu_bdf_id
+### amdsmi_get_gpu_bdf_id
 
 Description: Get the unique PCI device identifier associated for a device
 
@@ -1259,7 +1259,7 @@ BDFID = ((DOMAIN & 0xffffffff) << 32) | ((BUS & 0xff) << 8) |
 | Device   | [ 7: 3] |
 | Function | [ 2: 0] |
 
-Exceptions that can be thrown by `admsmi_get_gpu_bdf_id` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_bdf_id` function:
 
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
@@ -1274,7 +1274,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            bdfid = admsmi_get_gpu_bdf_id(device)
+            bdfid = amdsmi_get_gpu_bdf_id(device)
             print(bdfid)
 except AmdSmiException as e:
     print(e)
@@ -3040,7 +3040,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-### admsmi_get_minmax_bandwith_between_processors
+### amdsmi_get_minmax_bandwith_between_processors
 
 Description: Retreive minimal and maximal io link bandwidth between 2 GPUs.
 
@@ -3056,7 +3056,7 @@ Field | Description
 `min_bandwidth` | minimal bandwidth for the connection
 `max_bandwidth` | maximal bandwidth for the connection
 
-Exceptions that can be thrown by `admsmi_get_minmax_bandwith_between_processors` function:
+Exceptions that can be thrown by `amdsmi_get_minmax_bandwith_between_processors` function:
 
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
@@ -3072,7 +3072,7 @@ try:
     else:
         processor_handle_src = devices[0]
         processor_handle_dest = devices[1]
-        bandwith =  admsmi_get_minmax_bandwith_between_processors(processor_handle_src, processor_handle_dest)
+        bandwith =  amdsmi_get_minmax_bandwith_between_processors(processor_handle_src, processor_handle_dest)
         print(bandwith['min_bandwidth'])
         print(bandwith['max_bandwidth'])
 except AmdSmiException as e:
