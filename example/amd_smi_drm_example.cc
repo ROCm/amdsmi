@@ -238,7 +238,7 @@ int main() {
     for (uint32_t i = 0; i < socket_count; i++) {
         // Get Socket info
         char socket_info[128];
-        ret = amdsmi_get_socket_info(sockets[i], socket_info, 128);
+        ret = amdsmi_get_socket_info(sockets[i], 128, socket_info);
         CHK_AMDSMI_RET(ret)
         std::cout << "Socket " << socket_info << std::endl;
 
@@ -508,13 +508,13 @@ int main() {
                    freq_ranges.current_freq_range.upper_bound);
 
             uint32_t num_process = 0;
-            ret = amdsmi_get_gpu_process_list(processor_handles[j], nullptr,
-                                          &num_process);
+            ret = amdsmi_get_gpu_process_list(processor_handles[j], &num_process,
+                                          nullptr);
             CHK_AMDSMI_RET(ret)
             if (!num_process) {
                 printf("No processes found.\n");
             } else {
-                amdsmi_process_handle process_list[num_process];
+                amdsmi_process_handle_t process_list[num_process];
                 amdsmi_proc_info_t info_list[num_process];
                 amdsmi_proc_info_t process = {};
                 uint64_t mem = 0, gtt_mem = 0, cpu_mem = 0, vram_mem = 0;
@@ -523,8 +523,8 @@ int main() {
                 sprintf(bdf_str, "%04lx:%02x:%02x.%d", bdf.domain_number,
                         bdf.bus_number, bdf.device_number, bdf.function_number);
                 int num = 0;
-                ret = amdsmi_get_gpu_process_list(processor_handles[j], process_list,
-                                              &num_process);
+                ret = amdsmi_get_gpu_process_list(processor_handles[j], &num_process,
+                                            process_list);
                 CHK_AMDSMI_RET(ret)
                 for (uint32_t it = 0; it < num_process; it += 1) {
                     if (getpid() == process_list[it]) {

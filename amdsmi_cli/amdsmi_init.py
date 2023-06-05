@@ -53,7 +53,7 @@ def check_amdgpu_driver():
     return False
 
 
-def init_amdsmi(flag=amdsmi_interface.AmdSmiInitFlags.AMD_GPUS):
+def init_amdsmi(flag=amdsmi_interface.AmdSmiInitFlags.INIT_AMD_GPUS):
     """ Initializes AMDSMI
 
     Raises:
