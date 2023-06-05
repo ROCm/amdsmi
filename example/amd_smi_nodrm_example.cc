@@ -90,7 +90,7 @@ int main() {
     for (uint32_t i = 0; i < socket_count; i++) {
         // Get Socket info
         char socket_info[128];
-        ret = amdsmi_get_socket_info(sockets[i], socket_info, 128);
+        ret = amdsmi_get_socket_info(sockets[i], 128, socket_info);
         CHK_AMDSMI_RET(ret)
         std::cout << "Socket " << socket_info << std::endl;
 
