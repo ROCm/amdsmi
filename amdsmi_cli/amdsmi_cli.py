@@ -31,7 +31,7 @@ from amdsmi import amdsmi_interface
 
 
 def _print_error(e, destination):
-    if destination == 'stdout':
+    if destination in ['stdout', 'json', 'csv']:
         print(e)
     else:
         f = open(destination, "w")
