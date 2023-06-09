@@ -351,14 +351,14 @@ class AmdSmiEventReader:
             mask |= (1 << (int(event_type) - 1))
 
         _check_res(amdsmi_wrapper.amdsmi_init_gpu_event_notification(processor_handle))
-        _check_res(amdsmi_wrapper. amdsmi_set_gpu_event_notification_mask(
+        _check_res(amdsmi_wrapper.amdsmi_set_gpu_event_notification_mask(
             processor_handle, ctypes.c_uint64(mask)))
 
     def read(self, timestamp, num_elem=10):
         self.event_info = (
             amdsmi_wrapper.amdsmi_evt_notification_data_t * num_elem)()
         _check_res(
-            amdsmi_wrapper. amdsmi_get_gpu_event_notification(
+            amdsmi_wrapper.amdsmi_get_gpu_event_notification(
                 ctypes.c_int(timestamp),
                 ctypes.byref(ctypes.c_uint32(num_elem)),
                 self.event_info,
@@ -1222,7 +1222,7 @@ def amdsmi_topo_get_link_weight(
     return weight.value
 
 
-def admsmi_get_minmax_bandwith_between_processors(
+def amdsmi_get_minmax_bandwith_between_processors(
     processor_handle_src: amdsmi_wrapper.amdsmi_processor_handle,
     processor_handle_dst: amdsmi_wrapper.amdsmi_processor_handle,
 ):
@@ -1240,7 +1240,7 @@ def admsmi_get_minmax_bandwith_between_processors(
     max_bandwidth = ctypes.c_uint64()
 
     _check_res(
-        amdsmi_wrapper. admsmi_get_minmax_bandwith_between_processors(
+        amdsmi_wrapper.amdsmi_get_minmax_bandwith_between_processors(
             processor_handle_src,
             processor_handle_dst,
             ctypes.byref(min_bandwidth),
@@ -1423,7 +1423,7 @@ def amdsmi_get_gpu_available_counters(
     available = ctypes.c_uint32()
 
     _check_res(
-        amdsmi_wrapper. amdsmi_get_gpu_available_counters(
+        amdsmi_wrapper.amdsmi_get_gpu_available_counters(
             processor_handle, event_group, ctypes.byref(available)
         )
     )
@@ -1442,7 +1442,7 @@ def amdsmi_set_gpu_perf_level(
     if not isinstance(perf_level, AmdSmiDevPerfLevel):
         raise AmdSmiParameterException(perf_level, AmdSmiDevPerfLevel)
 
-    _check_res(amdsmi_wrapper. amdsmi_set_gpu_perf_level(
+    _check_res(amdsmi_wrapper.amdsmi_set_gpu_perf_level(
         processor_handle, perf_level))
 
 
@@ -1460,7 +1460,7 @@ def amdsmi_get_gpu_power_profile_presets(
     status = amdsmi_wrapper.amdsmi_power_profile_status_t()
 
     _check_res(
-        amdsmi_wrapper. amdsmi_get_gpu_power_profile_presets(
+        amdsmi_wrapper.amdsmi_get_gpu_power_profile_presets(
             processor_handle, sensor_idx, ctypes.byref(status)
         )
     )
@@ -1547,7 +1547,7 @@ def amdsmi_set_clk_freq(
         raise AmdSmiParameterException(freq_bitmask, int)
     freq_bitmask = ctypes.c_uint64(freq_bitmask)
     _check_res(
-        amdsmi_wrapper. amdsmi_set_clk_freq(
+        amdsmi_wrapper.amdsmi_set_clk_freq(
             processor_handle, clk_type, freq_bitmask
         )
     )
@@ -1565,12 +1565,12 @@ def amdsmi_set_gpu_overdrive_level(
     overdrive_value = ctypes.c_uint32(overdrive_value)
 
     _check_res(
-        amdsmi_wrapper. amdsmi_set_gpu_overdrive_level(
+        amdsmi_wrapper.amdsmi_set_gpu_overdrive_level(
             processor_handle, overdrive_value)
     )
 
 
-def admsmi_get_gpu_bdf_id(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_get_gpu_bdf_id(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
@@ -1578,7 +1578,7 @@ def admsmi_get_gpu_bdf_id(processor_handle: amdsmi_wrapper.amdsmi_processor_hand
 
     bdfid = ctypes.c_uint64()
     _check_res(
-        amdsmi_wrapper.admsmi_get_gpu_bdf_id(
+        amdsmi_wrapper.amdsmi_get_gpu_bdf_id(
             processor_handle, ctypes.byref(bdfid))
     )
 
@@ -1596,7 +1596,7 @@ def amdsmi_set_gpu_pci_bandwidth(
         raise AmdSmiParameterException(bitmask, int)
 
     _check_res(
-        amdsmi_wrapper. amdsmi_set_gpu_pci_bandwidth(
+        amdsmi_wrapper.amdsmi_set_gpu_pci_bandwidth(
             processor_handle, ctypes.c_uint64(bitmask)
         )
     )
@@ -1662,7 +1662,7 @@ def amdsmi_get_gpu_pci_replay_counter(processor_handle: amdsmi_wrapper.amdsmi_pr
     counter = ctypes.c_uint64()
 
     _check_res(
-        amdsmi_wrapper. amdsmi_get_gpu_pci_replay_counter(
+        amdsmi_wrapper.amdsmi_get_gpu_pci_replay_counter(
             processor_handle, ctypes.byref(counter))
     )
 
@@ -1700,7 +1700,7 @@ def amdsmi_set_power_cap(
         raise AmdSmiParameterException(cap, int)
 
     _check_res(
-        amdsmi_wrapper. amdsmi_set_power_cap(
+        amdsmi_wrapper.amdsmi_set_power_cap(
             processor_handle, ctypes.c_uint32(sensor_ind), ctypes.c_uint64(cap)
         )
     )
@@ -1723,7 +1723,7 @@ def amdsmi_set_gpu_power_profile(
         raise AmdSmiParameterException(profile, AmdSmiPowerProfilePresetMasks)
 
     _check_res(
-        amdsmi_wrapper. amdsmi_set_gpu_power_profile(
+        amdsmi_wrapper.amdsmi_set_gpu_power_profile(
             processor_handle, ctypes.c_uint32(reserved), profile
         )
     )
@@ -1823,7 +1823,7 @@ def amdsmi_set_gpu_od_clk_info(
         raise AmdSmiParameterException(clk_type, AmdSmiClkType)
 
     _check_res(
-        amdsmi_wrapper. amdsmi_set_gpu_od_clk_info(
+        amdsmi_wrapper.amdsmi_set_gpu_od_clk_info(
             processor_handle, level, ctypes.c_uint64(value), clk_type
         )
     )
@@ -1871,7 +1871,7 @@ def amdsmi_set_gpu_od_volt_info(
         raise AmdSmiParameterException(volt_value, int)
 
     _check_res(
-        amdsmi_wrapper. amdsmi_set_gpu_od_volt_info(
+        amdsmi_wrapper.amdsmi_set_gpu_od_volt_info(
             processor_handle,
             ctypes.c_uint32(vpoint),
             ctypes.c_uint64(clk_value),
@@ -1954,7 +1954,7 @@ def amdsmi_get_temp_metric(
 
     temp_value = ctypes.c_int64()
     _check_res(
-        amdsmi_wrapper. amdsmi_get_temp_metric(
+        amdsmi_wrapper.amdsmi_get_temp_metric(
             processor_handle, sensor_type, metric, ctypes.byref(temp_value)
         )
     )
@@ -1978,7 +1978,7 @@ def amdsmi_get_gpu_volt_metric(
 
     voltage = ctypes.c_int64()
     _check_res(
-        amdsmi_wrapper. amdsmi_get_gpu_volt_metric(
+        amdsmi_wrapper.amdsmi_get_gpu_volt_metric(
             processor_handle, sensor_type, metric, ctypes.byref(voltage)
         )
     )
@@ -2101,7 +2101,7 @@ def amdsmi_get_clk_freq(
 
     freq = amdsmi_wrapper.amdsmi_frequencies_t()
     _check_res(
-        amdsmi_wrapper. amdsmi_get_clk_freq(
+        amdsmi_wrapper.amdsmi_get_clk_freq(
             processor_handle, clk_type, ctypes.byref(freq)
         )
     )
@@ -2123,7 +2123,7 @@ def amdsmi_get_gpu_od_volt_info(
 
     freq_data = amdsmi_wrapper.amdsmi_od_volt_freq_data_t()
     _check_res(
-        amdsmi_wrapper. amdsmi_get_gpu_od_volt_info(
+        amdsmi_wrapper.amdsmi_get_gpu_od_volt_info(
             processor_handle, ctypes.byref(freq_data)
         )
     )
@@ -2160,7 +2160,7 @@ def amdsmi_get_gpu_metrics_info(
 
     gpu_metrics = amdsmi_wrapper.amdsmi_gpu_metrics_t()
     _check_res(
-        amdsmi_wrapper. amdsmi_get_gpu_metrics_info(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_info(
             processor_handle, ctypes.byref(gpu_metrics)
         )
     )
@@ -2216,7 +2216,7 @@ def amdsmi_get_gpu_od_volt_curve_regions(
     region_count = ctypes.c_uint32(num_regions)
     buffer = (amdsmi_wrapper.amdsmi_freq_volt_region_t * num_regions)()
     _check_res(
-        amdsmi_wrapper. amdsmi_get_gpu_od_volt_curve_regions(
+        amdsmi_wrapper.amdsmi_get_gpu_od_volt_curve_regions(
             processor_handle, ctypes.byref(region_count), buffer
         )
     )
@@ -2254,7 +2254,7 @@ def amdsmi_get_gpu_power_profile_presets(
 
     status = amdsmi_wrapper.amdsmi_power_profile_status_t()
     _check_res(
-        amdsmi_wrapper. amdsmi_get_gpu_power_profile_presets(
+        amdsmi_wrapper.amdsmi_get_gpu_power_profile_presets(
             processor_handle, sensor_idx, ctypes.byref(status)
         )
     )
@@ -2279,7 +2279,7 @@ def amdsmi_get_gpu_ecc_count(
 
     ec = amdsmi_wrapper.amdsmi_error_count_t()
     _check_res(
-        amdsmi_wrapper. amdsmi_get_gpu_ecc_count(
+        amdsmi_wrapper.amdsmi_get_gpu_ecc_count(
             processor_handle, block, ctypes.byref(ec))
     )
 
@@ -2299,7 +2299,7 @@ def amdsmi_get_gpu_ecc_enabled(
 
     blocks = ctypes.c_uint64(0)
     _check_res(
-        amdsmi_wrapper. amdsmi_get_gpu_ecc_enabled(
+        amdsmi_wrapper.amdsmi_get_gpu_ecc_enabled(
             processor_handle, ctypes.byref(blocks))
     )
 
@@ -2319,7 +2319,7 @@ def amdsmi_get_gpu_ecc_status(
 
     state = amdsmi_wrapper.amdsmi_ras_err_state_t()
     _check_res(
-        amdsmi_wrapper. amdsmi_get_gpu_ecc_status(
+        amdsmi_wrapper.amdsmi_get_gpu_ecc_status(
             processor_handle, block, ctypes.byref(state)
         )
     )

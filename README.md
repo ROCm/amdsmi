@@ -16,10 +16,12 @@ installed to query firmware information and hardware IPs.
 ### Additional Required software for building
 
 In order to build the AMD SMI library, the following components are required. Note that the software versions listed are what was used in development. Earlier versions are not guaranteed to work:
+
 * CMake (v3.11.0) - `pip3 install cmake`
 * g++ (5.4.0)
 
 In order to build the AMD SMI python package, the following components are required:
+
 * clang (14.0 or above)
 * python (3.6 or above)
 * virtualenv - `pip3 install virtualenv`
@@ -48,10 +50,6 @@ To build the rpm and deb packages follow the above steps with:
 ```bash
 make package
 ```
-
-### Documentation
-
-The reference manual, `refman.pdf` will be in the `latex` directory upon a successful build.
 
 ### Building the Tests
 
@@ -157,29 +155,46 @@ int main() {
 }
 ```
 
-# Insall Python Library and CLI Tool
+### Documentation
 
-## Requirements
+The reference manual, `AMD_SMI_Manual.pdf` will be in the /opt/rocm/share/doc/amd_smi directory upon a successful build.
 
-- python 3.7+ 64-bit
-- driver must be loaded for amdsmi_init() to pass
+### Sphinx Documentation
 
-## Installation
+To build the documentation locally, run the commands below:
 
-- Install amdgpu driver
-- Install amd-smi-lib package through package manager
-- cd /opt/<rocm_instance>/share/amd_smi
-- python3 -m pip install --upgrade pip
-- python3 -m pip install --user .
-- /opt/<rocm_instance>/bin/amd-smi --help
+``` bash
+cd docs
+
+pip3 install -r sphinx/requirements.txt
+
+python3 -m sphinx -T -E -b html -d _build/doctrees -D language=en . _build/html
+```
+
+The output will be in `docs/_build/html`.
+
+For additional details, see the [ROCm Contributing Guide](https://rocm.docs.amd.com/en/latest/contributing.html#building-documentation)
+
+## Install Python Library and CLI Tool
+
+### Requirements
+
+* python 3.7+ 64-bit
+* driver must be loaded for amdsmi_init() to pass
+
+### Installation
+
+* Install amdgpu driver
+* Install amd-smi-lib package through package manager
+* cd /opt/rocm/share/amd_smi
+* python3 -m pip install --upgrade pip
+* python3 -m pip install --user .
+* /opt/rocm/bin/amd-smi --help
 
 Add /opt/rocm/bin to your shell's path to access amd-smi via the cmdline
 
-## Documentation
+### Rebuilding Python wrapper
 
-Documentation for AMDSMI-CLI is available in /opt/<rocm_instance>/libexec/amdsmi_cli/README.md
-
-## Rebuilding Python wrapper
 The python wrapper (binding) is an auto-generated file `py-interface/amdsmi_wrapper.py`
 
 Wrapper should be re-generated on each C++ API change, by doing:
@@ -195,7 +210,7 @@ Note: To be able to re-generate python wrapper you need several tools installed 
 
 Note: python_wrapper is NOT automatically re-generated. You must run `cmake` with `-DBUILD_WRAPPER=on` argument.
 
-# DISCLAIMER
+## DISCLAIMER
 
 The information contained herein is for informational purposes only, and is subject to change without notice. In addition, any stated support is planned and is also subject to change. While every precaution has been taken in the preparation of this document, it may contain technical inaccuracies, omissions and typographical errors, and AMD is under no obligation to update or otherwise correct this information. Advanced Micro Devices, Inc. makes no representations or warranties with respect to the accuracy or completeness of the contents of this document, and assumes no liability of any kind, including the implied warranties of noninfringement, merchantability or fitness for particular purposes, with respect to the operation or use of AMD hardware, software or other products described herein.
 

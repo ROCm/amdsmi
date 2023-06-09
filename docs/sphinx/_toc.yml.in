@@ -5,10 +5,16 @@ defaults:
   maxdepth: 6
 root: index
 subtrees:
-  - caption: API
+  - caption: AMD SMI APIs
     entries:
-      - file: doxygen/docBin/html/index
-        title: API
+    - file: doxygen/docBin/html/index
+      title: C
+    - file: py-interface_readme_link
+      title: Python
+  - caption: CLI Tools
+    entries:
+      - file: amdsmi_cli_readme_link
+        title: Python CLI Tool
   - caption: About
     entries:
       - file: license

@@ -204,14 +204,13 @@ endif()
 #Debian package specific variables
 set(CPACK_DEBIAN_PACKAGE_PROVIDES "amd-smi")
 set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "sudo, libdrm-dev")
-set(CPACK_DEBIAN_ASAN_PACKAGE_RECOMMENDS "sudo, libdrm-dev")
-set(CPACK_DEBIAN_DEV_PACKAGE_RECOMMENDS "sudo, libdrm-dev")
+set(CPACK_DEBIAN_ASAN_PACKAGE_RECOMMENDS ${CPACK_DEBIAN_PACKAGE_RECOMMENDS})
+set(CPACK_DEBIAN_DEV_PACKAGE_RECOMMENDS ${CPACK_DEBIAN_PACKAGE_RECOMMENDS})
 set(CPACK_DEBIAN_ASAN_PACKAGE_PROVIDES "${AMD_SMI_PACKAGE}-asan")
 set(CPACK_DEBIAN_DEV_PACKAGE_PROVIDES "${AMD_SMI_PACKAGE}")
-#Python 3.7.9 is the first stable build post the python bugfix window
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "python3 (>= 3.7.9), python3-clang, python3-yaml")
-set(CPACK_DEBIAN_ASAN_PACKAGE_DEPENDS "python3 (>= 3.7.9), python3-clang, python3-yaml")
-set(CPACK_DEBIAN_DEV_PACKAGE_DEPENDS "python3 (>= 3.7.9), python3-clang, python3-yaml")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "python3")
+set(CPACK_DEBIAN_ASAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS})
+set(CPACK_DEBIAN_DEV_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS})
 
 ## Process the Debian install/remove scripts to update the CPACK variables
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/DEBIAN/postinst.in DEBIAN/postinst @ONLY)
@@ -228,12 +227,11 @@ endif()
 set(CPACK_RPM_PACKAGE_PROVIDES "amd-smi")
 set(CPACK_RPM_DEV_PACKAGE_PROVIDES "${AMD_SMI_PACKAGE}")
 set(CPACK_RPM_ASAN_PACKAGE_PROVIDES "${AMD_SMI_PACKAGE}-asan")
-#Python 3.7.9 is the first stable build post the python bugfix window
-set(CPACK_RPM_PACKAGE_REQUIRES "python38, python3-clang, python3-pyyaml")
+set(CPACK_RPM_PACKAGE_REQUIRES "python3")
+set(CPACK_RPM_DEV_PACKAGE_REQUIRES ${CPACK_RPM_PACKAGE_REQUIRES})
+set(CPACK_RPM_ASAN_PACKAGE_REQUIRES ${CPACK_RPM_PACKAGE_REQUIRES})
 # don't terminate if bytecompile of python files fails
 set(CPACK_RPM_SPEC_MORE_DEFINE "%define _python_bytecompile_errors_terminate_build 0")
-set(CPACK_RPM_DEV_PACKAGE_REQUIRES "python38, python3-clang, python3-pyyaml")
-set(CPACK_RPM_ASAN_PACKAGE_REQUIRES "python38, python3-clang, python3-pyyaml")
 
 # Add rocm-core dependency if -DROCM_DEP_ROCMCORE=ON is passed
 if(ROCM_DEP_ROCMCORE)
