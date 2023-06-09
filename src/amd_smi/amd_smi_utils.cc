@@ -482,6 +482,8 @@ amdsmi_status_t smi_amdgpu_get_market_name_from_dev_id(uint32_t device_id, char 
 	case 0x73c8:
 	case 0x73c4:
 	case 0x73c5:
+	case 0x7460:
+	case 0x7461:
 		strcpy(market_name, "NAVI32");
 		break;
 	case 0x73a1:
