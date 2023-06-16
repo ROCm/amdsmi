@@ -47,16 +47,37 @@
 #include <xf86drm.h>
 #include <string.h>
 #include <memory>
+#include <regex>
 #include "amd_smi/impl/amd_smi_drm.h"
 #include "amd_smi/impl/amdgpu_drm.h"
+#include "amd_smi/impl/amd_smi_common.h"
+#include "rocm_smi/rocm_smi.h"
+#include "rocm_smi/rocm_smi_main.h"
 
 namespace amd {
 namespace smi {
 
+std::string AMDSmiDrm::find_file_in_folder(const std::string& folder,
+               const std::string& regex) {
+    std::string file_name;
+    using dir_ptr = std::unique_ptr<DIR, decltype(&closedir)>;
+
+    struct dirent *dir = nullptr;
+    std::regex file_regex(regex);
+    auto drm_dir = dir_ptr(opendir(folder.c_str()), &closedir);
+    if (drm_dir == nullptr) return file_name;
+    std::cmatch m;
+    while ((dir = readdir(drm_dir.get())) != NULL) {
+        if (std::regex_search(dir->d_name, m, file_regex)) {
+            file_name = dir->d_name;
+            break;
+        }
+    }
+    return file_name;
+}
+
 amdsmi_status_t AMDSmiDrm::init() {
     // A few RAII handler
-
-    using dir_ptr = std::unique_ptr<DIR, decltype(&closedir)>;
     using drm_version_ptr = std::unique_ptr<drmVersion,
             decltype(&drmFreeVersion)>;
     // using drm_device_ptr = std::unique_ptr(drmDevicePtr,
@@ -107,36 +128,53 @@ amdsmi_status_t AMDSmiDrm::init() {
         return status;
     }
 
-    auto d = dir_ptr(opendir("/dev/dri/"), &closedir);
-    if (d == nullptr) return AMDSMI_STATUS_NOT_INIT;
+    /* Need to map the /dev/dri/render* file to /sys/class/drm/card*
+       The former is for drm fd and the latter is used for rocm-smi gpu index.
+       Here it will search the /sys/class/drm/card0/../renderD128
+    */
+    amd::smi::RocmSMI& smi = amd::smi::RocmSMI::getInstance();
+    auto devices = smi.devices();
 
-    drmDevicePtr device;
+    for (uint32_t i=0; i < devices.size(); i++) {
+        auto rocm_smi_device = devices[i];
+        std::string render_file_name;
+        drmDevicePtr device;
 
-    while ((dir = readdir(d.get())) != NULL) {
-        char* name_cstr = new char[sizeof(dir->d_name) + 10];
-        auto name = std::unique_ptr<char[]>(name_cstr);
+        const std::string regex("renderD([0-9]+)");
+        const std::string renderD_folder = "/sys/class/drm/card"
+                    + std::to_string(rocm_smi_device->index()) + "/../";
 
-        snprintf(name.get(), sizeof(dir->d_name) + 10,
-                        "/dev/dri/%s", dir->d_name);
-        fd = open(name.get(), O_RDWR | O_CLOEXEC);
-        if (fd < 0) continue;
-
-        auto version = drm_version_ptr(drm_get_version(fd), drm_free_version);
-        if (strcmp("amdgpu", version->name) ||
-            strstr(name.get(), "render") == nullptr) {
-                close(fd);
-                continue;
+        // looking for /sys/class/drm/card0/../renderD*
+        std::string render_name = find_file_in_folder(renderD_folder, regex);
+        fd = -1;
+        std::string name = "/dev/dri/" + render_name;
+        if (render_name != "") {
+            fd = open(name.c_str(), O_RDWR | O_CLOEXEC);
         }
 
-        if (drm_get_device(fd, &device) != 0) {
-            drm_free_device(&device);
-            return AMDSMI_STATUS_DRM_ERROR;
+        amdsmi_bdf_t bdf;
+        if (fd >= 0) {
+            auto version = drm_version_ptr(
+                drm_get_version(fd), drm_free_version);
+            if (strcmp("amdgpu", version->name)) {  // only amdgpu
+                close(fd);
+                fd = -1;
+            }
+            if (fd  >= 0 && drm_get_device(fd, &device) != 0) {
+                drm_free_device(&device);
+                close(fd);
+                fd = -1;
+            }
         }
 
         drm_fds_.push_back(fd);
-        drm_paths_.push_back(dir->d_name);
+        drm_paths_.push_back(render_name);
+        // even if fail, still add to prevent mismatch the index
+        if (fd < 0) {
+            drm_bdfs_.push_back(bdf);
+            continue;
+        }
 
-        amdsmi_bdf_t bdf;
         bdf.function_number = device->businfo.pci->func;
         bdf.device_number = device->businfo.pci->dev;
         bdf.bus_number = device->businfo.pci->bus;
@@ -235,6 +273,7 @@ amdsmi_status_t AMDSmiDrm::amdgpu_query_vbios(int fd, void *info) {
 
 amdsmi_status_t AMDSmiDrm::get_drm_fd_by_index(uint32_t gpu_index, uint32_t *fd_info) const {
     if (gpu_index + 1 > drm_fds_.size()) return AMDSMI_STATUS_NOT_SUPPORTED;
+    if (drm_fds_[gpu_index] < 0 ) return AMDSMI_STATUS_NOT_SUPPORTED;
     *fd_info = drm_fds_[gpu_index];
     return AMDSMI_STATUS_SUCCESS;
 }
