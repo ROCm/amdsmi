@@ -76,6 +76,9 @@ class AMDSmiDrm {
     amdsmi_status_t amdgpu_query_vbios(int fd, void *info);
 
  private:
+    // when file is not found, the empty string will be returned
+    std::string find_file_in_folder(const std::string& folder,
+                  const std::string& regex);
     using DrmCmdWriteFunc = int (*)(int, unsigned long, void *, unsigned long);
     std::vector<int> drm_fds_;  // drm file descriptor by gpu_index
     std::vector<std::string> drm_paths_; // drm path (renderD128 for example)
