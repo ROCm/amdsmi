@@ -1407,7 +1407,8 @@ amdsmi_get_gpu_subsystem_name(amdsmi_processor_handle processor_handle, char *na
  */
 
 /**
- *  @brief Get the list of possible PCIe bandwidths that are available.
+ *  @brief Get the list of possible PCIe bandwidths that are available. It is not
+ *  supported on virtual machine guest
  *
  *  @details Given a processor handle @p processor_handle and a pointer to a to an
  *  ::amdsmi_pcie_bandwidth_t structure @p bandwidth, this function will fill in
@@ -1481,7 +1482,7 @@ amdsmi_status_t amdsmi_get_gpu_bdf_id(amdsmi_processor_handle processor_handle, 
 amdsmi_status_t amdsmi_get_gpu_topo_numa_affinity(amdsmi_processor_handle processor_handle, uint32_t *numa_node);
 
 /**
- *  @brief Get PCIe traffic information
+ *  @brief Get PCIe traffic information. It is not supported on virtual machine guest
  *
  *  @details Give a processor handle @p processor_handle and pointers to a uint64_t's, @p
  *  sent, @p received and @p max_pkt_sz, this function will write the number
@@ -1536,7 +1537,8 @@ amdsmi_status_t  amdsmi_get_gpu_pci_replay_counter(amdsmi_processor_handle proce
  */
 
 /**
- *  @brief Control the set of allowed PCIe bandwidths that can be used.
+ *  @brief Control the set of allowed PCIe bandwidths that can be used. It is not
+ *  supported on virtual machine guest
  *
  *  @details Given a processor handle @p processor_handle and a 64 bit bitmask @p bw_bitmask,
  *  this function will limit the set of allowable bandwidths. If a bit in @p
@@ -1576,7 +1578,7 @@ amdsmi_status_t  amdsmi_set_gpu_pci_bandwidth(amdsmi_processor_handle processor_
 
 /**
  *  @brief Get the energy accumulator counter of the processor with provided
- *  processor handle.
+ *  processor handle. It is not supported on virtual machine guest
  *
  *  @details Given a processor handle @p processor_handle, a pointer to a uint64_t
  *  @p power, and a pointer to a uint64_t @p timestamp, this function will write
@@ -1613,7 +1615,8 @@ amdsmi_get_energy_count(amdsmi_processor_handle processor_handle, uint64_t *powe
  *  @{
  */
 /**
- *  @brief Set the maximum gpu power cap value
+ *  @brief Set the maximum gpu power cap value. It is not supported on virtual
+ *  machine guest
  *
  *  @details This function will set the power cap to the provided value @p cap.
  *  @p cap must be between the minimum and maximum power cap values set by the
@@ -1633,7 +1636,7 @@ amdsmi_status_t
  amdsmi_set_power_cap(amdsmi_processor_handle processor_handle, uint32_t sensor_ind, uint64_t cap);
 
 /**
- *  @brief Set the power performance profile
+ *  @brief Set the power performance profile. It is not supported on virtual machine guest
  *
  *  @details This function will attempt to set the current profile to the provided
  *  profile, given a processor handle @p processor_handle and a @p profile. The provided
@@ -1711,7 +1714,8 @@ amdsmi_get_gpu_memory_usage(amdsmi_processor_handle processor_handle, amdsmi_mem
                                                               uint64_t *used);
 
 /**
- * @brief Get the bad pages of a processor.
+ * @brief Get the bad pages of a processor. It is not supported on virtual
+ * machine guest
  * @details This call will query the device @p processor_handle for the
  * number of bad pages (written to @p num_pages address). The results are
  * written to address held by the @p info pointer.
@@ -1729,7 +1733,8 @@ amdsmi_status_t
 amdsmi_get_gpu_bad_page_info(amdsmi_processor_handle processor_handle, uint32_t *num_pages, amdsmi_retired_page_record_t *info);
 
 /**
- * @brief Returns if RAS features are enabled or disabled for given block
+ * @brief Returns if RAS features are enabled or disabled for given block. It is not
+ * supported on virtual machine guest
  *
  * @details Given a processor handle @p processor_handle, this function queries the
  * state of RAS features for a specific block @p block. Result will be written
@@ -1753,7 +1758,8 @@ amdsmi_get_gpu_ras_block_features_enabled(amdsmi_processor_handle processor_hand
                                                                   amdsmi_ras_err_state_t *state);
 
 /**
- *  @brief Get information about reserved ("retired") memory pages
+ *  @brief Get information about reserved ("retired") memory pages. It is not supported on
+ *  virtual machine guest
  *
  *  @details Given a processor handle @p processor_handle, this function returns retired page
  *  information @p records corresponding to the device with the provided processor
@@ -1796,7 +1802,7 @@ amdsmi_get_gpu_memory_reserved_pages(amdsmi_processor_handle processor_handle, u
 
 /**
  *  @brief Get the fan speed in RPMs of the device with the specified processor
- *  handle and 0-based sensor index.
+ *  handle and 0-based sensor index. It is not supported on virtual machine guest
  *
  *  @details Given a processor handle @p processor_handle and a pointer to a uint32_t
  *  @p speed, this function will write the current fan speed in RPMs to the
@@ -1821,7 +1827,7 @@ amdsmi_status_t amdsmi_get_gpu_fan_rpms(amdsmi_processor_handle processor_handle
 
 /**
  *  @brief Get the fan speed for the specified device as a value relative to
- *  ::AMDSMI_MAX_FAN_SPEED
+ *  ::AMDSMI_MAX_FAN_SPEED. It is not supported on virtual machine guest
  *
  *  @details Given a processor handle @p processor_handle and a pointer to a uint32_t
  *  @p speed, this function will write the current fan speed (a value
@@ -1846,7 +1852,8 @@ amdsmi_status_t amdsmi_get_gpu_fan_speed(amdsmi_processor_handle processor_handl
                                         uint32_t sensor_ind, int64_t *speed);
 
 /**
- *  @brief Get the max. fan speed of the device with provided processor handle.
+ *  @brief Get the max. fan speed of the device with provided processor handle. It is
+ *  not supported on virtual machine guest
  *
  *  @details Given a processor handle @p processor_handle and a pointer to a uint32_t
  *  @p max_speed, this function will write the maximum fan speed possible to
@@ -1871,7 +1878,8 @@ amdsmi_status_t amdsmi_get_gpu_fan_speed_max(amdsmi_processor_handle processor_h
 
 /**
  *  @brief Get the temperature metric value for the specified metric, from the
- *  specified temperature sensor on the specified device.
+ *  specified temperature sensor on the specified device. It is not supported on
+ *  virtual machine guest
  *
  *  @details Given a processor handle @p processor_handle, a sensor type @p sensor_type, a
  *  ::amdsmi_temperature_metric_t @p metric and a pointer to an int64_t @p
@@ -1901,7 +1909,8 @@ amdsmi_status_t  amdsmi_get_temp_metric(amdsmi_processor_handle processor_handle
 
 /**
  *  @brief Get the voltage metric value for the specified metric, from the
- *  specified voltage sensor on the specified device.
+ *  specified voltage sensor on the specified device. It is not supported on
+ *  virtual machine guest
  *
  *  @details Given a processor handle @p processor_handle, a sensor type @p sensor_type, a
  *  ::amdsmi_voltage_metric_t @p metric and a pointer to an int64_t @p
@@ -1938,7 +1947,8 @@ amdsmi_status_t  amdsmi_get_gpu_volt_metric(amdsmi_processor_handle processor_ha
  */
 
 /**
- *  @brief Reset the fan to automatic driver control
+ *  @brief Reset the fan to automatic driver control. It is not supported on virtual
+ *  machine guest
  *
  *  @details This function returns control of the fan to the system
  *
@@ -1953,7 +1963,7 @@ amdsmi_status_t amdsmi_reset_gpu_fan(amdsmi_processor_handle processor_handle, u
 
 /**
  *  @brief Set the fan speed for the specified device with the provided speed,
- *  in RPMs.
+ *  in RPMs. It is not supported on virtual machine guest
  *
  *  @details Given a processor handle @p processor_handle and a integer value indicating
  *  speed @p speed, this function will attempt to set the fan speed to @p speed.
@@ -2014,7 +2024,8 @@ amdsmi_get_utilization_count(amdsmi_processor_handle processor_handle,
                 uint64_t *timestamp);
 
 /**
- *  @brief Get current PCIE info of the device with provided processor handle.
+ *  @brief Get current PCIE info of the device with provided processor handle. It is not supported
+ *  on virtual machine guest
  *
  *  @details Given a processor handle @p processor_handle, this function returns PCIE info of the
  *  given device.
@@ -2042,7 +2053,8 @@ amdsmi_status_t amdsmi_get_pcie_link_status(amdsmi_processor_handle processor_ha
 amdsmi_status_t amdsmi_get_pcie_link_caps(amdsmi_processor_handle processor_handle, amdsmi_pcie_info_t *info);
 
 /**
- *  @brief Get the performance level of the device
+ *  @brief Get the performance level of the device. It is not supported on virtual
+ *  machine guest
  *
  *  @details This function will write the ::amdsmi_dev_perf_level_t to the uint32_t
  *  pointed to by @p perf, for a given processor handle @p processor_handle and a pointer
@@ -2063,7 +2075,8 @@ amdsmi_status_t amdsmi_get_gpu_perf_level(amdsmi_processor_handle processor_hand
                                                  amdsmi_dev_perf_level_t *perf);
 
 /**
- *  @brief Enter performance determinism mode with provided processor handle.
+ *  @brief Enter performance determinism mode with provided processor handle. It is
+ *  not supported on virtual machine guest
  *
  *  @details Given a processor handle @p processor_handle and @p clkvalue this function
  *  will enable performance determinism mode, which enforces a GFXCLK frequency
@@ -2084,7 +2097,7 @@ amdsmi_set_gpu_perf_determinism_mode(amdsmi_processor_handle processor_handle, u
 
 /**
  *  @brief Get the overdrive percent associated with the device with provided
- *  processor handle.
+ *  processor handle. It is not supported on virtual machine guest
  *
  *  @details Given a processor handle @p processor_handle and a pointer to a uint32_t @p od,
  *  this function will write the overdrive percentage to the uint32_t pointed
@@ -2106,7 +2119,7 @@ amdsmi_status_t amdsmi_get_gpu_overdrive_level(amdsmi_processor_handle processor
 
 /**
  *  @brief Get the list of possible system clock speeds of device for a
- *  specified clock type.
+ *  specified clock type. It is not supported on virtual machine guest
  *
  *  @details Given a processor handle @p processor_handle, a clock type @p clk_type, and a
  *  pointer to a to an ::amdsmi_frequencies_t structure @p f, this function will
@@ -2127,7 +2140,8 @@ amdsmi_status_t  amdsmi_get_clk_freq(amdsmi_processor_handle processor_handle,
                              amdsmi_clk_type_t clk_type, amdsmi_frequencies_t *f);
 
 /**
- *  @brief Reset the gpu associated with the device with provided processor handle
+ *  @brief Reset the gpu associated with the device with provided processor handle. It is not
+ *  supported on virtual machine guest
  *
  *  @details Given a processor handle @p processor_handle, this function will reset the GPU
  *
@@ -2138,7 +2152,8 @@ amdsmi_status_t  amdsmi_get_clk_freq(amdsmi_processor_handle processor_handle,
 amdsmi_status_t amdsmi_reset_gpu(amdsmi_processor_handle processor_handle);
 
 /**
- *  @brief This function retrieves the voltage/frequency curve information
+ *  @brief This function retrieves the voltage/frequency curve information. It is
+ *  not supported on virtual machine guest
  *
  *  @details Given a processor handle @p processor_handle and a pointer to a
  *  ::amdsmi_od_volt_freq_data_t structure @p odv, this function will populate @p
@@ -2158,7 +2173,8 @@ amdsmi_status_t  amdsmi_get_gpu_od_volt_info(amdsmi_processor_handle processor_h
                                                amdsmi_od_volt_freq_data_t *odv);
 
 /**
- *  @brief This function retrieves the gpu metrics information
+ *  @brief This function retrieves the gpu metrics information. It is not supported
+ *  on virtual machine guest
  *
  *  @details Given a processor handle @p processor_handle and a pointer to a
  *  ::amdsmi_gpu_metrics_t structure @p pgpu_metrics, this function will populate
@@ -2178,7 +2194,8 @@ amdsmi_status_t  amdsmi_get_gpu_metrics_info(amdsmi_processor_handle processor_h
                                             amdsmi_gpu_metrics_t *pgpu_metrics);
 
 /**
- *  @brief This function sets the clock range information
+ *  @brief This function sets the clock range information. It is not supported on virtual
+ *  machine guest
  *
  *  @details Given a processor handle @p processor_handle, a minimum clock value @p minclkvalue,
  *  a maximum clock value @p maxclkvalue and a clock type @p clkType this function
@@ -2201,7 +2218,8 @@ amdsmi_status_t amdsmi_set_gpu_clk_range(amdsmi_processor_handle processor_handl
                                        amdsmi_clk_type_t clkType);
 
 /**
- *  @brief This function sets the clock frequency information
+ *  @brief This function sets the clock frequency information. It is not supported on
+ *  virtual machine guest
  *
  *  @details Given a processor handle @p processor_handle, a frequency level @p level,
  *  a clock value @p clkvalue and a clock type @p clkType this function
@@ -2224,7 +2242,8 @@ amdsmi_status_t  amdsmi_set_gpu_od_clk_info(amdsmi_processor_handle processor_ha
                                        amdsmi_clk_type_t clkType);
 
 /**
- *  @brief This function sets  1 of the 3 voltage curve points.
+ *  @brief This function sets  1 of the 3 voltage curve points. It is not supported
+ *  on virtual machine guest
  *
  *  @details Given a processor handle @p processor_handle, a voltage point @p vpoint
  *  and a voltage value @p voltvalue this function will set voltage curve point
@@ -2246,7 +2265,7 @@ amdsmi_status_t  amdsmi_set_gpu_od_volt_info(amdsmi_processor_handle processor_h
 
 /**
  *  @brief This function will retrieve the current valid regions in the
- *  frequency/voltage space.
+ *  frequency/voltage space. It is not supported on virtual machine guest
  *
  *  @details Given a processor handle @p processor_handle, a pointer to an unsigned integer
  *  @p num_regions and a buffer of ::amdsmi_freq_volt_region_t structures, @p
@@ -2284,7 +2303,7 @@ amdsmi_status_t  amdsmi_get_gpu_od_volt_curve_regions(amdsmi_processor_handle pr
 
 /**
  *  @brief Get the list of available preset power profiles and an indication of
- *  which profile is currently active.
+ *  which profile is currently active. It is not supported on virtual machine guest
  *
  *  @details Given a processor handle @p processor_handle and a pointer to a
  *  ::amdsmi_power_profile_status_t @p status, this function will set the bits of
@@ -2328,7 +2347,8 @@ amdsmi_status_t
 
 /**
  *  @brief Set the PowerPlay performance level associated with the device with
- *  provided processor handle with the provided value.
+ *  provided processor handle with the provided value. It is not supported
+ *  on virtual machine guest
  *
  *  @details Given a processor handle @p processor_handle and an ::amdsmi_dev_perf_level_t @p
  *  perf_level, this function will set the PowerPlay performance level for the
@@ -2347,7 +2367,8 @@ amdsmi_status_t
 
 /**
  *  @brief Set the overdrive percent associated with the device with provided
- *  processor handle with the provided value. See details for WARNING.
+ *  processor handle with the provided value. See details for WARNING. It is
+ *  not supported on virtual machine guest
  *
  *
  *  @details Given a processor handle @p processor_handle and an overdrive level @p od,
@@ -2385,7 +2406,7 @@ amdsmi_status_t  amdsmi_set_gpu_overdrive_level(amdsmi_processor_handle processo
 
 /**
  * @brief Control the set of allowed frequencies that can be used for the
- * specified clock.
+ * specified clock. It is not supported on virtual machine guest
  *
  * @details Given a processor handle @p processor_handle, a clock type @p clk_type, and a
  * 64 bit bitmask @p freq_bitmask, this function will limit the set of
@@ -2451,7 +2472,8 @@ amdsmi_get_lib_version(amdsmi_version_t *version);
  */
 
 /**
- *  @brief Retrieve the error counts for a GPU block
+ *  @brief Retrieve the error counts for a GPU block. It is not supported on virtual
+ *  machine guest
  *
  *  @details Given a processor handle @p processor_handle, an ::amdsmi_gpu_block_t @p block and a
  *  pointer to an ::amdsmi_error_count_t @p ec, this function will write the error
@@ -2475,7 +2497,7 @@ amdsmi_status_t  amdsmi_get_gpu_ecc_count(amdsmi_processor_handle processor_hand
                               amdsmi_gpu_block_t block, amdsmi_error_count_t *ec);
 
 /**
- *  @brief Retrieve the enabled ECC bit-mask
+ *  @brief Retrieve the enabled ECC bit-mask. It is not supported on virtual machine guest
  *
  *  @details Given a processor handle @p processor_handle, and a pointer to a uint64_t @p
  *  enabled_mask, this function will write bits to memory pointed to by
@@ -2502,7 +2524,8 @@ amdsmi_status_t  amdsmi_get_gpu_ecc_enabled(amdsmi_processor_handle processor_ha
                                                     uint64_t *enabled_blocks);
 
 /**
- *  @brief Retrieve the ECC status for a GPU block
+ *  @brief Retrieve the ECC status for a GPU block. It is not supported on virtual machine
+ *  guest
  *
  *  @details Given a processor handle @p processor_handle, an ::amdsmi_gpu_block_t @p block and
  *  a pointer to an ::amdsmi_ras_err_state_t @p state, this function will write
@@ -2646,7 +2669,8 @@ amdsmi_status_code_to_string(amdsmi_status_t status, const char **status_string)
  */
 
 /**
- *  @brief Tell if an event group is supported by a given device
+ *  @brief Tell if an event group is supported by a given device. It is not supported
+ *  on virtual machine guest
  *
  *  @details Given a processor handle @p processor_handle and an event group specifier @p
  *  group, tell if @p group type events are supported by the device associated
@@ -2706,7 +2730,8 @@ amdsmi_status_t
 amdsmi_gpu_destroy_counter(amdsmi_event_handle_t evnt_handle);
 
 /**
- *  @brief Issue performance counter control commands
+ *  @brief Issue performance counter control commands. It is not supported on
+ *  virtual machine guest
  *
  *  @details Issue a command @p cmd on the event counter associated with the
  *  provided handle @p evt_handle.
@@ -2746,7 +2771,8 @@ amdsmi_gpu_read_counter(amdsmi_event_handle_t evt_handle,
                     amdsmi_counter_value_t *value);
 
 /**
- *  @brief Get the number of currently available counters
+ *  @brief Get the number of currently available counters. It is not supported on
+ *  virtual machine guest
  *
  *  @details Given a processor handle @p processor_handle, a performance event group @p grp,
  *  and a pointer to a uint32_t @p available, this function will write the
@@ -2866,7 +2892,8 @@ amdsmi_get_gpu_compute_process_gpus(uint32_t pid, uint32_t *dv_indices,
  */
 
 /**
- *  @brief Retrieve the XGMI error status for a device
+ *  @brief Retrieve the XGMI error status for a device. It is not supported on
+ *  virtual machine guest
  *
  *  @details Given a processor handle @p processor_handle, and a pointer to an
  *  ::amdsmi_xgmi_status_t @p status, this function will write the current XGMI
@@ -2888,7 +2915,8 @@ amdsmi_status_t
 amdsmi_gpu_xgmi_error_status(amdsmi_processor_handle processor_handle, amdsmi_xgmi_status_t *status);
 
 /**
- * @brief Reset the XGMI error status for a device
+ * @brief Reset the XGMI error status for a device. It is not supported on virtual
+ * machine guest
  *
  * @details Given a processor handle @p processor_handle, this function will reset the
  * current XGMI error state ::amdsmi_xgmi_status_t for the device @p processor_handle to
@@ -3224,7 +3252,7 @@ amdsmi_get_gpu_board_info(amdsmi_processor_handle processor_handle, amdsmi_board
 
 /**
  *  @brief          Returns the power caps as currently configured in the
- *                  system.
+ *                  system. It is not supported on virtual machine guest
  *
  *  @param[in]      processor_handle Device which to query
  *  @param[in]      sensor_ind A 0-based sensor index. Normally, this will be 0.
@@ -3293,7 +3321,8 @@ amdsmi_get_gpu_vbios_info(amdsmi_processor_handle processor_handle, amdsmi_vbios
 
 /**
  *  @brief          Returns the current usage of the GPU engines (GFX, MM and MEM).
- *                  Each usage is reported as a percentage from 0-100%.
+ *                  Each usage is reported as a percentage from 0-100%. It is not
+ *                  supported on virtual machine guest
  *
  *  @param[in]      processor_handle Device which to query
  *
@@ -3307,6 +3336,7 @@ amdsmi_get_gpu_activity(amdsmi_processor_handle processor_handle, amdsmi_engine_
 /**
  *  @brief          Returns the current power and voltage of the GPU.
  *                  The voltage is in units of mV and the power in units of W.
+ *                  It is not supported on virtual machine guest
  *
  *  @param[in]      processor_handle Device which to query
  *
@@ -3320,7 +3350,8 @@ amdsmi_get_power_info(amdsmi_processor_handle processor_handle, amdsmi_power_inf
 /**
  *  @brief          Returns the measurements of the clocks in the GPU
  *                  for the GFX and multimedia engines and Memory. This call
- *                  reports the averages over 1s in MHz.
+ *                  reports the averages over 1s in MHz. It is not supported
+ *                  on virtual machine guest
  *
  *  @param[in]      processor_handle Device which to query
  *
@@ -3350,30 +3381,6 @@ amdsmi_status_t
 amdsmi_get_gpu_vram_usage(amdsmi_processor_handle processor_handle, amdsmi_vram_info_t *info);
 
 /** @} End gpumon */
-
-/*****************************************************************************/
-/** @defgroup powermon     Power Management
- *  @{
- */
-
-/**
- *  @brief          Returns current and supported frequency range
- *                  for the specified clock type.
- *
- *  @param[in]      processor_handle Device which to query
- *
- *  @param[in]      clk_type Clock type for which to get current and supported
- *                  frequency range.
- *
- *  @param[out]     range Reference to frequency range structure.
- *                  Must be allocated by user.
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t
-amdsmi_get_gpu_target_frequency_range(amdsmi_processor_handle processor_handle, amdsmi_clk_type_t clk_type, amdsmi_frequency_range_t *range);
-
-/** @} End powermon */
 
 /*****************************************************************************/
 /**  @defgroup processinfo     Process information
@@ -3429,7 +3436,8 @@ amdsmi_get_gpu_process_info(amdsmi_processor_handle processor_handle, amdsmi_pro
 
 /**
  *  @brief          Returns the total number of ECC errors (correctable and
- *                  uncorrectable) in the given GPU.
+ *                  uncorrectable) in the given GPU. It is not supported on
+ *                  virtual machine guest
  *
  *  @param[in]      processor_handle Device which to query
  *

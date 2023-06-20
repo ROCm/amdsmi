@@ -1445,57 +1445,6 @@ amdsmi_get_power_info(amdsmi_processor_handle processor_handle, amdsmi_power_inf
 }
 
 amdsmi_status_t
-amdsmi_get_gpu_target_frequency_range(amdsmi_processor_handle processor_handle, amdsmi_clk_type_t clk_type, amdsmi_frequency_range_t *range) {
-    AMDSMI_CHECK_INIT();
-
-    if (range == nullptr || clk_type > CLK_TYPE__MAX) {
-        return AMDSMI_STATUS_INVAL;
-    }
-
-    amdsmi_gpu_metrics_t metrics = {};
-    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
-    amdsmi_status_t r = get_gpu_device_from_handle(processor_handle, &gpu_device);
-    if (r != AMDSMI_STATUS_SUCCESS)
-        return r;
-
-    amdsmi_status_t status;
-
-    int min = 0, max = 0;
-    status =  amdsmi_get_gpu_metrics_info(processor_handle, &metrics);
-    if (status != AMDSMI_STATUS_SUCCESS) {
-        return status;
-    }
-    status = smi_amdgpu_get_ranges(gpu_device, clk_type, &max, &min, nullptr);
-    if (status != AMDSMI_STATUS_SUCCESS) {
-        return status;
-    }
-
-    range->supported_freq_range.lower_bound = (long)min;
-    range->current_freq_range.lower_bound = (long)min;
-    range->supported_freq_range.upper_bound = (long)max;
-    max = 0;
-    switch (clk_type) {
-    case CLK_TYPE_GFX:
-        max = metrics.current_gfxclk;
-        break;
-    case CLK_TYPE_MEM:
-        max = metrics.current_uclk;
-        break;
-    case CLK_TYPE_VCLK0:
-        max = metrics.current_vclk0;
-        break;
-    case CLK_TYPE_VCLK1:
-        max = metrics.current_vclk1;
-        break;
-    default:
-        return AMDSMI_STATUS_INVAL;
-    }
-    range->current_freq_range.upper_bound = (long)max;
-
-    return AMDSMI_STATUS_SUCCESS;
-}
-
-amdsmi_status_t
 amdsmi_get_gpu_driver_version(amdsmi_processor_handle processor_handle, int *length, char *version) {
     AMDSMI_CHECK_INIT();
 

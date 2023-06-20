@@ -761,34 +761,6 @@ def amdsmi_get_gpu_bad_page_info(
     return table_records
 
 
-def amdsmi_get_gpu_target_frequency_range(
-    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
-    clock_type: amdsmi_wrapper.amdsmi_clk_type_t,
-) -> Dict[str, Any]:
-    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
-        raise AmdSmiParameterException(
-            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
-        )
-    if not isinstance(clock_type, AmdSmiClkType):
-        raise AmdSmiParameterException(clock_type, AmdSmiClkType)
-
-    freq_range = amdsmi_wrapper.amdsmi_frequency_range_t()
-    _check_res(
-        amdsmi_wrapper.amdsmi_get_gpu_target_frequency_range(
-            processor_handle,
-            amdsmi_wrapper.amdsmi_clk_type_t(clock_type),
-            ctypes.byref(freq_range),
-        )
-    )
-
-    return {
-        "supported_upper_bound": freq_range.supported_freq_range.upper_bound,
-        "supported_lower_bound": freq_range.supported_freq_range.lower_bound,
-        "current_upper_bound": freq_range.current_freq_range.upper_bound,
-        "current_lower_bound": freq_range.current_freq_range.lower_bound,
-    }
-
-
 def amdsmi_get_gpu_total_ecc_count(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:

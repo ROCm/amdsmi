@@ -492,21 +492,6 @@ int main() {
                            : -1;
             };
 
-            // Get frequency ranges
-            amdsmi_frequency_range_t freq_ranges = {};
-            ret = amdsmi_get_gpu_target_frequency_range(
-                processor_handles[j], CLK_TYPE_GFX, &freq_ranges);
-            CHK_AMDSMI_RET(ret)
-            printf("    Output of amdsmi_get_gpu_target_frequency_range:\n");
-            printf("\tSupported min freq: %lu\n",
-                   freq_ranges.supported_freq_range.lower_bound);
-            printf("\tSupported max freq: %lu\n",
-                   freq_ranges.supported_freq_range.upper_bound);
-            printf("\tCurrent min freq: %lu\n",
-                   freq_ranges.current_freq_range.lower_bound);
-            printf("\tCurrent max freq: %lu\n\n",
-                   freq_ranges.current_freq_range.upper_bound);
-
             uint32_t num_process = 0;
             ret = amdsmi_get_gpu_process_list(processor_handles[j], &num_process,
                                           nullptr);
