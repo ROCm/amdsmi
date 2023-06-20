@@ -54,9 +54,6 @@ from .amdsmi_interface import amdsmi_get_pcie_link_status
 from .amdsmi_interface import amdsmi_get_pcie_link_caps
 from .amdsmi_interface import amdsmi_get_gpu_bad_page_info
 
-# # Power Management
-from .amdsmi_interface import amdsmi_get_gpu_target_frequency_range
-
 # # Process Information
 from .amdsmi_interface import amdsmi_get_gpu_process_list
 from .amdsmi_interface import amdsmi_get_gpu_process_info
