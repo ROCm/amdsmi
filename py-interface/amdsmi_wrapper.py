@@ -1646,9 +1646,6 @@ amdsmi_get_clock_info.argtypes = [amdsmi_processor_handle, amdsmi_clk_type_t, ct
 amdsmi_get_gpu_vram_usage = _libraries['libamd_smi.so'].amdsmi_get_gpu_vram_usage
 amdsmi_get_gpu_vram_usage.restype = amdsmi_status_t
 amdsmi_get_gpu_vram_usage.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_c__SA_amdsmi_vram_info_t)]
-amdsmi_get_gpu_target_frequency_range = _libraries['libamd_smi.so'].amdsmi_get_gpu_target_frequency_range
-amdsmi_get_gpu_target_frequency_range.restype = amdsmi_status_t
-amdsmi_get_gpu_target_frequency_range.argtypes = [amdsmi_processor_handle, amdsmi_clk_type_t, ctypes.POINTER(struct_c__SA_amdsmi_frequency_range_t)]
 amdsmi_get_gpu_process_list = _libraries['libamd_smi.so'].amdsmi_get_gpu_process_list
 amdsmi_get_gpu_process_list.restype = amdsmi_status_t
 amdsmi_get_gpu_process_list.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_uint32)]
@@ -1791,8 +1788,6 @@ __all__ = \
     'TEMPERATURE_TYPE_HBM_2', 'TEMPERATURE_TYPE_HBM_3',
     'TEMPERATURE_TYPE_JUNCTION', 'TEMPERATURE_TYPE_PLX',
     'TEMPERATURE_TYPE_VRAM', 'TEMPERATURE_TYPE__MAX', 'UNKNOWN',
-    'amdsmi_get_gpu_bdf_id',
-    'amdsmi_get_minmax_bandwith_between_processors',
     'amd_metrics_table_header_t', 'amdsmi_asic_info_t',
     'amdsmi_bdf_t', 'amdsmi_bit_field_t', 'amdsmi_board_info_t',
     'amdsmi_clk_info_t', 'amdsmi_clk_type_t',
@@ -1815,7 +1810,8 @@ __all__ = \
     'amdsmi_get_clock_info', 'amdsmi_get_energy_count',
     'amdsmi_get_fw_info', 'amdsmi_get_gpu_activity',
     'amdsmi_get_gpu_asic_info', 'amdsmi_get_gpu_available_counters',
-    'amdsmi_get_gpu_bad_page_info', 'amdsmi_get_gpu_board_info',
+    'amdsmi_get_gpu_bad_page_info', 'amdsmi_get_gpu_bdf_id',
+    'amdsmi_get_gpu_board_info',
     'amdsmi_get_gpu_compute_process_gpus',
     'amdsmi_get_gpu_compute_process_info',
     'amdsmi_get_gpu_compute_process_info_by_pid',
@@ -1836,14 +1832,15 @@ __all__ = \
     'amdsmi_get_gpu_process_info', 'amdsmi_get_gpu_process_list',
     'amdsmi_get_gpu_ras_block_features_enabled',
     'amdsmi_get_gpu_subsystem_id', 'amdsmi_get_gpu_subsystem_name',
-    'amdsmi_get_gpu_target_frequency_range',
     'amdsmi_get_gpu_topo_numa_affinity',
     'amdsmi_get_gpu_total_ecc_count', 'amdsmi_get_gpu_vbios_info',
     'amdsmi_get_gpu_vendor_name', 'amdsmi_get_gpu_volt_metric',
     'amdsmi_get_gpu_vram_usage', 'amdsmi_get_gpu_vram_vendor',
-    'amdsmi_get_lib_version', 'amdsmi_get_pcie_link_caps',
-    'amdsmi_get_pcie_link_status', 'amdsmi_get_power_cap_info',
-    'amdsmi_get_power_info', 'amdsmi_get_processor_handle_from_bdf',
+    'amdsmi_get_lib_version',
+    'amdsmi_get_minmax_bandwith_between_processors',
+    'amdsmi_get_pcie_link_caps', 'amdsmi_get_pcie_link_status',
+    'amdsmi_get_power_cap_info', 'amdsmi_get_power_info',
+    'amdsmi_get_processor_handle_from_bdf',
     'amdsmi_get_processor_handles', 'amdsmi_get_processor_type',
     'amdsmi_get_socket_handles', 'amdsmi_get_socket_info',
     'amdsmi_get_temp_metric', 'amdsmi_get_utilization_count',

@@ -373,7 +373,7 @@ except AmdSmiException as e:
 ### amdsmi_get_power_cap_info
 
 Description: Returns dictionary of power capabilities as currently configured
-on the given GPU
+on the given GPU. It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -494,7 +494,8 @@ except AmdSmiException as e:
 
 ### amdsmi_get_gpu_activity
 
-Description: Returns the engine usage for the given GPU
+Description: Returns the engine usage for the given GPU.
+It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -533,7 +534,8 @@ except AmdSmiException as e:
 
 ### amdsmi_get_power_info
 
-Description: Returns the current power and voltage for the given GPU
+Description: Returns the current power and voltage for the given GPU.
+It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -609,7 +611,8 @@ except AmdSmiException as e:
 
 ### amdsmi_get_clock_info
 
-Description: Returns the clock measure for the given GPU
+Description: Returns the clock measure for the given GPU.
+It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -663,7 +666,8 @@ except AmdSmiException as e:
 
 ### amdsmi_get_pcie_link_status
 
-Description: Returns the pcie link status for the given GPU
+Description: Returns the pcie link status for the given GPU.
+It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -737,7 +741,8 @@ except AmdSmiException as e:
 
 ### amdsmi_get_gpu_bad_page_info
 
-Description:  Returns bad page info for the given GPU
+Description:  Returns bad page info for the given GPU.
+It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -776,80 +781,6 @@ try:
                 print(bad_page["page_address"])
                 print(bad_page["page_size"])
                 print(bad_page["status"])
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_target_frequency_range
-
-Description: Returns the supported frequency target range for the given GPU
-
-`Note: Not Supported`
-
-Input parameters:
-
-* `processor_handle` device which to query
-* `clock_type` one of `AmdSmiClkType` enum values:
-
-Field | Description
----|---
-`SYS` | SYS clock type
-`GFX` | GFX clock type
-`DF` | DF clock type
-`DCEF` | DCEF clock type
-`SOC` | SOC clock type
-`MEM` | MEM clock type
-`PCIE` | PCIE clock type
-`VCLK0` | VCLK0 clock type
-`VCLK1` | VCLK1 clock type
-`DCLK0` | DCLK0 clock type
-`DCLK1` | DCLK1 clock type
-
-Output: Dictionary with fields
-
-Field | Description
----|---
-`supported_upper_bound` | Maximal value of target supported frequency in MHz
-`supported_lower_bound` | Minimal value of target supported frequency in MHz
-`current_upper_bound` | Maximal value of target current frequency in MHz
-`current_lower_bound` | Minimal value of target current frequency in MHz
-
-Exceptions that can be thrown by `amdsmi_get_gpu_target_frequency_range` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on machine")
-    else:
-        for device in devices:
-            print("=============== GFX DOMAIN ================")
-            freq_range = amdsmi_get_gpu_target_frequency_range(device,
-                AmdSmiClkType.GFX)
-            print(freq_range['supported_upper_bound'])
-            print(freq_range['supported_lower_bound'])
-            print(freq_range['current_upper_bound'])
-            print(freq_range['current_lower_bound'])
-            print("=============== MEM DOMAIN ================")
-            freq_range = amdsmi_get_gpu_target_frequency_range(device,
-                AmdSmiClkType.MEM)
-            print(freq_range['supported_upper_bound'])
-            print(freq_range['supported_lower_bound'])
-            print(freq_range['current_upper_bound'])
-            print(freq_range['current_lower_bound'])
-            print("=============== VCLK0 DOMAIN ================")
-            freq_range = amdsmi_get_gpu_target_frequency_range(device,
-                AmdSmiClkType.VCLK0)
-            print(freq_range['supported_upper_bound'])
-            print(freq_range['supported_lower_bound'])
-            print(freq_range['current_upper_bound'])
-            print(freq_range['current_lower_bound'])
 except AmdSmiException as e:
     print(e)
 ```
@@ -928,7 +859,8 @@ except AmdSmiException as e:
 
 ### amdsmi_get_gpu_total_ecc_count
 
-Description: Returns the ECC error count for the given GPU
+Description: Returns the ECC error count for the given GPU.
+It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -1000,7 +932,8 @@ except AmdSmiException as e:
 
 ### amdsmi_get_gpu_ras_block_features_enabled
 
-Description: Returns status of each RAS block for the given GPU
+Description: Returns status of each RAS block for the given GPU.
+It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -1107,6 +1040,7 @@ except AmdSmiException as e:
 ### amdsmi_set_gpu_pci_bandwidth
 
 Description: Control the set of allowed PCIe bandwidths that can be used
+It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -1138,7 +1072,8 @@ except AmdSmiException as e:
 
 ### amdsmi_set_power_cap
 
-Description: Set the power cap value
+Description: Set the power cap value. It is not supported on virtual machine
+guest
 
 Input parameters:
 
@@ -1172,7 +1107,7 @@ except AmdSmiException as e:
 
 ### amdsmi_set_gpu_power_profile
 
-Description: Set the power profile
+Description: Set the power profile. It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -1206,7 +1141,8 @@ except AmdSmiException as e:
 
 ### amdsmi_set_gpu_clk_range
 
-Description: This function sets the clock range information
+Description: This function sets the clock range information.
+It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -1283,6 +1219,7 @@ except AmdSmiException as e:
 ### amdsmi_get_gpu_pci_bandwidth
 
 Description: Get the list of possible PCIe bandwidths that are available.
+It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -1326,7 +1263,7 @@ except AmdSmiException as e:
 
 ### amdsmi_get_gpu_pci_throughput
 
-Description: Get PCIe traffic information
+Description: Get PCIe traffic information. It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -1427,6 +1364,7 @@ except AmdSmiException as e:
 ### amdsmi_get_energy_count
 
 Description: Get the energy accumulator counter of the device.
+It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -1496,6 +1434,7 @@ except AmdSmiException as e:
 ### amdsmi_set_gpu_od_clk_info
 
 Description: This function sets the clock frequency information
+It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -1566,7 +1505,8 @@ except AmdSmiException as e:
 
 ### amdsmi_set_gpu_od_volt_info
 
-Description: This function sets  1 of the 3 voltage curve points
+Description: This function sets  1 of the 3 voltage curve points.
+It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -1600,7 +1540,7 @@ except AmdSmiException as e:
 ### amdsmi_get_gpu_fan_rpms
 
 Description: Get the fan speed in RPMs of the device with the specified device
-handle and 0-based sensor index.
+handle and 0-based sensor index. It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -1634,7 +1574,7 @@ except AmdSmiException as e:
 ### amdsmi_get_gpu_fan_speed
 
 Description: Get the fan speed for the specified device as a value relative to
-AMDSMI_MAX_FAN_SPEED
+AMDSMI_MAX_FAN_SPEED. It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -1667,7 +1607,8 @@ except AmdSmiException as e:
 
 ### amdsmi_get_gpu_fan_speed_max
 
-Description: Get the max fan speed of the device with provided device handle
+Description: Get the max fan speed of the device with provided device handle.
+It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -1701,7 +1642,8 @@ except AmdSmiException as e:
 ### amdsmi_get_temp_metric
 
 Description: Get the temperature metric value for the specified metric, from the
-specified temperature sensor on the specified device
+specified temperature sensor on the specified device. It is not supported on virtual
+machine guest
 
 Input parameters:
 
@@ -1736,7 +1678,8 @@ except AmdSmiException as e:
 ### amdsmi_get_gpu_volt_metric
 
 Description: Get the voltage metric value for the specified metric, from the
-specified voltage sensor on the specified device
+specified voltage sensor on the specified device. It is not supported on virtual
+machine guest
 
 Input parameters:
 
@@ -1816,7 +1759,8 @@ except AmdSmiException as e:
 
 ### amdsmi_get_gpu_perf_level
 
-Description: Get the performance level of the device with provided device handle
+Description: Get the performance level of the device with provided device handle.
+It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -1847,7 +1791,8 @@ except AmdSmiException as e:
 
 ### amdsmi_set_gpu_perf_determinism_mode
 
-Description: Enter performance determinism mode with provided device handle
+Description: Enter performance determinism mode with provided device handle.
+It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -1879,7 +1824,7 @@ except AmdSmiException as e:
 ### amdsmi_get_gpu_overdrive_level
 
 Description: Get the overdrive percent associated with the device with provided
-device handle
+device handle. It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -1911,7 +1856,7 @@ except AmdSmiException as e:
 ### amdsmi_get_clk_freq
 
 Description: Get the list of possible system clock speeds of device for a
-specified clock type
+specified clock type. It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -1949,6 +1894,7 @@ except AmdSmiException as e:
 ### amdsmi_get_gpu_od_volt_info
 
 Description: This function retrieves the voltage/frequency curve information
+It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -1987,7 +1933,8 @@ except AmdSmiException as e:
 
 ### amdsmi_get_gpu_metrics_info
 
-Description: This function retrieves the gpu metrics information
+Description: This function retrieves the gpu metrics information. It is not
+supported on virtual machine guest
 
 Input parameters:
 
@@ -2055,7 +2002,7 @@ except AmdSmiException as e:
 ### amdsmi_get_gpu_od_volt_curve_regions
 
 Description: This function will retrieve the current valid regions in the
-frequency/voltage space
+frequency/voltage space. It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -2092,7 +2039,7 @@ except AmdSmiException as e:
 ### amdsmi_get_gpu_power_profile_presets
 
 Description:  Get the list of available preset power profiles and an indication of
-which profile is currently active
+which profile is currently active. It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -2129,7 +2076,8 @@ except AmdSmiException as e:
 
 ### amdsmi_gpu_counter_group_supported
 
-Description: Tell if an event group is supported by a given device
+Description: Tell if an event group is supported by a given device.
+It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -2222,7 +2170,8 @@ except AmdSmiException as e:
 
 ### amdsmi_gpu_control_counter
 
-Description: Issue performance counter control commands
+Description: Issue performance counter control commands. It is not supported
+on virtual machine guest
 
 Input parameters:
 
@@ -2291,7 +2240,8 @@ except AmdSmiException as e:
 
 ### amdsmi_get_gpu_available_counters
 
-Description: Get the number of currently available counters
+Description: Get the number of currently available counters. It is not supported
+on virtual machine guest
 
 Input parameters:
 
@@ -2323,7 +2273,8 @@ except AmdSmiException as e:
 
 ### amdsmi_set_gpu_perf_level
 
-Description: Set a desired performance level for given device
+Description: Set a desired performance level for given device. It is not
+supported on virtual machine guest
 
 Input parameters:
 
@@ -2355,6 +2306,7 @@ except AmdSmiException as e:
 ### amdsmi_reset_gpu
 
 Description: Reset the gpu associated with the device with provided device handle
+It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -2385,7 +2337,7 @@ except AmdSmiException as e:
 ### amdsmi_set_gpu_fan_speed
 
 Description: Set the fan speed for the specified device with the provided speed,
-in RPMs
+in RPMs. It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -2417,7 +2369,8 @@ except AmdSmiException as e:
 
 ### amdsmi_reset_gpu_fan
 
-Description: Reset the fan to automatic driver control
+Description: Reset the fan to automatic driver control. It is not
+supported on virtual machine guest
 
 Input parameters:
 
@@ -2449,7 +2402,7 @@ except AmdSmiException as e:
 ### amdsmi_set_clk_freq
 
 Description: Control the set of allowed frequencies that can be used for the
-specified clock
+specified clock. It is not supported on virtual machine guest
 
 Input parameters:
 
@@ -2486,7 +2439,8 @@ except AmdSmiException as e:
 ### amdsmi_set_gpu_overdrive_level
 
 Description: **deprecated** Set the overdrive percent associated with the
-device with provided device handle with the provided value
+device with provided device handle with the provided value. It is not
+supported on virtual machine guest
 
 Input parameters:
 
@@ -2517,7 +2471,8 @@ except AmdSmiException as e:
 
 ### amdsmi_get_gpu_ecc_count
 
-Description: Retrieve the error counts for a GPU block
+Description: Retrieve the error counts for a GPU block. It is not supported
+on virtual machine guest
 
 Input parameters:
 
@@ -2554,7 +2509,8 @@ except AmdSmiException as e:
 
 ### amdsmi_get_gpu_ecc_enabled
 
-Description: Retrieve the enabled ECC bit-mask
+Description: Retrieve the enabled ECC bit-mask. It is not supported on virtual
+machine guest
 
 Input parameters:
 
@@ -2585,7 +2541,8 @@ except AmdSmiException as e:
 
 ### amdsmi_get_gpu_ecc_status
 
-Description: Retrieve the ECC status for a GPU block
+Description: Retrieve the ECC status for a GPU block. It is not supported
+on virtual machine guest
 
 Input parameters:
 
@@ -2735,7 +2692,8 @@ except AmdSmiException as e:
 
 ### amdsmi_gpu_xgmi_error_status
 
-Description: Retrieve the XGMI error status for a device
+Description: Retrieve the XGMI error status for a device. It is not supported on
+virtual machine guest
 
 Input parameters:
 
@@ -2766,7 +2724,8 @@ except AmdSmiException as e:
 
 ### amdsmi_reset_gpu_xgmi_error
 
-Description: Reset the XGMI error status for a device
+Description: Reset the XGMI error status for a device. It is not supported
+on virtual machine guest
 
 Input parameters:
 

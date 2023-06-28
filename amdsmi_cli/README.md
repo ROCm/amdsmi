@@ -22,17 +22,15 @@ Recommended: At least one AMD GPU with AMD driver installed
 
 Add /opt/rocm/bin to your shell's path to access amd-smi via the cmdline
 
-### RHEL 8
+### RHEL 8 & SLES 15
 
-The default python version in RHEL 8 is python 3.6.8
+The default python versions in RHEL 8 and SLES 15 are 3.6.8 and 3.6.15
 
-To install the python library you need to upgrade to python 3.7+
+While the CLI may work with these python versions, to install the python library you need to upgrade to python 3.7+
 
-The package's dependency manager will attempt to install python 3.8+
+Verify that your python version is 3.7+ to install the python library
 
-Verify that your python version is 3.7+ and if not you can use python3.8 instead of python3
-
-### Example of Ubuntu 22.04 post amdgpu driver install
+### Install Example for Ubuntu 22.04
 
 ``` bash
 apt install amd-smi-lib
@@ -43,6 +41,10 @@ python3 -m pip install --user .
 ```
 
 Add /opt/rocm/bin to your shell's path to access amd-smi via the cmdline
+
+``` bash
+export PATH=$PATH:/opt/rocm/bin
+```
 
 ## Usage
 

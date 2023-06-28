@@ -58,6 +58,7 @@ option(BUILD_WRAPPER "Rebuild AMDSMI-wrapper" OFF)
 option(BUILD_CLI "Build AMDSMI-CLI and install" ON)
 option(ENABLE_LDCONFIG "Set library links and caches using ldconfig." ON)
 option(ENABLE_ASAN_PACKAGING "" OFF)
+option(ENABLE_ESMI_LIB "" OFF)
 
 # Set share path here because project name != amd_smi
 set(SHARE_INSTALL_PREFIX "share/${AMD_SMI}" CACHE STRING "Tests and Example install directory")
@@ -91,12 +92,23 @@ set(COMMON_INC_DIR "${PROJECT_SOURCE_DIR}/include/amd_smi")
 set(AMDSMI_INC_DIR "${PROJECT_SOURCE_DIR}/include/amd_smi")
 set(ROCM_INC_DIR "${PROJECT_SOURCE_DIR}/rocm_smi/include/rocm_smi")
 set(SHR_MUTEX_DIR "${PROJECT_SOURCE_DIR}/third_party/shared_mutex")
+if(ENABLE_ESMI_LIB)
+if((EXISTS ${PROJECT_SOURCE_DIR}/e_smi_library/src) AND (EXISTS ${PROJECT_SOURCE_DIR}/e_smi_library/src/e_smi_plat.c))
+	set(ESMI_AVAILABLE TRUE)
+else()
+	message("E-smi source not found. Errors will be encountered during compilation!!!")
+endif()
+if(ESMI_AVAILABLE)
+	set(ESMI_INC_DIR "${PROJECT_SOURCE_DIR}/e_smi_library/include")
+	set(ESMI_SRC_DIR "${PROJECT_SOURCE_DIR}/e_smi_library/src")
+endif()
+endif()
 
 pkg_check_modules(DRM REQUIRED libdrm)
 pkg_check_modules(AMDGPU_DRM REQUIRED libdrm_amdgpu)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/third_party/shared_mutex
-                    ${CMAKE_CURRENT_SOURCE_DIR}/include/amd_smi ${DRM_INCLUDE_DIRS})
+                    ${CMAKE_CURRENT_SOURCE_DIR}/include/amd_smi ${ESMI_INC_DIR} ${DRM_INCLUDE_DIRS})
 
 set(CMN_SRC_LIST
     "${ROCM_SRC_DIR}/rocm_smi.cc"
@@ -110,6 +122,13 @@ set(CMN_SRC_LIST
     "${ROCM_SRC_DIR}/rocm_smi_power_mon.cc"
     "${ROCM_SRC_DIR}/rocm_smi_utils.cc"
     "${SHR_MUTEX_DIR}/shared_mutex.cc")
+
+if(ESMI_AVAILABLE)
+	list(APPEND CMN_SRC_LIST ${ESMI_SRC_DIR}/e_smi.c)
+	list(APPEND CMN_SRC_LIST ${ESMI_SRC_DIR}/e_smi_monitor.c)
+	list(APPEND CMN_SRC_LIST ${ESMI_SRC_DIR}/e_smi_plat.c)
+	list(APPEND CMN_SRC_LIST ${ESMI_SRC_DIR}/e_smi_utils.c)
+endif()
 
 set(CMN_INC_LIST
     "${ROCM_INC_DIR}/rocm_smi.h"
@@ -227,10 +246,7 @@ endif()
 set(CPACK_RPM_PACKAGE_PROVIDES "amd-smi")
 set(CPACK_RPM_DEV_PACKAGE_PROVIDES "${AMD_SMI_PACKAGE}")
 set(CPACK_RPM_ASAN_PACKAGE_PROVIDES "${AMD_SMI_PACKAGE}-asan")
-set(CPACK_RPM_PACKAGE_REQUIRES "python3 >= 3.7.9")
-set(CPACK_RPM_DEV_PACKAGE_REQUIRES ${CPACK_RPM_PACKAGE_REQUIRES})
-set(CPACK_RPM_ASAN_PACKAGE_REQUIRES ${CPACK_RPM_PACKAGE_REQUIRES})
-set(CPACK_RPM_PACKAGE_SUGGESTS "python38")
+set(CPACK_RPM_PACKAGE_SUGGESTS "python3 >= 3.7.9")
 set(CPACK_RPM_DEV_PACKAGE_SUGGESTS ${CPACK_RPM_PACKAGE_SUGGESTS})
 set(CPACK_RPM_ASAN_PACKAGE_SUGGESTS ${CPACK_RPM_PACKAGE_SUGGESTS})
 
