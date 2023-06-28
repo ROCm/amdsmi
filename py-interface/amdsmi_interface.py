@@ -28,6 +28,8 @@ from collections.abc import Iterable
 from . import amdsmi_wrapper
 from .amdsmi_exception import *
 
+MAX_NUM_PROCESSES = 1024
+
 class AmdSmiInitFlags(IntEnum):
     INIT_ALL_PROCESSORS = amdsmi_wrapper.AMDSMI_INIT_ALL_PROCESSORS
     INIT_AMD_CPUS = amdsmi_wrapper.AMDSMI_INIT_AMD_CPUS
@@ -845,14 +847,7 @@ def amdsmi_get_gpu_process_list(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    max_processes = ctypes.c_uint32(0)
-    process_list = (amdsmi_wrapper.amdsmi_process_handle_t *
-                    max_processes.value)()
-    _check_res(
-        amdsmi_wrapper.amdsmi_get_gpu_process_list(
-            processor_handle, ctypes.byref(max_processes), process_list 
-        )
-    )
+    max_processes = ctypes.c_uint32(MAX_NUM_PROCESSES)
 
     process_list = (amdsmi_wrapper.amdsmi_process_handle_t *
                     max_processes.value)()
@@ -862,7 +857,8 @@ def amdsmi_get_gpu_process_list(
         )
     )
 
-    return [amdsmi_wrapper.amdsmi_process_handle_t(x) for x in list(process_list)]
+    return [amdsmi_wrapper.amdsmi_process_handle_t(process_list[x])\
+    for x in range(0, max_processes.value)]
 
 
 def amdsmi_get_gpu_process_info(
