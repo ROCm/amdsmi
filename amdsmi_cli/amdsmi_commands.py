@@ -298,7 +298,7 @@ class AMDSMICommands():
                     temp_vram_limit = amdsmi_interface.amdsmi_get_temp_metric(args.gpu,
                         amdsmi_interface.AmdSmiTemperatureType.VRAM, amdsmi_interface.AmdSmiTemperatureMetric.CRITICAL)
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    temp_junction_limit = e.get_error_info()
+                    temp_vram_limit = e.get_error_info()
                     if not self.all_arguments:
                         raise e
 
