@@ -137,6 +137,12 @@ void TestFanReadWrite::Run(void) {
     }
 
     ret = amdsmi_set_gpu_fan_speed(processor_handles_[dv_ind], 0, new_speed);
+
+    // When you can read fan speed, it is not always can set fan speed.
+    if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
+      std::cout << "***System fan set is not supported." << std::endl;
+      continue;
+    }
     CHK_ERR_ASRT(ret)
 
     sleep(4);
