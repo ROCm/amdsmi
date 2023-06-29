@@ -9,6 +9,8 @@ import subprocess
 from rocm_docs import ROCmDocs
 
 
+external_projects_current_project = "amdsmi"
+
 get_version_year = r'sed -n -e "s/^#define\ AMDSMI_LIB_VERSION_YEAR\ //p" ../include/amd_smi/amdsmi.h'
 get_version_major = r'sed -n -e "s/^#define\ AMDSMI_LIB_VERSION_MAJOR\ //p" ../include/amd_smi/amdsmi.h'
 get_version_minor = r'sed -n -e "s/^#define\ AMDSMI_LIB_VERSION_MINOR\ //p" ../include/amd_smi/amdsmi.h'
