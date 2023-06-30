@@ -465,6 +465,8 @@ Monitor::getVoltSensorIndex(rsmi_voltage_type_t type) {
 
 rsmi_voltage_type_t
 Monitor::getVoltSensorEnum(uint64_t ind) {
+  // check if ind is a key or not
+  if (index_volt_type_map_.count(ind) == 0) return RSMI_VOLT_TYPE_INVALID;
   return index_volt_type_map_.at(ind);
 }
 
