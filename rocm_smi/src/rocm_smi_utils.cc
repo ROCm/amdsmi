@@ -120,6 +120,9 @@ int WriteSysfsStr(std::string path, std::string val) {
 
   fs << val;
   fs.close();
+  if (!fs) {
+    return ENOENT;  // Map to NOT_SUPPORT if errors
+  }
   return ret;
 }
 
