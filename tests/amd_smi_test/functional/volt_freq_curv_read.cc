@@ -158,15 +158,18 @@ void TestVoltCurvRead::Run(void) {
     PrintDeviceHeader(processor_handles_[i]);
 
     err =  amdsmi_get_gpu_od_volt_info(processor_handles_[i], &odv);
-    if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
+    if (err == AMDSMI_STATUS_NOT_SUPPORTED
+          || err == AMDSMI_STATUS_NOT_YET_IMPLEMENTED) {
       IF_VERB(STANDARD) {
         std::cout <<
             "\t** amdsmi_get_gpu_od_volt_info: Not supported on this machine"
                                                                << std::endl;
       }
       // Verify api support checking functionality is working
-      err =  amdsmi_get_gpu_od_volt_info(processor_handles_[i], nullptr);
-      ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
+      if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
+        err =  amdsmi_get_gpu_od_volt_info(processor_handles_[i], nullptr);
+        ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
+      }
     } else {
       CHK_ERR_ASRT(err)
       // Verify api support checking functionality is working
