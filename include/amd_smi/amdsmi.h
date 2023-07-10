@@ -3390,16 +3390,21 @@ amdsmi_get_gpu_vram_usage(amdsmi_processor_handle processor_handle, amdsmi_vram_
 /**
  *  @brief          Returns the list of processes running on a given GPU including itself.
  *
- *  @note           The user provides a buffer to store the list and the
- *                  maximum number of processes that can be returned. If the user
- *                  sets max_processes to 0, the total number of processes will be
- *                  returned.
+ *  @note           The user provides a buffer to store the list and the maximum
+ *                  number of processes that can be returned. If the user sets
+ *                  max_processes to 0, the current total number of processes will
+ *                  replace max_processes param. After that, the function needs to be
+ *                  called again, with updated max_processes, to successfully fill the
+ *                  process list, which was previously allocated with max_processes
  *
  *  @param[in]      processor_handle Device which to query
  *
  *  @param[in,out]  max_processes Reference to the size of the list buffer in
  *                  number of elements. Returns the return number of elements
- *                  in list or the number of running processes if equal to 0.
+ *                  in list or the number of running processes if equal to 0,
+ *                  and if given value in param max_processes is less than
+ *                  number of processes currently running,
+ *                  AMDSMI_STATUS_OUT_OF_RESOURCES will be returned.
  *
  *  @param[out]     list Reference to a user-provided buffer where the process
  *                  list will be returned. This buffer must contain at least
