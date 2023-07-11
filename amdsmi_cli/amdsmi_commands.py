@@ -224,9 +224,10 @@ class AMDSMICommands():
 
             try:
                 bus_info = amdsmi_interface.amdsmi_get_pcie_link_caps(args.gpu)
-
+                pcie_speed_GTs_value = round(bus_info['pcie_speed'] / 1000, 1) if bus_info['pcie_speed'] % 1000 != 0 else  round(bus_info['pcie_speed'] / 1000)
+                bus_info['pcie_speed'] = pcie_speed_GTs_value
                 if self.logger.is_human_readable_format():
-                    unit ='MT/s'
+                    unit ='GT/s'
                     bus_info['pcie_speed'] = f"{bus_info['pcie_speed']} {unit}"
             except amdsmi_exception.AmdSmiLibraryException as e:
                 bus_info = e.get_error_info()
@@ -915,8 +916,10 @@ class AMDSMICommands():
             if args.pcie:
                 try:
                     pcie_link_status = amdsmi_interface.amdsmi_get_pcie_link_caps(args.gpu)
+                    pcie_speed_GTs_value = round(pcie_link_status['pcie_speed'] / 1000, 1) if pcie_link_status['pcie_speed'] % 1000 != 0 else  round(pcie_link_status['pcie_speed'] / 1000)
+                    pcie_link_status['pcie_speed'] = pcie_speed_GTs_value
                     if self.logger.is_human_readable_format():
-                        unit ='MT/s'
+                        unit ='GT/s'
                         pcie_link_status['pcie_speed'] = f"{pcie_link_status['pcie_speed']} {unit}"
                     if self.logger.is_gpuvsmi_compatibility():
                         pcie_link_status['current_width'] = pcie_link_status.pop('pcie_lanes')
