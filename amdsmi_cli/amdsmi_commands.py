@@ -212,7 +212,7 @@ class AMDSMICommands():
                 asic_info['device_id'] = hex(asic_info['device_id'])
                 asic_info['rev_id'] = hex(asic_info['rev_id'])
                 if asic_info['asic_serial'] != '':
-                    asic_info['asic_serial'] = '0x' + asic_info['asic_serial']
+                    asic_info['asic_serial'] = hex(int(asic_info['asic_serial'], base=16))
 
                 static_dict['asic'] = asic_info
             except amdsmi_exception.AmdSmiLibraryException as e:
