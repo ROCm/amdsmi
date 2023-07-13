@@ -41,43 +41,41 @@
  *
  */
 
-#include <functional>
-#include "amd_smi/amdsmi.h"
-#include "amd_smi/impl/amd_smi_common.h"
+#ifndef AMD_SMI_INCLUDE_AMD_SMI_CPU_SOCKET_H_
+#define AMD_SMI_INCLUDE_AMD_SMI_CPU_SOCKET_H_
 
+#include <string>
+#include <algorithm>
+#include <vector>
+#include "amd_smi/amdsmi.h"
+#include "amd_smi/impl/amd_smi_processor.h"
+#include "amd_smi/impl/amd_smi_cpu_core.h"
 
 namespace amd {
 namespace smi {
 
-amdsmi_status_t rsmi_to_amdsmi_status(rsmi_status_t status) {
-    amdsmi_status_t amdsmi_status = AMDSMI_STATUS_MAP_ERROR;
+/*Subclass CPU Socket*/
+class AMDSmiCpuSocket : public AMDSmiProcessor {
+ public:
+    explicit AMDSmiCpuSocket(const uint32_t& id):AMDSmiProcessor(AMD_CPU),socket_identifier_(id) {}
 
-    // Look for it in the map
-    // If found: use the mapped value
-    // If not found: return the map error established above
-    auto search = amd::smi::rsmi_status_map.find(status);
-    if (search != amd::smi::rsmi_status_map.end()) {
-        amdsmi_status = search->second;
-    }
+    virtual ~AMDSmiCpuSocket() {}
 
-    return amdsmi_status;
-}
+    amdsmi_status_t get_cpu_vendor() { return AMDSMI_STATUS_SUCCESS; }
+    uint32_t get_cpu_id() const { return cpu_id_; }
+    const uint32_t& get_socket_id() const { return socket_identifier_; }
 
-#ifdef ENABLE_ESMI_LIB
-amdsmi_status_t esmi_to_amdsmi_status(esmi_status_t status) {
-    amdsmi_status_t amdsmi_status = AMDSMI_STATUS_MAP_ERROR;
+    void add_processor(AMDSmiProcessor* processor) { processors_.push_back(processor); }
+    std::vector<AMDSmiProcessor*>& get_processors() { return processors_;}
+    amdsmi_status_t get_processor_count(uint32_t* processor_count) const;
 
-    // Look for it in the map
-    // If found: use the mapped value
-    // If not found: return the map error established above
-    auto search = amd::smi::esmi_status_map.find(status);
-    if (search != amd::smi::esmi_status_map.end()) {
-        amdsmi_status = search->second;
-    }
-
-    return amdsmi_status;
-}
-#endif
+ private:
+    uint32_t cpu_id_;
+    uint32_t socket_identifier_;
+    std::vector<AMDSmiProcessor*> processors_;
+};
 
 }  // namespace smi
 }  // namespace amd
+
+#endif  // AMD_SMI_INCLUDE_AMD_SMI_CPU_SOCKET_H_

@@ -41,43 +41,37 @@
  *
  */
 
-#include <functional>
-#include "amd_smi/amdsmi.h"
-#include "amd_smi/impl/amd_smi_common.h"
+#ifndef AMD_SMI_INCLUDE_AMD_SMI_CPU_CORE_H_
+#define AMD_SMI_INCLUDE_AMD_SMI_CPU_CORE_H_
 
+#include <string>
+#include <algorithm>
+#include <vector>
+#include "amd_smi/amdsmi.h"
+#include "amd_smi/impl/amd_smi_processor.h"
 
 namespace amd {
 namespace smi {
 
-amdsmi_status_t rsmi_to_amdsmi_status(rsmi_status_t status) {
-    amdsmi_status_t amdsmi_status = AMDSMI_STATUS_MAP_ERROR;
+/*Subclass CPU Core*/
+class AMDSmiCpuCore : public AMDSmiProcessor {
+public:
+    explicit AMDSmiCpuCore(const uint32_t& core_idx):AMDSmiProcessor(AMD_CPU_CORE),core_idx_(core_idx) {}
 
-    // Look for it in the map
-    // If found: use the mapped value
-    // If not found: return the map error established above
-    auto search = amd::smi::rsmi_status_map.find(status);
-    if (search != amd::smi::rsmi_status_map.end()) {
-        amdsmi_status = search->second;
-    }
+    virtual ~AMDSmiCpuCore() {}
 
-    return amdsmi_status;
-}
+    void add_processor(AMDSmiProcessor* processor) { processors_.push_back(processor); }
+    std::vector<AMDSmiProcessor*>& get_processors() { return processors_;}
+    amdsmi_status_t get_processor_count(uint32_t* processor_count) const;
 
-#ifdef ENABLE_ESMI_LIB
-amdsmi_status_t esmi_to_amdsmi_status(esmi_status_t status) {
-    amdsmi_status_t amdsmi_status = AMDSMI_STATUS_MAP_ERROR;
-
-    // Look for it in the map
-    // If found: use the mapped value
-    // If not found: return the map error established above
-    auto search = amd::smi::esmi_status_map.find(status);
-    if (search != amd::smi::esmi_status_map.end()) {
-        amdsmi_status = search->second;
-    }
-
-    return amdsmi_status;
-}
-#endif
+private:
+    uint32_t core_idx_;
+    //uint64_t input;
+    //uint32_t idx;
+    std::vector<AMDSmiProcessor*> processors_;
+};
 
 }  // namespace smi
 }  // namespace amd
+
+#endif  // AMD_SMI_INCLUDE_AMD_SMI_CPU_CORE_H_
