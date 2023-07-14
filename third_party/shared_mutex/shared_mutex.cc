@@ -1,5 +1,5 @@
 /*
-Modifications Copyright © 2019 – 2020 Advanced Micro Devices, Inc. All Rights
+Modifications Copyright 2019 - 2022 Advanced Micro Devices, Inc. All Rights
 Reserved.
 Copyright (c) 2018 Oleg Yamnikov
 
@@ -34,9 +34,51 @@ THE SOFTWARE.
 #include <time.h>   // clock_gettime
 #include <assert.h>
 
+#include <sys/types.h>
+#include <dirent.h>
+#include <algorithm>
+#include <string>
+#include <vector>
+
 #include "rocm_smi/rocm_smi_exception.h"
 
-shared_mutex_t shared_mutex_init(const char *name, mode_t mode) {
+// find which processes are using the file by searching /proc/*/fd
+static std::vector<std::string> lsof(const char* filename) {
+  struct dirent *entry = nullptr;
+  DIR *dp = nullptr;
+  std::vector<std::string> process_id;
+
+  dp = opendir("/proc");
+  if (dp != nullptr) {
+    while ((entry = readdir(dp))) {
+      std::string id(entry->d_name);
+      // the process id should be a number
+      if (std::all_of(id.begin(), id.end(), ::isdigit)) {
+        process_id.push_back(entry->d_name);
+      }
+    }
+    closedir(dp);
+  }
+
+  std::vector<std::string> matched_process;
+  for (unsigned int i=0; i < process_id.size(); i++) {
+      std::string folder_name("/proc/");
+      folder_name += process_id[i]+"/fd/";
+      dp = opendir(folder_name.c_str());
+      if (dp == nullptr) continue;
+      while ((entry = readdir(dp))) {
+         std::string p(folder_name+entry->d_name);
+         char buf[512];
+         memset(buf, 0, 512);
+         if (readlink(p.c_str(), buf, sizeof(buf)-1) < 0) continue;
+         if (!strcmp(filename, buf)) matched_process.push_back(process_id[i]);
+      }
+      closedir(dp);
+  }
+  return matched_process;
+}
+
+shared_mutex_t shared_mutex_init(const char *name, mode_t mode, bool retried) {
   shared_mutex_t mutex = {NULL, 0, NULL, 0};
   errno = 0;
 
@@ -110,6 +152,20 @@ shared_mutex_t shared_mutex_init(const char *name, mode_t mode) {
   } else if (ret || (mutex.created == 0 &&
                      reinterpret_cast<shared_mutex_t *>(addr)->ptr == NULL)) {
     // Something is out of sync.
+
+    // When process crash before unlock the mutex, the mutex is in bad status.
+    // reset the mutex if no process is using it, and then retry lock
+    if (!retried) {
+      std::vector<std::string> ids = lsof(name);
+      if (ids.size() == 0) {  // no process is using it
+        memset(mutex_ptr, 0, sizeof(pthread_mutex_t));
+        // Set mutex.created == 1 so that it can be initialized latter.
+        mutex.created = 1;
+        free(mutex.name);
+        return shared_mutex_init(name, mode, true);
+      }
+    }
+
     fprintf(stderr, "pthread_mutex_timedlock() returned %d\n", ret);
     perror("Failed to initialize RSMI device mutex after 5 seconds. Previous "
      "execution may not have shutdown cleanly. To fix problem, stop all "
