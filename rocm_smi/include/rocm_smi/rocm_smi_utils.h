@@ -3,7 +3,7 @@
  * The University of Illinois/NCSA
  * Open Source License (NCSA)
  *
- * Copyright (c) 2018, Advanced Micro Devices, Inc.
+ * Copyright (c) 2018-2023, Advanced Micro Devices, Inc.
  * All rights reserved.
  *
  * Developed by:
@@ -66,16 +66,24 @@ namespace amd {
 namespace smi {
 
 pthread_mutex_t *GetMutex(uint32_t dv_ind);
-
 int SameFile(const std::string fileA, const std::string fileB);
 bool FileExists(char const *filename);
+std::vector<std::string> globFilesExist(const std::string& filePattern);
 int isRegularFile(std::string fname, bool *is_reg);
-
 int ReadSysfsStr(std::string path, std::string *retStr);
 int WriteSysfsStr(std::string path, std::string val);
-
 bool IsInteger(const std::string & n_str);
-
+std::pair<bool, std::string> executeCommand(std::string command,
+                                            bool stdOut = true);
+rsmi_status_t storeTmpFile(uint32_t dv_ind, std::string parameterName,
+                           std::string stateName, std::string storageData);
+std::vector<std::string> getListOfAppTmpFiles();
+bool containsString(std::string originalString, std::string substring);
+std::tuple<bool, std::string> readTmpFile(
+                                          uint32_t dv_ind,
+                                          std::string stateName,
+                                          std::string parameterName);
+void displayAppTmpFilesContent(void);
 rsmi_status_t handleException();
 rsmi_status_t
 GetDevValueVec(amd::smi::DevInfoTypes type,
@@ -84,6 +92,10 @@ rsmi_status_t
 GetDevBinaryBlob(amd::smi::DevInfoTypes type,
            uint32_t dv_ind, std::size_t b_size, void* p_binary_data);
 rsmi_status_t ErrnoToRsmiStatus(int err);
+std::string getRSMIStatusString(rsmi_status_t ret);
+std::tuple<bool, std::string, std::string, std::string, std::string,
+           std::string, std::string, std::string> getSystemDetails(void);
+void logSystemDetails(void);
 
 struct pthread_wrap {
  public:

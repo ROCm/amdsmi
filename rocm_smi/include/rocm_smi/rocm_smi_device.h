@@ -3,7 +3,7 @@
  * The University of Illinois/NCSA
  * Open Source License (NCSA)
  *
- * Copyright (c) 2017, Advanced Micro Devices, Inc.
+ * Copyright (c) 2017-2023, Advanced Micro Devices, Inc.
  * All rights reserved.
  *
  * Developed by:
@@ -98,6 +98,7 @@ enum DevKFDNodePropTypes {
 enum DevInfoTypes {
   kDevPerfLevel,
   kDevOverDriveLevel,
+  kDevMemOverDriveLevel,
   kDevDevID,
   kDevDevProdName,
   kDevDevProdNum,
@@ -160,7 +161,10 @@ enum DevInfoTypes {
   kDevMemPageBad,
   kDevNumaNode,
   kDevGpuMetrics,
-  kDevGpuReset
+  kDevGpuReset,
+  kDevAvailableComputePartition,
+  kDevComputePartition,
+  kDevMemoryPartition
 };
 
 typedef struct {
@@ -213,6 +217,9 @@ class Device {
     void DumpSupportedFunctions(void);
     bool DeviceAPISupported(std::string name, uint64_t variant,
                                                         uint64_t sub_variant);
+    rsmi_status_t restartAMDGpuDriver(void);
+    rsmi_status_t storeDevicePartitions(uint32_t dv_ind);
+    template <typename T> std::string readBootPartitionState(uint32_t dv_ind);
 
  private:
     std::shared_ptr<Monitor> monitor_;

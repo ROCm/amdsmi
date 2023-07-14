@@ -18,6 +18,9 @@ import sys
 import subprocess
 import _thread
 import time
+import multiprocessing
+import trace
+from io import StringIO
 from time import ctime
 from subprocess import check_output
 from rsmiBindings import *
@@ -44,7 +47,7 @@ headerString = ' ROCm System Management Interface '
 footerString = ' End of ROCm SMI Log '
 
 # Output formatting
-appWidth = 80
+appWidth = 84
 deviceList = []
 
 # Enable or disable serialized format
@@ -194,7 +197,7 @@ def getBus(device):
     function = bdfid.value & 0x7
 
     pic_id = '{:04X}:{:02X}:{:02X}.{:0X}'.format(domain, bus, device, function)
-    if rsmi_ret_ok(ret, device):
+    if rsmi_ret_ok(ret, device, 'get_pci_id'):
         return pic_id
 
 
@@ -212,10 +215,10 @@ def getFanSpeed(device):
     fm = 0
 
     ret = rocmsmi.rsmi_dev_fan_speed_get(device, sensor_ind, byref(fanLevel))
-    if rsmi_ret_ok(ret, device, None, True):
+    if rsmi_ret_ok(ret, device, 'get_fan_speed', True):
         fl = fanLevel.value
     ret = rocmsmi.rsmi_dev_fan_speed_max_get(device, sensor_ind, byref(fanMax))
-    if rsmi_ret_ok(ret, device, None, True):
+    if rsmi_ret_ok(ret, device, 'get_fan_max_speed', True):
         fm = fanMax.value
     if fl == 0 or fm == 0:
         return (fl, 0)  # to prevent division by zero crash
@@ -242,7 +245,7 @@ def getId(device):
     """
     dv_id = c_short()
     ret = rocmsmi.rsmi_dev_id_get(device, byref(dv_id))
-    if rsmi_ret_ok(ret, device):
+    if rsmi_ret_ok(ret, device, 'get_device_id'):
         return hex(dv_id.value)
 
 
@@ -253,16 +256,21 @@ def getMaxPower(device):
     """
     power_cap = c_uint64()
     ret = rocmsmi.rsmi_dev_power_cap_get(device, 0, byref(power_cap))
-    if rsmi_ret_ok(ret, device):
+    if rsmi_ret_ok(ret, device, 'get_power_cap'):
         return power_cap.value / 1000000
     return -1
 
 
-def getMemInfo(device, memType):
-    """ Return the specified memory usage for the specified device
+def getMemInfo(device, memType, quiet=False):
+    """ Returns a tuple of (memory_used, memory_total) of
+    the requested memory type usage for the device specified
 
     @param device: DRM device identifier
     @param type: [vram|vis_vram|gtt] Memory type to return
+    @param quiet=Turn on to silience error output
+    (you plan to handle manually). Default is off,
+    which exposes any issue accessing the different
+    memory types.
     """
     memType = memType.upper()
     if memType not in memory_type_l:
@@ -275,11 +283,11 @@ def getMemInfo(device, memType):
     memTotal = None
 
     ret = rocmsmi.rsmi_dev_memory_usage_get(device, memory_type_l.index(memType), byref(memoryUse))
-    if rsmi_ret_ok(ret, device, memType):
+    if rsmi_ret_ok(ret, device, 'get_memory_usage_' + str(memType), quiet):
         memUsed = memoryUse.value
 
     ret = rocmsmi.rsmi_dev_memory_total_get(device, memory_type_l.index(memType), byref(memoryTot))
-    if rsmi_ret_ok(ret, device, memType + ' total'):
+    if rsmi_ret_ok(ret, device, 'get_memory_total_' + str(memType), quiet):
         memTotal = memoryTot.value
     return (memUsed, memTotal)
 
@@ -316,9 +324,9 @@ def getPerfLevel(device):
     """
     perf = rsmi_dev_perf_level_t()
     ret = rocmsmi.rsmi_dev_perf_level_get(device, byref(perf))
-    if rsmi_ret_ok(ret, device):
+    if rsmi_ret_ok(ret, device, 'get_perf_level'):
         return perf_level_string(perf.value)
-    return -1
+    return 'N/A'
 
 
 def getPid(name):
@@ -333,7 +341,7 @@ def getPidList():
     """ Return a list of KFD process IDs """
     num_items = c_uint32()
     ret = rocmsmi.rsmi_compute_process_info_get(None, byref(num_items))
-    if rsmi_ret_ok(ret):
+    if rsmi_ret_ok(ret, metric='get_compute_process_info'):
         buff_sz = num_items.value + 10
         procs = (rsmi_process_info_t * buff_sz)()
         procList = []
@@ -351,7 +359,7 @@ def getPower(device):
     """
     power = c_uint32()
     ret = rocmsmi.rsmi_dev_power_ave_get(device, 0, byref(power))
-    if rsmi_ret_ok(ret, device, 'power'):
+    if rsmi_ret_ok(ret, device, 'get_power_avg'):
         return power.value / 1000000
     return 'N/A'
 
@@ -365,7 +373,7 @@ def getRasEnablement(device, block):
     state = rsmi_ras_err_state_t()
     ret = rocmsmi.rsmi_dev_ecc_status_get(device, rsmi_gpu_block_d[block], byref(state))
 
-    if rsmi_ret_ok(ret, device, block, True):
+    if rsmi_ret_ok(ret, device, 'get_ecc_status_' + str(block), True):
         return rsmi_ras_err_stale_machine[state.value].upper()
     return 'N/A'
 
@@ -379,7 +387,7 @@ def getTemp(device, sensor):
     temp = c_int64(0)
     metric = rsmi_temperature_metric_t.RSMI_TEMP_CURRENT
     ret = rocmsmi.rsmi_dev_temp_metric_get(c_uint32(device), temp_type_lst.index(sensor), metric, byref(temp))
-    if rsmi_ret_ok(ret, device, sensor, True):
+    if rsmi_ret_ok(ret, device, 'get_temp_metric' + str(sensor), True):
         return temp.value / 1000
     return 'N/A'
 
@@ -403,9 +411,33 @@ def getVersion(deviceList, component):
     """
     ver_str = create_string_buffer(256)
     ret = rocmsmi.rsmi_version_str_get(component, ver_str, 256)
-    if rsmi_ret_ok(ret, None, component):
+    if rsmi_ret_ok(ret, None, 'get_version_str_' + str(component)):
         return ver_str.value.decode()
     return None
+
+
+def getComputePartition(device):
+    """ Return the current compute partition of a given device
+
+    @param device: DRM device identifier
+    """
+    currentComputePartition = create_string_buffer(256)
+    ret = rocmsmi.rsmi_dev_compute_partition_get(device, currentComputePartition, 256)
+    if rsmi_ret_ok(ret, device, 'get_compute_partition', silent=True) and currentComputePartition.value.decode():
+        return str(currentComputePartition.value.decode())
+    return "UNKNOWN"
+
+
+def getMemoryPartition(device):
+    """ Return the current memory partition of a given device
+
+    @param device: DRM device identifier
+    """
+    currentNPSMode = create_string_buffer(256)
+    ret = rocmsmi.rsmi_dev_nps_mode_get(device, currentNPSMode, 256)
+    if rsmi_ret_ok(ret, device, 'get_NPS_mode', silent=True) and currentNPSMode.value.decode():
+        return str(currentNPSMode.value.decode())
+    return "UNKNOWN"
 
 
 def print2DArray(dataArray):
@@ -455,11 +487,31 @@ def printErrLog(device, err):
     global PRINT_JSON
     devName = device
     for line in err.split('\n'):
-        errstr = 'GPU[%s] \t\t: %s' % (devName, line)
+        errstr = 'GPU[%s]\t: %s' % (devName, line)
         if not PRINT_JSON:
             logging.error(errstr)
         else:
             logging.debug(errstr)
+
+
+def printInfoLog(device, metricName, value):
+    """ Print out an info line to the SMI log
+
+    @param device: DRM device identifier
+    @param metricName: Title of the item to print to the log
+    @param value: The item's value to print to the log
+    """
+    global PRINT_JSON
+
+    if not PRINT_JSON:
+        if value is not None:
+            logstr = 'GPU[%s]\t: %s: %s' % (device, metricName, value)
+        else:
+            logstr = 'GPU[%s]\t: %s' % (device, metricName)
+        if device is None:
+            logstr = logstr[13:]
+
+        logging.info(logstr)
 
 
 def printEventList(device, delay, eventList):
@@ -471,13 +523,13 @@ def printEventList(device, delay, eventList):
     """
     mask = 0
     ret = rocmsmi.rsmi_event_notification_init(device)
-    if not rsmi_ret_ok(ret, device):
+    if not rsmi_ret_ok(ret, device, 'event_notification_init'):
         printErrLog(device, 'Unable to initialize event notifications.')
         return
     for eventType in eventList:
         mask |= 2 ** notification_type_names.index(eventType.upper())
     ret = rocmsmi.rsmi_event_notification_mask_set(device, mask)
-    if not rsmi_ret_ok(ret, device):
+    if not rsmi_ret_ok(ret, device, 'set_event_notification_mask'):
         printErrLog(device, 'Unable to set event notification mask.')
         return
     while 1:  # Exit condition from user keyboard input of 'q' or 'ctrl + c'
@@ -488,8 +540,7 @@ def printEventList(device, delay, eventList):
             print2DArray([['\rGPU[%d]:\t' % (device), ctime().split()[3], notification_type_names[data.event.value - 1],
                            data.message.decode('utf8') + '\r']])
 
-
-def printLog(device, metricName, value):
+def printLog(device, metricName, value=None, extraSpace=False):
     """ Print out to the SMI log
 
     @param device: DRM device identifier
@@ -508,10 +559,15 @@ def printLog(device, metricName, value):
     else:
         logstr = 'GPU[%s]\t\t: %s' % (device, metricName)
     if device is None:
-        logstr = logstr[13:]
-    logging.debug(logstr)
+        logstr = logstr.split(':', 1)[1][1:]
     # Force thread safe printing
-    print(logstr + '\n', end='')
+    lock = multiprocessing.Lock()
+    lock.acquire()
+    if extraSpace:
+        print('\n' + logstr + '\n', end='', flush=True)
+    else:
+        print(logstr + '\n', end='', flush=True)
+    lock.release()
 
 
 def printListLog(metricName, valuesList):
@@ -635,13 +691,13 @@ def checkIfSecondaryDie(device):
     power_cap = c_uint64()
     # secondary die can currently be determined by checking if all power1_* (power cap) values are equal to zero.
     ret = rocmsmi.rsmi_dev_power_cap_get(device, 0, byref(power_cap))
-    if not (rsmi_ret_ok(ret, None, None, False) and power_cap.value == 0):
+    if not (rsmi_ret_ok(ret, None, 'get_power_cap', False) and power_cap.value == 0):
         return False
     ret = rocmsmi.rsmi_dev_power_cap_default_get(device, byref(power_cap))
-    if not (rsmi_ret_ok(ret, None, None, False) and power_cap.value == 0):
+    if not (rsmi_ret_ok(ret, None, 'get_power_cap_default', False) and power_cap.value == 0):
         return False
     ret = rocmsmi.rsmi_dev_power_ave_get(device, 0, byref(power_cap))
-    if not (rsmi_ret_ok(ret, None, None, False) and power_cap.value == 0):
+    if not (rsmi_ret_ok(ret, None, 'get_power_avg', False) and power_cap.value == 0):
         return False
     return True
 
@@ -657,17 +713,17 @@ def resetClocks(deviceList):
     printLogSpacer(' Reset Clocks ')
     for device in deviceList:
         ret = rocmsmi.rsmi_dev_overdrive_level_set(device, rsmi_dev_perf_level_t(0))
-        if rsmi_ret_ok(ret, device):
+        if rsmi_ret_ok(ret, device, 'set_overdrive_level'):
             printLog(device, 'OverDrive set to 0', None)
         else:
             printLog(device, 'Unable to reset OverDrive', None)
         ret = rocmsmi.rsmi_dev_perf_level_set(device, rsmi_dev_perf_level_t(0))
-        if rsmi_ret_ok(ret, device):
+        if rsmi_ret_ok(ret, device, 'set_perf_level'):
             printLog(device, 'Successfully reset clocks', None)
         else:
             printLog(device, 'Unable to reset clocks', None)
         ret = rocmsmi.rsmi_dev_perf_level_set(device, rsmi_dev_perf_level_t(0))
-        if rsmi_ret_ok(ret, device):
+        if rsmi_ret_ok(ret, device, 'set_perf_level'):
             printLog(device, 'Performance level reset to auto', None)
         else:
             printLog(device, 'Unable to reset performance level to auto', None)
@@ -682,7 +738,7 @@ def resetFans(deviceList):
     for device in deviceList:
         sensor_ind = c_uint32(0)
         ret = rocmsmi.rsmi_dev_fan_reset(device, sensor_ind)
-        if rsmi_ret_ok(ret, device):
+        if rsmi_ret_ok(ret, device, 'reset_fan'):
             printLog(device, 'Successfully reset fan speed to driver control', None)
     printLogSpacer()
 
@@ -703,12 +759,12 @@ def resetProfile(deviceList):
     printLogSpacer(' Reset Profile ')
     for device in deviceList:
         ret = rocmsmi.rsmi_dev_power_profile_set(device, 0, profileString('BOOTUP DEFAULT'))
-        if rsmi_ret_ok(ret, device):
+        if rsmi_ret_ok(ret, device, 'set_power_profile'):
             printLog(device, 'Successfully reset Power Profile', None)
         else:
             printErrLog(device, 'Unable to reset Power Profile')
         ret = rocmsmi.rsmi_dev_perf_level_set(device, rsmi_dev_perf_level_t(0))
-        if rsmi_ret_ok(ret, device):
+        if rsmi_ret_ok(ret, device, 'set_perf_level'):
             printLog(device, 'Successfully reset Performance Level', None)
         else:
             printErrLog(device, 'Unable to reset Performance Level')
@@ -741,7 +797,67 @@ def resetPerfDeterminism(deviceList):
         if rsmi_ret_ok(ret, device, 'disable performance determinism'):
             printLog(device, 'Successfully disabled performance determinism', None)
         else:
-            logging.error('GPU[%s]\t\t: Unable to diable performance determinism', device)
+            logging.error('GPU[%s]\t\t: Unable to disable performance determinism', device)
+    printLogSpacer()
+
+
+def resetComputePartition(deviceList):
+    """ Reset Compute Partition to its boot state
+
+    @param deviceList: List of DRM devices (can be a single-item list)
+    """
+    printLogSpacer(" Reset compute partition to its boot state ")
+    for device in deviceList:
+        originalPartition = getComputePartition(device)
+        ret = rocmsmi.rsmi_dev_compute_partition_reset(device)
+        if rsmi_ret_ok(ret, device, 'reset_compute_partition', silent=True):
+            resetBootState = getComputePartition(device)
+            printLog(device, "Successfully reset compute partition (" +
+                originalPartition + ") to boot state (" + resetBootState +
+                ")", None)
+        elif ret == rsmi_status_t.RSMI_STATUS_PERMISSION:
+            printLog(device, 'Permission denied', None)
+        elif ret == rsmi_status_t.RSMI_STATUS_NOT_SUPPORTED:
+            printLog(device, 'Not supported on the given system', None)
+        else:
+            rsmi_ret_ok(ret, device, 'reset_compute_partition')
+            printErrLog(device, 'Failed to reset the compute partition to boot state')
+    printLogSpacer()
+
+
+def resetNpsMode(deviceList):
+    """ Reset NPS mode to its boot state
+
+    @param deviceList: List of DRM devices (can be a single-item list)
+    """
+    printLogSpacer(" Reset nps mode to its boot state ")
+    for device in deviceList:
+        originalPartition = getMemoryPartition(device)
+        t1 = multiprocessing.Process(target=showProgressbar,
+                            args=("Resetting NPS mode",13,))
+        t1.start()
+        addExtraLine=True
+        start=time.time()
+        ret = rocmsmi.rsmi_dev_nps_mode_reset(device)
+        stop=time.time()
+        duration=stop-start
+        if t1.is_alive():
+            t1.terminate()
+            t1.join()
+        if duration < float(0.1):   # For longer runs, add extra line before output
+            addExtraLine=False      # This is to prevent overriding progress bar
+        if rsmi_ret_ok(ret, device, 'reset_NPS_mode', silent=True):
+            resetBootState = getMemoryPartition(device)
+            printLog(device, "Successfully reset nps mode (" +
+                originalPartition + ") to boot state (" +
+                resetBootState + ")", None, addExtraLine)
+        elif ret == rsmi_status_t.RSMI_STATUS_PERMISSION:
+            printLog(device, 'Permission denied', None, addExtraLine)
+        elif ret == rsmi_status_t.RSMI_STATUS_NOT_SUPPORTED:
+            printLog(device, 'Not supported on the given system', None, addExtraLine)
+        else:
+            rsmi_ret_ok(ret, device, 'reset_NPS_mode')
+            printErrLog(device, 'Failed to reset nps mode to boot state')
     printLogSpacer()
 
 
@@ -764,7 +880,7 @@ def setClockRange(deviceList, clkType, minvalue, maxvalue, autoRespond):
     try:
         int(minvalue) & int(maxvalue)
     except ValueError:
-        printErrLog(device, 'Unable to set %s range' % (clkType))
+        printErrLog(None, 'Unable to set %s range' % (clkType))
         logging.error('%s or %s is not an integer', minvalue, maxvalue)
         RETCODE = 1
         return
@@ -772,11 +888,13 @@ def setClockRange(deviceList, clkType, minvalue, maxvalue, autoRespond):
     printLogSpacer(' Set Valid %s Range ' % (clkType))
     for device in deviceList:
         ret = rocmsmi.rsmi_dev_clk_range_set(device, int(minvalue), int(maxvalue), rsmi_clk_names_dict[clkType])
-        if rsmi_ret_ok(ret, device):
+        if rsmi_ret_ok(ret, device, silent=True):
             printLog(device, 'Successfully set %s from %s(MHz) to %s(MHz)' % (clkType, minvalue, maxvalue), None)
         else:
             printErrLog(device, 'Unable to set %s from %s(MHz) to %s(MHz)' % (clkType, minvalue, maxvalue))
             RETCODE = 1
+            if ret == rsmi_status_t.RSMI_STATUS_NOT_SUPPORTED:
+                printLog(device, 'Setting %s range is not supported for this device.' % (clkType), None)
 
 
 def setVoltageCurve(deviceList, point, clk, volt, autoRespond):
@@ -792,16 +910,16 @@ def setVoltageCurve(deviceList, point, clk, volt, autoRespond):
     global RETCODE
     value = '%s %s %s' % (point, clk, volt)
     try:
-        any(int(item) for item in value)
+        any(int(item) for item in value.split())
     except ValueError:
-        printLogNoDev('Unable to set Voltage curve')
-        logging.error('Non-integer characters are present in %s', value)
+        printErrLog(None, 'Unable to set Voltage curve')
+        printErrLog(None, 'Non-integer characters are present in %s' %value)
         RETCODE = 1
         return
     confirmOutOfSpecWarning(autoRespond)
     for device in deviceList:
         ret = rocmsmi.rsmi_dev_od_volt_info_set(device, int(point), int(clk), int(volt))
-        if rsmi_ret_ok(ret, device):
+        if rsmi_ret_ok(ret, device, 'set_voltage_curve'):
             printLog(device, 'Successfully set voltage point %s to %s(MHz) %s(mV)' % (point, clk, volt), None)
         else:
             printErrLog(device, 'Unable to set voltage point %s to %s(MHz) %s(mV)' % (point, clk, volt))
@@ -821,11 +939,12 @@ def setPowerPlayTableLevel(deviceList, clkType, point, clk, volt, autoRespond):
     """
     global RETCODE
     value = '%s %s %s' % (point, clk, volt)
+    listOfValues = value.split(' ')
     try:
         any(int(item) for item in value.split())
     except ValueError:
-        printLogNoDev('Unable to set PowerPlay table level')
-        logging.error('Non-integer characters are present in %s', value)
+        printErrLog(None, 'Unable to set PowerPlay table level')
+        printErrLog(None, 'Non-integer characters are present in %s' %value)
         RETCODE = 1
         return
     confirmOutOfSpecWarning(autoRespond)
@@ -833,7 +952,7 @@ def setPowerPlayTableLevel(deviceList, clkType, point, clk, volt, autoRespond):
         if clkType == 'sclk':
             ret = rocmsmi.rsmi_dev_od_clk_info_set(device, rsmi_freq_ind_t(int(point)), int(clk),
                                                    rsmi_clk_names_dict[clkType])
-            if rsmi_ret_ok(ret, device):
+            if rsmi_ret_ok(ret, device, 'set_power_play_table_level_' + str(clkType)):
                 printLog(device, 'Successfully set voltage point %s to %s(MHz) %s(mV)' % (point, clk, volt), None)
             else:
                 printErrLog(device, 'Unable to set voltage point %s to %s(MHz) %s(mV)' % (point, clk, volt))
@@ -841,7 +960,7 @@ def setPowerPlayTableLevel(deviceList, clkType, point, clk, volt, autoRespond):
         elif clkType == 'mclk':
             ret = rocmsmi.rsmi_dev_od_clk_info_set(device, rsmi_freq_ind_t(int(point)), int(clk),
                                                    rsmi_clk_names_dict[clkType])
-            if rsmi_ret_ok(ret, device):
+            if rsmi_ret_ok(ret, device, 'set_power_play_table_level_' + str(clkType)):
                 printLog(device, 'Successfully set voltage point %s to %s(MHz) %s(mV)' % (point, clk, volt), None)
             else:
                 printErrLog(device, 'Unable to set voltage point %s to %s(MHz) %s(mV)' % (point, clk, volt))
@@ -882,14 +1001,15 @@ def setClockOverDrive(deviceList, clktype, value, autoRespond):
             value = '20'
         if getPerfLevel(device) != 'MANUAL':
             ret = rocmsmi.rsmi_dev_perf_level_set(device, rsmi_dev_perf_level_t(3))
-            if rsmi_ret_ok(ret, device):
+            if rsmi_ret_ok(ret, device, 'set_perf_level_manual_' + str(clktype)):
                 printLog(device, 'Performance level set to manual', None)
             else:
                 printErrLog(device, 'Unable to set performance level to manual')
         if clktype == 'mclk':
             fsFile = os.path.join('/sys/class/drm', 'card%d' % (device), 'device', 'pp_mclk_od')
             if not os.path.isfile(fsFile):
-                printLog(None, 'Unable to write to sysfs file', None)
+                printLog(None, 'Unable to write to sysfs file (' + fsFile +
+                         '), file does not exist', None)
                 logging.debug('%s does not exist', fsFile)
                 continue
             try:
@@ -897,14 +1017,14 @@ def setClockOverDrive(deviceList, clktype, value, autoRespond):
                 with open(fsFile, 'w') as fs:
                     fs.write(value + '\n')
             except (IOError, OSError):
-                printLog(None, 'Unable to write to sysfs file %s' % fsFile, None)
+                printLog(None, 'Unable to write to sysfs file %s' %fsFile, None)
                 logging.warning('IO or OS error')
                 RETCODE = 1
                 continue
             printLog(device, 'Successfully set %s OverDrive to %s%%' % (clktype, value), None)
         elif clktype == 'sclk':
             ret = rocmsmi.rsmi_dev_overdrive_level_set(device, rsmi_dev_perf_level_t(int(value)))
-            if rsmi_ret_ok(ret, device):
+            if rsmi_ret_ok(ret, device, 'set_overdrive_level_' + str(clktype)):
                 printLog(device, 'Successfully set %s OverDrive to %s%%' % (clktype, value), None)
             else:
                 printLog(device, 'Unable to set %s OverDrive to %s%%' % (clktype, value), None)
@@ -936,7 +1056,7 @@ def setClocks(deviceList, clktype, clk):
         int(check_value)
     except ValueError:
         printLog(None, 'Unable to set clock level', None)
-        logging.error('Non-integer characters are present in value %s', value)
+        logging.error('Non-integer characters are present in value %s', check_value)
         RETCODE = 1
         return
     # Generate a frequency bitmask from user input value
@@ -955,22 +1075,48 @@ def setClocks(deviceList, clktype, clk):
         # Check if the performance level is manual, if not then set it to manual
         if getPerfLevel(device).lower() != 'manual':
             ret = rocmsmi.rsmi_dev_perf_level_set(device, rsmi_dev_perf_level_t(3))
-            if rsmi_ret_ok(ret, device):
+            if rsmi_ret_ok(ret, device, 'set_perf_level_manual'):
                 printLog(device, 'Performance level was set to manual', None)
             else:
                 printErrLog(device, 'Unable to set performance level to manual')
                 RETCODE = 1
                 return
         if clktype != 'pcie':
+            # Validate frequency bitmask
+            freq = rsmi_frequencies_t()
+            ret = rocmsmi.rsmi_dev_gpu_clk_freq_get(device, rsmi_clk_names_dict[clktype], byref(freq))
+            if rsmi_ret_ok(ret, device, 'get_gpu_clk_freq_' + str(clktype)) == False:
+                RETCODE = 1
+                return
+            # The freq_bitmask should be less than 2^(freqs.num_supported)
+            # For example, num_supported == 3,  the max bitmask is 0111
+            if freq_bitmask >= (1 << freq.num_supported):
+                printErrLog(device, 'Invalid clock frequency %s' % hex(freq_bitmask))
+                RETCODE = 1
+                return
+
             ret = rocmsmi.rsmi_dev_gpu_clk_freq_set(device, rsmi_clk_names_dict[clktype], freq_bitmask)
-            if rsmi_ret_ok(ret, device):
+            if rsmi_ret_ok(ret, device, 'set_gpu_clk_freq_' + str(clktype)):
                 printLog(device, 'Successfully set %s bitmask to' % (clktype), hex(freq_bitmask))
             else:
                 printErrLog(device, 'Unable to set %s bitmask to: %s' % (clktype, hex(freq_bitmask)))
                 RETCODE = 1
         else:
+            # Validate the bandwidth bitmask
+            bw = rsmi_pcie_bandwidth_t()
+            ret = rocmsmi.rsmi_dev_pci_bandwidth_get(device, byref(bw))
+            if rsmi_ret_ok(ret, device, 'get_PCIe_bandwidth') == False:
+                RETCODE = 1
+                return
+            # The freq_bitmask should be less than 2^(bw.transfer_rate.num_supported)
+            # For example, num_supported == 3,  the max bitmask is 0111
+            if freq_bitmask >= (1 << bw.transfer_rate.num_supported):
+                printErrLog(device, 'Invalid PCIe frequency %s' % hex(freq_bitmask))
+                RETCODE = 1
+                return
+
             ret = rocmsmi.rsmi_dev_pci_bandwidth_set(device, freq_bitmask)
-            if rsmi_ret_ok(ret, device):
+            if rsmi_ret_ok(ret, device, 'set_PCIe_bandwidth'):
                 printLog(device, 'Successfully set %s to level bitmask' % (clktype), hex(freq_bitmask))
             else:
                 printErrLog(device, 'Unable to set %s bitmask to: %s' % (clktype, hex(freq_bitmask)))
@@ -989,13 +1135,13 @@ def setPerfDeterminism(deviceList, clkvalue):
     try:
         int(clkvalue)
     except ValueError:
-        printErrLog(device, 'Unable to set Performance Determinism')
+        printErrLog(None, 'Unable to set Performance Determinism')
         logging.error('%s is not an integer', clkvalue)
         RETCODE = 1
         return
     for device in deviceList:
         ret = rocmsmi.rsmi_perf_determinism_mode_set(device, int(clkvalue))
-        if rsmi_ret_ok(ret, device):
+        if rsmi_ret_ok(ret, device, 'set_perf_determinism'):
             printLog(device, 'Successfully enabled performance determinism and set GFX clock frequency', str(clkvalue))
         else:
             printErrLog(device, 'Unable to set performance determinism and clock frequency to %s' % (str(clkvalue)))
@@ -1019,7 +1165,7 @@ def resetGpu(device):
         RETCODE = 1
         return
     ret = rocmsmi.rsmi_dev_gpu_reset(resetDev)
-    if rsmi_ret_ok(ret, resetDev):
+    if rsmi_ret_ok(ret, resetDev, 'reset_gpu'):
         printLog(resetDev, 'Successfully reset GPU %d' % (resetDev), None)
     else:
         printErrLog(resetDev, 'Unable to reset GPU %d' % (resetDev))
@@ -1059,19 +1205,16 @@ def setRas(deviceList, rasAction, rasBlock, rasType):
     printLog(None, "This is experimental feature, use 'amdgpuras' tool for ras error manipulations for newer vbios")
 
     if rasAction not in validRasActions:
-        printLog(None, 'Unable to perform RAS command %s on block %s for type %s' % (rasAction, rasBlock, rasType),
-                 None)
+        printLog(None, 'Unable to perform RAS command %s on block %s for type %s' % (rasAction, rasBlock, rasType))
         logging.debug('Action %s is not a valid RAS command' % rasAction)
         return
     if rasBlock not in validRasBlocks:
-        printLog(None, 'Unable to perform RAS command %s on block %s for type %s' % (rasAction, rasBlock, rasType),
-                 None)
+        printLog(None, 'Unable to perform RAS command %s on block %s for type %s' % (rasAction, rasBlock, rasType))
         printLog(None, 'Block %s is not a valid RAS block' % rasBlock)
         return
 
     if rasType not in validRasTypes:
-        printLog(None, 'Unable to perform RAS command %s on block %s for type %s' % (rasAction, rasBlock, rasType),
-                 None)
+        printLog(None, 'Unable to perform RAS command %s on block %s for type %s' % (rasAction, rasBlock, rasType))
         printLog(None, 'Memory error type %s is not a valid RAS memory type' % rasAction)
         return
 
@@ -1111,14 +1254,13 @@ def setFanSpeed(deviceList, fan):
     for device in deviceList:
         if str(fan):
             fanLevel = c_int64()
-            sensor_ind = c_uint32(0)
             last_char = str(fan)[-1]
             if last_char == '%':
                 fanLevel = int(str(fan)[:-1]) / 100 * 255
             else:
                 fanLevel = int(str(fan))
             ret = rocmsmi.rsmi_dev_fan_speed_set(device, 0, int(fanLevel))
-            if rsmi_ret_ok(ret, device):
+            if rsmi_ret_ok(ret, device, 'set_fan_speed'):
                 printLog(device, 'Successfully set fan speed to level %s' % (str(int(fanLevel))), None)
     printLogSpacer()
 
@@ -1137,7 +1279,7 @@ def setPerformanceLevel(deviceList, level):
             logging.error('Invalid Performance level: %s', level)
         else:
             ret = rocmsmi.rsmi_dev_perf_level_set(device, rsmi_dev_perf_level_t(validLevels.index(level)))
-            if rsmi_ret_ok(ret, device):
+            if rsmi_ret_ok(ret, device, 'set_perf_level'):
                 printLog(device, 'Performance level set to %s' % (str(level)), None)
     printLogSpacer()
 
@@ -1196,7 +1338,7 @@ def setPowerOverDrive(deviceList, value, autoRespond):
             new_power_cap.value = int(value) * 1000000
 
         ret = rocmsmi.rsmi_dev_power_cap_range_get(device, 0, byref(power_cap_max), byref(power_cap_min))
-        if rsmi_ret_ok(ret, device) == False:
+        if rsmi_ret_ok(ret, device, 'get_power_cap_range') == False:
             printErrLog(device, 'Unable to parse Power OverDrive range')
             RETCODE = 1
             continue
@@ -1220,11 +1362,11 @@ def setPowerOverDrive(deviceList, value, autoRespond):
             specWarningConfirmed = True
 
         ret = rocmsmi.rsmi_dev_power_cap_set(device, 0, new_power_cap)
-        if rsmi_ret_ok(ret, device):
+        if rsmi_ret_ok(ret, device, 'set_power_cap'):
             if int(value) == 0:
                 power_cap = c_uint64()
                 ret = rocmsmi.rsmi_dev_power_cap_get(device, 0, byref(power_cap))
-                if rsmi_ret_ok(ret, device):
+                if rsmi_ret_ok(ret, device, 'get_power_cap'):
                     if not PRINT_JSON:
                         printLog(device,
                                  'Successfully reset Power OverDrive to: %sW' % (int(power_cap.value / 1000000)), None)
@@ -1255,7 +1397,7 @@ def setProfile(deviceList, profile):
     for device in deviceList:
         # Get previous profile
         ret = rocmsmi.rsmi_dev_power_profile_presets_get(device, 0, byref(status))
-        if rsmi_ret_ok(ret, device, 'previous profile'):
+        if rsmi_ret_ok(ret, device, 'get_power_profile'):
             previousProfile = profileString(status.current)
             # Get desired profile
             desiredProfile = 'UNKNOWN'
@@ -1272,16 +1414,120 @@ def setProfile(deviceList, profile):
                 return
             else:
                 ret = rocmsmi.rsmi_dev_power_profile_set(device, 0, profileString(desiredProfile))
-                if rsmi_ret_ok(ret, device, 'set profile'):
+                if rsmi_ret_ok(ret, device, 'set_power_profile'):
                     # Get current profile
                     ret = rocmsmi.rsmi_dev_power_profile_presets_get(device, 0, byref(status))
-                    if rsmi_ret_ok(ret, device, 'current profile'):
+                    if rsmi_ret_ok(ret, device, 'get_power_profile_presets'):
                         currentProfile = profileString(status.current)
                         if currentProfile == desiredProfile:
                             printLog(device, 'Successfully set profile to', desiredProfile)
                         else:
                             printErrLog(device, 'Failed to set profile to: %s' % (desiredProfile))
         printLogSpacer()
+
+
+def setComputePartition(deviceList, computePartitionType):
+    """ Sets compute partitioning for a list of device
+
+    @param deviceList: List of DRM devices (can be a single-item list)
+    @param computePartition: Compute Partition type to set as
+    """
+    printLogSpacer(' Set compute partition to %s ' % (str(computePartitionType).upper()))
+    for device in deviceList:
+        computePartitionType = computePartitionType.upper()
+        if computePartitionType not in compute_partition_type_l:
+            printErrLog(device, 'Invalid compute partition type %s'
+                        '\nValid compute partition types are %s'
+                        % ( computePartitionType.upper(),
+                        (', '.join(map(str, compute_partition_type_l))) ))
+            return (None, None)
+        ret = rocmsmi.rsmi_dev_compute_partition_set(device,
+                rsmi_compute_partition_type_dict[computePartitionType])
+        if rsmi_ret_ok(ret, device, 'set_compute_partition', silent=True):
+            printLog(device,
+                'Successfully set compute partition to %s' % (computePartitionType),
+                None)
+        elif ret == rsmi_status_t.RSMI_STATUS_PERMISSION:
+            printLog(device, 'Permission denied', None)
+        elif ret == rsmi_status_t.RSMI_STATUS_SETTING_UNAVAILABLE:
+            printLog(device, 'Requested setting (%s) is unavailable for current device'
+                     %computePartitionType, None)
+        elif ret == rsmi_status_t.RSMI_STATUS_NOT_SUPPORTED:
+            printLog(device, 'Not supported on the given system', None)
+        else:
+            rsmi_ret_ok(ret, device, 'set_compute_partition')
+            printErrLog(device, 'Failed to retrieve compute partition, even though device supports it.')
+    printLogSpacer()
+
+
+def progressbar(it, prefix="", size=60, out=sys.stdout):
+    count = len(it)
+    def show(j):
+        x = int(size*j/count)
+        lock = multiprocessing.Lock()
+        lock.acquire()
+        print("{}[{}{}] {}/{} secs remain".format(prefix, u"█"*x, "."*(size-x), j, count),
+                end='\r', file=out, flush=True)
+        lock.release()
+    show(0)
+    for i, item in enumerate(it):
+        yield item
+        show(i+1)
+    lock = multiprocessing.Lock()
+    lock.acquire()
+    print("\n", flush=True, file=out)
+    lock.release()
+
+def showProgressbar(title="", timeInSeconds=13):
+    if title != "":
+        title += ": "
+    for i in progressbar(range(timeInSeconds), title, 40):
+        time.sleep(1)
+
+
+def setNPSMode(deviceList, npsMode):
+    """ Sets nps mode (memory partition) for a list of devices
+
+    @param deviceList: List of DRM devices (can be a single-item list)
+    @param npsMode: NPS Mode type to set as
+    """
+    printLogSpacer(' Set nps mode to %s ' % (str(npsMode).upper()))
+    for device in deviceList:
+        npsMode = npsMode.upper()
+        if npsMode not in nps_mode_type_l:
+            printErrLog(device, 'Invalid nps mode type %s'
+                        '\nValid nps mode types are %s'
+                        % ( npsMode.upper(),
+                        (', '.join(map(str, nps_mode_type_l))) ))
+            return (None, None)
+
+        t1 = multiprocessing.Process(target=showProgressbar,
+                            args=("Updating NPS mode",13,))
+        t1.start()
+        addExtraLine=True
+        start=time.time()
+        ret = rocmsmi.rsmi_dev_nps_mode_set(device,
+            rsmi_nps_mode_type_dict[npsMode])
+        stop=time.time()
+        duration=stop-start
+        if t1.is_alive():
+            t1.terminate()
+            t1.join()
+        if duration < float(0.1):   # For longer runs, add extra line before output
+            addExtraLine=False      # This is to prevent overriding progress bar
+
+        if rsmi_ret_ok(ret, device, 'set_NPS_mode', silent=True):
+            printLog(device,
+                'Successfully set nps mode to %s' % (npsMode),
+                None, addExtraLine)
+        elif ret == rsmi_status_t.RSMI_STATUS_PERMISSION:
+            printLog(device, 'Permission denied', None, addExtraLine)
+        elif ret == rsmi_status_t.RSMI_STATUS_NOT_SUPPORTED:
+            printLog(device, 'Not supported on the given system', None, addExtraLine)
+        else:
+            rsmi_ret_ok(ret, device, 'set_NPS_mode')
+            printErrLog(device, 'Failed to retrieve NPS mode, even though device supports it.')
+    printLogSpacer()
 
 
 def showAllConcise(deviceList):
@@ -1294,7 +1540,7 @@ def showAllConcise(deviceList):
         print('ERROR: Cannot print JSON/CSV output for concise output')
         sys.exit(1)
     printLogSpacer(' Concise Info ')
-    header = ['GPU', 'Temp', 'AvgPwr', 'SCLK', 'MCLK', 'Fan', 'Perf', 'PwrCap', 'VRAM%', 'GPU%']
+    header = ['GPU', 'Temp (DieEdge)', 'AvgPwr', 'SCLK', 'MCLK', 'Fan', 'Perf', 'PwrCap', 'VRAM%', 'GPU%']
     head_widths = [len(head) + 2 for head in header]
     values = {}
     for device in deviceList:
@@ -1323,14 +1569,15 @@ def showAllConcise(deviceList):
             gpu_busy = str(getGpuUse(device)) + '%'
         else:
             gpu_busy = 'Unsupported'
-        memInfo = getMemInfo(device, 'vram')
-        if memInfo[0] == None or memInfo[1] == None:
-            mem_use = 'N/A'
-        else:
-            mem_use_pct = '% 3.0f%%' % (100 * (float(memInfo[0]) / float(memInfo[1])))
+        vram_used, vram_total = getMemInfo(device, 'vram', True)
+        mem_use_pct = 0
+        if vram_used is None:
+            mem_use_pct='Unsupported'
+        if vram_used != None and vram_total != None and float(vram_total) != 0:
+            mem_use_pct = '% 3.0f%%' % (100 * (float(vram_used) / float(vram_total)))
         values['card%s' % (str(device))] = [device, temp, avgPwr, sclk, mclk, fan, str(perf).lower(), pwrCap,
                                             mem_use_pct, gpu_busy]
-        val_widths = {}
+    val_widths = {}
     for device in deviceList:
         val_widths[device] = [len(str(val)) + 2 for val in values['card%s' % (str(device))]]
     max_widths = head_widths
@@ -1404,10 +1651,9 @@ def showClocks(deviceList):
     printLogSpacer(' Supported clock frequencies ')
     for device in deviceList:
         for clk_type in sorted(rsmi_clk_names_dict):
-            freq_list = []
             if rocmsmi.rsmi_dev_gpu_clk_freq_get(device, rsmi_clk_names_dict[clk_type], None) == 1:
                 ret = rocmsmi.rsmi_dev_gpu_clk_freq_get(device, rsmi_clk_names_dict[clk_type], byref(freq))
-                if rsmi_ret_ok(ret, device, clk_type, True):
+                if rsmi_ret_ok(ret, device, 'get_clk_freq_' + clk_type, True):
                     printLog(device, 'Supported %s frequencies on GPU%s' % (clk_type, str(device)), None)
                     for x in range(freq.num_supported):
                         fr = '{:>.0f}Mhz'.format(freq.frequency[x] / 1000000)
@@ -1421,9 +1667,8 @@ def showClocks(deviceList):
                 printLog(device, '', None)
         if rocmsmi.rsmi_dev_pci_bandwidth_get(device, None) == 1:
             ret = rocmsmi.rsmi_dev_pci_bandwidth_get(device, byref(bw))
-            if rsmi_ret_ok(ret, device, 'PCIe', True):
+            if rsmi_ret_ok(ret, device, 'get_PCIe_bandwidth', True):
                 printLog(device, 'Supported %s frequencies on GPU%s' % ('PCIe', str(device)), None)
-                freq_list = []
                 for x in range(bw.transfer_rate.num_supported):
                     fr = '{:>.1f}GT/s x{}'.format(bw.transfer_rate.frequency[x] / 1000000000, bw.lanes[x])
                     if x == bw.transfer_rate.current:
@@ -1447,15 +1692,13 @@ def showCurrentClocks(deviceList, clk_defined=None, concise=False):
     global PRINT_JSON
     freq = rsmi_frequencies_t()
     bw = rsmi_pcie_bandwidth_t()
-    currentString = ''
-    sortedClocksArray = []
     if not concise:
         printLogSpacer(' Current clock frequencies ')
     for device in deviceList:
         if clk_defined:
             if rocmsmi.rsmi_dev_gpu_clk_freq_get(device, rsmi_clk_names_dict[clk_defined], None) == 1:
                 ret = rocmsmi.rsmi_dev_gpu_clk_freq_get(device, rsmi_clk_names_dict[clk_defined], byref(freq))
-                if rsmi_ret_ok(ret, device, clk_defined, True):
+                if rsmi_ret_ok(ret, device, 'get_gpu_clk_freq_' + str(clk_defined), silent=True):
                     levl = freq.current
                     if levl >= freq.num_supported:
                         printLog(device, '%s current clock frequency not found' % (clk_defined), None)
@@ -1471,7 +1714,7 @@ def showCurrentClocks(deviceList, clk_defined=None, concise=False):
             for clk_type in sorted(rsmi_clk_names_dict):
                 if rocmsmi.rsmi_dev_gpu_clk_freq_get(device, rsmi_clk_names_dict[clk_type], None) == 1:
                     ret = rocmsmi.rsmi_dev_gpu_clk_freq_get(device, rsmi_clk_names_dict[clk_type], byref(freq))
-                    if rsmi_ret_ok(ret, device, clk_type, True):
+                    if rsmi_ret_ok(ret, device, 'get_clk_freq_' + str(clk_type), True):
                         levl = freq.current
                         if levl >= freq.num_supported:
                             printLog(device, '%s current clock frequency not found' % (clk_type), None)
@@ -1487,7 +1730,7 @@ def showCurrentClocks(deviceList, clk_defined=None, concise=False):
             # pcie clocks
             if rocmsmi.rsmi_dev_pci_bandwidth_get(device, None) == 1:
                 ret = rocmsmi.rsmi_dev_pci_bandwidth_get(device, byref(bw))
-                if rsmi_ret_ok(ret, device, 'PCIe', True):
+                if rsmi_ret_ok(ret, device, 'get_PCIe_bandwidth', True):
                     current_f = bw.transfer_rate.current
                     if current_f >= bw.transfer_rate.num_supported:
                         printLog(device, 'PCIe current clock frequency not found', None )
@@ -1525,7 +1768,7 @@ def showCurrentFans(deviceList):
         else:
             printLog(device, 'Fan Level', str(fanLevel) + ' (%s%%)' % (str(fanSpeed)))
         ret = rocmsmi.rsmi_dev_fan_rpms_get(device, sensor_ind, byref(rpmSpeed))
-        if rsmi_ret_ok(ret, device):
+        if rsmi_ret_ok(ret, device, 'get_fan_rpms'):
             printLog(device, 'Fan RPM', rpmSpeed.value)
     printLogSpacer()
 
@@ -1538,7 +1781,11 @@ def showCurrentTemps(deviceList):
     printLogSpacer(' Temperature ')
     for device in deviceList:
         for sensor in temp_type_lst:
-            printLog(device, 'Temperature (Sensor %s) (C)' % (sensor), getTemp(device, sensor))
+            temp = getTemp(device, sensor)
+            if temp != 'N/A':
+                printLog(device, 'Temperature (Sensor %s) (C)' % (sensor), temp)
+            else:
+                printInfoLog(device, 'Temperature (Sensor %s) (C)' % (sensor), temp)
     printLogSpacer()
 
 
@@ -1557,12 +1804,11 @@ def showFwInfo(deviceList, fwType):
         firmware_blocks = fwType
     printLogSpacer(' Firmware Information ')
     for device in deviceList:
-        fw_ver_list = []
         fw_ver = c_uint64()
         for fw_name in firmware_blocks:
             fw_name = fw_name.upper()
             ret = rocmsmi.rsmi_dev_firmware_version_get(device, fw_block_names_l.index(fw_name), byref(fw_ver))
-            if rsmi_ret_ok(ret, device, fw_name):
+            if rsmi_ret_ok(ret, device, 'get_firmware_version_' + str(fw_name)):
                 # The VCN, VCE, UVD, SOS and ASD firmware's value needs to be in hexadecimal
                 if fw_name in ['VCN', 'VCE', 'UVD', 'SOS', 'ASD']:
                     printLog(device, '%s firmware version' % (fw_name),
@@ -1606,14 +1852,17 @@ def showGpusByPid(pidList):
             return
     for pid in pidList:
         ret = rocmsmi.rsmi_compute_process_gpus_get(int(pid), None, byref(num_devices))
-        if rsmi_ret_ok(ret, 'PID ' + pid):
+        if rsmi_ret_ok(ret, metric=('PID ' + pid)):
 
             dv_indices = (c_uint32 * num_devices.value)()
             ret = rocmsmi.rsmi_compute_process_gpus_get(int(pid), dv_indices, byref(num_devices))
 
-            if rsmi_ret_ok(ret):
+            if rsmi_ret_ok(ret, metric='get_gpu_compute_process'):
                 metricName = 'PID %s is using %s DRM device(s)' % (pid, str(num_devices.value))
-                printListLog(metricName, list(dv_indices))
+                if (num_devices.value):
+                    printListLog(metricName, list(dv_indices))
+                else:
+                    printLog(None, metricName, None)
         else:
             print(None, 'Unable to get list of KFD PIDs. A kernel update may be needed', None)
     printLogSpacer()
@@ -1650,7 +1899,7 @@ def getCoarseGrainUtil(device, typeName=None):
             utilization_counters[i].type = c_int(i)
 
     ret = rocmsmi.rsmi_utilization_count_get(device, utilization_counters, length, byref(timestamp))
-    if rsmi_ret_ok(ret, device, typeName, True):
+    if rsmi_ret_ok(ret, device, 'get_utilization_count_'+ str(typeName), True):
         return utilization_counters
     return -1
 
@@ -1671,7 +1920,7 @@ def showGpuUse(deviceList):
             for ut_counter in util_counters:
                 printLog(device, utilization_counter_name[ut_counter.type], ut_counter.val)
         else:
-            printLog(device, 'GFX Activity', 'N/A')
+            printInfoLog(device, 'GFX Activity', 'N/A')
 
     printLogSpacer()
 
@@ -1776,10 +2025,13 @@ def showMemVendor(deviceList):
     printLogSpacer(' Memory Vendor ')
     for device in deviceList:
         ret = rocmsmi.rsmi_dev_vram_vendor_get(device, vendor, 256)
-        if rsmi_ret_ok(ret, device) and vendor.value.decode():
-            printLog(device, 'GPU memory vendor', vendor.value.decode())
-        else:
-            logging.debug('GPU memory vendor missing or not supported')
+        try:
+            if rsmi_ret_ok(ret, device, 'get_vram_vendor') and vendor.value.decode():
+                printLog(device, 'GPU memory vendor', vendor.value.decode())
+            else:
+                logging.debug('GPU memory vendor missing or not supported')
+        except UnicodeDecodeError:
+            printErrLog(device, 'Unable to read GPU memory vendor')
     printLogSpacer()
 
 
@@ -1792,26 +2044,23 @@ def showOverDrive(deviceList, odtype):
     rsmi_od = c_uint32()
     printLogSpacer(' OverDrive Level ')
     for device in deviceList:
+        odStr = ''
+        od = ''
         if odtype == 'sclk':
             odStr = 'GPU'
             ret = rocmsmi.rsmi_dev_overdrive_level_get(device, byref(rsmi_od))
             od = rsmi_od.value
-            if not rsmi_ret_ok(ret, device):
-                printErrLog(device, 'Unable to retrieve sclk OverDrive level')
+            if not rsmi_ret_ok(ret, device, 'get_overdrive_level_' + str(odtype)):
+                continue
         elif odtype == 'mclk':
             odStr = 'GPU Memory'
-            filePath = os.path.join('/sys/class/drm', 'card%d' % (device), 'device', 'pp_mclk_od')
-            if filePath:
-                try:
-                    with open(filePath, 'r') as fileContents:
-                        od = fileContents.read().rstrip('\n')
-                except:
-                    printErrLog(device, 'Unable to retrieve mclk OverDrive level')
-                    return None
+            ret = rocmsmi.rsmi_dev_mem_overdrive_level_get(device, byref(rsmi_od))
+            od = rsmi_od.value
+            if not rsmi_ret_ok(ret, device, 'get_mem_overdrive_level_' + str(odtype)):
+                continue
         else:
             printErrLog(device, 'Unable to retrieve OverDrive')
-            logging.error('Unsupported clock type %s', clktype)
-            RETCODE = 1
+            logging.error('Unsupported clock type %s', odtype)
         printLog(device, odStr + ' OverDrive value (%)', od)
     printLogSpacer()
 
@@ -1827,7 +2076,7 @@ def showPcieBw(deviceList):
     printLogSpacer(' Measured PCIe Bandwidth ')
     for device in deviceList:
         ret = rocmsmi.rsmi_dev_pci_throughput_get(device, byref(sent), byref(received), byref(max_pkt_sz))
-        if rsmi_ret_ok(ret, device):
+        if rsmi_ret_ok(ret, device, 'get_PCIe_bandwidth'):
             # Use 1024.0 to ensure that the result is a float and not integer division
             bw = ((received.value + sent.value) * max_pkt_sz.value) / 1024.0 / 1024.0
             # Use the bwstr below to control precision on the string
@@ -1866,11 +2115,15 @@ def showPerformanceLevel(deviceList):
     printLogSpacer()
 
 
-def showPids():
+def showPids(verbose):
     """ Show Information for PIDs created in a KFD (Compute) context """
     printLogSpacer(' KFD Processes ')
     dataArray = []
-    dataArray.append(['PID', 'PROCESS NAME', 'GPU(s)', 'VRAM USED', 'SDMA USED', 'CU OCCUPANCY'])
+    if verbose == "details":
+        dataArray.append(['PID', 'PROCESS NAME', 'GPU', 'VRAM USED', 'SDMA USED', 'CU OCCUPANCY'])
+    else:
+        dataArray.append(['PID', 'PROCESS NAME', 'GPU(s)', 'VRAM USED', 'SDMA USED', 'CU OCCUPANCY'])
+
     pidList = getPidList()
     if not pidList:
         printLog(None, 'No KFD PIDs currently running', None)
@@ -1884,22 +2137,34 @@ def showPids():
         vramUsage = 'UNKNOWN'
         sdmaUsage = 'UNKNOWN'
         cuOccupancy = 'UNKNOWN'
+        dv_indices = (c_uint32 * num_devices.value)()
         ret = rocmsmi.rsmi_compute_process_gpus_get(int(pid), None, byref(num_devices))
-        if rsmi_ret_ok(ret):
+        if rsmi_ret_ok(ret, metric='get_gpu_compute_process'):
             dv_indices = (c_uint32 * num_devices.value)()
             ret = rocmsmi.rsmi_compute_process_gpus_get(int(pid), dv_indices, byref(num_devices))
-            if rsmi_ret_ok(ret):
+            if rsmi_ret_ok(ret, metric='get_gpu_compute_process'):
                 gpuNumber = str(num_devices.value)
             else:
                 logging.debug('Unable to fetch GPU number by PID')
-        ret = rocmsmi.rsmi_compute_process_info_by_pid_get(int(pid), byref(proc))
-        if rsmi_ret_ok(ret):
-            vramUsage = proc.vram_usage
-            sdmaUsage = proc.sdma_usage
-            cuOccupancy = proc.cu_occupancy
+        if verbose == "details":
+            for dv_ind in dv_indices:
+                ret = rocmsmi.rsmi_compute_process_info_by_device_get(int(pid), dv_ind, byref(proc))
+                if rsmi_ret_ok(ret, metric='get_compute_process_info_by_pid'):
+                    vramUsage = proc.vram_usage
+                    sdmaUsage = proc.sdma_usage
+                    cuOccupancy = proc.cu_occupancy
+                else:
+                    logging.debug('Unable to fetch process info by PID')
+                dataArray.append([pid, getProcessName(pid), str(gpuNumber), str(vramUsage), str(sdmaUsage), str(cuOccupancy)])
         else:
-            logging.debug('Unable to fetch process info by PID')
-        dataArray.append([pid, getProcessName(pid), str(gpuNumber), str(vramUsage), str(sdmaUsage), str(cuOccupancy)])
+            ret = rocmsmi.rsmi_compute_process_info_by_pid_get(int(pid), byref(proc))
+            if rsmi_ret_ok(ret, metric='get_compute_process_info_by_pid'):
+                vramUsage = proc.vram_usage
+                sdmaUsage = proc.sdma_usage
+                cuOccupancy = proc.cu_occupancy
+            else:
+                logging.debug('Unable to fetch process info by PID')
+            dataArray.append([pid, getProcessName(pid), str(gpuNumber), str(vramUsage), str(sdmaUsage), str(cuOccupancy)])
     printLog(None, 'KFD process information:', None)
     print2DArray(dataArray)
     printLogSpacer()
@@ -1938,7 +2203,7 @@ def showPowerPlayTable(deviceList):
     odvf = rsmi_od_volt_freq_data_t()
     for device in deviceList:
         ret = rocmsmi.rsmi_dev_od_volt_info_get(device, byref(odvf))
-        if rsmi_ret_ok(ret, device, 'od volt'):
+        if rsmi_ret_ok(ret, device, 'get_od_volt'):
             # TODO: Make this more dynamic and less hard-coded if possible
             printLog(device, 'OD_SCLK:', None)
             printLog(device, '0: %sMhz' % (int(odvf.curr_sclk_range.lower_bound / 1000000)), None)
@@ -1978,19 +2243,29 @@ def showProductName(deviceList):
         # Retrieve card vendor
         ret = rocmsmi.rsmi_dev_vendor_name_get(device, vendor, 256)
         # Only continue if GPU vendor is AMD
-        if rsmi_ret_ok(ret, device) and isAmdDevice(device):
-            device_vendor = vendor.value.decode()
+        if rsmi_ret_ok(ret, device, 'get_vendor_name') and isAmdDevice(device):
+            try:
+                device_vendor = vendor.value.decode()
+            except UnicodeDecodeError:
+                printErrLog(device, "Unable to read device vendor")
+                device_vendor = "N/A"
             # Retrieve the device series
             ret = rocmsmi.rsmi_dev_name_get(device, series, 256)
-            if rsmi_ret_ok(ret, device) and series.value.decode():
-                device_series = series.value.decode()
-                printLog(device, 'Card series', '\t\t' + device_series)
+            if rsmi_ret_ok(ret, device, 'get_name'):
+                try:
+                    device_series = series.value.decode()
+                    printLog(device, 'Card series', '\t\t' + device_series)
+                except UnicodeDecodeError:
+                    printErrLog(device, "Unable to read card series")
             # Retrieve the device model
             ret = rocmsmi.rsmi_dev_subsystem_name_get(device, model, 256)
-            if rsmi_ret_ok(ret, device) and model.value.decode():
-                device_model = model.value.decode()
-                # padHexValue is used for applications that expect 4-digit card models
-                printLog(device, 'Card model', '\t\t' + padHexValue(device_model, 4))
+            if rsmi_ret_ok(ret, device, 'get_subsystem_name'):
+                try:
+                    device_model = model.value.decode()
+                    # padHexValue is used for applications that expect 4-digit card models
+                    printLog(device, 'Card model', '\t\t' + padHexValue(device_model, 4))
+                except UnicodeDecodeError:
+                    printErrLog(device, "Unable to read device model")
             printLog(device, 'Card vendor', '\t\t' + device_vendor)
             # TODO: Retrieve the SKU using 'rsmi_dev_sku_get' from the LIB
             # ret = rocmsmi.rsmi_dev_sku_get(device, sku, 256)
@@ -1998,10 +2273,15 @@ def showProductName(deviceList):
             #     device_sku = sku.value.decode()
             # Retrieve the device SKU as a substring from VBIOS
             ret = rocmsmi.rsmi_dev_vbios_version_get(device, vbios, 256)
-            if rsmi_ret_ok(ret, device) and vbios.value.decode():
-                # Device SKU is just 6 characters after the first occurance of '-' in vbios_version
-                device_sku = vbios.value.decode().split('-')[1][:6]
-            printLog(device, 'Card SKU', '\t\t' + device_sku)
+            if rsmi_ret_ok(ret, device, 'get_vbios_version') and vbios.value.decode():
+                # Device SKU is just the characters in between the two '-' in vbios_version
+                if vbios.value.decode().count('-') == 2 and len(str(vbios.value.decode().split('-')[1])) > 1:
+                    device_sku = vbios.value.decode().split('-')[1]
+                else:
+                    device_sku = 'unknown'
+                printLog(device, 'Card SKU', '\t\t' + device_sku)
+            else:
+                printErrLog(device, "Unable to decode VBIOS value for device SKU")
         else:
             printLog(device, 'Incompatible device.\n' \
                              'GPU[%s]\t\t: Expected vendor name: Advanced Micro Devices, Inc. [AMD/ATI]\n' \
@@ -2021,7 +2301,7 @@ def showProfile(deviceList):
     status = rsmi_power_profile_status_t()
     for device in deviceList:
         ret = rocmsmi.rsmi_dev_power_profile_presets_get(device, 0, byref(status))
-        if rsmi_ret_ok(ret, device, 'profiles'):
+        if rsmi_ret_ok(ret, device, 'get_power_profiles', silent=False):
             binaryMaskString = str(format(status.available_profiles, '07b'))[::-1]
             bitMaskPosition = 0
             profileNumber = 0
@@ -2053,7 +2333,7 @@ def showRange(deviceList, rangeType):
     odvf = rsmi_od_volt_freq_data_t()
     for device in deviceList:
         ret = rocmsmi.rsmi_dev_od_volt_info_get(device, byref(odvf))
-        if rsmi_ret_ok(ret, device, 'od volt'):
+        if rsmi_ret_ok(ret, device, 'get_od_volt', silent=False):
             if rangeType == 'sclk':
                 printLog(device, 'Valid sclk range: %sMhz - %sMhz' % (
                 int(odvf.curr_sclk_range.lower_bound / 1000000), int(odvf.curr_sclk_range.upper_bound / 1000000)), None)
@@ -2075,8 +2355,6 @@ def showRange(deviceList, rangeType):
                                  None)
                 else:
                     printLog(device, 'Unable to display %s range' % (rangeType), None)
-        else:
-            printLog(device, 'Unable to display %s range' % (rangeType), None)
     printLogSpacer()
 
 
@@ -2093,7 +2371,7 @@ def showRasInfo(deviceList, rasType):
         for name in rasType:
             if name.upper() not in rsmi_gpu_block_d:
                 rasType.remove(name)
-                printErrLog(device, '%s is not a RAS block' % (name))
+                printErrLog(None, '%s is not a RAS block' % (name))
 
         rasBlocks = [block.upper() for block in rasType]
 
@@ -2103,7 +2381,7 @@ def showRasInfo(deviceList, rasType):
         for block in rasBlocks:
             row = []
             ret = rocmsmi.rsmi_dev_ecc_status_get(device, rsmi_gpu_block_d[block], byref(state))
-            if rsmi_ret_ok(ret, device, block, True):
+            if rsmi_ret_ok(ret, device, 'get_ecc_status_' + str(block), True):
                 row.append(block)
                 row.append(rsmi_ras_err_stale_machine[state.value].upper())
                 # Now add the error count
@@ -2114,7 +2392,7 @@ def showRasInfo(deviceList, rasType):
                         row.append(ec.correctable_err)
                         row.append(ec.uncorrectable_err)
                 data.append(row)
-        printTableLog(['         Block', '     Status  ', 'uncorrectable err', 'correctable err'], data, device,
+        printTableLog(['         Block', '     Status  ', 'Correctable Error', 'Uncorrectable Error'], data, device,
                       'RAS INFO')
         # TODO: Use dynamic spacing for column widths
         printLogSpacer(None, '_')
@@ -2159,7 +2437,13 @@ def showSerialNumber(deviceList):
     for device in deviceList:
         sn = create_string_buffer(256)
         ret = rocmsmi.rsmi_dev_serial_number_get(device, sn, 256)
-        if rsmi_ret_ok(ret, device) and sn.value.decode():
+        try:
+            sn.value.decode()
+        except UnicodeDecodeError:
+            printErrLog(device, "FRU Serial Number contains non-alphanumeric characters. FRU is likely corrupted")
+            continue
+
+        if rsmi_ret_ok(ret, device, 'get_serial_number') and sn.value.decode():
             printLog(device, 'Serial Number', sn.value.decode())
         else:
             printLog(device, 'Serial Number', 'N/A')
@@ -2175,7 +2459,7 @@ def showUId(deviceList):
     for device in deviceList:
         dv_uid = c_uint64()
         ret = rocmsmi.rsmi_dev_unique_id_get(device, byref(dv_uid))
-        if rsmi_ret_ok(ret, device, None, True) and str(hex(dv_uid.value)):
+        if rsmi_ret_ok(ret, device, 'get_unique_id', True) and str(hex(dv_uid.value)):
             printLog(device, 'Unique ID', hex(dv_uid.value))
         else:
             printLog(device, 'Unique ID', 'N/A')
@@ -2229,15 +2513,15 @@ def showEvents(deviceList, eventTypes):
             printErrLog(None, 'Ignoring unrecognized event type %s' % (event.replace(',', '')))
     if len(eventTypeList) == 0:
         eventTypeList = notification_type_names
-    try:
         print2DArray([['DEVICE\t', 'TIME\t', 'TYPE\t', 'DESCRIPTION']])
         # Create a seperate thread for each GPU
         for device in deviceList:
-            _thread.start_new_thread(printEventList, (device, 1000, eventTypeList))
-            time.sleep(0.25)
-    except Exception as e:
-        printErrLog(device, 'Unable to start new thread. %s' % (e))
-        return
+            try:
+                _thread.start_new_thread(printEventList, (device, 1000, eventTypeList))
+                time.sleep(0.25)
+            except Exception as e:
+                printErrLog(device, 'Unable to start new thread. %s' % (e))
+                return
     while 1:  # Exit condition from user keyboard input of 'q' or 'ctrl + c'
         getch = _Getch()
         user_input = getch()
@@ -2245,10 +2529,116 @@ def showEvents(deviceList, eventTypes):
         if user_input == 'q' or user_input == '\x03':
             for device in deviceList:
                 ret = rocmsmi.rsmi_event_notification_stop(device)
-                if not rsmi_ret_ok(ret, device):
+                if not rsmi_ret_ok(ret, device, 'stop_event_notification'):
                     printErrLog(device, 'Unable to end event notifications.')
             print('\r')
             break
+
+
+def printTempGraph(deviceList, delay):
+    # deviceList must be in ascending order
+    deviceList.sort()
+    devices = 0
+    # Print an empty line for each device
+    for device in deviceList:
+        devices = devices + 1
+    for i in range(devices):
+        printEmptyLine()
+    originalTerminalWidth = os.get_terminal_size()[0]
+    while 1:  # Exit condition from user keyboard input of 'q' or 'ctrl + c'
+        terminalWidth = os.get_terminal_size()[0]
+        printStrings = list()
+        for device in deviceList:
+            temp = getTemp(device, 'edge')
+            if temp == 'N/A':
+                percentage = 0
+            else:
+                percentage = temp
+            if percentage >= 100:
+                percentage = 100
+            if percentage < 0:
+                percentage = 0
+            # Get available space based on terminal width
+            availableSpace = 0
+            if terminalWidth >= 20:
+                availableSpace = terminalWidth - 20
+            # Get color based on percentage, with a non-linear scaling
+            color = getGraphColor(3.16*(percentage**1.5)**(1/2))
+            # Get graph length based on percentage and available space
+            padding = (percentage / float(100)) * availableSpace
+            if padding > availableSpace:
+                padding = availableSpace
+            paddingSpace = color[-1]
+            for i in range(int(padding)):
+                paddingSpace += paddingSpace[-1]
+            remainder = 0
+            if availableSpace >= padding:
+                remainder = availableSpace + 1 - padding
+            remainderSpace = ' ' * int(remainder)
+            # TODO: Allow terminal size to be decreased
+            if terminalWidth < originalTerminalWidth:
+                print('Terminal size cannot be decreased.\n\r')
+                return
+            if type(temp) == str:
+                tempString = temp
+            else:
+                tempString = str(int(temp))
+            # Two spare Spaces
+            tempString = (tempString + '°C').ljust(5)
+            printStrings.append('\033[2;30;47mGPU[%d] Temp %s|%s%s\x1b[0m%s' % (device, tempString, color, paddingSpace[1:], remainderSpace))
+            originalTerminalWidth = terminalWidth
+            time.sleep((delay / 1000))
+
+        if terminalWidth >= 20:
+            # go up and prepare to rewrite the lines
+            for i in printStrings:
+                print('\033[A', end='\r')
+            # print all strings
+            for i in printStrings:
+                print(i, end='\r\n')
+
+
+def getGraphColor(percentage):
+    # Text / Background color mixing (Tested on PuTTY)
+    colors = ['\033[2;35;45m','\033[2;34;45m','\033[2;35;44m','\033[2;34;44m',
+              '\033[2;36;44m','\033[2;34;46m','\033[2;36;46m','\033[2;32;46m',
+              '\033[2;36;42m','\033[2;32;42m','\033[2;33;42m','\033[2;32;43m',
+              '\033[2;33;43m','\033[2;31;43m','\033[2;33;41m','\033[2;31;41m']
+    characters = [' ', '░', '░', '▒', '▒', '░']
+    # Ensure percentage is in range and rounded
+    if percentage > 99:
+        percentage = 99
+    if percentage < 0:
+        percentage = 0
+    percentage = round(percentage, 0)
+    # There are a total of 16 distinct colors, with 2 special ascii characters per
+    # color, for a total of 16*2=32 distinct colors for a gradient.
+    # Therefore every 100/32=3.125 percent the color gradient will change
+    stepSize = (100/len(colors))/2
+    characterIndex = int((percentage % (len(characters) * stepSize)) / stepSize)
+    colorIndex = int(percentage / (stepSize * 2))
+    returnStr = colors[colorIndex] + characters[characterIndex]
+    return returnStr
+
+
+def showTempGraph(deviceList):
+    printLogSpacer(' Temperature Graph ')
+    # Start a thread for constantly printing
+    try:
+        # Create a thread (call print function, devices, delay in ms)
+        _thread.start_new_thread(printTempGraph, (deviceList, 150))
+    except Exception as e:
+        printErrLog(device, 'Unable to start new thread. %s' % (e))
+    # Catch user input for program termination
+    while 1:  # Exit condition from user keyboard input of 'q' or 'ctrl + c'
+        getch = _Getch()
+        user_input = getch()
+        # Catch user input for q or Ctrl + c
+        if user_input == 'q' or user_input == '\x03':
+            break
+    # Reset color to default before exit
+    print('\033[A\x1b[0m\r')
+    printLogSpacer()
 
 
 def showVersion(deviceList, component):
@@ -2273,7 +2663,7 @@ def showVoltage(deviceList):
         met = rsmi_voltage_metric_t(0)
         voltage = c_uint64()
         ret = rocmsmi.rsmi_dev_volt_metric_get(device, vtype, met, byref(voltage))
-        if rsmi_ret_ok(ret, device) and str(voltage.value):
+        if rsmi_ret_ok(ret, device, 'get_volt_metric') and str(voltage.value):
             printLog(device, 'Voltage (mV)', str(voltage.value))
         else:
             logging.debug('GPU voltage not supported')
@@ -2289,13 +2679,11 @@ def showVoltageCurve(deviceList):
     odvf = rsmi_od_volt_freq_data_t()
     for device in deviceList:
         ret = rocmsmi.rsmi_dev_od_volt_info_get(device, byref(odvf))
-        if rsmi_ret_ok(ret, device, 'od volt'):
+        if rsmi_ret_ok(ret, device, 'get_od_volt_info', silent=False):
             for position in range(3):
                 printLog(device, 'Voltage point %d: %sMhz %smV' % (
                 position, int(list(odvf.curve.vc_points)[position].frequency / 1000000),
                 int(list(odvf.curve.vc_points)[position].voltage)), None)
-        else:
-            printLog(device, 'Voltage Curve is not supported', None)
     printLogSpacer()
 
 
@@ -2309,7 +2697,7 @@ def showXgmiErr(deviceList):
     printLogSpacer('XGMI Error status')
     xe = rsmi_xgmi_status_t()
     for device in deviceList:
-        ret = rocmsmi.rsmi_dev_xgmi_error_status(device, xe)
+        ret = rocmsmi.rsmi_dev_xgmi_error_status(device, byref(xe))
         if rsmi_ret_ok(ret, device, 'xgmi status'):
             desc = ''
             if xe.value is None:
@@ -2346,7 +2734,7 @@ def showAccessibleTopology(deviceList):
     for srcdevice in deviceList:
         for destdevice in deviceList:
             ret = rocmsmi.rsmi_is_P2P_accessible(srcdevice, destdevice, byref(accessible))
-            if rsmi_ret_ok(ret):
+            if rsmi_ret_ok(ret, metric='is_P2P_accessible'):
                 gpu_links_type[srcdevice][destdevice] = accessible.value
             else:
                 printErrLog(srcdevice, 'Cannot read link accessibility: Unsupported on this machine')
@@ -2385,10 +2773,12 @@ def showWeightTopology(deviceList):
                 continue
             weight = c_uint64()
             ret = rocmsmi.rsmi_topo_get_link_weight(srcdevice, destdevice, byref(weight))
-            if rsmi_ret_ok(ret):
+            if rsmi_ret_ok(ret, metric='get_link_weight_topology'):
                 gpu_links_weight[srcdevice][destdevice] = weight
             else:
                 printErrLog(srcdevice, 'Cannot read Link Weight: Not supported on this machine')
+                gpu_links_weight[srcdevice][destdevice] = None
+
 
     if PRINT_JSON:
         formatMatrixToJSON(deviceList, gpu_links_weight, "(Topology) Weight between DRM devices {} and {}")
@@ -2405,6 +2795,8 @@ def showWeightTopology(deviceList):
         for gpu2 in deviceList:
             if (gpu1 == gpu2):
                 printTableRow('%-12s', '0')
+            elif (gpu_links_weight[gpu1][gpu2] == None):
+                printTableRow('%-12s', 'N/A')
             else:
                 printTableRow('%-12s', gpu_links_weight[gpu1][gpu2].value)
         printEmptyLine()
@@ -2428,10 +2820,11 @@ def showHopsTopology(deviceList):
                 continue
             hops = c_uint64()
             ret = rocmsmi.rsmi_topo_get_link_type(srcdevice, destdevice, byref(hops), byref(linktype))
-            if rsmi_ret_ok(ret):
+            if rsmi_ret_ok(ret, metric='get_link_type_topology'):
                 gpu_links_hops[srcdevice][destdevice] = hops
             else:
                 printErrLog(srcdevice, 'Cannot read Link Hops: Not supported on this machine')
+                gpu_links_hops[srcdevice][destdevice] = None
 
     if PRINT_JSON:
         formatMatrixToJSON(deviceList, gpu_links_hops, "(Topology) Hops between DRM devices {} and {}")
@@ -2448,6 +2841,8 @@ def showHopsTopology(deviceList):
         for gpu2 in deviceList:
             if (gpu1 == gpu2):
                 printTableRow('%-12s', '0')
+            elif (gpu_links_hops[gpu1][gpu2] == None):
+                printTableRow('%-12s', 'N/A')
             else:
                 printTableRow('%-12s', gpu_links_hops[gpu1][gpu2].value)
         printEmptyLine()
@@ -2471,7 +2866,7 @@ def showTypeTopology(deviceList):
                 gpu_links_type[srcdevice][destdevice] = '0'
                 continue
             ret = rocmsmi.rsmi_topo_get_link_type(srcdevice, destdevice, byref(hops), byref(linktype))
-            if rsmi_ret_ok(ret):
+            if rsmi_ret_ok(ret, metric='get_link_topology_type'):
                 if (linktype.value == 1):
                     gpu_links_type[srcdevice][destdevice] = "PCIE"
                 elif (linktype.value == 2):
@@ -2480,6 +2875,8 @@ def showTypeTopology(deviceList):
                     gpu_links_type[srcdevice][destdevice] = "XXXX"
             else:
                 printErrLog(srcdevice, 'Cannot read Link Type: Not supported on this machine')
+                gpu_links_type[srcdevice][destdevice] = "XXXX"
+
     if PRINT_JSON:
         formatMatrixToJSON(deviceList, gpu_links_type, "(Topology) Link type between DRM devices {} and {}")
         return
@@ -2511,13 +2908,13 @@ def showNumaTopology(deviceList):
     numa_numbers = c_uint32()
     for device in deviceList:
         ret = rocmsmi.rsmi_topo_get_numa_node_number(device, byref(numa_numbers))
-        if rsmi_ret_ok(ret, device):
+        if rsmi_ret_ok(ret, device, 'get_numa_node_number'):
             printLog(device, "(Topology) Numa Node", numa_numbers.value)
         else:
             printErrLog(device, "Cannot read Numa Node")
 
         ret = rocmsmi.rsmi_topo_numa_affinity_get(device, byref(numa_numbers))
-        if rsmi_ret_ok(ret):
+        if rsmi_ret_ok(ret, metric='get_numa_affinity_topology'):
             printLog(device, "(Topology) Numa Affinity", numa_numbers.value)
         else:
             printErrLog(device, 'Cannot read Numa Affinity')
@@ -2560,18 +2957,18 @@ def showNodesBw(deviceList):
                 ret = rocmsmi.rsmi_minmax_bandwidth_get(srcdevice, destdevice, byref(minBW), byref(maxBW))
                 #verify that link type is xgmi
                 ret2 = rocmsmi.rsmi_topo_get_link_type(srcdevice, destdevice, byref(hops), byref(linktype))
-                if rsmi_ret_ok(ret2," {} to {}".format(srcdevice, destdevice), None, True):
+                if rsmi_ret_ok(ret2," {} to {}".format(srcdevice, destdevice), 'get_link_topology_type', True):
                     if linktype.value != 2:
                         nonXgmi = True
                         silent= True
                         gpu_links_type[srcdevice][destdevice] = "N/A"
 
-                if rsmi_ret_ok(ret, " {}  to {}".format(srcdevice, destdevice),None,silent):
+                if rsmi_ret_ok(ret, " {}  to {}".format(srcdevice, destdevice), 'get_link_topology_type',silent):
                     gpu_links_type[srcdevice][destdevice] = "{}-{}".format(minBW.value, maxBW.value)
             else:
                 gpu_links_type[srcdevice][destdevice] = "N/A"
     if PRINT_JSON:
-        formatMatrixToJSON(deviceList, "{}-{}".format(minBW.value, maxBW.value),  " min-max bandwidth between DRM devices {} and {}".format(srcdevice, destdevice))
+        # TODO
         return
     printTableRow(None, '      ')
     for row in deviceList:
@@ -2588,6 +2985,43 @@ def showNodesBw(deviceList):
     printLog(None,'"0-0" min-max bandwidth indicates devices are not connected directly', None)
     if nonXgmi:
         printLog(None,"Non-xGMI links detected and is currently not supported", None)
+
+def showComputePartition(deviceList):
+    """ Returns the current compute partitioning for a list of devices
+
+    @param deviceList: List of DRM devices (can be a single-item list)
+    """
+    currentComputePartition = create_string_buffer(256)
+    printLogSpacer(' Current Compute Partition ')
+    for device in deviceList:
+        ret = rocmsmi.rsmi_dev_compute_partition_get(device, currentComputePartition, 256)
+        if rsmi_ret_ok(ret, device, 'get_compute_partition', silent=True) and currentComputePartition.value.decode():
+            printLog(device, 'Compute Partition', currentComputePartition.value.decode())
+        elif ret == rsmi_status_t.RSMI_STATUS_NOT_SUPPORTED:
+            printLog(device, 'Not supported on the given system', None)
+        else:
+            rsmi_ret_ok(ret, device, 'get_compute_partition')
+            printErrLog(device, 'Failed to retrieve compute partition, even though device supports it.')
+    printLogSpacer()
+
+def showNPSMode(deviceList):
+    """ Returns the current NPS mode for a list of devices
+
+    @param deviceList: List of DRM devices (can be a single-item list)
+    """
+    npsMode = create_string_buffer(256)
+    printLogSpacer(' Current NPS Mode ')
+    for device in deviceList:
+        ret = rocmsmi.rsmi_dev_nps_mode_get(device, npsMode, 256)
+        if rsmi_ret_ok(ret, device, 'get_NPS_mode',silent=True) and npsMode.value.decode():
+            printLog(device, 'NPS Mode', npsMode.value.decode())
+        elif ret == rsmi_status_t.RSMI_STATUS_NOT_SUPPORTED:
+            printLog(device, 'Not supported on the given system', None)
+        else:
+            rsmi_ret_ok(ret, device, 'get_NPS_mode')
+            printErrLog(device, 'Failed to retrieve NPS mode, even though device supports it.')
+    printLogSpacer()
+
 
 def checkAmdGpus(deviceList):
     """ Check if there are any AMD GPUs being queried,
@@ -2684,7 +3118,7 @@ def listDevices():
     """ Returns a list of GPU devices """
     numberOfDevices = c_uint32(0)
     ret = rocmsmi.rsmi_num_monitor_devices(byref(numberOfDevices))
-    if rsmi_ret_ok(ret):
+    if rsmi_ret_ok(ret, metric='get_num_monitor_devices'):
         deviceList = list(range(numberOfDevices.value))
         return deviceList
     else:
@@ -2762,6 +3196,8 @@ def relaunchAsSudo():
     """
     if os.geteuid() != 0:
         os.execvp('sudo', ['sudo'] + sys.argv)
+        #keeping below, if we want to run sudo with user's env variables
+        #os.execvp('sudo', ['sudo', '-E'] + sys.argv)
 
 
 def rsmi_ret_ok(my_ret, device=None, metric=None, silent=False):
@@ -2772,6 +3208,8 @@ def rsmi_ret_ok(my_ret, device=None, metric=None, silent=False):
     @param device: DRM device identifier
     @param my_ret: Return of RSMI call (rocm_smi_lib API)
     @param metric: Parameter of GPU currently being analyzed
+    @param silent: Echo verbose error reponse.
+    True siliences err output, False does not silience err output (default).
     """
     global RETCODE
     global PRINT_JSON
@@ -2783,16 +3221,18 @@ def rsmi_ret_ok(my_ret, device=None, metric=None, silent=False):
             returnString += '%s GPU[%s]:' % (my_ret, device)
         if metric is not None:
             returnString += ' %s: ' % (metric)
-        returnString += '%s\t' % (err_str.value.decode())
+        else:
+            metric = ''
+        if err_str.value is not None:
+            returnString += '%s\t' % (err_str.value.decode())
         if not PRINT_JSON:
-            if silent:
-                logging.info('%s', returnString)
-            else:
-                logging.error('%s', returnString)
+            logging.debug('%s', returnString)
+            if not silent:
+                if my_ret in rsmi_status_verbose_err_out:
+                    printLog(device, metric + ", " + rsmi_status_verbose_err_out[my_ret], None)
         RETCODE = my_ret
         return False
     return True
-
 
 def save(deviceList, savefilepath):
     """ Save clock frequencies and fan speeds for a list of devices to a specified file path.
@@ -2821,14 +3261,14 @@ def save(deviceList, savefilepath):
         for clk_type in sorted(rsmi_clk_names_dict):
             clocks[device] = clocks.get(device, {})
             ret = rocmsmi.rsmi_dev_gpu_clk_freq_get(device, rsmi_clk_names_dict[clk_type], byref(freq))
-            if rsmi_ret_ok(ret, device, clk_type, True):
+            if rsmi_ret_ok(ret, device, 'get_gpu_clk_freq_' + str(clk_type), True):
                 clocks[device][clk_type] = str(freq.current)
             else:
                 clocks[device][clk_type] = '0'
         fanSpeeds[device] = getFanSpeed(device)[0]
         od = c_uint32()
         ret = rocmsmi.rsmi_dev_overdrive_level_get(device, byref(od))
-        if rsmi_ret_ok(ret, device):
+        if rsmi_ret_ok(ret, device, 'get_overdrive_level'):
             overDriveGpu[device] = str(od.value)
         else:
             overDriveGpu[device] = '0'
@@ -2836,7 +3276,7 @@ def save(deviceList, savefilepath):
         overDriveGpuMem[device] = '0'
         status = rsmi_power_profile_status_t()
         ret = rocmsmi.rsmi_dev_power_profile_presets_get(device, 0, byref(status))
-        if rsmi_ret_ok(ret, device, 'profile'):
+        if rsmi_ret_ok(ret, device, 'get_profile_presets'):
             profiles[device] = str(str(bin(status.current))[2:][::-1].index('1') + 1)
         else:
             profiles[device] = str('UNKNOWN')
@@ -2844,7 +3284,7 @@ def save(deviceList, savefilepath):
                                          'fan': fanSpeeds[device], 'overdrivesclk': overDriveGpu[device],
                                          'overdrivemclk': overDriveGpuMem[device], 'profile': profiles[device],
                                          'perflevel': perfLevels[device]}
-    printLog(device, 'Current settings successfully saved to', savefilepath)
+    printLog(None, 'Current settings successfully saved to', savefilepath)
     with open(savefilepath, 'w') as savefile:
         json.dump(jsonData, savefile, ensure_ascii=True)
     printLogSpacer()
@@ -2878,6 +3318,7 @@ if __name__ == '__main__':
     groupDisplayTop.add_argument('-v', '--showvbios', help='Show VBIOS version', action='store_true')
     groupDisplayTop.add_argument('-e', '--showevents', help='Show event list', metavar='EVENT', type=str, nargs='*')
     groupDisplayTop.add_argument('--showdriverversion', help='Show kernel driver version', action='store_true')
+    groupDisplayTop.add_argument('--showtempgraph', help='Show Temperature Graph', action='store_true')
     groupDisplayTop.add_argument('--showfwinfo', help='Show FW information', metavar='BLOCK', type=str, nargs='*')
     groupDisplayTop.add_argument('--showmclkrange', help='Show mclk range', action='store_true')
     groupDisplayTop.add_argument('--showmemvendor', help='Show GPU memory vendor', action='store_true')
@@ -2915,7 +3356,8 @@ if __name__ == '__main__':
     groupDisplay.add_argument('-s', '--showclkfrq', help='Show supported GPU and Memory Clock', action='store_true')
     groupDisplay.add_argument('--showmeminfo', help='Show Memory usage information for given block(s) TYPE',
                               metavar='TYPE', type=str, nargs='+')
-    groupDisplay.add_argument('--showpids', help='Show current running KFD PIDs', action='store_true')
+    groupDisplay.add_argument('--showpids', help='Show current running KFD PIDs (pass details to VERBOSE for detailed information)',
+                              metavar='VERBOSE', const="summary", type=str, nargs='?')
     groupDisplay.add_argument('--showpidgpus', help='Show GPUs used by specified KFD PIDs (all if no arg given)',
                               nargs='*')
     groupDisplay.add_argument('--showreplaycount', help='Show PCIe Replay Count', action='store_true')
@@ -2933,6 +3375,8 @@ if __name__ == '__main__':
     groupDisplay.add_argument('--showenergycounter', help='Energy accumulator that stores amount of energy consumed',
                               action='store_true')
     groupDisplay.add_argument('--shownodesbw', help='Shows the numa nodes ', action='store_true')
+    groupDisplay.add_argument('--showcomputepartition', help='Shows current compute partitioning ', action='store_true')
+    groupDisplay.add_argument('--shownpsmode', help='Shows current NPS mode ', action='store_true')
 
     groupActionReset.add_argument('-r', '--resetclocks', help='Reset clocks and OverDrive to default',
                                   action='store_true')
@@ -2942,7 +3386,9 @@ if __name__ == '__main__':
                                   help='Set the maximum GPU power back to the device deafult state',
                                   action='store_true')
     groupActionReset.add_argument('--resetxgmierr', help='Reset XGMI error count', action='store_true')
-    groupAction.add_argument('--resetperfdeterminism', help='Disable performance determinism', action='store_true')
+    groupActionReset.add_argument('--resetperfdeterminism', help='Disable performance determinism', action='store_true')
+    groupActionReset.add_argument('--resetcomputepartition', help='Resets to boot compute partition state', action='store_true')
+    groupActionReset.add_argument('--resetnpsmode', help='Resets to boot NPS mode state', action='store_true')
     groupAction.add_argument('--setclock',
                              help='Set Clock Frequency Level(s) for specified clock (requires manual Perf level)',
                              metavar=('TYPE','LEVEL'), nargs=2)
@@ -2977,6 +3423,12 @@ if __name__ == '__main__':
     groupAction.add_argument('--setperfdeterminism',
                              help='Set clock frequency limit to get minimal performance variation', type=int,
                              metavar='SCLK', nargs=1)
+    groupAction.add_argument('--setcomputepartition', help='Set compute partition',
+                             choices=compute_partition_type_l + [x.lower() for x in compute_partition_type_l],
+                             type=str, nargs=1)
+    groupAction.add_argument('--setnpsmode', help='Set nps mode',
+                             choices=nps_mode_type_l + [x.lower() for x in nps_mode_type_l],
+                             type=str, nargs=1)
     groupAction.add_argument('--rasenable', help='Enable RAS for specified block and error type', type=str, nargs=2,
                              metavar=('BLOCK', 'ERRTYPE'))
     groupAction.add_argument('--rasdisable', help='Disable RAS for specified block and error type', type=str, nargs=2,
@@ -3014,7 +3466,8 @@ if __name__ == '__main__':
             or args.resetclocks or args.setprofile or args.resetprofile or args.setoverdrive or args.setmemoverdrive \
             or args.setpoweroverdrive or args.resetpoweroverdrive or args.rasenable or args.rasdisable or \
             args.rasinject or args.gpureset or args.setperfdeterminism or args.setslevel or args.setmlevel or \
-            args.setvc or args.setsrange or args.setmrange or args.setclock:
+            args.setvc or args.setsrange or args.setmrange or args.setclock or \
+            args.setcomputepartition or args.setnpsmode or args.resetcomputepartition or args.resetnpsmode:
         relaunchAsSudo()
 
     # If there is one or more device specified, use that for all commands, otherwise use a
@@ -3072,10 +3525,12 @@ if __name__ == '__main__':
         args.showmemoverdrive = True
         args.showoverdrive = True
         args.showperflevel = True
-        args.showpids = True
+        args.showpids = "summary"
         args.showpidgpus = []
         args.showreplaycount = True
         args.showvc = True
+        args.showcomputepartition = True
+        args.shownpsmode = True
 
         if not PRINT_JSON:
             args.showprofile = True
@@ -3103,6 +3558,8 @@ if __name__ == '__main__':
         showAllConciseHw(deviceList)
     if args.showdriverversion:
         showVersion(deviceList, rsmi_sw_component_t.RSMI_SW_COMP_DRIVER)
+    if args.showtempgraph:
+        showTempGraph(deviceList)
     if args.showid:
         showId(deviceList)
     if args.showuniqueid:
@@ -3147,8 +3604,8 @@ if __name__ == '__main__':
         showPcieReplayCount(deviceList)
     if args.showserial:
         showSerialNumber(deviceList)
-    if args.showpids:
-        showPids()
+    if args.showpids != None:
+        showPids(args.showpids)
     if args.showpidgpus or str(args.showpidgpus) == '[]':
         showGpusByPid(args.showpidgpus)
     if args.showclkvolt:
@@ -3202,6 +3659,10 @@ if __name__ == '__main__':
         showVoltageCurve(deviceList)
     if args.showenergycounter:
         showEnergy(deviceList)
+    if args.showcomputepartition:
+        showComputePartition(deviceList)
+    if args.shownpsmode:
+        showNPSMode(deviceList)
     if args.setclock:
         setClocks(deviceList, args.setclock[0], [int(args.setclock[1])])
     if args.setsclk:
@@ -3240,12 +3701,20 @@ if __name__ == '__main__':
         setClockRange(deviceList, 'mclk', args.setmrange[0], args.setmrange[1], args.autorespond)
     if args.setperfdeterminism:
         setPerfDeterminism(deviceList, args.setperfdeterminism[0])
+    if args.setcomputepartition:
+        setComputePartition(deviceList, args.setcomputepartition[0])
+    if args.setnpsmode:
+        setNPSMode(deviceList, args.setnpsmode[0])
     if args.resetprofile:
         resetProfile(deviceList)
     if args.resetxgmierr:
         resetXgmiErr(deviceList)
     if args.resetperfdeterminism:
         resetPerfDeterminism(deviceList)
+    if args.resetcomputepartition:
+        resetComputePartition(deviceList)
+    if args.resetnpsmode:
+        resetNpsMode(deviceList)
     if args.rasenable:
         setRas(deviceList, 'enable', args.rasenable[0], args.rasenable[1])
     if args.rasdisable:
@@ -3256,6 +3725,12 @@ if __name__ == '__main__':
         load(args.load, args.autorespond)
     if args.save:
         save(deviceList, args.save)
+
+    if RETCODE and not PRINT_JSON:
+        logging.debug(' \t\t One or more commands failed.')
+    # Set RETCODE value to 0, unless loglevel is None or 'warning' (default)
+    if args.loglevel is None or getattr(logging, args.loglevel.upper(), logging.WARNING) == logging.WARNING:
+        RETCODE = 0
 
     if PRINT_JSON:
         # Check that we have some actual data to print, instead of the
@@ -3284,8 +3759,6 @@ if __name__ == '__main__':
                 devCsv = formatCsv(deviceList)
                 print(devCsv)
 
-    if RETCODE and not PRINT_JSON:
-        logging.debug(' \t\t One or more commands failed.')
     printLogSpacer(footerString)
 
     rsmi_ret_ok(rocmsmi.rsmi_shut_down())
