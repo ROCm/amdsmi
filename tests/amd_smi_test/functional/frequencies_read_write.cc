@@ -176,6 +176,12 @@ void TestFrequenciesReadWrite::Run(void) {
           std::cout << "Resetting mask to all frequencies." << std::endl;
         }
         ret =  amdsmi_set_clk_freq(processor_handles_[dv_ind], amdsmi_clk, 0xFFFFFFFF);
+        if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
+          std::cout << "\t**Set all frequencies: Not supported on this machine. Skipping..."
+                    << std::endl;
+          ret = AMDSMI_STATUS_SUCCESS;
+          return;
+        }
         if (ret != AMDSMI_STATUS_SUCCESS) {
           return;
         }
