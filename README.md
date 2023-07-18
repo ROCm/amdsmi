@@ -33,7 +33,11 @@ In order to build the latest documentation, the following are required:
 
 The source code for AMD SMI is available on Github.
 
-After the AMD SMI library git repository has been cloned to a local Linux machine, the Default location for the library and headers is /opt/rocm. Building the library is achieved by following the typical CMake build sequence, specifically:
+After the AMD SMI library git repository has been cloned to a local Linux machine, the Default location for the library and headers is /opt/rocm. Before installation, the old rocm directories should be deleted:
+/opt/rocm
+/opt/rocm-{number}
+
+Building the library is achieved by following the typical CMake build sequence (run as root user or use 'sudo' before 'make install' command), specifically:
 
 ```bash
 mkdir -p build
@@ -58,13 +62,14 @@ In order to verify the build and capability of AMD SMI on your system and to see
 ```bash
 mkdir -p build
 cd build
-cmake -DBUILD_TESTS=ON <location of root of AMD SMI library CMakeLists.txt>
+cmake -DBUILD_TESTS=ON ..
 make -j $(nproc)
 ```
 
 ### Run the Tests
 
 To run the test, execute the program `amdsmitst` that is built from the steps above.
+Path to the program `amdsmitst`: build/tests/amd_smi_test/
 
 ## Usage Basics
 
@@ -93,7 +98,10 @@ int main() {
   amdsmi_status_t ret;
 
   // Init amdsmi for sockets and devices. Here we are only interested in AMD_GPUS.
-  ret = amdsmi_init(AMD_SMI_INIT_AMD_GPUS);
+  ret = amdsmi_init(AMDSMI_INIT_AMD_GPUS);
+
+  // Get all sockets
+  uint32_t socket_count = 0;
 
   // Get the socket count available in the system.
   ret = amdsmi_get_socket_handles(&socket_count, nullptr);
@@ -183,6 +191,12 @@ For additional details, see the [ROCm Contributing Guide](https://rocm.docs.amd.
 * driver must be loaded for amdsmi_init() to pass
 
 ### Installation
+
+Before instalation, check if the old python amdsmi package is accidentally installed using pip:
+```bash
+sudo pip3 list
+sudo pip3 uninstall amdsmi
+```
 
 * Install amdgpu driver
 * Install amd-smi-lib package through package manager
