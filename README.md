@@ -214,4 +214,4 @@ Note: python_wrapper is NOT automatically re-generated. You must run `cmake` wit
 
 The information contained herein is for informational purposes only, and is subject to change without notice. In addition, any stated support is planned and is also subject to change. While every precaution has been taken in the preparation of this document, it may contain technical inaccuracies, omissions and typographical errors, and AMD is under no obligation to update or otherwise correct this information. Advanced Micro Devices, Inc. makes no representations or warranties with respect to the accuracy or completeness of the contents of this document, and assumes no liability of any kind, including the implied warranties of noninfringement, merchantability or fitness for particular purposes, with respect to the operation or use of AMD hardware, software or other products described herein.
 
-© 2022 Advanced Micro Devices, Inc. All Rights Reserved.
+© 2023 Advanced Micro Devices, Inc. All Rights Reserved.
