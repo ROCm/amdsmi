@@ -138,7 +138,7 @@ class AMDSMICommands():
 
 
     def static(self, args, multiple_devices=False, gpu=None, asic=None,
-                bus=None, vbios=None, limit=None, driver=None, caps=None,
+                bus=None, vbios=None, limit=None, driver=None,
                 ras=None, board=None, numa=None):
         """Get Static information for target gpu
 
@@ -151,7 +151,6 @@ class AMDSMICommands():
             vbios (bool, optional): Value override for args.vbios. Defaults to None.
             limit (bool, optional): Value override for args.limit. Defaults to None.
             driver (bool, optional): Value override for args.driver. Defaults to None.
-            caps (bool, optional): Value override for args.caps. Defaults to None.
             ras (bool, optional): Value override for args.ras. Defaults to None.
             board (bool, optional): Value override for args.board. Defaults to None.
             numa (bool, optional): Value override for args.numa. Defaults to None.
@@ -173,8 +172,6 @@ class AMDSMICommands():
             args.vbios = vbios
         if driver:
             args.driver = driver
-        if caps:
-            args.caps = caps
         if numa:
             args.numa = numa
         if self.helpers.is_linux() and self.helpers.is_baremetal():
@@ -197,11 +194,11 @@ class AMDSMICommands():
 
         # If all arguments are False, it means that no argument was passed and the entire static should be printed
         if self.helpers.is_linux() and self.helpers.is_baremetal():
-            if not any([args.asic, args.bus, args.vbios, args.limit, args.driver, args.caps, args.ras, args.board]):
-                args.asic = args.bus = args.vbios = args.limit = args.driver = args.caps = args.ras = args.board = args.numa = self.all_arguments = True
+            if not any([args.asic, args.bus, args.vbios, args.limit, args.driver, args.ras, args.board]):
+                args.asic = args.bus = args.vbios = args.limit = args.driver = args.ras = args.board = args.numa = self.all_arguments = True
         if self.helpers.is_linux() and self.helpers.is_virtual_os():
-            if not any([args.asic, args.bus, args.vbios, args.driver, args.caps]):
-                args.asic = args.bus = args.vbios = args.driver = args.caps = self.all_arguments = True
+            if not any([args.asic, args.bus, args.vbios, args.driver]):
+                args.asic = args.bus = args.vbios = args.driver = self.all_arguments = True
 
         static_dict = {}
 
@@ -340,8 +337,6 @@ class AMDSMICommands():
                         static_dict['ras'] = e.get_error_info()
                     if not self.all_arguments:
                         raise e
-        if args.caps:
-            pass
         if (self.helpers.is_linux() and self.helpers.is_baremetal()):
             if args.numa:
                 try:

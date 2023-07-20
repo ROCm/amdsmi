@@ -146,7 +146,6 @@ Static Arguments:
   -V, --vbios                                     All video bios information (if available)
   -l, --limit                                     All limit metric values (i.e. power and thermal limits)
   -d, --driver                                    Displays driver version
-  -c, --caps                                      All caps information
   -r, --ras                                       Displays RAS features information
   -B, --board                                     All board information
   -u, --numa                                      All numa node information
