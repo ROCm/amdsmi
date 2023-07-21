@@ -376,6 +376,11 @@ typedef struct {
 } amdsmi_asic_info_t;
 
 typedef struct {
+	char  driver_version[AMDSMI_MAX_STRING_LENGTH];
+	char  driver_date[AMDSMI_MAX_STRING_LENGTH];
+} amdsmi_driver_info_t;
+
+typedef struct {
   uint64_t serial_number;
   bool  is_master;
   char  model_number[AMDSMI_NORMAL_STRING_LENGTH];
@@ -3205,13 +3210,13 @@ amdsmi_get_gpu_device_uuid(amdsmi_processor_handle processor_handle, unsigned in
  *                  string buffer. As output parameter length of the returned
  *                  string buffer.
  *
- *  @param[out]     version Version information in string format. Must be
+ *  @param[out]     info Reference to driver information structure. Must be
  *                  allocated by user.
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_gpu_driver_version(amdsmi_processor_handle processor_handle, int *length, char *version);
+amdsmi_get_gpu_driver_info(amdsmi_processor_handle processor_handle, amdsmi_driver_info_t *info);
 
 /** @} End swversion */
 
