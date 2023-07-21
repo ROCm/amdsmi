@@ -1444,11 +1444,11 @@ amdsmi_get_power_info(amdsmi_processor_handle processor_handle, amdsmi_power_inf
     return status;
 }
 
-amdsmi_status_t
-amdsmi_get_gpu_driver_version(amdsmi_processor_handle processor_handle, int *length, char *version) {
+amdsmi_status_t amdsmi_get_gpu_driver_info(amdsmi_processor_handle processor_handle,
+                amdsmi_driver_info_t *info) {
     AMDSMI_CHECK_INIT();
 
-    if (length == nullptr || version == nullptr) {
+    if (info == nullptr) {
         return AMDSMI_STATUS_INVAL;
     }
     amdsmi_status_t status = AMDSMI_STATUS_SUCCESS;
@@ -1457,10 +1457,16 @@ amdsmi_get_gpu_driver_version(amdsmi_processor_handle processor_handle, int *len
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
 
-    status = smi_amdgpu_get_driver_version(gpu_device, length, version);
-
+    int length = AMDSMI_MAX_STRING_LENGTH;
+    status = smi_amdgpu_get_driver_version(gpu_device,
+                &length, info->driver_version);
+    std::string driver_date;
+    status = gpu_device->amdgpu_query_driver_date(driver_date);
+    if (status != AMDSMI_STATUS_SUCCESS)  return r;
+    strncpy(info->driver_date, driver_date.c_str(), AMDSMI_MAX_STRING_LENGTH-1);
     return status;
 }
+
 
 amdsmi_status_t
 amdsmi_get_gpu_device_uuid(amdsmi_processor_handle processor_handle, unsigned int *uuid_length, char *uuid) {

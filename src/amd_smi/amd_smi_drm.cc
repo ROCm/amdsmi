@@ -44,7 +44,6 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <xf86drm.h>
 #include <string.h>
 #include <memory>
 #include <regex>
@@ -99,22 +98,19 @@ amdsmi_status_t AMDSmiDrm::init() {
         return status;
     }
 
-    using drmGetVersionType = drmVersionPtr (*)(int);    // drmGetVersion
-    using drmFreeVersionType = void (*)(drmVersionPtr);  // drmFreeVersion
     using drmGetDeviceType = int(*)(int, drmDevicePtr*);   // drmGetDevice
     using drmFreeDeviceType = void(*)(drmDevicePtr*);     // drmFreeDevice
 
-    drmGetVersionType drm_get_version = nullptr;
-    drmFreeVersionType drm_free_version = nullptr;
-
     drmGetDeviceType drm_get_device = nullptr;
     drmFreeDeviceType drm_free_device = nullptr;
+    drm_get_version_ = nullptr;
+    drm_free_version_ = nullptr;
 
-    status = lib_loader_.load_symbol(&drm_get_version, "drmGetVersion");
+    status = lib_loader_.load_symbol(&drm_get_version_, "drmGetVersion");
     if (status != AMDSMI_STATUS_SUCCESS) {
         return status;
     }
-    status = lib_loader_.load_symbol(&drm_free_version, "drmFreeVersion");
+    status = lib_loader_.load_symbol(&drm_free_version_, "drmFreeVersion");
     if (status != AMDSMI_STATUS_SUCCESS) {
         return status;
     }
@@ -155,7 +151,7 @@ amdsmi_status_t AMDSmiDrm::init() {
         amdsmi_bdf_t bdf;
         if (fd >= 0) {
             auto version = drm_version_ptr(
-                drm_get_version(fd), drm_free_version);
+                drm_get_version_(fd), drm_free_version_);
             if (strcmp("amdgpu", version->name)) {  // only amdgpu
                 close(fd);
                 fd = -1;
@@ -198,6 +194,18 @@ amdsmi_status_t AMDSmiDrm::cleanup() {
     drm_paths_.clear();
     drm_bdfs_.clear();
     lib_loader_.unload();
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t AMDSmiDrm::amdgpu_query_driver_date(int fd, std::string& driver_date) {
+    // RAII handler
+    using drm_version_ptr = std::unique_ptr<drmVersion,
+            decltype(&drmFreeVersion)>;
+    std::lock_guard<std::mutex> guard(drm_mutex_);
+    auto version = drm_version_ptr(
+                drm_get_version_(fd), drm_free_version_);
+    if (version == nullptr) return AMDSMI_STATUS_DRM_ERROR;
+    driver_date = version->date;
     return AMDSMI_STATUS_SUCCESS;
 }
 

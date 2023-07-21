@@ -319,7 +319,7 @@ class AMDSMICommands():
         if args.driver:
             try:
                 driver_info = {}
-                driver_info['driver_version'] = amdsmi_interface.amdsmi_get_gpu_driver_version(args.gpu)
+                driver_info = amdsmi_interface.amdsmi_get_gpu_driver_info(args.gpu)
 
                 static_dict['driver'] = driver_info
             except amdsmi_exception.AmdSmiLibraryException as e:
