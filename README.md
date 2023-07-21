@@ -33,7 +33,11 @@ In order to build the latest documentation, the following are required:
 
 The source code for AMD SMI is available on Github.
 
-After the AMD SMI library git repository has been cloned to a local Linux machine, the Default location for the library and headers is /opt/rocm. Building the library is achieved by following the typical CMake build sequence, specifically:
+After the AMD SMI library git repository has been cloned to a local Linux machine, the Default location for the library and headers is /opt/rocm. Before installation, the old rocm directories should be deleted:
+/opt/rocm
+/opt/rocm-{number}
+
+Building the library is achieved by following the typical CMake build sequence (run as root user or use 'sudo' before 'make install' command), specifically:
 
 ```bash
 mkdir -p build
@@ -58,13 +62,14 @@ In order to verify the build and capability of AMD SMI on your system and to see
 ```bash
 mkdir -p build
 cd build
-cmake -DBUILD_TESTS=ON <location of root of AMD SMI library CMakeLists.txt>
+cmake -DBUILD_TESTS=ON ..
 make -j $(nproc)
 ```
 
 ### Run the Tests
 
 To run the test, execute the program `amdsmitst` that is built from the steps above.
+Path to the program `amdsmitst`: build/tests/amd_smi_test/
 
 ## Usage Basics
 
@@ -93,7 +98,10 @@ int main() {
   amdsmi_status_t ret;
 
   // Init amdsmi for sockets and devices. Here we are only interested in AMD_GPUS.
-  ret = amdsmi_init(AMD_SMI_INIT_AMD_GPUS);
+  ret = amdsmi_init(AMDSMI_INIT_AMD_GPUS);
+
+  // Get all sockets
+  uint32_t socket_count = 0;
 
   // Get the socket count available in the system.
   ret = amdsmi_get_socket_handles(&socket_count, nullptr);
@@ -184,6 +192,12 @@ For additional details, see the [ROCm Contributing Guide](https://rocm.docs.amd.
 
 ### Installation
 
+Before instalation, check if the old python amdsmi package is accidentally installed using pip:
+```bash
+sudo pip3 list
+sudo pip3 uninstall amdsmi
+```
+
 * Install amdgpu driver
 * Install amd-smi-lib package through package manager
 * cd /opt/rocm/share/amd_smi
@@ -214,4 +228,4 @@ Note: python_wrapper is NOT automatically re-generated. You must run `cmake` wit
 
 The information contained herein is for informational purposes only, and is subject to change without notice. In addition, any stated support is planned and is also subject to change. While every precaution has been taken in the preparation of this document, it may contain technical inaccuracies, omissions and typographical errors, and AMD is under no obligation to update or otherwise correct this information. Advanced Micro Devices, Inc. makes no representations or warranties with respect to the accuracy or completeness of the contents of this document, and assumes no liability of any kind, including the implied warranties of noninfringement, merchantability or fitness for particular purposes, with respect to the operation or use of AMD hardware, software or other products described herein.
 
-© 2022 Advanced Micro Devices, Inc. All Rights Reserved.
+© 2023 Advanced Micro Devices, Inc. All Rights Reserved.
