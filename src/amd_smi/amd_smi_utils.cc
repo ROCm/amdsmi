@@ -463,8 +463,10 @@ amdsmi_status_t smi_amdgpu_get_pcie_speed_from_pcie_type(uint16_t pcie_type, uin
 		*pcie_speed = 8000;
 		break;
 	case 3:
-	case 4:
 		*pcie_speed = 16000;
+		break;
+	case 4:
+		*pcie_speed = 32000;
 		break;
 	default:
 		return AMDSMI_STATUS_API_FAILED;
