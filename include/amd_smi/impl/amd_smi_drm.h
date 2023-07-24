@@ -45,6 +45,7 @@
 #define AMD_SMI_INCLUDE_IMPL_AMD_SMI_DRM_H_
 
 #include <unistd.h>
+#include <xf86drm.h>
 #include <vector>
 #include <memory>
 #include <mutex>  // NOLINT
@@ -74,6 +75,7 @@ class AMDSmiDrm {
     amdsmi_status_t amdgpu_query_hw_ip(int fd, unsigned info_id,
                unsigned hw_ip_type, unsigned size, void *value);
     amdsmi_status_t amdgpu_query_vbios(int fd, void *info);
+    amdsmi_status_t amdgpu_query_driver_date(int fd, std::string& driver_date);
 
  private:
     // when file is not found, the empty string will be returned
@@ -87,6 +89,11 @@ class AMDSmiDrm {
 
     AMDSmiLibraryLoader lib_loader_;  // lazy load libdrm
     DrmCmdWriteFunc drm_cmd_write_;   // drmCommandWrite
+    using drmGetVersionFunc = drmVersionPtr (*)(int);    // drmGetVersion
+    using drmFreeVersionFunc = void (*)(drmVersionPtr);  // drmFreeVersion
+    drmGetVersionFunc drm_get_version_;
+    drmFreeVersionFunc drm_free_version_;
+
     std::mutex drm_mutex_;
 };
 
