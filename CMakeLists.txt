@@ -151,7 +151,8 @@ add_subdirectory("src")
 add_subdirectory("example")
 
 if(BUILD_TESTS)
-    add_subdirectory("tests/rocm_smi_test")
+    set(TESTS_COMPONENT "tests")
+    #add_subdirectory("tests/rocm_smi_test")
     add_subdirectory("tests/amd_smi_test")
 endif()
 

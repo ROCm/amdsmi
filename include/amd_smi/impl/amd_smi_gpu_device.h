@@ -81,6 +81,7 @@ class AMDSmiGPUDevice: public AMDSmiProcessor {
     amdsmi_status_t amdgpu_query_fw(unsigned info_id, unsigned fw_type,
             unsigned size, void *value) const;
     amdsmi_status_t amdgpu_query_vbios(void *info) const;
+    amdsmi_status_t amdgpu_query_driver_date(std::string& date) const;
  private:
     uint32_t gpu_id_;
     uint32_t fd_;

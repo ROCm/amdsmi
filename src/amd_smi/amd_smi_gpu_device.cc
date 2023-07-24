@@ -105,6 +105,15 @@ amdsmi_status_t AMDSmiGPUDevice::amdgpu_query_info(unsigned info_id,
     return drm_.amdgpu_query_info(fd, info_id, size, value);
 }
 
+amdsmi_status_t AMDSmiGPUDevice::amdgpu_query_driver_date(std::string& date) const {
+    amdsmi_status_t ret;
+    uint32_t fd = 0;
+    ret = drm_.get_drm_fd_by_index(gpu_id_, &fd);
+    if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
+
+    return drm_.amdgpu_query_driver_date(fd, date);
+}
+
 amdsmi_status_t AMDSmiGPUDevice::amdgpu_query_hw_ip(unsigned info_id,
             unsigned hw_ip_type, unsigned size, void *value) const {
     amdsmi_status_t ret;
