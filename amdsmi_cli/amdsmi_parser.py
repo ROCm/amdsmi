@@ -294,7 +294,6 @@ class AMDSMIParser(argparse.ArgumentParser):
         vbios_help = "All video bios information (if available)"
         limit_help = "All limit metric values (i.e. power and thermal limits)"
         driver_help = "Displays driver version"
-        caps_help = "All caps information"
 
         # Options arguments help text for Hypervisors and Baremetal
         ras_help = "Displays RAS features information"
@@ -321,7 +320,6 @@ class AMDSMIParser(argparse.ArgumentParser):
         static_parser.add_argument('-b', '--bus', action='store_true', required=False, help=bus_help)
         static_parser.add_argument('-V', '--vbios', action='store_true', required=False, help=vbios_help)
         static_parser.add_argument('-d', '--driver', action='store_true', required=False, help=driver_help)
-        static_parser.add_argument('-c', '--caps', action='store_true', required=False, help=caps_help)
 
         # Options to display on Hypervisors and Baremetal
         if self.helpers.is_hypervisor() or self.helpers.is_baremetal():

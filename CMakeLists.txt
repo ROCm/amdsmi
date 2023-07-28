@@ -95,6 +95,7 @@ set(SHR_MUTEX_DIR "${PROJECT_SOURCE_DIR}/third_party/shared_mutex")
 if(ENABLE_ESMI_LIB)
 if((EXISTS ${PROJECT_SOURCE_DIR}/e_smi_library/src) AND (EXISTS ${PROJECT_SOURCE_DIR}/e_smi_library/src/e_smi_plat.c))
 	set(ESMI_AVAILABLE TRUE)
+    add_definitions("-DENABLE_ESMI_LIB=1")
 else()
 	message("E-smi source not found. Errors will be encountered during compilation!!!")
 endif()
@@ -121,6 +122,7 @@ set(CMN_SRC_LIST
     "${ROCM_SRC_DIR}/rocm_smi_monitor.cc"
     "${ROCM_SRC_DIR}/rocm_smi_power_mon.cc"
     "${ROCM_SRC_DIR}/rocm_smi_utils.cc"
+    "${ROCM_SRC_DIR}/rocm_smi_logger.cc"
     "${SHR_MUTEX_DIR}/shared_mutex.cc")
 
 if(ESMI_AVAILABLE)
@@ -142,6 +144,7 @@ set(CMN_INC_LIST
     "${ROCM_INC_DIR}/rocm_smi_monitor.h"
     "${ROCM_INC_DIR}/rocm_smi_power_mon.h"
     "${ROCM_INC_DIR}/rocm_smi_utils.h"
+    "${ROCM_INC_DIR}/rocm_smi_logger.h"
     "${SHR_MUTEX_DIR}/shared_mutex.h")
 
 add_subdirectory("rocm_smi")
@@ -149,7 +152,8 @@ add_subdirectory("src")
 add_subdirectory("example")
 
 if(BUILD_TESTS)
-    add_subdirectory("tests/rocm_smi_test")
+    set(TESTS_COMPONENT "tests")
+    #add_subdirectory("tests/rocm_smi_test")
     add_subdirectory("tests/amd_smi_test")
 endif()
 
@@ -288,8 +292,10 @@ set(CPACK_PACKAGE_VERSION
 
 ## Process the Rpm install/remove scripts to update the CPACK variables
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/RPM/post.in" RPM/post @ONLY)
+configure_file ( "${CMAKE_CURRENT_SOURCE_DIR}/RPM/preun.in" RPM/preun @ONLY )
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/RPM/postun.in" RPM/postun @ONLY)
 set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_BINARY_DIR}/RPM/post")
+set ( CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_BINARY_DIR}/RPM/preun" )
 set(CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_BINARY_DIR}/RPM/postun")
 
 #Set the names now using CPACK utility

@@ -3,7 +3,7 @@
  * The University of Illinois/NCSA
  * Open Source License (NCSA)
  *
- * Copyright (c) 2017, Advanced Micro Devices, Inc.
+ * Copyright (c) 2017-2023, Advanced Micro Devices, Inc.
  * All rights reserved.
  *
  * Developed by:
@@ -44,10 +44,10 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <sys/types.h>
-
 #include <assert.h>
 #include <sys/stat.h>
 #include <stdint.h>
+
 #include <string>
 #include <map>
 #include <fstream>
@@ -58,6 +58,7 @@
 #include <memory>
 #include <algorithm>
 #include <iterator>
+#include <cstring>
 
 #include "rocm_smi/rocm_smi_main.h"
 #include "rocm_smi/rocm_smi_device.h"
@@ -65,7 +66,10 @@
 #include "rocm_smi/rocm_smi_exception.h"
 #include "rocm_smi/rocm_smi_utils.h"
 #include "rocm_smi/rocm_smi_kfd.h"
+#include "rocm_smi/rocm_smi_logger.h"
 #include "shared_mutex.h"  // NOLINT
+
+using namespace ROCmLogging;
 
 namespace amd {
 namespace smi {
@@ -85,6 +89,7 @@ static const char *kDevVendorIDFName = "vendor";
 static const char *kDevSubSysDevIDFName = "subsystem_device";
 static const char *kDevSubSysVendorIDFName = "subsystem_vendor";
 static const char *kDevOverDriveLevelFName = "pp_sclk_od";
+static const char *kDevMemOverDriveLevelFName = "pp_mclk_od";
 static const char *kDevGPUSClkFName = "pp_dpm_sclk";
 static const char *kDevGPUMClkFName = "pp_dpm_mclk";
 static const char *kDevDCEFClkFName = "pp_dpm_dcefclk";
@@ -120,6 +125,10 @@ static const char *kDevXGMIErrorFName = "xgmi_error";
 static const char *kDevSerialNumberFName = "serial_number";
 static const char *kDevNumaNodeFName = "numa_node";
 static const char *kDevGpuMetricsFName = "gpu_metrics";
+static const char *kDevAvailableComputePartitionFName =
+                  "available_compute_partition";
+static const char *kDevComputePartitionFName = "current_compute_partition";
+static const char *kDevMemoryPartitionFName = "current_memory_partition";
 
 // Firmware version files
 static const char *kDevFwVersionAsdFName = "fw_version/asd_fw_version";
@@ -225,6 +234,7 @@ static const char *kDevPerfLevelUnknownStr = "unknown";
 static const std::map<DevInfoTypes, const char *> kDevAttribNameMap = {
     {kDevPerfLevel, kDevPerfLevelFName},
     {kDevOverDriveLevel, kDevOverDriveLevelFName},
+    {kDevMemOverDriveLevel, kDevMemOverDriveLevelFName},
     {kDevDevProdName, kDevDevProdNameFName},
     {kDevDevProdNum, kDevDevProdNumFName},
     {kDevDevID, kDevDevIDFName},
@@ -288,6 +298,9 @@ static const std::map<DevInfoTypes, const char *> kDevAttribNameMap = {
     {kDevNumaNode, kDevNumaNodeFName},
     {kDevGpuMetrics, kDevGpuMetricsFName},
     {kDevGpuReset, kDevGpuResetFName},
+    {kDevAvailableComputePartition, kDevAvailableComputePartitionFName},
+    {kDevComputePartition, kDevComputePartitionFName},
+    {kDevMemoryPartition, kDevMemoryPartitionFName},
 };
 
 static const std::map<rsmi_dev_perf_level, const char *> kDevPerfLvlMap = {
@@ -388,6 +401,7 @@ static const std::map<const char *, dev_depends_t> kDevFuncDependsMap = {
   {"rsmi_dev_busy_percent_get",          {{kDevUsageFName}, {}}},
   {"rsmi_dev_memory_reserved_pages_get", {{kDevMemPageBadFName}, {}}},
   {"rsmi_dev_overdrive_level_get",       {{kDevOverDriveLevelFName}, {}}},
+  {"rsmi_dev_mem_overdrive_level_get",   {{kDevMemOverDriveLevelFName}, {}}},
   {"rsmi_dev_power_profile_presets_get", {{kDevPowerProfileModeFName}, {}}},
   {"rsmi_dev_perf_level_set",            {{kDevPerfLevelFName}, {}}},
   {"rsmi_dev_perf_level_set_v1",         {{kDevPerfLevelFName}, {}}},
@@ -410,6 +424,10 @@ static const std::map<const char *, dev_depends_t> kDevFuncDependsMap = {
   {"rsmi_topo_numa_affinity_get",        {{kDevNumaNodeFName}, {}}},
   {"rsmi_dev_gpu_metrics_info_get",      {{kDevGpuMetricsFName}, {}}},
   {"rsmi_dev_gpu_reset",                 {{kDevGpuResetFName}, {}}},
+  {"rsmi_dev_compute_partition_get",     {{kDevComputePartitionFName}, {}}},
+  {"rsmi_dev_compute_partition_set",     {{kDevComputePartitionFName}, {}}},
+  {"rsmi_dev_memory_partition_get",      {{kDevMemoryPartitionFName}, {}}},
+  {"rsmi_dev_memory_partition_set",      {{kDevMemoryPartitionFName}, {}}},
 
   // These functions with variants, but no sensors/units. (May or may not
   // have mandatory dependencies.)
@@ -555,14 +573,12 @@ int Device::openDebugFileStream(DevInfoTypes type, T *fs, const char *str) {
 template <typename T>
 int Device::openSysfsFileStream(DevInfoTypes type, T *fs, const char *str) {
   auto sysfs_path = path_;
+  std::ostringstream ss;
 
 #ifdef DEBUG
-  if (env_->path_DRM_root_override && type == env_->enum_override) {
+  if (env_->path_DRM_root_override
+      && (env_->enum_overrides.find(type) != env_->enum_overrides.end())) {
     sysfs_path = env_->path_DRM_root_override;
-
-    if (str) {
-      sysfs_path += ".write";
-    }
   }
 #endif
 
@@ -575,18 +591,35 @@ int Device::openSysfsFileStream(DevInfoTypes type, T *fs, const char *str) {
   int ret = isRegularFile(sysfs_path, &reg_file);
 
   if (ret != 0) {
+    ss << "File did not exist - SYSFS file (" << sysfs_path
+       << ") for DevInfoInfoType (" << RocmSMI::devInfoTypesStrings.at(type)
+       << "), returning " << std::to_string(ret);
+    LOG_ERROR(ss);
     return ret;
   }
   if (!reg_file) {
+    ss << "File is not a regular file - SYSFS file (" << sysfs_path << ") for "
+       << "DevInfoInfoType (" << RocmSMI::devInfoTypesStrings.at(type) << "),"
+       << " returning ENOENT (" << std::strerror(ENOENT) << ")";
+    LOG_ERROR(ss);
     return ENOENT;
   }
 
   fs->open(sysfs_path);
 
   if (!fs->is_open()) {
-      return errno;
+    ss << "Could not open - SYSFS file (" << sysfs_path << ") for "
+       << "DevInfoInfoType (" << RocmSMI::devInfoTypesStrings.at(type) << "), "
+       << ", returning " << std::to_string(errno) << " ("
+       << std::strerror(errno) << ")";
+    LOG_ERROR(ss);
+    return errno;
   }
 
+  ss << "Successfully opened SYSFS file (" << sysfs_path
+     << ") for DevInfoInfoType (" << RocmSMI::devInfoTypesStrings.at(type)
+     << ")";
+  LOG_INFO(ss);
   return 0;
 }
 
@@ -594,11 +627,16 @@ int Device::readDebugInfoStr(DevInfoTypes type, std::string *retStr) {
   std::ifstream fs;
   std::string line;
   int ret = 0;
+  std::ostringstream ss;
 
   assert(retStr != nullptr);
 
   ret = openDebugFileStream(type, &fs);
   if (ret != 0) {
+    ss << "Could not read debugInfoStr for DevInfoType ("
+     << RocmSMI::devInfoTypesStrings.at(type)<< "), returning "
+     << std::to_string(ret);
+    LOG_ERROR(ss);
     return ret;
   }
 
@@ -609,21 +647,34 @@ int Device::readDebugInfoStr(DevInfoTypes type, std::string *retStr) {
 
   fs.close();
 
+  ss << "Successfully read debugInfoStr for DevInfoType ("
+     << RocmSMI::devInfoTypesStrings.at(type)<< "), retString= " << *retStr;
+  LOG_INFO(ss);
+
   return 0;
 }
 
 int Device::readDevInfoStr(DevInfoTypes type, std::string *retStr) {
   std::ifstream fs;
   int ret = 0;
+  std::ostringstream ss;
 
   assert(retStr != nullptr);
 
   ret = openSysfsFileStream(type, &fs);
   if (ret != 0) {
+    ss << "Could not read device info string for DevInfoType ("
+     << RocmSMI::devInfoTypesStrings.at(type)<< "), returning "
+     << std::to_string(ret);
+    LOG_ERROR(ss);
     return ret;
   }
 
   fs >> *retStr;
+  std::string info = "Successfully read device info string for DevInfoType (" +
+                      RocmSMI::devInfoTypesStrings.at(type) + "): " +
+                      *retStr;
+  LOG_INFO(info);
   fs.close();
 
   return 0;
@@ -633,17 +684,30 @@ int Device::writeDevInfoStr(DevInfoTypes type, std::string valStr) {
   auto tempPath = path_;
   std::ofstream fs;
   int ret;
+  std::ostringstream ss;
 
   fs.rdbuf()->pubsetbuf(0,0);
   ret = openSysfsFileStream(type, &fs, valStr.c_str());
   if (ret != 0) {
+    ss << "Could not write device info string (" << valStr
+       << ") for DevInfoType (" << RocmSMI::devInfoTypesStrings.at(type)
+       << "), returning " << std::to_string(ret);
+    LOG_ERROR(ss);
     return ret;
   }
 
   // We'll catch any exceptions in rocm_smi.cc code.
   if (fs << valStr) {
+    ss << "Successfully wrote device info string (" << valStr
+       << ") for DevInfoType (" << RocmSMI::devInfoTypesStrings.at(type)
+       << "), returning RSMI_STATUS_SUCCESS";
+    LOG_INFO(ss);
     ret = RSMI_STATUS_SUCCESS;
   } else {
+    ss << "Could not write device info string (" << valStr
+       << ") for DevInfoType (" << RocmSMI::devInfoTypesStrings.at(type)
+       << "), returning RSMI_STATUS_NOT_SUPPORTED";
+    LOG_ERROR(ss);
     ret = RSMI_STATUS_NOT_SUPPORTED;
   }
   fs.close();
@@ -693,6 +757,8 @@ int Device::writeDevInfo(DevInfoTypes type, std::string val) {
     case kDevPCIEClk:
     case kDevPowerODVoltage:
     case kDevSOCClk:
+    case kDevComputePartition:
+    case kDevMemoryPartition:
       return writeDevInfoStr(type, val);
 
     default:
@@ -705,15 +771,23 @@ int Device::writeDevInfo(DevInfoTypes type, std::string val) {
 int Device::readDevInfoLine(DevInfoTypes type, std::string *line) {
   int ret;
   std::ifstream fs;
+  std::ostringstream ss;
 
   assert(line != nullptr);
 
   ret = openSysfsFileStream(type, &fs);
   if (ret != 0) {
+    ss << "Could not read DevInfoLine for DevInfoType ("
+       << RocmSMI::devInfoTypesStrings.at(type) << ")";
+    LOG_ERROR(ss);
     return ret;
   }
 
   std::getline(fs, *line);
+  ss << "Successfully read DevInfoLine for DevInfoType ("
+     << RocmSMI::devInfoTypesStrings.at(type) << "), returning *line = "
+     << *line;
+  LOG_INFO(ss);
 
   return 0;
 }
@@ -721,20 +795,36 @@ int Device::readDevInfoLine(DevInfoTypes type, std::string *line) {
 int Device::readDevInfoBinary(DevInfoTypes type, std::size_t b_size,
                                 void *p_binary_data) {
   auto sysfs_path = path_;
+  std::ostringstream ss;
 
   FILE *ptr;
   sysfs_path += "/device/";
   sysfs_path += kDevAttribNameMap.at(type);
   ptr  = fopen(sysfs_path.c_str(), "rb");
   if (!ptr) {
+    ss << "Could not read DevInfoBinary for DevInfoType ("
+       << RocmSMI::devInfoTypesStrings.at(type) << ")"
+       << " - SYSFS (" << sysfs_path << ")"
+       << ", returning " << std::to_string(errno) << " ("
+       << std::strerror(errno) << ")";
+    LOG_ERROR(ss);
     return errno;
   }
 
   size_t num = fread(p_binary_data, b_size, 1, ptr);
   fclose(ptr);
   if ((num*b_size) != b_size) {
+    ss << "Could not read DevInfoBinary for DevInfoType ("
+       << RocmSMI::devInfoTypesStrings.at(type) << ") - SYSFS ("
+       << sysfs_path << "), binary size error, "
+       << ", returning ENOENT (" << std::strerror(ENOENT) << ")";
+    LOG_ERROR(ss);
     return ENOENT;
   }
+  ss << "Successfully read DevInfoBinary for DevInfoType ("
+     << RocmSMI::devInfoTypesStrings.at(type) << ") - SYSFS ("
+     << sysfs_path << "), returning binaryData = " << p_binary_data;
+  LOG_INFO(ss);
   return 0;
 }
 
@@ -743,6 +833,8 @@ int Device::readDevInfoMultiLineStr(DevInfoTypes type,
   std::string line;
   int ret;
   std::ifstream fs;
+  std::string allLines;
+  std::ostringstream ss;
 
   assert(retVec != nullptr);
 
@@ -756,12 +848,33 @@ int Device::readDevInfoMultiLineStr(DevInfoTypes type,
   }
 
   if (retVec->size() == 0) {
+    ss << "Read devInfoMultiLineStr for DevInfoType ("
+       << RocmSMI::devInfoTypesStrings.at(type) << ")"
+       << ", but contained no string lines";
+    LOG_INFO(ss);
     return 0;
   }
   // Remove any *trailing* empty (whitespace) lines
   while (retVec->size() != 0 &&
         retVec->back().find_first_not_of(" \t\n\v\f\r") == std::string::npos) {
     retVec->pop_back();
+  }
+
+  // allow logging output of multiline strings
+  for (auto l: *retVec) {
+    allLines += "\n" + l;
+  }
+
+  if (!allLines.empty()) {
+    ss << "Successfully read devInfoMultiLineStr for DevInfoType ("
+       << RocmSMI::devInfoTypesStrings.at(type) << ") "
+       << ", returning lines read = " << allLines;
+    LOG_INFO(ss);
+  } else {
+    ss << "Read devInfoMultiLineStr for DevInfoType ("
+       << RocmSMI::devInfoTypesStrings.at(type) << ")"
+       << ", but lines were empty";
+    LOG_INFO(ss);
   }
   return 0;
 }
@@ -794,6 +907,7 @@ int Device::readDevInfo(DevInfoTypes type, uint64_t *val) {
 
     case kDevUsage:
     case kDevOverDriveLevel:
+    case kDevMemOverDriveLevel:
     case kDevMemTotGTT:
     case kDevMemTotVisVRAM:
     case kDevMemTotVRAM:
@@ -907,6 +1021,7 @@ int Device::readDevInfo(DevInfoTypes type, std::string *val) {
     case kDevPerfLevel:
     case kDevUsage:
     case kDevOverDriveLevel:
+    case kDevMemOverDriveLevel:
     case kDevDevProdName:
     case kDevDevProdNum:
     case kDevDevID:
@@ -917,6 +1032,9 @@ int Device::readDevInfo(DevInfoTypes type, std::string *val) {
     case kDevVBiosVer:
     case kDevPCIEThruPut:
     case kDevSerialNumber:
+    case kDevAvailableComputePartition:
+    case kDevComputePartition:
+    case kDevMemoryPartition:
       return readDevInfoStr(type, val);
       break;
 
@@ -1095,6 +1213,166 @@ bool Device::DeviceAPISupported(std::string name, uint64_t variant,
   assert(false);  // We should not reach here
 
   return false;
+}
+
+rsmi_status_t Device::restartAMDGpuDriver(void) {
+  REQUIRE_ROOT_ACCESS
+  bool restartSuccessful = true;
+  bool success = false;
+  std::string out = "";
+  bool wasGdmServiceActive = false;
+
+  // sudo systemctl is-active gdm
+  // we do not care about the success of checking if gdm is active
+  std::tie(success, out) = executeCommand("systemctl is-active gdm");
+  (out == "active") ? (restartSuccessful &= success) :
+                         (restartSuccessful = true);
+
+  // if gdm is active -> sudo systemctl stop gdm
+  // TODO: are are there other display manager's we need to take into account?
+  // see https://en.wikipedia.org/wiki/GNOME_Display_Manager
+  if (success && (out == "active")) {
+    wasGdmServiceActive = true;
+    std::tie(success, out) = executeCommand("systemctl stop gdm&", false);
+    restartSuccessful &= success;
+  }
+
+  // sudo modprobe -r amdgpu
+  // sudo modprobe amdgpu
+  std::tie(success, out) =
+    executeCommand("modprobe -r amdgpu && modprobe amdgpu&", false);
+  restartSuccessful &= success;
+
+  // if gdm was active -> sudo systemctl start gdm
+  if (wasGdmServiceActive) {
+    std::tie(success, out) = executeCommand("systemctl start gdm&", false);
+    restartSuccessful &= success;
+  }
+
+  return (restartSuccessful ? RSMI_STATUS_SUCCESS :
+          RSMI_STATUS_AMDGPU_RESTART_ERR);
+}
+
+template <typename T> rsmi_status_t storeParameter(uint32_t dv_ind);
+
+// Stores parameters depending on which rsmi type is provided.
+// Uses template specialization, to restrict types to identify
+// calls needed to complete the function.
+// typename - restricted to
+// rsmi_compute_partition_type_t or rsmi_compute_partition_type_t
+// dv_ind - device index
+// tempFileName - base file name
+template <>
+rsmi_status_t storeParameter<rsmi_compute_partition_type_t>(uint32_t dv_ind) {
+  rsmi_status_t returnStatus = RSMI_STATUS_SUCCESS;
+  bool doesFileExist;
+  std::tie(doesFileExist, std::ignore) = readTmpFile(dv_ind, "boot",
+                                                     "compute_partition");
+  // if temporary file exists -> we do not need to store anything new
+  // if not, read & store the state value
+  if (doesFileExist) {
+    return returnStatus;
+  }
+  uint32_t length = 128;
+  char data[length];
+  rsmi_status_t ret = rsmi_dev_compute_partition_get(dv_ind, data, length);
+  rsmi_status_t storeRet;
+
+  if (ret == RSMI_STATUS_SUCCESS) {
+    storeRet = storeTmpFile(dv_ind, "compute_partition", "boot", data);
+  } else if (ret == RSMI_STATUS_NOT_SUPPORTED) {
+    // not supported is ok
+    storeRet = storeTmpFile(dv_ind, "compute_partition", "boot", "UNKNOWN");
+  } else {
+    storeRet = storeTmpFile(dv_ind, "compute_partition", "boot", "UNKNOWN");
+    returnStatus = ret;
+  }
+
+  if (storeRet != RSMI_STATUS_SUCCESS) {
+    // file storage err takes precedence over other errors
+    returnStatus = storeRet;
+  }
+  return returnStatus;
+}
+
+// Stores parameters depending on which rsmi type is provided.
+// Uses template specialization, to restrict types to identify
+// calls needed to complete the function.
+// typename - restricted to
+// rsmi_compute_partition_type_t or rsmi_compute_partition_type_t
+// dv_ind - device index
+// tempFileName - base file name
+template <> rsmi_status_t storeParameter<rsmi_nps_mode_type_t>(uint32_t dv_ind) {
+  rsmi_status_t returnStatus = RSMI_STATUS_SUCCESS;
+  uint32_t length = 128;
+  char data[length];
+  bool doesFileExist;
+  std::tie(doesFileExist, std::ignore) = readTmpFile(dv_ind, "boot",
+                                                     "nps_mode");
+  // if temporary file exists -> we do not need to store anything new
+  // if not, read & store the state value
+  if (doesFileExist) {
+    return returnStatus;
+  }
+  rsmi_status_t ret = rsmi_dev_nps_mode_get(dv_ind, data, length);
+  rsmi_status_t storeRet;
+
+  if (ret == RSMI_STATUS_SUCCESS) {
+    storeRet = storeTmpFile(dv_ind, "nps_mode", "boot", data);
+  } else if (ret == RSMI_STATUS_NOT_SUPPORTED) {
+    // not supported is ok
+    storeRet = storeTmpFile(dv_ind, "nps_mode", "boot", "UNKNOWN");
+  } else {
+    storeRet = storeTmpFile(dv_ind, "nps_mode", "boot", "UNKNOWN");
+    returnStatus = ret;
+  }
+
+  if (storeRet != RSMI_STATUS_SUCCESS) {
+    // file storage err takes precedence over other errors
+    returnStatus = storeRet;
+  }
+  return returnStatus;
+}
+
+rsmi_status_t Device::storeDevicePartitions(uint32_t dv_ind) {
+  rsmi_status_t returnStatus = RSMI_STATUS_SUCCESS;
+  returnStatus = storeParameter<rsmi_compute_partition_type_t>(dv_ind);
+  rsmi_status_t npsRet = storeParameter<rsmi_nps_mode_type_t>(dv_ind);
+  if (returnStatus == RSMI_STATUS_SUCCESS) { // only record earliest error
+    returnStatus = npsRet;
+  }
+  return returnStatus;
+}
+
+// Reads a device's boot partition state, depending on which rsmi type is
+// provided and device index.
+// Uses template specialization, to restrict types to identify
+// calls needed to complete the function.
+// typename - restricted to rsmi_compute_partition_type_t
+// or rsmi_compute_partition_type_t
+// dv_ind - device index
+template <>
+std::string Device::readBootPartitionState<rsmi_compute_partition_type_t>(
+    uint32_t dv_ind) {
+  std::string boot_state;
+  std::tie(std::ignore, boot_state) = readTmpFile(dv_ind, "boot",
+                                                  "compute_partition");
+  return boot_state;
+}
+
+// Reads a device's boot partition state, depending on which rsmi type is
+// provided and device index.
+// Uses template specialization, to restrict types to identify
+// calls needed to complete the function.
+// typename - restricted to rsmi_compute_partition_type_t
+// or rsmi_compute_partition_type_t
+// dv_ind - device index
+template <>
+std::string Device::readBootPartitionState<rsmi_nps_mode_type_t>(
+    uint32_t dv_ind) {
+  std::string boot_state;
+  std::tie(std::ignore, boot_state) = readTmpFile(dv_ind, "boot", "nps_mode");
+  return boot_state;
 }
 
 #undef RET_IF_NONZERO

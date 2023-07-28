@@ -675,6 +675,16 @@ struct_c__SA_amdsmi_asic_info_t._fields_ = [
 ]
 
 amdsmi_asic_info_t = struct_c__SA_amdsmi_asic_info_t
+class struct_c__SA_amdsmi_driver_info_t(Structure):
+    pass
+
+struct_c__SA_amdsmi_driver_info_t._pack_ = 1 # source:False
+struct_c__SA_amdsmi_driver_info_t._fields_ = [
+    ('driver_version', ctypes.c_char * 64),
+    ('driver_date', ctypes.c_char * 64),
+]
+
+amdsmi_driver_info_t = struct_c__SA_amdsmi_driver_info_t
 class struct_c__SA_amdsmi_board_info_t(Structure):
     pass
 
@@ -1613,9 +1623,9 @@ amdsmi_get_gpu_device_bdf.argtypes = [amdsmi_processor_handle, ctypes.POINTER(un
 amdsmi_get_gpu_device_uuid = _libraries['libamd_smi.so'].amdsmi_get_gpu_device_uuid
 amdsmi_get_gpu_device_uuid.restype = amdsmi_status_t
 amdsmi_get_gpu_device_uuid.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_char)]
-amdsmi_get_gpu_driver_version = _libraries['libamd_smi.so'].amdsmi_get_gpu_driver_version
-amdsmi_get_gpu_driver_version.restype = amdsmi_status_t
-amdsmi_get_gpu_driver_version.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_int32), ctypes.POINTER(ctypes.c_char)]
+amdsmi_get_gpu_driver_info = _libraries['libamd_smi.so'].amdsmi_get_gpu_driver_info
+amdsmi_get_gpu_driver_info.restype = amdsmi_status_t
+amdsmi_get_gpu_driver_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_c__SA_amdsmi_driver_info_t)]
 amdsmi_get_gpu_asic_info = _libraries['libamd_smi.so'].amdsmi_get_gpu_asic_info
 amdsmi_get_gpu_asic_info.restype = amdsmi_status_t
 amdsmi_get_gpu_asic_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_c__SA_amdsmi_asic_info_t)]
@@ -1796,10 +1806,10 @@ __all__ = \
     'amdsmi_counter_command_t',
     'amdsmi_counter_command_t__enumvalues', 'amdsmi_counter_value_t',
     'amdsmi_dev_perf_level_t', 'amdsmi_dev_perf_level_t__enumvalues',
-    'amdsmi_engine_usage_t', 'amdsmi_error_count_t',
-    'amdsmi_event_group_t', 'amdsmi_event_group_t__enumvalues',
-    'amdsmi_event_handle_t', 'amdsmi_event_type_t',
-    'amdsmi_event_type_t__enumvalues',
+    'amdsmi_driver_info_t', 'amdsmi_engine_usage_t',
+    'amdsmi_error_count_t', 'amdsmi_event_group_t',
+    'amdsmi_event_group_t__enumvalues', 'amdsmi_event_handle_t',
+    'amdsmi_event_type_t', 'amdsmi_event_type_t__enumvalues',
     'amdsmi_evt_notification_data_t',
     'amdsmi_evt_notification_type_t',
     'amdsmi_evt_notification_type_t__enumvalues', 'amdsmi_freq_ind_t',
@@ -1816,7 +1826,7 @@ __all__ = \
     'amdsmi_get_gpu_compute_process_info',
     'amdsmi_get_gpu_compute_process_info_by_pid',
     'amdsmi_get_gpu_device_bdf', 'amdsmi_get_gpu_device_uuid',
-    'amdsmi_get_gpu_driver_version', 'amdsmi_get_gpu_ecc_count',
+    'amdsmi_get_gpu_driver_info', 'amdsmi_get_gpu_ecc_count',
     'amdsmi_get_gpu_ecc_enabled', 'amdsmi_get_gpu_ecc_status',
     'amdsmi_get_gpu_event_notification', 'amdsmi_get_gpu_fan_rpms',
     'amdsmi_get_gpu_fan_speed', 'amdsmi_get_gpu_fan_speed_max',
@@ -1910,6 +1920,7 @@ __all__ = \
     'struct_c__SA_amdsmi_board_info_t',
     'struct_c__SA_amdsmi_clk_info_t',
     'struct_c__SA_amdsmi_counter_value_t',
+    'struct_c__SA_amdsmi_driver_info_t',
     'struct_c__SA_amdsmi_engine_usage_t',
     'struct_c__SA_amdsmi_error_count_t',
     'struct_c__SA_amdsmi_evt_notification_data_t',

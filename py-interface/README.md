@@ -302,17 +302,17 @@ except AmdSmiException as e:
     print(e)
 ```
 
-### amdsmi_get_gpu_driver_version
+### amdsmi_get_gpu_driver_info
 
-Description: Returns the version string of the driver
+Description: Returns the info of the driver
 
 Input parameters:
 
 * `processor_handle` dev for which to query
 
-Output: Driver version string that is handling the device
+Output: Driver info that is handling the device
 
-Exceptions that can be thrown by `amdsmi_get_gpu_driver_version` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_driver_info` function:
 
 * `AmdSmiParameterException`
 * `AmdSmiLibraryException`
@@ -322,7 +322,7 @@ Example:
 ```python
 try:
     device = amdsmi_get_processor_handles()[0]
-    print("Driver version: ", amdsmi_get_gpu_driver_version(device))
+    print("Driver info: ", amdsmi_get_gpu_driver_info(device))
 except AmdSmiException as e:
     print(e)
 ```
