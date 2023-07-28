@@ -49,12 +49,8 @@ static const uint32_t kAmdGpuId = 0x1002;
 
 static bool isAMDGPU(std::string dev_path) {
   std::string vend_path = dev_path + "/device/vendor";
-  std::string vbios_v_path = dev_path + "/device/vbios_version";
-  if (!amd::smi::FileExists(vend_path.c_str())) {
-	return false;
-  }
 
-  if (!amd::smi::FileExists(vbios_v_path.c_str())) {
+  if (!amd::smi::FileExists(vend_path.c_str())) {
 	return false;
   }
 
@@ -457,18 +453,20 @@ amdsmi_status_t smi_amdgpu_get_driver_version(amd::smi::AMDSmiGPUDevice* device,
 amdsmi_status_t smi_amdgpu_get_pcie_speed_from_pcie_type(uint16_t pcie_type, uint32_t *pcie_speed)
 {
 	switch (pcie_type) {
-	case 0:
+	case 1:
 		*pcie_speed = 2500;
 		break;
-	case 1:
+	case 2:
 		*pcie_speed = 5000;
 		break;
-	case 2:
+	case 3:
 		*pcie_speed = 8000;
 		break;
-	case 3:
 	case 4:
 		*pcie_speed = 16000;
+		break;
+	case 5:
+		*pcie_speed = 32000;
 		break;
 	default:
 		return AMDSMI_STATUS_API_FAILED;

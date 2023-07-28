@@ -12,16 +12,16 @@ import os
 # Use ROCm installation path if running from standard installation
 # With File Reorg rsmiBindings.py will be installed in  /opt/rocm/libexec/rocm_smi.
 # relative path changed accordingly
-path_librocm = os.path.dirname(os.path.realpath(__file__)) + '/../../lib/librocm_smi64.so'
+path_librocm = os.path.dirname(os.path.realpath(__file__)) + '/../../@CMAKE_INSTALL_LIBDIR@/librocm_smi64.so.@VERSION_MAJOR@'
 if not os.path.isfile(path_librocm):
     print('Unable to find %s . Trying /opt/rocm*' % path_librocm)
     for root, dirs, files in os.walk('/opt', followlinks=True):
-        if 'librocm_smi64.so' in files:
-            path_librocm = os.path.join(os.path.realpath(root), 'librocm_smi64.so')
+        if 'librocm_smi64.so.@VERSION_MAJOR@' in files:
+            path_librocm = os.path.join(os.path.realpath(root), 'librocm_smi64.so.@VERSION_MAJOR@')
     if os.path.isfile(path_librocm):
         print('Using lib from %s' % path_librocm)
     else:
-        print('Unable to find librocm_smi64.so')
+        print('Unable to find librocm_smi64.so.@VERSION_MAJOR@')
 
 # ----------> TODO: Support static libs as well as SO
 
@@ -30,7 +30,7 @@ try:
     rocmsmi = CDLL(path_librocm)
 except OSError:
     print('Unable to load the rocm_smi library.\n'\
-          'Set LD_LIBRARY_PATH to the folder containing librocm_smi64.\n'\
+          'Set LD_LIBRARY_PATH to the folder containing librocm_smi64.so.@VERSION_MAJOR@\n'\
           '{0}Please refer to https://github.com/'\
           'RadeonOpenCompute/rocm_smi_lib for the installation guide.{1}'\
           .format('\33[33m', '\033[0m'))
@@ -66,7 +66,38 @@ class rsmi_status_t(c_int):
     RSMI_STATUS_INTERRUPT = 0xC
     RSMI_STATUS_UNEXPECTED_SIZE = 0xD
     RSMI_STATUS_NO_DATA = 0xE
+    RSMI_STATUS_UNEXPECTED_DATA = 0xF
+    RSMI_STATUS_BUSY = 0x10
+    RSMI_STATUS_REFCOUNT_OVERFLOW = 0x11
+    RSMI_STATUS_SETTING_UNAVAILABLE = 0x12
+    RSMI_STATUS_AMDGPU_RESTART_ERR = 0x13
     RSMI_STATUS_UNKNOWN_ERROR = 0xFFFFFFFF
+
+
+#Dictionary of rsmi ret codes and it's verbose output
+rsmi_status_verbose_err_out = {
+    rsmi_status_t.RSMI_STATUS_SUCCESS: 'Operation was successful',
+    rsmi_status_t.RSMI_STATUS_INVALID_ARGS: 'Invalid arguments provided',
+    rsmi_status_t.RSMI_STATUS_NOT_SUPPORTED: 'Not supported on the given system',
+    rsmi_status_t.RSMI_STATUS_FILE_ERROR: 'Problem accessing a file',
+    rsmi_status_t.RSMI_STATUS_PERMISSION: 'Permission denied',
+    rsmi_status_t.RSMI_STATUS_OUT_OF_RESOURCES: 'Unable to acquire memory or other resource',
+    rsmi_status_t.RSMI_STATUS_INTERNAL_EXCEPTION: 'An internal exception was caught',
+    rsmi_status_t.RSMI_STATUS_INPUT_OUT_OF_BOUNDS: 'Provided input is out of allowable or safe range',
+    rsmi_status_t.RSMI_INITIALIZATION_ERROR: 'Error occured during rsmi initialization',
+    rsmi_status_t.RSMI_STATUS_NOT_YET_IMPLEMENTED: 'Requested function is not implemented on this setup',
+    rsmi_status_t.RSMI_STATUS_NOT_FOUND: 'Item searched for but not found',
+    rsmi_status_t.RSMI_STATUS_INSUFFICIENT_SIZE: 'Insufficient resources available',
+    rsmi_status_t.RSMI_STATUS_INTERRUPT: 'Interrupt occured during execution',
+    rsmi_status_t.RSMI_STATUS_UNEXPECTED_SIZE: 'Unexpected amount of data read',
+    rsmi_status_t.RSMI_STATUS_NO_DATA: 'No data found for the given input',
+    rsmi_status_t.RSMI_STATUS_UNEXPECTED_DATA: 'Unexpected data received',
+    rsmi_status_t.RSMI_STATUS_BUSY: 'Busy - resources are preventing call the ability to execute',
+    rsmi_status_t.RSMI_STATUS_REFCOUNT_OVERFLOW: 'Data overflow - data exceeded INT32_MAX',
+    rsmi_status_t.RSMI_STATUS_SETTING_UNAVAILABLE: 'Requested setting is unavailable for current device',
+    rsmi_status_t.RSMI_STATUS_AMDGPU_RESTART_ERR: 'Could not successfully restart the amdgpu driver',
+    rsmi_status_t.RSMI_STATUS_UNKNOWN_ERROR: 'Unknown error occured'
+}
 
 
 class rsmi_init_flags_t(c_int):
@@ -132,6 +163,7 @@ def perf_level_string(i):
         5:  'STABLE_PEAK',
         6:  'STABLE_MIN_MCLK',
         7:  'STABLE_MIN_SCLK',
+        8:  'PERF_DETERMINISM',
     }
     return switcher.get(i, 'UNKNOWN')
 
@@ -560,3 +592,50 @@ class rsmi_func_id_value_t(Union):
     _fields_ = [('id', c_uint64),
                 ('name', c_char_p),
                 ('submodule', submodule_union)]
+
+class rsmi_compute_partition_type_t(c_int):
+    RSMI_COMPUTE_PARTITION_INVALID = 0
+    RSMI_COMPUTE_PARTITION_CPX = 1
+    RSMI_COMPUTE_PARTITION_SPX = 2
+    RSMI_COMPUTE_PARTITION_DPX = 3
+    RSMI_COMPUTE_PARTITION_TPX = 4
+    RSMI_COMPUTE_PARTITION_QPX = 5
+
+rsmi_compute_partition_type_dict = {
+    #'RSMI_COMPUTE_PARTITION_INVALID': 0,
+    'CPX': 1,
+    'SPX': 2,
+    'DPX': 3,
+    'TPX': 4,
+    'QPX': 5
+}
+
+rsmi_compute_partition_type = rsmi_compute_partition_type_t
+
+# compute_partition_type_l includes string names for the rsmi_compute_partition_type_t
+# Usage example to get corresponding names:
+# compute_partition_type_l[rsmi_compute_partition_type_t.RSMI_COMPUTE_PARTITION_CPX]
+# will return string 'CPX'
+compute_partition_type_l = ['CPX', 'SPX', 'DPX', 'TPX', 'QPX']
+
+class rsmi_nps_mode_type_t(c_int):
+    RSMI_MEMORY_PARTITION_UNKNOWN = 0
+    RSMI_MEMORY_PARTITION_NPS1 = 1
+    RSMI_MEMORY_PARTITION_NPS2 = 2
+    RSMI_MEMORY_PARTITION_NPS4 = 3
+    RSMI_MEMORY_PARTITION_NPS8 = 4
+
+rsmi_nps_mode_type_dict = {
+    'NPS1': 1,
+    'NPS2': 2,
+    'NPS4': 3,
+    'NPS8': 4
+}
+
+rsmi_nps_mode_type = rsmi_nps_mode_type_t
+
+# nps_mode_type_l includes string names for the rsmi_compute_partition_type_t
+# Usage example to get corresponding names:
+# nps_mode_type_l[rsmi_nps_mode_type_t.RSMI_MEMORY_PARTITION_NPS2]
+# will return string 'NPS2'
+nps_mode_type_l = ['NPS1', 'NPS2', 'NPS4', 'NPS8']

@@ -314,12 +314,12 @@ int main() {
             printf("\tGPU Power limit: %d\n\n", power_measure.power_limit);
 
             // Get driver version
-            char version[AMDSMI_MAX_DRIVER_VERSION_LENGTH];
-            int version_length = AMDSMI_MAX_DRIVER_VERSION_LENGTH;
-            ret = amdsmi_get_gpu_driver_version(processor_handles[j], &version_length, version);
+            amdsmi_driver_info_t driver_info;
+            ret = amdsmi_get_gpu_driver_info(processor_handles[j], &driver_info);
             CHK_AMDSMI_RET(ret)
-            printf("    Output of amdsmi_get_gpu_driver_version:\n");
-            printf("\tDriver version: %s\n\n", version);
+            printf("    Output of amdsmi_get_gpu_driver_info:\n");
+            printf("\tDriver version: %s\n", driver_info.driver_version);
+            printf("\tDriver date: %s\n\n", driver_info.driver_date);
 
             // Get device uuid
             unsigned int uuid_length = AMDSMI_GPU_UUID_SIZE;
