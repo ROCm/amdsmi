@@ -127,6 +127,15 @@ class AMDSMIParser(argparse.ArgumentParser):
                     path.touch()
                     setattr(args, self.dest, path)
                 elif path.is_file():
+                    file_name = str(path)
+                    if args.json and str(path).split('.')[-1].lower() != 'json':
+                        file_name += ".json"
+                    elif args.csv and str(path).split('.')[-1].lower() != 'csv':
+                        file_name += ".csv"
+                    elif str(path).split('.')[-1].lower() != 'txt':
+                        file_name += ".txt"
+                    path = Path(file_name)
+                    path.touch()
                     setattr(args, self.dest, path)
                 else:
                     raise amdsmi_cli_exceptions.AmdSmiInvalidFilePathException(path, CheckOutputFilePath.outputformat)
@@ -415,13 +424,11 @@ class AMDSMIParser(argparse.ArgumentParser):
         ecc_help = "Number of ECC errors"
         ecc_block_help = "Number of ECC errors per block"
         pcie_help = "Current PCIe speed and width"
-        voltage_help = "Current GPU voltages"
 
         # Help text for Arguments only on Linux Baremetal platforms
         fan_help = "Current fan speed"
         vc_help = "Display voltage curve"
         overdrive_help = "Current GPU clock overdrive level"
-        mo_help = "Current memory clock overdrive level"
         perf_level_help = "Current DPM performance level"
         replay_count_help = "PCIe replay count"
         xgmi_err_help = "XGMI error information since last read"
@@ -450,7 +457,6 @@ class AMDSMIParser(argparse.ArgumentParser):
         if self.helpers.is_virtual_os() or self.helpers.is_baremetal():
             metric_parser.add_argument('-b', '--fb-usage', action='store_true', required=False, help=fb_usage_help)
             metric_parser.add_argument('-m', '--mem-usage', action='store_true', required=False, help=mem_usage_help)
-            metric_parser.add_argument('-r', '--replay-count', action='store_true', required=False, help=replay_count_help)
 
         # Optional Args for Hypervisors and Baremetal systems
         if self.helpers.is_hypervisor() or self.helpers.is_baremetal():
@@ -459,9 +465,8 @@ class AMDSMIParser(argparse.ArgumentParser):
             metric_parser.add_argument('-t', '--temperature', action='store_true', required=False, help=temperature_help)
             metric_parser.add_argument('-e', '--ecc', action='store_true', required=False, help=ecc_help)
             metric_parser.add_argument('-k', '--ecc-block', action='store_true', required=False, help=ecc_block_help)
-
+            metric_parser.add_argument('-r', '--replay-count', action='store_true', required=False, help=replay_count_help)
             metric_parser.add_argument('-P', '--pcie', action='store_true', required=False, help=pcie_help)
-            metric_parser.add_argument('-V', '--voltage', action='store_true', required=False, help=voltage_help)
             metric_parser.add_argument('-u', '--usage', action='store_true', required=False, help=usage_help)
 
         # Optional Args for Linux Baremetal Systems
@@ -469,7 +474,6 @@ class AMDSMIParser(argparse.ArgumentParser):
             metric_parser.add_argument('-f', '--fan', action='store_true', required=False, help=fan_help)
             metric_parser.add_argument('-C', '--voltage-curve', action='store_true', required=False, help=vc_help)
             metric_parser.add_argument('-o', '--overdrive', action='store_true', required=False, help=overdrive_help)
-            metric_parser.add_argument('-M', '--mem-overdrive', action='store_true', required=False, help=mo_help)
             metric_parser.add_argument('-l', '--perf-level', action='store_true', required=False, help=perf_level_help)
             metric_parser.add_argument('-x', '--xgmi-err', action='store_true', required=False, help=xgmi_err_help)
             metric_parser.add_argument('-E', '--energy', action='store_true', required=False, help=energy_help)
@@ -544,7 +548,7 @@ class AMDSMIParser(argparse.ArgumentParser):
 
     def _add_event_parser(self, subparsers, func):
         if self.helpers.is_linux() and not self.helpers.is_virtual_os():
-            # This subparser only applies to Linux BareMetal & Linux Hypervisors, NOT Linux Guest
+            # This subparser only applies to Linux Hypervisors, NOT Linux Guest
             return
 
         # Subparser help text
@@ -611,20 +615,8 @@ class AMDSMIParser(argparse.ArgumentParser):
         set_value_optionals_title = "Set Arguments"
 
         # Help text for Arguments only on Guest and BM platforms
-        set_clock_help = "Sets clock frequency levels for specified clocks"
-        set_sclk_help = "Sets GPU clock frequency levels"
-        set_mclk_help = "Sets memory clock frequency levels"
-        set_pcie_help = "Sets PCIe Bandwith"
-        set_slevel_help = "Change GPU clock frequency and voltage for a specific level"
-        set_mlevel_help = "Change GPU memory frequency and voltage for a specific level"
-        set_vc_help = "Change SCLK voltage curve for a specified point"
-        set_srange_help = "Sets min and max SCLK speed"
-        set_mrange_help = "Sets min and max MCLK speed"
         set_fan_help = "Sets GPU fan speed (0-255 or 0-100%%)"
         set_perf_level_help = "Sets performance level"
-        set_overdrive_help = "Set GPU overdrive (0-20%%) ***DEPRECATED IN NEWER KERNEL VERSIONS (use --slevel instead)***"
-        set_mem_overdrive_help = "Set memory overclock overdrive level ***DEPRECATED IN NEWER KERNEL VERSIONS (use --mlevel instead)***"
-        set_power_overdrive_help = "Set the maximum GPU power using power overdrive in Watts"
         set_profile_help = "Set power profile level (#) or a quoted string of custom profile attributes"
         set_perf_det_help = "Sets GPU clock frequency limit and performance level to determinism to get minimal performance variation"
 
@@ -639,20 +631,8 @@ class AMDSMIParser(argparse.ArgumentParser):
         self._add_device_arguments(set_value_parser, required=True)
 
         # Optional Args
-        set_value_parser.add_argument('-c', '--clock', action=self._validate_set_clock(True), nargs='+', required=False, help=set_clock_help, metavar=('CLK_TYPE', 'CLK_LEVELS'))
-        set_value_parser.add_argument('-s', '--sclk', action=self._validate_set_clock(False), nargs='+', type=self._positive_int, required=False, help=set_sclk_help, metavar='CLK_LEVELS')
-        set_value_parser.add_argument('-m', '--mclk', action=self._validate_set_clock(False), nargs='+', type=self._positive_int, required=False, help=set_mclk_help, metavar='CLK_LEVELS')
-        set_value_parser.add_argument('-p', '--pcie', action=self._validate_set_clock(False), nargs='+', type=self._positive_int, required=False, help=set_pcie_help, metavar='CLK_LEVELS')
-        set_value_parser.add_argument('-S', '--slevel', action=self._prompt_spec_warning(), nargs=2, type=self._positive_int, required=False, help=set_slevel_help, metavar=('SCLKLEVEL', 'SCLK'))
-        set_value_parser.add_argument('-M', '--mlevel', action=self._prompt_spec_warning(), nargs=2, type=self._positive_int, required=False, help=set_mlevel_help, metavar=('MCLKLEVEL', 'MCLK'))
-        set_value_parser.add_argument('-V', '--vc', action=self._prompt_spec_warning(), nargs=3, type=self._positive_int, required=False, help=set_vc_help, metavar=('POINT', 'SCLK', 'SVOLT'))
-        set_value_parser.add_argument('-r', '--srange', action=self._prompt_spec_warning(), nargs=2, type=self._positive_int, required=False, help=set_srange_help, metavar=('SCLKMIN', 'SCLKMAX'))
-        set_value_parser.add_argument('-R', '--mrange', action=self._prompt_spec_warning(), nargs=2, type=self._positive_int, required=False, help=set_mrange_help, metavar=('MCLKMIN', 'MCLKMAX'))
         set_value_parser.add_argument('-f', '--fan', action=self._validate_fan_speed(), required=False, help=set_fan_help, metavar='%')
         set_value_parser.add_argument('-l', '--perflevel', action='store', choices=self.helpers.get_perf_levels()[0], type=str.upper, required=False, help=set_perf_level_help, metavar='LEVEL')
-        set_value_parser.add_argument('-o', '--overdrive', action=self._validate_overdrive_percent(), required=False, help=set_overdrive_help, metavar='%')
-        set_value_parser.add_argument('-O', '--memoverdrive', action=self._validate_overdrive_percent(), required=False, help=set_mem_overdrive_help, metavar='%')
-        set_value_parser.add_argument('-w', '--poweroverdrive', action=self._prompt_spec_warning(), type=self._positive_int, required=False, help=set_power_overdrive_help, metavar="WATTS")
         set_value_parser.add_argument('-P', '--profile', action='store', required=False, help=set_profile_help, metavar='SETPROFILE')
         set_value_parser.add_argument('-d', '--perfdeterminism', action='store', type=self._positive_int, required=False, help=set_perf_det_help, metavar='SCLKMAX')
 
@@ -766,7 +746,6 @@ class AMDSMIParser(argparse.ArgumentParser):
         resetclocks_help = "Reset clocks and overdrive to default"
         resetfans_help = "Reset fans to automatic (driver) control"
         resetprofile_help = "Reset power profile back to default"
-        resetpoweroverdrive_help = "Set the maximum GPU power back to the device default state"
         resetxgmierr_help = "Reset XGMI error counts"
         resetperfdet_help = "Disable performance determinism"
 
@@ -785,7 +764,6 @@ class AMDSMIParser(argparse.ArgumentParser):
         reset_parser.add_argument('-c', '--clocks', action='store_true', required=False, help=resetclocks_help)
         reset_parser.add_argument('-f', '--fans', action='store_true', required=False, help=resetfans_help)
         reset_parser.add_argument('-p', '--profile', action='store_true', required=False, help=resetprofile_help)
-        reset_parser.add_argument('-o', '--poweroverdrive', action='store_true', required=False, help=resetpoweroverdrive_help)
         reset_parser.add_argument('-x', '--xgmierr', action='store_true', required=False, help=resetxgmierr_help)
         reset_parser.add_argument('-d', '--perfdeterminism', action='store_true', required=False, help=resetperfdet_help)
 
