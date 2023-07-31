@@ -1143,10 +1143,11 @@ def amdsmi_get_lib_version():
     _check_res(amdsmi_wrapper.amdsmi_get_lib_version(ctypes.byref(version)))
 
     return {
+        "year": version.year,
         "major": version.major,
         "minor": version.minor,
-        "patch": version.patch,
-        "build": version.build.contents.value.decode("utf-8"),
+        "release": version.release,
+        "build": version.build.contents.value.decode("utf-8")
     }
 
 

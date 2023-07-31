@@ -1246,12 +1246,12 @@ class struct_c__SA_amdsmi_version_t(Structure):
 
 struct_c__SA_amdsmi_version_t._pack_ = 1 # source:False
 struct_c__SA_amdsmi_version_t._fields_ = [
+    ('year', ctypes.c_uint32),
     ('major', ctypes.c_uint32),
     ('minor', ctypes.c_uint32),
-    ('patch', ctypes.c_uint32),
-    ('PADDING_0', ctypes.c_ubyte * 4),
+    ('release', ctypes.c_uint32),
     ('build', ctypes.POINTER(ctypes.c_char)),
-    ('reserved', ctypes.c_uint32 * 4),
+    ('reserved', ctypes.c_ubyte * 4),
 ]
 
 amdsmi_version_t = struct_c__SA_amdsmi_version_t
