@@ -88,7 +88,7 @@ static const uint32_t kVerMaxStrLen = 80;
 
 void TestVersionRead::Run(void) {
   amdsmi_status_t err;
-  amdsmi_version_t ver = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, nullptr};
+  amdsmi_version_t ver = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, nullptr};
 
   TestBase::Run();
   if (setup_failed_) {
@@ -99,10 +99,12 @@ void TestVersionRead::Run(void) {
   err = amdsmi_get_lib_version(&ver);
   CHK_ERR_ASRT(err)
 
-  ASSERT_TRUE(ver.major != 0xFFFFFFFF && ver.minor != 0xFFFFFFFF &&
-                             ver.patch != 0xFFFFFFFF && ver.build != nullptr);
+  ASSERT_TRUE(ver.year != 0xFFFFFFFF && ver.major != 0xFFFFFFFF &&
+              ver.minor != 0xFFFFFFFF && ver.release != 0xFFFFFFFF &&
+              ver.build != nullptr);
   IF_VERB(STANDARD) {
-    std::cout << "\t**AMD SMI Library version: " << ver.major << "." <<
-       ver.minor << "." << ver.patch << " (" << ver.build << ")" << std::endl;
+    std::cout << "\t**AMD SMI Library version: " << ver.year << "." <<
+       ver.major << "." << ver.minor << "." << ver.release <<
+       " (" << ver.build << ")" << std::endl;
   }
 }

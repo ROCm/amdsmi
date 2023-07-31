@@ -54,7 +54,7 @@ amd-smi will report the version and current platform detected when running the c
 amd-smi
 usage: amd-smi [-h]  ...
 
-AMD System Management Interface | Version: 23.0.1.0 | Platform: Linux Baremetal
+AMD System Management Interface | Version: 23.2.1.0 | Platform: Linux Baremetal
 
 optional arguments:
   -h, --help        show this help message and exit
