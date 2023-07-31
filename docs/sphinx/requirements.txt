@@ -53,18 +53,12 @@ idna==3.4
     # via requests
 imagesize==1.4.1
     # via sphinx
-importlib-metadata==6.6.0
-    # via sphinx
-importlib-resources==5.12.0
-    # via rocm-docs-core
 jinja2==3.1.2
     # via
     #   myst-parser
     #   sphinx
 libsass==0.22.0
     # via doxysphinx
-linkify-it-py==1.0.3
-    # via myst-parser
 lxml==4.9.2
     # via doxysphinx
 markdown-it-py==2.2.0
@@ -79,7 +73,7 @@ mdurl==0.1.2
     # via markdown-it-py
 mpire==2.7.1
     # via doxysphinx
-myst-parser[linkify]==1.0.0
+myst-parser==1.0.0
     # via rocm-docs-core
 packaging==23.1
     # via
@@ -107,8 +101,6 @@ pynacl==1.5.0
     # via pygithub
 pyparsing==3.0.9
     # via doxysphinx
-pytz==2023.3
-    # via babel
 pyyaml==6.0
     # via
     #   myst-parser
@@ -118,7 +110,7 @@ requests==2.30.0
     # via
     #   pygithub
     #   sphinx
-rocm-docs-core[api_reference]==0.13.3
+rocm-docs-core[api_reference]==0.20.0
     # via -r requirements.in
 smmap==5.0.0
     # via gitdb
@@ -163,13 +155,7 @@ tqdm==4.65.0
     # via mpire
 typing-extensions==4.5.0
     # via pydata-sphinx-theme
-uc-micro-py==1.0.2
-    # via linkify-it-py
 urllib3==2.0.2
     # via requests
 wrapt==1.15.0
     # via deprecated
-zipp==3.15.0
-    # via
-    #   importlib-metadata
-    #   importlib-resources
