@@ -15,13 +15,17 @@ LD_LIBRARY_PATH  should be set to the folder containing librocm_smi64.
 
 
 ### Version
+
 The SMI will report a "version" which is the version of the kernel installed:
+
 ```shell
 AMD ROCm System Management Interface v$(uname)
 ```
+
 For ROCk installations, this will be the AMDGPU module version (e.g. 5.0.71)
 For non-ROCk or monolithic ROCk installations, this will be the kernel version,
 which will be equivalent to the following bash command:
+
 ```shell
 $(uname -a) | cut -d ' ' -f 3)
 ```
@@ -34,6 +38,7 @@ For detailed and up to date usage information, we recommend consulting the help:
 ```
 
 For convenience purposes, following is the output from the -h flag:
+
 ```shell
 
 usage: rocmSmiLib_cli.py [-h] [-d DEVICE [DEVICE ...]] [--alldevices] [--showhw] [-a] [-i] [-v] [--showdriverversion]

@@ -11,61 +11,6 @@ AMD SMI library can run on AMD ROCm supported platforms, please refer to [List o
 To run the AMD SMI library, the amdgpu driver needs to be installed. Optionally, the libdrm can be
 installed to query firmware information and hardware IPs.
 
-## Building AMD SMI
-
-### Additional Required software for building
-
-In order to build the AMD SMI library, the following components are required. Note that the software versions listed are what was used in development. Earlier versions are not guaranteed to work:
-
-* CMake (v3.11.0) - `pip3 install cmake`
-* g++ (5.4.0)
-
-In order to build the AMD SMI python package, the following components are required:
-
-* clang (14.0 or above)
-* python (3.6 or above)
-* virtualenv - `pip3 install virtualenv`
-
-In order to build the latest documentation, the following are required:
-
-* DOxygen (1.8.11)
-* latex (pdfTeX 3.14159265-2.6-1.40.16)
-
-The source code for AMD SMI is available on Github.
-
-After the AMD SMI library git repository has been cloned to a local Linux machine, the Default location for the library and headers is /opt/rocm. Building the library is achieved by following the typical CMake build sequence, specifically:
-
-```bash
-mkdir -p build
-cd build
-cmake ..
-make -j $(nproc)
-make install
-```
-
-The built library will appear in the `build` folder.
-
-To build the rpm and deb packages follow the above steps with:
-
-```bash
-make package
-```
-
-### Building the Tests
-
-In order to verify the build and capability of AMD SMI on your system and to see an example of how AMD SMI can be used, you may build and run the tests that are available in the repo. To build the tests, follow these steps:
-
-```bash
-mkdir -p build
-cd build
-cmake -DBUILD_TESTS=ON <location of root of AMD SMI library CMakeLists.txt>
-make -j $(nproc)
-```
-
-### Run the Tests
-
-To run the test, execute the program `amdsmitst` that is built from the steps above.
-
 ## Usage Basics
 
 ### Device/Socket handles
@@ -184,14 +129,26 @@ For additional details, see the [ROCm Contributing Guide](https://rocm.docs.amd.
 
 ### Installation
 
+Follow user permissions best practices if installing AMDSMI as any user than root.
+
 * Install amdgpu driver
 * Install amd-smi-lib package through package manager
-* cd /opt/rocm/share/amd_smi
-* python3 -m pip install --upgrade pip
-* python3 -m pip install --user .
-* /opt/rocm/bin/amd-smi --help
 
-Add /opt/rocm/bin to your shell's path to access amd-smi via the cmdline
+Before amd-smi install, uninstall current versions of amdsmi using pip:
+
+```bash
+pip3 list | grep amd
+pip3 uninstall amdsmi
+```
+
+```bash
+cd /opt/rocm/share/amd_smi
+python3 -m pip install --upgrade pip
+python3 -m pip install --user .
+/opt/rocm/bin/amd-smi --help
+```
+
+after installing amd-smi-lib, amd-smi is also available as a binary in /opt/rocm/bin
 
 ### Rebuilding Python wrapper
 
@@ -209,6 +166,66 @@ After this command, the file in `py-interface/amdsmi_wrapper.py` will be automat
 Note: To be able to re-generate python wrapper you need several tools installed on your system: clang-14, clang-format, libclang-dev, and ***python3.7 or newer***.
 
 Note: python_wrapper is NOT automatically re-generated. You must run `cmake` with `-DBUILD_WRAPPER=on` argument.
+
+## Building AMD SMI
+
+### Additional Required software for building
+
+In order to build the AMD SMI library, the following components are required. Note that the software versions listed are what was used in development. Earlier versions are not guaranteed to work:
+
+* CMake (v3.11.0) - `pip3 install cmake`
+* g++ (5.4.0)
+
+In order to build the AMD SMI python package, the following components are required:
+
+* clang (14.0 or above)
+* python (3.6 or above)
+* virtualenv - `pip3 install virtualenv`
+
+In order to build the latest documentation, the following are required:
+
+* DOxygen (1.8.11)
+* latex (pdfTeX 3.14159265-2.6-1.40.16)
+
+The source code for AMD SMI is available on Github.
+
+After the AMD SMI library git repository has been cloned to a local Linux machine, the Default location for the library and headers is /opt/rocm. Before installation, the old rocm directories should be deleted:
+/opt/rocm
+/opt/rocm-{number}
+
+Building the library is achieved by following the typical CMake build sequence (run as root user or use 'sudo' before 'make install' command), specifically:
+
+```bash
+mkdir -p build
+cd build
+cmake ..
+make -j $(nproc)
+make install
+```
+
+The built library will appear in the `build` folder.
+
+To build the rpm and deb packages follow the above steps with:
+
+```bash
+make package
+```
+
+### Building the Tests
+
+In order to verify the build and capability of AMD SMI on your system and to see an example of how AMD SMI can be used, you may build and run the tests that are available in the repo. To build the tests, follow these steps:
+
+```bash
+mkdir -p build
+cd build
+cmake -DBUILD_TESTS=ON ..
+make -j $(nproc)
+```
+
+### Run the Tests
+
+To run the test, execute the program `amdsmitst` that is built from the steps above.
+Path to the program `amdsmitst`: build/tests/amd_smi_test/
 
 ## DISCLAIMER
 
