@@ -185,8 +185,8 @@ amd-smi metric --help
 usage: amd-smi metric [-h] [--json | --csv] [--file FILE]
                       [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [-g GPU [GPU ...]]
                       [-w loop_time] [-W total_loop_time] [-i number_of_iterations] [-u]
-                      [-b] [-p] [-c] [-t] [-e] [-P] [-V] [-f] [-C] [-o] [-M] [-l] [-r]
-                      [-x] [-E] [-m]
+                      [-b] [-p] [-c] [-t] [-e] [-P] [-f] [-C] [-o] [-l] [-r] [-x]
+                      [-E] [-m]
 
 If no GPU is specified, returns metric information for all GPUs on the system.
 If no metric argument is provided all metric information will be displayed.
@@ -205,11 +205,9 @@ Metric arguments:
   -t, --temperature                                           Current temperatures
   -e, --ecc                                                   Number of ECC errors
   -P, --pcie                                                  Current PCIe speed and width
-  -V, --voltage                                               Current GPU voltages
   -f, --fan                                                   Current fan speed
   -C, --voltage-curve                                         Display voltage curve
   -o, --overdrive                                             Current GPU clock overdrive level
-  -M, --mem-overdrive                                         Current memory clock overdrive level
   -l, --perf-level                                            Current DPM performance level
   -r, --replay-count                                          PCIe replay count
   -x, --xgmi-err                                              XGMI error information since last read
@@ -283,11 +281,7 @@ Command Modifiers:
 amd-smi set --help
 usage: amd-smi set [-h] [--json | --csv] [--file FILE]
                    [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] -g GPU [GPU ...]
-                   [-c CLK_TYPE [CLK_LEVELS ...]] [-s CLK_LEVELS [CLK_LEVELS ...]]
-                   [-m CLK_LEVELS [CLK_LEVELS ...]] [-p CLK_LEVELS [CLK_LEVELS ...]]
-                   [-S SCLKLEVEL SCLK] [-M MCLKLEVEL MCLK] [-V POINT SCLK SVOLT]
-                   [-r SCLKMIN SCLKMAX] [-R MCLKMIN MCLKMAX] [-f %] [-l LEVEL] [-o %]
-                   [-O %] [-w WATTS] [-P SETPROFILE] [-d SCLKMAX]
+                   [-f %] [-l LEVEL] [-P SETPROFILE] [-d SCLKMAX]
 
 A GPU must be specified to set a configuration.
 A set argument must be provided; Multiple set arguments are accepted
@@ -296,20 +290,8 @@ Set Arguments:
   -h, --help                                                          show this help message and exit
   -g GPU [GPU ...], --gpu GPU [GPU ...]                               Select a GPU ID, BDF, or UUID from the possible choices:
                                                                       ID:0  | BDF:0000:23:00.0 | UUID:ffffffff-ffff-ffff-ffff-ffffffffffff
-  -c CLK_TYPE [CLK_LEVELS ...], --clock CLK_TYPE [CLK_LEVELS ...]     Sets clock frequency levels for specified clocks
-  -s CLK_LEVELS [CLK_LEVELS ...], --sclk CLK_LEVELS [CLK_LEVELS ...]  Sets GPU clock frequency levels
-  -m CLK_LEVELS [CLK_LEVELS ...], --mclk CLK_LEVELS [CLK_LEVELS ...]  Sets memory clock frequency levels
-  -p CLK_LEVELS [CLK_LEVELS ...], --pcie CLK_LEVELS [CLK_LEVELS ...]  Sets PCIe Bandwith
-  -S SCLKLEVEL SCLK, --slevel SCLKLEVEL SCLK                          Change GPU clock frequency and voltage for a specific level
-  -M MCLKLEVEL MCLK, --mlevel MCLKLEVEL MCLK                          Change GPU memory frequency and voltage for a specific level
-  -V POINT SCLK SVOLT, --vc POINT SCLK SVOLT                          Change SCLK voltage curve for a specified point
-  -r SCLKMIN SCLKMAX, --srange SCLKMIN SCLKMAX                        Sets min and max SCLK speed
-  -R MCLKMIN MCLKMAX, --mrange MCLKMIN MCLKMAX                        Sets min and max MCLK speed
   -f %, --fan %                                                       Sets GPU fan speed (0-255 or 0-100%)
   -l LEVEL, --perflevel LEVEL                                         Sets performance level
-  -o %, --overdrive %                                                 Set GPU overdrive (0-20%) ***DEPRECATED IN NEWER KERNEL VERSIONS (use --slevel instead)***
-  -O %, --memoverdrive %                                              Set memory overclock overdrive level ***DEPRECATED IN NEWER KERNEL VERSIONS (use --mlevel instead)***
-  -w WATTS, --poweroverdrive WATTS                                    Set the maximum GPU power using power overdrive in Watts
   -P SETPROFILE, --profile SETPROFILE                                 Set power profile level (#) or a quoted string of custom profile attributes
   -d SCLKMAX, --perfdeterminism SCLKMAX                               Sets GPU clock frequency limit and performance level to determinism to get minimal performance variation
 
@@ -324,7 +306,7 @@ Command Modifiers:
 amd-smi reset --help
 usage: amd-smi reset [-h] [--json | --csv] [--file FILE]
                      [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] -g GPU [GPU ...]
-                     [-G] [-c] [-f] [-p] [-o] [-x] [-d]
+                     [-G] [-c] [-f] [-p] [-x] [-d]
 
 A GPU must be specified to reset a configuration.
 A reset argument must be provided; Multiple reset arguments are accepted
@@ -337,7 +319,6 @@ Reset Arguments:
   -c, --clocks                                    Reset clocks and overdrive to default
   -f, --fans                                      Reset fans to automatic (driver) control
   -p, --profile                                   Reset power profile back to default
-  -o, --poweroverdrive                            Set the maximum GPU power back to the device default state
   -x, --xgmierr                                   Reset XGMI error counts
   -d, --perfdeterminism                           Disable performance determinism
 
