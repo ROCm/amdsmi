@@ -910,11 +910,11 @@ typedef struct {
  * @brief This structure holds version information.
  */
 typedef struct {
+    uint32_t year;      //!< Last 2 digits of the Year released
     uint32_t major;     //!< Major version
     uint32_t minor;     //!< Minor version
-    uint32_t patch;     //!< Patch, build  or stepping version
-    const char *build;  //!< Build string
-    uint32_t reserved[4];
+    uint32_t release;   //!< Patch, build or stepping version
+    const char *build;  //!< Full Build version string
 } amdsmi_version_t;
 
 /**

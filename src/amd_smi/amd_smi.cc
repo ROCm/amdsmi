@@ -1126,9 +1126,13 @@ amdsmi_status_t amdsmi_get_lib_version(amdsmi_version_t *version) {
     if (version == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    auto rstatus = rsmi_version_get(
-        reinterpret_cast<rsmi_version_t*>(version));
-    return amd::smi::rsmi_to_amdsmi_status(rstatus);
+    version->year = AMDSMI_LIB_VERSION_YEAR;
+    version->major = AMDSMI_LIB_VERSION_MAJOR;
+    version->minor = AMDSMI_LIB_VERSION_MINOR;
+    version->release = AMDSMI_LIB_VERSION_RELEASE;
+    version->build = AMDSMI_LIB_VERSION_STRING;
+
+    return AMDSMI_STATUS_SUCCESS;
 }
 
 amdsmi_status_t

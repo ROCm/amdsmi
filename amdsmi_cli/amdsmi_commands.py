@@ -63,10 +63,7 @@ class AMDSMICommands():
         except amdsmi_exception.AmdSmiLibraryException as e:
             amdsmi_lib_version = e.get_error_info()
 
-        major = amdsmi_lib_version["major"]
-        minor = amdsmi_lib_version["minor"]
-        patch = amdsmi_lib_version["patch"]
-        amdsmi_lib_version_str = f'{major}.{minor}.{patch}'
+        amdsmi_lib_version_str = amdsmi_lib_version["build"]
 
         self.logger.output['tool'] = 'AMDSMI Tool'
         self.logger.output['version'] = f'{__version__}'

@@ -152,7 +152,7 @@ class AMDSMIHelpers():
                 "UUID": uuid,
                 "Device Handle": device_handle,
             }
-            gpu_choices_str += f"ID:{gpu_id:<2} | BDF:{bdf} | UUID:{uuid}"
+            gpu_choices_str += f"ID:{gpu_id:<2} | BDF:{bdf} | UUID:{uuid}\n"
 
         return (gpu_choices, gpu_choices_str)
 

@@ -10,14 +10,14 @@ name = "amdsmi"
 authors = [
     {name = "AMD", email = "amd-smi.support@amd.com"},
 ]
-version = '23.0.1.1'
+version = "23.2.0.1"
 license = {file = "amdsmi/LICENSE"}
 readme = {file = "amdsmi/README.md", content-type = "text/markdown"}
-description = "SMI LIB - AMD GPU Monitoring Library"
+description = "AMDSMI Python LIB - AMD GPU Monitoring Library"
 requires-python = ">=3.7"
 dependencies = [
-    'PyYAML >= 5.0',
-    'clang >= 14.0'
+    "PyYAML >= 5.0",
+    "clang >= 14.0"
 ]
 
 [project.urls]
