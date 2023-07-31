@@ -259,9 +259,10 @@ class AMDSMICommands():
                     board_info = amdsmi_interface.amdsmi_get_gpu_board_info(args.gpu)
                     board_info['serial_number'] = hex(board_info['serial_number'])
                     board_info['model_number'] = board_info['model_number'].strip()
-                    board_info['product_serial'] = '0x' + board_info['product_serial']
                     board_info['product_name'] = board_info['product_name'].strip()
                     board_info['manufacturer_name'] = board_info['manufacturer_name'].strip()
+                    board_info.pop('product_serial')
+                    board_info.pop('manufacturer_name')
 
                     static_dict['board'] = board_info
                 except amdsmi_exception.AmdSmiLibraryException as e:
