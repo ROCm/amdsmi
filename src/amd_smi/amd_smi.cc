@@ -1385,12 +1385,14 @@ amdsmi_get_clock_info(amdsmi_processor_handle processor_handle, amdsmi_clk_type_
         return status;
     }
     int max_freq;
+    int min_freq;
     status = smi_amdgpu_get_ranges(gpu_device, clk_type,
-        &max_freq, NULL, NULL);
+        &max_freq, &min_freq, NULL);
     if (status != AMDSMI_STATUS_SUCCESS) {
         return status;
     }
     info->max_clk = max_freq;
+    info->min_clk = min_freq;
 
     switch (clk_type) {
     case CLK_TYPE_GFX:

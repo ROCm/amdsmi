@@ -217,7 +217,7 @@ amdsmi_status_t smi_amdgpu_get_ranges(amd::smi::AMDSmiGPUDevice* device, amdsmi_
 	}
 
 	max = 0;
-	min = -1;
+	min = UINT_MAX;
 	dpm = 0;
 	for (std::string line; getline(ranges, line);) {
 		unsigned int d, freq;
