@@ -1694,7 +1694,31 @@ amdsmi_get_pcie_link_status(amdsmi_processor_handle processor_handle, amdsmi_pci
         return status;
 
     info->pcie_lanes = metric_info.pcie_link_width;
-    status = smi_amdgpu_get_pcie_speed_from_pcie_type(metric_info.pcie_link_speed, &info->pcie_speed); // mapping to MT/s
+    // gpu metrics returns pcie link speed in .1 GT/s ex. 160 vs 16
+    info->pcie_speed = (metric_info.pcie_link_speed / 10) * 1000;
+
+    switch (info->pcie_speed) {
+      case 2500:
+        info->pcie_interface_version = 1;
+        break;
+      case 5000:
+        info->pcie_interface_version = 2;
+        break;
+      case 8000:
+        info->pcie_interface_version = 3;
+        break;
+      case 16000:
+        info->pcie_interface_version = 4;
+        break;
+      case 32000:
+        info->pcie_interface_version = 5;
+        break;
+      case 64000:
+        info->pcie_interface_version = 6;
+        break;
+      default:
+        info->pcie_interface_version = 0;
+    }
 
     return status;
 }
@@ -1718,7 +1742,6 @@ amdsmi_status_t amdsmi_get_pcie_link_caps(amdsmi_processor_handle processor_hand
     FILE* fp;
     double pcie_speed = 0;
     unsigned pcie_width = 0;
-    amdsmi_asic_info_t asic_info = {};
 
     memset((void *)info, 0, sizeof(*info));
 
@@ -1745,14 +1768,31 @@ amdsmi_status_t amdsmi_get_pcie_link_caps(amdsmi_processor_handle processor_hand
         return AMDSMI_STATUS_API_FAILED;
     }
 
-    status = amdsmi_get_gpu_asic_info(processor_handle, &asic_info);
-    if (status != AMDSMI_STATUS_SUCCESS)
-        return status;
-
-    if (pcie_speed == 0 && asic_info.device_id == 29538)
-        pcie_speed = 16;
-
+    // pcie speed in sysfs returns in GT/s
     info->pcie_speed = pcie_speed * 1000;
+
+    switch (info->pcie_speed) {
+      case 2500:
+        info->pcie_interface_version = 1;
+        break;
+      case 5000:
+        info->pcie_interface_version = 2;
+        break;
+      case 8000:
+        info->pcie_interface_version = 3;
+        break;
+      case 16000:
+        info->pcie_interface_version = 4;
+        break;
+      case 32000:
+        info->pcie_interface_version = 5;
+        break;
+      case 64000:
+        info->pcie_interface_version = 6;
+        break;
+      default:
+        info->pcie_interface_version = 0;
+    }
 
     return status;
 }
