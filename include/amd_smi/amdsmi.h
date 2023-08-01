@@ -4224,6 +4224,20 @@ amdsmi_status_t amdsmi_get_number_of_cpu_sockets(uint32_t sockets);
  */
 amdsmi_status_t amdsmi_first_online_core_on_cpu_socket(uint32_t sock_ind, uint32_t *pcore_ind);
 
+/**
+ *  @brief Get a description of provided AMDSMI error status for esmi errors.
+ *
+ *  @details Set the provided pointer to a const char *, @p status_string, to
+ *  a string containing a description of the provided error code @p status.
+ *
+ *  @param[in]    status - The error status for which a description is desired.
+ *
+ *  @param[in,out]    status_string - A pointer to a const char * which will be made
+ *  to point to a description of the provided error code
+ *
+ *  @return const char* returned on success
+ */
+const char* amdsmi_get_esmi_err_msg(amdsmi_status_t status, const char **status_string);
 #endif
 /** @} */
 #ifdef __cplusplus
