@@ -4,10 +4,8 @@
 # top-most EditorConfig file
 root = true
 
-# Unix-style newlines with a newline ending every file and no stray whitespaces
-[*]
-end_of_line = lf
-trim_trailing_whitespace = true
+[*.py]
+indent_style = space
 
 # Matches multiple files with brace expansion notation
 # Set default charset
