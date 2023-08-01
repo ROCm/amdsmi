@@ -57,13 +57,10 @@ class AMDSMICommands():
         Args:
             args (Namespace): Namespace containing the parsed CLI args
         """
-
         try:
-            amdsmi_lib_version = amdsmi_interface.amdsmi_get_lib_version()
+            amdsmi_lib_version_str = amdsmi_interface.amdsmi_get_lib_version()["build"]
         except amdsmi_exception.AmdSmiLibraryException as e:
-            amdsmi_lib_version = e.get_error_info()
-
-        amdsmi_lib_version_str = amdsmi_lib_version["build"]
+            amdsmi_lib_version_str = e.get_error_info()
 
         self.logger.output['tool'] = 'AMDSMI Tool'
         self.logger.output['version'] = f'{__version__}'
@@ -221,11 +218,34 @@ class AMDSMICommands():
 
             try:
                 bus_info = amdsmi_interface.amdsmi_get_pcie_link_caps(args.gpu)
-                pcie_speed_GTs_value = round(bus_info['pcie_speed'] / 1000, 1) if bus_info['pcie_speed'] % 1000 != 0 else  round(bus_info['pcie_speed'] / 1000)
-                bus_info['pcie_speed'] = pcie_speed_GTs_value
+                if bus_info['max_pcie_speed'] % 1000 != 0:
+                    pcie_speed_GTs_value = round(bus_info['max_pcie_speed'] / 1000, 1)
+                else:
+                    pcie_speed_GTs_value = round(bus_info['max_pcie_speed'] / 1000)
+
+                bus_info['max_pcie_speed'] = pcie_speed_GTs_value
+
+                try:
+                    pcie_slot_type = amdsmi_interface.amdsmi_topo_get_link_type(args.gpu, args.gpu)['type']
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    pcie_slot_type = e.get_error_info()
+
                 if self.logger.is_human_readable_format():
                     unit ='GT/s'
-                    bus_info['pcie_speed'] = f"{bus_info['pcie_speed']} {unit}"
+                    bus_info['max_pcie_speed'] = f"{bus_info['max_pcie_speed']} {unit}"
+
+                    if bus_info['pcie_interface_version'] > 0:
+                        bus_info['pcie_interface_version'] = f"Gen {bus_info['pcie_interface_version']}"
+
+                    bus_info['pcie_slot_type'] = 'XXXX'
+                    if isinstance(pcie_slot_type, int):
+                        if pcie_slot_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_UNDEFINED:
+                            bus_info['pcie_slot_type'] = "UNKNOWN"
+                        elif pcie_slot_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_PCIEXPRESS:
+                            bus_info['pcie_slot_type'] = "PCIE"
+                        elif pcie_slot_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_XGMI:
+                            bus_info['pcie_slot_type'] = "XGMI"
+
             except amdsmi_exception.AmdSmiLibraryException as e:
                 bus_info = e.get_error_info()
                 if not self.all_arguments:
@@ -912,15 +932,23 @@ class AMDSMICommands():
 
             if args.pcie:
                 try:
-                    pcie_link_status = amdsmi_interface.amdsmi_get_pcie_link_caps(args.gpu)
-                    pcie_speed_GTs_value = round(pcie_link_status['pcie_speed'] / 1000, 1) if pcie_link_status['pcie_speed'] % 1000 != 0 else  round(pcie_link_status['pcie_speed'] / 1000)
+                    pcie_link_status = amdsmi_interface.amdsmi_get_pcie_link_status(args.gpu)
+
+                    if pcie_link_status['pcie_speed'] % 1000 != 0:
+                        pcie_speed_GTs_value = round(pcie_link_status['pcie_speed'] / 1000, 1)
+                    else:
+                        pcie_speed_GTs_value = round(pcie_link_status['pcie_speed'] / 1000)
+
                     pcie_link_status['pcie_speed'] = pcie_speed_GTs_value
+                    # The interface version should not be displayed as it is based on the current speed
+                    del pcie_link_status['pcie_interface_version']
+
                     if self.logger.is_human_readable_format():
-                        unit ='GT/s'
+                        unit = 'GT/s'
                         pcie_link_status['pcie_speed'] = f"{pcie_link_status['pcie_speed']} {unit}"
-                    if self.logger.is_gpuvsmi_compatibility():
                         pcie_link_status['current_width'] = pcie_link_status.pop('pcie_lanes')
                         pcie_link_status['current_speed'] = pcie_link_status.pop('pcie_speed')
+
                     values_dict['pcie'] = pcie_link_status
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     values_dict['pcie'] = e.get_error_info()
@@ -1407,18 +1435,17 @@ class AMDSMICommands():
                     dest_gpu_key = f'gpu_{dest_gpu_id}'
 
                     if src_gpu == dest_gpu:
-                        src_gpu_link_type[dest_gpu_key] = 0
+                        src_gpu_link_type[dest_gpu_key] = "SELF"
                         continue
-
                     try:
                         link_type = amdsmi_interface.amdsmi_topo_get_link_type(src_gpu, dest_gpu)['type']
                         if isinstance(link_type, int):
-                            if link_type == 1:
+                            if link_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_UNDEFINED:
+                                src_gpu_link_type[dest_gpu_key] = "UNKNOWN"
+                            elif link_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_PCIEXPRESS:
                                 src_gpu_link_type[dest_gpu_key] = "PCIE"
-                            elif link_type == 2:
-                                src_gpu_link_type[dest_gpu_key] = "XMGI"
-                        else:
-                            src_gpu_link_type[dest_gpu_key] = "XXXX"
+                            elif link_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_XGMI:
+                                src_gpu_link_type[dest_gpu_key] = "XGMI"
                     except amdsmi_exception.AmdSmiLibraryException as e:
                         src_gpu_link_type[dest_gpu_key] = e.get_error_info()
 

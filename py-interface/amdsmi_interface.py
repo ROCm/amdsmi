@@ -1015,8 +1015,9 @@ def amdsmi_get_pcie_link_status(
         )
     )
 
-    return {"pcie_lanes": pcie_info.pcie_lanes, "pcie_speed": pcie_info.pcie_speed}
-
+    return {"pcie_speed": pcie_info.pcie_speed,
+            "pcie_lanes": pcie_info.pcie_lanes,
+            "pcie_interface_version": pcie_info.pcie_interface_version}
 
 def amdsmi_get_pcie_link_caps(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
@@ -1032,7 +1033,9 @@ def amdsmi_get_pcie_link_caps(
             processor_handle, ctypes.byref(pcie_info))
     )
 
-    return {"pcie_speed": pcie_info.pcie_speed, "pcie_lanes": pcie_info.pcie_lanes}
+    return {"max_pcie_speed": pcie_info.pcie_speed,
+            "max_pcie_lanes": pcie_info.pcie_lanes,
+            "pcie_interface_version": pcie_info.pcie_interface_version}
 
 
 def amdsmi_get_processor_handle_from_bdf(bdf):

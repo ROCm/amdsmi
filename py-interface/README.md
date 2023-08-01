@@ -679,6 +679,7 @@ Field | Description
 ---|---
 `pcie_lanes`| pcie lanes in use
 `pcie_speed`| current pcie speed
+`pcie_interface_version`| current pcie generation
 
 Exceptions that can be thrown by `amdsmi_get_pcie_link_status` function:
 
@@ -698,6 +699,7 @@ try:
             pcie_link_status = amdsmi_get_pcie_link_status(device)
             print(pcie_link_status["pcie_lanes"])
             print(pcie_link_status["pcie_speed"])
+            print(pcie_link_status["pcie_interface_version"])
 except AmdSmiException as e:
     print(e)
 ```
