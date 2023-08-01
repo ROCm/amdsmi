@@ -268,44 +268,56 @@ class AMDSMICommands():
                         raise e
             if args.limit:
                 try:
+                    power_limit_error = False
                     power_limit = amdsmi_interface.amdsmi_get_power_info(args.gpu)['power_limit']
                 except amdsmi_exception.AmdSmiLibraryException as e:
+                    power_limit_error = True
                     power_limit = e.get_error_info()
                     if not self.all_arguments:
                         raise e
 
                 try:
+                    temp_edge_limit_error = False
                     temp_edge_limit = amdsmi_interface.amdsmi_get_temp_metric(args.gpu,
                         amdsmi_interface.AmdSmiTemperatureType.EDGE, amdsmi_interface.AmdSmiTemperatureMetric.CRITICAL)
                 except amdsmi_exception.AmdSmiLibraryException as e:
+                    temp_edge_limit_error = True
                     temp_edge_limit = e.get_error_info()
                     if not self.all_arguments:
                         raise e
 
                 try:
+                    temp_junction_limit_error = False
                     temp_junction_limit = amdsmi_interface.amdsmi_get_temp_metric(args.gpu,
                         amdsmi_interface.AmdSmiTemperatureType.JUNCTION, amdsmi_interface.AmdSmiTemperatureMetric.CRITICAL)
                 except amdsmi_exception.AmdSmiLibraryException as e:
+                    temp_junction_limit_error = True
                     temp_junction_limit = e.get_error_info()
                     if not self.all_arguments:
                         raise e
 
                 try:
+                    temp_vram_limit_error = False
                     temp_vram_limit = amdsmi_interface.amdsmi_get_temp_metric(args.gpu,
                         amdsmi_interface.AmdSmiTemperatureType.VRAM, amdsmi_interface.AmdSmiTemperatureMetric.CRITICAL)
                 except amdsmi_exception.AmdSmiLibraryException as e:
+                    temp_vram_limit_error = True
                     temp_vram_limit = e.get_error_info()
                     if not self.all_arguments:
                         raise e
 
                 if self.logger.is_human_readable_format():
                     unit = 'W'
-                    power_limit = f"{power_limit} {unit}"
+                    if not power_limit_error:
+                        power_limit = f"{power_limit} {unit}"
 
                     unit = '\N{DEGREE SIGN}C'
-                    temp_edge_limit = f"{temp_edge_limit} {unit}"
-                    temp_junction_limit = f"{temp_junction_limit} {unit}"
-                    temp_vram_limit = f"{temp_vram_limit} {unit}"
+                    if not temp_edge_limit_error:
+                        temp_edge_limit = f"{temp_edge_limit} {unit}"
+                    if not temp_junction_limit_error:
+                        temp_junction_limit = f"{temp_junction_limit} {unit}"
+                    if not temp_vram_limit_error:
+                        temp_vram_limit = f"{temp_vram_limit} {unit}"
 
                 limit_info = {}
                 limit_info['power'] = power_limit
