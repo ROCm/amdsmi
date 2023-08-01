@@ -59,10 +59,11 @@ using namespace std;
     {                                                                          \
         if (RET != AMDSMI_STATUS_SUCCESS) {                                    \
             const char *err_str;                                               \
+            const char **status_str;                                           \
             std::cout << "AMDSMI call returned " << RET << " at line "         \
                       << __LINE__ << std::endl;                                \
-            amdsmi_status_code_to_string(RET, &err_str);                               \
-            std::cout << err_str << std::endl;                                 \
+            *status_str = amdsmi_get_esmi_err_msg(RET, &err_str);              \
+            std::cout << *status_str << std::endl;                             \
             return RET;                                                        \
         }                                                                      \
     }
@@ -289,7 +290,46 @@ int main(int argc, char **argv) {
         cout<<" NA (Err:" <<ret<<"     |";
     }
     cout<<"\n-------------------------------------------------\n";
+
+    uint32_t input_power;
+    powermax = 0;
+    cout<<"\nEnter the max power to be set:\n";
+    cin>>input_power;
+    ret = amdsmi_get_cpu_socket_power_cap_max(sockets[i], i, &powermax);
+    CHK_AMDSMI_RET(ret)
+    if ((ret == AMDSMI_STATUS_SUCCESS) && (input_power > powermax)) {
+        cout<<"Input power is more than max power limit,"
+            " limiting to "<<static_cast<double>(powermax)/1000<<"Watts\n";
+        input_power = powermax;
+    }
+    ret = amdsmi_set_cpu_socket_power_cap(sockets[i], i, input_power);
+    CHK_AMDSMI_RET(ret)
+    if (!ret) {
+        cout<<"Socket["<<i<<"] power_limit set to "
+        <<fixed<<setprecision(3)<<static_cast<double>(input_power)/1000<<" Watts successfully\n";
+    }
+    cout<<"\n-------------------------------------------------\n";
+
 #if 0
+    uint8_t mode;
+    const char *err_str;
+    cout <<"Enter the power efficiency mode to be set[0, 1 or 2]:\n";
+    cin>>mode;
+    ret = amdsmi_set_cpu_pwr_efficiency_mode(sockets[i], i, mode);
+    CHK_AMDSMI_RET(ret)
+
+    if (ret != AMDSMI_STATUS_SUCCESS) {
+        cout<<"Failed to set power efficiency mode for socket["<<i<<"], Err["
+            <<ret<<"]: "<<amdsmi_get_esmi_err_msg(ret, &err_str)<<"\n";
+        return ret;
+    }
+
+    if (!ret)
+        cout<<"Power efficiency profile policy is set to "<<mode<<"successfully\n";
+
+    cout<<"\n-------------------------------------------------\n";
+
+
     uint32_t svi_power;
     cout<<"\n| SVI Power Telemetry (mWatts) \t |";
 
