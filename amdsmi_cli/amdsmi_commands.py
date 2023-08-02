@@ -306,6 +306,10 @@ class AMDSMICommands():
                     if not self.all_arguments:
                         raise e
 
+                if temp_edge_limit == 0:
+                    temp_edge_limit_error = True
+                    temp_edge_limit = 'N/A'
+
                 try:
                     temp_junction_limit_error = False
                     temp_junction_limit = amdsmi_interface.amdsmi_get_temp_metric(args.gpu,
@@ -866,18 +870,24 @@ class AMDSMICommands():
                 try:
                     temperature_edge_current = amdsmi_interface.amdsmi_get_temp_metric(
                         args.gpu, amdsmi_interface.AmdSmiTemperatureType.EDGE, amdsmi_interface.AmdSmiTemperatureMetric.CURRENT)
+                    temperature_edge_limit = amdsmi_interface.amdsmi_get_temp_metric(
+                        args.gpu, amdsmi_interface.AmdSmiTemperatureType.EDGE, amdsmi_interface.AmdSmiTemperatureMetric.CRITICAL)
                     temperature_junction_current = amdsmi_interface.amdsmi_get_temp_metric(
                         args.gpu, amdsmi_interface.AmdSmiTemperatureType.JUNCTION, amdsmi_interface.AmdSmiTemperatureMetric.CURRENT)
                     temperature_vram_current = amdsmi_interface.amdsmi_get_temp_metric(
                         args.gpu, amdsmi_interface.AmdSmiTemperatureType.VRAM, amdsmi_interface.AmdSmiTemperatureMetric.CURRENT)
 
+                    # If edge limit is reporting 0 then set the current edge temp to N/A
+                    if temperature_edge_limit == 0:
+                        temperature_edge_current = 'N/A'
+
                     temperatures = {'edge': temperature_edge_current,
-                                    'hotspot': temperature_junction_current,
+                                    'junction': temperature_junction_current,
                                     'mem': temperature_vram_current}
 
                     if self.logger.is_gpuvsmi_compatibility():
                         temperatures = {'edge_temperature': temperature_edge_current,
-                                        'hotspot_temperature': temperature_junction_current,
+                                        'junction_temperature': temperature_junction_current,
                                         'mem_temperature': temperature_vram_current}
 
                     if self.logger.is_human_readable_format():
