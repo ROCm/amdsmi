@@ -814,19 +814,22 @@ class AMDSMICommands():
                     power_dict = {'average_socket_power': power_measure['average_socket_power'],
                                     'gfx_voltage': power_measure['gfx_voltage'],
                                     'soc_voltage': amdsmi_exception.AmdSmiLibraryException(amdsmi_exception.AmdSmiRetCode.STATUS_NOT_YET_IMPLEMENTED).err_info,
-                                    'mem_voltage': amdsmi_exception.AmdSmiLibraryException(amdsmi_exception.AmdSmiRetCode.STATUS_NOT_YET_IMPLEMENTED).err_info}
+                                    'mem_voltage': amdsmi_exception.AmdSmiLibraryException(amdsmi_exception.AmdSmiRetCode.STATUS_NOT_YET_IMPLEMENTED).err_info,
+                                    'power_limit': power_measure['power_limit']}
 
                     if self.logger.is_human_readable_format():
                         power_dict['average_socket_power'] = f"{power_dict['average_socket_power']} W"
                         power_dict['gfx_voltage'] = f"{power_dict['gfx_voltage']} mV"
                         power_dict['soc_voltage'] = amdsmi_exception.AmdSmiLibraryException(amdsmi_exception.AmdSmiRetCode.STATUS_NOT_YET_IMPLEMENTED).err_info
                         power_dict['mem_voltage'] = amdsmi_exception.AmdSmiLibraryException(amdsmi_exception.AmdSmiRetCode.STATUS_NOT_YET_IMPLEMENTED).err_info
+                        power_dict['power_limit'] = f"{power_dict['power_limit']} W"
 
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     power_dict = {'average_socket_power': e.get_error_info(),
                                     'gfx_voltage': e.get_error_info(),
                                     'soc_voltage': e.get_error_info(),
-                                    'mem_voltage': e.get_error_info()}
+                                    'mem_voltage': e.get_error_info(),
+                                    'power_limit': e.get_error_info()}
 
                     if not self.all_arguments:
                         raise e
