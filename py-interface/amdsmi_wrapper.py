@@ -1246,12 +1246,12 @@ class struct_c__SA_amdsmi_version_t(Structure):
 
 struct_c__SA_amdsmi_version_t._pack_ = 1 # source:False
 struct_c__SA_amdsmi_version_t._fields_ = [
+    ('year', ctypes.c_uint32),
     ('major', ctypes.c_uint32),
     ('minor', ctypes.c_uint32),
-    ('patch', ctypes.c_uint32),
-    ('PADDING_0', ctypes.c_ubyte * 4),
+    ('release', ctypes.c_uint32),
     ('build', ctypes.POINTER(ctypes.c_char)),
-    ('reserved', ctypes.c_uint32 * 4),
+    ('reserved', ctypes.c_ubyte * 4),
 ]
 
 amdsmi_version_t = struct_c__SA_amdsmi_version_t
@@ -1368,7 +1368,8 @@ struct_c__SA_amdsmi_pcie_info_t._fields_ = [
     ('pcie_lanes', ctypes.c_uint16),
     ('PADDING_0', ctypes.c_ubyte * 2),
     ('pcie_speed', ctypes.c_uint32),
-    ('reserved', ctypes.c_uint32 * 6),
+    ('reserved', ctypes.c_uint32 * 5),
+    ('pcie_interface_version', ctypes.c_uint32),
 ]
 
 amdsmi_pcie_info_t = struct_c__SA_amdsmi_pcie_info_t

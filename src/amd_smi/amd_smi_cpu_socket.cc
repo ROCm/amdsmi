@@ -42,42 +42,31 @@
  */
 
 #include <functional>
-#include "amd_smi/amdsmi.h"
-#include "amd_smi/impl/amd_smi_common.h"
-
+#include "amd_smi/impl/amd_smi_cpu_socket.h"
+#include <cpuid.h>
 
 namespace amd {
 namespace smi {
 
-amdsmi_status_t rsmi_to_amdsmi_status(rsmi_status_t status) {
-    amdsmi_status_t amdsmi_status = AMDSMI_STATUS_MAP_ERROR;
+AMDSmiCpuSocket::~AMDSmiCpuSocket() {}
 
-    // Look for it in the map
-    // If found: use the mapped value
-    // If not found: return the map error established above
-    auto search = amd::smi::rsmi_status_map.find(status);
-    if (search != amd::smi::rsmi_status_map.end()) {
-        amdsmi_status = search->second;
-    }
-
-    return amdsmi_status;
+amdsmi_status_t AMDSmiCpuSocket::set_socket_id(uint32_t idx, uint32_t socket_id) {
+    socket_id = idx;
+    return AMDSMI_STATUS_SUCCESS;
 }
 
-#ifdef ENABLE_ESMI_LIB
-amdsmi_status_t esmi_to_amdsmi_status(esmi_status_t status) {
-    amdsmi_status_t amdsmi_status = AMDSMI_STATUS_MAP_ERROR;
+amdsmi_status_t AMDSmiCpuSocket::get_cpu_vendor() {
+    uint32_t eax, ebx, ecx, edx;
 
-    // Look for it in the map
-    // If found: use the mapped value
-    // If not found: return the map error established above
-    auto search = amd::smi::esmi_status_map.find(status);
-    if (search != amd::smi::esmi_status_map.end()) {
-        amdsmi_status = search->second;
-    }
+    if (!__get_cpuid(0, &eax, &ebx, &ecx, &edx))
+        return AMDSMI_STATUS_IO;
 
-    return amdsmi_status;
+    /* check if the value in ebx, ecx, edx matches "AuthenticAMD" string */
+    if (ebx != 0x68747541 || ecx != 0x444d4163 || edx != 0x69746e65)
+        return AMDSMI_STATUS_NON_AMD_CPU;
+
+    return AMDSMI_STATUS_SUCCESS;
 }
-#endif
 
 }  // namespace smi
 }  // namespace amd

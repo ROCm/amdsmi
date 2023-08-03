@@ -377,6 +377,7 @@ int main() {
             printf("    Output of amdsmi_get_pcie_link_status:\n");
             printf("\tPCIe lanes: %d\n", pcie_info.pcie_lanes);
             printf("\tPCIe speed: %d\n\n", pcie_info.pcie_speed);
+            printf("\tPCIe Interface Version: %d\n\n", pcie_info.pcie_interface_version);
 
             // Get PCIe caps
             amdsmi_pcie_info_t pcie_caps_info = {};
@@ -385,6 +386,7 @@ int main() {
             printf("    Output of amdsmi_get_pcie_link_caps:\n");
             printf("\tPCIe max lanes: %d\n", pcie_caps_info.pcie_lanes);
             printf("\tPCIe max speed: %d\n\n", pcie_caps_info.pcie_speed);
+            printf("\tPCIe Interface Version: %d\n\n", pcie_caps_info.pcie_interface_version);
 
             // Get VRAM temperature limit
             int64_t temperature = 0;

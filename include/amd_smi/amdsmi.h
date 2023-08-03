@@ -99,7 +99,7 @@ typedef enum {
 #define AMDSMI_LIB_VERSION_YEAR 23
 
 //! Major version should be changed for every header change (adding/deleting APIs, changing names, fields of structures, etc.)
-#define AMDSMI_LIB_VERSION_MAJOR 1
+#define AMDSMI_LIB_VERSION_MAJOR 2
 
 //! Minor version should be updated for each API change, but without changing headers
 #define AMDSMI_LIB_VERSION_MINOR 1
@@ -392,7 +392,7 @@ typedef struct {
   char  market_name[AMDSMI_MAX_STRING_LENGTH];
   uint32_t vendor_id;   //< Use 32 bit to be compatible with other platform.
   uint32_t subvendor_id;   //< The subsystem vendor id
-  uint64_t device_id;   //< The unique id of a GPU
+  uint64_t device_id;   //< The device id of a GPU
   uint32_t rev_id;
   char asic_serial[AMDSMI_NORMAL_STRING_LENGTH];
   uint32_t reserved[3];
@@ -938,11 +938,11 @@ typedef struct {
  * @brief This structure holds version information.
  */
 typedef struct {
+    uint32_t year;      //!< Last 2 digits of the Year released
     uint32_t major;     //!< Major version
     uint32_t minor;     //!< Minor version
-    uint32_t patch;     //!< Patch, build  or stepping version
-    const char *build;  //!< Build string
-    uint32_t reserved[4];
+    uint32_t release;   //!< Patch, build or stepping version
+    const char *build;  //!< Full Build version string
 } amdsmi_version_t;
 
 /**
@@ -1105,7 +1105,8 @@ typedef struct {
 typedef struct {
 	uint16_t pcie_lanes;
 	uint32_t pcie_speed;
-	uint32_t reserved[6];
+	uint32_t reserved[5];
+	uint32_t pcie_interface_version;
 } amdsmi_pcie_info_t;
 /**
  * @brief This structure contains information specific to a process.

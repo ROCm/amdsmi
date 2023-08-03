@@ -91,7 +91,7 @@ void TestSysInfoRead::Run(void) {
   uint64_t val_ui64;
   uint32_t val_ui32;
   char buffer[80];
-  amdsmi_version_t ver = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, nullptr};
+  amdsmi_version_t ver = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, nullptr};
 
   TestBase::Run();
   if (setup_failed_) {
@@ -177,15 +177,17 @@ void TestSysInfoRead::Run(void) {
         }
     }
 
-    err = amdsmi_get_lib_version(&ver);
-    CHK_ERR_ASRT(err)
+  err = amdsmi_get_lib_version(&ver);
+  CHK_ERR_ASRT(err)
 
-    ASSERT_TRUE(ver.major != 0xFFFFFFFF && ver.minor != 0xFFFFFFFF &&
-                               ver.patch != 0xFFFFFFFF && ver.build != nullptr);
-    IF_VERB(STANDARD) {
-      std::cout << "\t**RocM SMI Library version: " << ver.major << "." <<
-         ver.minor << "." << ver.patch << " (" << ver.build << ")" << std::endl;
-    }
+  ASSERT_TRUE(ver.year != 0xFFFFFFFF && ver.major != 0xFFFFFFFF &&
+              ver.minor != 0xFFFFFFFF && ver.release != 0xFFFFFFFF &&
+              ver.build != nullptr);
+  IF_VERB(STANDARD) {
+    std::cout << "\t**AMD SMI Library version: " << ver.year << "." <<
+       ver.major << "." << ver.minor << "." << ver.release <<
+       " (" << ver.build << ")" << std::endl;
+  }
 
     std::cout << std::setbase(10);
 
