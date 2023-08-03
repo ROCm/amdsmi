@@ -111,18 +111,22 @@ libamd_smi_optrocm = Path("/opt/rocm/lib/{library_name}")
 libamd_smi_parent_dir = Path(__file__).resolve().parent / "{library_name}"
 libamd_smi_cwd = Path.cwd() / "{library_name}"
 
-if libamd_smi_cpack.is_file():
-    # try to find library in install directory provided by CMake
-    _libraries['{library_name}'] = ctypes.CDLL(libamd_smi_cpack)
-elif libamd_smi_optrocm.is_file():
-    # try /opt/rocm/lib as a fallback
-    _libraries['{library_name}'] = ctypes.CDLL(libamd_smi_optrocm)
-elif libamd_smi_parent_dir.is_file():
-    # try to fall back to parent directory
-    _libraries['{library_name}'] = ctypes.CDLL(libamd_smi_parent_dir)
-else:
-    # lastly - search in current working directory
-    _libraries['{library_name}'] = ctypes.CDLL(libamd_smi_cwd)"""
+try:
+    if libamd_smi_cpack.is_file():
+        # try to find library in install directory provided by CMake
+        _libraries['{library_name}'] = ctypes.CDLL(libamd_smi_cpack)
+    elif libamd_smi_optrocm.is_file():
+        # try /opt/rocm/lib as a fallback
+        _libraries['{library_name}'] = ctypes.CDLL(libamd_smi_optrocm)
+    elif libamd_smi_parent_dir.is_file():
+        # try to fall back to parent directory
+        _libraries['{library_name}'] = ctypes.CDLL(libamd_smi_parent_dir)
+    else:
+        # lastly - search in current working directory
+        _libraries['{library_name}'] = ctypes.CDLL(libamd_smi_cwd)
+except OSError as error:
+    print(error)
+    print("Unable to find amdsmi library try installing amd-smi-lib from your package manager")"""
     else:
         print("Unknown operating system. It is only supporing Linux and Windows.")
         return

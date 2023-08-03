@@ -50,6 +50,9 @@
 #include "amd_smi/impl/amd_smi_socket.h"
 #include "amd_smi/impl/amd_smi_processor.h"
 #include "amd_smi/impl/amd_smi_drm.h"
+#ifdef ENABLE_ESMI_LIB
+#include "amd_smi/impl/amd_smi_cpu_socket.h"
+#endif
 
 namespace amd {
 namespace smi {
@@ -75,6 +78,25 @@ class AMDSmiSystem {
     amdsmi_status_t gpu_index_to_handle(uint32_t gpu_index,
                     amdsmi_processor_handle* processor_handle);
 
+#ifdef ENABLE_ESMI_LIB
+    std::vector<AMDSmiCpuSocket*>& get_cpu_sockets() {return cpu_sockets_;}
+
+    amdsmi_status_t handle_to_cpusocket(amdsmi_cpusocket_handle cpusock_handle,
+            AMDSmiCpuSocket** cpu_socket);
+
+    amdsmi_status_t cpu_index_to_handle(uint32_t cpu_index,
+                    amdsmi_cpusocket_handle* cpusock_handle);
+
+    amdsmi_status_t get_cpu_sockets(uint32_t socks);
+
+    amdsmi_status_t get_cpu_cores(uint32_t cpus);
+
+    amdsmi_status_t get_threads_per_core(uint32_t threads);
+
+    amdsmi_status_t get_cpu_family(uint32_t family);
+
+    amdsmi_status_t get_cpu_model(uint32_t model);
+#endif
  private:
     AMDSmiSystem() : init_flag_(AMDSMI_INIT_AMD_GPUS) {}
     amdsmi_status_t get_gpu_bdf_by_index(uint32_t index, std::string& bdf);
@@ -83,6 +105,15 @@ class AMDSmiSystem {
     AMDSmiDrm drm_;
     std::vector<AMDSmiSocket*> sockets_;
     std::set<AMDSmiProcessor*> processors_;     // Track valid processors
+#ifdef ENABLE_ESMI_LIB
+    amdsmi_status_t populate_amd_cpus();
+    std::vector<AMDSmiCpuSocket*> cpu_sockets_;
+    static uint32_t sockets;
+    static uint32_t cpus;
+    static uint32_t threads;
+    static uint32_t family;
+    static uint32_t model;
+#endif
 };
 
 

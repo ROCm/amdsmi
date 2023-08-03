@@ -42,42 +42,21 @@
  */
 
 #include <functional>
-#include "amd_smi/amdsmi.h"
-#include "amd_smi/impl/amd_smi_common.h"
-
+#include "amd_smi/impl/amd_smi_cpu_core.h"
 
 namespace amd {
 namespace smi {
-
-amdsmi_status_t rsmi_to_amdsmi_status(rsmi_status_t status) {
-    amdsmi_status_t amdsmi_status = AMDSMI_STATUS_MAP_ERROR;
-
-    // Look for it in the map
-    // If found: use the mapped value
-    // If not found: return the map error established above
-    auto search = amd::smi::rsmi_status_map.find(status);
-    if (search != amd::smi::rsmi_status_map.end()) {
-        amdsmi_status = search->second;
+AMDSmiCpuCore::~AMDSmiCpuCore() {
+    for (uint32_t i = 0; i < processors_.size(); i++) {
+        delete processors_[i];
     }
-
-    return amdsmi_status;
+    processors_.clear();
 }
 
-#ifdef ENABLE_ESMI_LIB
-amdsmi_status_t esmi_to_amdsmi_status(esmi_status_t status) {
-    amdsmi_status_t amdsmi_status = AMDSMI_STATUS_MAP_ERROR;
-
-    // Look for it in the map
-    // If found: use the mapped value
-    // If not found: return the map error established above
-    auto search = amd::smi::esmi_status_map.find(status);
-    if (search != amd::smi::esmi_status_map.end()) {
-        amdsmi_status = search->second;
-    }
-
-    return amdsmi_status;
+amdsmi_status_t AMDSmiCpuCore::get_processor_count(uint32_t* processor_count) const {
+    *processor_count = static_cast<uint32_t>(processors_.size());
+    return AMDSMI_STATUS_SUCCESS;
 }
-#endif
 
 }  // namespace smi
 }  // namespace amd

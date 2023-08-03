@@ -57,16 +57,10 @@ class AMDSMICommands():
         Args:
             args (Namespace): Namespace containing the parsed CLI args
         """
-
         try:
-            amdsmi_lib_version = amdsmi_interface.amdsmi_get_lib_version()
+            amdsmi_lib_version_str = amdsmi_interface.amdsmi_get_lib_version()["build"]
         except amdsmi_exception.AmdSmiLibraryException as e:
-            amdsmi_lib_version = e.get_error_info()
-
-        major = amdsmi_lib_version["major"]
-        minor = amdsmi_lib_version["minor"]
-        patch = amdsmi_lib_version["patch"]
-        amdsmi_lib_version_str = f'{major}.{minor}.{patch}'
+            amdsmi_lib_version_str = e.get_error_info()
 
         self.logger.output['tool'] = 'AMDSMI Tool'
         self.logger.output['version'] = f'{__version__}'
@@ -221,11 +215,34 @@ class AMDSMICommands():
 
             try:
                 bus_info = amdsmi_interface.amdsmi_get_pcie_link_caps(args.gpu)
-                pcie_speed_GTs_value = round(bus_info['pcie_speed'] / 1000, 1) if bus_info['pcie_speed'] % 1000 != 0 else  round(bus_info['pcie_speed'] / 1000)
-                bus_info['pcie_speed'] = pcie_speed_GTs_value
+                if bus_info['max_pcie_speed'] % 1000 != 0:
+                    pcie_speed_GTs_value = round(bus_info['max_pcie_speed'] / 1000, 1)
+                else:
+                    pcie_speed_GTs_value = round(bus_info['max_pcie_speed'] / 1000)
+
+                bus_info['max_pcie_speed'] = pcie_speed_GTs_value
+
+                try:
+                    pcie_slot_type = amdsmi_interface.amdsmi_topo_get_link_type(args.gpu, args.gpu)['type']
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    pcie_slot_type = e.get_error_info()
+
                 if self.logger.is_human_readable_format():
                     unit ='GT/s'
-                    bus_info['pcie_speed'] = f"{bus_info['pcie_speed']} {unit}"
+                    bus_info['max_pcie_speed'] = f"{bus_info['max_pcie_speed']} {unit}"
+
+                    if bus_info['pcie_interface_version'] > 0:
+                        bus_info['pcie_interface_version'] = f"Gen {bus_info['pcie_interface_version']}"
+
+                    bus_info['pcie_slot_type'] = 'XXXX'
+                    if isinstance(pcie_slot_type, int):
+                        if pcie_slot_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_UNDEFINED:
+                            bus_info['pcie_slot_type'] = "UNKNOWN"
+                        elif pcie_slot_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_PCIEXPRESS:
+                            bus_info['pcie_slot_type'] = "PCIE"
+                        elif pcie_slot_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_XGMI:
+                            bus_info['pcie_slot_type'] = "XGMI"
+
             except amdsmi_exception.AmdSmiLibraryException as e:
                 bus_info = e.get_error_info()
                 if not self.all_arguments:
@@ -259,9 +276,10 @@ class AMDSMICommands():
                     board_info = amdsmi_interface.amdsmi_get_gpu_board_info(args.gpu)
                     board_info['serial_number'] = hex(board_info['serial_number'])
                     board_info['model_number'] = board_info['model_number'].strip()
-                    board_info['product_serial'] = '0x' + board_info['product_serial']
                     board_info['product_name'] = board_info['product_name'].strip()
                     board_info['manufacturer_name'] = board_info['manufacturer_name'].strip()
+                    board_info.pop('product_serial')
+                    board_info.pop('manufacturer_name')
 
                     static_dict['board'] = board_info
                 except amdsmi_exception.AmdSmiLibraryException as e:
@@ -270,44 +288,60 @@ class AMDSMICommands():
                         raise e
             if args.limit:
                 try:
+                    power_limit_error = False
                     power_limit = amdsmi_interface.amdsmi_get_power_info(args.gpu)['power_limit']
                 except amdsmi_exception.AmdSmiLibraryException as e:
+                    power_limit_error = True
                     power_limit = e.get_error_info()
                     if not self.all_arguments:
                         raise e
 
                 try:
+                    temp_edge_limit_error = False
                     temp_edge_limit = amdsmi_interface.amdsmi_get_temp_metric(args.gpu,
                         amdsmi_interface.AmdSmiTemperatureType.EDGE, amdsmi_interface.AmdSmiTemperatureMetric.CRITICAL)
                 except amdsmi_exception.AmdSmiLibraryException as e:
+                    temp_edge_limit_error = True
                     temp_edge_limit = e.get_error_info()
                     if not self.all_arguments:
                         raise e
 
+                if temp_edge_limit == 0:
+                    temp_edge_limit_error = True
+                    temp_edge_limit = 'N/A'
+
                 try:
+                    temp_junction_limit_error = False
                     temp_junction_limit = amdsmi_interface.amdsmi_get_temp_metric(args.gpu,
                         amdsmi_interface.AmdSmiTemperatureType.JUNCTION, amdsmi_interface.AmdSmiTemperatureMetric.CRITICAL)
                 except amdsmi_exception.AmdSmiLibraryException as e:
+                    temp_junction_limit_error = True
                     temp_junction_limit = e.get_error_info()
                     if not self.all_arguments:
                         raise e
 
                 try:
+                    temp_vram_limit_error = False
                     temp_vram_limit = amdsmi_interface.amdsmi_get_temp_metric(args.gpu,
                         amdsmi_interface.AmdSmiTemperatureType.VRAM, amdsmi_interface.AmdSmiTemperatureMetric.CRITICAL)
                 except amdsmi_exception.AmdSmiLibraryException as e:
+                    temp_vram_limit_error = True
                     temp_vram_limit = e.get_error_info()
                     if not self.all_arguments:
                         raise e
 
                 if self.logger.is_human_readable_format():
                     unit = 'W'
-                    power_limit = f"{power_limit} {unit}"
+                    if not power_limit_error:
+                        power_limit = f"{power_limit} {unit}"
 
-                    unit = 'C'
-                    temp_edge_limit = f"{temp_edge_limit} {unit}"
-                    temp_junction_limit = f"{temp_junction_limit} {unit}"
-                    temp_vram_limit = f"{temp_vram_limit} {unit}"
+                    unit = '\N{DEGREE SIGN}C'
+                    if not temp_edge_limit_error:
+                        temp_edge_limit = f"{temp_edge_limit} {unit}"
+                    if not temp_junction_limit_error:
+                        temp_junction_limit = f"{temp_junction_limit} {unit}"
+                    if not temp_vram_limit_error:
+                        temp_vram_limit = f"{temp_vram_limit} {unit}"
 
                 limit_info = {}
                 limit_info['power'] = power_limit
@@ -519,53 +553,53 @@ class AMDSMICommands():
             bad_page_info = amdsmi_interface.amdsmi_get_gpu_bad_page_info(args.gpu)
             bad_page_error = False
         except amdsmi_exception.AmdSmiLibraryException as e:
-            bad_page_info = ""
             bad_page_err_output = e.get_error_info()
             bad_page_error = True
             raise e
 
-        if isinstance(bad_page_info, str):
-            pass
-        else:
-            if args.retired:
-                if bad_page_error:
-                    bad_page_info_output = bad_page_err_output
-                else:
-                    bad_page_info_output = []
-                    for bad_page in bad_page_info:
-                        if bad_page["status"] == amdsmi_interface.AmdSmiMemoryPageStatus.RESERVED:
-                            bad_page_info_entry = {}
-                            bad_page_info_entry["page_address"] = bad_page["page_address"]
-                            bad_page_info_entry["page_size"] = bad_page["page_size"]
-                            bad_page_info_entry["status"] = bad_page["status"].name
+        if bad_page_info == "No bad pages found.":
+            bad_page_error = True
+            bad_page_err_output = bad_page_info
 
-                            bad_page_info_output.append(bad_page_info_entry)
-                    # Remove brackets if there is only one value
-                    if len(bad_page_info_output) == 1:
-                        bad_page_info_output = bad_page_info_output[0]
+        if args.retired:
+            if bad_page_error:
+                bad_page_info_output = bad_page_err_output
+            else:
+                bad_page_info_output = []
+                for bad_page in bad_page_info:
+                    if bad_page["status"] == amdsmi_interface.AmdSmiMemoryPageStatus.RESERVED:
+                        bad_page_info_entry = {}
+                        bad_page_info_entry["page_address"] = bad_page["page_address"]
+                        bad_page_info_entry["page_size"] = bad_page["page_size"]
+                        bad_page_info_entry["status"] = bad_page["status"].name
 
-                values_dict['retired'] = bad_page_info_output
+                        bad_page_info_output.append(bad_page_info_entry)
+                # Remove brackets if there is only one value
+                if len(bad_page_info_output) == 1:
+                    bad_page_info_output = bad_page_info_output[0]
 
-            if args.pending:
-                if bad_page_error:
-                    bad_page_info_output = bad_page_err_output
-                else:
-                    bad_page_info_output = []
-                    for bad_page in bad_page_info:
-                        if bad_page["status"] == amdsmi_interface.AmdSmiMemoryPageStatus.PENDING:
-                            bad_page_info_entry = {}
-                            bad_page_info_entry["page_address"] = bad_page["page_address"]
-                            bad_page_info_entry["page_size"] = bad_page["page_size"]
-                            bad_page_info_entry["status"] = bad_page["status"].name
+            values_dict['retired'] = bad_page_info_output
 
-                            bad_page_info_output.append(bad_page_info_entry)
-                    # Remove brackets if there is only one value
-                    if len(bad_page_info_output) == 1:
-                        bad_page_info_output = bad_page_info_output[0]
+        if args.pending:
+            if bad_page_error:
+                bad_page_info_output = bad_page_err_output
+            else:
+                bad_page_info_output = []
+                for bad_page in bad_page_info:
+                    if bad_page["status"] == amdsmi_interface.AmdSmiMemoryPageStatus.PENDING:
+                        bad_page_info_entry = {}
+                        bad_page_info_entry["page_address"] = bad_page["page_address"]
+                        bad_page_info_entry["page_size"] = bad_page["page_size"]
+                        bad_page_info_entry["status"] = bad_page["status"].name
 
-                values_dict['pending'] = bad_page_info_output
+                        bad_page_info_output.append(bad_page_info_entry)
+                # Remove brackets if there is only one value
+                if len(bad_page_info_output) == 1:
+                    bad_page_info_output = bad_page_info_output[0]
 
-            if args.un_res:
+            values_dict['pending'] = bad_page_info_output
+
+        if args.un_res:
                 if bad_page_error:
                     bad_page_info_output = bad_page_err_output
                 else:
@@ -596,8 +630,8 @@ class AMDSMICommands():
 
     def metric(self, args, multiple_devices=False, watching_output=False, gpu=None,
                 usage=None, watch=None, watch_time=None, iterations=None, fb_usage=None, power=None,
-                clock=None, temperature=None, ecc=None, ecc_block=None, pcie=None, voltage=None,
-                fan=None, voltage_curve=None, overdrive=None, mem_overdrive=None, perf_level=None,
+                clock=None, temperature=None, ecc=None, ecc_block=None, pcie=None,
+                fan=None, voltage_curve=None, overdrive=None, perf_level=None,
                 replay_count=None, xgmi_err=None, energy=None, mem_usage=None):
         """Get Metric information for target gpu
 
@@ -617,11 +651,9 @@ class AMDSMICommands():
             ecc (bool, optional): Value override for args.ecc. Defaults to None.
             ecc_block (bool, optional): Value override for args.ecc. Defaults to None.
             pcie (bool, optional): Value override for args.pcie. Defaults to None.
-            voltage (bool, optional): Value override for args.voltage. Defaults to None.
             fan (bool, optional): Value override for args.fan. Defaults to None.
             voltage_curve (bool, optional): Value override for args.voltage_curve. Defaults to None.
             overdrive (bool, optional): Value override for args.overdrive. Defaults to None.
-            mem_overdrive (bool, optional): Value override for args.mem_overdrive. Defaults to None.
             perf_level (bool, optional): Value override for args.perf_level. Defaults to None.
             replay_count (bool, optional): Value override for args.replay_count. Defaults to None.
             xgmi_err (bool, optional): Value override for args.xgmi_err. Defaults to None.
@@ -665,16 +697,12 @@ class AMDSMICommands():
                 args.ecc_block = ecc_block
             if pcie:
                 args.pcie = pcie
-            if voltage:
-                args.voltage = voltage
             if fan:
                 args.fan = fan
             if voltage_curve:
                 args.voltage_curve = voltage_curve
             if overdrive:
                 args.overdrive = overdrive
-            if mem_overdrive:
-                args.mem_overdrive = mem_overdrive
             if perf_level:
                 args.perf_level = perf_level
             if xgmi_err:
@@ -728,12 +756,14 @@ class AMDSMICommands():
                 args.fb_usage = args.replay_count = args.mem_usage = self.all_arguments = True
 
         if self.helpers.is_linux() and self.helpers.is_baremetal():
-            if not any([args.usage, args.fb_usage, args.power, args.clock, args.temperature, args.ecc,  args.ecc_block, args.pcie, args.voltage, args.fan,
-                        args.voltage_curve, args.overdrive, args.mem_overdrive, args.perf_level,
-                        args.replay_count, args.xgmi_err, args.energy, args.mem_usage]):
-                args.usage = args.fb_usage = args.power = args.clock = args.temperature = args.ecc = args.ecc_block = args.pcie = args.voltage = args.fan = \
-                args.voltage_curve = args.overdrive = args.mem_overdrive = args.perf_level = \
-                args.replay_count = args.xgmi_err = args.energy = args.mem_usage = self.all_arguments = True
+            if not any([args.usage, args.fb_usage, args.power, args.clock, args.temperature,
+                        args.ecc,  args.ecc_block, args.pcie, args.fan, args.voltage_curve,
+                        args.overdrive, args.perf_level, args.replay_count, args.xgmi_err,
+                        args.energy, args.mem_usage]):
+                args.usage = args.fb_usage = args.power = args.clock = args.temperature = \
+                    args.ecc = args.ecc_block = args.pcie = args.fan = args.voltage_curve = \
+                    args.overdrive = args.perf_level = args.replay_count = args.xgmi_err = \
+                    args.energy = args.mem_usage = self.all_arguments = True
 
         # Add timestamp and store values for specified arguments
         values_dict = {}
@@ -784,19 +814,22 @@ class AMDSMICommands():
                     power_dict = {'average_socket_power': power_measure['average_socket_power'],
                                     'gfx_voltage': power_measure['gfx_voltage'],
                                     'soc_voltage': amdsmi_exception.AmdSmiLibraryException(amdsmi_exception.AmdSmiRetCode.STATUS_NOT_YET_IMPLEMENTED).err_info,
-                                    'mem_voltage': amdsmi_exception.AmdSmiLibraryException(amdsmi_exception.AmdSmiRetCode.STATUS_NOT_YET_IMPLEMENTED).err_info}
+                                    'mem_voltage': amdsmi_exception.AmdSmiLibraryException(amdsmi_exception.AmdSmiRetCode.STATUS_NOT_YET_IMPLEMENTED).err_info,
+                                    'power_limit': power_measure['power_limit']}
 
                     if self.logger.is_human_readable_format():
                         power_dict['average_socket_power'] = f"{power_dict['average_socket_power']} W"
                         power_dict['gfx_voltage'] = f"{power_dict['gfx_voltage']} mV"
                         power_dict['soc_voltage'] = amdsmi_exception.AmdSmiLibraryException(amdsmi_exception.AmdSmiRetCode.STATUS_NOT_YET_IMPLEMENTED).err_info
                         power_dict['mem_voltage'] = amdsmi_exception.AmdSmiLibraryException(amdsmi_exception.AmdSmiRetCode.STATUS_NOT_YET_IMPLEMENTED).err_info
+                        power_dict['power_limit'] = f"{power_dict['power_limit']} W"
 
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     power_dict = {'average_socket_power': e.get_error_info(),
                                     'gfx_voltage': e.get_error_info(),
                                     'soc_voltage': e.get_error_info(),
-                                    'mem_voltage': e.get_error_info()}
+                                    'mem_voltage': e.get_error_info(),
+                                    'power_limit': e.get_error_info()}
 
                     if not self.all_arguments:
                         raise e
@@ -840,18 +873,24 @@ class AMDSMICommands():
                 try:
                     temperature_edge_current = amdsmi_interface.amdsmi_get_temp_metric(
                         args.gpu, amdsmi_interface.AmdSmiTemperatureType.EDGE, amdsmi_interface.AmdSmiTemperatureMetric.CURRENT)
+                    temperature_edge_limit = amdsmi_interface.amdsmi_get_temp_metric(
+                        args.gpu, amdsmi_interface.AmdSmiTemperatureType.EDGE, amdsmi_interface.AmdSmiTemperatureMetric.CRITICAL)
                     temperature_junction_current = amdsmi_interface.amdsmi_get_temp_metric(
                         args.gpu, amdsmi_interface.AmdSmiTemperatureType.JUNCTION, amdsmi_interface.AmdSmiTemperatureMetric.CURRENT)
                     temperature_vram_current = amdsmi_interface.amdsmi_get_temp_metric(
                         args.gpu, amdsmi_interface.AmdSmiTemperatureType.VRAM, amdsmi_interface.AmdSmiTemperatureMetric.CURRENT)
 
+                    # If edge limit is reporting 0 then set the current edge temp to N/A
+                    if temperature_edge_limit == 0:
+                        temperature_edge_current = 'N/A'
+
                     temperatures = {'edge': temperature_edge_current,
-                                    'hotspot': temperature_junction_current,
+                                    'junction': temperature_junction_current,
                                     'mem': temperature_vram_current}
 
                     if self.logger.is_gpuvsmi_compatibility():
                         temperatures = {'edge_temperature': temperature_edge_current,
-                                        'hotspot_temperature': temperature_junction_current,
+                                        'junction_temperature': temperature_junction_current,
                                         'mem_temperature': temperature_vram_current}
 
                     if self.logger.is_human_readable_format():
@@ -907,36 +946,28 @@ class AMDSMICommands():
                     values_dict['ecc_block'] = e.get_error_info()
                     if not self.all_arguments:
                         raise e
-
             if args.pcie:
                 try:
-                    pcie_link_status = amdsmi_interface.amdsmi_get_pcie_link_caps(args.gpu)
-                    pcie_speed_GTs_value = round(pcie_link_status['pcie_speed'] / 1000, 1) if pcie_link_status['pcie_speed'] % 1000 != 0 else  round(pcie_link_status['pcie_speed'] / 1000)
+                    pcie_link_status = amdsmi_interface.amdsmi_get_pcie_link_status(args.gpu)
+
+                    if pcie_link_status['pcie_speed'] % 1000 != 0:
+                        pcie_speed_GTs_value = round(pcie_link_status['pcie_speed'] / 1000, 1)
+                    else:
+                        pcie_speed_GTs_value = round(pcie_link_status['pcie_speed'] / 1000)
+
                     pcie_link_status['pcie_speed'] = pcie_speed_GTs_value
+                    # The interface version should not be displayed as it is based on the current speed
+                    del pcie_link_status['pcie_interface_version']
+
                     if self.logger.is_human_readable_format():
-                        unit ='GT/s'
+                        unit = 'GT/s'
                         pcie_link_status['pcie_speed'] = f"{pcie_link_status['pcie_speed']} {unit}"
-                    if self.logger.is_gpuvsmi_compatibility():
                         pcie_link_status['current_width'] = pcie_link_status.pop('pcie_lanes')
                         pcie_link_status['current_speed'] = pcie_link_status.pop('pcie_speed')
+
                     values_dict['pcie'] = pcie_link_status
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     values_dict['pcie'] = e.get_error_info()
-                    if not self.all_arguments:
-                        raise e
-
-            if args.voltage:
-                try:
-                    volt_metric = amdsmi_interface.amdsmi_get_gpu_volt_metric(
-                    args.gpu, amdsmi_interface.AmdSmiVoltageType.VDDGFX, amdsmi_interface.AmdSmiVoltageMetric.CURRENT)
-
-                    if self.logger.is_human_readable_format():
-                        unit = 'mV'
-                        volt_metric = f"{volt_metric} {unit}"
-
-                    values_dict['voltage'] = volt_metric
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    values_dict['voltage'] = e.get_error_info()
                     if not self.all_arguments:
                         raise e
             if args.fan:
@@ -1002,8 +1033,6 @@ class AMDSMICommands():
                     values_dict['overdrive'] = e.get_error_info()
                     if not self.all_arguments:
                         raise e
-            if args.mem_overdrive:
-                values_dict['mem_overdrive'] = amdsmi_exception.AmdSmiLibraryException(amdsmi_exception.AmdSmiRetCode.STATUS_NOT_YET_IMPLEMENTED).err_info
             if args.perf_level:
                 try:
                     perf_level = amdsmi_interface.amdsmi_get_gpu_perf_level(args.gpu)
@@ -1405,18 +1434,17 @@ class AMDSMICommands():
                     dest_gpu_key = f'gpu_{dest_gpu_id}'
 
                     if src_gpu == dest_gpu:
-                        src_gpu_link_type[dest_gpu_key] = 0
+                        src_gpu_link_type[dest_gpu_key] = "SELF"
                         continue
-
                     try:
                         link_type = amdsmi_interface.amdsmi_topo_get_link_type(src_gpu, dest_gpu)['type']
                         if isinstance(link_type, int):
-                            if link_type == 1:
+                            if link_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_UNDEFINED:
+                                src_gpu_link_type[dest_gpu_key] = "UNKNOWN"
+                            elif link_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_PCIEXPRESS:
                                 src_gpu_link_type[dest_gpu_key] = "PCIE"
-                            elif link_type == 2:
-                                src_gpu_link_type[dest_gpu_key] = "XMGI"
-                        else:
-                            src_gpu_link_type[dest_gpu_key] = "XXXX"
+                            elif link_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_XGMI:
+                                src_gpu_link_type[dest_gpu_key] = "XGMI"
                     except amdsmi_exception.AmdSmiLibraryException as e:
                         src_gpu_link_type[dest_gpu_key] = e.get_error_info()
 
@@ -1464,30 +1492,16 @@ class AMDSMICommands():
         self.logger.print_output(multiple_device_enabled=True)
 
 
-    def set_value(self, args, multiple_devices=False, gpu=None, clock=None, sclk=None, mclk=None,
-                    pcie=None, slevel=None, mlevel=None, vc=None, srange=None, mrange=None,
-                    fan=None, perflevel=None, overdrive=None, memoverdrive=None,
-                    poweroverdrive=None, profile=None, perfdeterminism=None):
+    def set_value(self, args, multiple_devices=False, gpu=None, fan=None, perflevel=None,
+                  profile=None, perfdeterminism=None):
         """Issue reset commands to target gpu(s)
 
         Args:
             args (Namespace): Namespace containing the parsed CLI args
             multiple_devices (bool, optional): True if checking for multiple devices. Defaults to False.
             gpu (device_handle, optional): device_handle for target device. Defaults to None.
-            clock ((amdsmi_interface.AmdSmiClkType, int), optional): Value override for args.clock. Defaults to None.
-            sclk (int, optional): Value override for args.sclk. Defaults to None.
-            mclk (int, optional): Value override for args.mclk. Defaults to None.
-            pcie (int, optional): Value override for args.pcie. Defaults to None.
-            slevel ((amdsmi_interface.AmdSmiFreqInd), int), optional): Value override for args.slevel. Defaults to None.
-            mlevel ((amdsmi_interface.AmdSmiFreqInd), optional): Value override for args.mlevel. Defaults to None.
-            vc ((int, int, int), optional): Value override for args.vc. Defaults to None.
-            srange ((int, int), optional): Value override for args.srange. Defaults to None.
-            mrange ((int, int), optional): Value override for args.mrange. Defaults to None.
             fan (int, optional): Value override for args.fan. Defaults to None.
             perflevel (amdsmi_interface.AmdSmiDevPerfLevel, optional): Value override for args.perflevel. Defaults to None.
-            overdrive (int, optional): Value override for args.overdrive. Defaults to None.
-            memoverdrive (int, optional): Value override for args.memoverdrive. Defaults to None.
-            poweroverdrive (int, optional): Value override for args.poweroverdrive. Defaults to None.
             profile (bool, optional): Value override for args.profile. Defaults to None.
             perfdeterminism (int, optional): Value override for args.perfdeterminism. Defaults to None.
 
@@ -1501,34 +1515,10 @@ class AMDSMICommands():
         # Set args.* to passed in arguments
         if gpu:
             args.gpu = gpu
-        if clock:
-            args.clock = clock
-        if sclk:
-            args.sclk = sclk
-        if mclk:
-            args.mclk = mclk
-        if pcie:
-            args.pcie = pcie
-        if slevel:
-            args.slevel = slevel
-        if mlevel:
-            args.mlevel = mlevel
-        if vc:
-            args.vc = vc
-        if srange:
-            args.srange = srange
-        if mrange:
-            args.mrange = mrange
         if fan:
             args.fan = fan
         if perflevel:
             args.perflevel = perflevel
-        if overdrive:
-            args.overdrive = overdrive
-        if memoverdrive:
-            args.memoverdrive = memoverdrive
-        if poweroverdrive:
-            args.poweroverdrive = poweroverdrive
         if profile:
             args.profile = profile
         if perfdeterminism:
@@ -1557,178 +1547,6 @@ class AMDSMICommands():
         gpu_string = f"GPU ID: {gpu_id} BDF:{gpu_bdf}"
 
         # Handle args
-        if args.clock:
-            clock_type, freq_bitmask = args.clock
-
-            # Check if the performance level is manual, if not then set it to manual
-            try:
-                perf_level = amdsmi_interface.amdsmi_get_gpu_perf_level(args.gpu)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
-                    raise PermissionError('Command requires elevation') from e
-                raise ValueError(f"Unable to get performance level of {gpu_string}") from e
-
-            if 'manual' in perf_level.lower():
-                try:
-                    amdsmi_interface.amdsmi_set_gpu_perf_level(args.gpu, amdsmi_interface.AmdSmiDevPerfLevel.MANUAL)
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
-                        raise PermissionError('Command requires elevation') from e
-                    raise ValueError(f"Unable to set the performance level of {gpu_string} to manual") from e
-
-            if clock_type != amdsmi_interface.AmdSmiClkType.PCIE:
-                try:
-                    amdsmi_interface.amdsmi_set_clk_freq(args.gpu, clock_type, freq_bitmask)
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
-                        raise PermissionError('Command requires elevation') from e
-                    raise ValueError(f"Unable to set the {clock_type} clock frequency on {gpu_string}") from e
-            else:
-                try:
-                    amdsmi_interface.amdsmi_set_gpu_pci_bandwidth(args.gpu, freq_bitmask)
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
-                        raise PermissionError('Command requires elevation') from e
-                    raise ValueError(f"Unable to set the {clock_type} clock frequency on {gpu_string}") from e
-
-            self.logger.store_output(args.gpu, 'clock', f'Successfully set clock frequency bitmask for {clock_type}')
-        if isinstance(args.sclk, int):
-            freq_bitmask = args.sclk
-            clock_type = amdsmi_interface.AmdSmiClkType.SYS
-            # Check if the performance level is manual, if not then set it to manual
-            try:
-                perf_level = amdsmi_interface.amdsmi_get_gpu_perf_level(args.gpu)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
-                    raise PermissionError('Command requires elevation') from e
-                raise ValueError(f"Unable to get performance level of {gpu_string}") from e
-
-            if 'manual' in perf_level.lower():
-                try:
-                    amdsmi_interface.amdsmi_set_gpu_perf_level(args.gpu, amdsmi_interface.AmdSmiDevPerfLevel.MANUAL)
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
-                        raise PermissionError('Command requires elevation') from e
-                    raise ValueError(f"Unable to set the performance level of {gpu_string} to manual") from e
-
-            try:
-                amdsmi_interface.amdsmi_set_clk_freq(args.gpu, clock_type, freq_bitmask)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
-                    raise PermissionError('Command requires elevation') from e
-                raise ValueError(f"Unable to set the {clock_type} clock frequency on {gpu_string}") from e
-
-            self.logger.store_output(args.gpu, 'sclk', 'Successfully set clock frequency bitmask')
-        if isinstance(args.mclk, int):
-            freq_bitmask = args.mclk
-            clock_type = amdsmi_interface.AmdSmiClkType.MEM
-            # Check if the performance level is manual, if not then set it to manual
-            try:
-                perf_level = amdsmi_interface.amdsmi_get_gpu_perf_level(args.gpu)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
-                    raise PermissionError('Command requires elevation') from e
-                raise ValueError(f"Unable to get performance level of {gpu_string}") from e
-
-            if 'manual' in perf_level.lower():
-                try:
-                    amdsmi_interface.amdsmi_set_gpu_perf_level(args.gpu, amdsmi_interface.AmdSmiDevPerfLevel.MANUAL)
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
-                        raise PermissionError('Command requires elevation') from e
-                    raise ValueError(f"Unable to set the performance level of {gpu_string} to manual") from e
-
-            try:
-                amdsmi_interface.amdsmi_set_clk_freq(args.gpu, clock_type, freq_bitmask)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
-                    raise PermissionError('Command requires elevation') from e
-                raise ValueError(f"Unable to set the {clock_type} clock frequency on {gpu_string}") from e
-
-            self.logger.store_output(args.gpu, 'mclk', 'Successfully set clock frequency bitmask')
-        if isinstance(args.pcie, int):
-            freq_bitmask = args.pcie
-            clock_type = amdsmi_interface.AmdSmiClkType.PCIE
-            # Check if the performance level is manual, if not then set it to manual
-            try:
-                perf_level = amdsmi_interface.amdsmi_get_gpu_perf_level(args.gpu)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
-                    raise PermissionError('Command requires elevation') from e
-                raise ValueError(f"Unable to get performance level of {gpu_string}") from e
-
-            if 'manual' in perf_level.lower():
-                try:
-                    amdsmi_interface.amdsmi_set_gpu_perf_level(args.gpu, amdsmi_interface.AmdSmiDevPerfLevel.MANUAL)
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
-                        raise PermissionError('Command requires elevation') from e
-                    raise ValueError(f"Unable to set the performance level of {gpu_string} to manual") from e
-            try:
-                amdsmi_interface.amdsmi_set_gpu_pci_bandwidth(args.gpu, freq_bitmask)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
-                    raise PermissionError('Command requires elevation') from e
-                raise ValueError(f"Unable to set the {clock_type} clock frequency on {gpu_string}") from e
-
-            self.logger.store_output(args.gpu, 'pcie', 'Successfully set clock frequency bitmask')
-        if isinstance(args.slevel, int):
-
-            level, value = args.slevel
-            level = amdsmi_interface.AmdSmiFreqInd(level)
-            clock_type = amdsmi_interface.AmdSmiClkType.SYS
-            try:
-                amdsmi_interface.amdsmi_set_gpu_od_clk_info(args.gpu, level, value, clock_type)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
-                    raise PermissionError('Command requires elevation') from e
-                raise ValueError(f"Unable to change the {clock_type} clock frequency in the PowerPlay table on {gpu_string}") from e
-
-            self.logger.store_output(args.gpu, 'slevel', 'Successfully changed clock frequency')
-        if isinstance(args.mlevel, int):
-            level, value = args.mlevel
-            level = amdsmi_interface.AmdSmiFreqInd(level)
-            clock_type = amdsmi_interface.AmdSmiClkType.MEM
-            try:
-                amdsmi_interface.amdsmi_set_gpu_od_clk_info(args.gpu, level, value, clock_type)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
-                    raise PermissionError('Command requires elevation') from e
-                raise ValueError(f"Unable to change the {clock_type} clock frequency in the PowerPlay table on {gpu_string}") from e
-
-            self.logger.store_output(args.gpu, 'mlevel', 'Successfully changed clock frequency')
-        if isinstance(args.vc, int):
-            point, clk, volt = args.vc
-            try:
-                amdsmi_interface.amdsmi_set_gpu_od_volt_info(args.gpu, point, clk, volt)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
-                    raise PermissionError('Command requires elevation') from e
-                raise ValueError(f"Unable to set the Voltage Curve point {point} to {clk}(MHz) {volt}(mV) on {gpu_string}") from e
-
-            self.logger.store_output(args.gpu, 'vc', f'Successfully set voltage point {point} to {clk}(MHz) {volt}(mV)')
-        if isinstance(args.srange, int):
-            min_value, max_value = args.srange
-            clock_type = amdsmi_interface.AmdSmiClkType.SYS
-            try:
-                amdsmi_interface.amdsmi_set_gpu_clk_range(args.gpu, min_value, max_value, clock_type)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
-                    raise PermissionError('Command requires elevation') from e
-                raise ValueError(f"Unable to set {clock_type} from {min_value}(MHz) to {max_value}(MHz) on {gpu_string}") from e
-
-            self.logger.store_output(args.gpu, 'srange', f"Successfully set {clock_type} from {min_value}(MHz) to {max_value}(MHz)")
-        if isinstance(args.mrange, int):
-            min_value, max_value = args.srange
-            clock_type = amdsmi_interface.AmdSmiClkType.MEM
-            try:
-                amdsmi_interface.amdsmi_set_gpu_clk_range(args.gpu, min_value, max_value, clock_type)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
-                    raise PermissionError('Command requires elevation') from e
-                raise ValueError(f"Unable to set {clock_type} from {min_value}(MHz) to {max_value}(MHz) on {gpu_string}") from e
-
-            self.logger.store_output(args.gpu, 'mrange', f"Successfully set {clock_type} from {min_value}(MHz) to {max_value}(MHz)")
         if isinstance(args.fan, int):
             try:
                 amdsmi_interface.amdsmi_set_gpu_fan_speed(args.gpu, 0, args.fan)
@@ -1748,89 +1566,6 @@ class AMDSMICommands():
                 raise ValueError(f"Unable to set performance level {args.perflevel} on {gpu_string}") from e
 
             self.logger.store_output(args.gpu, 'perflevel', f"Successfully set performance level {args.perflevel}")
-        if isinstance(args.overdrive, int):
-            # Check if the performance level is manual, if not then set it to manual
-            try:
-                perf_level = amdsmi_interface.amdsmi_get_gpu_perf_level(args.gpu)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
-                    raise PermissionError('Command requires elevation') from e
-                raise ValueError(f"Unable to get performance level of {gpu_string}") from e
-
-            if 'manual' in perf_level.lower():
-                try:
-                    amdsmi_interface.amdsmi_set_gpu_perf_level(args.gpu, amdsmi_interface.AmdSmiDevPerfLevel.MANUAL)
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
-                        raise PermissionError('Command requires elevation') from e
-                    raise ValueError(f"Unable to set the performance level of {gpu_string} to manual") from e
-
-            try:
-                amdsmi_interface.amdsmi_set_gpu_overdrive_level(args.gpu, args.overdrive)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
-                    raise PermissionError('Command requires elevation') from e
-                raise ValueError(f"Unable to set overdrive {args.overdrive} to {gpu_string}") from e
-
-            self.logger.store_output(args.gpu, 'overdrive', f"Successfully to set overdrive level to {args.overdrive}")
-        if isinstance(args.memoverdrive, int):
-            # Check if the performance level is manual, if not then set it to manual
-            try:
-                perf_level = amdsmi_interface.amdsmi_get_gpu_perf_level(args.gpu)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
-                    raise PermissionError('Command requires elevation') from e
-                raise ValueError(f"Unable to get performance level of {gpu_string}") from e
-
-            if 'manual' in perf_level.lower():
-                try:
-                    amdsmi_interface.amdsmi_set_gpu_perf_level(args.gpu, amdsmi_interface.AmdSmiDevPerfLevel.MANUAL)
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
-                        raise PermissionError('Command requires elevation') from e
-                    raise ValueError(f"Unable to set the performance level of {gpu_string} to manual") from e
-
-            self.logger.store_output(args.gpu, 'memoverdrive', f"Successfully to set memoverdrive level to {args.memoverdrive}")
-        if isinstance(args.poweroverdrive, int):
-            overdrive_power_cap = args.poweroverdrive
-            try:
-                power_caps = amdsmi_interface.amdsmi_get_power_cap_info(args.gpu)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
-                    raise PermissionError('Command requires elevation') from e
-                raise ValueError(f"Unable to get the power cap info for {gpu_string}") from e
-            if overdrive_power_cap == 0:
-                overdrive_power_cap = power_caps['default_power_cap']
-            else:
-                overdrive_power_cap *= 1000000
-
-            if overdrive_power_cap < power_caps['min_power_cap']:
-                raise ValueError(f"Requested power cap: {overdrive_power_cap} is lower than the min power cap: {power_caps['min_power_cap']}")
-
-            if overdrive_power_cap > power_caps['max_power_cap']:
-                raise ValueError(f"Requested power cap: {overdrive_power_cap} is greater than the max power cap: {power_caps['max_power_cap']}")
-
-            if overdrive_power_cap == power_caps['power_cap']:
-                raise ValueError(f"Requested power cap: {overdrive_power_cap} is the same as the current power cap: {power_caps['power_cap']}")
-
-            try:
-                amdsmi_interface.amdsmi_set_power_cap(args.gpu, 0, overdrive_power_cap)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
-                    raise PermissionError('Command requires elevation') from e
-                raise ValueError(f"Unable to set power cap to {overdrive_power_cap} on {gpu_string}") from e
-
-            try:
-                power_caps = amdsmi_interface.amdsmi_get_power_cap_info(args.gpu)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
-                    raise PermissionError('Command requires elevation') from e
-                raise ValueError(f"Unable to get the power cap info for {gpu_string} post set") from e
-
-            if power_caps['power_cap'] == overdrive_power_cap:
-                self.logger.store_output(args.gpu, 'power_cap', f"Successfully set the power cap {overdrive_power_cap}")
-            else:
-                raise ValueError(f"Power cap: {overdrive_power_cap} set failed on {gpu_string}")
         if args.profile:
             self.logger.store_output(args.gpu, 'profile', "Not Yet Implemented")
         if isinstance(args.perfdeterminism, int):
@@ -1851,8 +1586,7 @@ class AMDSMICommands():
 
 
     def reset(self, args, multiple_devices=False, gpu=None, gpureset=None,
-                clocks=None, fans=None, profile=None,
-                poweroverdrive=None, xgmierr=None, perfdeterminism=None):
+                clocks=None, fans=None, profile=None, xgmierr=None, perfdeterminism=None):
         """Issue reset commands to target gpu(s)
 
         Args:
@@ -1863,7 +1597,6 @@ class AMDSMICommands():
             clocks (bool, optional): Value override for args.clocks. Defaults to None.
             fans (bool, optional): Value override for args.fans. Defaults to None.
             profile (bool, optional): Value override for args.profile. Defaults to None.
-            poweroverdrive (bool, optional): Value override for args.poweroverdrive. Defaults to None.
             xgmierr (bool, optional): Value override for args.xgmierr. Defaults to None.
             perfdeterminism (bool, optional): Value override for args.perfdeterminism. Defaults to None.
 
@@ -1885,8 +1618,6 @@ class AMDSMICommands():
             args.fans = fans
         if profile:
             args.profile = profile
-        if poweroverdrive:
-            args.poweroverdrive = poweroverdrive
         if xgmierr:
             args.xgmierr = xgmierr
         if perfdeterminism:
