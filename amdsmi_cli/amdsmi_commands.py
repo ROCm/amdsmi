@@ -553,53 +553,53 @@ class AMDSMICommands():
             bad_page_info = amdsmi_interface.amdsmi_get_gpu_bad_page_info(args.gpu)
             bad_page_error = False
         except amdsmi_exception.AmdSmiLibraryException as e:
-            bad_page_info = ""
             bad_page_err_output = e.get_error_info()
             bad_page_error = True
             raise e
 
-        if isinstance(bad_page_info, str):
-            pass
-        else:
-            if args.retired:
-                if bad_page_error:
-                    bad_page_info_output = bad_page_err_output
-                else:
-                    bad_page_info_output = []
-                    for bad_page in bad_page_info:
-                        if bad_page["status"] == amdsmi_interface.AmdSmiMemoryPageStatus.RESERVED:
-                            bad_page_info_entry = {}
-                            bad_page_info_entry["page_address"] = bad_page["page_address"]
-                            bad_page_info_entry["page_size"] = bad_page["page_size"]
-                            bad_page_info_entry["status"] = bad_page["status"].name
+        if bad_page_info == "No bad pages found.":
+            bad_page_error = True
+            bad_page_err_output = bad_page_info
 
-                            bad_page_info_output.append(bad_page_info_entry)
-                    # Remove brackets if there is only one value
-                    if len(bad_page_info_output) == 1:
-                        bad_page_info_output = bad_page_info_output[0]
+        if args.retired:
+            if bad_page_error:
+                bad_page_info_output = bad_page_err_output
+            else:
+                bad_page_info_output = []
+                for bad_page in bad_page_info:
+                    if bad_page["status"] == amdsmi_interface.AmdSmiMemoryPageStatus.RESERVED:
+                        bad_page_info_entry = {}
+                        bad_page_info_entry["page_address"] = bad_page["page_address"]
+                        bad_page_info_entry["page_size"] = bad_page["page_size"]
+                        bad_page_info_entry["status"] = bad_page["status"].name
 
-                values_dict['retired'] = bad_page_info_output
+                        bad_page_info_output.append(bad_page_info_entry)
+                # Remove brackets if there is only one value
+                if len(bad_page_info_output) == 1:
+                    bad_page_info_output = bad_page_info_output[0]
 
-            if args.pending:
-                if bad_page_error:
-                    bad_page_info_output = bad_page_err_output
-                else:
-                    bad_page_info_output = []
-                    for bad_page in bad_page_info:
-                        if bad_page["status"] == amdsmi_interface.AmdSmiMemoryPageStatus.PENDING:
-                            bad_page_info_entry = {}
-                            bad_page_info_entry["page_address"] = bad_page["page_address"]
-                            bad_page_info_entry["page_size"] = bad_page["page_size"]
-                            bad_page_info_entry["status"] = bad_page["status"].name
+            values_dict['retired'] = bad_page_info_output
 
-                            bad_page_info_output.append(bad_page_info_entry)
-                    # Remove brackets if there is only one value
-                    if len(bad_page_info_output) == 1:
-                        bad_page_info_output = bad_page_info_output[0]
+        if args.pending:
+            if bad_page_error:
+                bad_page_info_output = bad_page_err_output
+            else:
+                bad_page_info_output = []
+                for bad_page in bad_page_info:
+                    if bad_page["status"] == amdsmi_interface.AmdSmiMemoryPageStatus.PENDING:
+                        bad_page_info_entry = {}
+                        bad_page_info_entry["page_address"] = bad_page["page_address"]
+                        bad_page_info_entry["page_size"] = bad_page["page_size"]
+                        bad_page_info_entry["status"] = bad_page["status"].name
 
-                values_dict['pending'] = bad_page_info_output
+                        bad_page_info_output.append(bad_page_info_entry)
+                # Remove brackets if there is only one value
+                if len(bad_page_info_output) == 1:
+                    bad_page_info_output = bad_page_info_output[0]
 
-            if args.un_res:
+            values_dict['pending'] = bad_page_info_output
+
+        if args.un_res:
                 if bad_page_error:
                     bad_page_info_output = bad_page_err_output
                 else:
