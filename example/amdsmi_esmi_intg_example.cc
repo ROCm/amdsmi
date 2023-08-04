@@ -114,14 +114,14 @@ int main(int argc, char **argv) {
     CHK_AMDSMI_RET(ret)
     std::cout << "core_count=" << core_count << std::endl;
 
-    ret = amdsmi_get_hsmp_proto_ver(&proto_ver);
+    ret = amdsmi_get_cpu_hsmp_proto_ver(sockets[i], &proto_ver);
     CHK_AMDSMI_RET(ret)
 
     cout<<"\n------------------------------------------";
     cout<<"\n| HSMP Proto Version  |  "<< proto_ver <<"\t\t |"<< endl;
     cout<<"------------------------------------------\n";
 
-    ret = amdsmi_get_smu_fw_version(&smu_fw);
+    ret = amdsmi_get_cpu_smu_fw_version(sockets[i], &smu_fw);
     CHK_AMDSMI_RET(ret)
 
     cout<<"\n------------------------------------------";

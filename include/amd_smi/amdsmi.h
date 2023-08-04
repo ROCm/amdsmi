@@ -3685,20 +3685,24 @@ amdsmi_status_t amdsmi_get_cpu_socket_energy(amdsmi_cpusocket_handle socket_hand
 /**
  *  @brief Get SMU Firmware Version.
  *
+ *  @param[in]      socket_handle Cpu socket which to query
  *  @param[in,out]    amdsmi_smu_fw - Input buffer to return the firmware version
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_smu_fw_version(amdsmi_smu_fw_version_t *amdsmi_smu_fw);
+amdsmi_status_t amdsmi_get_cpu_smu_fw_version(amdsmi_cpusocket_handle socket_handle,
+            amdsmi_smu_fw_version_t *amdsmi_smu_fw);
 
 /**
  *  @brief Get HSMP protocol Version.
  *
+ *  @param[in]      socket_handle Cpu socket which to query
  *  @param[in,out]    proto_ver - Input buffer to return the protocol version
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_hsmp_proto_ver(uint32_t *proto_ver);
+amdsmi_status_t amdsmi_get_cpu_hsmp_proto_ver(amdsmi_cpusocket_handle socket_handle,
+            uint32_t *proto_ver);
 
 /**
  *  @brief Get normalized status of the processor's PROCHOT status.
@@ -3938,11 +3942,13 @@ amdsmi_status_t amdsmi_set_cpu_socket_boostlimit(amdsmi_cpusocket_handle socket_
 /**
  *  @brief Get the DDR bandwidth data.
  *
+ *  @param[in]      socket_handle Cpu socket which to query
  *  @param[in,out]	ddr_bw - Input buffer to fill ddr bandwidth data
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpu_ddr_bw(amdsmi_ddr_bw_metrics_t *ddr_bw);
+amdsmi_status_t amdsmi_get_cpu_ddr_bw(amdsmi_cpusocket_handle socket_handle,
+        amdsmi_ddr_bw_metrics_t *ddr_bw);
 
 /** @} */
 
@@ -4154,12 +4160,14 @@ amdsmi_status_t amdsmi_get_cpu_current_io_bandwidth(amdsmi_cpusocket_handle sock
 /**
  *  @brief Get current input output bandwidth.
  *
+ *  @param[in]      socket_handle Cpu socket which to query
  *  @param[in]		link - link id and bw type to which xgmi bandwidth to be obtained
  *  @param[in,out]	xgmi_bw - Input buffer to fill bandwidth data
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpu_current_xgmi_bw(amdsmi_link_id_bw_type_t link, uint32_t *xgmi_bw);
+amdsmi_status_t amdsmi_get_cpu_current_xgmi_bw(amdsmi_cpusocket_handle socket_handle,
+        amdsmi_link_id_bw_type_t link, uint32_t *xgmi_bw);
 
 /** @} */
 
