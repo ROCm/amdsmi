@@ -58,7 +58,8 @@ class AMDSMICommands():
             args (Namespace): Namespace containing the parsed CLI args
         """
         try:
-            amdsmi_lib_version_str = amdsmi_interface.amdsmi_get_lib_version()["build"]
+            amdsmi_lib_version = amdsmi_interface.amdsmi_get_lib_version()
+            amdsmi_lib_version_str = f"{amdsmi_lib_version['year']}.{amdsmi_lib_version['major']}.{amdsmi_lib_version['minor']}.{amdsmi_lib_version['release']}"
         except amdsmi_exception.AmdSmiLibraryException as e:
             amdsmi_lib_version_str = e.get_error_info()
 
