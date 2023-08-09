@@ -2713,6 +2713,29 @@ amdsmi_status_t amdsmi_get_cpu_model(uint32_t model)
     return AMDSMI_STATUS_SUCCESS;
 }
 
+amdsmi_status_t amdsmi_first_online_core_on_cpu_socket(amdsmi_cpusocket_handle socket_handle,
+        uint32_t sock_ind, uint32_t *pcore_ind)
+{
+    amdsmi_status_t status;
+    uint32_t online_core;
+
+    if (socket_handle == nullptr)
+        return AMDSMI_STATUS_INVAL;
+
+    amd::smi::AMDSmiCpuSocket* socket = nullptr;
+    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    status = static_cast<amdsmi_status_t>(esmi_first_online_core_on_socket(sock_ind, &online_core));
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    *pcore_ind = online_core;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
 const char* amdsmi_get_esmi_err_msg(amdsmi_status_t status, const char **status_string)
 {
     for (auto& iter : amd::smi::esmi_status_map) {
