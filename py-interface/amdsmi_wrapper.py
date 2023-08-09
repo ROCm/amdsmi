@@ -1368,8 +1368,8 @@ struct_c__SA_amdsmi_pcie_info_t._fields_ = [
     ('pcie_lanes', ctypes.c_uint16),
     ('PADDING_0', ctypes.c_ubyte * 2),
     ('pcie_speed', ctypes.c_uint32),
-    ('reserved', ctypes.c_uint32 * 5),
     ('pcie_interface_version', ctypes.c_uint32),
+    ('reserved', ctypes.c_uint32 * 5),
 ]
 
 amdsmi_pcie_info_t = struct_c__SA_amdsmi_pcie_info_t
