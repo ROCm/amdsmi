@@ -4224,13 +4224,15 @@ amdsmi_status_t amdsmi_get_number_of_cpu_sockets(uint32_t sockets);
 /**
  *  @brief Get first online core on socket.
  *
+ *  @param[in]      socket_handle Cpu socket which to query
  *  @param[in]		sock_ind - socket index.
  *
  *  @param[in,out]	sockets - Input buffer to fill first online core on socket data
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_first_online_core_on_cpu_socket(uint32_t sock_ind, uint32_t *pcore_ind);
+amdsmi_status_t amdsmi_first_online_core_on_cpu_socket(amdsmi_cpusocket_handle socket_handle,
+        uint32_t sock_ind, uint32_t *pcore_ind);
 
 /**
  *  @brief Get a description of provided AMDSMI error status for esmi errors.
