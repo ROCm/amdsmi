@@ -1529,8 +1529,13 @@ amdsmi_get_pcie_link_status(amdsmi_processor_handle processor_handle, amdsmi_pci
         return status;
 
     info->pcie_lanes = metric_info.pcie_link_width;
-    // gpu metrics returns pcie link speed in .1 GT/s ex. 160 vs 16
-    info->pcie_speed = (metric_info.pcie_link_speed / 10) * 1000;
+    // gpu metrics is inconsistent with pcie_speed values, if 0-6 then it needs to be translated
+    if (metric_info.pcie_link_speed <= 6) {
+        status = smi_amdgpu_get_pcie_speed_from_pcie_type(metric_info.pcie_link_speed, &info->pcie_speed); // mapping to MT/s
+    } else {
+        // gpu metrics returns pcie link speed in .1 GT/s ex. 160 vs 16
+        info->pcie_speed = metric_info.pcie_link_speed * 100;
+    }
 
     switch (info->pcie_speed) {
       case 2500:

@@ -1077,8 +1077,8 @@ typedef struct {
 typedef struct {
 	uint16_t pcie_lanes;
 	uint32_t pcie_speed;
-	uint32_t reserved[5];
 	uint32_t pcie_interface_version;
+	uint32_t reserved[5];
 } amdsmi_pcie_info_t;
 /**
  * @brief This structure contains information specific to a process.
