@@ -25,11 +25,11 @@ do_configureLogrotate() {
   if [ ! -f $logrotateConfFile ]; then
     sudo touch "${logrotateConfFile}"
     sudo chmod 644 "${logrotateConfFile}" # root r/w, all others read
-    # ROCm SMI logging rotation, rotates files using root user/group
+    # AMD SMI logging rotation, rotates files using root user/group
     # Hourly logrotation check
     # Only rotates if size grew larger than 1MB
     # Max of 4 rotation files, oldest will be removed
-    # Rotated files use date extention of ex. ROCm-SMI-lib.log.2023-05-09_16:51:42
+    # Rotated files use date extention of ex. AMD-SMI-lib.log.2023-05-09_16:51:42
     cat << EOF | sudo tee "${logrotateConfFile}" >/dev/null
 ${logFile} {
     su root root
@@ -49,7 +49,7 @@ EOF
   # https://rpm-software-management.github.io/rpm/manual/spec.html
   sudo sed -i s/%%/%/g "${logrotateConfFile}"
   # workaround: remove extra 'OURCE' text
-  # from rocm_smi.conf. Unsure if CMAKE,
+  # from amd_smi.conf. Unsure if CMAKE,
   # bash, or here document
   # issue (only seen on RHEL 8.7)
   sudo sed -i s/OURCE//g "${logrotateConfFile}"
@@ -108,14 +108,14 @@ EOF
 do_ldconfig() {
   # left-hand term originates from ENABLE_LDCONFIG = ON/OFF at package build
   if [ "@ENABLE_LDCONFIG@" == "ON" ]; then
-    echo @CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@ > /etc/ld.so.conf.d/x86_64-librocm_smi_lib.conf
+    echo @CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@ > /etc/ld.so.conf.d/x86_64-libamd_smi_lib.conf
     ldconfig
   fi
 }
 
 # left-hand term originates from ENABLE_LDCONFIG = ON/OFF at package build
 if [ "@ENABLE_LDCONFIG@" == "ON" ]; then
-  echo -e "@CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@" > /etc/ld.so.conf.d/x86_64-librocm_smi_lib.conf
+  echo -e "@CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@" > /etc/ld.so.conf.d/x86_64-libamd_smi_lib.conf
   ldconfig
 fi
 
