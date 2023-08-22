@@ -173,6 +173,13 @@ void TestBase::PrintDeviceHeader(amdsmi_processor_handle dv_ind) {
     std::cout << "\t**Device ID: 0x" << std::hex << val_ui16 << std::endl;
   }
 
+  err = amdsmi_get_gpu_revision(dv_ind, &val_ui16);
+  CHK_ERR_ASRT(err)
+  IF_VERB(STANDARD) {
+      std::cout << "\t**Device Revision ID: 0x" << std::hex <<
+          val_ui16 << std::endl;
+  }
+
   amdsmi_board_info_t board_info;
   err = amdsmi_get_gpu_board_info(dv_ind, &board_info);
   CHK_ERR_ASRT(err)

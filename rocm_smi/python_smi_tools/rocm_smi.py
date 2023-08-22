@@ -47,7 +47,7 @@ headerString = ' ROCm System Management Interface '
 footerString = ' End of ROCm SMI Log '
 
 # Output formatting
-appWidth = 84
+appWidth = 100
 deviceList = []
 
 # Enable or disable serialized format
@@ -112,19 +112,10 @@ def formatCsv(deviceList):
     if outputType == 'system':
         jsonobj = json.loads(jsondata)
         keylist = header
-        for record in jsonobj:
-            my_string += str(record)
-            for key in keylist:
-                if key == 'system':
-                    tempstr = str(jsonobj[record])
-                    tempstr = tempstr[tempstr.find('\'')+1:]
-                    tempstr = tempstr[:tempstr.find('\'')]
-                    # Force output device type to 'system'
-                    my_string += ',%s\nsystem,%s' % (tempstr, jsonobj[record][tempstr])
-            my_string += '\n'
-        # Force output device type to 'system'
-        if my_string.startswith('system'):
-            my_string = 'device' + my_string[6:]
+        for record in jsonobj['system']:
+            my_string += "\"%s\", \"%s\"\n" % (record, jsonobj['system'][record])
+        # add header
+        my_string = "name, value\n" + my_string
         return my_string
     headerkeys = []
     # Separate device-specific information from system-level information
@@ -247,6 +238,17 @@ def getId(device):
     ret = rocmsmi.rsmi_dev_id_get(device, byref(dv_id))
     if rsmi_ret_ok(ret, device, 'get_device_id'):
         return hex(dv_id.value)
+
+
+def getRev(device):
+    """ Return the hexadecimal value of a device's Revision
+
+    @param device: DRM device identifier
+    """
+    dv_rev = c_short()
+    ret = rocmsmi.rsmi_dev_revision_get(device, byref(dv_rev))
+    if rsmi_ret_ok(ret, device, 'get_device_rev'):
+        return hex(dv_rev.value)
 
 
 def getMaxPower(device):
@@ -391,6 +393,25 @@ def getTemp(device, sensor):
         return temp.value / 1000
     return 'N/A'
 
+def findFirstAvailableTemp(device):
+    """ Discovers the first available device temperature to display
+
+    Returns a tuple of (temp_type, temp_value) for the device specified
+    @param device: DRM device identifier
+    """
+    temp = c_int64(0)
+    metric = rsmi_temperature_metric_t.RSMI_TEMP_CURRENT
+    ret_temp = "N/A"
+    ret_temp_type = "(Unknown)"
+    for i, templist_val in enumerate(temp_type_lst):
+        ret = rocmsmi.rsmi_dev_temp_metric_get(c_uint32(device), i, metric, byref(temp))
+        if rsmi_ret_ok(ret, device, 'get_temp_metric_' + templist_val, silent=True):
+            ret_temp = temp.value / 1000
+            ret_temp_type = '(' + templist_val.capitalize() + ')'
+            break
+        else:
+            continue
+    return (ret_temp_type, ret_temp)
 
 def getVbiosVersion(device):
     """ Returns the VBIOS version for a given device
@@ -399,7 +420,9 @@ def getVbiosVersion(device):
     """
     vbios = create_string_buffer(256)
     ret = rocmsmi.rsmi_dev_vbios_version_get(device, vbios, 256)
-    if rsmi_ret_ok(ret, device):
+    if ret == rsmi_status_t.RSMI_STATUS_NOT_SUPPORTED:
+        return "Unsupported"
+    elif rsmi_ret_ok(ret, device):
         return vbios.value.decode()
 
 
@@ -425,7 +448,7 @@ def getComputePartition(device):
     ret = rocmsmi.rsmi_dev_compute_partition_get(device, currentComputePartition, 256)
     if rsmi_ret_ok(ret, device, 'get_compute_partition', silent=True) and currentComputePartition.value.decode():
         return str(currentComputePartition.value.decode())
-    return "UNKNOWN"
+    return "N/A"
 
 
 def getMemoryPartition(device):
@@ -437,7 +460,7 @@ def getMemoryPartition(device):
     ret = rocmsmi.rsmi_dev_nps_mode_get(device, currentNPSMode, 256)
     if rsmi_ret_ok(ret, device, 'get_NPS_mode', silent=True) and currentNPSMode.value.decode():
         return str(currentNPSMode.value.decode())
-    return "UNKNOWN"
+    return "N/A"
 
 
 def print2DArray(dataArray):
@@ -537,16 +560,23 @@ def printEventList(device, delay, eventList):
         data = rsmi_evt_notification_data_t(1)
         rocmsmi.rsmi_event_notification_get(delay, byref(num_elements), byref(data))
         if len(data.message) > 0:
-            print2DArray([['\rGPU[%d]:\t' % (device), ctime().split()[3], notification_type_names[data.event.value - 1],
+            print2DArray([['\rGPU[%d]:\t' % (data.dv_ind), ctime().split()[3], notification_type_names[data.event.value - 1],
                            data.message.decode('utf8') + '\r']])
 
-def printLog(device, metricName, value=None, extraSpace=False):
+def printLog(device, metricName, value=None, extraSpace=False, useItalics=False):
     """ Print out to the SMI log
 
     @param device: DRM device identifier
     @param metricName: Title of the item to print to the log
     @param value: The item's value to print to the log
     """
+    red = '\033[91m'
+    green = '\033[92m'
+    blue = '\033[94m'
+    bold = '\033[1m'
+    italics = '\033[3m'
+    underline = '\033[4m'
+    end = '\033[0m'
     global PRINT_JSON
     if PRINT_JSON:
         if value is not None and device is not None:
@@ -563,6 +593,8 @@ def printLog(device, metricName, value=None, extraSpace=False):
     # Force thread safe printing
     lock = multiprocessing.Lock()
     lock.acquire()
+    if useItalics:
+        logstr = italics + logstr + end
     if extraSpace:
         print('\n' + logstr + '\n', end='', flush=True)
     else:
@@ -1353,7 +1385,7 @@ def setPowerOverDrive(deviceList, value, autoRespond):
             RETCODE = 1
             continue
         if new_power_cap.value == current_power_cap.value:
-            printErrLog(device,'Max power was already at: {}W'.format(new_power_cap.value / 1000000))
+            printLog(device,'Max power was already at: {}W'.format(new_power_cap.value / 1000000))
 
         if current_power_cap.value < default_power_cap.value:
             current_power_cap.value = default_power_cap.value
@@ -1540,18 +1572,39 @@ def showAllConcise(deviceList):
         print('ERROR: Cannot print JSON/CSV output for concise output')
         sys.exit(1)
     printLogSpacer(' Concise Info ')
-    header = ['GPU', 'Temp (DieEdge)', 'AvgPwr', 'SCLK', 'MCLK', 'Fan', 'Perf', 'PwrCap', 'VRAM%', 'GPU%']
+    deviceList.sort()
+    (temp_type, _) = findFirstAvailableTemp(deviceList[0])
+    available_temp_type = temp_type.lower()
+    available_temp_type = available_temp_type.replace('(', '')
+    available_temp_type = available_temp_type.replace(')', '')
+    header = ['GPU', 'Temp', 'AvgPwr', 'Partitions', 'SCLK', 'MCLK', 'Fan', 'Perf', 'PwrCap', 'VRAM%', 'GPU%']
+    subheader = ['', temp_type, '', '(Mem, Compute)', '', '', '', '', '', '', '']
+    # add additional spaces to match header
+    for idx, item in enumerate(subheader):
+        header_size = len(header[idx])
+        subheader_size = len(subheader[idx])
+        if header_size != subheader_size:
+            numSpacesToFill_subheader = header_size - subheader_size
+            numSpacesToFill_header =  subheader_size - header_size
+            #take pos spaces to mean, we need to match size of the other
+            if numSpacesToFill_subheader > 0:
+                subheader[idx] = subheader[idx] + (' ' * numSpacesToFill_subheader)
+            if numSpacesToFill_header > 0:
+                header[idx] = header[idx] + (' ' * numSpacesToFill_header)
     head_widths = [len(head) + 2 for head in header]
     values = {}
+    degree_sign = u'\N{DEGREE SIGN}'
     for device in deviceList:
-        temp = str(getTemp(device, 'edge'))
-        if temp != 'N/A':
-            temp += 'c'
+        temp_val = str(getTemp(device, available_temp_type))
+        if temp_val != 'N/A':
+            temp_val += degree_sign + 'C'
         avgPwr = str(getPower(device))
         if avgPwr != '0.0' and avgPwr != 'N/A':
             avgPwr += 'W'
         else:
             avgPwr = 'N/A'
+        combined_partition = (getMemoryPartition(device) + ", "
+                             + getComputePartition(device))
         concise = True
         sclk = showCurrentClocks([device], 'sclk', concise)
         mclk = showCurrentClocks([device], 'mclk', concise)
@@ -1575,7 +1628,9 @@ def showAllConcise(deviceList):
             mem_use_pct='Unsupported'
         if vram_used != None and vram_total != None and float(vram_total) != 0:
             mem_use_pct = '% 3.0f%%' % (100 * (float(vram_used) / float(vram_total)))
-        values['card%s' % (str(device))] = [device, temp, avgPwr, sclk, mclk, fan, str(perf).lower(), pwrCap,
+        values['card%s' % (str(device))] = [device, temp_val, avgPwr,
+                                            combined_partition, sclk, mclk,
+                                            fan, str(perf).lower(), pwrCap,
                                             mem_use_pct, gpu_busy]
     val_widths = {}
     for device in deviceList:
@@ -1585,6 +1640,9 @@ def showAllConcise(deviceList):
         for col in range(len(val_widths[device])):
             max_widths[col] = max(max_widths[col], val_widths[device][col])
     printLog(None, "".join(word.ljust(max_widths[col]) for col, word in zip(range(len(max_widths)), header)), None)
+    printLog(None, "".join(word.ljust(max_widths[col]) for col, word in zip(range(len(max_widths)), subheader)),
+             None, useItalics=True)
+    printLogSpacer(fill='=')
     for device in deviceList:
         printLog(None, "".join(str(word).ljust(max_widths[col]) for col, word in
                                zip(range(len(max_widths)), values['card%s' % (str(device))])), None)
@@ -1601,19 +1659,23 @@ def showAllConciseHw(deviceList):
         print('ERROR: Cannot print JSON/CSV output for concise hardware output')
         sys.exit(1)
     printLogSpacer(' Concise Hardware Info ')
-    header = ['GPU', 'DID', 'GFX RAS', 'SDMA RAS', 'UMC RAS', 'VBIOS', 'BUS']
+    header = ['GPU', 'DID', 'DREV', 'GFX RAS', 'SDMA RAS', 'UMC RAS', 'VBIOS', 'BUS']
     head_widths = [len(head) + 2 for head in header]
     values = {}
     for device in deviceList:
         gpuid = getId(device)
         if str(gpuid).startswith('0x'):
             gpuid = str(gpuid)[2:]
+        gpurev = getRev(device)
+        if str(gpurev).startswith('0x'):
+            gpurev = str(gpurev)[2:]
+
         gfxRas = getRasEnablement(device, 'GFX')
         sdmaRas = getRasEnablement(device, 'SDMA')
         umcRas = getRasEnablement(device, 'UMC')
         vbios = getVbiosVersion(device)
         bus = getBus(device)
-        values['card%s' % (str(device))] = [device, gpuid, gfxRas, sdmaRas, umcRas, vbios, bus]
+        values['card%s' % (str(device))] = [device, gpuid, gpurev, gfxRas, sdmaRas, umcRas, vbios, bus]
     val_widths = {}
     for device in deviceList:
         val_widths[device] = [len(str(val)) + 2 for val in values['card%s' % (str(device))]]
@@ -1952,6 +2014,7 @@ def showId(deviceList):
     printLogSpacer(' ID ')
     for device in deviceList:
         printLog(device, 'GPU ID', getId(device))
+        printLog(device, 'GPU Rev', getRev(device))
     printLogSpacer()
 
 
@@ -2272,8 +2335,12 @@ def showProductName(deviceList):
             # if rsmi_ret_ok(ret, device) and sku.value.decode():
             #     device_sku = sku.value.decode()
             # Retrieve the device SKU as a substring from VBIOS
+            device_sku = ""
             ret = rocmsmi.rsmi_dev_vbios_version_get(device, vbios, 256)
-            if rsmi_ret_ok(ret, device, 'get_vbios_version') and vbios.value.decode():
+            if ret == rsmi_status_t.RSMI_STATUS_NOT_SUPPORTED:
+                device_sku = "Unsupported"
+                printLog(device, 'Card SKU', '\t\t' + device_sku)
+            elif rsmi_ret_ok(ret, device, 'get_vbios_version') and vbios.value.decode():
                 # Device SKU is just the characters in between the two '-' in vbios_version
                 if vbios.value.decode().count('-') == 2 and len(str(vbios.value.decode().split('-')[1])) > 1:
                     device_sku = vbios.value.decode().split('-')[1]
@@ -2535,7 +2602,7 @@ def showEvents(deviceList, eventTypes):
             break
 
 
-def printTempGraph(deviceList, delay):
+def printTempGraph(deviceList, delay, temp_type):
     # deviceList must be in ascending order
     deviceList.sort()
     devices = 0
@@ -2549,7 +2616,7 @@ def printTempGraph(deviceList, delay):
         terminalWidth = os.get_terminal_size()[0]
         printStrings = list()
         for device in deviceList:
-            temp = getTemp(device, 'edge')
+            temp = getTemp(device, temp_type)
             if temp == 'N/A':
                 percentage = 0
             else:
@@ -2622,11 +2689,16 @@ def getGraphColor(percentage):
 
 
 def showTempGraph(deviceList):
-    printLogSpacer(' Temperature Graph ')
+    deviceList.sort()
+    (temp_type, temp_value) = findFirstAvailableTemp(deviceList[0])
+    printLogSpacer(' Temperature Graph ' + temp_type + ' ')
+    temp_type = temp_type.lower()
+    temp_type = temp_type.replace('(', '')
+    temp_type = temp_type.replace(')', '')
     # Start a thread for constantly printing
     try:
         # Create a thread (call print function, devices, delay in ms)
-        _thread.start_new_thread(printTempGraph, (deviceList, 150))
+        _thread.start_new_thread(printTempGraph, (deviceList, 150, temp_type))
     except Exception as e:
         printErrLog(device, 'Unable to start new thread. %s' % (e))
     # Catch user input for program termination

@@ -106,7 +106,7 @@ void TestSysInfoRead::Run(void) {
     err = amdsmi_get_gpu_vbios_info(processor_handles_[i], &info);
 
     if (err != AMDSMI_STATUS_SUCCESS) {
-      if (err == AMDSMI_STATUS_FILE_ERROR) {
+      if ((err == AMDSMI_STATUS_FILE_ERROR) || (err == AMDSMI_STATUS_NOT_SUPPORTED)) {
         IF_VERB(STANDARD) {
           std::cout << "\t**VBIOS read: Not supported on this machine"
                                                                 << std::endl;

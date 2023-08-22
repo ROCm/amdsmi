@@ -59,6 +59,7 @@
 #include <algorithm>
 #include <iterator>
 #include <cstring>
+#include <type_traits>
 
 #include "rocm_smi/rocm_smi_main.h"
 #include "rocm_smi/rocm_smi_device.h"
@@ -85,6 +86,7 @@ static const char *kDevPerfLevelFName = "power_dpm_force_performance_level";
 static const char *kDevDevProdNameFName = "product_name";
 static const char *kDevDevProdNumFName = "product_number";
 static const char *kDevDevIDFName = "device";
+static const char *kDevDevRevIDFName = "revision";
 static const char *kDevVendorIDFName = "vendor";
 static const char *kDevSubSysDevIDFName = "subsystem_device";
 static const char *kDevSubSysVendorIDFName = "subsystem_vendor";
@@ -238,6 +240,7 @@ static const std::map<DevInfoTypes, const char *> kDevAttribNameMap = {
     {kDevDevProdName, kDevDevProdNameFName},
     {kDevDevProdNum, kDevDevProdNumFName},
     {kDevDevID, kDevDevIDFName},
+    {kDevDevRevID, kDevDevRevIDFName},
     {kDevVendorID, kDevVendorIDFName},
     {kDevSubSysDevID, kDevSubSysDevIDFName},
     {kDevSubSysVendorID, kDevSubSysVendorIDFName},
@@ -374,12 +377,13 @@ static const std::map<const char *, dev_depends_t> kDevFuncDependsMap = {
     // Functions with only mandatory dependencies
   {"rsmi_dev_vram_vendor_get",           {{kDevVramVendorFName}, {}}},
   {"rsmi_dev_id_get",                    {{kDevDevIDFName}, {}}},
+  {"rsmi_dev_revision_get",              {{kDevDevRevIDFName}, {}}},
   {"rsmi_dev_vendor_id_get",             {{kDevVendorIDFName}, {}}},
-
   {"rsmi_dev_name_get",                  {{kDevVendorIDFName,
                                            kDevDevIDFName}, {}}},
   {"rsmi_dev_sku_get",                   {{kDevDevProdNumFName}, {}}},
-  {"rsmi_dev_brand_get",                 {{kDevVendorIDFName}, {}}},
+  {"rsmi_dev_brand_get",                 {{kDevVendorIDFName,
+                                           kDevVBiosVerFName}, {}}},
   {"rsmi_dev_vendor_name_get",           {{kDevVendorIDFName}, {}}},
   {"rsmi_dev_serial_number_get",         {{kDevSerialNumberFName}, {}}},
   {"rsmi_dev_subsystem_id_get",          {{kDevSubSysDevIDFName}, {}}},
@@ -823,7 +827,12 @@ int Device::readDevInfoBinary(DevInfoTypes type, std::size_t b_size,
   }
   ss << "Successfully read DevInfoBinary for DevInfoType ("
      << RocmSMI::devInfoTypesStrings.at(type) << ") - SYSFS ("
-     << sysfs_path << "), returning binaryData = " << p_binary_data;
+     << sysfs_path << "), returning binaryData = " << p_binary_data
+     << "; byte_size = " << std::dec << static_cast<int>(b_size);
+
+  std::string metricDescription = "AMD SMI GPU METRICS (16-byte width), "
+                                  + sysfs_path;
+  logHexDump(metricDescription.c_str(), p_binary_data, b_size, 16);
   LOG_INFO(ss);
   return 0;
 }
@@ -888,6 +897,7 @@ int Device::readDevInfo(DevInfoTypes type, uint64_t *val) {
 
   switch (type) {
     case kDevDevID:
+    case kDevDevRevID:
     case kDevSubSysDevID:
     case kDevSubSysVendorID:
     case kDevVendorID:
@@ -1025,6 +1035,7 @@ int Device::readDevInfo(DevInfoTypes type, std::string *val) {
     case kDevDevProdName:
     case kDevDevProdNum:
     case kDevDevID:
+    case kDevDevRevID:
     case kDevSubSysDevID:
     case kDevSubSysVendorID:
     case kDevVendorID:
@@ -1374,6 +1385,7 @@ std::string Device::readBootPartitionState<rsmi_nps_mode_type_t>(
   std::tie(std::ignore, boot_state) = readTmpFile(dv_ind, "boot", "nps_mode");
   return boot_state;
 }
+
 
 #undef RET_IF_NONZERO
 }  // namespace smi
