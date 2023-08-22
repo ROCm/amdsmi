@@ -1457,6 +1457,21 @@ amdsmi_status_t amdsmi_get_processor_handle_from_bdf(amdsmi_bdf_t bdf, amdsmi_pr
 amdsmi_status_t amdsmi_get_gpu_id(amdsmi_processor_handle processor_handle, uint16_t *id);
 
 /**
+ *  @brief Get the device revision associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a
+ *  uint16_t @p revision to which the revision id will be written
+ *
+ *  @param[in] processor_handle a processor handle
+ *
+ *  @param[out] revision a pointer to uint16_t to which the device revision
+ *  will be written
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_get_gpu_revision(amdsmi_processor_handle processor_handle, uint16_t *revision);
+
+/**
  *  @brief Get the name string for a give vendor ID
  *
  *  @details Given a processor handle @p processor_handle, a pointer to a caller provided

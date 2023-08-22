@@ -78,6 +78,7 @@
 #include "rocm_smi/rocm_smi_logger.h"
 
 using namespace ROCmLogging;
+using namespace amd::smi;
 
 static const uint32_t kMaxOverdriveLevel = 20;
 static const float kEnergyCounterResolution = 15.3f;
@@ -632,7 +633,7 @@ rsmi_status_t
 rsmi_dev_ecc_count_get(uint32_t dv_ind, rsmi_gpu_block_t block,
                                                      rsmi_error_count_t *ec) {
   std::vector<std::string> val_vec;
-  rsmi_status_t ret;
+  rsmi_status_t ret(RSMI_STATUS_NOT_SUPPORTED);
   std::ostringstream ss;
 
   TRY
@@ -673,8 +674,8 @@ rsmi_dev_ecc_count_get(uint32_t dv_ind, rsmi_gpu_block_t block,
 
     default:
       ss << __PRETTY_FUNCTION__ << " | ======= end ======="
-         << ", default case -> reporting RSMI_STATUS_NOT_SUPPORTED"
-         << amd::smi::getRSMIStatusString(ret);
+         << ", default case -> reporting "
+         << amd::smi::getRSMIStatusString(RSMI_STATUS_NOT_SUPPORTED);
       LOG_ERROR(ss);
       return RSMI_STATUS_NOT_SUPPORTED;
   }
@@ -682,6 +683,7 @@ rsmi_dev_ecc_count_get(uint32_t dv_ind, rsmi_gpu_block_t block,
   DEVICE_MUTEX
 
   ret = GetDevValueVec(type, dv_ind, &val_vec);
+  if (val_vec.size() != 2 ) ret = RSMI_STATUS_FILE_ERROR;
 
   if (ret == RSMI_STATUS_FILE_ERROR || val_vec.size() != 2) {
     ss << __PRETTY_FUNCTION__ << " | ======= end ======="
@@ -697,8 +699,6 @@ rsmi_dev_ecc_count_get(uint32_t dv_ind, rsmi_gpu_block_t block,
     LOG_ERROR(ss);
     return ret;
   }
-
-  assert(val_vec.size() == 2);
 
   std::string junk;
   std::istringstream fs1(val_vec[0]);
@@ -817,6 +817,21 @@ rsmi_dev_id_get(uint32_t dv_ind, uint16_t *id) {
   ss << __PRETTY_FUNCTION__ << " | ======= end ======="
      << ", reporting " << amd::smi::getRSMIStatusString(ret);
   LOG_TRACE(ss);
+  return ret;
+}
+
+rsmi_status_t
+rsmi_dev_revision_get(uint32_t dv_ind, uint16_t *revision) {
+  std::ostringstream outss;
+  rsmi_status_t ret;
+  outss << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(outss);
+  CHK_SUPPORT_NAME_ONLY(revision)
+
+  ret = get_id(dv_ind, amd::smi::kDevDevRevID, revision);
+  outss << __PRETTY_FUNCTION__ << " | ======= end ======="
+     << ", reporting " << amd::smi::getRSMIStatusString(ret);
+  LOG_TRACE(outss);
   return ret;
 }
 
@@ -2503,7 +2518,16 @@ rsmi_dev_temp_metric_get(uint32_t dv_ind, uint32_t sensor_type,
   }
 
   if (temperature == nullptr) {
-      return RSMI_STATUS_INVALID_ARGS;
+    ss << __PRETTY_FUNCTION__
+       << " | ======= end ======= "
+       << " | Fail "
+       << " | Device #: " << dv_ind
+       << " | Type: " << monitorTypesToString.at(mon_type)
+       << " | Cause: temperature was a null ptr reference"
+       << " | Returning = "
+       << getRSMIStatusString(RSMI_STATUS_INVALID_ARGS) << " |";
+    LOG_ERROR(ss);
+    return RSMI_STATUS_INVALID_ARGS;
   }
 
   // The HBM temperature is retreived from the gpu_metrics
@@ -2512,12 +2536,32 @@ rsmi_dev_temp_metric_get(uint32_t dv_ind, uint32_t sensor_type,
      || sensor_type == RSMI_TEMP_TYPE_HBM_2
      || sensor_type == RSMI_TEMP_TYPE_HBM_3) {
        if (metric != RSMI_TEMP_CURRENT) {   // only support RSMI_TEMP_CURRENT
+          ss << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | Fail "
+             << " | Device #: " << dv_ind
+             << " | Type: " << monitorTypesToString.at(mon_type)
+             << " | Cause: To retreive HBM temp, we only support metric = "
+             << "RSMI_TEMP_CURRENT"
+             << " | Returning = "
+             << getRSMIStatusString(RSMI_STATUS_NOT_SUPPORTED) << " |";
+          LOG_ERROR(ss);
           return RSMI_STATUS_NOT_SUPPORTED;
        }
 
        rsmi_gpu_metrics_t gpu_metrics;
        ret = rsmi_dev_gpu_metrics_info_get(dv_ind, &gpu_metrics);
        if (ret != RSMI_STATUS_SUCCESS) {
+        ss << __PRETTY_FUNCTION__
+           << " | ======= end ======= "
+           << " | Fail "
+           << " | Device #: " << dv_ind
+           << " | Type: " << monitorTypesToString.at(mon_type)
+           << " | Cause: rsmi_dev_gpu_metrics_info_get returned "
+           << getRSMIStatusString(ret)
+           << " | Returning = "
+           << getRSMIStatusString(ret) << " |";
+         LOG_ERROR(ss);
          return ret;
        }
 
@@ -2537,11 +2581,28 @@ rsmi_dev_temp_metric_get(uint32_t dv_ind, uint32_t sensor_type,
          default:
            return RSMI_STATUS_INVALID_ARGS;
        }
-       if (val_ui16 == UINT16_MAX)
+       if (val_ui16 == UINT16_MAX) {
+          ss << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | Fail "
+             << " | Device #: " << dv_ind
+             << " | Type: " << monitorTypesToString.at(mon_type)
+             << " | Cause: Reached UINT16 max value, overflow"
+             << " | Returning = "
+             << getRSMIStatusString(RSMI_STATUS_NOT_SUPPORTED) << " |";
+          LOG_ERROR(ss);
           return RSMI_STATUS_NOT_SUPPORTED;
-       else
+       } else
           *temperature = val_ui16 * CENTRIGRADE_TO_MILLI_CENTIGRADE;
 
+       ss << __PRETTY_FUNCTION__ << " | ======= end ======= "
+          << " | Success "
+          << " | Device #: " << dv_ind
+          << " | Type: " << monitorTypesToString.at(mon_type)
+          << " | Data: " << *temperature
+          << " | Returning = "
+          << getRSMIStatusString(RSMI_STATUS_SUCCESS) << " | ";
+       LOG_INFO(ss);
        return RSMI_STATUS_SUCCESS;
   }  // end HBM temperature
 
@@ -2550,6 +2611,15 @@ rsmi_dev_temp_metric_get(uint32_t dv_ind, uint32_t sensor_type,
   GET_DEV_FROM_INDX
 
   if (dev->monitor() == nullptr) {
+    ss << __PRETTY_FUNCTION__
+       << " | ======= end ======= "
+       << " | Fail "
+       << " | Device #: " << dv_ind
+       << " | Type: " << monitorTypesToString.at(mon_type)
+       << " | Cause: monitor returned nullptr"
+       << " | Returning = "
+       << getRSMIStatusString(RSMI_STATUS_NOT_SUPPORTED) << " |";
+    LOG_ERROR(ss);
     return RSMI_STATUS_NOT_SUPPORTED;
   }
   std::shared_ptr<amd::smi::Monitor> m = dev->monitor();
@@ -2563,6 +2633,15 @@ rsmi_dev_temp_metric_get(uint32_t dv_ind, uint32_t sensor_type,
   CHK_API_SUPPORT_ONLY(temperature, metric, sensor_index)
 
   ret = get_dev_mon_value(mon_type, dv_ind, sensor_index, temperature);
+  ss << __PRETTY_FUNCTION__ << " | ======= end ======= "
+     << " | Success "
+     << " | Device #: " << dv_ind
+     << " | Sensor_index: " << sensor_index
+     << " | Type: " << monitorTypesToString.at(mon_type)
+     << " | Data: " << *temperature
+     << " | Returning = "
+     << getRSMIStatusString(ret) << " | ";
+  LOG_INFO(ss);
 
   return ret;
   CATCH
@@ -2995,6 +3074,7 @@ rsmi_dev_power_profile_presets_get(uint32_t dv_ind, uint32_t reserved,
 
   DEVICE_MUTEX
   rsmi_status_t ret = get_power_profiles(dv_ind, status, nullptr);
+
   return ret;
   CATCH
 }
@@ -3015,6 +3095,7 @@ rsmi_dev_power_profile_set(uint32_t dv_ind, uint32_t dummy,
     return RSMI_STATUS_NOT_SUPPORTED;
   }
   rsmi_status_t ret = set_power_profile(dv_ind, profile);
+
   return ret;
   CATCH
 }
@@ -3052,6 +3133,14 @@ rsmi_dev_memory_total_get(uint32_t dv_ind, rsmi_memory_type_t mem_type,
   DEVICE_MUTEX
   ret = get_dev_value_int(mem_type_file, dv_ind, total);
 
+  // Fallback to KFD reported memory if VRAM total is 0
+  if (mem_type == RSMI_MEM_TYPE_VRAM && *total == 0) {
+    GET_DEV_AND_KFDNODE_FROM_INDX
+    if (kfd_node->get_total_memory(total) == 0 && *total > 0) {
+      return RSMI_STATUS_SUCCESS;
+    }
+  }
+
   return ret;
   CATCH
 }
@@ -3087,6 +3176,17 @@ rsmi_dev_memory_usage_get(uint32_t dv_ind, rsmi_memory_type_t mem_type,
 
   DEVICE_MUTEX
   ret = get_dev_value_int(mem_type_file, dv_ind, used);
+
+  // Fallback to KFD reported memory if no VRAM
+  if (mem_type == RSMI_MEM_TYPE_VRAM && *used == 0) {
+    GET_DEV_AND_KFDNODE_FROM_INDX
+    uint64_t total = 0;
+    ret = get_dev_value_int(amd::smi::kDevMemTotVRAM, dv_ind, &total);
+    if (total != 0) return ret;  // do not need to fallback
+    if ( kfd_node->get_used_memory(used) == 0 ) {
+      return RSMI_STATUS_SUCCESS;
+    }
+  }
 
   return ret;
   CATCH
