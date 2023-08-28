@@ -667,11 +667,12 @@ struct_c__SA_amdsmi_asic_info_t._pack_ = 1 # source:False
 struct_c__SA_amdsmi_asic_info_t._fields_ = [
     ('market_name', ctypes.c_char * 64),
     ('vendor_id', ctypes.c_uint32),
+    ('vendor_name', ctypes.c_char * 64),
     ('subvendor_id', ctypes.c_uint32),
     ('device_id', ctypes.c_uint64),
     ('rev_id', ctypes.c_uint32),
     ('asic_serial', ctypes.c_char * 32),
-    ('reserved', ctypes.c_uint32 * 3),
+    ('reserved', ctypes.c_uint32 * 19),
 ]
 
 amdsmi_asic_info_t = struct_c__SA_amdsmi_asic_info_t
@@ -1434,7 +1435,7 @@ amdsmi_get_gpu_bdf_id.restype = amdsmi_status_t
 amdsmi_get_gpu_bdf_id.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint64)]
 amdsmi_get_gpu_topo_numa_affinity = _libraries['libamd_smi.so'].amdsmi_get_gpu_topo_numa_affinity
 amdsmi_get_gpu_topo_numa_affinity.restype = amdsmi_status_t
-amdsmi_get_gpu_topo_numa_affinity.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32)]
+amdsmi_get_gpu_topo_numa_affinity.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_int32)]
 amdsmi_get_gpu_pci_throughput = _libraries['libamd_smi.so'].amdsmi_get_gpu_pci_throughput
 amdsmi_get_gpu_pci_throughput.restype = amdsmi_status_t
 amdsmi_get_gpu_pci_throughput.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(ctypes.c_uint64)]

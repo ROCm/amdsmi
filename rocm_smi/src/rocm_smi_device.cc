@@ -81,6 +81,9 @@ static const char *kPathDebugRootFName = "/sys/kernel/debug/dri/";
 // Device debugfs file names
 static const char *kDevGpuResetFName = "amdgpu_gpu_recover";
 
+// PCI sysfs file names
+static const char *kDevPCieVendorIDFName = "vendor";
+
 // Device sysfs file names
 static const char *kDevPerfLevelFName = "power_dpm_force_performance_level";
 static const char *kDevDevProdNameFName = "product_name";
@@ -242,6 +245,7 @@ static const std::map<DevInfoTypes, const char *> kDevAttribNameMap = {
     {kDevDevID, kDevDevIDFName},
     {kDevDevRevID, kDevDevRevIDFName},
     {kDevVendorID, kDevVendorIDFName},
+    {kDevPCieVendorID, kDevPCieVendorIDFName},
     {kDevSubSysDevID, kDevSubSysDevIDFName},
     {kDevSubSysVendorID, kDevSubSysVendorIDFName},
     {kDevGPUMClk, kDevGPUMClkFName},
@@ -589,6 +593,20 @@ int Device::openSysfsFileStream(DevInfoTypes type, T *fs, const char *str) {
   sysfs_path += "/device/";
   sysfs_path += kDevAttribNameMap.at(type);
 
+  // For the file under PCI sysfs
+  if (type >= kDevPCieTypeStart && type <= kDevPCieTypeEND) {
+    sysfs_path = "/sys/bus/pci/devices/";
+    std::string bdf_str;
+    if (getBDFWithDomain(bdfid_, bdf_str) != RSMI_STATUS_SUCCESS) {
+      ss << "Fail to craft the bdf string";
+      LOG_ERROR(ss);
+      return 1;
+    }
+    sysfs_path += bdf_str;
+    sysfs_path += "/";
+    sysfs_path += kDevAttribNameMap.at(type);
+  }
+
   DBG_FILE_ERROR(sysfs_path, str);
   bool reg_file;
 
@@ -611,7 +629,7 @@ int Device::openSysfsFileStream(DevInfoTypes type, T *fs, const char *str) {
 
   fs->open(sysfs_path);
 
-  if (!fs->is_open()) {
+  if (!fs) {
     ss << "Could not open - SYSFS file (" << sysfs_path << ") for "
        << "DevInfoInfoType (" << RocmSMI::devInfoTypesStrings.at(type) << "), "
        << ", returning " << std::to_string(errno) << " ("
@@ -901,6 +919,7 @@ int Device::readDevInfo(DevInfoTypes type, uint64_t *val) {
     case kDevSubSysDevID:
     case kDevSubSysVendorID:
     case kDevVendorID:
+    case kDevPCieVendorID:
     case kDevErrCntFeatures:
       ret = readDevInfoStr(type, &tempStr);
       RET_IF_NONZERO(ret);
@@ -1038,6 +1057,7 @@ int Device::readDevInfo(DevInfoTypes type, std::string *val) {
     case kDevSubSysDevID:
     case kDevSubSysVendorID:
     case kDevVendorID:
+    case kDevPCieVendorID:
     case kDevVramVendor:
     case kDevVBiosVer:
     case kDevPCIEThruPut:

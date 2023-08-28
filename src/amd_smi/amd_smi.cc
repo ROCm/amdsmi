@@ -671,7 +671,6 @@ amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_i
         info->rev_id = dev_info.pci_rev;
         info->vendor_id = gpu_device->get_vendor_id();
     }
-    // For other sysfs related information, get from rocm-smi
     else {
         uint64_t dv_uid = 0;
         status = rsmi_wrapper(rsmi_dev_unique_id_get, processor_handle, &dv_uid);
@@ -688,6 +687,9 @@ amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_i
                     &subvendor_id);
         if (status == AMDSMI_STATUS_SUCCESS) info->subvendor_id = subvendor_id;
     }
+    // For other sysfs related information, get from rocm-smi
+    status =  rsmi_wrapper(rsmi_dev_pcie_vendor_name_get, processor_handle,
+                    info->vendor_name, AMDSMI_MAX_STRING_LENGTH);
 
     return AMDSMI_STATUS_SUCCESS;
 }
@@ -1277,7 +1279,7 @@ amdsmi_status_t amdsmi_get_gpu_bdf_id(
 }
 
 amdsmi_status_t amdsmi_get_gpu_topo_numa_affinity(
-    amdsmi_processor_handle processor_handle, uint32_t *numa_node) {
+    amdsmi_processor_handle processor_handle, int32_t *numa_node) {
     return rsmi_wrapper(rsmi_topo_numa_affinity_get, processor_handle,
             numa_node);
 }
