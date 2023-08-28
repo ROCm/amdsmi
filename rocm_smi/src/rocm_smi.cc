@@ -756,7 +756,7 @@ rsmi_dev_pci_id_get(uint32_t dv_ind, uint64_t *bdfid) {
 }
 
 rsmi_status_t
-rsmi_topo_numa_affinity_get(uint32_t dv_ind, uint32_t *numa_node) {
+rsmi_topo_numa_affinity_get(uint32_t dv_ind, int32_t *numa_node) {
   TRY
   rsmi_status_t ret;
   uint64_t val = 0;
@@ -764,9 +764,10 @@ rsmi_topo_numa_affinity_get(uint32_t dv_ind, uint32_t *numa_node) {
   CHK_SUPPORT_NAME_ONLY(numa_node)
 
   DEVICE_MUTEX
-  ret = get_dev_value_int(amd::smi::kDevNumaNode, dv_ind, &val);
+  std::string str_val;
+  ret = get_dev_value_str(amd::smi::kDevNumaNode, dv_ind, &str_val);
+  *numa_node = std::stol(str_val, 0);
 
-  *numa_node = static_cast<uint32_t>(val);
   return ret;
   CATCH
 }
@@ -1081,6 +1082,8 @@ static rsmi_status_t get_frequencies(amd::smi::DevInfoTypes type, rsmi_clk_type_
   if (f == nullptr) {
     return RSMI_STATUS_INVALID_ARGS;
   }
+  memset(f, 0, sizeof(rsmi_frequencies_t));
+  f->current=0;
 
   ret = GetDevValueVec(type, dv_ind, &val_vec);
   if (ret != RSMI_STATUS_SUCCESS) {
@@ -1130,6 +1133,7 @@ static rsmi_status_t get_frequencies(amd::smi::DevInfoTypes type, rsmi_clk_type_
   // assert(f->current < f->num_supported);
   if (f->current >= f->num_supported) {
       f->current = -1;
+      return RSMI_STATUS_UNEXPECTED_DATA;
   }
 
   return RSMI_STATUS_SUCCESS;
@@ -1781,7 +1785,7 @@ rsmi_dev_gpu_clk_freq_set(uint32_t dv_ind,
 
   TRY
   std::ostringstream ss;
-  ss << __PRETTY_FUNCTION__ << "| ======= start =======";
+  ss << __PRETTY_FUNCTION__ << " | ======= start =======";
   LOG_TRACE(ss);
   REQUIRE_ROOT_ACCESS
   DEVICE_MUTEX
@@ -3306,8 +3310,9 @@ rsmi_status_string(rsmi_status_t status, const char **status_string) {
       break;
 
     case RSMI_STATUS_UNEXPECTED_DATA:
-      *status_string = "RSMI_STATUS_UNEXPECTED_DATA: Data (usually from reading"
-                       " a file) was not of the type that was expected";
+      *status_string = "RSMI_STATUS_UNEXPECTED_DATA: Data read (usually from "
+                       "a file) or provided to function is "
+                       "not what was expected";
       break;
 
     case RSMI_STATUS_BUSY:
