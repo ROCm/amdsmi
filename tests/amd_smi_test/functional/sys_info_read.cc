@@ -139,7 +139,7 @@ void TestSysInfoRead::Run(void) {
     err = amdsmi_get_gpu_bdf_id(processor_handles_[i], nullptr);
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
-    err = amdsmi_get_gpu_topo_numa_affinity(processor_handles_[i], &val_ui32);
+    err = amdsmi_get_gpu_topo_numa_affinity(processor_handles_[i], &val_i32);
     CHK_ERR_ASRT(err)
     IF_VERB(STANDARD) {
       std::cout << "\t**NUMA NODE: 0x" << std::hex << val_i32;
