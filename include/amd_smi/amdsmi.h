@@ -391,11 +391,12 @@ typedef struct {
 typedef struct {
   char  market_name[AMDSMI_MAX_STRING_LENGTH];
   uint32_t vendor_id;   //< Use 32 bit to be compatible with other platform.
+  char vendor_name[AMDSMI_MAX_STRING_LENGTH];
   uint32_t subvendor_id;   //< The subsystem vendor id
   uint64_t device_id;   //< The device id of a GPU
   uint32_t rev_id;
   char asic_serial[AMDSMI_NORMAL_STRING_LENGTH];
-  uint32_t reserved[3];
+  uint32_t reserved[19];
 } amdsmi_asic_info_t;
 
 typedef struct {
@@ -1650,7 +1651,7 @@ amdsmi_status_t amdsmi_get_gpu_bdf_id(amdsmi_processor_handle processor_handle, 
 /**
  *  @brief Get the NUMA node associated with a device
  *
- *  @details Given a processor handle @p processor_handle and a pointer to a uint32_t @p
+ *  @details Given a processor handle @p processor_handle and a pointer to a int32_t @p
  *  numa_node, this function will retrieve the NUMA node value associated
  *  with device @p processor_handle and store the value at location pointed to by
  *  @p numa_node.
@@ -1666,7 +1667,7 @@ amdsmi_status_t amdsmi_get_gpu_bdf_id(amdsmi_processor_handle processor_handle, 
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_gpu_topo_numa_affinity(amdsmi_processor_handle processor_handle, uint32_t *numa_node);
+amdsmi_status_t amdsmi_get_gpu_topo_numa_affinity(amdsmi_processor_handle processor_handle, int32_t *numa_node);
 
 /**
  *  @brief Get PCIe traffic information. It is not supported on virtual machine guest

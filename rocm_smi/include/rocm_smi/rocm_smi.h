@@ -1156,6 +1156,43 @@ rsmi_status_t rsmi_dev_sku_get(uint32_t dv_ind, uint16_t *sku);
 rsmi_status_t rsmi_dev_vendor_id_get(uint32_t dv_ind, uint16_t *id);
 
 /**
+ *  @brief Get the name string for a give PCIe vendor ID
+ *
+ *  @details Given a device index @p dv_ind, a pointer to a caller provided
+ *  char buffer @p name, and a length of this buffer @p len, this function will
+ *  write the name of the PCIe vendor (up to @p len characters) buffer @p name. 
+ *
+ *  If the integer ID associated with the PCIe vendor is not found in one of the
+ *  system files containing device name information (e.g.
+ *  /usr/share/misc/pci.ids), then this function will return RSMI_STATUS_NOT_FOUND.
+ *  Updating the system name files can be accompplished with
+ *  "sudo update-pciids".
+ *
+ *  @param[in] dv_ind a device index
+ *
+ *  @param[inout] name a pointer to a caller provided char buffer to which the
+ *  name will be written
+ *  If this parameter is nullptr, this function will return
+ *  ::RSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  arguments and ::RSMI_STATUS_NOT_SUPPORTED if it is not supported with the
+ *  provided arguments.
+ *
+ *  @param[in] len the length of the caller provided buffer @p name.
+ *
+ *  @retval ::RSMI_STATUS_SUCCESS call was successful
+ *  @retval ::RSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
+ *  support this function with the given arguments
+ *  @retval ::RSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::RSMI_STATUS_NOT_FOUND the vnedor name are not found
+ *  @retval ::RSMI_STATUS_INSUFFICIENT_SIZE is returned if @p len bytes is not
+ *  large enough to hold the entire name. In this case, only @p len bytes will
+ *  be written.
+ *
+ */
+rsmi_status_t rsmi_dev_pcie_vendor_name_get(uint32_t dv_ind, char *name,
+                                                size_t len);
+
+/**
  *  @brief Get the name string of a gpu device.
  *
  *  @details Given a device index @p dv_ind, a pointer to a caller provided
