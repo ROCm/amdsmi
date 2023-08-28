@@ -73,10 +73,11 @@ amdsmi_status_t gpuvsmi_get_pids(const amdsmi_bdf_t &bdf, std::vector<long int> 
 	struct dirent *dir;
 
 	/* 0000:00:00.0 */
-	snprintf(bdf_str, 13, "%04x:%02x:%02x.%d", bdf.domain_number & 0xffff,
-			bdf.bus_number & 0xff,
-			bdf.device_number & 0x1f,
-			bdf.function_number & 0x7);
+	snprintf(bdf_str, 13, "%04x:%02x:%02x.%d",
+            bdf.fields.domain_number & 0xffff,
+			bdf.fields.bus_number & 0xff,
+			bdf.fields.device_number & 0x1f,
+			bdf.fields.function_number & 0x7);
 
 	d = opendir("/proc");
 	if (!d)
@@ -121,10 +122,11 @@ amdsmi_status_t gpuvsmi_get_pid_info(const amdsmi_bdf_t &bdf, long int pid,
 	struct dirent *dir;
 
 	/* 0000:00:00.0 */
-	snprintf(bdf_str, 13, "%04x:%02x:%02x.%d", bdf.domain_number & 0xffff,
-			bdf.bus_number & 0xff,
-			bdf.device_number & 0x1f,
-			bdf.function_number & 0x7);
+	snprintf(bdf_str, 13, "%04x:%02x:%02x.%d",
+            bdf.fields.domain_number & 0xffff,
+			bdf.fields.bus_number & 0xff,
+			bdf.fields.device_number & 0x1f,
+			bdf.fields.function_number & 0x7);
 
 
 	std::string path = "/proc/" + std::to_string(pid) + "/fdinfo/";
