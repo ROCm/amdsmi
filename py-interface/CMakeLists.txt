@@ -1,7 +1,6 @@
 # Generate py-interface and package targets
 
-# match this version to your clang
-# too new won't work, too old won't work either
+# CLANG installed must be 14.0 or above
 set(clang_ver 14.0)
 set(ctypeslib_ver 2.3.2)
 
@@ -12,7 +11,6 @@ set(PY_PACKAGE_DIR "${PY_BUILD_DIR}/amdsmi")
 set(PY_WRAPPER_INSTALL_DIR "${SHARE_INSTALL_PREFIX}" CACHE STRING "Wrapper installation directory")
 
 # TODO: Figure out how python-clang and clang are related
-#       Currently only a very specific combination works
 
 # try to find clang of the right version
 set(GOOD_CLANG_FOUND FALSE)
@@ -22,7 +20,7 @@ if(BUILD_WRAPPER)
     # extract clang version manually because find_package(clang) doesn't work
     execute_process(COMMAND ${clang} --version OUTPUT_VARIABLE clang_full_version_string)
     string (REGEX REPLACE ".*clang version ([0-9]+\\.[0-9]+).*" "\\1" CLANG_VERSION_STRING ${clang_full_version_string})
-    if(CLANG_VERSION_STRING VERSION_EQUAL clang_ver)
+    if((CLANG_VERSION_STRING VERSION_GREATER clang_ver) OR (CLANG_VERSION_STRING VERSION_EQUAL clang_ver))
         message("GOOD CLANG VERSION: ${CLANG_VERSION_STRING}")
         set(GOOD_CLANG_FOUND TRUE)
     else()
@@ -47,9 +45,11 @@ if(NOT GOOD_CLANG_FOUND)
         COMMAND ln -Pf ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper.py ${PY_PACKAGE_DIR}/)
 else()
     find_package(Python3 3.7 COMPONENTS Interpreter Development REQUIRED)
+    # --break-system-packages is needed for python 3.11
+    # see: https://peps.python.org/pep-0668/
     add_custom_target(
         python_pre_reqs
-        COMMAND ${Python3_EXECUTABLE} -m pip install clang==${clang_ver} ctypeslib2==${ctypeslib_ver})
+        COMMAND ${Python3_EXECUTABLE} -m pip install --break-system-packages clang==${clang_ver} ctypeslib2==${ctypeslib_ver})
     # generate new wrapper
     configure_file(${PROJECT_SOURCE_DIR}/tools/generator.py generator.py @ONLY COPYONLY)
     add_custom_command(

@@ -352,12 +352,12 @@ typedef struct {
 } amdsmi_frequency_range_t;
 
 typedef union {
-  struct {
+  struct fields_ {
     uint64_t function_number : 3;
     uint64_t device_number : 5;
     uint64_t bus_number : 8;
     uint64_t domain_number : 48;
-  };
+  } fields;
   uint64_t as_uint;
 } amdsmi_bdf_t;
 
@@ -380,7 +380,7 @@ typedef struct {
 
 typedef struct {
   uint8_t num_fw_info;
-  struct {
+  struct fw_info_list_ {
     amdsmi_fw_block_t fw_id;
     uint64_t fw_version;
     uint64_t reserved[2];
@@ -440,15 +440,15 @@ typedef struct {
 typedef uint32_t amdsmi_process_handle_t;
 
 typedef struct {
-	char                  name[AMDSMI_NORMAL_STRING_LENGTH];
-	amdsmi_process_handle_t pid;
-	uint64_t              mem; /** in bytes */
-	struct {
-		uint64_t gfx;
-		uint64_t enc;
+  char                  name[AMDSMI_NORMAL_STRING_LENGTH];
+  amdsmi_process_handle_t pid;
+  uint64_t              mem; /** in bytes */
+  struct engine_usage_ {
+    uint64_t gfx;
+    uint64_t enc;
     uint32_t reserved[12];
-	} engine_usage; /** How much time the process spend using these engines in ns */
-  struct {
+  } engine_usage; /** How much time the process spend using these engines in ns */
+  struct memory_usage_ {
     uint64_t gtt_mem;
     uint64_t cpu_mem;
     uint64_t vram_mem;
