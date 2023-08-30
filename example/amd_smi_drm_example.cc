@@ -272,8 +272,10 @@ int main() {
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_gpu_device_bdf:\n");
             printf("\tDevice[%d] BDF %04lx:%02x:%02x.%d\n\n", i,
-                   bdf.domain_number, bdf.bus_number, bdf.device_number,
-                   bdf.function_number);
+                   bdf.fields.domain_number,
+                   bdf.fields.bus_number,
+                   bdf.fields.device_number,
+                   bdf.fields.function_number);
 
             // Get handle from BDF
             amdsmi_processor_handle dev_handle;
@@ -507,8 +509,11 @@ int main() {
                 uint64_t mem = 0, gtt_mem = 0, cpu_mem = 0, vram_mem = 0;
                 uint64_t gfx = 0, enc = 0;
                 char bdf_str[20];
-                sprintf(bdf_str, "%04lx:%02x:%02x.%d", bdf.domain_number,
-                        bdf.bus_number, bdf.device_number, bdf.function_number);
+                sprintf(bdf_str, "%04lx:%02x:%02x.%d",
+                        bdf.fields.domain_number,
+                        bdf.fields.bus_number,
+                        bdf.fields.device_number,
+                        bdf.fields.function_number);
                 int num = 0;
                 ret = amdsmi_get_gpu_process_list(processor_handles[j], &num_process,
                                             process_list);

@@ -123,8 +123,10 @@ int main() {
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_gpu_device_bdf:\n");
             printf("\tDevice[%d] BDF %04lx:%02x:%02x.%d\n\n", i,
-                   bdf.domain_number, bdf.bus_number, bdf.device_number,
-                   bdf.function_number);
+                   bdf.fields.domain_number,
+                   bdf.fields.bus_number,
+                   bdf.fields.device_number,
+                   bdf.fields.function_number);
 
             amdsmi_asic_info_t asic_info = {};
             ret = amdsmi_get_gpu_asic_info(processor_handles[j], &asic_info);

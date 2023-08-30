@@ -171,10 +171,10 @@ amdsmi_status_t AMDSmiDrm::init() {
             continue;
         }
 
-        bdf.function_number = device->businfo.pci->func;
-        bdf.device_number = device->businfo.pci->dev;
-        bdf.bus_number = device->businfo.pci->bus;
-        bdf.domain_number = device->businfo.pci->domain;
+        bdf.fields.function_number = device->businfo.pci->func;
+        bdf.fields.device_number = device->businfo.pci->dev;
+        bdf.fields.bus_number = device->businfo.pci->bus;
+        bdf.fields.domain_number = device->businfo.pci->domain;
 
         vendor_id = device->deviceinfo.pci->vendor_id;
 

@@ -1849,10 +1849,10 @@ amdsmi_status_t amdsmi_get_processor_handle_from_bdf(amdsmi_bdf_t bdf,
                 return status;
             }
             amdsmi_bdf_t found_bdf = gpu_device->get_bdf();
-            if (bdf.bus_number == found_bdf.bus_number &&
-                bdf.device_number == found_bdf.device_number &&
-                bdf.domain_number == found_bdf.domain_number &&
-                bdf.function_number == found_bdf.function_number) {
+            if ((bdf.fields.bus_number == found_bdf.fields.bus_number) &&
+                (bdf.fields.device_number == found_bdf.fields.device_number) &&
+                (bdf.fields.domain_number == found_bdf.fields.domain_number) &&
+                (bdf.fields.function_number == found_bdf.fields.function_number)) {
                     *processor_handle = devs[idx];
                     return AMDSMI_STATUS_SUCCESS;
                 }
