@@ -578,6 +578,11 @@ amdsmi_status_t amdsmi_get_gpu_id(amdsmi_processor_handle processor_handle,
     return rsmi_wrapper(rsmi_dev_id_get, processor_handle, id);
 }
 
+amdsmi_status_t amdsmi_get_gpu_revision(amdsmi_processor_handle processor_handle,
+                                uint16_t *revision) {
+    return rsmi_wrapper(rsmi_dev_revision_get, processor_handle, revision);
+}
+
 // TODO(bliu) : add fw info from libdrm
 amdsmi_status_t amdsmi_get_fw_info(amdsmi_processor_handle processor_handle,
         amdsmi_fw_info_t *info) {
@@ -1272,7 +1277,7 @@ amdsmi_status_t amdsmi_get_gpu_bdf_id(
 }
 
 amdsmi_status_t amdsmi_get_gpu_topo_numa_affinity(
-    amdsmi_processor_handle processor_handle, uint32_t *numa_node) {
+    amdsmi_processor_handle processor_handle, int32_t *numa_node) {
     return rsmi_wrapper(rsmi_topo_numa_affinity_get, processor_handle,
             numa_node);
 }

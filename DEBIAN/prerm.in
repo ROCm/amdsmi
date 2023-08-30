@@ -38,6 +38,7 @@ rm_pyc() {
  rm -rf @CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBEXECDIR@/amd_smi/__pycache__
 }
 
+
 case "$1" in
   ( remove | upgrade)
     rm_ldconfig

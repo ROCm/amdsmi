@@ -1088,6 +1088,21 @@ rsmi_status_t rsmi_num_monitor_devices(uint32_t *num_devices);
  */
 rsmi_status_t rsmi_dev_id_get(uint32_t dv_ind, uint16_t *id);
 
+/**
+ *  @brief Get the device revision associated with the device
+ *
+ *  @details Given a device index @p dv_ind and a pointer to a uint32_t to
+ *  which the revision will be written
+ *
+ *  @param[in] dv_ind a device index
+ *
+ *  @param[inout] revision a pointer to uint32_t to which the device revision
+ *  will be written
+ *
+ *  @retval ::RSMI_STATUS_SUCCESS is returned upon successful call.
+ *
+ */
+rsmi_status_t rsmi_dev_revision_get(uint32_t dv_ind, uint16_t *revision);
 
 /**
  *  @brief Get the SKU for a desired device associated with the device with
@@ -1453,6 +1468,8 @@ rsmi_status_t rsmi_dev_unique_id_get(uint32_t dv_ind, uint64_t *id);
  *  written
  *
  *  @retval ::RSMI_STATUS_SUCCESS is returned upon successful call.
+ *  @retval ::RSMI_STATUS_UNEXPECTED_DATA Data read or provided was not as
+ *  expected
  *
  */
 rsmi_status_t
@@ -1517,7 +1534,7 @@ rsmi_status_t rsmi_dev_pci_id_get(uint32_t dv_ind, uint64_t *bdfid);
  *  support this function with the given arguments
  *  @retval ::RSMI_STATUS_INVALID_ARGS the provided arguments are not valid
  */
-rsmi_status_t rsmi_topo_numa_affinity_get(uint32_t dv_ind, uint32_t *numa_node);
+rsmi_status_t rsmi_topo_numa_affinity_get(uint32_t dv_ind, int32_t *numa_node);
 
 /**
  *  @brief Get PCIe traffic information
@@ -2355,6 +2372,8 @@ rsmi_status_t rsmi_dev_mem_overdrive_level_get(uint32_t dv_ind, uint32_t *od);
  *  @retval ::RSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
  *  @retval ::RSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::RSMI_STATUS_UNEXPECTED_DATA Data read or provided was not as
+ *  expected
  *
  */
 rsmi_status_t rsmi_dev_gpu_clk_freq_get(uint32_t dv_ind,
