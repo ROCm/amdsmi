@@ -1651,7 +1651,7 @@ def amdsmi_get_gpu_topo_numa_affinity(processor_handle: amdsmi_wrapper.amdsmi_pr
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    numa_node = ctypes.c_uint32()
+    numa_node = ctypes.c_int32()
 
     _check_res(
         amdsmi_wrapper.amdsmi_get_gpu_topo_numa_affinity(

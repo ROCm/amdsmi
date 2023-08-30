@@ -28,3 +28,6 @@ _toc.yml
 _build/
 _doxygen/
 docBin/
+
+# Simulated SYSFS - for early development or debug
+device/
