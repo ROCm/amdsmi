@@ -1979,6 +1979,28 @@ static rsmi_status_t get_dev_name_from_file(uint32_t dv_ind, char *name,
   return RSMI_STATUS_SUCCESS;
 }
 
+// return empty if cannot find it in pci.ids
+static std::string get_vendor_name_from_id(uint16_t vendor_id) {
+  for (auto fl : pci_name_files) {
+    std::ifstream id_file_strm(fl);
+    std::string ln;
+
+    while (std::getline(id_file_strm, ln)) {
+      // parse line
+      if (ln == ""  || ln[0] == '#' || ln[0] == '\t') {
+        continue;
+      }
+      std::istringstream ln_str(ln);
+      std::string val_str = get_id_name_str_from_line(vendor_id, ln, &ln_str);
+
+      if (val_str != "") {
+        return val_str;
+      }
+    }
+  }
+  return "";
+}
+
 // Parse pci.ids files. Comment lines have # in first column. Otherwise,
 // Syntax:
 // vendor  vendor_name
@@ -2153,6 +2175,35 @@ rsmi_dev_name_get(uint32_t dv_ind, char *name, size_t len) {
     ret = get_dev_name_from_id(dv_ind, name, len, NAME_STR_DEVICE);
   }
 
+  return ret;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_pcie_vendor_name_get(uint32_t dv_ind, char *name, size_t len) {
+  rsmi_status_t ret;
+
+  TRY
+  std::ostringstream ss;
+  ss << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ss);
+  CHK_SUPPORT_NAME_ONLY(name)
+
+  if (len == 0) {
+    return RSMI_STATUS_INVALID_ARGS;
+  }
+
+  DEVICE_MUTEX
+  uint16_t id = 0;
+  ret = get_id(dv_ind, amd::smi::kDevPCieVendorID, &id);
+  if (ret != RSMI_STATUS_SUCCESS) return ret;
+  std::string vendor_name = get_vendor_name_from_id(id);
+
+  if (vendor_name == "") {
+    return RSMI_STATUS_NOT_FOUND;
+  }
+  memset(name, 0, len);
+  strncpy(name, vendor_name.c_str(), len-1);
   return ret;
   CATCH
 }

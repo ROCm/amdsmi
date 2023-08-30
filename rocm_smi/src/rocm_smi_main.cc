@@ -150,7 +150,8 @@ amd::smi::RocmSMI::devInfoTypesStrings = {
   {amd::smi::kDevAvailableComputePartition, amdSMI +
       "kDevAvailableComputePartition"},
   {amd::smi::kDevComputePartition, amdSMI + "kDevComputePartition"},
-  {amd::smi::kDevMemoryPartition, amdSMI + "kDevMemoryPartition"}
+  {amd::smi::kDevMemoryPartition, amdSMI + "kDevMemoryPartition"},
+  {amd::smi::kDevPCieVendorID, amdSMI + "kDevPCieVendorID"},
 };
 
 namespace amd {
