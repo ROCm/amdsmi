@@ -40,16 +40,20 @@
  * DEALINGS WITH THE SOFTWARE.
  *
  */
-#include <assert.h>
-#include <stdint.h>
-#include <unistd.h>
 
-#include "amd_smi/amdsmi.h"
-#include <bitset>
-#include <iostream>
+
 #include <pwd.h>
 #include <sys/stat.h>
+#include <unistd.h>
+
+#include <bitset>
+#include <cassert>
+#include <cstdint>
+#include <cstring>
+#include <iostream>
 #include <vector>
+
+#include "amd_smi/amdsmi.h"
 
 #define CHK_AMDSMI_RET(RET)                                                    \
     {                                                                          \
@@ -221,7 +225,7 @@ int main() {
                     .fw_version);
 
             // Get temperature measurements
-            int64_t temp_measurements[4];
+            int64_t temp_measurements[TEMPERATURE_TYPE__MAX + 1];
             amdsmi_temperature_type_t temp_types[4] = {
                 TEMPERATURE_TYPE_EDGE, TEMPERATURE_TYPE_JUNCTION,
                 TEMPERATURE_TYPE_VRAM, TEMPERATURE_TYPE_PLX};
@@ -277,13 +281,6 @@ int main() {
             printf("\tCorrectable errors: %lu\n", err_cnt_info.correctable_count);
             printf("\tUncorrectable errors: %lu\n\n",
                    err_cnt_info.uncorrectable_count);
-            // Get process list
-            auto compare = [](const void *a, const void *b) -> int {
-                return (*(amdsmi_proc_info_t *)a).pid >
-                               (*(amdsmi_proc_info_t *)b).pid
-                           ? 1
-                           : -1;
-            };
 
             // Get device name
             amdsmi_board_info_t board_info = {};
