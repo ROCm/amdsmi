@@ -40,17 +40,19 @@
  * DEALINGS WITH THE SOFTWARE.
  *
  */
-#include <assert.h>
-#include <stdint.h>
-#include <unistd.h>
 
-#include "amd_smi/amdsmi.h"
-#include <bitset>
-#include <iostream>
 #include <pwd.h>
 #include <sys/stat.h>
-#include <string.h>
+#include <unistd.h>
+
+#include <bitset>
+#include <cassert>
+#include <cstdint>
+#include <cstring>
+#include <iostream>
 #include <vector>
+
+#include "amd_smi/amdsmi.h"
 
 
 #define CHK_AMDSMI_RET(RET)                                                    \
@@ -409,7 +411,7 @@ int main() {
             // Get temperature measurements
             // amdsmi_temperature_t edge_temp, junction_temp, vram_temp,
             // plx_temp;
-            int64_t temp_measurements[4];
+            int64_t temp_measurements[TEMPERATURE_TYPE__MAX + 1];
             amdsmi_temperature_type_t temp_types[4] = {
                 TEMPERATURE_TYPE_EDGE, TEMPERATURE_TYPE_JUNCTION,
                 TEMPERATURE_TYPE_VRAM, TEMPERATURE_TYPE_PLX};
@@ -548,7 +550,7 @@ int main() {
                        "==+=========================================+\n");
                 for (int it = 0; it < num; it++) {
                     char command[30];
-                    struct passwd *pwd = NULL;
+                    struct passwd *pwd = nullptr;
                     struct stat st;
 
                     sprintf(command, "/proc/%d", info_list[it].pid);

@@ -674,7 +674,7 @@ amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_i
     else {
         uint64_t dv_uid = 0;
         status = rsmi_wrapper(rsmi_dev_unique_id_get, processor_handle, &dv_uid);
-        if (status == AMDSMI_STATUS_SUCCESS) snprintf(info->asic_serial, sizeof(info->asic_serial), "%d", dv_uid);
+        if (status == AMDSMI_STATUS_SUCCESS) snprintf(info->asic_serial, sizeof(info->asic_serial), "%lu", dv_uid);
 
         status = rsmi_wrapper(rsmi_dev_brand_get, processor_handle,
                 info->market_name, AMDSMI_NORMAL_STRING_LENGTH);
