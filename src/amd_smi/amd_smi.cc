@@ -2738,7 +2738,7 @@ amdsmi_status_t amdsmi_first_online_core_on_cpu_socket(amdsmi_cpusocket_handle s
     return AMDSMI_STATUS_SUCCESS;
 }
 
-const char* amdsmi_get_esmi_err_msg(amdsmi_status_t status, const char **status_string)
+const char** amdsmi_get_esmi_err_msg(amdsmi_status_t status, const char **status_string)
 {
     for (auto& iter : amd::smi::esmi_status_map) {
         if (iter.first == status) {
@@ -2746,6 +2746,6 @@ const char* amdsmi_get_esmi_err_msg(amdsmi_status_t status, const char **status_
             break;
         }
     }
-    return *status_string;
+    return status_string;
 }
 #endif
