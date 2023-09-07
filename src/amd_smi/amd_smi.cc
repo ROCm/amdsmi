@@ -671,11 +671,10 @@ amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_i
         info->rev_id = dev_info.pci_rev;
         info->vendor_id = gpu_device->get_vendor_id();
     }
-    // For other sysfs related information, get from rocm-smi
     else {
         uint64_t dv_uid = 0;
         status = rsmi_wrapper(rsmi_dev_unique_id_get, processor_handle, &dv_uid);
-        if (status == AMDSMI_STATUS_SUCCESS) snprintf(info->asic_serial, sizeof(info->asic_serial), "%d", dv_uid);
+        if (status == AMDSMI_STATUS_SUCCESS) snprintf(info->asic_serial, sizeof(info->asic_serial), "%lu", dv_uid);
 
         status = rsmi_wrapper(rsmi_dev_brand_get, processor_handle,
                 info->market_name, AMDSMI_NORMAL_STRING_LENGTH);
@@ -688,6 +687,9 @@ amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_i
                     &subvendor_id);
         if (status == AMDSMI_STATUS_SUCCESS) info->subvendor_id = subvendor_id;
     }
+    // For other sysfs related information, get from rocm-smi
+    status =  rsmi_wrapper(rsmi_dev_pcie_vendor_name_get, processor_handle,
+                    info->vendor_name, AMDSMI_MAX_STRING_LENGTH);
 
     return AMDSMI_STATUS_SUCCESS;
 }
@@ -1847,10 +1849,10 @@ amdsmi_status_t amdsmi_get_processor_handle_from_bdf(amdsmi_bdf_t bdf,
                 return status;
             }
             amdsmi_bdf_t found_bdf = gpu_device->get_bdf();
-            if (bdf.bus_number == found_bdf.bus_number &&
-                bdf.device_number == found_bdf.device_number &&
-                bdf.domain_number == found_bdf.domain_number &&
-                bdf.function_number == found_bdf.function_number) {
+            if ((bdf.fields.bus_number == found_bdf.fields.bus_number) &&
+                (bdf.fields.device_number == found_bdf.fields.device_number) &&
+                (bdf.fields.domain_number == found_bdf.fields.domain_number) &&
+                (bdf.fields.function_number == found_bdf.fields.function_number)) {
                     *processor_handle = devs[idx];
                     return AMDSMI_STATUS_SUCCESS;
                 }
@@ -1861,13 +1863,19 @@ amdsmi_status_t amdsmi_get_processor_handle_from_bdf(amdsmi_bdf_t bdf,
 }
 
 #ifdef ENABLE_ESMI_LIB
-amdsmi_status_t amdsmi_get_hsmp_proto_ver(uint32_t *proto_ver)
+amdsmi_status_t amdsmi_get_cpu_hsmp_proto_ver(amdsmi_cpusocket_handle socket_handle,
+                uint32_t *proto_ver)
 {
     amdsmi_status_t status;
     uint32_t hsmp_proto_ver;
 
-    if (proto_ver == nullptr)
+    if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
+
+    amd::smi::AMDSmiCpuSocket* socket = nullptr;
+    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
 
     status = static_cast<amdsmi_status_t>(esmi_hsmp_proto_ver_get(&hsmp_proto_ver));
     *proto_ver = hsmp_proto_ver;
@@ -1878,13 +1886,19 @@ amdsmi_status_t amdsmi_get_hsmp_proto_ver(uint32_t *proto_ver)
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_smu_fw_version(amdsmi_smu_fw_version_t *amdsmi_smu_fw)
+amdsmi_status_t amdsmi_get_cpu_smu_fw_version(amdsmi_cpusocket_handle socket_handle,
+                amdsmi_smu_fw_version_t *amdsmi_smu_fw)
 {
     amdsmi_status_t status;
     struct smu_fw_version smu_fw;
 
-    if (amdsmi_smu_fw == nullptr)
+    if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
+
+    amd::smi::AMDSmiCpuSocket* socket = nullptr;
+    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
 
     status = static_cast<amdsmi_status_t>(esmi_smu_fw_version_get(&smu_fw));
 
@@ -2179,6 +2193,483 @@ amdsmi_status_t amdsmi_get_cpu_pwr_svi_telemetry_all_rails(amdsmi_cpusocket_hand
     return AMDSMI_STATUS_SUCCESS;
 }
 
+amdsmi_status_t amdsmi_set_cpu_socket_power_cap(amdsmi_cpusocket_handle socket_handle,
+        uint32_t sock_ind, uint32_t pcap)
+{
+    amdsmi_status_t status;
+
+    if (socket_handle == nullptr)
+        return AMDSMI_STATUS_INVAL;
+
+    amd::smi::AMDSmiCpuSocket* socket = nullptr;
+    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    status = static_cast<amdsmi_status_t>(esmi_socket_power_cap_set(sock_ind, pcap));
+
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_set_cpu_pwr_efficiency_mode(amdsmi_cpusocket_handle socket_handle,
+        uint8_t sock_ind, uint8_t mode)
+{
+    amdsmi_status_t status;
+
+    if (socket_handle == nullptr)
+        return AMDSMI_STATUS_INVAL;
+
+    amd::smi::AMDSmiCpuSocket* socket = nullptr;
+    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    status = static_cast<amdsmi_status_t>(esmi_pwr_efficiency_mode_set(sock_ind, mode));
+
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_get_cpu_core_boostlimit(amdsmi_processor_handle processor_handle,
+        uint32_t core_ind, uint32_t *pboostlimit)
+{
+    amdsmi_status_t status;
+    uint32_t boostlimit;
+
+    if (processor_handle == nullptr)
+        return AMDSMI_STATUS_INVAL;
+
+    amd::smi::AMDSmiCpuCore* core = nullptr;
+    amdsmi_status_t r = get_cpu_core_from_handle(processor_handle, &core);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    status = static_cast<amdsmi_status_t>(esmi_core_boostlimit_get(core_ind, &boostlimit));
+    *pboostlimit = boostlimit;
+
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_get_cpu_socket_c0_residency(amdsmi_cpusocket_handle socket_handle,
+        uint32_t sock_ind, uint32_t *pc0_residency)
+{
+    amdsmi_status_t status;
+    uint32_t res;
+
+    if (socket_handle == nullptr)
+        return AMDSMI_STATUS_INVAL;
+
+    amd::smi::AMDSmiCpuSocket* socket = nullptr;
+    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    status = static_cast<amdsmi_status_t>(esmi_socket_c0_residency_get(sock_ind, &res));
+    *pc0_residency = res;
+
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_set_cpu_core_boostlimit(amdsmi_processor_handle processor_handle,
+        uint32_t core_ind, uint32_t boostlimit)
+{
+    amdsmi_status_t status;
+
+    if (processor_handle == nullptr)
+        return AMDSMI_STATUS_INVAL;
+
+    amd::smi::AMDSmiCpuCore* core = nullptr;
+    amdsmi_status_t r = get_cpu_core_from_handle(processor_handle, &core);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    status = static_cast<amdsmi_status_t>(esmi_core_boostlimit_set(core_ind, boostlimit));
+
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_set_cpu_socket_boostlimit(amdsmi_cpusocket_handle socket_handle,
+        uint32_t sock_ind, uint32_t boostlimit)
+{
+    amdsmi_status_t status;
+
+    if (socket_handle == nullptr)
+        return AMDSMI_STATUS_INVAL;
+
+    amd::smi::AMDSmiCpuSocket* socket = nullptr;
+    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    status = static_cast<amdsmi_status_t>(esmi_socket_boostlimit_set(sock_ind, boostlimit));
+
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_get_cpu_ddr_bw(amdsmi_cpusocket_handle socket_handle,
+        amdsmi_ddr_bw_metrics_t *ddr_bw)
+{
+    amdsmi_status_t status;
+    struct ddr_bw_metrics ddr;
+
+    if (socket_handle == nullptr)
+        return AMDSMI_STATUS_INVAL;
+
+    amd::smi::AMDSmiCpuSocket* socket = nullptr;
+    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    status = static_cast<amdsmi_status_t>(esmi_ddr_bw_get(&ddr));
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    ddr_bw->max_bw = ddr.max_bw;
+    ddr_bw->utilized_bw = ddr.utilized_bw;
+    ddr_bw->utilized_pct = ddr.utilized_pct;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_get_cpu_socket_temperature(amdsmi_cpusocket_handle socket_handle,
+        uint32_t sock_ind, uint32_t *ptmon)
+{
+    amdsmi_status_t status;
+    uint32_t tmon;
+
+    if (socket_handle == nullptr)
+        return AMDSMI_STATUS_INVAL;
+
+    amd::smi::AMDSmiCpuSocket* socket = nullptr;
+    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    status = static_cast<amdsmi_status_t>(esmi_socket_temperature_get(sock_ind, &tmon));
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    *ptmon = tmon;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_get_cpu_dimm_temp_range_and_refresh_rate(
+                   amdsmi_cpusocket_handle socket_handle,
+                   uint8_t sock_ind, uint8_t dimm_addr, amdsmi_temp_range_refresh_rate_t *rate)
+{
+    amdsmi_status_t status;
+    struct temp_range_refresh_rate dimm_rate;
+
+    if (socket_handle == nullptr)
+        return AMDSMI_STATUS_INVAL;
+
+    amd::smi::AMDSmiCpuSocket* socket = nullptr;
+    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    status = static_cast<amdsmi_status_t>(esmi_dimm_temp_range_and_refresh_rate_get(
+                                            sock_ind, dimm_addr, &dimm_rate));
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    rate->range = dimm_rate.range;
+    rate->ref_rate = dimm_rate.ref_rate;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_get_cpu_dimm_power_consumption(amdsmi_cpusocket_handle socket_handle,
+                        uint8_t sock_ind, uint8_t dimm_addr, amdsmi_dimm_power_t *dimm_pow)
+{
+    amdsmi_status_t status;
+    struct dimm_power d_power;
+
+    if (socket_handle == nullptr)
+        return AMDSMI_STATUS_INVAL;
+
+    amd::smi::AMDSmiCpuSocket* socket = nullptr;
+    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    status = static_cast<amdsmi_status_t>(esmi_dimm_power_consumption_get(sock_ind,
+                                                              dimm_addr, &d_power));
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    dimm_pow->power = d_power.power;
+    dimm_pow->update_rate = d_power.update_rate;
+    dimm_pow->dimm_addr = d_power.dimm_addr;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_get_cpu_dimm_thermal_sensor(amdsmi_cpusocket_handle socket_handle,
+        uint8_t sock_ind, uint8_t dimm_addr, amdsmi_dimm_thermal_t *dimm_temp)
+{
+    amdsmi_status_t status;
+    struct dimm_thermal d_sensor;
+
+    if (socket_handle == nullptr)
+        return AMDSMI_STATUS_INVAL;
+
+    amd::smi::AMDSmiCpuSocket* socket = nullptr;
+    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    status = static_cast<amdsmi_status_t>(esmi_dimm_thermal_sensor_get(sock_ind,
+                                                              dimm_addr, &d_sensor));
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    dimm_temp->temp = d_sensor.temp;
+    dimm_temp->update_rate = d_sensor.update_rate;
+    dimm_temp->dimm_addr = d_sensor.dimm_addr;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_set_cpu_xgmi_width(amdsmi_cpusocket_handle socket_handle,
+        uint8_t min, uint8_t max)
+{
+    amdsmi_status_t status;
+
+    if (socket_handle == nullptr)
+        return AMDSMI_STATUS_INVAL;
+
+    amd::smi::AMDSmiCpuSocket* socket = nullptr;
+    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    status = static_cast<amdsmi_status_t>(esmi_xgmi_width_set(min, max));
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_set_cpu_gmi3_link_width_range(amdsmi_cpusocket_handle socket_handle,
+        uint8_t sock_ind, uint8_t min_link_width, uint8_t max_link_width)
+{
+    amdsmi_status_t status;
+
+    if (socket_handle == nullptr)
+        return AMDSMI_STATUS_INVAL;
+
+    amd::smi::AMDSmiCpuSocket* socket = nullptr;
+    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    status = static_cast<amdsmi_status_t>(esmi_gmi3_link_width_range_set(sock_ind,
+                                                        min_link_width, max_link_width));
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_cpu_apb_enable(amdsmi_cpusocket_handle socket_handle, uint32_t sock_ind)
+{
+    amdsmi_status_t status;
+
+    if (socket_handle == nullptr)
+        return AMDSMI_STATUS_INVAL;
+
+    amd::smi::AMDSmiCpuSocket* socket = nullptr;
+    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    status = static_cast<amdsmi_status_t>(esmi_apb_enable(sock_ind));
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_cpu_apb_disable(amdsmi_cpusocket_handle socket_handle,
+        uint32_t sock_ind, uint8_t pstate)
+{
+    amdsmi_status_t status;
+
+    if (socket_handle == nullptr)
+        return AMDSMI_STATUS_INVAL;
+
+    amd::smi::AMDSmiCpuSocket* socket = nullptr;
+    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    status = static_cast<amdsmi_status_t>(esmi_apb_disable(sock_ind, pstate));
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_set_cpu_socket_lclk_dpm_level(amdsmi_cpusocket_handle socket_handle,
+        uint32_t sock_ind, uint8_t nbio_id, uint8_t min, uint8_t max)
+{
+    amdsmi_status_t status;
+
+    if (socket_handle == nullptr)
+        return AMDSMI_STATUS_INVAL;
+
+    amd::smi::AMDSmiCpuSocket* socket = nullptr;
+    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    status = static_cast<amdsmi_status_t>(esmi_socket_lclk_dpm_level_set(sock_ind,
+                                                                        nbio_id, min, max));
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_get_cpu_socket_lclk_dpm_level(amdsmi_cpusocket_handle socket_handle,
+        uint8_t sock_ind, uint8_t nbio_id, amdsmi_dpm_level_t *nbio)
+{
+    amdsmi_status_t status;
+    struct dpm_level nb;
+
+    if (socket_handle == nullptr)
+        return AMDSMI_STATUS_INVAL;
+
+    amd::smi::AMDSmiCpuSocket* socket = nullptr;
+    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    status = static_cast<amdsmi_status_t>(esmi_socket_lclk_dpm_level_get(sock_ind,
+                                                                        nbio_id, &nb));
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    nbio->min_dpm_level = nb.min_dpm_level;
+    nbio->max_dpm_level = nb.max_dpm_level;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_set_cpu_pcie_link_rate(amdsmi_cpusocket_handle socket_handle,
+        uint8_t sock_ind, uint8_t rate_ctrl, uint8_t *prev_mode)
+{
+    amdsmi_status_t status;
+
+    if (socket_handle == nullptr)
+        return AMDSMI_STATUS_INVAL;
+
+    amd::smi::AMDSmiCpuSocket* socket = nullptr;
+    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    status = static_cast<amdsmi_status_t>(esmi_pcie_link_rate_set(sock_ind,
+                                                                        rate_ctrl, prev_mode));
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_set_cpu_df_pstate_range(amdsmi_cpusocket_handle socket_handle,
+        uint8_t sock_ind, uint8_t max_pstate, uint8_t min_pstate)
+{
+    amdsmi_status_t status;
+
+    if (socket_handle == nullptr)
+        return AMDSMI_STATUS_INVAL;
+
+    amd::smi::AMDSmiCpuSocket* socket = nullptr;
+    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    status = static_cast<amdsmi_status_t>(esmi_df_pstate_range_set(sock_ind,
+                                                                        max_pstate, min_pstate));
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_get_cpu_current_io_bandwidth(amdsmi_cpusocket_handle socket_handle,
+        uint8_t sock_ind, amdsmi_link_id_bw_type_t link, uint32_t *io_bw)
+{
+    amdsmi_status_t status;
+    uint32_t bw;
+    struct link_id_bw_type io_link;
+
+    if (socket_handle == nullptr)
+        return AMDSMI_STATUS_INVAL;
+
+    amd::smi::AMDSmiCpuSocket* socket = nullptr;
+    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    status = static_cast<amdsmi_status_t>(esmi_current_io_bandwidth_get(sock_ind,
+                                                        io_link, &bw));
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    link.link_name = io_link.link_name;
+    link.bw_type= io_link.bw_type;
+    *io_bw = bw;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_get_cpu_current_xgmi_bw(amdsmi_cpusocket_handle socket_handle,
+        amdsmi_link_id_bw_type_t link, uint32_t *xgmi_bw)
+{
+    amdsmi_status_t status;
+    uint32_t bw;
+    struct link_id_bw_type io_link;
+
+    if (socket_handle == nullptr)
+        return AMDSMI_STATUS_INVAL;
+
+    amd::smi::AMDSmiCpuSocket* socket = nullptr;
+    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    status = static_cast<amdsmi_status_t>(esmi_current_xgmi_bw_get(io_link, &bw));
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    link.link_name = io_link.link_name;
+    link.bw_type= io_link.bw_type;
+    *xgmi_bw = bw;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
 amdsmi_status_t amdsmi_get_number_of_cpu_sockets(uint32_t sockets)
 {
     amdsmi_status_t status = amd::smi::AMDSmiSystem::getInstance().get_cpu_sockets(sockets);
@@ -2222,5 +2713,39 @@ amdsmi_status_t amdsmi_get_cpu_model(uint32_t model)
         return status;
 
     return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_first_online_core_on_cpu_socket(amdsmi_cpusocket_handle socket_handle,
+        uint32_t sock_ind, uint32_t *pcore_ind)
+{
+    amdsmi_status_t status;
+    uint32_t online_core;
+
+    if (socket_handle == nullptr)
+        return AMDSMI_STATUS_INVAL;
+
+    amd::smi::AMDSmiCpuSocket* socket = nullptr;
+    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    status = static_cast<amdsmi_status_t>(esmi_first_online_core_on_socket(sock_ind, &online_core));
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    *pcore_ind = online_core;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+const char* amdsmi_get_esmi_err_msg(amdsmi_status_t status, const char **status_string)
+{
+    for (auto& iter : amd::smi::esmi_status_map) {
+        if (iter.first == status) {
+            *status_string = esmi_get_err_msg(static_cast<esmi_status_t>(iter.first));
+            break;
+        }
+    }
+    return *status_string;
 }
 #endif

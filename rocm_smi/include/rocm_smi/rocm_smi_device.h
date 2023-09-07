@@ -167,7 +167,12 @@ enum DevInfoTypes {
   kDevGpuReset,
   kDevAvailableComputePartition,
   kDevComputePartition,
-  kDevMemoryPartition
+  kDevMemoryPartition,
+
+  // The information read from pci core sysfs
+  kDevPCieTypeStart = 1000,
+  kDevPCieVendorID = kDevPCieTypeStart,
+  kDevPCieTypeEND = 2000,
 };
 
 typedef struct {

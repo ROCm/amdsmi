@@ -163,11 +163,8 @@ void TestSysInfoRead::Run(void) {
     } else {
         if (err == AMDSMI_STATUS_SUCCESS) {
             IF_VERB(STANDARD) {
-              // TODO(bliu): read unique_id
-              /*
-                std::cout << "\t**GPU Unique ID : " << std::hex << asci_info.unique_id <<
-                std::endl;
-                */
+              std:: cout << "\t**GPU PCIe Vendor : " 
+                  << asci_info.vendor_name << std::endl;
             }
             // Verify api support checking functionality is working
             err = amdsmi_get_gpu_asic_info(processor_handles_[i], nullptr);

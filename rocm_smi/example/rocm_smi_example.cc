@@ -722,6 +722,11 @@ int main() {
     CHK_RSMI_RET_I(ret)
     std::cout << "\t**Dev.Rev.ID: 0x" << std::hex << val_ui16 << std::endl;
 
+    char pcie_vendor_name[256];
+    ret = rsmi_dev_pcie_vendor_name_get(i, pcie_vendor_name, 256);
+    CHK_RSMI_RET_I(ret)
+    std::cout << "\t**PCIe vendor name: " << pcie_vendor_name << std::endl;
+
     char current_compute_partition[256];
     current_compute_partition[0] = '\0';
     ret = rsmi_dev_compute_partition_get(i, current_compute_partition, 256);
