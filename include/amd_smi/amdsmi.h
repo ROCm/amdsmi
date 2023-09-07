@@ -352,12 +352,12 @@ typedef struct {
 } amdsmi_frequency_range_t;
 
 typedef union {
-  struct {
+  struct fields_ {
     uint64_t function_number : 3;
     uint64_t device_number : 5;
     uint64_t bus_number : 8;
     uint64_t domain_number : 48;
-  };
+  } fields;
   uint64_t as_uint;
 } amdsmi_bdf_t;
 
@@ -380,7 +380,7 @@ typedef struct {
 
 typedef struct {
   uint8_t num_fw_info;
-  struct {
+  struct fw_info_list_ {
     amdsmi_fw_block_t fw_id;
     uint64_t fw_version;
     uint64_t reserved[2];
@@ -391,11 +391,12 @@ typedef struct {
 typedef struct {
   char  market_name[AMDSMI_MAX_STRING_LENGTH];
   uint32_t vendor_id;   //< Use 32 bit to be compatible with other platform.
+  char vendor_name[AMDSMI_MAX_STRING_LENGTH];
   uint32_t subvendor_id;   //< The subsystem vendor id
   uint64_t device_id;   //< The device id of a GPU
   uint32_t rev_id;
   char asic_serial[AMDSMI_NORMAL_STRING_LENGTH];
-  uint32_t reserved[3];
+  uint32_t reserved[19];
 } amdsmi_asic_info_t;
 
 typedef struct {
@@ -439,15 +440,15 @@ typedef struct {
 typedef uint32_t amdsmi_process_handle_t;
 
 typedef struct {
-	char                  name[AMDSMI_NORMAL_STRING_LENGTH];
-	amdsmi_process_handle_t pid;
-	uint64_t              mem; /** in bytes */
-	struct {
-		uint64_t gfx;
-		uint64_t enc;
+  char                  name[AMDSMI_NORMAL_STRING_LENGTH];
+  amdsmi_process_handle_t pid;
+  uint64_t              mem; /** in bytes */
+  struct engine_usage_ {
+    uint64_t gfx;
+    uint64_t enc;
     uint32_t reserved[12];
-	} engine_usage; /** How much time the process spend using these engines in ns */
-  struct {
+  } engine_usage; /** How much time the process spend using these engines in ns */
+  struct memory_usage_ {
     uint64_t gtt_mem;
     uint64_t cpu_mem;
     uint64_t vram_mem;
@@ -3685,20 +3686,24 @@ amdsmi_status_t amdsmi_get_cpu_socket_energy(amdsmi_cpusocket_handle socket_hand
 /**
  *  @brief Get SMU Firmware Version.
  *
+ *  @param[in]      socket_handle Cpu socket which to query
  *  @param[in,out]    amdsmi_smu_fw - Input buffer to return the firmware version
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_smu_fw_version(amdsmi_smu_fw_version_t *amdsmi_smu_fw);
+amdsmi_status_t amdsmi_get_cpu_smu_fw_version(amdsmi_cpusocket_handle socket_handle,
+            amdsmi_smu_fw_version_t *amdsmi_smu_fw);
 
 /**
  *  @brief Get HSMP protocol Version.
  *
+ *  @param[in]      socket_handle Cpu socket which to query
  *  @param[in,out]    proto_ver - Input buffer to return the protocol version
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_hsmp_proto_ver(uint32_t *proto_ver);
+amdsmi_status_t amdsmi_get_cpu_hsmp_proto_ver(amdsmi_cpusocket_handle socket_handle,
+            uint32_t *proto_ver);
 
 /**
  *  @brief Get normalized status of the processor's PROCHOT status.
@@ -3938,11 +3943,13 @@ amdsmi_status_t amdsmi_set_cpu_socket_boostlimit(amdsmi_cpusocket_handle socket_
 /**
  *  @brief Get the DDR bandwidth data.
  *
+ *  @param[in]      socket_handle Cpu socket which to query
  *  @param[in,out]	ddr_bw - Input buffer to fill ddr bandwidth data
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpu_ddr_bw(amdsmi_ddr_bw_metrics_t *ddr_bw);
+amdsmi_status_t amdsmi_get_cpu_ddr_bw(amdsmi_cpusocket_handle socket_handle,
+        amdsmi_ddr_bw_metrics_t *ddr_bw);
 
 /** @} */
 
@@ -4154,12 +4161,14 @@ amdsmi_status_t amdsmi_get_cpu_current_io_bandwidth(amdsmi_cpusocket_handle sock
 /**
  *  @brief Get current input output bandwidth.
  *
+ *  @param[in]      socket_handle Cpu socket which to query
  *  @param[in]		link - link id and bw type to which xgmi bandwidth to be obtained
  *  @param[in,out]	xgmi_bw - Input buffer to fill bandwidth data
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpu_current_xgmi_bw(amdsmi_link_id_bw_type_t link, uint32_t *xgmi_bw);
+amdsmi_status_t amdsmi_get_cpu_current_xgmi_bw(amdsmi_cpusocket_handle socket_handle,
+        amdsmi_link_id_bw_type_t link, uint32_t *xgmi_bw);
 
 /** @} */
 
@@ -4216,14 +4225,30 @@ amdsmi_status_t amdsmi_get_number_of_cpu_sockets(uint32_t sockets);
 /**
  *  @brief Get first online core on socket.
  *
+ *  @param[in]      socket_handle Cpu socket which to query
  *  @param[in]		sock_ind - socket index.
  *
  *  @param[in,out]	sockets - Input buffer to fill first online core on socket data
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_first_online_core_on_cpu_socket(uint32_t sock_ind, uint32_t *pcore_ind);
+amdsmi_status_t amdsmi_first_online_core_on_cpu_socket(amdsmi_cpusocket_handle socket_handle,
+        uint32_t sock_ind, uint32_t *pcore_ind);
 
+/**
+ *  @brief Get a description of provided AMDSMI error status for esmi errors.
+ *
+ *  @details Set the provided pointer to a const char *, @p status_string, to
+ *  a string containing a description of the provided error code @p status.
+ *
+ *  @param[in]    status - The error status for which a description is desired.
+ *
+ *  @param[in,out]    status_string - A pointer to a const char * which will be made
+ *  to point to a description of the provided error code
+ *
+ *  @return const char* returned on success
+ */
+const char* amdsmi_get_esmi_err_msg(amdsmi_status_t status, const char **status_string);
 #endif
 /** @} */
 #ifdef __cplusplus

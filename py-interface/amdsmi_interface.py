@@ -445,10 +445,10 @@ def _format_bdf(amdsmi_bdf: amdsmi_wrapper.amdsmi_bdf_t) -> str:
     Returns:
         `str`: String containing BDF data in a readable format.
     """
-    domain = hex(amdsmi_bdf.c__UA_amdsmi_bdf_t_0.domain_number)[2:].zfill(4)
-    bus = hex(amdsmi_bdf.c__UA_amdsmi_bdf_t_0.bus_number)[2:].zfill(2)
-    device = hex(amdsmi_bdf.c__UA_amdsmi_bdf_t_0.device_number)[2:].zfill(2)
-    function = hex(amdsmi_bdf.c__UA_amdsmi_bdf_t_0.function_number)[2:]
+    domain = hex(amdsmi_bdf.fields.domain_number)[2:].zfill(4)
+    bus = hex(amdsmi_bdf.fields.bus_number)[2:].zfill(2)
+    device = hex(amdsmi_bdf.fields.device_number)[2:].zfill(2)
+    function = hex(amdsmi_bdf.fields.function_number)[2:]
 
     return domain + ":" + bus + ":" + device + "." + function
 
@@ -495,10 +495,10 @@ def _make_amdsmi_bdf_from_list(bdf):
     if len(bdf) != 4:
         return None
     amdsmi_bdf = amdsmi_wrapper.amdsmi_bdf_t()
-    amdsmi_bdf.c__UA_amdsmi_bdf_t_0.function_number = bdf[3]
-    amdsmi_bdf.c__UA_amdsmi_bdf_t_0.device_number = bdf[2]
-    amdsmi_bdf.c__UA_amdsmi_bdf_t_0.bus_number = bdf[1]
-    amdsmi_bdf.c__UA_amdsmi_bdf_t_0.domain_number = bdf[0]
+    amdsmi_bdf.fields.function_number = bdf[3]
+    amdsmi_bdf.fields.device_number = bdf[2]
+    amdsmi_bdf.fields.bus_number = bdf[1]
+    amdsmi_bdf.fields.domain_number = bdf[0]
     return amdsmi_bdf
 
 
@@ -1422,32 +1422,6 @@ def amdsmi_set_gpu_perf_level(
         processor_handle, perf_level))
 
 
-def amdsmi_get_gpu_power_profile_presets(
-    processor_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_idx: int
-) -> Dict[str, Any]:
-    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
-        raise AmdSmiParameterException(
-            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
-        )
-    if not isinstance(sensor_idx, int):
-        raise AmdSmiParameterException(sensor_idx, int)
-
-    sensor_idx = ctypes.c_uint32(sensor_idx)
-    status = amdsmi_wrapper.amdsmi_power_profile_status_t()
-
-    _check_res(
-        amdsmi_wrapper.amdsmi_get_gpu_power_profile_presets(
-            processor_handle, sensor_idx, ctypes.byref(status)
-        )
-    )
-
-    return {
-        "available_profiles": status.available_profiles,
-        "current": status.current,
-        "num_profiles": status.num_profiles,
-    }
-
-
 def amdsmi_reset_gpu(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
@@ -1455,23 +1429,6 @@ def amdsmi_reset_gpu(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
         )
 
     _check_res(amdsmi_wrapper.amdsmi_reset_gpu(processor_handle))
-
-
-def amdsmi_set_gpu_perf_determinism_mode(
-    processor_handle: amdsmi_wrapper.amdsmi_processor_handle, clock_value: int
-):
-    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
-        raise AmdSmiParameterException(
-            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
-        )
-    if not isinstance(clock_value, int):
-        raise AmdSmiParameterException(clock_value, int)
-    clock_value = ctypes.c_uint64(clock_value)
-
-    _check_res(
-        amdsmi_wrapper.amdsmi_set_gpu_perf_determinism_mode(
-            processor_handle, clock_value)
-    )
 
 
 def amdsmi_set_gpu_fan_speed(
@@ -1998,7 +1955,7 @@ def amdsmi_get_utilization_count(
 
     result = [{"timestamp": timestamp.value}]
     for idx in range(count.value):
-        counter_type = amdsmi_wrapper.c__EA_AMDSMI_UTILIZATION_COUNTER_TYPE__enumvalues[
+        counter_type = amdsmi_wrapper.AMDSMI_UTILIZATION_COUNTER_TYPE__enumvalues[
             util_counter_list[idx].type
         ]
         if counter_type == "AMDSMI_UTILIZATION_COUNTER_LAST":
@@ -2024,7 +1981,7 @@ def amdsmi_get_gpu_perf_level(
             processor_handle, ctypes.byref(perf))
     )
 
-    result = amdsmi_wrapper.c__EA_amdsmi_dev_perf_level_t__enumvalues[perf.value]
+    result = amdsmi_wrapper.amdsmi_dev_perf_level_t__enumvalues[perf.value]
     if result == "AMDSMI_DEV_PERF_LEVEL_FIRST":
         result = "AMDSMI_DEV_PERF_LEVEL_AUTO"
     if result == "AMDSMI_DEV_PERF_LEVEL_LAST":
