@@ -60,10 +60,10 @@ using namespace std;
         if (RET != AMDSMI_STATUS_SUCCESS) {                                    \
             const char *err_str;                                               \
             const char **status_str;                                           \
-            std::cout << "AMDSMI call returned " << RET << " at line "         \
-                      << __LINE__ << std::endl;                                \
-            *status_str = amdsmi_get_esmi_err_msg(RET, &err_str);              \
-            std::cout << *status_str << std::endl;                             \
+            cout << "AMDSMI call returned " << RET << " at line "              \
+                      << __LINE__ << endl;                                     \
+            status_str = amdsmi_get_esmi_err_msg(RET, &err_str);               \
+            cout << *status_str << endl;                                       \
             return RET;                                                        \
         }                                                                      \
     }
@@ -85,13 +85,13 @@ int main(int argc, char **argv) {
   CHK_AMDSMI_RET(ret)
 
   // Allocate the memory for the sockets
-  std::vector<amdsmi_cpusocket_handle> sockets(socket_count);
+  vector<amdsmi_cpusocket_handle> sockets(socket_count);
 
   // Get the sockets of the system
   ret = amdsmi_get_cpusocket_handles(&socket_count, &sockets[0]);
   CHK_AMDSMI_RET(ret)
 
-  std::cout << "Total Socket: " << socket_count << std::endl;
+  cout << "Total Socket: " << socket_count << endl;
 
   // For each socket, get identifier and cores
   for (uint32_t i = 0; i < socket_count; i++) {
@@ -99,7 +99,7 @@ int main(int argc, char **argv) {
     uint32_t socket_info;
     ret = amdsmi_get_cpusocket_info(sockets[i], socket_info);
     CHK_AMDSMI_RET(ret)
-    std::cout << "Socket " << socket_info << std::endl;
+    cout << "Socket " << socket_info << endl;
 
     // Get the core count available for the socket.
     uint32_t core_count = 0;
@@ -107,12 +107,12 @@ int main(int argc, char **argv) {
     CHK_AMDSMI_RET(ret)
 
     // Allocate the memory for the cpu core handles on the socket
-    std::vector<amdsmi_processor_handle> processor_handles(core_count);
+    vector<amdsmi_processor_handle> processor_handles(core_count);
     // Get all cores of the socket
     ret = amdsmi_get_cpucore_handles(sockets[i],
                                     &core_count, &processor_handles[0]);
     CHK_AMDSMI_RET(ret)
-    std::cout << "core_count=" << core_count << std::endl;
+    cout << "core_count=" << core_count << endl;
 
     ret = amdsmi_get_cpu_hsmp_proto_ver(sockets[i], &proto_ver);
     CHK_AMDSMI_RET(ret)
@@ -235,7 +235,6 @@ int main(int argc, char **argv) {
     }
         cout<<"\n-------------------------------------------------\n";
 
-#if 0
     uint32_t c_clk = 0;
     ret = amdsmi_get_cpu_core_current_freq_limit(processor_handles[i], i, &c_clk);
     CHK_AMDSMI_RET(ret)
@@ -243,7 +242,6 @@ int main(int argc, char **argv) {
     cout<<"--------------------------------------------------------------";
     cout<<"\n| CPU["<<i<<"] core clock current frequency limit (MHz) : "<<c_clk<<"\t|\n";
     cout<<"--------------------------------------------------------------\n";
-#endif
 
     uint32_t power;
     cout<<"\n-------------------------------------------------";
@@ -310,7 +308,6 @@ int main(int argc, char **argv) {
     }
     cout<<"\n-------------------------------------------------\n";
 
-#if 0
     uint8_t mode;
     const char *err_str;
     cout <<"Enter the power efficiency mode to be set[0, 1 or 2]:\n";
@@ -329,7 +326,6 @@ int main(int argc, char **argv) {
 
     cout<<"\n-------------------------------------------------\n";
 
-
     uint32_t svi_power;
     cout<<"\n| SVI Power Telemetry (mWatts) \t |";
 
@@ -343,7 +339,6 @@ int main(int argc, char **argv) {
         cout<<" NA (Err:" <<ret<<"     |";
     }
     cout<<"\n-------------------------------------------------\n";
-#endif
   }
   // Clean up resources allocated at amdsmi_init
   ret = amdsmi_shut_down();
