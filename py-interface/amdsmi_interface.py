@@ -995,7 +995,7 @@ def amdsmi_get_gpu_vram_usage(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    vram_info = amdsmi_wrapper.amdsmi_vram_info_t()
+    vram_info = amdsmi_wrapper.amdsmi_vram_usage_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_gpu_vram_usage(
             processor_handle, ctypes.byref(vram_info))
