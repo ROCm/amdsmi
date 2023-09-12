@@ -621,7 +621,7 @@ int main() {
                       << "\n\n";
 
             // Get frame buffer
-            amdsmi_vram_info_t vram_usage = {};
+            amdsmi_vram_usage_t vram_usage = {};
             ret = amdsmi_get_gpu_vram_usage(processor_handles[j], &vram_usage);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_gpu_vram_usage:\n");

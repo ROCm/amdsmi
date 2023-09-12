@@ -503,7 +503,7 @@ amdsmi_status_t  amdsmi_get_temp_metric(amdsmi_processor_handle processor_handle
 }
 
 amdsmi_status_t amdsmi_get_gpu_vram_usage(amdsmi_processor_handle processor_handle,
-            amdsmi_vram_info_t *vram_info) {
+            amdsmi_vram_usage_t *vram_info) {
 
     AMDSMI_CHECK_INIT();
 
@@ -714,6 +714,70 @@ amdsmi_status_t amdsmi_get_gpu_vendor_name(
 amdsmi_status_t amdsmi_get_gpu_vram_vendor(amdsmi_processor_handle processor_handle,
                                      char *brand, uint32_t len) {
     return rsmi_wrapper(rsmi_dev_vram_vendor_get, processor_handle, brand, len);
+}
+
+amdsmi_status_t amdsmi_get_gpu_vram_info(
+    amdsmi_processor_handle processor_handle, amdsmi_vram_info_t *info) {
+    AMDSMI_CHECK_INIT();
+
+    if (info == nullptr) {
+        return AMDSMI_STATUS_INVAL;
+    }
+
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    amdsmi_status_t r = get_gpu_device_from_handle(processor_handle,
+                            &gpu_device);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    // init the info structure with default value
+    info->vram_type = VRAM_TYPE_UNKNOWN;
+    info->vram_size_mb = 0;
+    info->vram_vendor = AMDSMI_VRAM_VENDOR__PLACEHOLDER0;
+
+    // Only can read vram type from libdrm
+    if (gpu_device->check_if_drm_is_supported()) {
+        struct drm_amdgpu_info_device dev_info = {};
+        r = gpu_device->amdgpu_query_info(
+            AMDGPU_INFO_DEV_INFO,
+            sizeof(struct drm_amdgpu_info_device), &dev_info);
+        if (r == AMDSMI_STATUS_SUCCESS) {
+            info->vram_type = static_cast<amdsmi_vram_type_t>(
+                            dev_info.vram_type);
+        }
+    }
+
+    // map the vendor name to enum
+    char brand[256];
+    r = rsmi_wrapper(rsmi_dev_vram_vendor_get, processor_handle, brand, 255);
+    if (r == AMDSMI_STATUS_SUCCESS) {
+        if (strcasecmp(brand, "SAMSUNG") == 0)
+            info->vram_vendor = AMDSMI_VRAM_VENDOR__SAMSUNG;
+        if (strcasecmp(brand, "INFINEON") == 0)
+            info->vram_vendor = AMDSMI_VRAM_VENDOR__INFINEON;
+        if (strcasecmp(brand, "ELPIDA") == 0)
+            info->vram_vendor = AMDSMI_VRAM_VENDOR__ELPIDA;
+        if (strcasecmp(brand, "ETRON") == 0)
+            info->vram_vendor = AMDSMI_VRAM_VENDOR__ETRON;
+        if (strcasecmp(brand, "NANYA") == 0)
+            info->vram_vendor = AMDSMI_VRAM_VENDOR__NANYA;
+        if (strcasecmp(brand, "HYNIX") == 0)
+            info->vram_vendor = AMDSMI_VRAM_VENDOR__HYNIX;
+        if (strcasecmp(brand, "MOSEL") == 0)
+            info->vram_vendor = AMDSMI_VRAM_VENDOR__MOSEL;
+        if (strcasecmp(brand, "WINBOND") == 0)
+            info->vram_vendor = AMDSMI_VRAM_VENDOR__WINBOND;
+        if (strcasecmp(brand, "ESMT") == 0)
+            info->vram_vendor = AMDSMI_VRAM_VENDOR__ESMT;
+        if (strcasecmp(brand, "MICRON") == 0)
+            info->vram_vendor = AMDSMI_VRAM_VENDOR__MICRON;
+    }
+    uint64_t total = 0;
+    r = rsmi_wrapper(rsmi_dev_memory_total_get, processor_handle,
+                    RSMI_MEM_TYPE_VRAM, &total);
+    info->vram_size_mb = total;
+
+    return AMDSMI_STATUS_SUCCESS;
 }
 
 amdsmi_status_t
