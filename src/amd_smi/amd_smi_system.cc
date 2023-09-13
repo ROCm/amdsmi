@@ -208,8 +208,13 @@ amdsmi_status_t AMDSmiSystem::get_cpu_model(uint32_t cpu_model) {
 
 amdsmi_status_t AMDSmiSystem::populate_amd_gpu_devices() {
     // init rsmi
+    rsmi_driver_state_t state;
     rsmi_status_t ret = rsmi_init(0);
     if (ret != RSMI_STATUS_SUCCESS) {
+        if (rsmi_driver_status(&state) == RSMI_STATUS_SUCCESS &&
+                state != RSMI_DRIVER_MODULE_STATE_LIVE) {
+            return AMDSMI_STATUS_DRIVER_NOT_LOADED;
+        }
         return amd::smi::rsmi_to_amdsmi_status(ret);
     }
 

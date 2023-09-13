@@ -178,6 +178,7 @@ typedef enum {
     AMDSMI_STATUS_NOT_FOUND = 31,  //!< Device Not found
     AMDSMI_STATUS_NOT_INIT = 32,  //!< Device not initialized
     AMDSMI_STATUS_NO_SLOT = 33,  //!< No more free slot
+    AMDSMI_STATUS_DRIVER_NOT_LOADED = 34,  //!< Processor driver not loaded
     // Data and size errors
     AMDSMI_STATUS_NO_DATA = 40,  //!< No data was found for a given input
     AMDSMI_STATUS_INSUFFICIENT_SIZE = 41,  //!< Not enough resources were available for the operation
