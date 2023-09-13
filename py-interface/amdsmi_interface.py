@@ -153,6 +153,7 @@ class AmdSmiClkType(IntEnum):
 
 class AmdSmiTemperatureType(IntEnum):
     EDGE = amdsmi_wrapper.TEMPERATURE_TYPE_EDGE
+    HOTSPOT = amdsmi_wrapper.TEMPERATURE_TYPE_HOTSPOT
     JUNCTION = amdsmi_wrapper.TEMPERATURE_TYPE_JUNCTION
     VRAM = amdsmi_wrapper.TEMPERATURE_TYPE_VRAM
     HBM_0 = amdsmi_wrapper.TEMPERATURE_TYPE_HBM_0

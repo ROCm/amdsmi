@@ -409,11 +409,11 @@ int main() {
             printf("\tGPU GFX temp limit: %ld\n\n", temperature);
 
             // Get temperature measurements
-            // amdsmi_temperature_t edge_temp, junction_temp, vram_temp,
+            // amdsmi_temperature_t edge_temp, hotspot_temp, vram_temp,
             // plx_temp;
             int64_t temp_measurements[TEMPERATURE_TYPE__MAX + 1];
             amdsmi_temperature_type_t temp_types[4] = {
-                TEMPERATURE_TYPE_EDGE, TEMPERATURE_TYPE_JUNCTION,
+                TEMPERATURE_TYPE_EDGE, TEMPERATURE_TYPE_HOTSPOT,
                 TEMPERATURE_TYPE_VRAM, TEMPERATURE_TYPE_PLX};
             for (const auto &temp_type : temp_types) {
                 ret = amdsmi_get_temp_metric(
@@ -425,8 +425,8 @@ int main() {
             printf("    Output of amdsmi_get_temp_metric:\n");
             printf("\tGPU Edge temp measurement: %ld\n",
                    temp_measurements[TEMPERATURE_TYPE_EDGE]);
-            printf("\tGPU Junction temp measurement: %ld\n",
-                   temp_measurements[TEMPERATURE_TYPE_JUNCTION]);
+            printf("\tGPU Hotspot temp measurement: %ld\n",
+                   temp_measurements[TEMPERATURE_TYPE_HOTSPOT]);
             printf("\tGPU VRAM temp measurement: %ld\n",
                    temp_measurements[TEMPERATURE_TYPE_VRAM]);
             printf("\tGPU PLX temp measurement: %ld\n\n",
