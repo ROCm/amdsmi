@@ -1479,8 +1479,8 @@ class AMDSMICommands():
                         src_gpu_link_type[dest_gpu_key] = e.get_error_info()
 
                     try:
-                        min_bw = amdsmi_interface.amdsmi_get_minmax_bandwith_between_processors(src_gpu, dest_gpu)['min_bandwidth']
-                        max_bw = amdsmi_interface.amdsmi_get_minmax_bandwith_between_processors(src_gpu, dest_gpu)['max_bandwidth']
+                        min_bw = amdsmi_interface.amdsmi_get_minmax_bandwidth_between_processors(src_gpu, dest_gpu)['min_bandwidth']
+                        max_bw = amdsmi_interface.amdsmi_get_minmax_bandwidth_between_processors(src_gpu, dest_gpu)['max_bandwidth']
 
                         src_gpu_link_type[dest_gpu_key] = f'{min_bw}-{max_bw}'
                     except amdsmi_exception.AmdSmiLibraryException as e:
