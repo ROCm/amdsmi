@@ -678,10 +678,12 @@ class AMDSMICommands():
             args.iterations = iterations
         if fb_usage:
             args.fb_usage = fb_usage
-        if replay_count:
-            args.replay_count = replay_count
         if mem_usage:
             args.mem_usage = mem_usage
+
+        if not self.helpers.is_virtual_os():
+            if replay_count:
+               args.replay_count = replay_count
 
         if self.helpers.is_linux() and self.helpers.is_baremetal():
             if usage:
@@ -753,8 +755,8 @@ class AMDSMICommands():
 
         # Check if any of the options have been set, if not then set them all to true
         if self.helpers.is_linux() and self.helpers.is_virtual_os():
-            if not any([args.fb_usage, args.replay_count, args.mem_usage]):
-                args.fb_usage = args.replay_count = args.mem_usage = self.all_arguments = True
+            if not any([args.fb_usage, args.mem_usage]):
+                args.fb_usage = args.mem_usage = self.all_arguments = True
 
         if self.helpers.is_linux() and self.helpers.is_baremetal():
             if not any([args.usage, args.fb_usage, args.power, args.clock, args.temperature,
@@ -788,6 +790,7 @@ class AMDSMICommands():
                     values_dict['usage'] = e.get_error_info()
                     if not self.all_arguments:
                         raise e
+
         if args.fb_usage:
             try:
                 vram_usage = amdsmi_interface.amdsmi_get_gpu_vram_usage(args.gpu)
@@ -923,7 +926,6 @@ class AMDSMICommands():
                         values_dict['ecc'] = e.get_error_info()
                     if not self.all_arguments:
                         raise e
-
             if args.ecc_block:
                 ecc_dict = {}
                 try:
@@ -1042,14 +1044,17 @@ class AMDSMICommands():
                     values_dict['perf_level'] = e.get_error_info()
                     if not self.all_arguments:
                         raise e
-        if args.replay_count:
-            try:
-                pci_replay_counter = amdsmi_interface.amdsmi_get_gpu_pci_replay_counter(args.gpu)
-                values_dict['replay_count'] = pci_replay_counter
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                values_dict['replay_count'] = e.get_error_info()
-                if not self.all_arguments:
-                    raise e
+
+        if not self.helpers.is_virtual_os():
+            if args.replay_count:
+                try:
+                    pci_replay_counter = amdsmi_interface.amdsmi_get_gpu_pci_replay_counter(args.gpu)
+                    values_dict['replay_count'] = pci_replay_counter
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    values_dict['replay_count'] = e.get_error_info()
+                    if not self.all_arguments:
+                        raise e
+
         if self.helpers.is_linux() and self.helpers.is_baremetal():
             if args.xgmi_err:
                 try:
@@ -1061,6 +1066,7 @@ class AMDSMICommands():
                         raise e
             if args.energy:
                 pass
+
         if args.mem_usage:
             memory_total = {}
             try:

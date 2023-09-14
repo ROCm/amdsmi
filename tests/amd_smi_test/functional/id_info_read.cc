@@ -145,6 +145,19 @@ void TestIdInfoRead::Run(void) {
       }
     }
 
+
+    amdsmi_vram_info_t vram_info;
+    err = amdsmi_get_gpu_vram_info(processor_handles_[i], &vram_info);
+    CHK_ERR_ASRT(err)
+    IF_VERB(STANDARD) {
+      std::cout << "\t**Device Vram type id: "
+          << vram_info.vram_type << std::endl;
+      std::cout << "\t**Device Vram vendor id: "
+          << vram_info.vram_vendor << std::endl;
+      std::cout << "\t**Device Vram size: "
+          << vram_info.vram_size_mb << std::endl;
+    }
+
     err = amdsmi_get_gpu_vendor_name(processor_handles_[i], buffer, kBufferLen);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       std::cout << "\t**Device Vendor name string not found on this system." <<
