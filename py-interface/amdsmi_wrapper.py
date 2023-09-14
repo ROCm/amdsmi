@@ -578,17 +578,17 @@ struct_amdsmi_xgmi_info_t._fields_ = [
 ]
 
 amdsmi_xgmi_info_t = struct_amdsmi_xgmi_info_t
-class struct_amdsmi_vram_info_t(Structure):
+class struct_amdsmi_vram_usage_t(Structure):
     pass
 
-struct_amdsmi_vram_info_t._pack_ = 1 # source:False
-struct_amdsmi_vram_info_t._fields_ = [
+struct_amdsmi_vram_usage_t._pack_ = 1 # source:False
+struct_amdsmi_vram_usage_t._fields_ = [
     ('vram_total', ctypes.c_uint32),
     ('vram_used', ctypes.c_uint32),
     ('reserved', ctypes.c_uint32 * 2),
 ]
 
-amdsmi_vram_info_t = struct_amdsmi_vram_info_t
+amdsmi_vram_usage_t = struct_amdsmi_vram_usage_t
 class struct_amdsmi_frequency_range_t(Structure):
     pass
 
@@ -1637,7 +1637,7 @@ amdsmi_get_clock_info.restype = amdsmi_status_t
 amdsmi_get_clock_info.argtypes = [amdsmi_processor_handle, amdsmi_clk_type_t, ctypes.POINTER(struct_amdsmi_clk_info_t)]
 amdsmi_get_gpu_vram_usage = _libraries['libamd_smi.so'].amdsmi_get_gpu_vram_usage
 amdsmi_get_gpu_vram_usage.restype = amdsmi_status_t
-amdsmi_get_gpu_vram_usage.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_vram_info_t)]
+amdsmi_get_gpu_vram_usage.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_vram_usage_t)]
 amdsmi_get_gpu_process_list = _libraries['libamd_smi.so'].amdsmi_get_gpu_process_list
 amdsmi_get_gpu_process_list.restype = amdsmi_status_t
 amdsmi_get_gpu_process_list.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_uint32)]
@@ -1868,7 +1868,7 @@ __all__ = \
     'amdsmi_topo_get_numa_node_number',
     'amdsmi_utilization_counter_t', 'amdsmi_vbios_info_t',
     'amdsmi_version_t', 'amdsmi_voltage_metric_t',
-    'amdsmi_voltage_type_t', 'amdsmi_vram_info_t',
+    'amdsmi_voltage_type_t', 'amdsmi_vram_usage_t',
     'amdsmi_xgmi_info_t', 'amdsmi_xgmi_status_t', 'processor_type_t',
     'size_t', 'struct_amd_metrics_table_header_t',
     'struct_amdsmi_asic_info_t', 'struct_amdsmi_board_info_t',
@@ -1888,7 +1888,7 @@ __all__ = \
     'struct_amdsmi_range_t', 'struct_amdsmi_retired_page_record_t',
     'struct_amdsmi_utilization_counter_t',
     'struct_amdsmi_vbios_info_t', 'struct_amdsmi_version_t',
-    'struct_amdsmi_vram_info_t', 'struct_amdsmi_xgmi_info_t',
+    'struct_amdsmi_vram_usage_t', 'struct_amdsmi_xgmi_info_t',
     'struct_engine_usage_', 'struct_fields_', 'struct_fw_info_list_',
     'struct_memory_usage_', 'uint32_t', 'uint64_t',
     'union_amdsmi_bdf_t']

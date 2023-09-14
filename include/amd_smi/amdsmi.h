@@ -322,6 +322,40 @@ typedef enum {
     FW_ID__MAX
 } amdsmi_fw_block_t;
 
+
+typedef enum {
+  VRAM_TYPE_UNKNOWN = 0,
+  VRAM_TYPE_GDDR1 = 1,
+  VRAM_TYPE_DDR2 = 2,
+  VRAM_TYPE_GDDR3 = 3,
+  VRAM_TYPE_GDDR4 = 4,
+  VRAM_TYPE_GDDR5 = 5,
+  VRAM_TYPE_HBM = 6,
+  VRAM_TYPE_DDR3 = 7,
+  VRAM_TYPE_DDR4 = 8,
+  VRAM_TYPE_GDDR6 = 9,
+  VRAM_TYPE__MAX = VRAM_TYPE_GDDR6
+} amdsmi_vram_type_t;
+
+typedef enum {
+    AMDSMI_VRAM_VENDOR__PLACEHOLDER0,
+    AMDSMI_VRAM_VENDOR__SAMSUNG,
+    AMDSMI_VRAM_VENDOR__INFINEON,
+    AMDSMI_VRAM_VENDOR__ELPIDA,
+    AMDSMI_VRAM_VENDOR__ETRON,
+    AMDSMI_VRAM_VENDOR__NANYA,
+    AMDSMI_VRAM_VENDOR__HYNIX,
+    AMDSMI_VRAM_VENDOR__MOSEL,
+    AMDSMI_VRAM_VENDOR__WINBOND,
+    AMDSMI_VRAM_VENDOR__ESMT,
+    AMDSMI_VRAM_VENDOR__PLACEHOLDER1,
+    AMDSMI_VRAM_VENDOR__PLACEHOLDER2,
+    AMDSMI_VRAM_VENDOR__PLACEHOLDER3,
+    AMDSMI_VRAM_VENDOR__PLACEHOLDER4,
+    AMDSMI_VRAM_VENDOR__PLACEHOLDER5,
+    AMDSMI_VRAM_VENDOR__MICRON,
+} amdsmi_vram_vendor_type_t;
+
 /**
  * @brief This structure represents a range (e.g., frequencies or voltages).
  */
@@ -343,7 +377,7 @@ typedef struct {
   uint32_t vram_total;
   uint32_t vram_used;
   uint32_t reserved[2];
-} amdsmi_vram_info_t;
+} amdsmi_vram_usage_t;
 
 typedef struct {
 	amdsmi_range_t supported_freq_range;
@@ -398,6 +432,13 @@ typedef struct {
   char asic_serial[AMDSMI_NORMAL_STRING_LENGTH];
   uint32_t reserved[19];
 } amdsmi_asic_info_t;
+
+typedef struct{
+  amdsmi_vram_type_t vram_type;
+  amdsmi_vram_vendor_type_t vram_vendor;
+  uint64_t vram_size_mb;
+} amdsmi_vram_info_t;
+
 
 typedef struct {
 	char  driver_version[AMDSMI_MAX_STRING_LENGTH];
@@ -3426,6 +3467,19 @@ amdsmi_status_t
 amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_info_t *info);
 
 /**
+ *  @brief Returns vram info
+ *
+ *  @param[in] processor_handle PF of a processor for which to query
+ *
+ *  @param[out] info Reference to vram info structure
+ *  Must be allocated by user.
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_get_gpu_vram_info(
+          amdsmi_processor_handle processor_handle, amdsmi_vram_info_t *info);
+
+/**
  *  @brief          Returns the board part number and board information for the requested device
  *
  *  @param[in]      processor_handle Device which to query
@@ -3566,7 +3620,8 @@ amdsmi_get_clock_info(amdsmi_processor_handle processor_handle, amdsmi_clk_type_
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_gpu_vram_usage(amdsmi_processor_handle processor_handle, amdsmi_vram_info_t *info);
+amdsmi_get_gpu_vram_usage(amdsmi_processor_handle processor_handle, amdsmi_vram_usage_t *info);
+
 
 /** @} End gpumon */
 
@@ -4246,9 +4301,9 @@ amdsmi_status_t amdsmi_first_online_core_on_cpu_socket(amdsmi_cpusocket_handle s
  *  @param[in,out]    status_string - A pointer to a const char * which will be made
  *  to point to a description of the provided error code
  *
- *  @return const char* returned on success
+ *  @return const char** returned on success
  */
-const char* amdsmi_get_esmi_err_msg(amdsmi_status_t status, const char **status_string);
+const char** amdsmi_get_esmi_err_msg(amdsmi_status_t status, const char **status_string);
 #endif
 /** @} */
 #ifdef __cplusplus
