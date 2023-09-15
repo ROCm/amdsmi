@@ -93,7 +93,7 @@ class AMDSMICommands():
             args.gpu = gpu
 
         # Handle No GPU passed
-        if args.gpu is None:
+        if args.gpu == None:
             args.gpu = self.device_handles
 
         # Handle multiple GPUs
@@ -178,7 +178,7 @@ class AMDSMICommands():
                 args.board = board
 
         # Handle No GPU passed
-        if args.gpu is None:
+        if args.gpu == None:
             args.gpu = self.device_handles
 
         # Handle multiple GPUs
@@ -189,7 +189,7 @@ class AMDSMICommands():
 
         # If all arguments are False, it means that no argument was passed and the entire static should be printed
         if self.helpers.is_linux() and self.helpers.is_baremetal():
-            if not any([args.asic, args.bus, args.vbios, args.limit, args.driver, args.ras, args.board]):
+            if not any([args.asic, args.bus, args.vbios, args.limit, args.driver, args.ras, args.board, args.numa]):
                 args.asic = args.bus = args.vbios = args.limit = args.driver = args.ras = args.board = args.numa = self.all_arguments = True
         if self.helpers.is_linux() and self.helpers.is_virtual_os():
             if not any([args.asic, args.bus, args.vbios, args.driver]):
@@ -442,7 +442,7 @@ class AMDSMICommands():
             args.fw_list = fw_list
 
         # Handle No GPU passed
-        if args.gpu is None:
+        if args.gpu == None:
             args.gpu = self.device_handles
 
         # Handle multiple GPUs
@@ -533,7 +533,7 @@ class AMDSMICommands():
             args.un_res = un_res
 
         # Handle No GPU passed
-        if args.gpu is None:
+        if args.gpu == None:
             args.gpu = self.device_handles
 
         # Handle multiple GPUs
@@ -601,23 +601,23 @@ class AMDSMICommands():
             values_dict['pending'] = bad_page_info_output
 
         if args.un_res:
-                if bad_page_error:
-                    bad_page_info_output = bad_page_err_output
-                else:
-                    bad_page_info_output = []
-                    for bad_page in bad_page_info:
-                        if bad_page["status"] == amdsmi_interface.AmdSmiMemoryPageStatus.UNRESERVABLE:
-                            bad_page_info_entry = {}
-                            bad_page_info_entry["page_address"] = bad_page["page_address"]
-                            bad_page_info_entry["page_size"] = bad_page["page_size"]
-                            bad_page_info_entry["status"] = bad_page["status"].name
+            if bad_page_error:
+                bad_page_info_output = bad_page_err_output
+            else:
+                bad_page_info_output = []
+                for bad_page in bad_page_info:
+                    if bad_page["status"] == amdsmi_interface.AmdSmiMemoryPageStatus.UNRESERVABLE:
+                        bad_page_info_entry = {}
+                        bad_page_info_entry["page_address"] = bad_page["page_address"]
+                        bad_page_info_entry["page_size"] = bad_page["page_size"]
+                        bad_page_info_entry["status"] = bad_page["status"].name
 
-                            bad_page_info_output.append(bad_page_info_entry)
-                    # Remove brackets if there is only one value
-                    if len(bad_page_info_output) == 1:
-                        bad_page_info_output = bad_page_info_output[0]
+                        bad_page_info_output.append(bad_page_info_entry)
+                # Remove brackets if there is only one value
+                if len(bad_page_info_output) == 1:
+                    bad_page_info_output = bad_page_info_output[0]
 
-                values_dict['un_res'] = bad_page_info_output
+            values_dict['un_res'] = bad_page_info_output
 
         # Store values in logger.output
         self.logger.store_output(args.gpu, 'values', values_dict)
@@ -714,7 +714,7 @@ class AMDSMICommands():
                 args.energy = energy
 
         # Handle No GPU passed
-        if args.gpu is None:
+        if args.gpu == None:
             args.gpu = self.device_handles
 
         # Handle watch logic, will only enter this block once
@@ -877,38 +877,50 @@ class AMDSMICommands():
                 try:
                     temperature_edge_current = amdsmi_interface.amdsmi_get_temp_metric(
                         args.gpu, amdsmi_interface.AmdSmiTemperatureType.EDGE, amdsmi_interface.AmdSmiTemperatureMetric.CURRENT)
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    temperature_edge_current = e.get_error_info()
+
+                try:
                     temperature_edge_limit = amdsmi_interface.amdsmi_get_temp_metric(
                         args.gpu, amdsmi_interface.AmdSmiTemperatureType.EDGE, amdsmi_interface.AmdSmiTemperatureMetric.CRITICAL)
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    temperature_edge_limit = e.get_error_info()
+
+                try:
                     temperature_hotspot_current = amdsmi_interface.amdsmi_get_temp_metric(
                         args.gpu, amdsmi_interface.AmdSmiTemperatureType.HOTSPOT, amdsmi_interface.AmdSmiTemperatureMetric.CURRENT)
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    temperature_hotspot_current = e.get_error_info()
+
+                try:
                     temperature_vram_current = amdsmi_interface.amdsmi_get_temp_metric(
                         args.gpu, amdsmi_interface.AmdSmiTemperatureType.VRAM, amdsmi_interface.AmdSmiTemperatureMetric.CURRENT)
-
-                    # If edge limit is reporting 0 then set the current edge temp to N/A
-                    if temperature_edge_limit == 0:
-                        temperature_edge_current = 'N/A'
-
-                    temperatures = {'edge': temperature_edge_current,
-                                    'hotspot': temperature_hotspot_current,
-                                    'mem': temperature_vram_current}
-
-                    if self.logger.is_gpuvsmi_compatibility():
-                        temperatures = {'edge_temperature': temperature_edge_current,
-                                        'hotspot_temperature': temperature_hotspot_current,
-                                        'mem_temperature': temperature_vram_current}
-
-                    if self.logger.is_human_readable_format():
-                        unit = '\N{DEGREE SIGN}C'
-                        if self.logger.is_gpuvsmi_compatibility():
-                            unit = 'C'
-                        for temperature_value in temperatures:
-                            temperatures[temperature_value] = f"{temperatures[temperature_value]} {unit}"
-
-                    values_dict['temperature'] = temperatures
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    values_dict['temperature'] = e.get_error_info()
-                    if not self.all_arguments:
-                        raise e
+                    temperature_vram_current = e.get_error_info()
+
+                # If edge limit is reporting 0 then set the current edge temp to N/A
+                if temperature_edge_limit == 0:
+                    temperature_edge_current = 'N/A'
+
+                temperatures = {'edge': temperature_edge_current,
+                                'hotspot': temperature_hotspot_current,
+                                'mem': temperature_vram_current}
+
+                if self.logger.is_gpuvsmi_compatibility():
+                    temperatures = {'edge_temperature': temperature_edge_current,
+                                    'hotspot_temperature': temperature_hotspot_current,
+                                    'mem_temperature': temperature_vram_current}
+
+                if self.logger.is_human_readable_format():
+                    unit = '\N{DEGREE SIGN}C'
+                    if self.logger.is_gpuvsmi_compatibility():
+                        unit = 'C'
+                    for temperature_key, temperature_value in temperatures.items():
+                        if 'AMD_SMI_STATUS' not in str(temperature_value):
+                            temperatures[temperature_key] = f"{temperature_value} {unit}"
+
+                values_dict['temperature'] = temperatures
+
             if args.ecc:
                 ecc_count = {}
                 try:
@@ -1175,7 +1187,7 @@ class AMDSMICommands():
             args.iterations = iterations
 
         # Handle No GPU passed
-        if args.gpu is None:
+        if args.gpu == None:
             args.gpu = self.device_handles
 
         # Handle watch logic, will only enter this block once
@@ -1364,7 +1376,7 @@ class AMDSMICommands():
             args.numa_bw = numa_bw
 
         # Handle No GPU passed
-        if args.gpu is None:
+        if args.gpu == None:
             args.gpu = self.device_handles
 
         if not isinstance(args.gpu, list):
@@ -1532,7 +1544,7 @@ class AMDSMICommands():
             args.perfdeterminism = perfdeterminism
 
         # Handle No GPU passed
-        if args.gpu is None:
+        if args.gpu == None:
             raise ValueError('No GPU provided, specific GPU target(s) are needed')
 
         # Handle multiple GPUs
@@ -1631,7 +1643,7 @@ class AMDSMICommands():
             args.perfdeterminism = perfdeterminism
 
         # Handle No GPU passed
-        if args.gpu is None:
+        if args.gpu == None:
             raise ValueError('No GPU provided, specific GPU target(s) are needed')
 
         # Handle multiple GPUs
