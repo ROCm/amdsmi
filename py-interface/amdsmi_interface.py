@@ -1199,7 +1199,7 @@ def amdsmi_topo_get_link_weight(
     return weight.value
 
 
-def amdsmi_get_minmax_bandwith_between_processors(
+def amdsmi_get_minmax_bandwidth_between_processors(
     processor_handle_src: amdsmi_wrapper.amdsmi_processor_handle,
     processor_handle_dst: amdsmi_wrapper.amdsmi_processor_handle,
 ):
@@ -1217,7 +1217,7 @@ def amdsmi_get_minmax_bandwith_between_processors(
     max_bandwidth = ctypes.c_uint64()
 
     _check_res(
-        amdsmi_wrapper.amdsmi_get_minmax_bandwith_between_processors(
+        amdsmi_wrapper.amdsmi_get_minmax_bandwidth_between_processors(
             processor_handle_src,
             processor_handle_dst,
             ctypes.byref(min_bandwidth),
