@@ -3001,7 +3001,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-### amdsmi_get_minmax_bandwith_between_processors
+### amdsmi_get_minmax_bandwidth_between_processors
 
 Description: Retreive minimal and maximal io link bandwidth between 2 GPUs.
 
@@ -3017,7 +3017,7 @@ Field | Description
 `min_bandwidth` | minimal bandwidth for the connection
 `max_bandwidth` | maximal bandwidth for the connection
 
-Exceptions that can be thrown by `amdsmi_get_minmax_bandwith_between_processors` function:
+Exceptions that can be thrown by `amdsmi_get_minmax_bandwidth_between_processors` function:
 
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
@@ -3033,9 +3033,9 @@ try:
     else:
         processor_handle_src = devices[0]
         processor_handle_dest = devices[1]
-        bandwith =  amdsmi_get_minmax_bandwith_between_processors(processor_handle_src, processor_handle_dest)
-        print(bandwith['min_bandwidth'])
-        print(bandwith['max_bandwidth'])
+        bandwidth =  amdsmi_get_minmax_bandwidth_between_processors(processor_handle_src, processor_handle_dest)
+        print(bandwidth['min_bandwidth'])
+        print(bandwidth['max_bandwidth'])
 except AmdSmiException as e:
     print(e)
 ```
