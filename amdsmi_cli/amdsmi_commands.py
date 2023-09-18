@@ -288,12 +288,16 @@ class AMDSMICommands():
                     if not self.all_arguments:
                         raise e
             if args.limit:
+                # Power limits
                 try:
                     power_limit_error = False
-                    power_limit = amdsmi_interface.amdsmi_get_power_info(args.gpu)['power_limit']
+                    power_info = amdsmi_interface.amdsmi_get_power_cap_info(args.gpu)
+                    max_power_limit = power_info['max_power_cap']
+                    current_power_limit = power_info['power_cap']
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     power_limit_error = True
-                    power_limit = e.get_error_info()
+                    max_power_limit = e.get_error_info()
+                    current_power_limit = e.get_error_info()
                     if not self.all_arguments:
                         raise e
 
@@ -334,7 +338,8 @@ class AMDSMICommands():
                 if self.logger.is_human_readable_format():
                     unit = 'W'
                     if not power_limit_error:
-                        power_limit = f"{power_limit} {unit}"
+                        max_power_limit = f"{max_power_limit} {unit}"
+                        current_power_limit = f"{current_power_limit} {unit}"
 
                     unit = '\N{DEGREE SIGN}C'
                     if not temp_edge_limit_error:
@@ -345,10 +350,9 @@ class AMDSMICommands():
                         temp_vram_limit = f"{temp_vram_limit} {unit}"
 
                 limit_info = {}
-                limit_info['power'] = power_limit
-                limit_info['edge_temperature'] = temp_edge_limit
-                limit_info['hotspot_temperature'] = temp_hotspot_limit
-                limit_info['vram_temperature'] = temp_vram_limit
+                # Power limits
+                limit_info['max_power'] = max_power_limit
+                limit_info['current_power'] = current_power_limit
 
                 static_dict['limit'] = limit_info
         if args.driver:
