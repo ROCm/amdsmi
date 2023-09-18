@@ -41,7 +41,7 @@ class AMDSMIParser(argparse.ArgumentParser):
     Args:
         argparse (ArgumentParser): argparse.ArgumentParser
     """
-    def __init__(self, version, discovery, static, firmware, bad_pages, metric,
+    def __init__(self, version, list, static, firmware, bad_pages, metric,
                  process, profile, event, topology, set_value, reset, rocmsmi):
 
         # Helper variables
@@ -74,7 +74,7 @@ class AMDSMIParser(argparse.ArgumentParser):
 
         # Add all subparsers
         self._add_version_parser(subparsers, version)
-        self._add_discovery_parser(subparsers, discovery)
+        self._add_list_parser(subparsers, list)
         self._add_static_parser(subparsers, static)
         self._add_firmware_parser(subparsers, firmware)
         self._add_bad_pages_parser(subparsers, bad_pages)
@@ -269,25 +269,25 @@ class AMDSMIParser(argparse.ArgumentParser):
         self._add_command_modifiers(version_parser)
 
 
-    def _add_discovery_parser(self, subparsers, func):
+    def _add_list_parser(self, subparsers, func):
         # Subparser help text
-        discovery_help = "Display discovery information"
-        discovery_subcommand_help = "Lists all the devices on the system and the links between devices.\
+        list_help = "List GPU information"
+        list_subcommand_help = "Lists all the devices on the system and the links between devices.\
                             \nLists all the sockets and for each socket, GPUs and/or CPUs associated to\
                             \nthat socket alongside some basic information for each device.\
                             \nIn virtualization environments, it can also list VFs associated to each\
                             \nGPU with some basic information for each VF."
 
-        # Create discovery subparser
-        discovery_parser = subparsers.add_parser('discovery', help=discovery_help, description=discovery_subcommand_help, aliases=['list'])
-        discovery_parser.formatter_class=lambda prog: argparse.RawTextHelpFormatter(prog, max_help_position=80, width=90)
-        discovery_parser.set_defaults(func=func)
+        # Create list subparser
+        list_parser = subparsers.add_parser('list', help=list_help, description=list_subcommand_help)
+        list_parser.formatter_class=lambda prog: argparse.RawTextHelpFormatter(prog, max_help_position=80, width=90)
+        list_parser.set_defaults(func=func)
 
         # Add Command Modifiers
-        self._add_command_modifiers(discovery_parser)
+        self._add_command_modifiers(list_parser)
 
         # Add Device args
-        self._add_device_arguments(discovery_parser, required=False)
+        self._add_device_arguments(list_parser, required=False)
 
 
     def _add_static_parser(self, subparsers, func):
@@ -356,7 +356,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         err_records_help = "All error records information"
 
         # Create firmware subparser
-        firmware_parser = subparsers.add_parser('firmware', help=firmware_help, description=firmware_subcommand_help, aliases=['ucode'])
+        firmware_parser = subparsers.add_parser('firmware', help=firmware_help, description=firmware_subcommand_help)
         firmware_parser._optionals.title = firmware_optionals_title
         firmware_parser.formatter_class=lambda prog: argparse.RawTextHelpFormatter(prog, max_help_position=80, width=90)
         firmware_parser.set_defaults(func=func)
