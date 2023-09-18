@@ -74,8 +74,8 @@ class AMDSMICommands():
             self.logger.print_output()
 
 
-    def discovery(self, args, multiple_devices=False, gpu=None):
-        """Get Discovery information for target gpu
+    def list(self, args, multiple_devices=False, gpu=None):
+        """List information for target gpu
 
         Args:
             args (Namespace): Namespace containing the parsed CLI args
@@ -97,7 +97,7 @@ class AMDSMICommands():
             args.gpu = self.device_handles
 
         # Handle multiple GPUs
-        handled_multiple_gpus, device_handle = self.helpers.handle_gpus(args, self.logger, self.discovery)
+        handled_multiple_gpus, device_handle = self.helpers.handle_gpus(args, self.logger, self.list)
         if handled_multiple_gpus:
             return # This function is recursive
 
