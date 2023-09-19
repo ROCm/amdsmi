@@ -301,37 +301,74 @@ class AMDSMICommands():
                     if not self.all_arguments:
                         raise e
 
+                # Edge temperature limits
                 try:
-                    temp_edge_limit_error = False
-                    temp_edge_limit = amdsmi_interface.amdsmi_get_temp_metric(args.gpu,
+                    slowdown_temp_edge_limit_error = False
+                    slowdown_temp_edge_limit = amdsmi_interface.amdsmi_get_temp_metric(args.gpu,
                         amdsmi_interface.AmdSmiTemperatureType.EDGE, amdsmi_interface.AmdSmiTemperatureMetric.CRITICAL)
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    temp_edge_limit_error = True
-                    temp_edge_limit = e.get_error_info()
+                    slowdown_temp_edge_limit_error = True
+                    slowdown_temp_edge_limit = e.get_error_info()
                     if not self.all_arguments:
                         raise e
 
-                if temp_edge_limit == 0:
-                    temp_edge_limit_error = True
-                    temp_edge_limit = 'N/A'
+                if slowdown_temp_edge_limit == 0:
+                    slowdown_temp_edge_limit_error = True
+                    slowdown_temp_edge_limit = 'N/A'
 
                 try:
-                    temp_hotspot_limit_error = False
-                    temp_hotspot_limit = amdsmi_interface.amdsmi_get_temp_metric(args.gpu,
+                    shutdown_temp_edge_limit_error = False
+                    shutdown_temp_edge_limit = amdsmi_interface.amdsmi_get_temp_metric(args.gpu,
+                        amdsmi_interface.AmdSmiTemperatureType.EDGE, amdsmi_interface.AmdSmiTemperatureMetric.EMERGENCY)
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    shutdown_temp_edge_limit_error = True
+                    shutdown_temp_edge_limit = e.get_error_info()
+                    if not self.all_arguments:
+                        raise e
+
+                if shutdown_temp_edge_limit == 0:
+                    shutdown_temp_edge_limit_error = True
+                    shutdown_temp_edge_limit = 'N/A'
+
+                # Hotspot/Junction temperature limits
+                try:
+                    slowdown_temp_hotspot_limit_error = False
+                    slowdown_temp_hotspot_limit = amdsmi_interface.amdsmi_get_temp_metric(args.gpu,
                         amdsmi_interface.AmdSmiTemperatureType.HOTSPOT, amdsmi_interface.AmdSmiTemperatureMetric.CRITICAL)
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    temp_hotspot_limit_error = True
-                    temp_hotspot_limit = e.get_error_info()
+                    slowdown_temp_hotspot_limit_error = True
+                    slowdown_temp_hotspot_limit = e.get_error_info()
                     if not self.all_arguments:
                         raise e
 
                 try:
-                    temp_vram_limit_error = False
-                    temp_vram_limit = amdsmi_interface.amdsmi_get_temp_metric(args.gpu,
+                    shutdown_temp_hotspot_limit_error = False
+                    shutdown_temp_hotspot_limit = amdsmi_interface.amdsmi_get_temp_metric(args.gpu,
+                        amdsmi_interface.AmdSmiTemperatureType.HOTSPOT, amdsmi_interface.AmdSmiTemperatureMetric.EMERGENCY)
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    shutdown_temp_hotspot_limit_error = True
+                    shutdown_temp_hotspot_limit = e.get_error_info()
+                    if not self.all_arguments:
+                        raise e
+
+                # VRAM temperature limits
+                try:
+                    slowdown_temp_vram_limit_error = False
+                    slowdown_temp_vram_limit = amdsmi_interface.amdsmi_get_temp_metric(args.gpu,
                         amdsmi_interface.AmdSmiTemperatureType.VRAM, amdsmi_interface.AmdSmiTemperatureMetric.CRITICAL)
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    temp_vram_limit_error = True
-                    temp_vram_limit = e.get_error_info()
+                    slowdown_temp_vram_limit_error = True
+                    slowdown_temp_vram_limit = e.get_error_info()
+                    if not self.all_arguments:
+                        raise e
+
+                try:
+                    shutdown_temp_vram_limit_error = False
+                    shutdown_temp_vram_limit = amdsmi_interface.amdsmi_get_temp_metric(args.gpu,
+                        amdsmi_interface.AmdSmiTemperatureType.VRAM, amdsmi_interface.AmdSmiTemperatureMetric.EMERGENCY)
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    shutdown_temp_vram_limit_error = True
+                    shutdown_temp_vram_limit = e.get_error_info()
                     if not self.all_arguments:
                         raise e
 
@@ -342,18 +379,31 @@ class AMDSMICommands():
                         current_power_limit = f"{current_power_limit} {unit}"
 
                     unit = '\N{DEGREE SIGN}C'
-                    if not temp_edge_limit_error:
-                        temp_edge_limit = f"{temp_edge_limit} {unit}"
-                    if not temp_hotspot_limit_error:
-                        temp_hotspot_limit = f"{temp_hotspot_limit} {unit}"
-                    if not temp_vram_limit_error:
-                        temp_vram_limit = f"{temp_vram_limit} {unit}"
+                    if not slowdown_temp_edge_limit_error:
+                        slowdown_temp_edge_limit = f"{slowdown_temp_edge_limit} {unit}"
+                    if not slowdown_temp_hotspot_limit_error:
+                        slowdown_temp_hotspot_limit = f"{slowdown_temp_hotspot_limit} {unit}"
+                    if not slowdown_temp_vram_limit_error:
+                        slowdown_temp_vram_limit = f"{slowdown_temp_vram_limit} {unit}"
+                    if not shutdown_temp_edge_limit_error:
+                        shutdown_temp_edge_limit = f"{shutdown_temp_edge_limit} {unit}"
+                    if not shutdown_temp_hotspot_limit_error:
+                        shutdown_temp_hotspot_limit = f"{shutdown_temp_hotspot_limit} {unit}"
+                    if not shutdown_temp_vram_limit_error:
+                        shutdown_temp_vram_limit = f"{shutdown_temp_vram_limit} {unit}"
 
                 limit_info = {}
                 # Power limits
                 limit_info['max_power'] = max_power_limit
                 limit_info['current_power'] = current_power_limit
 
+                # Shutdown limits
+                limit_info['slowdown_edge_temperature'] = slowdown_temp_edge_limit
+                limit_info['slowdown_hotspot_temperature'] = slowdown_temp_hotspot_limit
+                limit_info['slowdown_vram_temperature'] = slowdown_temp_vram_limit
+                limit_info['shutdown_edge_temperature'] = shutdown_temp_edge_limit
+                limit_info['shutdown_hotspot_temperature'] = shutdown_temp_hotspot_limit
+                limit_info['shutdown_vram_temperature'] = shutdown_temp_vram_limit
                 static_dict['limit'] = limit_info
         if args.driver:
             try:
