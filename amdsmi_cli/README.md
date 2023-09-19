@@ -62,11 +62,9 @@ optional arguments:
 AMD-SMI Commands:
                     Descriptions:
     version         Display version information
-    discovery (list)
-                    Display discovery information
+    list            List GPU information
     static          Gets static information about the specified GPU
-    firmware (ucode)
-                    Gets firmware information about the specified GPU
+    firmware        Gets ucode/firmware information about the specified GPU
     bad-pages       Gets bad page information about the specified GPU
     metric          Gets metric/performance information about the specified GPU
     process         Lists general process information running on the specified GPU
@@ -84,8 +82,8 @@ Each command will have detailed information via `amd-smi [command] --help`
 For convenience, here is the help output for each command
 
 ``` bash
-amd-smi discovery --help
-usage: amd-smi discovery [-h] [--json | --csv] [--file FILE]
+amd-smi list --help
+usage: amd-smi list [-h] [--json | --csv] [--file FILE]
                          [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
                          [-g GPU [GPU ...]]
 
