@@ -1668,37 +1668,36 @@ amdsmi_get_power_info(amdsmi_processor_handle processor_handle, amdsmi_power_inf
     if (info == nullptr) {
         return AMDSMI_STATUS_INVAL;
     }
-
-    amdsmi_gpu_metrics_t metrics = {};
-    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
-    amdsmi_status_t r = get_gpu_device_from_handle(processor_handle, &gpu_device);
-    if (r != AMDSMI_STATUS_SUCCESS)
-        return r;
-
     amdsmi_status_t status;
 
-    status =  amdsmi_get_gpu_metrics_info(processor_handle, &metrics);
-    if (status != AMDSMI_STATUS_SUCCESS) {
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    status = get_gpu_device_from_handle(processor_handle, &gpu_device);
+    if (status != AMDSMI_STATUS_SUCCESS)
         return status;
+
+    info->average_socket_power = 0xFFFFFFFF;
+    info->gfx_voltage = 0xFFFFFFFF;
+    info->soc_voltage = 0xFFFFFFFF; // Not implmented yet
+    info->mem_voltage = 0xFFFFFFFF; // Not implmented yet
+    info->power_limit = 0xFFFFFFFF;
+
+    amdsmi_gpu_metrics_t metrics = {};
+    status = amdsmi_get_gpu_metrics_info(processor_handle, &metrics);
+    if (status == AMDSMI_STATUS_SUCCESS) {
+        info->average_socket_power = metrics.average_socket_power;
     }
 
     int64_t voltage_read = 0;
-
-    status =  amdsmi_get_gpu_volt_metric(processor_handle, AMDSMI_VOLT_TYPE_VDDGFX, AMDSMI_VOLT_CURRENT, &voltage_read);
-    if (status != AMDSMI_STATUS_SUCCESS) {
-        return status;
+    status = amdsmi_get_gpu_volt_metric(processor_handle, AMDSMI_VOLT_TYPE_VDDGFX, AMDSMI_VOLT_CURRENT, &voltage_read);
+    if (status == AMDSMI_STATUS_SUCCESS) {
+        info->gfx_voltage = voltage_read;
     }
 
     int power_limit = 0;
     status = smi_amdgpu_get_power_cap(gpu_device, &power_limit);
-    if (status != AMDSMI_STATUS_SUCCESS) {
-        return status;
+    if (status == AMDSMI_STATUS_SUCCESS) {
+        info->power_limit = power_limit;
     }
-    info->power_limit = power_limit;
-
-    info->gfx_voltage = voltage_read;
-
-    info->average_socket_power = metrics.average_socket_power;
 
     return status;
 }
