@@ -946,7 +946,7 @@ def amdsmi_get_gpu_driver_info(
 
 def amdsmi_get_power_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
-) -> Dict[str, Any]:
+) -> Dict[str, ctypes.c_uint32]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
