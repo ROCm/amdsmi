@@ -52,7 +52,7 @@ if __name__ == "__main__":
 
     amd_smi_commands = AMDSMICommands(compatibility=compatibility)
     amd_smi_parser = AMDSMIParser(amd_smi_commands.version,
-                                    amd_smi_commands.discovery,
+                                    amd_smi_commands.list,
                                     amd_smi_commands.static,
                                     amd_smi_commands.firmware,
                                     amd_smi_commands.bad_pages,
