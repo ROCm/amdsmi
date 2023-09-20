@@ -1641,6 +1641,33 @@ except AmdSmiException as e:
     print(e)
 ```
 
+## amdsmi_is_gpu_power_management_enabled
+Description: Returns is power management enabled
+
+Input parameters:
+* `processor_handle` GPU device which to query
+
+Output: Bool true if power management enabled else false
+
+Exceptions that can be thrown by `amdsmi_is_gpu_power_management_enabled` function:
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+```python
+try:
+    processors = amdsmi_get_processor_handles()
+    if len(processors) == 0:
+        print("No GPUs on machine")
+    else:
+        for processor in processors:
+            is_power_management_enabled = amdsmi_is_gpu_power_management_enabled(processor)
+            print(is_power_management_enabled)
+except AmdSmiException as e:
+    print(e)
+```
+
 ### amdsmi_get_temp_metric
 
 Description: Get the temperature metric value for the specified metric, from the

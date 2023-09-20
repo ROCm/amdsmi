@@ -962,10 +962,26 @@ def amdsmi_get_power_info(
     return {
         "average_socket_power": power_measure.average_socket_power,
         "gfx_voltage": power_measure.gfx_voltage,
-        'soc_voltage': power_measure.soc_voltage,
-        'mem_voltage': power_measure.mem_voltage,
+        "soc_voltage": power_measure.soc_voltage,
+        "mem_voltage": power_measure.mem_voltage,
         "power_limit" : power_measure.power_limit,
     }
+
+
+def amdsmi_is_gpu_power_management_enabled(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle
+    ) -> bool:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(processor_handle, amdsmi_wrapper.amdsmi_processor_handle)
+
+    is_power_management_enabled = ctypes.c_bool()
+    _check_res(
+        amdsmi_wrapper.amdsmi_is_gpu_power_management_enabled(
+            processor_handle, ctypes.byref(is_power_management_enabled)
+        )
+    )
+
+    return is_power_management_enabled.value
 
 
 def amdsmi_get_fw_info(

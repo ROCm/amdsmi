@@ -3592,6 +3592,18 @@ amdsmi_status_t
 amdsmi_get_power_info(amdsmi_processor_handle processor_handle, amdsmi_power_info_t *info);
 
 /**
+ *  @brief Returns is power management enabled
+ *
+ *  @param[in] processor_handle PF of a processor for which to query
+ *
+ *  @param[out] status Reference to bool. Must be allocated by user.
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t
+amdsmi_is_gpu_power_management_enabled(amdsmi_processor_handle processor_handle, bool *enabled);
+
+/**
  *  @brief          Returns the measurements of the clocks in the GPU
  *                  for the GFX and multimedia engines and Memory. This call
  *                  reports the averages over 1s in MHz. It is not supported
