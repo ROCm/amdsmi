@@ -99,7 +99,7 @@ from .amdsmi_interface import amdsmi_get_clk_freq
 from .amdsmi_interface import amdsmi_get_gpu_od_volt_info
 from .amdsmi_interface import amdsmi_get_gpu_metrics_info
 from .amdsmi_interface import amdsmi_get_gpu_od_volt_curve_regions
-from .amdsmi_interface import amdsmi_get_gpu_power_profile_presets
+from .amdsmi_interface import amdsmi_is_gpu_power_management_enabled
 
 # # Performance Counters
 from .amdsmi_interface import amdsmi_gpu_counter_group_supported

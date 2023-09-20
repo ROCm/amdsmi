@@ -1439,6 +1439,24 @@ amdsmi_get_gpu_activity(amdsmi_processor_handle processor_handle, amdsmi_engine_
     return AMDSMI_STATUS_SUCCESS;
 }
 
+amdsmi_status_t amdsmi_is_gpu_power_management_enabled(amdsmi_processor_handle processor_handle, bool *enabled) {
+    if (enabled == nullptr) {
+        return AMDSMI_STATUS_INVAL;
+    }
+    *enabled = false;
+
+    amd::smi::AMDSmiGPUDevice * gpu_device = nullptr;
+    amdsmi_status_t status;
+
+    status = get_gpu_device_from_handle(processor_handle, &gpu_device);
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    status = smi_amdgpu_is_gpu_power_management_enabled(gpu_device, enabled);
+
+    return status;
+}
+
 amdsmi_status_t
 amdsmi_get_clock_info(amdsmi_processor_handle processor_handle, amdsmi_clk_type_t clk_type, amdsmi_clk_info_t *info) {
     AMDSMI_CHECK_INIT();
