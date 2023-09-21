@@ -2,11 +2,15 @@
 
 The AMD System Management Interface Library, or AMD SMI library, is a C library for Linux that provides a user space interface for applications to monitor and control AMD devices.
 
+For additional information refer to [ROCm Documentation](https://rocm.docs.amd.com/projects/amdsmi/en/latest/)
+
+Note: This project is a successor to [rocm_smi_lib](https://github.com/RadeonOpenCompute/rocm_smi_lib)
+
 ## Supported platforms
 
 At initial release, the AMD SMI library will support Linux bare metal and Linux virtual machine guest for AMD GPUs. In the future release, the library will be extended to support AMD EPYC™ CPUs.
 
-AMD SMI library can run on AMD ROCm supported platforms, please refer to [List of Supported Operating Systems and GPUs](https://docs.amd.com/bundle/ROCm-Getting-Started-Guide-v5.3/page/Introduction_to_ROCm_Getting_Started_Guide_for_Linux.html)
+AMD SMI library can run on AMD ROCm supported platforms, please refer to [List of Supported Operating Systems and GPUs](https://rocm.docs.amd.com/en/latest/release/gpu_os_support.html)
 
 To run the AMD SMI library, the amdgpu driver needs to be installed. Optionally, the libdrm can be
 installed to query firmware information and hardware IPs.

@@ -58,6 +58,7 @@
 
 static const std::map<uint32_t, std::string> kTempSensorNameMap = {
     {TEMPERATURE_TYPE_VRAM, "Memory"},
+    {TEMPERATURE_TYPE_HOTSPOT, "Hotspot"},
     {TEMPERATURE_TYPE_JUNCTION, "Junction"},
     {TEMPERATURE_TYPE_EDGE, "Edge"},
     {TEMPERATURE_TYPE_HBM_0, "HBM_0"},

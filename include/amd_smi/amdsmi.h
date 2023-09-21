@@ -178,6 +178,7 @@ typedef enum {
     AMDSMI_STATUS_NOT_FOUND = 31,  //!< Device Not found
     AMDSMI_STATUS_NOT_INIT = 32,  //!< Device not initialized
     AMDSMI_STATUS_NO_SLOT = 33,  //!< No more free slot
+    AMDSMI_STATUS_DRIVER_NOT_LOADED = 34,  //!< Processor driver not loaded
     // Data and size errors
     AMDSMI_STATUS_NO_DATA = 40,  //!< No data was found for a given input
     AMDSMI_STATUS_INSUFFICIENT_SIZE = 41,  //!< Not enough resources were available for the operation
@@ -226,7 +227,8 @@ typedef enum {
 typedef enum {
     TEMPERATURE_TYPE_EDGE,
     TEMPERATURE_TYPE_FIRST = TEMPERATURE_TYPE_EDGE,
-    TEMPERATURE_TYPE_JUNCTION,
+    TEMPERATURE_TYPE_HOTSPOT,
+    TEMPERATURE_TYPE_JUNCTION = TEMPERATURE_TYPE_HOTSPOT,
     TEMPERATURE_TYPE_VRAM,
     TEMPERATURE_TYPE_HBM_0,
     TEMPERATURE_TYPE_HBM_1,
@@ -3228,7 +3230,7 @@ amdsmi_topo_get_link_weight(amdsmi_processor_handle processor_handle_src, amdsmi
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
- amdsmi_get_minmax_bandwith_between_processors(amdsmi_processor_handle processor_handle_src, amdsmi_processor_handle processor_handle_dst,
+ amdsmi_get_minmax_bandwidth_between_processors(amdsmi_processor_handle processor_handle_src, amdsmi_processor_handle processor_handle_dst,
                           uint64_t *min_bandwidth, uint64_t *max_bandwidth);
 
 /**

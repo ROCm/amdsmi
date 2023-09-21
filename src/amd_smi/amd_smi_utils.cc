@@ -163,7 +163,7 @@ amdsmi_status_t smi_amdgpu_get_power_cap(amd::smi::AMDSmiGPUDevice* device, int 
     if (ret)
         return ret;
 
-    fullpath += "/power1_cap_max";
+    fullpath += "/power1_cap";
     std::ifstream file(fullpath.c_str(), std::ifstream::in);
     if (!file.is_open()) {
         return AMDSMI_STATUS_API_FAILED;
