@@ -52,7 +52,7 @@ if __name__ == "__main__":
 
     amd_smi_commands = AMDSMICommands(compatibility=compatibility)
     amd_smi_parser = AMDSMIParser(amd_smi_commands.version,
-                                    amd_smi_commands.discovery,
+                                    amd_smi_commands.list,
                                     amd_smi_commands.static,
                                     amd_smi_commands.firmware,
                                     amd_smi_commands.bad_pages,
@@ -76,10 +76,11 @@ if __name__ == "__main__":
             amd_smi_commands.logger.destination = args.file
         if args.loglevel:
             logging_dict = {'DEBUG' : logging.DEBUG,
-                    'INFO' : logging.INFO,
-                    'WARNING': logging.WARNING,
-                    'ERROR': logging.ERROR,
-                    'CRITICAL': logging.CRITICAL}
+                            'INFO' : logging.INFO,
+                            'WARNING': logging.WARNING,
+                            'ERROR': logging.ERROR,
+                            'CRITICAL': logging.CRITICAL}
+            # Enable debug logs on amdsmi library ie. RSMI_LOGGING = 1 in environment or otherwise
             logging.basicConfig(format='%(levelname)s: %(message)s', level=logging_dict[args.loglevel])
 
         # Execute subcommands

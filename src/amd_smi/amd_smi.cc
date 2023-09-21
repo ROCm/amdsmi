@@ -895,7 +895,7 @@ amdsmi_topo_get_link_weight(amdsmi_processor_handle processor_handle_src, amdsmi
 }
 
 amdsmi_status_t
- amdsmi_get_minmax_bandwith_between_processors(amdsmi_processor_handle processor_handle_src, amdsmi_processor_handle processor_handle_dst,
+ amdsmi_get_minmax_bandwidth_between_processors(amdsmi_processor_handle processor_handle_src, amdsmi_processor_handle processor_handle_dst,
                           uint64_t *min_bandwidth, uint64_t *max_bandwidth) {
     AMDSMI_CHECK_INIT();
 
@@ -1101,8 +1101,15 @@ amdsmi_get_power_cap_info(amdsmi_processor_handle processor_handle,
     if ((status == AMDSMI_STATUS_SUCCESS) && !set_ret_success)
         set_ret_success = true;
 
+    // Dividing by 1000000 to get measurement in Watts
+    (info->default_power_cap) /= 1000000;
+
     status = rsmi_wrapper(rsmi_dev_power_cap_range_get, processor_handle, sensor_ind,
                         &(info->max_power_cap), &(info->min_power_cap));
+
+    // Dividing by 1000000 to get measurement in Watts
+    (info->max_power_cap) /= 1000000;
+    (info->min_power_cap) /= 1000000;
 
     if ((status == AMDSMI_STATUS_SUCCESS) && !set_ret_success)
         set_ret_success = true;

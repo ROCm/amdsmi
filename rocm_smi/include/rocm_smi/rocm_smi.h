@@ -151,6 +151,20 @@ typedef enum {
 } rsmi_init_flags_t;
 
 /**
+ * @brief Driver loading status
+ *
+ * The driver loading status from initState sysfs
+ */
+
+typedef enum {
+  RSMI_DRIVER_NOT_FOUND   = 0,             //!< Cannot find the driver
+  RSMI_DRIVER_MODULE_STATE_LIVE,           //!< Driver loaded and live
+  RSMI_DRIVER_MODULE_STATE_LOADING,        //!< Driver is loading(coming)
+  RSMI_DRIVER_MODULE_STATE_UNLOADING,      //!< Driver is unloading(going)
+  RSMI_DRIVER_MODULE_STATE_UNKNOWN,        //!< Driver state unknown
+} rsmi_driver_state_t;
+
+/**
  * @brief PowerPlay performance levels
  */
 typedef enum {
@@ -1037,6 +1051,13 @@ rsmi_status_t rsmi_init(uint64_t init_flags);
  *  @details Do any necessary clean up.
  */
 rsmi_status_t rsmi_shut_down(void);
+
+/**
+ *  @brief Get driver loading status
+ *
+ *  @details The status could be not found, live, loading, unloading.
+ */
+rsmi_status_t rsmi_driver_status(rsmi_driver_state_t* state);
 
 /** @} */  // end of InitShut
 

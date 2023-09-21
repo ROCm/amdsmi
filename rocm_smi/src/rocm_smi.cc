@@ -508,6 +508,33 @@ rsmi_shut_down(void) {
   CATCH
 }
 
+
+rsmi_status_t rsmi_driver_status(rsmi_driver_state_t* state) {
+  TRY
+  if (state == nullptr) {
+    return RSMI_STATUS_INVALID_ARGS;
+  }
+
+  // live, coming, going
+  static const char *kDevInitStateID = "/sys/module/amdgpu/initstate";
+  std::ifstream infile(kDevInitStateID);
+  if (!infile) {
+    *state = RSMI_DRIVER_NOT_FOUND;
+    return RSMI_STATUS_SUCCESS;
+  }
+
+  std::string stat_str;
+  infile >> stat_str;
+
+  *state = RSMI_DRIVER_MODULE_STATE_UNKNOWN;
+  if (stat_str == "live") *state = RSMI_DRIVER_MODULE_STATE_LIVE;
+  if (stat_str == "coming") *state = RSMI_DRIVER_MODULE_STATE_LOADING;
+  if (stat_str == "going") *state = RSMI_DRIVER_MODULE_STATE_UNLOADING;
+
+  return RSMI_STATUS_SUCCESS;
+  CATCH
+}
+
 rsmi_status_t
 rsmi_num_monitor_devices(uint32_t *num_devices) {
   TRY
