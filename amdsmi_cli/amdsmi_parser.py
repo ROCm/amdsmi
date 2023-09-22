@@ -306,6 +306,7 @@ class AMDSMIParser(argparse.ArgumentParser):
 
         # Options arguments help text for Hypervisors and Baremetal
         ras_help = "Displays RAS features information"
+        vram_help = "All vram information"
         board_help = "All board information" # Linux Baremetal only
         numa_help = "All numa node information" # Linux Baremetal only
 
@@ -333,6 +334,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         # Options to display on Hypervisors and Baremetal
         if self.helpers.is_hypervisor() or self.helpers.is_baremetal():
             static_parser.add_argument('-r', '--ras', action='store_true', required=False, help=ras_help)
+            static_parser.add_argument('-v', '--vram', action='store_true', required=False, help=vram_help)
             if self.helpers.is_linux():
                 static_parser.add_argument('-B', '--board', action='store_true', required=False, help=board_help)
                 static_parser.add_argument('-l', '--limit', action='store_true', required=False, help=limit_help)

@@ -669,6 +669,27 @@ def amdsmi_get_power_cap_info(
             "max_power_cap": power_info.max_power_cap}
 
 
+def amdsmi_get_gpu_vram_info(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> Dict[str, Any]:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    vram_info = amdsmi_wrapper.amdsmi_vram_info_t()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_vram_info(
+            processor_handle, ctypes.byref(vram_info))
+    )
+
+    return {
+        "vram_type": vram_info.vram_type,
+        "vram_vendor": vram_info.vram_vendor,
+        "vram_size_mb": vram_info.vram_size_mb,
+    }
+
+
 def amdsmi_get_gpu_vbios_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
