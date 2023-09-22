@@ -1721,6 +1721,12 @@ amdsmi_status_t amdsmi_get_gpu_driver_info(amdsmi_processor_handle processor_han
     std::string driver_date;
     status = gpu_device->amdgpu_query_driver_date(driver_date);
     if (status != AMDSMI_STATUS_SUCCESS)  return r;
+
+    // Reformat the driver date from 20150101 to 2015/01/01 00:00
+    if (driver_date.length() == 8) {
+        driver_date = driver_date.substr(0, 4) + "/" + driver_date.substr(4, 2)
+                        + "/" + driver_date.substr(6, 2) + " 00:00";
+    }
     strncpy(info->driver_date, driver_date.c_str(), AMDSMI_MAX_STRING_LENGTH-1);
     return status;
 }
