@@ -1129,7 +1129,7 @@ typedef struct {
   uint16_t       padding;          // new in v1
 
   uint32_t       gfx_activity_acc;   // new in v1
-  uint32_t       mem_actvity_acc;     // new in v1
+  uint32_t       mem_activity_acc;     // new in v1
   uint16_t       temperature_hbm[AMDSMI_NUM_HBM_INSTANCES];  // new in v1
   /// @endcond
 } amdsmi_gpu_metrics_t;

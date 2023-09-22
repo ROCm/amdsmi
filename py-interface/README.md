@@ -2005,7 +2005,7 @@ Field | Description
 `pcie_link_speed` | pcie link speed
 `padding` | padding
 `gfx_activity_acc` | gfx activity acc
-`mem_actvity_acc` | mem activity acc
+`mem_activity_acc` | mem activity acc
 `temperature_hbm` | hbm temperature
 
 Exceptions that can be thrown by `amdsmi_get_gpu_metrics_info` function:
