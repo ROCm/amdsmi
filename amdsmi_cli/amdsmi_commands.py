@@ -135,7 +135,7 @@ class AMDSMICommands():
 
     def static(self, args, multiple_devices=False, gpu=None, asic=None,
                 bus=None, vbios=None, limit=None, driver=None,
-                ras=None, board=None, numa=None):
+                ras=None, board=None, numa=None, vram=None):
         """Get Static information for target gpu
 
         Args:
@@ -150,6 +150,7 @@ class AMDSMICommands():
             ras (bool, optional): Value override for args.ras. Defaults to None.
             board (bool, optional): Value override for args.board. Defaults to None.
             numa (bool, optional): Value override for args.numa. Defaults to None.
+            vram (bool, optional): Value override for args.vram. Defaults to None.
 
         Raises:
             IndexError: Index error if gpu list is empty
@@ -177,6 +178,8 @@ class AMDSMICommands():
                 args.limit = limit
             if board:
                 args.board = board
+            if vram:
+                args.vram = vram
 
         # Handle No GPU passed
         if args.gpu == None:
@@ -190,8 +193,8 @@ class AMDSMICommands():
 
         # If all arguments are False, it means that no argument was passed and the entire static should be printed
         if self.helpers.is_linux() and self.helpers.is_baremetal():
-            if not any([args.asic, args.bus, args.vbios, args.limit, args.driver, args.ras, args.board, args.numa]):
-                args.asic = args.bus = args.vbios = args.limit = args.driver = args.ras = args.board = args.numa = self.all_arguments = True
+            if not any([args.asic, args.bus, args.vbios, args.limit, args.driver, args.ras, args.board, args.numa, args.vram]):
+                args.asic = args.bus = args.vbios = args.limit = args.driver = args.ras = args.board = args.numa = args.vram = self.all_arguments = True
         if self.helpers.is_linux() and self.helpers.is_virtual_os():
             if not any([args.asic, args.bus, args.vbios, args.driver]):
                 args.asic = args.bus = args.vbios = args.driver = self.all_arguments = True
@@ -211,7 +214,6 @@ class AMDSMICommands():
             except amdsmi_exception.AmdSmiLibraryException as e:
                 static_dict['asic'] = "N/A"
                 logging.debug("Failed to get asic info for gpu %s | %s", args.gpu, e.get_error_info())
-
         if args.bus:
             bus_output_info = {}
 
@@ -285,7 +287,6 @@ class AMDSMICommands():
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     static_dict['board'] = "N/A"
                     logging.debug("Failed to get board info for gpu %s | %s", args.gpu, e.get_error_info())
-
             if args.limit:
                 # Power limits
                 try:
@@ -398,6 +399,7 @@ class AMDSMICommands():
                 limit_info['shutdown_hotspot_temperature'] = shutdown_temp_hotspot_limit
                 limit_info['shutdown_vram_temperature'] = shutdown_temp_vram_limit
                 static_dict['limit'] = limit_info
+
         if args.driver:
             try:
                 driver_info = {}
@@ -407,13 +409,34 @@ class AMDSMICommands():
                 static_dict['driver'] = "N/A"
                 logging.debug("Failed to get driver info for gpu %s | %s", args.gpu, e.get_error_info())
 
-        if self.helpers.is_linux() and self.helpers.is_baremetal():
+        if self.helpers.is_hypervisor() or self.helpers.is_baremetal():
             if args.ras:
                 try:
                     static_dict['ras'] = amdsmi_interface.amdsmi_get_gpu_ras_block_features_enabled(args.gpu)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     static_dict['ras'] = "N/A"
                     logging.debug("Failed to get ras block features for gpu %s | %s", args.gpu, e.get_error_info())
+            if args.vram:
+                try:
+                    vram_info = amdsmi_interface.amdsmi_get_gpu_vram_info(args.gpu)
+                    vram_type_enum = vram_info['vram_type']
+                    vram_vendor_enum = vram_info['vram_vendor']
+                    vram_type = amdsmi_interface.amdsmi_wrapper.amdsmi_vram_type_t__enumvalues[vram_type_enum]
+                    vram_vendor = amdsmi_interface.amdsmi_wrapper.amdsmi_vram_vendor_type_t__enumvalues[vram_vendor_enum]
+
+                    # Remove amdsmi enum prefix
+                    vram_info['vram_type'] = vram_type.replace('VRAM_TYPE_', '').replace('_', '')
+                    vram_info['vram_vendor'] = vram_type.replace('AMDSMI_VRAM_VENDOR__', '')
+                    if self.logger.is_human_readable_format():
+                        vram_info['vram_size_mb'] = f"{vram_info['vram_size_mb']} MB"
+
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    vram_info = "N/A"
+                    logging.debug("Failed to get vram info for gpu %s | %s", args.gpu, e.get_error_info())
+
+                static_dict['vram'] = vram_info
+
+        if self.helpers.is_linux() and self.helpers.is_baremetal():
             if args.numa:
                 try:
                     numa_node_number = amdsmi_interface.amdsmi_topo_get_numa_node_number(args.gpu)
