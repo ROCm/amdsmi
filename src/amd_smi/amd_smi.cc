@@ -1736,7 +1736,7 @@ amdsmi_status_t
 amdsmi_get_gpu_device_uuid(amdsmi_processor_handle processor_handle, unsigned int *uuid_length, char *uuid) {
     AMDSMI_CHECK_INIT();
 
-    if (uuid_length == nullptr || uuid == nullptr) {
+    if (uuid_length == nullptr || uuid == nullptr || uuid_length == nullptr || *uuid_length < AMDSMI_GPU_UUID_SIZE) {
         return AMDSMI_STATUS_INVAL;
     }
 
@@ -1748,35 +1748,20 @@ amdsmi_get_gpu_device_uuid(amdsmi_processor_handle processor_handle, unsigned in
     amdsmi_status_t status = AMDSMI_STATUS_SUCCESS;
     SMIGPUDEVICE_MUTEX(gpu_device->get_mutex())
 
-    FILE *fp;
     size_t len = AMDSMI_GPU_UUID_SIZE;
-    ssize_t nread;
     amdsmi_asic_info_t asic_info = {};
     const uint8_t fcn = 0xff;
 
-    std::string path = "/sys/class/drm/" + gpu_device->get_gpu_path() + "/device/uuid_info";
     status = amdsmi_get_gpu_asic_info(processor_handle, &asic_info);
     if (status != AMDSMI_STATUS_SUCCESS) {
         printf("Getting asic info failed. Return code: %d", status);
         return status;
     }
 
-    fp = fopen(path.c_str(), "rb");
-    if (!fp) {
-        /* generate random UUID */
-        status = amdsmi_uuid_gen(uuid, strtoul(asic_info.asic_serial, nullptr, AMDSMI_NORMAL_STRING_LENGTH), (uint16_t)asic_info.device_id, fcn);
-        return status;
-    }
-
-    nread = getline(&uuid, &len, fp);
-    if (nread <= 0) {
-        /* generate random UUID */
-        status = amdsmi_uuid_gen(uuid, strtoul(asic_info.asic_serial, nullptr, AMDSMI_NORMAL_STRING_LENGTH), (uint16_t)asic_info.device_id, fcn);
-        fclose(fp);
-        return status;
-    }
-
-    fclose(fp);
+    /* generate random UUID */
+    status = amdsmi_uuid_gen(uuid,
+                strtoull(asic_info.asic_serial, nullptr, 16),
+                (uint16_t)asic_info.device_id, fcn);
     return status;
 }
 
