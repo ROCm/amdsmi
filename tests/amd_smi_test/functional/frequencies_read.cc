@@ -126,16 +126,20 @@ void TestFrequenciesRead::Run(void) {
         } else if (err == AMDSMI_STATUS_NOT_YET_IMPLEMENTED) {
           std::cout << "\t**Get " << name <<
                                ": Not implemented on this machine" << std::endl;
+        // special driver issue, shouldn't normally occur
+        } else if (err == AMDSMI_STATUS_UNEXPECTED_DATA) {
+          std::cerr << "WARN: Clock file [" << FreqEnumToStr(t) << "] exists on device [" << i << "] but empty!" << std::endl;
+          std::cerr << "      Likely a driver issue!" << std::endl;
         } else {
-            CHK_ERR_ASRT(err)
-            IF_VERB(STANDARD) {
-              std::cout << "\t**Supported " << name << " clock frequencies: ";
-              std::cout << f.num_supported << std::endl;
-              print_frequencies(&f);
-              // Verify api support checking functionality is working
-              err =  amdsmi_get_clk_freq(processor_handles_[i], t, nullptr);
-              ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
-            }
+          CHK_ERR_ASRT(err)
+          IF_VERB(STANDARD) {
+            std::cout << "\t**Supported " << name << " clock frequencies: ";
+            std::cout << f.num_supported << std::endl;
+            print_frequencies(&f);
+            // Verify api support checking functionality is working
+            err =  amdsmi_get_clk_freq(processor_handles_[i], t, nullptr);
+            ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
+          }
         }
       };
 

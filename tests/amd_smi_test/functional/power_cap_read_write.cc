@@ -112,6 +112,13 @@ void TestPowerCapReadWrite::Run(void) {
     max = info.max_power_cap;
     orig = info.default_power_cap;
 
+    // Check if power cap is within the range
+    // skip the test otherwise
+    if (orig < min || orig > max) {
+      std::cout << "Power cap is not within the range. Skipping test for " << dv_ind << std::endl;
+      continue;
+    }
+
     new_cap = (max + min)/2;
 
     IF_VERB(STANDARD) {

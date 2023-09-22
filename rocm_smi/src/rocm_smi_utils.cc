@@ -40,27 +40,28 @@
  * DEALINGS WITH THE SOFTWARE.
  *
  */
-#include <assert.h>
-#include <errno.h>
-#include <sys/stat.h>
-#include <unistd.h>
+#define _GNU_SOURCE 1 // REQUIRED: to utilize some GNU features/functions, see
+                      // _GNU_SOURCE functions which check
 #include <dirent.h>
+#include <dlfcn.h>
 #include <glob.h>
+#include <sys/stat.h>
 #include <sys/utsname.h>
+#include <unistd.h>
 
-#include <fstream>
-#include <string>
-#include <cstring>
+#include <algorithm>
+#include <cassert>
+#include <cerrno>
 #include <cstdint>
+#include <cstring>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <iomanip>
-#include <sstream>
-#include <algorithm>
-#include <vector>
 #include <regex>
-#include <iomanip>
+#include <sstream>
+#include <string>
 #include <type_traits>
+#include <vector>
 
 #include "rocm_smi/rocm_smi.h"
 #include "rocm_smi/rocm_smi_utils.h"
@@ -138,7 +139,7 @@ std::vector<std::string> globFilesExist(const std::string& filePattern) {
   glob_t result_glob;
   memset(&result_glob, 0, sizeof(result_glob));
 
-  if (glob(filePattern.c_str(), GLOB_TILDE, NULL, &result_glob) != 0) {
+  if (glob(filePattern.c_str(), GLOB_TILDE, nullptr, &result_glob) != 0) {
     globfree(&result_glob);
     // Leaving below to help debug issues discovering future glob file searches
     // debugFilesDiscovered(fileNames);
@@ -146,7 +147,7 @@ std::vector<std::string> globFilesExist(const std::string& filePattern) {
   }
 
   for(size_t i = 0; i < result_glob.gl_pathc; ++i) {
-    fileNames.push_back(std::string(result_glob.gl_pathv[i]));
+    fileNames.emplace_back(result_glob.gl_pathv[i]);
   }
   globfree(&result_glob);
 
@@ -159,17 +160,26 @@ int isRegularFile(std::string fname, bool *is_reg) {
   struct stat file_stat;
   int ret;
 
-  assert(is_reg != nullptr);
-
   ret = stat(fname.c_str(), &file_stat);
   if (ret) {
     return errno;
   }
-  *is_reg = S_ISREG(file_stat.st_mode);
+
+  if (is_reg != nullptr) {
+    *is_reg = S_ISREG(file_stat.st_mode);
+  }
+
   return 0;
 }
 
 int WriteSysfsStr(std::string path, std::string val) {
+  //  On success, zero is returned.  On error, -1 is returned, and
+  //  errno is set to indicate the error.
+  auto is_regular_file_result = isRegularFile(path, nullptr);
+  if (is_regular_file_result != 0) {
+    return ENOENT;
+  }
+
   std::ofstream fs;
   int ret = 0;
   std::ostringstream ss;
@@ -196,6 +206,13 @@ int WriteSysfsStr(std::string path, std::string val) {
 }
 
 int ReadSysfsStr(std::string path, std::string *retStr) {
+  //  On success, zero is returned.  On error, -1 is returned, and
+  //  errno is set to indicate the error.
+  auto is_regular_file_result = isRegularFile(path, nullptr);
+  if (is_regular_file_result != 0) {
+    return ENOENT;
+  }
+
   std::stringstream ss;
   int ret = 0;
   std::ostringstream oss;
@@ -381,7 +398,7 @@ std::string removeString(const std::string origStr,
 // defaults to trim stdOut
 std::pair<bool, std::string> executeCommand(std::string command, bool stdOut) {
   char buffer[128];
-  std::string stdoutAndErr = "";
+  std::string stdoutAndErr;
   bool successfulRun = true;
   command = "stdbuf -i0 -o0 -e0 " + command; // remove stdOut and err buffering
 
@@ -411,14 +428,10 @@ std::pair<bool, std::string> executeCommand(std::string command, bool stdOut) {
   return std::make_pair(successfulRun, stdoutAndErr);
 }
 
-// originalstring - string to search for substring
+// originalString - string to search for substring
 // substring - string looking to find
 bool containsString(std::string originalString, std::string substring) {
-  if (originalString.find(substring) != std::string::npos) {
-    return true;
-  } else {
-    return false;
-  }
+  return (originalString.find(substring) != std::string::npos);
 }
 
 // Creates and stores supplied data into a temporary file (within /tmp/).
@@ -429,9 +442,9 @@ bool containsString(std::string originalString, std::string substring) {
 // https://man7.org/linux/man-pages/man3/mkstemp.3.html
 //
 // Temporary file name format:
-// <app prefix>_<state name>_<paramenter name>_<device id>
+// <app prefix>_<state name>_<parameter name>_<device id>
 // <app prefix> - prefix for our application's identifier (see kTmpFilePrefix)
-// <paramenter name> - name of parameter being stored
+// <parameter name> - name of parameter being stored
 // <state name> - state at which the stored value captures
 // <device index> - device identifier
 //
@@ -466,9 +479,8 @@ rsmi_status_t storeTmpFile(uint32_t dv_ind, std::string parameterName,
   close(fd);
   if (rc_write == -1) {
     return RSMI_STATUS_FILE_ERROR;
-  } else {
-    return RSMI_STATUS_SUCCESS;
   }
+  return RSMI_STATUS_SUCCESS;
 }
 
 std::vector<std::string> getListOfAppTmpFiles() {
@@ -477,16 +489,18 @@ std::vector<std::string> getListOfAppTmpFiles() {
   struct dirent *ent;
   std::vector<std::string> tmpFiles;
 
-  if ((dir = opendir(path.c_str())) != nullptr) {
-    // captures all files & directories under specified path
-    while ((ent  = readdir(dir)) != nullptr) {
-      std::string fileDirName = ent->d_name;
-      // we only want our app specific files
-      if (containsString(fileDirName, kTmpFilePrefix)) {
-        tmpFiles.emplace_back(path + "/" + fileDirName);
-      } else {
-        continue;
-      }
+  dir = opendir(path.c_str());
+  if (dir == nullptr) {
+    return tmpFiles;
+  }
+  // captures all files & directories under specified path
+  while ((ent = readdir(dir)) != nullptr) {
+    std::string fileDirName = ent->d_name;
+    // we only want our app specific files
+    if (containsString(fileDirName, kTmpFilePrefix)) {
+      tmpFiles.emplace_back(path + "/" + fileDirName);
+    } else {
+      continue;
     }
   }
   return tmpFiles;
@@ -515,7 +529,7 @@ std::vector<std::string> readEntireFile(std::string path) {
     std::string line;
     while (std::getline(inFileStream, line)) {
       std::istringstream ss(line);
-      if(line.size() > 0) {
+      if (!line.empty()) {
         fileContent.push_back(line);
       }
     }
@@ -527,7 +541,7 @@ std::vector<std::string> readEntireFile(std::string path) {
 // and their content
 void displayAppTmpFilesContent() {
   std::vector<std::string> tmpFiles = getListOfAppTmpFiles();
-  if (tmpFiles.empty() == false) {
+  if (!tmpFiles.empty()) {
     for (auto &x: tmpFiles) {
       std::string out = readFile(x);
       std::cout << __PRETTY_FUNCTION__ << " | Temporary file: " << x
@@ -543,7 +557,7 @@ void displayAppTmpFilesContent() {
 std::string debugVectorContent(std::vector<std::string> v) {
   std::ostringstream ss;
   ss << "Vector = {";
-  if (v.size() > 0) {
+  if (!v.empty()) {
     for (auto it=v.begin(); it < v.end(); it++) {
       ss << *it;
       auto temp_it = it;
@@ -561,7 +575,7 @@ std::string debugVectorContent(std::vector<std::string> v) {
 std::string displayAllDevicePaths(std::vector<std::shared_ptr<Device>> v) {
   std::ostringstream ss;
   ss << "Vector = {";
-  if (v.size() > 0) {
+  if (!v.empty()) {
     for (auto it=v.begin(); it < v.end(); it++) {
       ss << (*it)->path();
       auto temp_it = it;
@@ -576,7 +590,7 @@ std::string displayAllDevicePaths(std::vector<std::shared_ptr<Device>> v) {
 }
 
 // Attempts to read application specific temporary file
-// This method is to be used for reading (or determing if it exists),
+// This method is to be used for reading (or determining if it exists),
 // in order to keep file naming scheme consistent.
 //
 // dv_ind - device index
@@ -594,7 +608,7 @@ std::tuple<bool, std::string> readTmpFile(uint32_t dv_ind,
                             "_" + std::to_string(dv_ind);
   std::string fileContent;
   std::vector<std::string> tmpFiles = getListOfAppTmpFiles();
-  if (tmpFiles.empty() == false) {
+  if (!tmpFiles.empty()) {
     for (auto &x: tmpFiles) {
       if (containsString(x, tmpFileName)) {
         fileContent = readFile(x);
@@ -629,15 +643,23 @@ std::string getRSMIStatusString(rsmi_status_t ret) {
 // Big Endian (BE), multi-bit symbols encoded as big endian (MSB first)
 // Little Endian (LE), multi-bit symbols encoded as little endian (LSB first)
 std::tuple<bool, std::string, std::string, std::string, std::string,
-           std::string, std::string, std::string, std::string>
+           std::string, std::string, std::string, std::string,
+           std::string, std::string, std::string>
            getSystemDetails(void) {
   struct utsname buf;
   bool errorDetected = false;
   std::string temp_data;
-  std::string sysname, nodename, release, version, machine;
+  std::string sysname;
+  std::string nodename;
+  std::string release;
+  std::string version;
+  std::string machine;
   std::string domainName = "<undefined>";
   std::string os_distribution = "<undefined>";
   std::string endianness = "<undefined>";
+  std::string rocm_lib_path = "<undefined>";
+  std::string rocm_build_type = "<undefined>";
+  std::string rocm_env_variables = "<undefined>";
 
   if (uname(&buf) < 0) {
     errorDetected = true;
@@ -654,7 +676,7 @@ std::tuple<bool, std::string, std::string, std::string, std::string,
 
   std::string filePath = "/etc/os-release";
   bool fileExists = FileExists(filePath.c_str());
-  if (fileExists == true) {
+  if (fileExists) {
     std::vector<std::string> fileContent = readEntireFile(filePath);
     for (auto &line: fileContent) {
       if (line.find("PRETTY_NAME=") != std::string::npos) {
@@ -672,9 +694,13 @@ std::tuple<bool, std::string, std::string, std::string, std::string,
     endianness = "Little Endian, multi-bit symbols encoded as"
                  " little endian (LSB first)";
   }
+  rocm_build_type = getBuildType();
+  rocm_lib_path = getMyLibPath();
+  rocm_env_variables = RocmSMI::getInstance().getRSMIEnvVarInfo();
   return std::make_tuple(errorDetected, sysname, nodename, release,
                          version, machine, domainName, os_distribution,
-                         endianness);
+                         endianness, rocm_build_type, rocm_lib_path,
+                         rocm_env_variables);
 }
 
 // If logging is enabled through RSMI_LOGGING environment variable.
@@ -683,9 +709,10 @@ void logSystemDetails(void) {
   std::ostringstream ss;
   bool errorDetected;
   std::string sysname, node, release, version, machine, domain, distName,
-              endianness;
+              endianness, rocm_build_type, lib_path, rocm_env_vars;
   std::tie(errorDetected, sysname, node, release, version, machine, domain,
-           distName, endianness) = getSystemDetails();
+           distName, endianness, rocm_build_type, lib_path,
+           rocm_env_vars) = getSystemDetails();
   if (errorDetected == false) {
     ss << "====== Gathered system details ============\n"
        << "SYSTEM NAME: " << sysname << "\n"
@@ -695,7 +722,10 @@ void logSystemDetails(void) {
        << "VERSION: " << version << "\n"
        << "MACHINE TYPE: " << machine << "\n"
        << "DOMAIN: " << domain << "\n"
-       << "ENDIANNESS: " << endianness << "\n";
+       << "ENDIANNESS: " << endianness << "\n"
+       << "ROCM BUILD TYPE: " << rocm_build_type << "\n"
+       << "ROCM-SMI-LIB PATH: " << lib_path << "\n"
+       << "ROCM ENV VARIABLES: " << rocm_env_vars << "\n";
     LOG_INFO(ss);
   } else {
     ss << "====== Gathered system details ============\n"
@@ -724,7 +754,7 @@ void logHexDump(
 
   // Output description if given.
   // if (desc != NULL) printf("%s:\n", desc);
-  if (desc != NULL) ss << "\n" << desc << "\n";
+  if (desc != nullptr) ss << "\n" << desc << "\n";
 
   // Length checks.
   if (len == 0) {
@@ -816,6 +846,36 @@ rsmi_status_t getBDFWithDomain(uint64_t bdf_id, std::string& bfd_str)
   return result;
 }
 
+std::string getBuildType() {
+  std::string build = "<unknown>";
+#ifndef DEBUG
+  build = "release";
+#else
+  build = "debug";
+#endif
+  return build;
+}
+
+const char *my_fname(void) {
+std::string emptyRet="";
+#ifdef _GNU_SOURCE
+  Dl_info dl_info;
+  dladdr((void *)my_fname, &dl_info);
+  return (dl_info.dli_fname);
+#else
+  return emptyRet.c_str();
+#endif
+}
+
+std::string getMyLibPath(void) {
+  std::string libName = "rocm-smi-lib";
+  std::string path = std::string(my_fname());
+  if (path.empty()) {
+    path = "Could not find library path for " + libName;
+  }
+  return path;
+}
+
 rsmi_status_t getBDFString(uint64_t bdf_id, std::string& bfd_str)
 {
   auto result = rsmi_status_t::RSMI_STATUS_SUCCESS;
@@ -837,6 +897,35 @@ rsmi_status_t getBDFString(uint64_t bdf_id, std::string& bfd_str)
   return result;
 }
 
+int subDirectoryCountInPath(const std::string path) {
+  int dir_count = 0;
+  struct dirent *dent;
+  DIR *srcdir = opendir(path.c_str());
+
+  if (srcdir == NULL) {
+    perror("opendir");
+    return -1;
+  }
+
+  while ((dent = readdir(srcdir)) != NULL) {
+    struct stat st;
+
+    if (strcmp(dent->d_name, ".") == 0 || strcmp(dent->d_name, "..") == 0) {
+      continue;
+    }
+
+    if (fstatat(dirfd(srcdir), dent->d_name, &st, 0) < 0) {
+      perror(dent->d_name);
+      continue;
+    }
+
+    if (S_ISDIR(st.st_mode)) {
+      dir_count++;
+    }
+  }
+  closedir(srcdir);
+  return dir_count;
+}
 
 }  // namespace smi
 }  // namespace amd
