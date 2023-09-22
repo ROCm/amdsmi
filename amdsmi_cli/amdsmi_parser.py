@@ -417,7 +417,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         usage_help = "Displays engine usage information"
 
         # Help text for Arguments only Available on Virtual OS and Baremetal platforms
-        fb_usage_help = "Total and used framebuffer"
+        mem_usage_help = "Memory usage per block"
 
         # Help text for Arguments only on Hypervisor and Baremetal platforms
         power_help = "Current power usage"
@@ -435,7 +435,6 @@ class AMDSMIParser(argparse.ArgumentParser):
         replay_count_help = "PCIe replay count"
         xgmi_err_help = "XGMI error information since last read"
         energy_help = "Amount of energy consumed"
-        mem_usage_help = "Memory usage per block"
 
         # Help text for Arguments only on Hypervisors
         schedule_help = "All scheduling information"
@@ -457,11 +456,11 @@ class AMDSMIParser(argparse.ArgumentParser):
 
         # Optional Args for Virtual OS and Baremetal systems
         if self.helpers.is_virtual_os() or self.helpers.is_baremetal():
-            metric_parser.add_argument('-b', '--fb-usage', action='store_true', required=False, help=fb_usage_help)
             metric_parser.add_argument('-m', '--mem-usage', action='store_true', required=False, help=mem_usage_help)
 
         # Optional Args for Hypervisors and Baremetal systems
         if self.helpers.is_hypervisor() or self.helpers.is_baremetal():
+            metric_parser.add_argument('-u', '--usage', action='store_true', required=False, help=usage_help)
             metric_parser.add_argument('-p', '--power', action='store_true', required=False, help=power_help)
             metric_parser.add_argument('-c', '--clock', action='store_true', required=False, help=clock_help)
             metric_parser.add_argument('-t', '--temperature', action='store_true', required=False, help=temperature_help)
@@ -469,7 +468,6 @@ class AMDSMIParser(argparse.ArgumentParser):
             metric_parser.add_argument('-k', '--ecc-block', action='store_true', required=False, help=ecc_block_help)
             metric_parser.add_argument('-r', '--replay-count', action='store_true', required=False, help=replay_count_help)
             metric_parser.add_argument('-P', '--pcie', action='store_true', required=False, help=pcie_help)
-            metric_parser.add_argument('-u', '--usage', action='store_true', required=False, help=usage_help)
 
         # Optional Args for Linux Baremetal Systems
         if self.helpers.is_baremetal() and self.helpers.is_linux():

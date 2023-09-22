@@ -147,6 +147,7 @@ Static Arguments:
   -r, --ras                                       Displays RAS features information
   -B, --board                                     All board information
   -u, --numa                                      All numa node information
+  -v, --vram                                      All vram information
 
 Command Modifiers:
   --json                                          Displays output in JSON format (human readable by default).
@@ -197,7 +198,6 @@ Metric arguments:
   -W total_loop_time, --watch_time total_loop_time            The total time to watch the given command
   -i number_of_iterations, --iterations number_of_iterations  Total number of iterations to loop on the given command
   -u, --usage                                                 Displays engine usage information
-  -b, --fb-usage                                              Total and used framebuffer
   -p, --power                                                 Current power usage
   -c, --clock                                                 Average, max, and current clock frequencies
   -t, --temperature                                           Current temperatures
