@@ -999,7 +999,10 @@ class AMDSMICommands():
             if args.pcie:
                 pcie_dict = {'current_width': "N/A",
                              'current_speed': "N/A",
-                             'replay_count' : "N/A"}
+                             'replay_count' : "N/A",
+                             'current_bandwith_sent': "N/A",
+                             'current_bandwith_received': "N/A",
+                             'max_packet_size': "N/A"}
 
                 try:
                     pcie_link_status = amdsmi_interface.amdsmi_get_pcie_link_status(args.gpu)
@@ -1023,6 +1026,27 @@ class AMDSMICommands():
                     pcie_dict['replay_count'] = pci_replay_counter
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     logging.debug("Failed to get pci replay counter for gpu %s | %s", args.gpu, e.get_error_info())
+
+                try:
+                    pcie_bw = amdsmi_interface.amdsmi_get_gpu_pci_throughput(args.gpu)
+                    sent = pcie_bw['sent'] * pcie_bw['max_pkt_sz']
+                    received = pcie_bw['received'] * pcie_bw['max_pkt_sz']
+
+                    if self.logger.is_human_readable_format():
+                        if sent > 0:
+                            sent = sent // 1024 // 1024
+                        sent = f"{sent} MB/s"
+
+                        if received > 0:
+                            received = received // 1024 // 1024
+                        received = f"{received} MB/s"
+                        pcie_bw['max_pkt_sz'] = f"{pcie_bw['max_pkt_sz']} B"
+
+                    pcie_dict['current_bandwith_sent'] = sent
+                    pcie_dict['current_bandwith_received'] = received
+                    pcie_dict['max_packet_size'] = pcie_bw['max_pkt_sz']
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    logging.debug("Failed to get pcie bandwidth for gpu %s | %s", args.gpu, e.get_error_info())
 
                 values_dict['pcie'] = pcie_dict
             if args.fan:
