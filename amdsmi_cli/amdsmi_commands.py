@@ -696,7 +696,7 @@ class AMDSMICommands():
                 usage=None, watch=None, watch_time=None, iterations=None, power=None,
                 clock=None, temperature=None, ecc=None, ecc_block=None, pcie=None,
                 fan=None, voltage_curve=None, overdrive=None, perf_level=None,
-                replay_count=None, xgmi_err=None, energy=None, mem_usage=None):
+                xgmi_err=None, energy=None, mem_usage=None):
         """Get Metric information for target gpu
 
         Args:
@@ -718,7 +718,6 @@ class AMDSMICommands():
             voltage_curve (bool, optional): Value override for args.voltage_curve. Defaults to None.
             overdrive (bool, optional): Value override for args.overdrive. Defaults to None.
             perf_level (bool, optional): Value override for args.perf_level. Defaults to None.
-            replay_count (bool, optional): Value override for args.replay_count. Defaults to None.
             xgmi_err (bool, optional): Value override for args.xgmi_err. Defaults to None.
             energy (bool, optional): Value override for args.energy. Defaults to None.
             mem_usage (bool, optional): Value override for args.mem_usage. Defaults to None.
@@ -741,10 +740,6 @@ class AMDSMICommands():
         if self.helpers.is_linux():
             if mem_usage:
                 args.mem_usage = mem_usage
-
-        if not self.helpers.is_virtual_os():
-            if replay_count:
-               args.replay_count = replay_count
 
         if self.helpers.is_linux() and self.helpers.is_baremetal():
             if usage:
@@ -822,12 +817,11 @@ class AMDSMICommands():
         if self.helpers.is_linux() and self.helpers.is_baremetal():
             if not any([args.usage, args.mem_usage, args.power, args.clock, args.temperature,
                         args.ecc,  args.ecc_block, args.pcie, args.fan, args.voltage_curve,
-                        args.overdrive, args.perf_level, args.replay_count, args.xgmi_err,
-                        args.energy]):
+                        args.overdrive, args.perf_level, args.xgmi_err, args.energy]):
                 args.usage = args.mem_usage = args.power = args.clock = args.temperature = \
                     args.ecc = args.ecc_block = args.pcie = args.fan = args.voltage_curve = \
-                    args.overdrive = args.perf_level = args.replay_count = args.xgmi_err = \
-                    args.energy = self.all_arguments = True
+                    args.overdrive = args.perf_level = args.xgmi_err = args.energy = \
+                    self.all_arguments = True
 
         # Add timestamp and store values for specified arguments
         values_dict = {}
@@ -1003,6 +997,10 @@ class AMDSMICommands():
                     values_dict['ecc_block'] = "N/A"
                     logging.debug("Failed to get ecc block features for gpu %s | %s", args.gpu, e.get_error_info())
             if args.pcie:
+                pcie_dict = {'current_width': "N/A",
+                             'current_speed': "N/A",
+                             'replay_count' : "N/A"}
+
                 try:
                     pcie_link_status = amdsmi_interface.amdsmi_get_pcie_link_status(args.gpu)
 
@@ -1011,20 +1009,22 @@ class AMDSMICommands():
                     else:
                         pcie_speed_GTs_value = round(pcie_link_status['pcie_speed'] / 1000)
 
-                    pcie_link_status['pcie_speed'] = pcie_speed_GTs_value
-                    # The interface version should not be displayed as it is based on the current speed
-                    del pcie_link_status['pcie_interface_version']
+                    pcie_dict['current_speed'] = pcie_speed_GTs_value
+                    pcie_dict['current_width'] = pcie_link_status['pcie_lanes']
 
                     if self.logger.is_human_readable_format():
                         unit = 'GT/s'
-                        pcie_link_status['pcie_speed'] = f"{pcie_link_status['pcie_speed']} {unit}"
-                        pcie_link_status['current_width'] = pcie_link_status.pop('pcie_lanes')
-                        pcie_link_status['current_speed'] = pcie_link_status.pop('pcie_speed')
-
-                    values_dict['pcie'] = pcie_link_status
+                        pcie_link_status['current_speed'] = f"{pcie_link_status['pcie_speed']} {unit}"
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    values_dict['pcie'] = "N/A"
                     logging.debug("Failed to get pcie link status for gpu %s | %s", args.gpu, e.get_error_info())
+
+                try:
+                    pci_replay_counter = amdsmi_interface.amdsmi_get_gpu_pci_replay_counter(args.gpu)
+                    pcie_dict['replay_count'] = pci_replay_counter
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    logging.debug("Failed to get pci replay counter for gpu %s | %s", args.gpu, e.get_error_info())
+
+                values_dict['pcie'] = pcie_dict
             if args.fan:
                 try:
                     fan_speed = amdsmi_interface.amdsmi_get_gpu_fan_speed(args.gpu, 0)
@@ -1093,15 +1093,6 @@ class AMDSMICommands():
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     values_dict['perf_level'] = "N/A"
                     logging.debug("Failed to get perf level for gpu %s | %s", args.gpu, e.get_error_info())
-
-        if not self.helpers.is_virtual_os():
-            if args.replay_count:
-                try:
-                    pci_replay_counter = amdsmi_interface.amdsmi_get_gpu_pci_replay_counter(args.gpu)
-                    values_dict['replay_count'] = pci_replay_counter
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    values_dict['replay_count'] = "N/A"
-                    logging.debug("Failed to get pci replay counter for gpu %s | %s", args.gpu, e.get_error_info())
 
         if self.helpers.is_linux() and self.helpers.is_baremetal():
             if args.xgmi_err:
