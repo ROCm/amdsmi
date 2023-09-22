@@ -2148,7 +2148,7 @@ def amdsmi_get_gpu_metrics_info(
         "pcie_link_speed": gpu_metrics.pcie_link_speed,
         "padding": gpu_metrics.padding,
         "gfx_activity_acc": gpu_metrics.gfx_activity_acc,
-        "mem_actvity_acc": gpu_metrics.mem_actvity_acc,
+        "mem_activity_acc": gpu_metrics.mem_activity_acc,
         "temperature_hbm": list(gpu_metrics.temperature_hbm),
     }
 

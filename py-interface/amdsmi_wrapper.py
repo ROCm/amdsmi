@@ -1401,7 +1401,7 @@ struct_amdsmi_gpu_metrics_t._fields_ = [
     ('pcie_link_speed', ctypes.c_uint16),
     ('padding', ctypes.c_uint16),
     ('gfx_activity_acc', ctypes.c_uint32),
-    ('mem_actvity_acc', ctypes.c_uint32),
+    ('mem_activity_acc', ctypes.c_uint32),
     ('temperature_hbm', ctypes.c_uint16 * 4),
 ]
 
