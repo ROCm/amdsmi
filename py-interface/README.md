@@ -341,6 +341,7 @@ Field | Content
 ---|---
 `market_name` |  market name
 `vendor_id` |  vendor id
+`vendor_name` |  vendor name
 `device_id` |  device id
 `rev_id` |  revision id
 `asic_serial` | asic serial
