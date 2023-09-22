@@ -202,12 +202,11 @@ Metric arguments:
   -c, --clock                                                 Average, max, and current clock frequencies
   -t, --temperature                                           Current temperatures
   -e, --ecc                                                   Number of ECC errors
-  -P, --pcie                                                  Current PCIe speed and width
+  -P, --pcie                                                  Current PCIe speed, width, and replay count
   -f, --fan                                                   Current fan speed
   -C, --voltage-curve                                         Display voltage curve
   -o, --overdrive                                             Current GPU clock overdrive level
   -l, --perf-level                                            Current DPM performance level
-  -r, --replay-count                                          PCIe replay count
   -x, --xgmi-err                                              XGMI error information since last read
   -E, --energy                                                Amount of energy consumed
   -m, --mem-usage                                             Memory usage per block

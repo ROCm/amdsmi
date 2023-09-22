@@ -425,14 +425,13 @@ class AMDSMIParser(argparse.ArgumentParser):
         temperature_help = "Current temperatures"
         ecc_help = "Number of ECC errors"
         ecc_block_help = "Number of ECC errors per block"
-        pcie_help = "Current PCIe speed and width"
+        pcie_help = "Current PCIe speed, width, and replay count"
 
         # Help text for Arguments only on Linux Baremetal platforms
         fan_help = "Current fan speed"
         vc_help = "Display voltage curve"
         overdrive_help = "Current GPU clock overdrive level"
         perf_level_help = "Current DPM performance level"
-        replay_count_help = "PCIe replay count"
         xgmi_err_help = "XGMI error information since last read"
         energy_help = "Amount of energy consumed"
 
@@ -466,7 +465,6 @@ class AMDSMIParser(argparse.ArgumentParser):
             metric_parser.add_argument('-t', '--temperature', action='store_true', required=False, help=temperature_help)
             metric_parser.add_argument('-e', '--ecc', action='store_true', required=False, help=ecc_help)
             metric_parser.add_argument('-k', '--ecc-block', action='store_true', required=False, help=ecc_block_help)
-            metric_parser.add_argument('-r', '--replay-count', action='store_true', required=False, help=replay_count_help)
             metric_parser.add_argument('-P', '--pcie', action='store_true', required=False, help=pcie_help)
 
         # Optional Args for Linux Baremetal Systems
