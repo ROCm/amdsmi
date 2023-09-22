@@ -106,14 +106,12 @@ static void RunCustomTestProlog(TestBase *test) {
   }
   test->SetUp();
   test->Run();
-  return;
 }
 static void RunCustomTestEpilog(TestBase *tst) {
   if (sRSMIGlvalues->verbosity >= TestBase::VERBOSE_STANDARD) {
     tst->DisplayResults();
   }
   tst->Close();
-  return;
 }
 
 // If the test case one big test, you should use RunGenericTest()
@@ -125,7 +123,6 @@ static void RunCustomTestEpilog(TestBase *tst) {
 static void RunGenericTest(TestBase *test) {
   RunCustomTestProlog(test);
   RunCustomTestEpilog(test);
-  return;
 }
 
 

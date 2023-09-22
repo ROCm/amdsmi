@@ -41,24 +41,22 @@
  *
  */
 
-#include <assert.h>
 #include <dirent.h>
+#include <pthread.h>
 
+#include <algorithm>
+#include <cassert>
+#include <cstdint>
 #include <cstring>
 #include <fstream>
-#include <string>
-#include <cstdint>
-#include <map>
 #include <iostream>
-#include <algorithm>
+#include <map>
 #include <regex>  // NOLINT
+#include <string>
 #include <vector>
-#include <pthread.h>
-#include <string.h>
 
 #include "rocm_smi/rocm_smi_common.h"  // Should go before rocm_smi.h
 #include "rocm_smi/rocm_smi_main.h"
-#include "rocm_smi/rocm_smi_monitor.h"
 #include "rocm_smi/rocm_smi_utils.h"
 #include "rocm_smi/rocm_smi_exception.h"
 #include "rocm_smi/rocm_smi_logger.h"
@@ -151,7 +149,7 @@ void log_gpu_metrics(const metrics_table_header_t *gpu_metrics_table_header,
                      const rsmi_gpu_metrics_v_1_2 *rsmi_gpu_metrics_v_1_2,
                      const rsmi_gpu_metrics_v_1_3 *gpu_metrics_v_1_3,
                      const rsmi_gpu_metrics_t *rsmi_gpu_metrics) {
-  if (RocmSMI::getInstance().isLoggingOn() == false) {
+  if (!RocmSMI::getInstance().isLoggingOn()) {
     return;
   }
   std::ostringstream ss;
@@ -171,9 +169,8 @@ void log_gpu_metrics(const metrics_table_header_t *gpu_metrics_table_header,
   }
   if (rsmi_gpu_metrics == nullptr) {
     return;
-  } else {
-    // do nothing - continue
   }
+
   ss
     /* Common Header */
     << print_unsigned_hex_and_int(
@@ -291,8 +288,8 @@ void log_gpu_metrics(const metrics_table_header_t *gpu_metrics_table_header,
         rsmi_gpu_metrics->gfx_activity_acc,
         "rsmi_gpu_metrics->gfx_activity_acc")
     << print_unsigned_hex_and_int(
-        rsmi_gpu_metrics->mem_actvity_acc,
-        "rsmi_gpu_metrics->mem_actvity_acc");
+        rsmi_gpu_metrics->mem_activity_acc,
+        "rsmi_gpu_metrics->mem_activity_acc");
     for (int i=0; i < RSMI_NUM_HBM_INSTANCES; i++) {
       ss << print_unsigned_hex_and_int(
         rsmi_gpu_metrics->temperature_hbm[i],
@@ -366,7 +363,7 @@ static rsmi_status_t GetGPUMetricsFormat1(uint32_t dv_ind,
   }
 
 #define ASSIGN_DATA_FIELD(FIELD, SRC) \
-  data->FIELD = SRC->FIELD;
+  data->FIELD = (SRC)->FIELD;
 
 #define ASSIGN_COMMON_FORMATS(SRC) \
     ASSIGN_DATA_FIELD(common_header, (SRC)) \
@@ -417,7 +414,7 @@ static rsmi_status_t GetGPUMetricsFormat1(uint32_t dv_ind,
 
     // These fields didn't exist in v0
     data->gfx_activity_acc = 0;
-    data->mem_actvity_acc  = 0;
+    data->mem_activity_acc  = 0;
     (void)memset(data->temperature_hbm, 0,
                                    RSMI_NUM_HBM_INSTANCES * sizeof(uint16_t));
   }  // else handle other conversions to format 1

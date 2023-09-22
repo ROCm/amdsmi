@@ -104,8 +104,7 @@ void TestFrequenciesReadWrite::Run(void) {
   for (uint32_t dv_ind = 0; dv_ind < num_monitor_devs(); ++dv_ind) {
     PrintDeviceHeader(processor_handles_[dv_ind]);
 
-    for (uint32_t clk = (uint32_t)CLK_TYPE_FIRST;
-                                           clk <= CLK_TYPE__MAX; ++clk) {
+    for (uint32_t clk = CLK_TYPE_FIRST; clk <= CLK_TYPE__MAX; ++clk) {
       amdsmi_clk = (amdsmi_clk_type_t)clk;
 
       auto freq_read = [&]() -> bool {
@@ -121,14 +120,20 @@ void TestFrequenciesReadWrite::Run(void) {
           std::cout << "\t**Set " << FreqEnumToStr(amdsmi_clk) <<
                                ": Not supported on this machine" << std::endl;
           return false;
-        } else {
-         //   CHK_ERR_ASRT(ret)
-          IF_VERB(STANDARD) {
-            std::cout << "Initial frequency for clock " <<
-                FreqEnumToStr(amdsmi_clk) << " is " << f.current << std::endl;
-          }
-          return true;
         }
+
+        // special driver issue, shouldn't normally occur
+        if (ret == AMDSMI_STATUS_UNEXPECTED_DATA) {
+          std::cerr << "WARN: Clock file [" << FreqEnumToStr(amdsmi_clk) << "] exists on device [" << dv_ind << "] but empty!" << std::endl;
+          std::cerr << "      Likely a driver issue!" << std::endl;
+        }
+
+        // CHK_ERR_ASRT(ret)
+        IF_VERB(STANDARD) {
+          std::cout << "Initial frequency for clock " <<
+              FreqEnumToStr(amdsmi_clk) << " is " << f.current << std::endl;
+        }
+        return true;
       };
 
       auto freq_write = [&]() {
@@ -152,19 +157,18 @@ void TestFrequenciesReadWrite::Run(void) {
                                                                     std::endl;
         }
         ret =  amdsmi_set_clk_freq(processor_handles_[dv_ind], amdsmi_clk, freq_bitmask);
-        //Certain ASICs does not allow to set particular clocks. If set function for a clock returns
-        //permission error despite root access, manually set ret value to success and return
-        if (ret == AMDSMI_STATUS_NO_PERM && geteuid() == 0) {
-          std::cout << "\t**Set " << FreqEnumToStr(amdsmi_clk) <<
-                              ": Not supported on this machine. Skipping..." << std::endl;
-          ret = AMDSMI_STATUS_SUCCESS;
-          return;
-        } else if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
+        // Certain ASICs does not allow to set particular clocks. If set function for a clock returns
+        // permission error despite root access, manually set ret value to success and return
+        //
+        // Sometimes setting clock frequencies is completely not supported
+        if ((ret == AMDSMI_STATUS_NO_PERM && geteuid() == 0) ||
+            (ret == AMDSMI_STATUS_NOT_SUPPORTED)) {
           std::cout << "\t**Set " << FreqEnumToStr(amdsmi_clk) <<
                               ": Not supported on this machine. Skipping..." << std::endl;
           ret = AMDSMI_STATUS_SUCCESS;
           return;
         }
+
         CHK_ERR_ASRT(ret)
         ret =  amdsmi_get_clk_freq(processor_handles_[dv_ind], amdsmi_clk, &f);
         if (ret != AMDSMI_STATUS_SUCCESS) {
@@ -187,7 +191,9 @@ void TestFrequenciesReadWrite::Run(void) {
         }
 
         ret =  amdsmi_set_gpu_perf_level(processor_handles_[dv_ind], AMDSMI_DEV_PERF_LEVEL_AUTO);
-        if (ret != AMDSMI_STATUS_SUCCESS) {
+        if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
+          std::cout << "\t**Setting performance level is not supported on this machine. Skipping..." << std::endl;
+          ret = AMDSMI_STATUS_SUCCESS;
           return;
         }
       };
@@ -199,44 +205,6 @@ void TestFrequenciesReadWrite::Run(void) {
       }
       freq_write();
       CHK_ERR_ASRT(ret)
-#if 0
-      ret =  amdsmi_get_clk_freq(dv_ind, amdsmi_clk, &f);
-      CHK_ERR_ASRT(ret)
-
-      IF_VERB(STANDARD) {
-        std::cout << "Initial frequency for clock " << amdsmi_clk << " is " <<
-                                                        f.current << std::endl;
-      }
-      // Set clocks to something other than the usual default of the lowest
-      // frequency.
-      freq_bitmask = 0b01100;  // Try the 3rd and 4th clocks
-
-      std::string freq_bm_str =
-              std::bitset<AMDSMI_MAX_NUM_FREQUENCIES>(freq_bitmask).to_string();
-
-      freq_bm_str.erase(0, std::min(freq_bm_str.find_first_not_of('0'),
-                                                       freq_bm_str.size()-1));
-
-      IF_VERB(STANDARD) {
-      std::cout << "Setting frequency mask for clock " << amdsmi_clk <<
-          " to 0b" << freq_bm_str << " ..." << std::endl;
-      }
-      ret =  amdsmi_set_clk_freq(dv_ind, amdsmi_clk, freq_bitmask);
-      CHK_ERR_ASRT(ret)
-
-      ret =  amdsmi_get_clk_freq(dv_ind, amdsmi_clk, &f);
-      CHK_ERR_ASRT(ret)
-
-      IF_VERB(STANDARD) {
-        std::cout << "Frequency is now index " << f.current << std::endl;
-        std::cout << "Resetting mask to all frequencies." << std::endl;
-      }
-      ret =  amdsmi_set_clk_freq(dv_ind, amdsmi_clk, 0xFFFFFFFF);
-      CHK_ERR_ASRT(ret)
-
-      ret =  amdsmi_set_gpu_perf_level(dv_ind, AMDSMI_DEV_PERF_LEVEL_AUTO);
-      CHK_ERR_ASRT(ret)
-#endif
     }
   }
 }
