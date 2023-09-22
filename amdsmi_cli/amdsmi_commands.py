@@ -829,16 +829,18 @@ class AMDSMICommands():
             if args.usage:
                 try:
                     engine_usage = amdsmi_interface.amdsmi_get_gpu_activity(args.gpu)
+                    engine_usage['gfx_usage'] = engine_usage.pop('gfx_activity')
+                    engine_usage['mem_usage'] = engine_usage.pop('umc_activity')
+                    engine_usage['mm_ip_usage'] = engine_usage.pop('mm_activity')
 
-                    if self.logger.is_gpuvsmi_compatibility():
-                        engine_usage['gfx_usage'] = engine_usage.pop('gfx_activity')
-                        engine_usage['mem_usage'] = engine_usage.pop('umc_activity')
-                        engine_usage['mm_usage_list'] = engine_usage.pop('mm_activity')
+                    for key, value in engine_usage.items():
+                        if value == 65535:
+                            engine_usage[key] = "N/A"
 
-                    if self.logger.is_human_readable_format():
-                        unit = '%'
-                        for usage_name, usage_value in engine_usage.items():
-                            engine_usage[usage_name] = f"{usage_value} {unit}"
+                        if self.logger.is_human_readable_format():
+                            if engine_usage[key] != "N/A":
+                                unit = '%'
+                                engine_usage[key] = f"{value} {unit}"
 
                     values_dict['usage'] = engine_usage
                 except amdsmi_exception.AmdSmiLibraryException as e:
