@@ -693,7 +693,7 @@ class AMDSMICommands():
 
 
     def metric(self, args, multiple_devices=False, watching_output=False, gpu=None,
-                usage=None, watch=None, watch_time=None, iterations=None, fb_usage=None, power=None,
+                usage=None, watch=None, watch_time=None, iterations=None, power=None,
                 clock=None, temperature=None, ecc=None, ecc_block=None, pcie=None,
                 fan=None, voltage_curve=None, overdrive=None, perf_level=None,
                 replay_count=None, xgmi_err=None, energy=None, mem_usage=None):
@@ -708,7 +708,6 @@ class AMDSMICommands():
             watch (Positive int, optional): Value override for args.watch. Defaults to None.
             watch_time (Positive int, optional): Value override for args.watch_time. Defaults to None.
             iterations (Positive int, optional): Value override for args.iterations. Defaults to None.
-            fb_usage (bool, optional): Value override for args.fb_usage. Defaults to None.
             power (bool, optional): Value override for args.power. Defaults to None.
             clock (bool, optional): Value override for args.clock. Defaults to None.
             temperature (bool, optional): Value override for args.temperature. Defaults to None.
@@ -739,10 +738,9 @@ class AMDSMICommands():
             args.watch_time = watch_time
         if iterations:
             args.iterations = iterations
-        if fb_usage:
-            args.fb_usage = fb_usage
-        if mem_usage:
-            args.mem_usage = mem_usage
+        if self.helpers.is_linux():
+            if mem_usage:
+                args.mem_usage = mem_usage
 
         if not self.helpers.is_virtual_os():
             if replay_count:
@@ -818,18 +816,18 @@ class AMDSMICommands():
 
         # Check if any of the options have been set, if not then set them all to true
         if self.helpers.is_linux() and self.helpers.is_virtual_os():
-            if not any([args.fb_usage, args.mem_usage]):
-                args.fb_usage = args.mem_usage = self.all_arguments = True
+            if not any([args.mem_usage]):
+                args.mem_usage = self.all_arguments = True
 
         if self.helpers.is_linux() and self.helpers.is_baremetal():
-            if not any([args.usage, args.fb_usage, args.power, args.clock, args.temperature,
+            if not any([args.usage, args.mem_usage, args.power, args.clock, args.temperature,
                         args.ecc,  args.ecc_block, args.pcie, args.fan, args.voltage_curve,
                         args.overdrive, args.perf_level, args.replay_count, args.xgmi_err,
-                        args.energy, args.mem_usage]):
-                args.usage = args.fb_usage = args.power = args.clock = args.temperature = \
+                        args.energy]):
+                args.usage = args.mem_usage = args.power = args.clock = args.temperature = \
                     args.ecc = args.ecc_block = args.pcie = args.fan = args.voltage_curve = \
                     args.overdrive = args.perf_level = args.replay_count = args.xgmi_err = \
-                    args.energy = args.mem_usage = self.all_arguments = True
+                    args.energy = self.all_arguments = True
 
         # Add timestamp and store values for specified arguments
         values_dict = {}
@@ -852,26 +850,6 @@ class AMDSMICommands():
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     values_dict['usage'] = "N/A"
                     logging.debug("Failed to get gpu activity for gpu %s | %s", args.gpu, e.get_error_info())
-
-        if args.fb_usage:
-            try:
-                vram_usage = amdsmi_interface.amdsmi_get_gpu_vram_usage(args.gpu)
-
-                if self.logger.is_gpuvsmi_compatibility():
-                    vram_usage['fb_total'] = vram_usage.pop('vram_total')
-                    vram_usage['fb_used'] = vram_usage.pop('vram_used')
-
-                if self.logger.is_human_readable_format():
-                    unit = 'MB'
-                    for vram_name, vram_value in vram_usage.items():
-                        vram_usage[vram_name] = f"{vram_value} {unit}"
-
-                values_dict['fb_usage'] = vram_usage
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                values_dict['fb_usage'] = "N/A"
-                logging.debug("Failed to get gpu vram usage for gpu %s | %s", args.gpu, e.get_error_info())
-
-        if self.helpers.is_linux() and self.helpers.is_baremetal():
             if args.power:
                 power_dict = {'current_power': "N/A",
                               'current_gfx_voltage': "N/A",
@@ -925,7 +903,6 @@ class AMDSMICommands():
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     values_dict['clock'] = "N/A"
                     logging.debug("Failed to get gfx & mem clock info for gpu %s | %s", args.gpu, e.get_error_info())
-
             if args.temperature:
                 try:
                     temperature_edge_current = amdsmi_interface.amdsmi_get_temp_metric(
@@ -977,7 +954,6 @@ class AMDSMICommands():
                             temperatures[temperature_key] = f"{temperature_value} {unit}"
 
                 values_dict['temperature'] = temperatures
-
             if args.ecc:
                 ecc_count = {}
                 try:
@@ -990,7 +966,6 @@ class AMDSMICommands():
                     logging.debug("Failed to get ecc count for gpu %s | %s", args.gpu, e.get_error_info())
 
                 values_dict['ecc'] = ecc_count
-
             if args.ecc_block:
                 ecc_dict = {}
                 try:
@@ -1086,7 +1061,6 @@ class AMDSMICommands():
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     values_dict['voltage_curve'] = "N/A"
                     logging.debug("Failed to get voltage curve for gpu %s | %s", args.gpu, e.get_error_info())
-
             if args.overdrive:
                 try:
                     overdrive_level = amdsmi_interface.amdsmi_get_gpu_overdrive_level(args.gpu)
@@ -1099,7 +1073,6 @@ class AMDSMICommands():
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     values_dict['overdrive'] = "N/A"
                     logging.debug("Failed to get overdrive level for gpu %s | %s", args.gpu, e.get_error_info())
-
             if args.perf_level:
                 try:
                     perf_level = amdsmi_interface.amdsmi_get_gpu_perf_level(args.gpu)
@@ -1127,53 +1100,74 @@ class AMDSMICommands():
             if args.energy:
                 pass
 
-        if args.mem_usage:
-            memory_total = {}
-            try:
-                memory_total_vram = amdsmi_interface.amdsmi_get_gpu_memory_total(args.gpu, amdsmi_interface.AmdSmiMemoryType.VRAM)
-                memory_total_vis_vram = amdsmi_interface.amdsmi_get_gpu_memory_total(args.gpu, amdsmi_interface.AmdSmiMemoryType.VIS_VRAM)
-                memory_total_gtt = amdsmi_interface.amdsmi_get_gpu_memory_total(args.gpu, amdsmi_interface.AmdSmiMemoryType.GTT)
+        if self.helpers.is_linux() and (self.helpers.is_baremetal() or self.helpers.is_virtual_os()):
+            if args.mem_usage:
+                unit = 'MB'
+                memory_usage = {'total_vram': "N/A",
+                                'used_vram': "N/A",
+                                'free_vram': "N/A",
+                                'total_visible_vram': "N/A",
+                                'used_visible_vram': "N/A",
+                                'free_visible_vram': "N/A",
+                                'total_gtt': "N/A",
+                                'used_gtt': "N/A",
+                                'free_gtt': "N/A"}
 
-                # Convert mem_usage to megabytes
-                memory_total['vram'] = memory_total_vram // (1024*1024)
-                memory_total['vis_vram'] = memory_total_vis_vram // (1024*1024)
-                memory_total['gtt'] = memory_total_gtt // (1024*1024)
+                # Total VRAM
+                try:
+                    total_vram = amdsmi_interface.amdsmi_get_gpu_memory_total(args.gpu, amdsmi_interface.AmdSmiMemoryType.VRAM)
+                    memory_usage['total_vram'] = total_vram // (1024*1024)
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    logging.debug("Failed to get total VRAM memory for gpu %s | %s", args.gpu, e.get_error_info())
+
+                try:
+                    total_visible_vram = amdsmi_interface.amdsmi_get_gpu_memory_total(args.gpu, amdsmi_interface.AmdSmiMemoryType.VIS_VRAM)
+                    memory_usage['total_visible_vram'] = total_visible_vram // (1024*1024)
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    logging.debug("Failed to get total VIS VRAM memory for gpu %s | %s", args.gpu, e.get_error_info())
+
+                try:
+                    total_gtt = amdsmi_interface.amdsmi_get_gpu_memory_total(args.gpu, amdsmi_interface.AmdSmiMemoryType.GTT)
+                    memory_usage['total_gtt'] = total_gtt // (1024*1024)
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    logging.debug("Failed to get total GTT memory for gpu %s | %s", args.gpu, e.get_error_info())
+
+                # Used VRAM
+                try:
+                    used_vram = amdsmi_interface.amdsmi_get_gpu_memory_usage(args.gpu, amdsmi_interface.AmdSmiMemoryType.VRAM)
+                    memory_usage['used_vram'] = used_vram // (1024*1024)
+
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    logging.debug("Failed to get used VRAM memory for gpu %s | %s", args.gpu, e.get_error_info())
+
+                try:
+                    used_visible_vram = amdsmi_interface.amdsmi_get_gpu_memory_usage(args.gpu, amdsmi_interface.AmdSmiMemoryType.VIS_VRAM)
+                    memory_usage['used_visible_vram'] = used_visible_vram // (1024*1024)
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    logging.debug("Failed to get used VIS VRAM memory for gpu %s | %s", args.gpu, e.get_error_info())
+
+                try:
+                    used_gtt = amdsmi_interface.amdsmi_get_gpu_memory_usage(args.gpu, amdsmi_interface.AmdSmiMemoryType.GTT)
+                    memory_usage['used_gtt'] = used_gtt // (1024*1024)
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    logging.debug("Failed to get used GTT memory for gpu %s | %s", args.gpu, e.get_error_info())
+
+                # Free VRAM
+                if memory_usage['total_vram'] != "N/A" and memory_usage['used_vram'] != "N/A":
+                    memory_usage['free_vram'] = memory_usage['total_vram'] - memory_usage['used_vram']
+
+                if memory_usage['total_visible_vram'] != "N/A" and memory_usage['used_visible_vram'] != "N/A":
+                    memory_usage['free_visible_vram'] = memory_usage['total_visible_vram'] - memory_usage['used_visible_vram']
+
+                if memory_usage['total_gtt'] != "N/A" and memory_usage['used_gtt'] != "N/A":
+                    memory_usage['free_gtt'] = memory_usage['total_gtt'] - memory_usage['used_gtt']
 
                 if self.logger.is_human_readable_format():
-                    unit = 'MB'
-                    energy = f"{energy} {unit}"
-                    memory_total['vram'] = f"{memory_total['vram']} {unit}"
-                    memory_total['vis_vram'] = f"{memory_total['vis_vram']} {unit}"
-                    memory_total['gtt'] = f"{memory_total['gtt']} {unit}"
+                    for key, value in memory_usage.items():
+                        if value != "N/A":
+                            memory_usage[key] = f"{value} {unit}"
 
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                memory_total['vram'] = "N/A"
-                memory_total['vis_vram'] = "N/A"
-                memory_total['gtt'] = "N/A"
-                logging.debug("Failed to get memory total info for gpu %s | %s", args.gpu, e.get_error_info())
-
-            try:
-                total_used_vram = amdsmi_interface.amdsmi_get_gpu_memory_usage(args.gpu, amdsmi_interface.AmdSmiMemoryType.VRAM)
-                total_used_vis_vram = amdsmi_interface.amdsmi_get_gpu_memory_usage(args.gpu, amdsmi_interface.AmdSmiMemoryType.VIS_VRAM)
-                total_used_gtt = amdsmi_interface.amdsmi_get_gpu_memory_usage(args.gpu, amdsmi_interface.AmdSmiMemoryType.GTT)
-
-                # Convert mem_usage to megabytes
-                memory_total['used_vram'] = total_used_vram // (1024*1024)
-                memory_total['used_vis_vram'] = total_used_vis_vram // (1024*1024)
-                memory_total['used_gtt'] = total_used_gtt // (1024*1024)
-
-                if self.logger.is_human_readable_format():
-                    memory_total['used_vram'] = f"{memory_total['used_vram']} {unit}"
-                    memory_total['used_vis_vram'] = f"{memory_total['used_vis_vram']} {unit}"
-                    memory_total['used_gtt'] = f"{memory_total['used_gtt']} {unit}"
-
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                memory_total['used_vram'] = "N/A"
-                memory_total['used_vis_vram'] = "N/A"
-                memory_total['used_gtt'] = "N/A"
-                logging.debug("Failed to get memory usage info for gpu %s | %s", args.gpu, e.get_error_info())
-
-            values_dict['mem_usage'] = memory_total
+                values_dict['mem_usage'] = memory_usage
 
         # Store timestamp first if watching_output is enabled
         if watching_output:
