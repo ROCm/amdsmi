@@ -889,23 +889,33 @@ class AMDSMICommands():
 
                 values_dict['power'] = power_dict
             if args.clock:
-                try:
-                    clock_gfx = amdsmi_interface.amdsmi_get_clock_info(args.gpu, amdsmi_interface.AmdSmiClkType.GFX)
-                    clock_mem = amdsmi_interface.amdsmi_get_clock_info(args.gpu, amdsmi_interface.AmdSmiClkType.MEM)
+                clocks = {"gfx": "N/A",
+                          "mem": "N/A",
+                          "is_clk_locked": "N/A"}
 
-                    clocks = {'gfx': clock_gfx,
-                            'mem': clock_mem}
+                try:
+                    gfx_clock = amdsmi_interface.amdsmi_get_clock_info(args.gpu, amdsmi_interface.AmdSmiClkType.GFX)
+                    mem_clock = amdsmi_interface.amdsmi_get_clock_info(args.gpu, amdsmi_interface.AmdSmiClkType.MEM)
 
                     if self.logger.is_human_readable_format():
                         unit = 'MHz'
-                        for clock_target, clock_metric_values in clocks.items():
-                            for clock_type, clock_value in clock_metric_values.items():
-                                clocks[clock_target][clock_type] = f"{clock_value} {unit}"
+                        for clock_dict in [gfx_clock, mem_clock]:
+                            for key, value in clock_dict.items():
+                                clock_dict[key] = f"{value} {unit}"
 
-                    values_dict['clock'] = clocks
+                    clocks['gfx'] = gfx_clock
+                    clocks['mem'] = mem_clock
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    values_dict['clock'] = "N/A"
                     logging.debug("Failed to get gfx & mem clock info for gpu %s | %s", args.gpu, e.get_error_info())
+
+                try:
+                    # is_clk_locked = amdsmi_interface.amdsmi_is_clk_locked(args.gpu)
+                    is_clk_locked = "N/A"
+                    clocks['is_clk_locked'] = is_clk_locked
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    logging.debug("Failed to get clock lock status info for gpu %s | %s", args.gpu, e.get_error_info())
+
+                values_dict['clock'] = clocks
             if args.temperature:
                 try:
                     temperature_edge_current = amdsmi_interface.amdsmi_get_temp_metric(
