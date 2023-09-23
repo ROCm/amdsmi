@@ -227,9 +227,9 @@ class AMDSMICommands():
                 bus_info['max_pcie_speed'] = pcie_speed_GTs_value
 
                 try:
-                    pcie_slot_type = amdsmi_interface.amdsmi_topo_get_link_type(args.gpu, args.gpu)['type']
+                    slot_type = amdsmi_interface.amdsmi_topo_get_link_type(args.gpu, args.gpu)['type']
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    pcie_slot_type = e.get_error_info()
+                    slot_type = e.get_error_info()
 
                 if self.logger.is_human_readable_format():
                     unit ='GT/s'
@@ -238,14 +238,14 @@ class AMDSMICommands():
                     if bus_info['pcie_interface_version'] > 0:
                         bus_info['pcie_interface_version'] = f"Gen {bus_info['pcie_interface_version']}"
 
-                    bus_info['pcie_slot_type'] = 'XXXX'
-                    if isinstance(pcie_slot_type, int):
-                        if pcie_slot_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_UNDEFINED:
-                            bus_info['pcie_slot_type'] = "UNKNOWN"
-                        elif pcie_slot_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_PCIEXPRESS:
-                            bus_info['pcie_slot_type'] = "PCIE"
-                        elif pcie_slot_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_XGMI:
-                            bus_info['pcie_slot_type'] = "XGMI"
+                    bus_info['slot_type'] = 'XXXX'
+                    if isinstance(slot_type, int):
+                        if slot_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_UNDEFINED:
+                            bus_info['slot_type'] = "UNKNOWN"
+                        elif slot_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_PCIEXPRESS:
+                            bus_info['slot_type'] = "PCIE"
+                        elif slot_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_XGMI:
+                            bus_info['slot_type'] = "XGMI"
 
             except amdsmi_exception.AmdSmiLibraryException as e:
                 bus_info = "N/A"
