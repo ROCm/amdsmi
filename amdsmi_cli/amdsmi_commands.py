@@ -1106,7 +1106,21 @@ class AMDSMICommands():
                     values_dict['xgmi_err'] = "N/A"
                     logging.debug("Failed to get xgmi error status for gpu %s | %s", args.gpu, e.get_error_info())
             if args.energy:
-                pass
+                try:
+                    energy_dict = amdsmi_interface.amdsmi_get_energy_count(args.gpu)
+
+                    energy = energy_dict['power'] * round(energy_dict['counter_resolution'], 1)
+                    energy /= 1000000
+                    energy = round(energy, 3)
+
+                    if self.logger.is_human_readable_format():
+                        unit = 'J'
+                        energy = f"{energy} {unit}"
+
+                    values_dict['energy'] = {"total_energy_consumption" : energy}
+                except amdsmi_interface.AmdSmiLibraryException as e:
+                    values_dict['energy'] = "N/A"
+                    logging.debug("Failed to get energy usage for gpu %s | %s", args.gpu, e.get_error_info())
 
         if self.helpers.is_linux() and (self.helpers.is_baremetal() or self.helpers.is_virtual_os()):
             if args.mem_usage:
