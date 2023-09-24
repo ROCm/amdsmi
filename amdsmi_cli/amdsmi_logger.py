@@ -31,12 +31,10 @@ from amdsmi_helpers import AMDSMIHelpers
 import amdsmi_cli_exceptions
 
 class AMDSMILogger():
-    def __init__(self, compatibility='amdsmi', format='human_readable',
-                    destination='stdout') -> None:
+    def __init__(self, format='human_readable', destination='stdout') -> None:
         self.output = {}
         self.multiple_device_output = []
         self.watch_output = []
-        self.compatibility = compatibility # amd-smi, gpuv-smi, or rocm-smi
         self.format = format # csv, json, or human_readable
         self.destination = destination # stdout, path to a file (append)
         self.helpers = AMDSMIHelpers()
@@ -47,13 +45,6 @@ class AMDSMILogger():
         json = 'json'
         csv = 'csv'
         human_readable = 'human_readable'
-
-
-    class LoggerCompatibility(Enum):
-        """Enum for logger compatibility"""
-        amdsmi = 'amdsmi'
-        rocmsmi = 'rocmsmi'
-        gpuvsmi = 'gpuvsmi'
 
 
     class CsvStdoutBuilder(object):
@@ -77,18 +68,6 @@ class AMDSMILogger():
 
     def is_human_readable_format(self):
         return self.format == self.LoggerFormat.human_readable.value
-
-
-    def is_amdsmi_compatibility(self):
-        return self.compatibility == self.LoggerCompatibility.amdsmi.value
-
-
-    def is_rocmsmi_compatibility(self):
-        return self.compatibility == self.LoggerCompatibility.rocmsmi.value
-
-
-    def is_gpuvsmi_compatibility(self):
-        return self.compatibility == self.LoggerCompatibility.gpuvsmi.value
 
 
     def _capitalize_keys(self, input_dict):
@@ -122,10 +101,6 @@ class AMDSMILogger():
         json_string = json.dumps(capitalized_json, indent=4)
         yaml_data = yaml.safe_load(json_string)
         yaml_output = yaml.dump(yaml_data, sort_keys=False, allow_unicode=True)
-
-        if self.is_gpuvsmi_compatibility():
-            # Convert from GPU: 0 to GPU 0:
-            yaml_output = re.sub('GPU: ([0-9]+)', 'GPU \\1:', yaml_output)
 
         # Remove a key line if it is a spacer
         yaml_output = yaml_output.replace("AMDSMI_SPACING_REMOVAL:\n", "")
@@ -196,13 +171,6 @@ class AMDSMILogger():
                                 value_with_parent_key[parent_key] = child_dict
                     value = value_with_parent_key
 
-                if self.is_gpuvsmi_compatibility():
-                    if key in ('asic', 'bus', 'pcie', 'vbios','board', 'limit'):
-                        value_with_parent_key = {}
-                        for child_key, child_value in value.items():
-                            value_with_parent_key[key + '_' + child_key] = child_value
-                        value = value_with_parent_key
-
                 output_dict.update(self.flatten_dict(value).items())
             else:
                 output_dict[key] = value
@@ -210,9 +178,7 @@ class AMDSMILogger():
 
 
     def store_output(self, device_handle, argument, data):
-        """ Store the argument and device handle according to the compatibility.
-                Each compatibility function will handle the output format and
-                populate the output
+        """ Convert device handle to gpu id and store output
             params:
                 device_handle - device handle object to the target device output
                 argument (str) - key to store data
@@ -221,12 +187,7 @@ class AMDSMILogger():
                 Nothing
         """
         gpu_id = self.helpers.get_gpu_id_from_device_handle(device_handle)
-        if self.is_amdsmi_compatibility():
-            self._store_output_amdsmi(gpu_id=gpu_id, argument=argument, data=data)
-        elif self.is_rocmsmi_compatibility():
-            self._store_output_rocmsmi(gpu_id=gpu_id, argument=argument, data=data)
-        elif self.is_gpuvsmi_compatibility():
-            self._store_output_gpuvsmi(gpu_id=gpu_id, argument=argument, data=data)
+        self._store_output_amdsmi(gpu_id=gpu_id, argument=argument, data=data)
 
 
     def _store_output_amdsmi(self, gpu_id, argument, data):
@@ -261,42 +222,6 @@ class AMDSMILogger():
         elif self.is_human_readable_format():
             # put output into self.human_readable_output
             pass
-        else:
-            raise amdsmi_cli_exceptions(self, "Invalid output format given, only json, csv, and human_readable supported")
-
-
-    def _store_output_gpuvsmi(self, gpu_id, argument, data):
-        if argument == 'timestamp': # Make sure timestamp is the first element in the output
-            self.output['timestamp'] = int(time.time())
-
-        if self.is_json_format() or self.is_human_readable_format():
-            self.output['gpu'] = int(gpu_id)
-            self.output[argument] = data
-        elif self.is_csv_format():
-            self.output['gpu'] = int(gpu_id)
-
-            if argument == 'values' or isinstance(data, dict):
-                flat_dict = self.flatten_dict(data)
-                self.output.update(flat_dict)
-            else:
-                self.output[argument] = data
-
-            gpuv_flat_dict = {}
-            for key, value in self.output.items():
-                gpuv_flat_dict[key] = value
-
-                # Change AMDSMI_STATUS strings to N/A for gpuv compatability
-                if isinstance(value, str):
-                    if 'AMDSMI_STATUS' in value:
-                        gpuv_flat_dict[key] = 'N/A'
-
-                # Change bdf and uuid keys for gpuv compatability
-                if isinstance(key, str):
-                    if key in ('bdf','uuid'):
-                        gpuv_flat_dict['gpu_' + key] = gpuv_flat_dict.pop(key)
-
-            self.output = gpuv_flat_dict
-
         else:
             raise amdsmi_cli_exceptions(self, "Invalid output format given, only json, csv, and human_readable supported")
 

@@ -72,17 +72,12 @@ add_custom_target(
     link_amdsmi_cli ALL
     DEPENDS amdsmi_cli
     BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/bin/amd-smi
-           ${CMAKE_CURRENT_BINARY_DIR}/bin/gpuv-smi
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMAND ${CMAKE_COMMAND} -E create_symlink
             ../${PY_CLI_INSTALL_DIR}/${PY_PACKAGE_DIR}/amdsmi_cli.py
-            ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/amd-smi
-    COMMAND ${CMAKE_COMMAND} -E create_symlink
-            amd-smi
-            ${CMAKE_CURRENT_BINARY_DIR}/bin/gpuv-smi)
+            ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/amd-smi)
 
 install(
     FILES ${CMAKE_CURRENT_BINARY_DIR}/bin/amd-smi
-          ${CMAKE_CURRENT_BINARY_DIR}/bin/gpuv-smi
     DESTINATION ${CMAKE_INSTALL_BINDIR}
     COMPONENT dev)

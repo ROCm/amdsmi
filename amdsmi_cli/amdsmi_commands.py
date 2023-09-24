@@ -34,16 +34,11 @@ from amdsmi import amdsmi_exception
 class AMDSMICommands():
     """This class contains all the commands corresponding to AMDSMIParser
     Each command function will interact with AMDSMILogger to handle
-    displaying the output to the specified compatibility, format, and
-    destination.
+    displaying the output to the specified format and destination.
     """
-    def __init__(self, compatibility='amdsmi',
-                    format='human_readable',
-                    destination='stdout') -> None:
+    def __init__(self, format='human_readable', destination='stdout') -> None:
         self.helpers = AMDSMIHelpers()
-        self.logger = AMDSMILogger(compatibility=compatibility,
-                                    format=format,
-                                    destination=destination)
+        self.logger = AMDSMILogger(format=format, destination=destination)
         try:
             self.device_handles = amdsmi_interface.amdsmi_get_processor_handles()
         except amdsmi_exception.AmdSmiLibraryException as e:
@@ -125,12 +120,7 @@ class AMDSMICommands():
             self.logger.store_multiple_device_output()
             return # Skip printing when there are multiple devices
 
-        # compatibility with gpuvsmi needs a list for single gpu
-        if self.logger.is_gpuvsmi_compatibility() and not multiple_devices:
-            self.logger.store_multiple_device_output()
-            self.logger.print_output(multiple_device_enabled=True)
-        else:
-            self.logger.print_output()
+        self.logger.print_output()
 
 
     def static(self, args, multiple_devices=False, gpu=None, asic=None,
@@ -262,11 +252,6 @@ class AMDSMICommands():
         if args.vbios:
             try:
                 vbios_info = amdsmi_interface.amdsmi_get_gpu_vbios_info(args.gpu)
-                if self.logger.is_gpuvsmi_compatibility():
-                    vbios_info['version'] = vbios_info.pop('version')
-                    vbios_info['build_date'] = vbios_info.pop('build_date')
-                    vbios_info['part_number'] = vbios_info.pop('part_number')
-
                 static_dict['vbios'] = vbios_info
             except amdsmi_exception.AmdSmiLibraryException as e:
                 static_dict['vbios'] = "N/A"
@@ -500,7 +485,7 @@ class AMDSMICommands():
         """
         if gpu:
             args.gpu = gpu
-        if fw_list: # Currently a compatiblity option of gpuv-smi
+        if fw_list:
             args.fw_list = fw_list
 
         # Handle No GPU passed
@@ -525,19 +510,11 @@ class AMDSMICommands():
                     fw_entry['fw_version'] = fw_entry.pop('fw_version')
                     firmware_identifier = 'FW'
 
-                    if self.logger.is_gpuvsmi_compatibility():
-                        firmware_identifier = 'UCODE'
-                        fw_entry['name'] = fw_entry.pop('fw_id')
-                        fw_entry['version'] = fw_entry.pop('fw_version')
-
                     # Add custom human readable formatting
                     if self.logger.is_human_readable_format():
                         fw_info['fw_list'][fw_index] = {f'{firmware_identifier} {fw_index}': fw_entry}
                     else:
                         fw_info['fw_list'][fw_index] = fw_entry
-
-                if self.logger.is_gpuvsmi_compatibility():
-                    fw_info['ucode_list'] = fw_info.pop('fw_list')
 
                 fw_list.update(fw_info)
             except amdsmi_exception.AmdSmiLibraryException as e:
@@ -547,11 +524,7 @@ class AMDSMICommands():
         multiple_devices_csv_override = False
         # Convert and store output by pid for csv format
         if self.logger.is_csv_format():
-            if self.logger.is_gpuvsmi_compatibility():
-                fw_key = 'ucode_list'
-            else:
-                fw_key = 'fw_list'
-
+            fw_key = 'fw_list'
             for fw_info_dict in fw_list[fw_key]:
                 for key, value in fw_info_dict.items():
                     multiple_devices_csv_override = True
@@ -961,15 +934,8 @@ class AMDSMICommands():
                                 'hotspot': temperature_hotspot_current,
                                 'mem': temperature_vram_current}
 
-                if self.logger.is_gpuvsmi_compatibility():
-                    temperatures = {'edge_temperature': temperature_edge_current,
-                                    'hotspot_temperature': temperature_hotspot_current,
-                                    'mem_temperature': temperature_vram_current}
-
                 if self.logger.is_human_readable_format():
                     unit = '\N{DEGREE SIGN}C'
-                    if self.logger.is_gpuvsmi_compatibility():
-                        unit = 'C'
                     for temperature_key, temperature_value in temperatures.items():
                         if 'AMD_SMI_STATUS' not in str(temperature_value):
                             temperatures[temperature_key] = f"{temperature_value} {unit}"
@@ -1001,8 +967,6 @@ class AMDSMICommands():
                             except amdsmi_exception.AmdSmiLibraryException as e:
                                 ecc_count = "N/A"
                                 logging.debug("Failed to get ecc count for gpu %s at block %s | %s", args.gpu, gpu_block, e.get_error_info())
-                                if self.logger.is_gpuvsmi_compatibility():
-                                    ecc_count = "N/A"
 
                                 ecc_dict[state['block']] = {'correctable' : ecc_count,
                                                             'uncorrectable': ecc_count}
@@ -1434,7 +1398,6 @@ class AMDSMICommands():
     def topology(self, args, multiple_devices=False, gpu=None, access=None,
                 weight=None, hops=None, link_type=None, numa_bw=None):
         """ Get topology information for target gpus
-            The compatibility mode for this will only be in amdsmi & rocm-smi
             params:
                 args - argparser args to pass to subcommand
                 multiple_devices (bool) - True if checking for multiple devices

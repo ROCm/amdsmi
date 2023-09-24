@@ -53,8 +53,6 @@ class AMDSMIParser(argparse.ArgumentParser):
         platform_string = f"Platform: {self.helpers.os_info()}"
 
         program_name = 'amd-smi'
-        if 'gpuv-smi' in sys.argv[0]:
-            program_name = 'gpuv-smi'
 
         # Adjust argument parser options
         super().__init__(
@@ -207,7 +205,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         return _GPUSelectAction
 
 
-    def _add_command_modifiers(self, subcommand_parser, rocm_smi=True, gpuv_smi=True):
+    def _add_command_modifiers(self, subcommand_parser):
         json_help = "Displays output in JSON format (human readable by default)."
         csv_help = "Displays output in CSV format (human readable by default)."
         file_help = "Saves output into a file on the provided path (stdout by default)."
