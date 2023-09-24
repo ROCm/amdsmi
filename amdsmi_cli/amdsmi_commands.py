@@ -885,31 +885,43 @@ class AMDSMICommands():
 
                 values_dict['power'] = power_dict
             if args.clock:
-                clocks = {"gfx": "N/A",
-                          "mem": "N/A",
-                          "is_clk_locked": "N/A"}
+                clocks = {"gfx": "N/A", "mem": "N/A"}
 
                 try:
                     gfx_clock = amdsmi_interface.amdsmi_get_clock_info(args.gpu, amdsmi_interface.AmdSmiClkType.GFX)
+
+                    if self.logger.is_human_readable_format():
+                        unit = 'MHz'
+                        for key, value in gfx_clock.items():
+                            gfx_clock[key] = f"{value} {unit}"
+
+                    clocks['gfx'] = gfx_clock
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    logging.debug("Failed to get gfx clock info for gpu %s | %s", args.gpu, e.get_error_info())
+
+                try:
+                    # is_clk_locked = amdsmi_interface.amdsmi_is_clk_locked(args.gpu, amdsmi_interface.AmdSmiClkType.GFX)
+                    is_clk_locked = "N/A"
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    is_clk_locked = "N/A"
+                    logging.debug("Failed to get gfx clock lock status info for gpu %s | %s", args.gpu, e.get_error_info())
+                
+                if isinstance(clocks['gfx'], dict):
+                    clocks['gfx']['is_clk_locked'] = is_clk_locked
+                else:
+                    clocks['gfx'] = {'is_clk_locked': is_clk_locked}
+                
+                try:
                     mem_clock = amdsmi_interface.amdsmi_get_clock_info(args.gpu, amdsmi_interface.AmdSmiClkType.MEM)
 
                     if self.logger.is_human_readable_format():
                         unit = 'MHz'
-                        for clock_dict in [gfx_clock, mem_clock]:
-                            for key, value in clock_dict.items():
-                                clock_dict[key] = f"{value} {unit}"
+                        for key, value in mem_clock.items():
+                            mem_clock[key] = f"{value} {unit}"
 
-                    clocks['gfx'] = gfx_clock
                     clocks['mem'] = mem_clock
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    logging.debug("Failed to get gfx & mem clock info for gpu %s | %s", args.gpu, e.get_error_info())
-
-                try:
-                    # is_clk_locked = amdsmi_interface.amdsmi_is_clk_locked(args.gpu)
-                    is_clk_locked = "N/A"
-                    clocks['is_clk_locked'] = is_clk_locked
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    logging.debug("Failed to get clock lock status info for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get mem clock info for gpu %s | %s", args.gpu, e.get_error_info())
 
                 values_dict['clock'] = clocks
             if args.temperature:
