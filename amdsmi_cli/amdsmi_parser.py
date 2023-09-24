@@ -125,14 +125,6 @@ class AMDSMIParser(argparse.ArgumentParser):
                     path.touch()
                     setattr(args, self.dest, path)
                 elif path.is_file():
-                    file_name = str(path)
-                    if args.json and str(path).split('.')[-1].lower() != 'json':
-                        file_name += ".json"
-                    elif args.csv and str(path).split('.')[-1].lower() != 'csv':
-                        file_name += ".csv"
-                    elif str(path).split('.')[-1].lower() != 'txt':
-                        file_name += ".txt"
-                    path = Path(file_name)
                     path.touch()
                     setattr(args, self.dest, path)
                 else:
