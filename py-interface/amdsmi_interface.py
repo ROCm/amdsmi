@@ -737,7 +737,7 @@ def amdsmi_get_gpu_activity(
 def amdsmi_get_clock_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     clock_type: AmdSmiClkType,
-) -> Dict[str, Any]:
+) -> Dict[str, int]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
