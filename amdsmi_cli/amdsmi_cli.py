@@ -42,15 +42,7 @@ def _print_error(e, destination):
 
 
 if __name__ == "__main__":
-    # Set compatability mode based on which cli mapping user selects
-    if 'gpuv-smi' in sys.argv[0]:
-        compatibility = AMDSMILogger.LoggerCompatibility.gpuvsmi.value
-    elif 'rocm-smi' in sys.argv[0]:
-        compatibility = AMDSMILogger.LoggerCompatibility.rocmsmi.value
-    else:
-        compatibility = AMDSMILogger.LoggerCompatibility.amdsmi.value
-
-    amd_smi_commands = AMDSMICommands(compatibility=compatibility)
+    amd_smi_commands = AMDSMICommands()
     amd_smi_parser = AMDSMIParser(amd_smi_commands.version,
                                     amd_smi_commands.list,
                                     amd_smi_commands.static,

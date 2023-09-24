@@ -1208,7 +1208,7 @@ Example:
 
 ```python
 try:
-    devices = gpuvsmi_get_devices()
+    devices = amdsmi_get_processor_handles()
     if len(devices) == 0:
         print("No GPUs on machine")
     else:
@@ -1253,7 +1253,7 @@ Example:
 
 ```python
 try:
-    devices = gpuvsmi_get_devices()
+    devices = amdsmi_get_processor_handles()
     if len(devices) == 0:
         print("No GPUs on machine")
     else:
@@ -1290,7 +1290,7 @@ Example:
 
 ```python
 try:
-    devices = gpuvsmi_get_devices()
+    devices = amdsmi_get_processor_handles()
     if len(devices) == 0:
         print("No GPUs on machine")
     else:
@@ -1322,7 +1322,7 @@ Example:
 
 ```python
 try:
-    devices = gpuvsmi_get_devices()
+    devices = amdsmi_get_processor_handles()
     if len(devices) == 0:
         print("No GPUs on machine")
     else:
@@ -1353,7 +1353,7 @@ Example:
 
 ```python
 try:
-    devices = gpuvsmi_get_devices()
+    devices = amdsmi_get_processor_handles()
     if len(devices) == 0:
         print("No GPUs on machine")
     else:
@@ -1391,7 +1391,7 @@ Example:
 
 ```python
 try:
-    devices = gpuvsmi_get_devices()
+    devices = amdsmi_get_processor_handles()
     if len(devices) == 0:
         print("No GPUs on machine")
     else:
@@ -1423,7 +1423,7 @@ Example:
 
 ```python
 try:
-    devices = gpuvsmi_get_devices()
+    devices = amdsmi_get_processor_handles()
     if len(devices) == 0:
         print("No GPUs on machine")
     else:
@@ -1495,7 +1495,7 @@ Example:
 
 ```python
 try:
-    devices = gpuvsmi_get_devices()
+    devices = amdsmi_get_processor_handles()
     if len(devices) == 0:
         print("No GPUs on machine")
     else:
@@ -1658,11 +1658,11 @@ Exceptions that can be thrown by `amdsmi_is_gpu_power_management_enabled` functi
 Example:
 ```python
 try:
-    processors = amdsmi_get_processor_handles()
-    if len(processors) == 0:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
         print("No GPUs on machine")
     else:
-        for processor in processors:
+        for processor in devices:
             is_power_management_enabled = amdsmi_is_gpu_power_management_enabled(processor)
             print(is_power_management_enabled)
 except AmdSmiException as e:
