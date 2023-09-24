@@ -102,7 +102,7 @@ Command Modifiers:
   --json                                          Displays output in JSON format (human readable by default).
   --csv                                           Displays output in CSV format (human readable by default).
   --file FILE                                     Saves output into a file on the provided path (stdout by default).
-  --loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}  Set the logging level for the parser commands
+  --loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}  Set the logging level for the parser commands (ERROR by default).
 ```
 
 ``` bash
@@ -123,7 +123,7 @@ Command Modifiers:
   --json                                          Displays output in JSON format (human readable by default).
   --csv                                           Displays output in CSV format (human readable by default).
   --file FILE                                     Saves output into a file on the provided path (stdout by default).
-  --loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}  Set the logging level for the parser commands
+  --loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}  Set the logging level for the parser commands (ERROR by default).
 ```
 
 ```bash
@@ -153,7 +153,7 @@ Command Modifiers:
   --json                                          Displays output in JSON format (human readable by default).
   --csv                                           Displays output in CSV format (human readable by default).
   --file FILE                                     Saves output into a file on the provided path (stdout by default).
-  --loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}  Set the logging level for the parser commands
+  --loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}  Set the logging level for the parser commands (ERROR by default).
 ```
 
 ```bash
@@ -176,7 +176,7 @@ Command Modifiers:
   --json                                          Displays output in JSON format (human readable by default).
   --csv                                           Displays output in CSV format (human readable by default).
   --file FILE                                     Saves output into a file on the provided path (stdout by default).
-  --loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}  Set the logging level for the parser commands
+  --loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}  Set the logging level for the parser commands (ERROR by default).
 ```
 
 ```bash
@@ -215,7 +215,7 @@ Command Modifiers:
   --json                                                      Displays output in JSON format (human readable by default).
   --csv                                                       Displays output in CSV format (human readable by default).
   --file FILE                                                 Saves output into a file on the provided path (stdout by default).
-  --loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}              Set the logging level for the parser commands
+  --loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}              Set the logging level for the parser commands (ERROR by default).
 ```
 
 ```bash
@@ -245,7 +245,7 @@ Command Modifiers:
   --json                                                      Displays output in JSON format (human readable by default).
   --csv                                                       Displays output in CSV format (human readable by default).
   --file FILE                                                 Saves output into a file on the provided path (stdout by default).
-  --loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}              Set the logging level for the parser commands
+  --loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}              Set the logging level for the parser commands (ERROR by default).
 ```
 
 ```bash
@@ -271,7 +271,7 @@ Command Modifiers:
   --json                                          Displays output in JSON format (human readable by default).
   --csv                                           Displays output in CSV format (human readable by default).
   --file FILE                                     Saves output into a file on the provided path (stdout by default).
-  --loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}  Set the logging level for the parser commands
+  --loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}  Set the logging level for the parser commands (ERROR by default).
 ```
 
 ```bash
@@ -296,7 +296,7 @@ Command Modifiers:
   --json                                                              Displays output in JSON format (human readable by default).
   --csv                                                               Displays output in CSV format (human readable by default).
   --file FILE                                                         Saves output into a file on the provided path (stdout by default).
-  --loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}                      Set the logging level for the parser commands
+  --loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}                      Set the logging level for the parser commands (ERROR by default).
 ```
 
 ```bash
@@ -323,7 +323,7 @@ Command Modifiers:
   --json                                          Displays output in JSON format (human readable by default).
   --csv                                           Displays output in CSV format (human readable by default).
   --file FILE                                     Saves output into a file on the provided path (stdout by default).
-  --loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}  Set the logging level for the parser commands
+  --loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}  Set the logging level for the parser commands (ERROR by default).
 ```
 
 ## Disclaimer

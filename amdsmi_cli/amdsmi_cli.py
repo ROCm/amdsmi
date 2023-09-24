@@ -66,14 +66,22 @@ if __name__ == "__main__":
             amd_smi_commands.logger.format = amd_smi_commands.logger.LoggerFormat.csv.value
         if args.file:
             amd_smi_commands.logger.destination = args.file
-        if args.loglevel:
-            logging_dict = {'DEBUG' : logging.DEBUG,
-                            'INFO' : logging.INFO,
-                            'WARNING': logging.WARNING,
-                            'ERROR': logging.ERROR,
-                            'CRITICAL': logging.CRITICAL}
-            # Enable debug logs on amdsmi library ie. RSMI_LOGGING = 1 in environment or otherwise
-            logging.basicConfig(format='%(levelname)s: %(message)s', level=logging_dict[args.loglevel])
+
+        # Remove previous log handlers
+        for handler in logging.root.handlers[:]:
+            logging.root.removeHandler(handler)
+
+        logging_dict = {'DEBUG' : logging.DEBUG,
+                        'INFO' : logging.INFO,
+                        'WARNING': logging.WARNING,
+                        'ERROR': logging.ERROR,
+                        'CRITICAL': logging.CRITICAL}
+        # To enable debug logs on rocm-smi library set RSMI_LOGGING = 1 in environment
+        logging.basicConfig(format='%(levelname)s: %(message)s', level=logging_dict[args.loglevel])
+
+        # Disable traceback for non-debug log levels
+        if args.loglevel != "DEBUG":
+            sys.tracebacklimit = -1
 
         # Execute subcommands
         args.func(args)
