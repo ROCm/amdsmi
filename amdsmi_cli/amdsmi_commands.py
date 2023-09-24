@@ -1064,35 +1064,37 @@ class AMDSMICommands():
 
                 values_dict['pcie'] = pcie_dict
             if args.fan:
+                fan_dict = {"speed" : "N/A",
+                            "max" : "N/A",
+                            "rpm" : "N/A",
+                            "usage" : "N/A"}
+
                 try:
                     fan_speed = amdsmi_interface.amdsmi_get_gpu_fan_speed(args.gpu, 0)
-                    fan_speed_error = False
+                    fan_dict["speed"] = fan_speed
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    fan_speed = "N/A"
-                    fan_speed_error = True
+                    logging.debug("Failed to get fan speed for gpu %s | %s", args.gpu, e.get_error_info())
 
                 try:
                     fan_max = amdsmi_interface.amdsmi_get_gpu_fan_speed_max(args.gpu, 0)
-                    if not fan_speed_error and fan_max > 0:
-                        fan_percent = round((float(fan_speed) / float(fan_max)) * 100, 2)
+                    fan_usage = "N/A"
+                    if fan_max > 0 and fan_dict["speed"] != "N/A":
+                        fan_usage = round((float(fan_speed) / float(fan_max)) * 100, 2)
                         if self.logger.is_human_readable_format():
                             unit = '%'
-                            fan_percent = f"{fan_percent} {unit}"
-                    else:
-                        fan_percent = 'Unable to detect fan speed'
+                            fan_usage = f"{fan_usage} {unit}"
+                    fan_dict["max"] = fan_max
+                    fan_dict["usage"] = fan_usage
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    fan_max = "N/A"
-                    fan_percent = 'Unable to detect fan speed'
+                    logging.debug("Failed to get fan max speed for gpu %s | %s", args.gpu, e.get_error_info())
 
                 try:
                     fan_rpm = amdsmi_interface.amdsmi_get_gpu_fan_rpms(args.gpu, 0)
+                    fan_dict["rpm"] = fan_rpm
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    fan_rpm = "N/A"
+                    logging.debug("Failed to get fan rpms for gpu %s | %s", args.gpu, e.get_error_info())
 
-                values_dict['fan'] = {'speed': fan_speed,
-                                        'max' : fan_max,
-                                        'rpm' : fan_rpm,
-                                        'usage' : fan_percent}
+                values_dict["fan"] = fan_dict
             if args.voltage_curve:
                 try:
                     od_volt = amdsmi_interface.amdsmi_get_gpu_od_volt_info(args.gpu)
