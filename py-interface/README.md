@@ -60,7 +60,7 @@ try:
         print("No GPUs on machine")
 except AmdSmiException as e:
     print("Error code: {}".format(e.err_code))
-    if e.err_code == AmdSmiRetCode.STATUS_RETRY:
+    if e.err_code == amdsmi_wrapper.AMDSMI_STATUS_RETRY:
         print("Error info: {}".format(e.err_info))
 ```
 

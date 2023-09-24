@@ -209,7 +209,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         json_help = "Displays output in JSON format (human readable by default)."
         csv_help = "Displays output in CSV format (human readable by default)."
         file_help = "Saves output into a file on the provided path (stdout by default)."
-        loglevel_help = "Set the logging level for the parser commands"
+        loglevel_help = "Set the logging level for the parser commands (ERROR by default)."
 
         command_modifier_group = subcommand_parser.add_argument_group('Command Modifiers')
 
