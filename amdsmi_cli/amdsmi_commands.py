@@ -414,7 +414,7 @@ class AMDSMICommands():
 
                     # Remove amdsmi enum prefix
                     vram_info['vram_type'] = vram_type.replace('VRAM_TYPE_', '').replace('_', '')
-                    vram_info['vram_vendor'] = vram_type.replace('AMDSMI_VRAM_VENDOR__', '')
+                    vram_info['vram_vendor'] = vram_vendor.replace('AMDSMI_VRAM_VENDOR__', '')
                     if self.logger.is_human_readable_format():
                         vram_info['vram_size_mb'] = f"{vram_info['vram_size_mb']} MB"
 
