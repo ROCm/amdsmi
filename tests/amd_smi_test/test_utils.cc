@@ -56,6 +56,8 @@ static const std::map<amdsmi_fw_block_t, const char *> kDevFWNameMap = {
     {FW_ID_CP_ME, "me"},
     {FW_ID_CP_MEC1, "mec1"},
     {FW_ID_CP_MEC2, "mec2"},
+    {FW_ID_CP_MES, "mes"},
+    {FW_ID_MES_KIQ, "mes_kiq"}, // TODO: double check
     {FW_ID_CP_PFP, "pfp"},
     {FW_ID_RLC, "rlc"},
     {FW_ID_RLC_SRLG, "rlc_srlg"},

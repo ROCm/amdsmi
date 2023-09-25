@@ -290,6 +290,7 @@ typedef enum {
     FW_ID_SDMA_TH0,
     FW_ID_SDMA_TH1,
     FW_ID_CP_MES,
+    FW_ID_MES_KIQ,
     FW_ID_MES_STACK,
     FW_ID_MES_THREAD1,
     FW_ID_MES_THREAD1_STACK,
