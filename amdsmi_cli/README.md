@@ -6,44 +6,73 @@ and deprecate the existing rocm_smi CLI tool & gpuv-smi tool.
 It uses Ctypes to call the amd_smi_lib API.
 Recommended: At least one AMD GPU with AMD driver installed
 
-## Requirements
+## Install CLI Tool and Python Library
+
+### Requirements
 
 * python 3.7+ 64-bit
-* driver must be loaded for amdsmi_init() to pass
+* amdgpu driver must be loaded for amdsmi_init() to pass
 
-## Installation
+### CLI Installation
+
+Before amd-smi install, ensure previous versions of amdsmi library are uninstalled using pip:
+
+```bash
+python3 -m pip list | grep amd
+python3 -m pip uninstall amdsmi
+```
+
+* Install amdgpu driver
+* Install amd-smi-lib package through package manager
+* amd-smi --help
+
+#### Install Example for Ubuntu 22.04
+
+``` bash
+python3 -m pip list | grep amd
+python3 -m pip uninstall amdsmi
+apt install amd-smi-lib
+amd-smi --help
+```
+
+### Python Library Installation
+
+This option is for users who want to develop their own scripts using amd-smi's python library
+
+Verify that your python version is 3.7+ to install the python library
 
 * Install amdgpu driver
 * Install amd-smi-lib package through package manager
 * cd /opt/rocm/share/amd_smi
 * python3 -m pip install --upgrade pip
 * python3 -m pip install --user .
-* /opt/rocm/bin/amd-smi --help
+* import amdsmi in python to start development
 
-Add /opt/rocm/bin to your shell's path to access amd-smi via the cmdline
+Warning: this will take precedence over the cli tool's library install, to avoid issues run these steps after every amd-smi-lib update.
 
-### RHEL 8 & SLES 15
+#### RHEL 8 & SLES 15
 
 The default python versions in RHEL 8 and SLES 15 are 3.6.8 and 3.6.15
 
-While the CLI may work with these python versions, to install the python library you need to upgrade to python 3.7+
+While the CLI will work with these python versions, to install the python library you need to upgrade to python 3.7+
 
-Verify that your python version is 3.7+ to install the python library
-
-### Install Example for Ubuntu 22.04
+#### Python Library Install Example for Ubuntu 22.04
 
 ``` bash
 apt install amd-smi-lib
+amd-smi --help
 cd /opt/rocm/share/amd_smi
 python3 -m pip install --upgrade pip
 python3 -m pip install --user .
-/opt/rocm/bin/amd-smi
 ```
 
-Add /opt/rocm/bin to your shell's path to access amd-smi via the cmdline
-
 ``` bash
-export PATH=$PATH:/opt/rocm/bin
+python3
+Python 3.8.10 (default, May 26 2023, 14:05:08)
+[GCC 9.4.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import amdsmi
+>>>
 ```
 
 ## Usage
@@ -54,26 +83,27 @@ amd-smi will report the version and current platform detected when running the c
 amd-smi
 usage: amd-smi [-h]  ...
 
-AMD System Management Interface | Version: 23.2.1.0 | Platform: Linux Baremetal
+AMD System Management Interface | Version: 23.3.1.0 | Platform: Linux Baremetal
 
 optional arguments:
-  -h, --help        show this help message and exit
+  -h, --help  show this help message and exit
 
 AMD-SMI Commands:
-                    Descriptions:
-    version         Display version information
-    list            List GPU information
-    static          Gets static information about the specified GPU
-    firmware        Gets ucode/firmware information about the specified GPU
-    bad-pages       Gets bad page information about the specified GPU
-    metric          Gets metric/performance information about the specified GPU
-    process         Lists general process information running on the specified GPU
-    topology        Displays topology information of the devices.
-    set             Set options for devices.
-    reset           Reset options for devices.
+              Descriptions:
+    version   Display version information
+    list      List GPU information
+    static    Gets static information about the specified GPU
+    firmware  Gets firmware information about the specified GPU
+    bad-pages
+              Gets bad page information about the specified GPU
+    metric    Gets metric/performance information about the specified GPU
+    process   Lists general process information running on the specified GPU
+    topology  Displays topology information of the devices
+    set       Set options for devices
+    reset     Reset options for devices
 ```
 
-More detailed verison information can be give when running `amd-smi version`
+More detailed verison information is available from `amd-smi version`
 
 Each command will have detailed information via `amd-smi [command] --help`
 
@@ -82,10 +112,8 @@ Each command will have detailed information via `amd-smi [command] --help`
 For convenience, here is the help output for each command
 
 ``` bash
-amd-smi list --help
 usage: amd-smi list [-h] [--json | --csv] [--file FILE]
-                         [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
-                         [-g GPU [GPU ...]]
+                    [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [-g GPU [GPU ...]]
 
 Lists all the devices on the system and the links between devices.
 Lists all the sockets and for each socket, GPUs and/or CPUs associated to
@@ -96,7 +124,8 @@ GPU with some basic information for each VF.
 optional arguments:
   -h, --help                                      show this help message and exit
   -g GPU [GPU ...], --gpu GPU [GPU ...]           Select a GPU ID, BDF, or UUID from the possible choices:
-                                                  ID:0  | BDF:0000:23:00.0 | UUID:ffffffff-ffff-ffff-ffff-ffffffffffff
+                                                  ID:0 | BDF:0000:23:00.0 | UUID:c4ff73bf-0000-1000-80ff-ffffffffffff
+                                                   all | Selects all devices
 
 Command Modifiers:
   --json                                          Displays output in JSON format (human readable by default).
@@ -116,7 +145,8 @@ If no GPU is specified, return firmware information for all GPUs on the system.
 Firmware Arguments:
   -h, --help                                      show this help message and exit
   -g GPU [GPU ...], --gpu GPU [GPU ...]           Select a GPU ID, BDF, or UUID from the possible choices:
-                                                  ID:0  | BDF:0000:23:00.0 | UUID:ffffffff-ffff-ffff-ffff-ffffffffffff
+                                                  ID:0 | BDF:0000:23:00.0 | UUID:c4ff73bf-0000-1000-80ff-ffffffffffff
+                                                   all | Selects all devices
   -f, --ucode-list, --fw-list                     All FW list information
 
 Command Modifiers:
@@ -130,7 +160,7 @@ Command Modifiers:
 amd-smi static --help
 usage: amd-smi static [-h] [--json | --csv] [--file FILE]
                       [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [-g GPU [GPU ...]]
-                      [-a] [-b] [-V] [-l] [-d] [-c] [-r] [-B] [-u]
+                      [-a] [-b] [-V] [-d] [-r] [-v] [-B] [-l] [-u]
 
 If no GPU is specified, returns static information for all GPUs on the system.
 If no static argument is provided, all static information will be displayed.
@@ -138,16 +168,17 @@ If no static argument is provided, all static information will be displayed.
 Static Arguments:
   -h, --help                                      show this help message and exit
   -g GPU [GPU ...], --gpu GPU [GPU ...]           Select a GPU ID, BDF, or UUID from the possible choices:
-                                                  ID:0  | BDF:0000:23:00.0 | UUID:ffffffff-ffff-ffff-ffff-ffffffffffff
+                                                  ID:0 | BDF:0000:23:00.0 | UUID:c4ff73bf-0000-1000-80ff-ffffffffffff
+                                                   all | Selects all devices
   -a, --asic                                      All asic information
   -b, --bus                                       All bus information
   -V, --vbios                                     All video bios information (if available)
-  -l, --limit                                     All limit metric values (i.e. power and thermal limits)
   -d, --driver                                    Displays driver version
   -r, --ras                                       Displays RAS features information
-  -B, --board                                     All board information
-  -u, --numa                                      All numa node information
   -v, --vram                                      All vram information
+  -B, --board                                     All board information
+  -l, --limit                                     All limit metric values (i.e. power and thermal limits)
+  -u, --numa                                      All numa node information
 
 Command Modifiers:
   --json                                          Displays output in JSON format (human readable by default).
@@ -167,7 +198,8 @@ If no GPU is specified, return bad page information for all GPUs on the system.
 Bad Pages Arguments:
   -h, --help                                      show this help message and exit
   -g GPU [GPU ...], --gpu GPU [GPU ...]           Select a GPU ID, BDF, or UUID from the possible choices:
-                                                  ID:0  | BDF:0000:23:00.0 | UUID:ffffffff-ffff-ffff-ffff-ffffffffffff
+                                                  ID:0 | BDF:0000:23:00.0 | UUID:c4ff73bf-0000-1000-80ff-ffffffffffff
+                                                   all | Selects all devices
   -p, --pending                                   Displays all pending retired pages
   -r, --retired                                   Displays retired pages
   -u, --un-res                                    Displays unreservable pages
@@ -183,9 +215,8 @@ Command Modifiers:
 amd-smi metric --help
 usage: amd-smi metric [-h] [--json | --csv] [--file FILE]
                       [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [-g GPU [GPU ...]]
-                      [-w loop_time] [-W total_loop_time] [-i number_of_iterations] [-u]
-                      [-b] [-p] [-c] [-t] [-e] [-P] [-f] [-C] [-o] [-l] [-r] [-x]
-                      [-E] [-m]
+                      [-w loop_time] [-W total_loop_time] [-i number_of_iterations] [-m]
+                      [-u] [-p] [-c] [-t] [-e] [-k] [-P] [-f] [-C] [-o] [-l] [-x] [-E]
 
 If no GPU is specified, returns metric information for all GPUs on the system.
 If no metric argument is provided all metric information will be displayed.
@@ -193,15 +224,18 @@ If no metric argument is provided all metric information will be displayed.
 Metric arguments:
   -h, --help                                                  show this help message and exit
   -g GPU [GPU ...], --gpu GPU [GPU ...]                       Select a GPU ID, BDF, or UUID from the possible choices:
-                                                              ID:0  | BDF:0000:23:00.0 | UUID:ffffffff-ffff-ffff-ffff-ffffffffffff
+                                                              ID:0 | BDF:0000:23:00.0 | UUID:c4ff73bf-0000-1000-80ff-ffffffffffff
+                                                               all | Selects all devices
   -w loop_time, --watch loop_time                             Reprint the command in a loop of Interval seconds
   -W total_loop_time, --watch_time total_loop_time            The total time to watch the given command
   -i number_of_iterations, --iterations number_of_iterations  Total number of iterations to loop on the given command
+  -m, --mem-usage                                             Memory usage per block
   -u, --usage                                                 Displays engine usage information
   -p, --power                                                 Current power usage
   -c, --clock                                                 Average, max, and current clock frequencies
   -t, --temperature                                           Current temperatures
   -e, --ecc                                                   Number of ECC errors
+  -k, --ecc-block                                             Number of ECC errors per block
   -P, --pcie                                                  Current PCIe speed, width, and replay count
   -f, --fan                                                   Current fan speed
   -C, --voltage-curve                                         Display voltage curve
@@ -209,7 +243,6 @@ Metric arguments:
   -l, --perf-level                                            Current DPM performance level
   -x, --xgmi-err                                              XGMI error information since last read
   -E, --energy                                                Amount of energy consumed
-  -m, --mem-usage                                             Memory usage per block
 
 Command Modifiers:
   --json                                                      Displays output in JSON format (human readable by default).
@@ -225,20 +258,21 @@ usage: amd-smi process [-h] [--json | --csv] [--file FILE]
                        [-w loop_time] [-W total_loop_time] [-i number_of_iterations] [-G]
                        [-e] [-p PID] [-n NAME]
 
-If no GPU is specified, returns information for all GPUs on the system.
+If no GPU is specified, returns information for all GPUs on the system.                                
 If no process argument is provided all process information will be displayed.
 
 Process arguments:
   -h, --help                                                  show this help message and exit
   -g GPU [GPU ...], --gpu GPU [GPU ...]                       Select a GPU ID, BDF, or UUID from the possible choices:
-                                                              ID:0  | BDF:0000:23:00.0 | UUID:ffffffff-ffff-ffff-ffff-ffffffffffff
+                                                              ID:0 | BDF:0000:23:00.0 | UUID:c4ff73bf-0000-1000-80ff-ffffffffffff
+                                                               all | Selects all devices
   -w loop_time, --watch loop_time                             Reprint the command in a loop of Interval seconds
   -W total_loop_time, --watch_time total_loop_time            The total time to watch the given command
   -i number_of_iterations, --iterations number_of_iterations  Total number of iterations to loop on the given command
   -G, --general                                               pid, process name, memory usage
   -e, --engine                                                All engine usages
   -p PID, --pid PID                                           Gets all process information about the specified process based on Process ID
-  -n NAME, --name NAME                                        Gets all process information about the specified process based on Process Name.
+  -n NAME, --name NAME                                        Gets all process information about the specified process based on Process Name.                    
                                                               If multiple processes have the same name information is returned for all of them.
 
 Command Modifiers:
@@ -254,13 +288,14 @@ usage: amd-smi topology [-h] [--json | --csv] [--file FILE]
                         [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
                         [-g GPU [GPU ...]] [-a] [-w] [-o] [-t] [-b]
 
-If no GPU is specified, returns information for all GPUs on the system.
+If no GPU is specified, returns information for all GPUs on the system.                                
 If no topology argument is provided all topology information will be displayed.
 
 Topology arguments:
   -h, --help                                      show this help message and exit
   -g GPU [GPU ...], --gpu GPU [GPU ...]           Select a GPU ID, BDF, or UUID from the possible choices:
-                                                  ID:0  | BDF:0000:23:00.0 | UUID:ffffffff-ffff-ffff-ffff-ffffffffffff
+                                                  ID:0 | BDF:0000:23:00.0 | UUID:c4ff73bf-0000-1000-80ff-ffffffffffff
+                                                   all | Selects all devices
   -a, --access                                    Displays link accessibility between GPUs
   -w, --weight                                    Displays relative weight between GPUs
   -o, --hops                                      Displays the number of hops between GPUs
@@ -280,23 +315,24 @@ usage: amd-smi set [-h] [--json | --csv] [--file FILE]
                    [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] -g GPU [GPU ...]
                    [-f %] [-l LEVEL] [-P SETPROFILE] [-d SCLKMAX]
 
-A GPU must be specified to set a configuration.
+A GPU must be specified to set a configuration.                                    
 A set argument must be provided; Multiple set arguments are accepted
 
 Set Arguments:
-  -h, --help                                                          show this help message and exit
-  -g GPU [GPU ...], --gpu GPU [GPU ...]                               Select a GPU ID, BDF, or UUID from the possible choices:
-                                                                      ID:0  | BDF:0000:23:00.0 | UUID:ffffffff-ffff-ffff-ffff-ffffffffffff
-  -f %, --fan %                                                       Sets GPU fan speed (0-255 or 0-100%)
-  -l LEVEL, --perflevel LEVEL                                         Sets performance level
-  -P SETPROFILE, --profile SETPROFILE                                 Set power profile level (#) or a quoted string of custom profile attributes
-  -d SCLKMAX, --perfdeterminism SCLKMAX                               Sets GPU clock frequency limit and performance level to determinism to get minimal performance variation
+  -h, --help                                      show this help message and exit
+  -g GPU [GPU ...], --gpu GPU [GPU ...]           Select a GPU ID, BDF, or UUID from the possible choices:
+                                                  ID:0 | BDF:0000:23:00.0 | UUID:c4ff73bf-0000-1000-80ff-ffffffffffff
+                                                   all | Selects all devices
+  -f %, --fan %                                   Sets GPU fan speed (0-255 or 0-100%)
+  -l LEVEL, --perflevel LEVEL                     Sets performance level
+  -P SETPROFILE, --profile SETPROFILE             Set power profile level (#) or a quoted string of custom profile attributes
+  -d SCLKMAX, --perfdeterminism SCLKMAX           Sets GPU clock frequency limit and performance level to determinism to get minimal performance variation
 
 Command Modifiers:
-  --json                                                              Displays output in JSON format (human readable by default).
-  --csv                                                               Displays output in CSV format (human readable by default).
-  --file FILE                                                         Saves output into a file on the provided path (stdout by default).
-  --loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}                      Set the logging level for the parser commands (ERROR by default).
+  --json                                          Displays output in JSON format (human readable by default).
+  --csv                                           Displays output in CSV format (human readable by default).
+  --file FILE                                     Saves output into a file on the provided path (stdout by default).
+  --loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}  Set the logging level for the parser commands (ERROR by default).
 ```
 
 ```bash
@@ -305,13 +341,14 @@ usage: amd-smi reset [-h] [--json | --csv] [--file FILE]
                      [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] -g GPU [GPU ...]
                      [-G] [-c] [-f] [-p] [-x] [-d]
 
-A GPU must be specified to reset a configuration.
+A GPU must be specified to reset a configuration.                                
 A reset argument must be provided; Multiple reset arguments are accepted
 
 Reset Arguments:
   -h, --help                                      show this help message and exit
   -g GPU [GPU ...], --gpu GPU [GPU ...]           Select a GPU ID, BDF, or UUID from the possible choices:
-                                                  ID:0  | BDF:0000:23:00.0 | UUID:ffffffff-ffff-ffff-ffff-ffffffffffff
+                                                  ID:0 | BDF:0000:23:00.0 | UUID:c4ff73bf-0000-1000-80ff-ffffffffffff
+                                                   all | Selects all devices
   -G, --gpureset                                  Reset the specified GPU
   -c, --clocks                                    Reset clocks and overdrive to default
   -f, --fans                                      Reset fans to automatic (driver) control
@@ -324,6 +361,58 @@ Command Modifiers:
   --csv                                           Displays output in CSV format (human readable by default).
   --file FILE                                     Saves output into a file on the provided path (stdout by default).
   --loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}  Set the logging level for the parser commands (ERROR by default).
+```
+
+### Example output from amd-smi static
+
+Here is some example output from the tool:
+
+```bash
+amd-smi static
+GPU: 0
+ASIC:
+    MARKET_NAME: 0x73bf
+    VENDOR_ID: 0x1002
+    VENDOR_NAME: Advanced Micro Devices, Inc. [AMD/ATI]
+    SUBVENDOR_ID: 0
+    DEVICE_ID: 0x73bf
+    REV_ID: 0xc3
+    ASIC_SERIAL: 0xffffffffffffffff
+BUS:
+    BDF: 0000:23:00.0
+    MAX_PCIE_SPEED: 16 GT/s
+    MAX_PCIE_LANES: 16
+    PCIE_INTERFACE_VERSION: Gen 4
+    SLOT_TYPE: PCIE
+VBIOS:
+    NAME: NAVI21 Gaming XL D41209
+    BUILD_DATE: 2020/10/29 13:30
+    PART_NUMBER: 113-D4120900-101
+    VERSION: 020.001.000.038.015720
+BOARD:
+    SERIAL_NUMBER: 0xffffffffffffffff
+    MODEL_NUMBER: ffffffffffffffff
+    PRODUCT_NAME: ffffffffffffffff
+LIMIT:
+    MAX_POWER: 203 W
+    CURRENT_POWER: 203 W
+    SLOWDOWN_EDGE_TEMPERATURE: 100 °C
+    SLOWDOWN_HOTSPOT_TEMPERATURE: 110 °C
+    SLOWDOWN_VRAM_TEMPERATURE: 100 °C
+    SHUTDOWN_EDGE_TEMPERATURE: 105 °C
+    SHUTDOWN_HOTSPOT_TEMPERATURE: 115 °C
+    SHUTDOWN_VRAM_TEMPERATURE: 105 °C
+DRIVER:
+    DRIVER_VERSION: 6.1.10
+    DRIVER_DATE: 2015/01/01 00:00
+RAS: N/A
+VRAM:
+    VRAM_TYPE: MAX
+    VRAM_VENDOR: SAMSUNG
+    VRAM_SIZE_MB: 16368 MB
+NUMA:
+    NODE: 0
+    AFFINITY: -1
 ```
 
 ## Disclaimer
