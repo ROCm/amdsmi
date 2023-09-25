@@ -561,7 +561,7 @@ class AMDSMIParser(argparse.ArgumentParser):
             return
 
         # Subparser help text
-        topology_help = "Displays topology information of the devices."
+        topology_help = "Displays topology information of the devices"
         topology_subcommand_help = "If no GPU is specified, returns information for all GPUs on the system.\
                                 \nIf no topology argument is provided all topology information will be displayed."
         topology_optionals_title = "Topology arguments"
@@ -597,7 +597,7 @@ class AMDSMIParser(argparse.ArgumentParser):
             return
 
         # Subparser help text
-        set_value_help = "Set options for devices."
+        set_value_help = "Set options for devices"
         set_value_subcommand_help = "A GPU must be specified to set a configuration.\
                                     \nA set argument must be provided; Multiple set arguments are accepted"
         set_value_optionals_title = "Set Arguments"
@@ -724,7 +724,7 @@ class AMDSMIParser(argparse.ArgumentParser):
             return
 
         # Subparser help text
-        reset_help = "Reset options for devices."
+        reset_help = "Reset options for devices"
         reset_subcommand_help = "A GPU must be specified to reset a configuration.\
                                 \nA reset argument must be provided; Multiple reset arguments are accepted"
         reset_optionals_title = "Reset Arguments"

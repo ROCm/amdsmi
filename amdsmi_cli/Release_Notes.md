@@ -4,6 +4,11 @@
 
 Documentation for AMDSMI-CLI is available post install in /opt/<rocm_instance>/libexec/amdsmi_cli/README.md
 
+## AMDSMI-CLI 23.3.1.0
+
+- not all ecc fields are currently supported
+- RHEL 8 & SLES 15 may have extra install steps
+
 ## AMDSMI-CLI 23.0.1.1
 
 ### Known Issues
