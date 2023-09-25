@@ -1129,7 +1129,7 @@ typedef struct {
   uint16_t       padding;          // new in v1
 
   uint32_t       gfx_activity_acc;   // new in v1
-  uint32_t       mem_actvity_acc;     // new in v1
+  uint32_t       mem_activity_acc;     // new in v1
   uint16_t       temperature_hbm[AMDSMI_NUM_HBM_INSTANCES];  // new in v1
   /// @endcond
 } amdsmi_gpu_metrics_t;
@@ -3590,6 +3590,18 @@ amdsmi_get_gpu_activity(amdsmi_processor_handle processor_handle, amdsmi_engine_
  */
 amdsmi_status_t
 amdsmi_get_power_info(amdsmi_processor_handle processor_handle, amdsmi_power_info_t *info);
+
+/**
+ *  @brief Returns is power management enabled
+ *
+ *  @param[in] processor_handle PF of a processor for which to query
+ *
+ *  @param[out] status Reference to bool. Must be allocated by user.
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t
+amdsmi_is_gpu_power_management_enabled(amdsmi_processor_handle processor_handle, bool *enabled);
 
 /**
  *  @brief          Returns the measurements of the clocks in the GPU

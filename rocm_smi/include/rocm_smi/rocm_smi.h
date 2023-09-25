@@ -481,6 +481,19 @@ typedef enum {
 } rsmi_temperature_type_t;
 
 /**
+ * @brief Activity (Utilization) Metrics.  This enum is used to identify
+ * various activity metrics.
+ *
+ */
+typedef enum {
+  /* Utilization */
+  RSMI_ACTIVITY_GFX = (0x1 << 0),
+  RSMI_ACTIVITY_UMC = (0x1 << 1),   //!< memory controller
+  RSMI_ACTIVITY_MM  = (0x1 << 2)    //!< UVD or VCN
+} rsmi_activity_metric_t;
+
+
+/**
  * @brief Voltage Metrics.  This enum is used to identify various
  * Volatge metrics. Corresponding values will be in millivolt.
  *
@@ -789,6 +802,17 @@ typedef rsmi_pcie_bandwidth_t rsmi_pcie_bandwidth;
 /// \endcond
 
 /**
+ * @brief This structure holds information about the possible activity
+ * averages. Specifically, the utilization counters.
+ */
+typedef struct {
+  /* Utilization */
+  uint16_t average_gfx_activity;
+  uint16_t average_umc_activity;  //!< memory controller
+  uint16_t average_mm_activity;   //!< UVD or VCN
+} rsmi_activity_metric_counter_t;
+
+/**
  * @brief This structure holds version information.
  */
 typedef struct {
@@ -898,14 +922,28 @@ struct metrics_table_header_t {
 #define RSMI_GPU_METRICS_API_FORMAT_VER 1
 // The content version increments when gpu_metrics is extended with new and/or
 // existing field sizes are changed.
+
+/**
+ * @brief The GPU metrics version 1
+ */
 #define RSMI_GPU_METRICS_API_CONTENT_VER_1 1
+/**
+ * @brief The GPU metrics version 2
+ */
 #define RSMI_GPU_METRICS_API_CONTENT_VER_2 2
+/**
+ * @brief The GPU metrics version 3
+ */
 #define RSMI_GPU_METRICS_API_CONTENT_VER_3 3
 
-// This should match NUM_HBM_INSTANCES
+/**
+ * @brief This should match NUM_HBM_INSTANCES
+ */
 #define RSMI_NUM_HBM_INSTANCES 4
 
-// Unit conversion factor for HBM temperatures
+/**
+ * @brief Unit conversion factor for HBM temperatures
+ */
 #define CENTRIGRADE_TO_MILLI_CENTIGRADE 1000
 
 typedef struct {
@@ -964,7 +1002,7 @@ typedef struct {
   uint16_t       padding;          // new in v1
 
   uint32_t       gfx_activity_acc;   // new in v1
-  uint32_t       mem_actvity_acc;     // new in v1
+  uint32_t       mem_activity_acc;     // new in v1
   uint16_t       temperature_hbm[RSMI_NUM_HBM_INSTANCES];  // new in v1
   /// \endcond
 } rsmi_gpu_metrics_t;
@@ -2288,7 +2326,7 @@ rsmi_dev_busy_percent_get(uint32_t dv_ind, uint32_t *busy_percent);
  *  If the function reutrns RSMI_STATUS_SUCCESS, the counter will be set in the value field of
  *  the rsmi_utilization_counter_t.
  *
- *  @param[in] count The size of @utilization_counters array.
+ *  @param[in] count The size of utilization_counters array.
  *
  *  @param[inout] timestamp The timestamp when the counter is retreived. Resolution: 1 ns.
  *  @retval ::RSMI_STATUS_SUCCESS call was successful
@@ -2302,6 +2340,57 @@ rsmi_utilization_count_get(uint32_t dv_ind,
                 rsmi_utilization_counter_t utilization_counters[],
                 uint32_t count,
                 uint64_t *timestamp);
+
+/**
+ *  @brief Get activity metric average utilization counter of the specified device
+ *
+ *  @details Given a device index @p dv_ind, the activity metric type,
+ *  this function returns the requested utilization counters
+ *
+ *  @param[in] dv_ind a device index
+ *
+ *  @param[in] activity_metric_type a metric type
+ *
+ *  @param[inout] activity_metric_counter Multiple utilization counters can be retrieved with a single
+ *  call. The caller must allocate enough space to the rsmi_activity_metric_counter_t structure.
+ *
+ *  If the function returns RSMI_STATUS_SUCCESS, the requested type will be set in the corresponding
+ *  field of the counter will be set in the value field of
+ *  the activity_metric_counter_t.
+ *
+ *  @retval ::RSMI_STATUS_SUCCESS call was successful
+ *  @retval ::RSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
+ *  support this function with the given arguments
+ *  @retval ::RSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *
+ */
+rsmi_status_t
+rsmi_dev_activity_metric_get(uint32_t dv_ind,
+                             rsmi_activity_metric_t activity_metric_type,
+                             rsmi_activity_metric_counter_t* activity_metric_counter);
+
+/**
+ *  @brief Get activity metric bandwidth average utilization counter of the specified device
+ *
+ *  @details Given a device index @p dv_ind, the activity metric type,
+ *  this function returns the requested utilization counters
+ *
+ *  @param[in] dv_ind a device index
+ *
+ *  @param[inout] avg_activity average bandwidth utilization counters can be retrieved
+ *
+ *  If the function returns RSMI_STATUS_SUCCESS, the requested type will be set in the corresponding
+ *  field of the counter will be set in the value field of
+ *  the activity_metric_counter_t.
+ *
+ *  @retval ::RSMI_STATUS_SUCCESS call was successful
+ *  @retval ::RSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
+ *  support this function with the given arguments
+ *  @retval ::RSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *
+ */
+rsmi_status_t
+rsmi_dev_activity_avg_mm_get(uint32_t dv_ind, uint16_t* avg_activity);
 
 /**
  *  @brief Get the performance level of the device with provided
@@ -2450,7 +2539,7 @@ rsmi_status_t rsmi_dev_gpu_clk_freq_get(uint32_t dv_ind,
  *  @retval ::RSMI_STATUS_INVALID_ARGS the provided arguments are not valid
  *
  */
-rsmi_status_t rsmi_dev_gpu_reset(int32_t dv_ind);
+rsmi_status_t rsmi_dev_gpu_reset(uint32_t dv_ind);
 
 /**
  *  @brief This function retrieves the voltage/frequency curve information
@@ -2684,7 +2773,7 @@ rsmi_dev_power_profile_presets_get(uint32_t dv_ind, uint32_t sensor_ind,
  *
  */
 rsmi_status_t
-rsmi_dev_perf_level_set(int32_t dv_ind, rsmi_dev_perf_level_t perf_lvl);
+rsmi_dev_perf_level_set(uint32_t dv_ind, rsmi_dev_perf_level_t perf_lvl);
 
 /**
  *  @brief Set the PowerPlay performance level associated with the device with
@@ -2750,7 +2839,7 @@ rsmi_dev_perf_level_set_v1(uint32_t dv_ind, rsmi_dev_perf_level_t perf_lvl);
  *  @retval ::RSMI_STATUS_PERMISSION function requires root access
  *
  */
-rsmi_status_t rsmi_dev_overdrive_level_set(int32_t dv_ind, uint32_t od);
+rsmi_status_t rsmi_dev_overdrive_level_set(uint32_t dv_ind, uint32_t od);
 
 /**
  *  @brief Set the overdrive percent associated with the device with provided
@@ -3398,7 +3487,7 @@ rsmi_compute_process_gpus_get(uint32_t pid, uint32_t *dv_indices,
  *  @brief Get the info of a process on a specific device.
  *
  *  @details Given a process id @p pid, a @p dv_ind, this function will
- *  write the process information for @p pid on the device, if available, to
+ *  write the process information for pid on the device, if available, to
  *  the memory pointed to by @p proc.
  *
  *  @param[in] pid The process id of the process for which the gpu
@@ -3406,7 +3495,7 @@ rsmi_compute_process_gpus_get(uint32_t pid, uint32_t *dv_indices,
  *
  *  @param[in] dv_ind a device index where the process running on.
  *
- *  @param[inout] procs a pointer to memory provided by the caller to which
+ *  @param[inout] proc a pointer to memory provided by the caller to which
  *  process information will be written.
  *
  *  @retval ::RSMI_STATUS_SUCCESS is returned upon successful call
@@ -3598,7 +3687,7 @@ rsmi_topo_get_link_type(uint32_t dv_ind_src, uint32_t dv_ind_dst,
  *
  *  @details Given a source device index @p dv_ind_src and
  *  a destination device index @p dv_ind_dst, and a pointer to a
- *  bool @accessible, this function will write the P2P connection status
+ *  bool @p accessible, this function will write the P2P connection status
  *  between the device @p dv_ind_src and @p dv_ind_dst to the memory
  *  pointed to by @p accessible.
  *

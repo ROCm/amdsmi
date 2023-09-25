@@ -775,7 +775,7 @@ amdsmi_status_t amdsmi_get_gpu_vram_info(
     uint64_t total = 0;
     r = rsmi_wrapper(rsmi_dev_memory_total_get, processor_handle,
                     RSMI_MEM_TYPE_VRAM, &total);
-    info->vram_size_mb = total;
+    info->vram_size_mb = total / (1024 * 1024);
 
     return AMDSMI_STATUS_SUCCESS;
 }
@@ -1439,6 +1439,24 @@ amdsmi_get_gpu_activity(amdsmi_processor_handle processor_handle, amdsmi_engine_
     return AMDSMI_STATUS_SUCCESS;
 }
 
+amdsmi_status_t amdsmi_is_gpu_power_management_enabled(amdsmi_processor_handle processor_handle, bool *enabled) {
+    if (enabled == nullptr) {
+        return AMDSMI_STATUS_INVAL;
+    }
+    *enabled = false;
+
+    amd::smi::AMDSmiGPUDevice * gpu_device = nullptr;
+    amdsmi_status_t status;
+
+    status = get_gpu_device_from_handle(processor_handle, &gpu_device);
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    status = smi_amdgpu_is_gpu_power_management_enabled(gpu_device, enabled);
+
+    return status;
+}
+
 amdsmi_status_t
 amdsmi_get_clock_info(amdsmi_processor_handle processor_handle, amdsmi_clk_type_t clk_type, amdsmi_clk_info_t *info) {
     AMDSMI_CHECK_INIT();
@@ -1650,37 +1668,36 @@ amdsmi_get_power_info(amdsmi_processor_handle processor_handle, amdsmi_power_inf
     if (info == nullptr) {
         return AMDSMI_STATUS_INVAL;
     }
-
-    amdsmi_gpu_metrics_t metrics = {};
-    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
-    amdsmi_status_t r = get_gpu_device_from_handle(processor_handle, &gpu_device);
-    if (r != AMDSMI_STATUS_SUCCESS)
-        return r;
-
     amdsmi_status_t status;
 
-    status =  amdsmi_get_gpu_metrics_info(processor_handle, &metrics);
-    if (status != AMDSMI_STATUS_SUCCESS) {
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    status = get_gpu_device_from_handle(processor_handle, &gpu_device);
+    if (status != AMDSMI_STATUS_SUCCESS)
         return status;
+
+    info->average_socket_power = 0xFFFFFFFF;
+    info->gfx_voltage = 0xFFFFFFFF;
+    info->soc_voltage = 0xFFFFFFFF; // Not implmented yet
+    info->mem_voltage = 0xFFFFFFFF; // Not implmented yet
+    info->power_limit = 0xFFFFFFFF;
+
+    amdsmi_gpu_metrics_t metrics = {};
+    status = amdsmi_get_gpu_metrics_info(processor_handle, &metrics);
+    if (status == AMDSMI_STATUS_SUCCESS) {
+        info->average_socket_power = metrics.average_socket_power;
     }
 
     int64_t voltage_read = 0;
-
-    status =  amdsmi_get_gpu_volt_metric(processor_handle, AMDSMI_VOLT_TYPE_VDDGFX, AMDSMI_VOLT_CURRENT, &voltage_read);
-    if (status != AMDSMI_STATUS_SUCCESS) {
-        return status;
+    status = amdsmi_get_gpu_volt_metric(processor_handle, AMDSMI_VOLT_TYPE_VDDGFX, AMDSMI_VOLT_CURRENT, &voltage_read);
+    if (status == AMDSMI_STATUS_SUCCESS) {
+        info->gfx_voltage = voltage_read;
     }
 
     int power_limit = 0;
     status = smi_amdgpu_get_power_cap(gpu_device, &power_limit);
-    if (status != AMDSMI_STATUS_SUCCESS) {
-        return status;
+    if (status == AMDSMI_STATUS_SUCCESS) {
+        info->power_limit = power_limit;
     }
-    info->power_limit = power_limit;
-
-    info->gfx_voltage = voltage_read;
-
-    info->average_socket_power = metrics.average_socket_power;
 
     return status;
 }
@@ -1704,6 +1721,12 @@ amdsmi_status_t amdsmi_get_gpu_driver_info(amdsmi_processor_handle processor_han
     std::string driver_date;
     status = gpu_device->amdgpu_query_driver_date(driver_date);
     if (status != AMDSMI_STATUS_SUCCESS)  return r;
+
+    // Reformat the driver date from 20150101 to 2015/01/01 00:00
+    if (driver_date.length() == 8) {
+        driver_date = driver_date.substr(0, 4) + "/" + driver_date.substr(4, 2)
+                        + "/" + driver_date.substr(6, 2) + " 00:00";
+    }
     strncpy(info->driver_date, driver_date.c_str(), AMDSMI_MAX_STRING_LENGTH-1);
     return status;
 }
