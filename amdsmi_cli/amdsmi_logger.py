@@ -312,8 +312,20 @@ class AMDSMILogger():
             if not isinstance(self.output, list):
                 stored_csv_output = [self.output]
 
+        if stored_csv_output:
+            csv_keys = set()
+            for output in stored_csv_output:
+                for key in output:
+                    csv_keys.add(key)
+
+            for index, output_dict in enumerate(stored_csv_output):
+                remaining_keys = csv_keys - set(output_dict.keys())
+                for key in remaining_keys:
+                    stored_csv_output[index][key] = "N/A"
+
         if self.destination == 'stdout':
             if stored_csv_output:
+                # Get the header as a list of the first element to maintain order
                 csv_header = stored_csv_output[0].keys()
                 csv_stdout_output = self.CsvStdoutBuilder()
                 writer = csv.DictWriter(csv_stdout_output, csv_header)
@@ -324,12 +336,24 @@ class AMDSMILogger():
             if watching_output:
                 with self.destination.open('w', newline = '') as output_file:
                     if self.watch_output:
+                        csv_keys = set()
+                        for output in self.watch_output:
+                            for key in output:
+                                csv_keys.add(key)
+
+                        for index, output_dict in enumerate(self.watch_output):
+                            remaining_keys = csv_keys - set(output_dict.keys())
+                            for key in remaining_keys:
+                                self.watch_output[index][key] = "N/A"
+
+                        # Get the header as a list of the first element to maintain order
                         csv_header = self.watch_output[0].keys()
                         writer = csv.DictWriter(output_file, csv_header)
                         writer.writeheader()
                         writer.writerows(self.watch_output)
             else:
                 with self.destination.open('a', newline = '') as output_file:
+                    # Get the header as a list of the first element to maintain order
                     csv_header = stored_csv_output[0].keys()
                     writer = csv.DictWriter(output_file, csv_header)
                     writer.writeheader()
