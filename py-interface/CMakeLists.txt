@@ -47,9 +47,12 @@ else()
     find_package(Python3 3.7 COMPONENTS Interpreter Development REQUIRED)
     # --break-system-packages is needed for python 3.11
     # see: https://peps.python.org/pep-0668/
+    if (NOT Python3_VERSION VERSION_LESS "3.11")
+        set(Python3_BREAK_SYSTEM_PACKAGES "--break-system-packages")
+    endif()
     add_custom_target(
         python_pre_reqs
-        COMMAND ${Python3_EXECUTABLE} -m pip install --break-system-packages clang==${clang_ver} ctypeslib2==${ctypeslib_ver})
+        COMMAND ${Python3_EXECUTABLE} -m pip install ${Python3_BREAK_SYSTEM_PACKAGES} clang==${clang_ver} ctypeslib2==${ctypeslib_ver})
     # generate new wrapper
     configure_file(${PROJECT_SOURCE_DIR}/tools/generator.py generator.py @ONLY COPYONLY)
     add_custom_command(
