@@ -36,6 +36,8 @@ return_logrotateToOrigConfig() {
 
 case "$1" in
   ( remove | upgrade)
+    # remove old gpuv-smi symlink
+    rm -f @CPACK_PACKAGING_INSTALL_PREFIX@/bin/gpuv-smi &> /dev/null
     rm_ldconfig
     rm_pyc
     rm_logFolder
