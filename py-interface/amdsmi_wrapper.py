@@ -837,16 +837,6 @@ amdsmi_process_handle_t = ctypes.c_uint32
 class struct_amdsmi_proc_info_t(Structure):
     pass
 
-class struct_engine_usage_(Structure):
-    pass
-
-struct_engine_usage_._pack_ = 1 # source:False
-struct_engine_usage_._fields_ = [
-    ('gfx', ctypes.c_uint64),
-    ('enc', ctypes.c_uint64),
-    ('reserved', ctypes.c_uint32 * 12),
-]
-
 class struct_memory_usage_(Structure):
     pass
 
@@ -856,6 +846,16 @@ struct_memory_usage_._fields_ = [
     ('cpu_mem', ctypes.c_uint64),
     ('vram_mem', ctypes.c_uint64),
     ('reserved', ctypes.c_uint32 * 10),
+]
+
+class struct_engine_usage_(Structure):
+    pass
+
+struct_engine_usage_._pack_ = 1 # source:False
+struct_engine_usage_._fields_ = [
+    ('gfx', ctypes.c_uint64),
+    ('enc', ctypes.c_uint64),
+    ('reserved', ctypes.c_uint32 * 12),
 ]
 
 struct_amdsmi_proc_info_t._pack_ = 1 # source:False
@@ -1285,9 +1285,12 @@ class struct_amdsmi_frequencies_t(Structure):
 
 struct_amdsmi_frequencies_t._pack_ = 1 # source:False
 struct_amdsmi_frequencies_t._fields_ = [
+    ('has_deep_sleep', ctypes.c_bool),
+    ('PADDING_0', ctypes.c_ubyte * 3),
     ('num_supported', ctypes.c_uint32),
     ('current', ctypes.c_uint32),
-    ('frequency', ctypes.c_uint64 * 32),
+    ('PADDING_1', ctypes.c_ubyte * 4),
+    ('frequency', ctypes.c_uint64 * 33),
 ]
 
 amdsmi_frequencies_t = struct_amdsmi_frequencies_t
@@ -1297,7 +1300,8 @@ class struct_amdsmi_pcie_bandwidth_t(Structure):
 struct_amdsmi_pcie_bandwidth_t._pack_ = 1 # source:False
 struct_amdsmi_pcie_bandwidth_t._fields_ = [
     ('transfer_rate', amdsmi_frequencies_t),
-    ('lanes', ctypes.c_uint32 * 32),
+    ('lanes', ctypes.c_uint32 * 33),
+    ('PADDING_0', ctypes.c_ubyte * 4),
 ]
 
 amdsmi_pcie_bandwidth_t = struct_amdsmi_pcie_bandwidth_t

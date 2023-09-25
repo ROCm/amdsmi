@@ -503,7 +503,7 @@ typedef struct {
 } amdsmi_proc_info_t;
 
 //! Guaranteed maximum possible number of supported frequencies
-#define AMDSMI_MAX_NUM_FREQUENCIES 32
+#define AMDSMI_MAX_NUM_FREQUENCIES 33
 
 //! Maximum possible value for fan speed. Should be used as the denominator
 //! when determining fan speed percentage.
@@ -944,6 +944,11 @@ typedef struct {
  * @brief This structure holds information about clock frequencies.
  */
 typedef struct {
+    /**
+     * Deep Sleep frequency is only supported by some GPUs
+     */
+    bool has_deep_sleep;
+
     /**
      * The number of supported frequencies
      */
