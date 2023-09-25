@@ -45,6 +45,7 @@
 #ifndef TESTS_AMD_SMI_TEST_TEST_BASE_H_
 #define TESTS_AMD_SMI_TEST_TEST_BASE_H_
 
+#include <cstdint>
 #include <string>
 #include <vector>
 #include "amd_smi/amdsmi.h"
@@ -150,9 +151,8 @@ class TestBase {
          "\t===> Abort is over-ridden due to dont_fail command line option." \
                                                                << std::endl; \
         return; \
-    } else { \
-      ASSERT_EQ(AMDSMI_STATUS_SUCCESS, (RET)); \
     } \
+    ASSERT_EQ(AMDSMI_STATUS_SUCCESS, (RET)); \
 }
 
 void MakeHeaderStr(const char *inStr, std::string *outStr);

@@ -639,6 +639,7 @@ def amdsmi_get_gpu_asic_info(
     return {
         "market_name": asic_info.market_name.decode("utf-8"),
         "vendor_id": asic_info.vendor_id,
+        "vendor_name": asic_info.vendor_name.decode("utf-8"),
         "subvendor_id": asic_info.subvendor_id,
         "device_id": asic_info.device_id,
         "rev_id": asic_info.rev_id,
@@ -666,6 +667,27 @@ def amdsmi_get_power_cap_info(
             "dpm_cap": power_info.dpm_cap,
             "min_power_cap": power_info.min_power_cap,
             "max_power_cap": power_info.max_power_cap}
+
+
+def amdsmi_get_gpu_vram_info(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> Dict[str, Any]:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    vram_info = amdsmi_wrapper.amdsmi_vram_info_t()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_vram_info(
+            processor_handle, ctypes.byref(vram_info))
+    )
+
+    return {
+        "vram_type": vram_info.vram_type,
+        "vram_vendor": vram_info.vram_vendor,
+        "vram_size_mb": vram_info.vram_size_mb,
+    }
 
 
 def amdsmi_get_gpu_vbios_info(
@@ -715,7 +737,7 @@ def amdsmi_get_gpu_activity(
 def amdsmi_get_clock_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     clock_type: AmdSmiClkType,
-) -> Dict[str, Any]:
+) -> Dict[str, int]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
@@ -946,7 +968,7 @@ def amdsmi_get_gpu_driver_info(
 
 def amdsmi_get_power_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
-) -> Dict[str, Any]:
+) -> Dict[str, ctypes.c_uint32]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
@@ -962,10 +984,26 @@ def amdsmi_get_power_info(
     return {
         "average_socket_power": power_measure.average_socket_power,
         "gfx_voltage": power_measure.gfx_voltage,
-        'soc_voltage': power_measure.soc_voltage,
-        'mem_voltage': power_measure.mem_voltage,
+        "soc_voltage": power_measure.soc_voltage,
+        "mem_voltage": power_measure.mem_voltage,
         "power_limit" : power_measure.power_limit,
     }
+
+
+def amdsmi_is_gpu_power_management_enabled(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle
+    ) -> bool:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(processor_handle, amdsmi_wrapper.amdsmi_processor_handle)
+
+    is_power_management_enabled = ctypes.c_bool()
+    _check_res(
+        amdsmi_wrapper.amdsmi_is_gpu_power_management_enabled(
+            processor_handle, ctypes.byref(is_power_management_enabled)
+        )
+    )
+
+    return is_power_management_enabled.value
 
 
 def amdsmi_get_fw_info(
@@ -2132,7 +2170,7 @@ def amdsmi_get_gpu_metrics_info(
         "pcie_link_speed": gpu_metrics.pcie_link_speed,
         "padding": gpu_metrics.padding,
         "gfx_activity_acc": gpu_metrics.gfx_activity_acc,
-        "mem_actvity_acc": gpu_metrics.mem_actvity_acc,
+        "mem_activity_acc": gpu_metrics.mem_activity_acc,
         "temperature_hbm": list(gpu_metrics.temperature_hbm),
     }
 

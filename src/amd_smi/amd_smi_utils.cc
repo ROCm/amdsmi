@@ -20,7 +20,6 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,10 +35,10 @@
 #include <random>
 #include <fstream>
 #include <iostream>
+#include <regex>
 #include <sstream>
 #include <sys/ioctl.h>
 #include <algorithm>
-#include <string.h>
 #include <limits.h>
 
 #include "amd_smi/impl/amd_smi_utils.h"
@@ -497,5 +496,37 @@ amdsmi_status_t smi_amdgpu_get_market_name_from_dev_id(uint32_t device_id, char 
         default:
             return AMDSMI_STATUS_API_FAILED;
     }
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t smi_amdgpu_is_gpu_power_management_enabled(amd::smi::AMDSmiGPUDevice *device,
+        bool *enabled) {
+    if (!device->check_if_drm_is_supported()) {
+        return AMDSMI_STATUS_NOT_SUPPORTED;
+    }
+
+    if (enabled == nullptr) {
+        return AMDSMI_STATUS_API_FAILED;
+    }
+
+    SMIGPUDEVICE_MUTEX(device->get_mutex())
+    std::string fullpath = "/sys/class/drm/" + device->get_gpu_path() + std::string("/device/pp_features");
+    std::ifstream fs(fullpath.c_str());
+
+    if (fs.fail()) {
+        return AMDSMI_STATUS_NOT_SUPPORTED;
+    }
+
+    // ANY line must end with "enabled" and have space before it
+    const std::regex regex(R"(.*\senabled$)");
+    std::string line;
+    while (std::getline(fs, line)) {
+        // match the whole line against regex, not just substrings
+        if (std::regex_match(line, regex)) {
+            *enabled = true;
+            return AMDSMI_STATUS_SUCCESS;
+        }
+    }
+    *enabled = false;
     return AMDSMI_STATUS_SUCCESS;
 }

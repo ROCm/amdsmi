@@ -43,13 +43,13 @@
  *
  */
 
-#include <assert.h>
-#include <stdint.h>
 #include <getopt.h>
 
+#include <cassert>
+#include <cstdint>
 #include <iostream>
-#include <string>
 #include <map>
+#include <string>
 
 #include "test_base.h"
 #include "test_common.h"

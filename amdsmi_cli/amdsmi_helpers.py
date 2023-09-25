@@ -151,7 +151,11 @@ class AMDSMIHelpers():
                 "UUID": uuid,
                 "Device Handle": device_handle,
             }
-            gpu_choices_str += f"ID:{gpu_id:<2} | BDF:{bdf} | UUID:{uuid}\n"
+            gpu_choices_str += f"ID:{gpu_id} | BDF:{bdf} | UUID:{uuid}\n"
+
+        # Add the all option to the gpu_choices
+        gpu_choices["all"] = "all"
+        gpu_choices_str += " all | Selects all devices\n"
 
         return (gpu_choices, gpu_choices_str)
 
@@ -168,6 +172,9 @@ class AMDSMIHelpers():
                 amdsmi device_handles
             (False, str): Return False, and the first input that failed to be converted
         """
+        if gpu_selections == ["all"]:
+            return (True, amdsmi_interface.amdsmi_get_processor_handles())
+
         if isinstance(gpu_selections, str):
             gpu_selections = [gpu_selections]
 

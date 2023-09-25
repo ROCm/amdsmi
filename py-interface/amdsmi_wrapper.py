@@ -276,6 +276,7 @@ amdsmi_status_t__enumvalues = {
     31: 'AMDSMI_STATUS_NOT_FOUND',
     32: 'AMDSMI_STATUS_NOT_INIT',
     33: 'AMDSMI_STATUS_NO_SLOT',
+    34: 'AMDSMI_STATUS_DRIVER_NOT_LOADED',
     40: 'AMDSMI_STATUS_NO_DATA',
     41: 'AMDSMI_STATUS_INSUFFICIENT_SIZE',
     42: 'AMDSMI_STATUS_UNEXPECTED_SIZE',
@@ -317,6 +318,7 @@ AMDSMI_STATUS_BUSY = 30
 AMDSMI_STATUS_NOT_FOUND = 31
 AMDSMI_STATUS_NOT_INIT = 32
 AMDSMI_STATUS_NO_SLOT = 33
+AMDSMI_STATUS_DRIVER_NOT_LOADED = 34
 AMDSMI_STATUS_NO_DATA = 40
 AMDSMI_STATUS_INSUFFICIENT_SIZE = 41
 AMDSMI_STATUS_UNEXPECTED_SIZE = 42
@@ -1399,7 +1401,7 @@ struct_amdsmi_gpu_metrics_t._fields_ = [
     ('pcie_link_speed', ctypes.c_uint16),
     ('padding', ctypes.c_uint16),
     ('gfx_activity_acc', ctypes.c_uint32),
-    ('mem_actvity_acc', ctypes.c_uint32),
+    ('mem_activity_acc', ctypes.c_uint32),
     ('temperature_hbm', ctypes.c_uint16 * 4),
 ]
 
@@ -1712,6 +1714,9 @@ amdsmi_get_gpu_activity.argtypes = [amdsmi_processor_handle, ctypes.POINTER(stru
 amdsmi_get_power_info = _libraries['libamd_smi.so'].amdsmi_get_power_info
 amdsmi_get_power_info.restype = amdsmi_status_t
 amdsmi_get_power_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_power_info_t)]
+amdsmi_is_gpu_power_management_enabled = _libraries['libamd_smi.so'].amdsmi_is_gpu_power_management_enabled
+amdsmi_is_gpu_power_management_enabled.restype = amdsmi_status_t
+amdsmi_is_gpu_power_management_enabled.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_bool)]
 amdsmi_get_clock_info = _libraries['libamd_smi.so'].amdsmi_get_clock_info
 amdsmi_get_clock_info.restype = amdsmi_status_t
 amdsmi_get_clock_info.argtypes = [amdsmi_processor_handle, amdsmi_clk_type_t, ctypes.POINTER(struct_amdsmi_clk_info_t)]
@@ -1794,7 +1799,8 @@ __all__ = \
     'AMDSMI_RAS_ERR_STATE_PARITY', 'AMDSMI_RAS_ERR_STATE_POISON',
     'AMDSMI_RAS_ERR_STATE_SING_C', 'AMDSMI_STATUS_ADDRESS_FAULT',
     'AMDSMI_STATUS_API_FAILED', 'AMDSMI_STATUS_BUSY',
-    'AMDSMI_STATUS_DRM_ERROR', 'AMDSMI_STATUS_FAIL_LOAD_MODULE',
+    'AMDSMI_STATUS_DRIVER_NOT_LOADED', 'AMDSMI_STATUS_DRM_ERROR',
+    'AMDSMI_STATUS_FAIL_LOAD_MODULE',
     'AMDSMI_STATUS_FAIL_LOAD_SYMBOL', 'AMDSMI_STATUS_FILE_ERROR',
     'AMDSMI_STATUS_INIT_ERROR', 'AMDSMI_STATUS_INPUT_OUT_OF_BOUNDS',
     'AMDSMI_STATUS_INSUFFICIENT_SIZE',
@@ -1936,6 +1942,7 @@ __all__ = \
     'amdsmi_gpu_read_counter', 'amdsmi_gpu_xgmi_error_status',
     'amdsmi_init', 'amdsmi_init_flags_t',
     'amdsmi_init_gpu_event_notification', 'amdsmi_is_P2P_accessible',
+    'amdsmi_is_gpu_power_management_enabled',
     'amdsmi_memory_page_status_t', 'amdsmi_memory_type_t',
     'amdsmi_mm_ip_t', 'amdsmi_od_vddc_point_t',
     'amdsmi_od_volt_curve_t', 'amdsmi_od_volt_freq_data_t',

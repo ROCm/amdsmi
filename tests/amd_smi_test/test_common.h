@@ -74,7 +74,7 @@ void DumpMonitorInfo(const TestBase *test);
 #endif
 
 #define DISPLAY_AMDSMI_ERR(RET) { \
-  if (RET != AMDSMI_STATUS_SUCCESS) { \
+  if ((RET) != AMDSMI_STATUS_SUCCESS) { \
     const char *err_str; \
     std::cout << "\t===> ERROR: AMDSMI call returned " << (RET) << std::endl; \
     amdsmi_status_code_to_string((RET), &err_str); \
@@ -91,7 +91,7 @@ void DumpMonitorInfo(const TestBase *test);
   } \
 }
 #define CHK_AMDSMI_PERM_ERR(RET) { \
-    if (RET == AMDSMI_STATUS_NO_PERM) { \
+    if ((RET) == AMDSMI_STATUS_NO_PERM) { \
       std::cout << "This command requires root access." << std::endl; \
     } else { \
       DISPLAY_AMDSMI_ERR(RET) \

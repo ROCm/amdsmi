@@ -126,6 +126,10 @@ void TestPowerReadWrite::Run(void) {
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
       std::cout << "The power profile presets settings is not supported. "
                 << std::endl;
+
+      // Verify api support checking functionality is working
+      ret = amdsmi_get_gpu_power_profile_presets(processor_handles_[dv_ind], 0, nullptr);
+      ASSERT_EQ(ret, AMDSMI_STATUS_NOT_SUPPORTED);
       continue;
     }
     CHK_ERR_ASRT(ret)
