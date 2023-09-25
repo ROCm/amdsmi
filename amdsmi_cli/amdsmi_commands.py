@@ -1115,8 +1115,9 @@ class AMDSMICommands():
         if self.helpers.is_linux() and self.helpers.is_baremetal():
             if args.xgmi_err:
                 try:
-                    values_dict['xgmi_err'] = amdsmi_interface.amdsmi_gpu_xgmi_error_status(args.gpu)
-                except amdsmi_interface.AmdSmiLibraryException as e:
+                    xgmi_err_status = amdsmi_interface.amdsmi_gpu_xgmi_error_status(args.gpu)
+                    values_dict['xgmi_err'] = amdsmi_interface.amdsmi_wrapper.amdsmi_xgmi_status_t__enumvalues[xgmi_err_status]
+                except amdsmi_exception.AmdSmiLibraryException as e:
                     values_dict['xgmi_err'] = "N/A"
                     logging.debug("Failed to get xgmi error status for gpu %s |  %s", gpu_id, e.get_error_info())
             if args.energy:
