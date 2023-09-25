@@ -111,6 +111,7 @@ void TestPowerRead::Run(void) {
         std::cout << "\t**Power Cap Range: " << info.min_power_cap << " to " <<
                                                  info.max_power_cap << " uW" << std::endl;
       }
+      // TODO: Add current_socket_power tests
     }
   }
 }

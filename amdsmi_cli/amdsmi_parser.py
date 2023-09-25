@@ -53,8 +53,6 @@ class AMDSMIParser(argparse.ArgumentParser):
         platform_string = f"Platform: {self.helpers.os_info()}"
 
         program_name = 'amd-smi'
-        if 'gpuv-smi' in sys.argv[0]:
-            program_name = 'gpuv-smi'
 
         # Adjust argument parser options
         super().__init__(
@@ -127,14 +125,6 @@ class AMDSMIParser(argparse.ArgumentParser):
                     path.touch()
                     setattr(args, self.dest, path)
                 elif path.is_file():
-                    file_name = str(path)
-                    if args.json and str(path).split('.')[-1].lower() != 'json':
-                        file_name += ".json"
-                    elif args.csv and str(path).split('.')[-1].lower() != 'csv':
-                        file_name += ".csv"
-                    elif str(path).split('.')[-1].lower() != 'txt':
-                        file_name += ".txt"
-                    path = Path(file_name)
                     path.touch()
                     setattr(args, self.dest, path)
                 else:
@@ -207,11 +197,11 @@ class AMDSMIParser(argparse.ArgumentParser):
         return _GPUSelectAction
 
 
-    def _add_command_modifiers(self, subcommand_parser, rocm_smi=True, gpuv_smi=True):
+    def _add_command_modifiers(self, subcommand_parser):
         json_help = "Displays output in JSON format (human readable by default)."
         csv_help = "Displays output in CSV format (human readable by default)."
         file_help = "Saves output into a file on the provided path (stdout by default)."
-        loglevel_help = "Set the logging level for the parser commands"
+        loglevel_help = "Set the logging level for the parser commands (ERROR by default)."
 
         command_modifier_group = subcommand_parser.add_argument_group('Command Modifiers')
 
@@ -571,7 +561,7 @@ class AMDSMIParser(argparse.ArgumentParser):
             return
 
         # Subparser help text
-        topology_help = "Displays topology information of the devices."
+        topology_help = "Displays topology information of the devices"
         topology_subcommand_help = "If no GPU is specified, returns information for all GPUs on the system.\
                                 \nIf no topology argument is provided all topology information will be displayed."
         topology_optionals_title = "Topology arguments"
@@ -607,7 +597,7 @@ class AMDSMIParser(argparse.ArgumentParser):
             return
 
         # Subparser help text
-        set_value_help = "Set options for devices."
+        set_value_help = "Set options for devices"
         set_value_subcommand_help = "A GPU must be specified to set a configuration.\
                                     \nA set argument must be provided; Multiple set arguments are accepted"
         set_value_optionals_title = "Set Arguments"
@@ -734,7 +724,7 @@ class AMDSMIParser(argparse.ArgumentParser):
             return
 
         # Subparser help text
-        reset_help = "Reset options for devices."
+        reset_help = "Reset options for devices"
         reset_subcommand_help = "A GPU must be specified to reset a configuration.\
                                 \nA reset argument must be provided; Multiple reset arguments are accepted"
         reset_optionals_title = "Reset Arguments"

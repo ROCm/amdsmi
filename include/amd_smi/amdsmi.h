@@ -99,7 +99,7 @@ typedef enum {
 #define AMDSMI_LIB_VERSION_YEAR 23
 
 //! Major version should be changed for every header change (adding/deleting APIs, changing names, fields of structures, etc.)
-#define AMDSMI_LIB_VERSION_MAJOR 2
+#define AMDSMI_LIB_VERSION_MAJOR 3
 
 //! Minor version should be updated for each API change, but without changing headers
 #define AMDSMI_LIB_VERSION_MINOR 1
@@ -290,6 +290,7 @@ typedef enum {
     FW_ID_SDMA_TH0,
     FW_ID_SDMA_TH1,
     FW_ID_CP_MES,
+    FW_ID_MES_KIQ,
     FW_ID_MES_STACK,
     FW_ID_MES_THREAD1,
     FW_ID_MES_THREAD1_STACK,
@@ -502,7 +503,7 @@ typedef struct {
 } amdsmi_proc_info_t;
 
 //! Guaranteed maximum possible number of supported frequencies
-#define AMDSMI_MAX_NUM_FREQUENCIES 32
+#define AMDSMI_MAX_NUM_FREQUENCIES 33
 
 //! Maximum possible value for fan speed. Should be used as the denominator
 //! when determining fan speed percentage.
@@ -943,6 +944,11 @@ typedef struct {
  * @brief This structure holds information about clock frequencies.
  */
 typedef struct {
+    /**
+     * Deep Sleep frequency is only supported by some GPUs
+     */
+    bool has_deep_sleep;
+
     /**
      * The number of supported frequencies
      */

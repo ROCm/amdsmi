@@ -34,16 +34,11 @@ from amdsmi import amdsmi_exception
 class AMDSMICommands():
     """This class contains all the commands corresponding to AMDSMIParser
     Each command function will interact with AMDSMILogger to handle
-    displaying the output to the specified compatibility, format, and
-    destination.
+    displaying the output to the specified format and destination.
     """
-    def __init__(self, compatibility='amdsmi',
-                    format='human_readable',
-                    destination='stdout') -> None:
+    def __init__(self, format='human_readable', destination='stdout') -> None:
         self.helpers = AMDSMIHelpers()
-        self.logger = AMDSMILogger(compatibility=compatibility,
-                                    format=format,
-                                    destination=destination)
+        self.logger = AMDSMILogger(format=format, destination=destination)
         try:
             self.device_handles = amdsmi_interface.amdsmi_get_processor_handles()
         except amdsmi_exception.AmdSmiLibraryException as e:
@@ -125,12 +120,7 @@ class AMDSMICommands():
             self.logger.store_multiple_device_output()
             return # Skip printing when there are multiple devices
 
-        # compatibility with gpuvsmi needs a list for single gpu
-        if self.logger.is_gpuvsmi_compatibility() and not multiple_devices:
-            self.logger.store_multiple_device_output()
-            self.logger.print_output(multiple_device_enabled=True)
-        else:
-            self.logger.print_output()
+        self.logger.print_output()
 
 
     def static(self, args, multiple_devices=False, gpu=None, asic=None,
@@ -201,6 +191,9 @@ class AMDSMICommands():
 
         static_dict = {}
 
+        # Get gpu_id for logging
+        gpu_id = self.helpers.get_gpu_id_from_device_handle(args.gpu)
+
         if args.asic:
             try:
                 asic_info = amdsmi_interface.amdsmi_get_gpu_asic_info(args.gpu)
@@ -213,7 +206,7 @@ class AMDSMICommands():
                 static_dict['asic'] = asic_info
             except amdsmi_exception.AmdSmiLibraryException as e:
                 static_dict['asic'] = "N/A"
-                logging.debug("Failed to get asic info for gpu %s | %s", args.gpu, e.get_error_info())
+                logging.debug("Failed to get asic info for gpu %s |  %s", gpu_id, e.get_error_info())
         if args.bus:
             bus_output_info = {}
 
@@ -249,28 +242,23 @@ class AMDSMICommands():
 
             except amdsmi_exception.AmdSmiLibraryException as e:
                 bus_info = "N/A"
-                logging.debug("Failed to get bus info for gpu %s | %s", args.gpu, e.get_error_info())
+                logging.debug("Failed to get bus info for gpu %s |  %s", gpu_id, e.get_error_info())
 
             try:
                 bus_output_info['bdf'] = amdsmi_interface.amdsmi_get_gpu_device_bdf(args.gpu)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 bus_output_info['bdf'] = "N/A"
-                logging.debug("Failed to get bdf for gpu %s | %s", args.gpu, e.get_error_info())
+                logging.debug("Failed to get bdf for gpu %s |  %s", gpu_id, e.get_error_info())
 
             bus_output_info.update(bus_info)
             static_dict['bus'] = bus_output_info
         if args.vbios:
             try:
                 vbios_info = amdsmi_interface.amdsmi_get_gpu_vbios_info(args.gpu)
-                if self.logger.is_gpuvsmi_compatibility():
-                    vbios_info['version'] = vbios_info.pop('version')
-                    vbios_info['build_date'] = vbios_info.pop('build_date')
-                    vbios_info['part_number'] = vbios_info.pop('part_number')
-
                 static_dict['vbios'] = vbios_info
             except amdsmi_exception.AmdSmiLibraryException as e:
                 static_dict['vbios'] = "N/A"
-                logging.debug("Failed to get vbios info for gpu %s | %s", args.gpu, e.get_error_info())
+                logging.debug("Failed to get vbios info for gpu %s |  %s", gpu_id, e.get_error_info())
 
         if self.helpers.is_linux() and self.helpers.is_baremetal():
             if args.board:
@@ -286,7 +274,7 @@ class AMDSMICommands():
                     static_dict['board'] = board_info
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     static_dict['board'] = "N/A"
-                    logging.debug("Failed to get board info for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get board info for gpu %s |  %s", gpu_id, e.get_error_info())
             if args.limit:
                 # Power limits
                 try:
@@ -298,7 +286,7 @@ class AMDSMICommands():
                     power_limit_error = True
                     max_power_limit = "N/A"
                     current_power_limit = "N/A"
-                    logging.debug("Failed to get power cap info for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get power cap info for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 # Edge temperature limits
                 try:
@@ -308,7 +296,7 @@ class AMDSMICommands():
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     slowdown_temp_edge_limit_error = True
                     slowdown_temp_edge_limit = "N/A"
-                    logging.debug("Failed to get edge temperature slowdown metric for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get edge temperature slowdown metric for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 if slowdown_temp_edge_limit == 0:
                     slowdown_temp_edge_limit_error = True
@@ -321,7 +309,7 @@ class AMDSMICommands():
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     shutdown_temp_edge_limit_error = True
                     shutdown_temp_edge_limit = "N/A"
-                    logging.debug("Failed to get edge temperature shutdown metrics for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get edge temperature shutdown metrics for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 if shutdown_temp_edge_limit == 0:
                     shutdown_temp_edge_limit_error = True
@@ -335,7 +323,7 @@ class AMDSMICommands():
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     slowdown_temp_hotspot_limit_error = True
                     slowdown_temp_hotspot_limit = "N/A"
-                    logging.debug("Failed to get hotspot temperature slowdown metrics for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get hotspot temperature slowdown metrics for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 try:
                     shutdown_temp_hotspot_limit_error = False
@@ -344,7 +332,7 @@ class AMDSMICommands():
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     shutdown_temp_hotspot_limit_error = True
                     shutdown_temp_hotspot_limit = "N/A"
-                    logging.debug("Failed to get hotspot temperature shutdown metrics for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get hotspot temperature shutdown metrics for gpu %s |  %s", gpu_id, e.get_error_info())
 
 
                 # VRAM temperature limits
@@ -355,7 +343,7 @@ class AMDSMICommands():
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     slowdown_temp_vram_limit_error = True
                     slowdown_temp_vram_limit = "N/A"
-                    logging.debug("Failed to get vram temperature slowdown metrics for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get vram temperature slowdown metrics for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 try:
                     shutdown_temp_vram_limit_error = False
@@ -364,7 +352,7 @@ class AMDSMICommands():
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     shutdown_temp_vram_limit_error = True
                     shutdown_temp_vram_limit = "N/A"
-                    logging.debug("Failed to get vram temperature shutdown metrics for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get vram temperature shutdown metrics for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 if self.logger.is_human_readable_format():
                     unit = 'W'
@@ -407,7 +395,7 @@ class AMDSMICommands():
                 static_dict['driver'] = driver_info
             except amdsmi_exception.AmdSmiLibraryException as e:
                 static_dict['driver'] = "N/A"
-                logging.debug("Failed to get driver info for gpu %s | %s", args.gpu, e.get_error_info())
+                logging.debug("Failed to get driver info for gpu %s |  %s", gpu_id, e.get_error_info())
 
         if self.helpers.is_hypervisor() or self.helpers.is_baremetal():
             if args.ras:
@@ -415,7 +403,7 @@ class AMDSMICommands():
                     static_dict['ras'] = amdsmi_interface.amdsmi_get_gpu_ras_block_features_enabled(args.gpu)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     static_dict['ras'] = "N/A"
-                    logging.debug("Failed to get ras block features for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get ras block features for gpu %s |  %s", gpu_id, e.get_error_info())
             if args.vram:
                 try:
                     vram_info = amdsmi_interface.amdsmi_get_gpu_vram_info(args.gpu)
@@ -426,13 +414,13 @@ class AMDSMICommands():
 
                     # Remove amdsmi enum prefix
                     vram_info['vram_type'] = vram_type.replace('VRAM_TYPE_', '').replace('_', '')
-                    vram_info['vram_vendor'] = vram_type.replace('AMDSMI_VRAM_VENDOR__', '')
+                    vram_info['vram_vendor'] = vram_vendor.replace('AMDSMI_VRAM_VENDOR__', '')
                     if self.logger.is_human_readable_format():
                         vram_info['vram_size_mb'] = f"{vram_info['vram_size_mb']} MB"
 
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     vram_info = "N/A"
-                    logging.debug("Failed to get vram info for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get vram info for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 static_dict['vram'] = vram_info
 
@@ -442,13 +430,13 @@ class AMDSMICommands():
                     numa_node_number = amdsmi_interface.amdsmi_topo_get_numa_node_number(args.gpu)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     numa_node_number = "N/A"
-                    logging.debug("Failed to get numa node number for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get numa node number for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 try:
                     numa_affinity = amdsmi_interface.amdsmi_get_gpu_topo_numa_affinity(args.gpu)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     numa_affinity = "N/A"
-                    logging.debug("Failed to get numa affinity for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get numa affinity for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 static_dict['numa'] = {'node' : numa_node_number,
                                         'affinity' : numa_affinity}
@@ -500,7 +488,7 @@ class AMDSMICommands():
         """
         if gpu:
             args.gpu = gpu
-        if fw_list: # Currently a compatiblity option of gpuv-smi
+        if fw_list:
             args.fw_list = fw_list
 
         # Handle No GPU passed
@@ -515,6 +503,10 @@ class AMDSMICommands():
         args.gpu = device_handle
 
         fw_list = {}
+
+        # Get gpu_id for logging
+        gpu_id = self.helpers.get_gpu_id_from_device_handle(args.gpu)
+
         if args.fw_list:
             try:
                 fw_info = amdsmi_interface.amdsmi_get_fw_info(args.gpu)
@@ -525,33 +517,21 @@ class AMDSMICommands():
                     fw_entry['fw_version'] = fw_entry.pop('fw_version')
                     firmware_identifier = 'FW'
 
-                    if self.logger.is_gpuvsmi_compatibility():
-                        firmware_identifier = 'UCODE'
-                        fw_entry['name'] = fw_entry.pop('fw_id')
-                        fw_entry['version'] = fw_entry.pop('fw_version')
-
                     # Add custom human readable formatting
                     if self.logger.is_human_readable_format():
                         fw_info['fw_list'][fw_index] = {f'{firmware_identifier} {fw_index}': fw_entry}
                     else:
                         fw_info['fw_list'][fw_index] = fw_entry
 
-                if self.logger.is_gpuvsmi_compatibility():
-                    fw_info['ucode_list'] = fw_info.pop('fw_list')
-
                 fw_list.update(fw_info)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 fw_list['fw_list'] = "N/A"
-                logging.debug("Failed to get firmware info for gpu %s | %s", args.gpu, e.get_error_info())
+                logging.debug("Failed to get firmware info for gpu %s |  %s", gpu_id, e.get_error_info())
 
         multiple_devices_csv_override = False
         # Convert and store output by pid for csv format
         if self.logger.is_csv_format():
-            if self.logger.is_gpuvsmi_compatibility():
-                fw_key = 'ucode_list'
-            else:
-                fw_key = 'fw_list'
-
+            fw_key = 'fw_list'
             for fw_info_dict in fw_list[fw_key]:
                 for key, value in fw_info_dict.items():
                     multiple_devices_csv_override = True
@@ -613,13 +593,16 @@ class AMDSMICommands():
         values_dict = {}
         bad_page_err_output = ''
 
+        # Get gpu_id for logging
+        gpu_id = self.helpers.get_gpu_id_from_device_handle(args.gpu)
+
         try:
             bad_page_info = amdsmi_interface.amdsmi_get_gpu_bad_page_info(args.gpu)
             bad_page_error = False
         except amdsmi_exception.AmdSmiLibraryException as e:
             bad_page_error = True
             bad_page_err_output = "N/A"
-            logging.debug("Failed to get bad page info for gpu %s | %s", args.gpu, e.get_error_info())
+            logging.debug("Failed to get bad page info for gpu %s |  %s", gpu_id, e.get_error_info())
 
         if bad_page_info == "No bad pages found.":
             bad_page_error = True
@@ -825,6 +808,10 @@ class AMDSMICommands():
 
         # Add timestamp and store values for specified arguments
         values_dict = {}
+
+        # Get gpu_id for logging
+        gpu_id = self.helpers.get_gpu_id_from_device_handle(args.gpu)
+
         if self.helpers.is_linux() and self.helpers.is_baremetal():
             if args.usage:
                 try:
@@ -845,7 +832,7 @@ class AMDSMICommands():
                     values_dict['usage'] = engine_usage
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     values_dict['usage'] = "N/A"
-                    logging.debug("Failed to get gpu activity for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get gpu activity for gpu %s |  %s", gpu_id, e.get_error_info())
             if args.power:
                 power_dict = {'current_power': "N/A",
                               'current_gfx_voltage': "N/A",
@@ -872,7 +859,7 @@ class AMDSMICommands():
                     power_dict['power_limit'] = power_info['power_limit']
 
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    logging.debug("Failed to get power info for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get power info for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 try:
                     is_power_management_enabled = amdsmi_interface.amdsmi_is_gpu_power_management_enabled(args.gpu)
@@ -881,7 +868,7 @@ class AMDSMICommands():
                     else:
                         power_dict['power_management'] = "DISABLED"
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    logging.debug("Failed to get power management status for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get power management status for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 values_dict['power'] = power_dict
             if args.clock:
@@ -897,20 +884,20 @@ class AMDSMICommands():
 
                     clocks['gfx'] = gfx_clock
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    logging.debug("Failed to get gfx clock info for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get gfx clock info for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 try:
                     # is_clk_locked = amdsmi_interface.amdsmi_is_clk_locked(args.gpu, amdsmi_interface.AmdSmiClkType.GFX)
                     is_clk_locked = "N/A"
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     is_clk_locked = "N/A"
-                    logging.debug("Failed to get gfx clock lock status info for gpu %s | %s", args.gpu, e.get_error_info())
-                
+                    logging.debug("Failed to get gfx clock lock status info for gpu %s |  %s", gpu_id, e.get_error_info())
+
                 if isinstance(clocks['gfx'], dict):
                     clocks['gfx']['is_clk_locked'] = is_clk_locked
                 else:
                     clocks['gfx'] = {'is_clk_locked': is_clk_locked}
-                
+
                 try:
                     mem_clock = amdsmi_interface.amdsmi_get_clock_info(args.gpu, amdsmi_interface.AmdSmiClkType.MEM)
 
@@ -921,7 +908,7 @@ class AMDSMICommands():
 
                     clocks['mem'] = mem_clock
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    logging.debug("Failed to get mem clock info for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get mem clock info for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 values_dict['clock'] = clocks
             if args.temperature:
@@ -930,14 +917,14 @@ class AMDSMICommands():
                         args.gpu, amdsmi_interface.AmdSmiTemperatureType.EDGE, amdsmi_interface.AmdSmiTemperatureMetric.CURRENT)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     temperature_edge_current = "N/A"
-                    logging.debug("Failed to get current edge temperature for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get current edge temperature for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 try:
                     temperature_edge_limit = amdsmi_interface.amdsmi_get_temp_metric(
                         args.gpu, amdsmi_interface.AmdSmiTemperatureType.EDGE, amdsmi_interface.AmdSmiTemperatureMetric.CRITICAL)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     temperature_edge_limit = "N/A"
-                    logging.debug("Failed to get edge temperature limit for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get edge temperature limit for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 # If edge limit is reporting 0 then set the current edge temp to N/A
                 if temperature_edge_limit == 0:
@@ -948,28 +935,21 @@ class AMDSMICommands():
                         args.gpu, amdsmi_interface.AmdSmiTemperatureType.HOTSPOT, amdsmi_interface.AmdSmiTemperatureMetric.CURRENT)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     temperature_hotspot_current = "N/A"
-                    logging.debug("Failed to get current hotspot temperature for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get current hotspot temperature for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 try:
                     temperature_vram_current = amdsmi_interface.amdsmi_get_temp_metric(
                         args.gpu, amdsmi_interface.AmdSmiTemperatureType.VRAM, amdsmi_interface.AmdSmiTemperatureMetric.CURRENT)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     temperature_vram_current = "N/A"
-                    logging.debug("Failed to get current vram temperature for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get current vram temperature for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 temperatures = {'edge': temperature_edge_current,
                                 'hotspot': temperature_hotspot_current,
                                 'mem': temperature_vram_current}
 
-                if self.logger.is_gpuvsmi_compatibility():
-                    temperatures = {'edge_temperature': temperature_edge_current,
-                                    'hotspot_temperature': temperature_hotspot_current,
-                                    'mem_temperature': temperature_vram_current}
-
                 if self.logger.is_human_readable_format():
                     unit = '\N{DEGREE SIGN}C'
-                    if self.logger.is_gpuvsmi_compatibility():
-                        unit = 'C'
                     for temperature_key, temperature_value in temperatures.items():
                         if 'AMD_SMI_STATUS' not in str(temperature_value):
                             temperatures[temperature_key] = f"{temperature_value} {unit}"
@@ -984,7 +964,7 @@ class AMDSMICommands():
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     ecc_count['correctable'] = "N/A"
                     ecc_count['uncorrectable'] = "N/A"
-                    logging.debug("Failed to get ecc count for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get ecc count for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 values_dict['ecc'] = ecc_count
             if args.ecc_block:
@@ -1000,16 +980,14 @@ class AMDSMICommands():
                                                             'uncorrectable': ecc_count['uncorrectable_count']}
                             except amdsmi_exception.AmdSmiLibraryException as e:
                                 ecc_count = "N/A"
-                                logging.debug("Failed to get ecc count for gpu %s at block %s | %s", args.gpu, gpu_block, e.get_error_info())
-                                if self.logger.is_gpuvsmi_compatibility():
-                                    ecc_count = "N/A"
+                                logging.debug("Failed to get ecc count for gpu %s at block %s |  %s", gpu_id, gpu_block, e.get_error_info())
 
                                 ecc_dict[state['block']] = {'correctable' : ecc_count,
                                                             'uncorrectable': ecc_count}
                     values_dict['ecc_block'] = ecc_dict
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     values_dict['ecc_block'] = "N/A"
-                    logging.debug("Failed to get ecc block features for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get ecc block features for gpu %s |  %s", gpu_id, e.get_error_info())
             if args.pcie:
                 pcie_dict = {'current_width': "N/A",
                              'current_speed': "N/A",
@@ -1033,13 +1011,13 @@ class AMDSMICommands():
                         unit = 'GT/s'
                         pcie_link_status['current_speed'] = f"{pcie_link_status['pcie_speed']} {unit}"
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    logging.debug("Failed to get pcie link status for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get pcie link status for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 try:
                     pci_replay_counter = amdsmi_interface.amdsmi_get_gpu_pci_replay_counter(args.gpu)
                     pcie_dict['replay_count'] = pci_replay_counter
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    logging.debug("Failed to get pci replay counter for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get pci replay counter for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 try:
                     pcie_bw = amdsmi_interface.amdsmi_get_gpu_pci_throughput(args.gpu)
@@ -1060,7 +1038,7 @@ class AMDSMICommands():
                     pcie_dict['current_bandwith_received'] = received
                     pcie_dict['max_packet_size'] = pcie_bw['max_pkt_sz']
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    logging.debug("Failed to get pcie bandwidth for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get pcie bandwidth for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 values_dict['pcie'] = pcie_dict
             if args.fan:
@@ -1113,7 +1091,7 @@ class AMDSMICommands():
                     values_dict['voltage_curve'] = voltage_point_dict
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     values_dict['voltage_curve'] = "N/A"
-                    logging.debug("Failed to get voltage curve for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get voltage curve for gpu %s |  %s", gpu_id, e.get_error_info())
             if args.overdrive:
                 try:
                     overdrive_level = amdsmi_interface.amdsmi_get_gpu_overdrive_level(args.gpu)
@@ -1125,24 +1103,39 @@ class AMDSMICommands():
                     values_dict['overdrive'] = overdrive_level
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     values_dict['overdrive'] = "N/A"
-                    logging.debug("Failed to get overdrive level for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get overdrive level for gpu %s |  %s", gpu_id, e.get_error_info())
             if args.perf_level:
                 try:
                     perf_level = amdsmi_interface.amdsmi_get_gpu_perf_level(args.gpu)
                     values_dict['perf_level'] = perf_level
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     values_dict['perf_level'] = "N/A"
-                    logging.debug("Failed to get perf level for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get perf level for gpu %s |  %s", gpu_id, e.get_error_info())
 
         if self.helpers.is_linux() and self.helpers.is_baremetal():
             if args.xgmi_err:
                 try:
-                    values_dict['xgmi_err'] = amdsmi_interface.amdsmi_gpu_xgmi_error_status(args.gpu)
-                except amdsmi_interface.AmdSmiLibraryException as e:
+                    xgmi_err_status = amdsmi_interface.amdsmi_gpu_xgmi_error_status(args.gpu)
+                    values_dict['xgmi_err'] = amdsmi_interface.amdsmi_wrapper.amdsmi_xgmi_status_t__enumvalues[xgmi_err_status]
+                except amdsmi_exception.AmdSmiLibraryException as e:
                     values_dict['xgmi_err'] = "N/A"
-                    logging.debug("Failed to get xgmi error status for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get xgmi error status for gpu %s |  %s", gpu_id, e.get_error_info())
             if args.energy:
-                pass
+                try:
+                    energy_dict = amdsmi_interface.amdsmi_get_energy_count(args.gpu)
+
+                    energy = energy_dict['power'] * round(energy_dict['counter_resolution'], 1)
+                    energy /= 1000000
+                    energy = round(energy, 3)
+
+                    if self.logger.is_human_readable_format():
+                        unit = 'J'
+                        energy = f"{energy} {unit}"
+
+                    values_dict['energy'] = {"total_energy_consumption" : energy}
+                except amdsmi_interface.AmdSmiLibraryException as e:
+                    values_dict['energy'] = "N/A"
+                    logging.debug("Failed to get energy usage for gpu %s | %s", args.gpu, e.get_error_info())
 
         if self.helpers.is_linux() and (self.helpers.is_baremetal() or self.helpers.is_virtual_os()):
             if args.mem_usage:
@@ -1162,19 +1155,19 @@ class AMDSMICommands():
                     total_vram = amdsmi_interface.amdsmi_get_gpu_memory_total(args.gpu, amdsmi_interface.AmdSmiMemoryType.VRAM)
                     memory_usage['total_vram'] = total_vram // (1024*1024)
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    logging.debug("Failed to get total VRAM memory for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get total VRAM memory for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 try:
                     total_visible_vram = amdsmi_interface.amdsmi_get_gpu_memory_total(args.gpu, amdsmi_interface.AmdSmiMemoryType.VIS_VRAM)
                     memory_usage['total_visible_vram'] = total_visible_vram // (1024*1024)
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    logging.debug("Failed to get total VIS VRAM memory for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get total VIS VRAM memory for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 try:
                     total_gtt = amdsmi_interface.amdsmi_get_gpu_memory_total(args.gpu, amdsmi_interface.AmdSmiMemoryType.GTT)
                     memory_usage['total_gtt'] = total_gtt // (1024*1024)
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    logging.debug("Failed to get total GTT memory for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get total GTT memory for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 # Used VRAM
                 try:
@@ -1182,19 +1175,19 @@ class AMDSMICommands():
                     memory_usage['used_vram'] = used_vram // (1024*1024)
 
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    logging.debug("Failed to get used VRAM memory for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get used VRAM memory for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 try:
                     used_visible_vram = amdsmi_interface.amdsmi_get_gpu_memory_usage(args.gpu, amdsmi_interface.AmdSmiMemoryType.VIS_VRAM)
                     memory_usage['used_visible_vram'] = used_visible_vram // (1024*1024)
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    logging.debug("Failed to get used VIS VRAM memory for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get used VIS VRAM memory for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 try:
                     used_gtt = amdsmi_interface.amdsmi_get_gpu_memory_usage(args.gpu, amdsmi_interface.AmdSmiMemoryType.GTT)
                     memory_usage['used_gtt'] = used_gtt // (1024*1024)
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    logging.debug("Failed to get used GTT memory for gpu %s | %s", args.gpu, e.get_error_info())
+                    logging.debug("Failed to get used GTT memory for gpu %s |  %s", gpu_id, e.get_error_info())
 
                 # Free VRAM
                 if memory_usage['total_vram'] != "N/A" and memory_usage['used_vram'] != "N/A":
@@ -1310,11 +1303,14 @@ class AMDSMICommands():
             else:
                 raise IndexError("args.gpu should not be an empty list")
 
+        # Get gpu_id for logging
+        gpu_id = self.helpers.get_gpu_id_from_device_handle(args.gpu)
+
         # Populate initial processes
         try:
             process_list = amdsmi_interface.amdsmi_get_gpu_process_list(args.gpu)
         except amdsmi_exception.AmdSmiLibraryException as e:
-            logging.debug("Failed to get process list for gpu %s | %s", args.gpu, e.get_error_info())
+            logging.debug("Failed to get process list for gpu %s |  %s", gpu_id, e.get_error_info())
             raise e
 
         filtered_process_values = []
@@ -1323,7 +1319,7 @@ class AMDSMICommands():
                 process_info = amdsmi_interface.amdsmi_get_gpu_process_info(args.gpu, process_handle)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 process_info = "N/A"
-                logging.debug("Failed to get process info for gpu %s on process_handle %s | %s", args.gpu, process_handle, e.get_error_info())
+                logging.debug("Failed to get process info for gpu %s on process_handle %s |  %s", gpu_id, process_handle, e.get_error_info())
                 filtered_process_values.append({'process_info': process_info})
                 continue
 
@@ -1434,7 +1430,6 @@ class AMDSMICommands():
     def topology(self, args, multiple_devices=False, gpu=None, access=None,
                 weight=None, hops=None, link_type=None, numa_bw=None):
         """ Get topology information for target gpus
-            The compatibility mode for this will only be in amdsmi & rocm-smi
             params:
                 args - argparser args to pass to subcommand
                 multiple_devices (bool) - True if checking for multiple devices
@@ -1490,7 +1485,10 @@ class AMDSMICommands():
                         src_gpu_links[dest_gpu_key] = bool(dest_gpu_link_status)
                     except amdsmi_exception.AmdSmiLibraryException as e:
                         src_gpu_links[dest_gpu_key] = "N/A"
-                        logging.debug("Failed to get link status for %s to %s | %s", src_gpu, dest_gpu, e.get_error_info())
+                        logging.debug("Failed to get link status for %s to %s | %s",
+                                        self.helpers.get_gpu_id_from_device_handle(src_gpu),
+                                        self.helpers.get_gpu_id_from_device_handle(dest_gpu),
+                                        e.get_error_info())
 
                 topo_values[src_gpu_index]['link_accessibility'] = src_gpu_links
 
@@ -1510,7 +1508,10 @@ class AMDSMICommands():
                         src_gpu_weight[dest_gpu_key] = dest_gpu_link_weight
                     except amdsmi_exception.AmdSmiLibraryException as e:
                         src_gpu_weight[dest_gpu_key] = "N/A"
-                        logging.debug("Failed to get link weight for %s to %s | %s", src_gpu, dest_gpu, e.get_error_info())
+                        logging.debug("Failed to get link weight for %s to %s | %s",
+                                        self.helpers.get_gpu_id_from_device_handle(src_gpu),
+                                        self.helpers.get_gpu_id_from_device_handle(dest_gpu),
+                                        e.get_error_info())
 
                 topo_values[src_gpu_index]['weight'] = src_gpu_weight
 
@@ -1530,7 +1531,10 @@ class AMDSMICommands():
                         src_gpu_hops[dest_gpu_key] = dest_gpu_hops
                     except amdsmi_exception.AmdSmiLibraryException as e:
                         src_gpu_hops[dest_gpu_key] = "N/A"
-                        logging.debug("Failed to get link hops for %s to %s | %s", src_gpu, dest_gpu, e.get_error_info())
+                        logging.debug("Failed to get link hops for %s to %s | %s",
+                                        self.helpers.get_gpu_id_from_device_handle(src_gpu),
+                                        self.helpers.get_gpu_id_from_device_handle(dest_gpu),
+                                        e.get_error_info())
 
                 topo_values[src_gpu_index]['hops'] = src_gpu_hops
 
@@ -1555,7 +1559,10 @@ class AMDSMICommands():
                                 src_gpu_link_type[dest_gpu_key] = "XGMI"
                     except amdsmi_exception.AmdSmiLibraryException as e:
                         src_gpu_link_type[dest_gpu_key] = "N/A"
-                        logging.debug("Failed to get link type for %s to %s | %s", src_gpu, dest_gpu, e.get_error_info())
+                        logging.debug("Failed to get link type for %s to %s | %s",
+                                        self.helpers.get_gpu_id_from_device_handle(src_gpu),
+                                        self.helpers.get_gpu_id_from_device_handle(dest_gpu),
+                                        e.get_error_info())
 
                 topo_values[src_gpu_index]['link_type'] = src_gpu_link_type
 
@@ -1579,7 +1586,10 @@ class AMDSMICommands():
                                 continue
                     except amdsmi_exception.AmdSmiLibraryException as e:
                         src_gpu_link_type[dest_gpu_key] = "N/A"
-                        logging.debug("Failed to get link type for %s to %s | %s", src_gpu, dest_gpu, e.get_error_info())
+                        logging.debug("Failed to get link type for %s to %s | %s",
+                                        self.helpers.get_gpu_id_from_device_handle(src_gpu),
+                                        self.helpers.get_gpu_id_from_device_handle(dest_gpu),
+                                        e.get_error_info())
 
                     try:
                         min_bw = amdsmi_interface.amdsmi_get_minmax_bandwidth_between_processors(src_gpu, dest_gpu)['min_bandwidth']
@@ -1588,6 +1598,10 @@ class AMDSMICommands():
                         src_gpu_link_type[dest_gpu_key] = f'{min_bw}-{max_bw}'
                     except amdsmi_exception.AmdSmiLibraryException as e:
                         src_gpu_link_type[dest_gpu_key] =  e.get_error_info()
+                        logging.debug("Failed to get min max bandwidth for %s to %s | %s",
+                                        self.helpers.get_gpu_id_from_device_handle(src_gpu),
+                                        self.helpers.get_gpu_id_from_device_handle(dest_gpu),
+                                        e.get_error_info())
 
                 topo_values[src_gpu_index]['numa_bandwidth'] = src_gpu_link_type
 
@@ -1661,7 +1675,7 @@ class AMDSMICommands():
             try:
                 amdsmi_interface.amdsmi_set_gpu_fan_speed(args.gpu, 0, args.fan)
             except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
+                if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
                 raise ValueError(f"Unable to set fan speed {args.fan} on {gpu_string}") from e
 
@@ -1671,7 +1685,7 @@ class AMDSMICommands():
             try:
                 amdsmi_interface.amdsmi_set_gpu_perf_level(args.gpu, perf_level)
             except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
+                if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
                 raise ValueError(f"Unable to set performance level {args.perflevel} on {gpu_string}") from e
 
@@ -1682,7 +1696,7 @@ class AMDSMICommands():
             try:
                 amdsmi_interface.amdsmi_set_gpu_perf_determinism_mode(args.gpu, args.perfdeterminism)
             except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
+                if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
                 raise ValueError(f"Unable to set performance determinism and clock frequency to {args.perfdeterminism} on {gpu_string}") from e
 
@@ -1744,13 +1758,16 @@ class AMDSMICommands():
 
         args.gpu = device_handle
 
+        # Get gpu_id for logging
+        gpu_id = self.helpers.get_gpu_id_from_device_handle(args.gpu)
+
         if args.gpureset:
             if self.helpers.is_amd_device(args.gpu):
                 try:
                     amdsmi_interface.amdsmi_reset_gpu(args.gpu)
                     result = 'Successfully reset GPU'
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
+                    if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
                         raise PermissionError('Command requires elevation') from e
                     result = "Failed to reset GPU"
             else:
@@ -1765,30 +1782,30 @@ class AMDSMICommands():
                 amdsmi_interface.amdsmi_set_gpu_overdrive_level(args.gpu, 0)
                 reset_clocks_results['overdrive'] = 'Overdrive set to 0'
             except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
+                if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
                 reset_clocks_results['overdrive'] = "N/A"
-                logging.debug("Failed to reset overdrive on gpu %s | %s", args.gpu, e.get_error_info())
+                logging.debug("Failed to reset overdrive on gpu %s |  %s", gpu_id, e.get_error_info())
 
             try:
                 level_auto = amdsmi_interface.AmdSmiDevPerfLevel.AUTO
                 amdsmi_interface.amdsmi_set_gpu_perf_level(args.gpu, level_auto)
                 reset_clocks_results['clocks'] = 'Successfully reset clocks'
             except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
+                if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
                 reset_clocks_results['clocks'] = "N/A"
-                logging.debug("Failed to reset perf level on gpu %s | %s", args.gpu, e.get_error_info())
+                logging.debug("Failed to reset perf level on gpu %s |  %s", gpu_id, e.get_error_info())
 
             try:
                 level_auto = amdsmi_interface.AmdSmiDevPerfLevel.AUTO
                 amdsmi_interface.amdsmi_set_gpu_perf_level(args.gpu, level_auto)
                 reset_clocks_results['performance'] = 'Performance level reset to auto'
             except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
+                if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
                 reset_clocks_results['performance'] = "N/A"
-                logging.debug("Failed to reset perf level on gpu %s | %s", args.gpu, e.get_error_info())
+                logging.debug("Failed to reset perf level on gpu %s |  %s", gpu_id, e.get_error_info())
 
             self.logger.store_output(args.gpu, 'reset_clocks', reset_clocks_results)
         if args.fans:
@@ -1796,10 +1813,10 @@ class AMDSMICommands():
                 amdsmi_interface.amdsmi_reset_gpu_fan(args.gpu, 0)
                 result = 'Successfully reset fan speed to driver control'
             except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
+                if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
                 result = "N/A"
-                logging.debug("Failed to reset fans on gpu %s | %s", args.gpu, e.get_error_info())
+                logging.debug("Failed to reset fans on gpu %s |  %s", gpu_id, e.get_error_info())
 
             self.logger.store_output(args.gpu, 'reset_fans', result)
         if args.profile:
@@ -1810,20 +1827,20 @@ class AMDSMICommands():
                 amdsmi_interface.amdsmi_set_gpu_power_profile(args.gpu, 0, power_profile_mask)
                 reset_profile_results['power_profile'] = 'Successfully reset Power Profile'
             except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
+                if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
                 reset_profile_results['power_profile'] = "N/A"
-                logging.debug("Failed to reset power profile on gpu %s | %s", args.gpu, e.get_error_info())
+                logging.debug("Failed to reset power profile on gpu %s |  %s", gpu_id, e.get_error_info())
 
             try:
                 level_auto = amdsmi_interface.AmdSmiDevPerfLevel.AUTO
                 amdsmi_interface.amdsmi_set_gpu_perf_level(args.gpu, level_auto)
                 reset_profile_results['performance_level'] = 'Successfully reset Performance Level'
             except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
+                if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
                 reset_profile_results['performance_level'] = "N/A"
-                logging.debug("Failed to reset perf level on gpu %s | %s", args.gpu, e.get_error_info())
+                logging.debug("Failed to reset perf level on gpu %s |  %s", gpu_id, e.get_error_info())
 
             self.logger.store_output(args.gpu, 'reset_profile', reset_profile_results)
         if args.xgmierr:
@@ -1831,10 +1848,10 @@ class AMDSMICommands():
                 amdsmi_interface.amdsmi_reset_gpu_xgmi_error(args.gpu)
                 result = 'Successfully reset XGMI Error count'
             except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
+                if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
                 result = "N/A"
-                logging.debug("Failed to reset xgmi error count on gpu %s | %s", args.gpu, e.get_error_info())
+                logging.debug("Failed to reset xgmi error count on gpu %s |  %s", gpu_id, e.get_error_info())
             self.logger.store_output(args.gpu, 'reset_xgmi_err', result)
         if args.perfdeterminism:
             try:
@@ -1842,10 +1859,10 @@ class AMDSMICommands():
                 amdsmi_interface.amdsmi_set_gpu_perf_level(args.gpu, level_auto)
                 result = 'Successfully disabled performance determinism'
             except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_exception.AmdSmiRetCode.STATUS_NO_PERM:
+                if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
                 result = "N/A"
-                logging.debug("Failed to set perf level on gpu %s | %s", args.gpu, e.get_error_info())
+                logging.debug("Failed to set perf level on gpu %s |  %s", gpu_id, e.get_error_info())
 
             self.logger.store_output(args.gpu, 'reset_perf_determinism', result)
 
@@ -1880,7 +1897,7 @@ class AMDSMICommands():
                     commands.logger.store_output(device, 'values', values_dict)
                     commands.logger.print_output()
             except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.err_code != amdsmi_exception.AmdSmiRetCode.STATUS_NO_DATA:
+                if e.err_code != amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_DATA:
                     print(e)
             except Exception as e:
                 print(e)

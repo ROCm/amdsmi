@@ -444,38 +444,39 @@ amdsmi_fw_block_t__enumvalues = {
     44: 'FW_ID_SDMA_TH0',
     45: 'FW_ID_SDMA_TH1',
     46: 'FW_ID_CP_MES',
-    47: 'FW_ID_MES_STACK',
-    48: 'FW_ID_MES_THREAD1',
-    49: 'FW_ID_MES_THREAD1_STACK',
-    50: 'FW_ID_RLX6',
-    51: 'FW_ID_RLX6_DRAM_BOOT',
-    52: 'FW_ID_RS64_ME',
-    53: 'FW_ID_RS64_ME_P0_DATA',
-    54: 'FW_ID_RS64_ME_P1_DATA',
-    55: 'FW_ID_RS64_PFP',
-    56: 'FW_ID_RS64_PFP_P0_DATA',
-    57: 'FW_ID_RS64_PFP_P1_DATA',
-    58: 'FW_ID_RS64_MEC',
-    59: 'FW_ID_RS64_MEC_P0_DATA',
-    60: 'FW_ID_RS64_MEC_P1_DATA',
-    61: 'FW_ID_RS64_MEC_P2_DATA',
-    62: 'FW_ID_RS64_MEC_P3_DATA',
-    63: 'FW_ID_PPTABLE',
-    64: 'FW_ID_PSP_SOC',
-    65: 'FW_ID_PSP_DBG',
-    66: 'FW_ID_PSP_INTF',
-    67: 'FW_ID_RLX6_CORE1',
-    68: 'FW_ID_RLX6_DRAM_BOOT_CORE1',
-    69: 'FW_ID_RLCV_LX7',
-    70: 'FW_ID_RLC_SAVE_RESTORE_LIST',
-    71: 'FW_ID_ASD',
-    72: 'FW_ID_TA_RAS',
-    73: 'FW_ID_XGMI',
-    74: 'FW_ID_RLC_SRLG',
-    75: 'FW_ID_RLC_SRLS',
-    76: 'FW_ID_SMC',
-    77: 'FW_ID_DMCU',
-    78: 'FW_ID__MAX',
+    47: 'FW_ID_MES_KIQ',
+    48: 'FW_ID_MES_STACK',
+    49: 'FW_ID_MES_THREAD1',
+    50: 'FW_ID_MES_THREAD1_STACK',
+    51: 'FW_ID_RLX6',
+    52: 'FW_ID_RLX6_DRAM_BOOT',
+    53: 'FW_ID_RS64_ME',
+    54: 'FW_ID_RS64_ME_P0_DATA',
+    55: 'FW_ID_RS64_ME_P1_DATA',
+    56: 'FW_ID_RS64_PFP',
+    57: 'FW_ID_RS64_PFP_P0_DATA',
+    58: 'FW_ID_RS64_PFP_P1_DATA',
+    59: 'FW_ID_RS64_MEC',
+    60: 'FW_ID_RS64_MEC_P0_DATA',
+    61: 'FW_ID_RS64_MEC_P1_DATA',
+    62: 'FW_ID_RS64_MEC_P2_DATA',
+    63: 'FW_ID_RS64_MEC_P3_DATA',
+    64: 'FW_ID_PPTABLE',
+    65: 'FW_ID_PSP_SOC',
+    66: 'FW_ID_PSP_DBG',
+    67: 'FW_ID_PSP_INTF',
+    68: 'FW_ID_RLX6_CORE1',
+    69: 'FW_ID_RLX6_DRAM_BOOT_CORE1',
+    70: 'FW_ID_RLCV_LX7',
+    71: 'FW_ID_RLC_SAVE_RESTORE_LIST',
+    72: 'FW_ID_ASD',
+    73: 'FW_ID_TA_RAS',
+    74: 'FW_ID_XGMI',
+    75: 'FW_ID_RLC_SRLG',
+    76: 'FW_ID_RLC_SRLS',
+    77: 'FW_ID_SMC',
+    78: 'FW_ID_DMCU',
+    79: 'FW_ID__MAX',
 }
 FW_ID_SMU = 1
 FW_ID_FIRST = 1
@@ -524,38 +525,39 @@ FW_ID_IMU_IRAM = 43
 FW_ID_SDMA_TH0 = 44
 FW_ID_SDMA_TH1 = 45
 FW_ID_CP_MES = 46
-FW_ID_MES_STACK = 47
-FW_ID_MES_THREAD1 = 48
-FW_ID_MES_THREAD1_STACK = 49
-FW_ID_RLX6 = 50
-FW_ID_RLX6_DRAM_BOOT = 51
-FW_ID_RS64_ME = 52
-FW_ID_RS64_ME_P0_DATA = 53
-FW_ID_RS64_ME_P1_DATA = 54
-FW_ID_RS64_PFP = 55
-FW_ID_RS64_PFP_P0_DATA = 56
-FW_ID_RS64_PFP_P1_DATA = 57
-FW_ID_RS64_MEC = 58
-FW_ID_RS64_MEC_P0_DATA = 59
-FW_ID_RS64_MEC_P1_DATA = 60
-FW_ID_RS64_MEC_P2_DATA = 61
-FW_ID_RS64_MEC_P3_DATA = 62
-FW_ID_PPTABLE = 63
-FW_ID_PSP_SOC = 64
-FW_ID_PSP_DBG = 65
-FW_ID_PSP_INTF = 66
-FW_ID_RLX6_CORE1 = 67
-FW_ID_RLX6_DRAM_BOOT_CORE1 = 68
-FW_ID_RLCV_LX7 = 69
-FW_ID_RLC_SAVE_RESTORE_LIST = 70
-FW_ID_ASD = 71
-FW_ID_TA_RAS = 72
-FW_ID_XGMI = 73
-FW_ID_RLC_SRLG = 74
-FW_ID_RLC_SRLS = 75
-FW_ID_SMC = 76
-FW_ID_DMCU = 77
-FW_ID__MAX = 78
+FW_ID_MES_KIQ = 47
+FW_ID_MES_STACK = 48
+FW_ID_MES_THREAD1 = 49
+FW_ID_MES_THREAD1_STACK = 50
+FW_ID_RLX6 = 51
+FW_ID_RLX6_DRAM_BOOT = 52
+FW_ID_RS64_ME = 53
+FW_ID_RS64_ME_P0_DATA = 54
+FW_ID_RS64_ME_P1_DATA = 55
+FW_ID_RS64_PFP = 56
+FW_ID_RS64_PFP_P0_DATA = 57
+FW_ID_RS64_PFP_P1_DATA = 58
+FW_ID_RS64_MEC = 59
+FW_ID_RS64_MEC_P0_DATA = 60
+FW_ID_RS64_MEC_P1_DATA = 61
+FW_ID_RS64_MEC_P2_DATA = 62
+FW_ID_RS64_MEC_P3_DATA = 63
+FW_ID_PPTABLE = 64
+FW_ID_PSP_SOC = 65
+FW_ID_PSP_DBG = 66
+FW_ID_PSP_INTF = 67
+FW_ID_RLX6_CORE1 = 68
+FW_ID_RLX6_DRAM_BOOT_CORE1 = 69
+FW_ID_RLCV_LX7 = 70
+FW_ID_RLC_SAVE_RESTORE_LIST = 71
+FW_ID_ASD = 72
+FW_ID_TA_RAS = 73
+FW_ID_XGMI = 74
+FW_ID_RLC_SRLG = 75
+FW_ID_RLC_SRLS = 76
+FW_ID_SMC = 77
+FW_ID_DMCU = 78
+FW_ID__MAX = 79
 amdsmi_fw_block_t = ctypes.c_uint32 # enum
 
 # values for enumeration 'amdsmi_vram_type_t'
@@ -734,7 +736,7 @@ struct_amdsmi_fw_info_t._pack_ = 1 # source:False
 struct_amdsmi_fw_info_t._fields_ = [
     ('num_fw_info', ctypes.c_ubyte),
     ('PADDING_0', ctypes.c_ubyte * 7),
-    ('fw_info_list', struct_fw_info_list_ * 78),
+    ('fw_info_list', struct_fw_info_list_ * 79),
     ('reserved', ctypes.c_uint32 * 7),
     ('PADDING_1', ctypes.c_ubyte * 4),
 ]
@@ -835,16 +837,6 @@ amdsmi_process_handle_t = ctypes.c_uint32
 class struct_amdsmi_proc_info_t(Structure):
     pass
 
-class struct_engine_usage_(Structure):
-    pass
-
-struct_engine_usage_._pack_ = 1 # source:False
-struct_engine_usage_._fields_ = [
-    ('gfx', ctypes.c_uint64),
-    ('enc', ctypes.c_uint64),
-    ('reserved', ctypes.c_uint32 * 12),
-]
-
 class struct_memory_usage_(Structure):
     pass
 
@@ -854,6 +846,16 @@ struct_memory_usage_._fields_ = [
     ('cpu_mem', ctypes.c_uint64),
     ('vram_mem', ctypes.c_uint64),
     ('reserved', ctypes.c_uint32 * 10),
+]
+
+class struct_engine_usage_(Structure):
+    pass
+
+struct_engine_usage_._pack_ = 1 # source:False
+struct_engine_usage_._fields_ = [
+    ('gfx', ctypes.c_uint64),
+    ('enc', ctypes.c_uint64),
+    ('reserved', ctypes.c_uint32 * 12),
 ]
 
 struct_amdsmi_proc_info_t._pack_ = 1 # source:False
@@ -1283,9 +1285,12 @@ class struct_amdsmi_frequencies_t(Structure):
 
 struct_amdsmi_frequencies_t._pack_ = 1 # source:False
 struct_amdsmi_frequencies_t._fields_ = [
+    ('has_deep_sleep', ctypes.c_bool),
+    ('PADDING_0', ctypes.c_ubyte * 3),
     ('num_supported', ctypes.c_uint32),
     ('current', ctypes.c_uint32),
-    ('frequency', ctypes.c_uint64 * 32),
+    ('PADDING_1', ctypes.c_ubyte * 4),
+    ('frequency', ctypes.c_uint64 * 33),
 ]
 
 amdsmi_frequencies_t = struct_amdsmi_frequencies_t
@@ -1295,7 +1300,8 @@ class struct_amdsmi_pcie_bandwidth_t(Structure):
 struct_amdsmi_pcie_bandwidth_t._pack_ = 1 # source:False
 struct_amdsmi_pcie_bandwidth_t._fields_ = [
     ('transfer_rate', amdsmi_frequencies_t),
-    ('lanes', ctypes.c_uint32 * 32),
+    ('lanes', ctypes.c_uint32 * 33),
+    ('PADDING_0', ctypes.c_ubyte * 4),
 ]
 
 amdsmi_pcie_bandwidth_t = struct_amdsmi_pcie_bandwidth_t
@@ -1853,13 +1859,13 @@ __all__ = \
     'FW_ID_CP_PFP', 'FW_ID_CP_PM4', 'FW_ID_DFC', 'FW_ID_DMCU',
     'FW_ID_DMCU_ERAM', 'FW_ID_DMCU_ISR', 'FW_ID_DRV_CAP',
     'FW_ID_FIRST', 'FW_ID_IMU_DRAM', 'FW_ID_IMU_IRAM', 'FW_ID_ISP',
-    'FW_ID_MC', 'FW_ID_MES_STACK', 'FW_ID_MES_THREAD1',
-    'FW_ID_MES_THREAD1_STACK', 'FW_ID_MMSCH', 'FW_ID_PPTABLE',
-    'FW_ID_PSP_BL', 'FW_ID_PSP_DBG', 'FW_ID_PSP_INTF',
-    'FW_ID_PSP_KEYDB', 'FW_ID_PSP_SOC', 'FW_ID_PSP_SOSDRV',
-    'FW_ID_PSP_SPL', 'FW_ID_PSP_SYSDRV', 'FW_ID_PSP_TOC',
-    'FW_ID_REG_ACCESS_WHITELIST', 'FW_ID_RLC', 'FW_ID_RLCV_LX7',
-    'FW_ID_RLC_P', 'FW_ID_RLC_RESTORE_LIST_CNTL',
+    'FW_ID_MC', 'FW_ID_MES_KIQ', 'FW_ID_MES_STACK',
+    'FW_ID_MES_THREAD1', 'FW_ID_MES_THREAD1_STACK', 'FW_ID_MMSCH',
+    'FW_ID_PPTABLE', 'FW_ID_PSP_BL', 'FW_ID_PSP_DBG',
+    'FW_ID_PSP_INTF', 'FW_ID_PSP_KEYDB', 'FW_ID_PSP_SOC',
+    'FW_ID_PSP_SOSDRV', 'FW_ID_PSP_SPL', 'FW_ID_PSP_SYSDRV',
+    'FW_ID_PSP_TOC', 'FW_ID_REG_ACCESS_WHITELIST', 'FW_ID_RLC',
+    'FW_ID_RLCV_LX7', 'FW_ID_RLC_P', 'FW_ID_RLC_RESTORE_LIST_CNTL',
     'FW_ID_RLC_RESTORE_LIST_GPM_MEM',
     'FW_ID_RLC_RESTORE_LIST_SRM_MEM', 'FW_ID_RLC_SAVE_RESTORE_LIST',
     'FW_ID_RLC_SRLG', 'FW_ID_RLC_SRLS', 'FW_ID_RLC_V', 'FW_ID_RLX6',
