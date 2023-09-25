@@ -2393,7 +2393,7 @@ def amdsmi_gpu_xgmi_error_status(
             processor_handle, ctypes.byref(status))
     )
 
-    return AmdSmiXgmiStatus(status.value)
+    return AmdSmiXgmiStatus(status.value).value
 
 
 def amdsmi_reset_gpu_xgmi_error(

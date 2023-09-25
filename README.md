@@ -127,35 +127,74 @@ The output will be in `docs/_build/html`.
 
 For additional details, see the [ROCm Contributing Guide](https://rocm.docs.amd.com/en/latest/contributing.html#building-documentation)
 
-## Install Python Library and CLI Tool
+## Install CLI Tool and Python Library
 
 ### Requirements
 
 * python 3.7+ 64-bit
 * driver must be loaded for amdsmi_init() to pass
 
-### Installation
+### CLI Installation
 
-Follow user permissions best practices if installing AMDSMI as any user than root.
+Before amd-smi install, ensure previous versions of amdsmi library are uninstalled using pip:
+
+```bash
+python3 -m pip list | grep amd
+python3 -m pip uninstall amdsmi
+```
 
 * Install amdgpu driver
 * Install amd-smi-lib package through package manager
+* amd-smi --help
 
-Before amd-smi install, uninstall current versions of amdsmi using pip:
+#### Install Example for Ubuntu 22.04
 
-```bash
-pip3 list | grep amd
-pip3 uninstall amdsmi
+``` bash
+python3 -m pip list | grep amd
+python3 -m pip uninstall amdsmi
+apt install amd-smi-lib
+amd-smi --help
 ```
 
-```bash
+### Python Library Installation
+
+This option is for users who want to develop their own scripts using amd-smi's python library
+
+Verify that your python version is 3.7+ to install the python library
+
+* Install amdgpu driver
+* Install amd-smi-lib package through package manager
+* cd /opt/rocm/share/amd_smi
+* python3 -m pip install --upgrade pip
+* python3 -m pip install --user .
+* import amdsmi in python to start development
+
+Warning: this will take precedence over the cli tool's library install, to avoid issues run these steps after every amd-smi-lib update.
+
+#### RHEL 8 & SLES 15
+
+The default python versions in RHEL 8 and SLES 15 are 3.6.8 and 3.6.15
+
+While the CLI will work with these python versions, to install the python library you need to upgrade to python 3.7+
+
+#### Python Library Install Example for Ubuntu 22.04
+
+``` bash
+apt install amd-smi-lib
+amd-smi --help
 cd /opt/rocm/share/amd_smi
 python3 -m pip install --upgrade pip
 python3 -m pip install --user .
-/opt/rocm/bin/amd-smi --help
 ```
 
-after installing amd-smi-lib, amd-smi is also available as a binary in /opt/rocm/bin
+``` bash
+python3
+Python 3.8.10 (default, May 26 2023, 14:05:08)
+[GCC 9.4.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import amdsmi
+>>>
+```
 
 ### Rebuilding Python wrapper
 

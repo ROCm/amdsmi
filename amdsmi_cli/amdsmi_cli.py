@@ -42,15 +42,7 @@ def _print_error(e, destination):
 
 
 if __name__ == "__main__":
-    # Set compatability mode based on which cli mapping user selects
-    if 'gpuv-smi' in sys.argv[0]:
-        compatibility = AMDSMILogger.LoggerCompatibility.gpuvsmi.value
-    elif 'rocm-smi' in sys.argv[0]:
-        compatibility = AMDSMILogger.LoggerCompatibility.rocmsmi.value
-    else:
-        compatibility = AMDSMILogger.LoggerCompatibility.amdsmi.value
-
-    amd_smi_commands = AMDSMICommands(compatibility=compatibility)
+    amd_smi_commands = AMDSMICommands()
     amd_smi_parser = AMDSMIParser(amd_smi_commands.version,
                                     amd_smi_commands.list,
                                     amd_smi_commands.static,
@@ -74,14 +66,22 @@ if __name__ == "__main__":
             amd_smi_commands.logger.format = amd_smi_commands.logger.LoggerFormat.csv.value
         if args.file:
             amd_smi_commands.logger.destination = args.file
-        if args.loglevel:
-            logging_dict = {'DEBUG' : logging.DEBUG,
-                            'INFO' : logging.INFO,
-                            'WARNING': logging.WARNING,
-                            'ERROR': logging.ERROR,
-                            'CRITICAL': logging.CRITICAL}
-            # Enable debug logs on amdsmi library ie. RSMI_LOGGING = 1 in environment or otherwise
-            logging.basicConfig(format='%(levelname)s: %(message)s', level=logging_dict[args.loglevel])
+
+        # Remove previous log handlers
+        for handler in logging.root.handlers[:]:
+            logging.root.removeHandler(handler)
+
+        logging_dict = {'DEBUG' : logging.DEBUG,
+                        'INFO' : logging.INFO,
+                        'WARNING': logging.WARNING,
+                        'ERROR': logging.ERROR,
+                        'CRITICAL': logging.CRITICAL}
+        # To enable debug logs on rocm-smi library set RSMI_LOGGING = 1 in environment
+        logging.basicConfig(format='%(levelname)s: %(message)s', level=logging_dict[args.loglevel])
+
+        # Disable traceback for non-debug log levels
+        if args.loglevel != "DEBUG":
+            sys.tracebacklimit = -1
 
         # Execute subcommands
         args.func(args)

@@ -37,6 +37,8 @@ from amdsmi import amdsmi_exception
 
 # Using basic python logging for user errors and development
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.ERROR) # User level logging
+# This traceback limit only affects this file, once the code hit's the cli portion it get's reset to the user's preference
+sys.tracebacklimit = -1 # Disable traceback for user errors
 
 # On initial import set initialized variable
 AMDSMI_INITIALIZED = False
@@ -66,8 +68,7 @@ def init_amdsmi(flag=amdsmi_interface.AmdSmiInitFlags.INIT_AMD_GPUS):
             amdsmi_interface.amdsmi_init(flag)
         except (amdsmi_interface.AmdSmiLibraryException, amdsmi_interface.AmdSmiParameterException) as err:
             raise err
-
-        logging.info('AMDSMI initialized successfully') # without errors really
+        logging.debug('AMDSMI initialized successfully')
     else:
         logging.error('Driver not initialized (amdgpu not found in modules)')
         exit(-1)
