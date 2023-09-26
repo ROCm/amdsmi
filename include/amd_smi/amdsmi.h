@@ -471,7 +471,8 @@ typedef struct {
   uint32_t cur_clk;
   uint32_t min_clk;
   uint32_t max_clk;
-  uint32_t reserved[5];
+  uint32_t sleep_clk;
+  uint32_t reserved[4];
 } amdsmi_clk_info_t;
 
 typedef struct {
