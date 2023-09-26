@@ -817,7 +817,8 @@ struct_amdsmi_clk_info_t._fields_ = [
     ('cur_clk', ctypes.c_uint32),
     ('min_clk', ctypes.c_uint32),
     ('max_clk', ctypes.c_uint32),
-    ('reserved', ctypes.c_uint32 * 5),
+    ('sleep_clk', ctypes.c_uint32),
+    ('reserved', ctypes.c_uint32 * 4),
 ]
 
 amdsmi_clk_info_t = struct_amdsmi_clk_info_t

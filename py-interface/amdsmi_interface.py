@@ -758,6 +758,7 @@ def amdsmi_get_clock_info(
         "cur_clk": clock_measure.cur_clk,
         "max_clk": clock_measure.max_clk,
         "min_clk": clock_measure.min_clk,
+        "sleep_clk" : clock_measure.sleep_clk,
     }
 
 

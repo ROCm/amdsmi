@@ -1082,7 +1082,7 @@ amdsmi_get_power_cap_info(amdsmi_processor_handle processor_handle,
 
         info->power_cap = power_cap;
         status = smi_amdgpu_get_ranges(gpudevice, CLK_TYPE_GFX,
-                NULL, NULL, &dpm);
+                NULL, NULL, &dpm, NULL);
         if ((status == AMDSMI_STATUS_SUCCESS) && !set_ret_success)
             set_ret_success = true;
         info->dpm_cap = dpm;
@@ -1482,13 +1482,15 @@ amdsmi_get_clock_info(amdsmi_processor_handle processor_handle, amdsmi_clk_type_
     }
     int max_freq;
     int min_freq;
+    int sleep_state_freq;
     status = smi_amdgpu_get_ranges(gpu_device, clk_type,
-        &max_freq, &min_freq, NULL);
+        &max_freq, &min_freq, NULL, &sleep_state_freq);
     if (status != AMDSMI_STATUS_SUCCESS) {
         return status;
     }
     info->max_clk = max_freq;
     info->min_clk = min_freq;
+    info->sleep_clk = sleep_state_freq;
 
     switch (clk_type) {
     case CLK_TYPE_GFX:

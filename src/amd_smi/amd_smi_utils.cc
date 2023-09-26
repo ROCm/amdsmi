@@ -181,15 +181,13 @@ amdsmi_status_t smi_amdgpu_get_power_cap(amd::smi::AMDSmiGPUDevice* device, int 
 }
 
 amdsmi_status_t smi_amdgpu_get_ranges(amd::smi::AMDSmiGPUDevice* device, amdsmi_clk_type_t domain,
-        int *max_freq, int *min_freq, int *num_dpm)
+        int *max_freq, int *min_freq, int *num_dpm, int *sleep_state_freq)
 {
     if (!device->check_if_drm_is_supported()) {
         return AMDSMI_STATUS_NOT_SUPPORTED;
     }
     SMIGPUDEVICE_MUTEX(device->get_mutex())
         std::string fullpath = "/sys/class/drm/" + device->get_gpu_path() + "/device";
-    char str[10];
-    unsigned int max, min, dpm;
 
     switch (domain) {
         case CLK_TYPE_GFX:
@@ -214,20 +212,32 @@ amdsmi_status_t smi_amdgpu_get_ranges(amd::smi::AMDSmiGPUDevice* device, amdsmi_
         return AMDSMI_STATUS_API_FAILED;
     }
 
+    unsigned int max, min, dpm, sleep_freq;
+    char str[10];
+    char single_char;
     max = 0;
     min = UINT_MAX;
     dpm = 0;
+    sleep_freq = UINT_MAX;
+
     for (std::string line; getline(ranges, line);) {
-        unsigned int d, freq;
+        unsigned int dpm_level, freq;
 
-        if (sscanf(line.c_str(), "%u: %d%s", &d, &freq, str) <= 2){
-            ranges.close();
-            return AMDSMI_STATUS_IO;
+        char firstChar = line[0];
+        if (firstChar == 'S'){
+            if (sscanf(line.c_str(), "%c: %d%s", &single_char, &sleep_freq, str) <= 2){
+                ranges.close();
+                return AMDSMI_STATUS_NO_DATA;
+            }
+        } else {
+            if (sscanf(line.c_str(), "%u: %d%c", &dpm_level, &freq, str) <= 2){
+                ranges.close();
+                return AMDSMI_STATUS_IO;
+            }
+            max = freq > max ? freq : max;
+            min = freq < min ? freq: min;
+            dpm = dpm_level > dpm ? dpm_level : dpm;
         }
-
-        max = freq > max ? freq : max;
-        min = freq < min ? freq: min;
-        dpm = d > dpm ? d : dpm;
     }
 
     if (num_dpm)
@@ -236,6 +246,8 @@ amdsmi_status_t smi_amdgpu_get_ranges(amd::smi::AMDSmiGPUDevice* device, amdsmi_
         *max_freq = max;
     if (min_freq)
         *min_freq = min;
+    if (sleep_state_freq)
+        *sleep_state_freq = sleep_freq;
 
     ranges.close();
     return AMDSMI_STATUS_SUCCESS;
