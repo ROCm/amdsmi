@@ -43,7 +43,6 @@
 #include <assert.h>
 #include <stdint.h>
 #include <unistd.h>
-
 #include <vector>
 #include <iostream>
 #include <bitset>
@@ -317,7 +316,7 @@ int main(int argc, char **argv) {
 
     if (ret != AMDSMI_STATUS_SUCCESS) {
         cout<<"Failed to set power efficiency mode for socket["<<i<<"], Err["
-            <<ret<<"]: "<<amdsmi_get_esmi_err_msg(ret, &err_str)<<"\n";
+            <<ret<<"]: "<<*amdsmi_get_esmi_err_msg(ret, &err_str)<<"\n";
         return ret;
     }
 
@@ -339,6 +338,292 @@ int main(int argc, char **argv) {
         cout<<" NA (Err:" <<ret<<"     |";
     }
     cout<<"\n-------------------------------------------------\n";
+
+    uint32_t boost_limit = 0;
+    const char *err_str1;
+    ret = amdsmi_get_cpu_core_boostlimit(processor_handles[i], i, &boost_limit);
+    CHK_AMDSMI_RET(ret)
+
+    if(ret)
+        cout<<"Failed: to get core"<<"["<<i<<"] boostlimit, Err["<<ret<<"]: "
+            <<*amdsmi_get_esmi_err_msg(ret, &err_str1)<<endl;
+    else
+        cout<<"| core["<<i<<"] boostlimit (MHz)\t | "<<boost_limit<<" \t |\n";
+
+    cout<<"\n-------------------------------------------------\n";
+
+    boost_limit = 0;
+    cout<<"\nEnter the boost limit to be set:\n";
+    cin>>boost_limit;
+    ret = amdsmi_set_cpu_core_boostlimit(processor_handles[i], i, boost_limit);
+    CHK_AMDSMI_RET(ret)
+
+    if(ret != AMDSMI_STATUS_SUCCESS)
+        cout<<"Failed: to set core"<<"["<<i<<"] boostlimit, Err["<<ret<<"]: "
+            <<*amdsmi_get_esmi_err_msg(ret, &err_str1)<<endl;
+
+    ret = amdsmi_get_cpu_core_boostlimit(processor_handles[i], i, &boost_limit);
+    CHK_AMDSMI_RET(ret)
+
+    if(ret)
+        cout<<"Failed: to get core"<<"["<<i<<"] boostlimit, Err["<<ret<<"]: "
+            <<*amdsmi_get_esmi_err_msg(ret, &err_str1)<<endl;
+    else
+        cout<<"| core["<<i<<"] boostlimit (MHz)\t | "<<boost_limit<<" \t |\n";
+    cout<<"\n-------------------------------------------------\n";
+
+    ret = amdsmi_set_cpu_socket_boostlimit(sockets[i], i, boost_limit);
+    CHK_AMDSMI_RET(ret)
+
+    if(ret)
+        cout<<"Failed: to set socket"<<"["<<i<<"] boostlimit, Err["<<ret<<"]: "
+            <<*amdsmi_get_esmi_err_msg(ret, &err_str1)<<endl;
+
+    cout<<"\n-------------------------------------------------\n";
+
+    uint32_t residency = 0;
+    ret = amdsmi_get_cpu_socket_c0_residency(sockets[i], i, &residency);
+    CHK_AMDSMI_RET(ret)
+
+    if(ret != AMDSMI_STATUS_SUCCESS)
+        cout<<"Failed: to get socket"<<"["<<i<<"] c0_residency, Err["<<ret<<"]: "
+            <<*amdsmi_get_esmi_err_msg(ret, &err_str1)<<endl;
+    else
+        cout<<"| socket["<<i<<"] c0_residency(%)   | "<<residency<<"   |\n";
+
+    cout<<"\n-------------------------------------------------\n";
+
+    cout<<"\n| DDR Bandwidth\t\t\t\t |\n";
+    amdsmi_ddr_bw_metrics_t ddr;
+    ret = amdsmi_get_cpu_ddr_bw(sockets[i], &ddr);
+    CHK_AMDSMI_RET(ret)
+
+    if(!ret) {
+        cout<<"\n| \tDDR Max BW (GB/s)\t |"<<ddr.max_bw<<"\t|"<<endl;
+        cout<<"\n| \tDDR Utilized BW (GB/s)\t |"<<ddr.utilized_bw<<"\t|"<<endl;
+        cout<<"\n| \tDDR Utilized Percent(%)\t |"<<ddr.utilized_pct<<"\t|"<<endl;
+      }
+
+    cout<<"\n-------------------------------------------------\n";
+
+    uint32_t tmon;
+    cout<<"\n| Socket temperature (°C)\t\t |";
+    ret = amdsmi_get_cpu_socket_temperature(sockets[i], i, &tmon);
+    CHK_AMDSMI_RET(ret)
+
+    if (!ret) {
+            cout<<fixed<<setprecision(3)<<""<<(double)tmon/1000<<"|";
+     } else {
+            err_bits |= 1 << ret;
+            cout<<" NA (Err: "<<ret<<")     |";
+     }
+
+    cout<<"\n-------------------------------------------------\n";
+
+    amdsmi_temp_range_refresh_rate_t rate;
+    uint8_t dimm_addr;
+    cout<<"\n| Socket DIMM temp range and refresh rate\t\t |\n";
+    ret = amdsmi_get_cpu_dimm_temp_range_and_refresh_rate(sockets[i], i, dimm_addr, &rate);
+    CHK_AMDSMI_RET(ret)
+
+    if(ret) {
+        cout<<"\n| \tDIMM temp range\t |"<<rate.range<<"\t|"<<endl;
+        cout<<"\n| \tRefresh rate\t |"<<rate.ref_rate<<"\t|"<<endl;
+    } else
+        cout<<"Failed: to get socket"<<"["<<i<<"] DIMM temperature range and refresh rate, Err["<<ret<<"]: "
+            <<*amdsmi_get_esmi_err_msg(ret, &err_str1)<<endl;
+
+    cout<<"\n-------------------------------------------------\n";
+
+    amdsmi_dimm_power_t pow;
+    cout<<"\n| Socket DIMM power consumption\t\t |\n";
+    ret = amdsmi_get_cpu_dimm_power_consumption(sockets[i], i, dimm_addr, &pow);
+    CHK_AMDSMI_RET(ret)
+
+    if(ret) {
+        cout<<"\n| Power(mWatts)\t\t |"<<pow.power<<"\t|"<<endl;
+        cout<<"\n| Power update rate(ms)\t |"<<pow.update_rate<<"\t|"<<endl;
+        cout<<"\n| Dimm address \t\t |"<<pow.dimm_addr<<"\t|"<<endl;
+    } else
+        cout<<"Failed: to get socket"<<"["<<i<<"] DIMM power and update rate, Err["<<ret<<"]: "
+            <<*amdsmi_get_esmi_err_msg(ret, &err_str1)<<endl;
+
+    cout<<"\n-------------------------------------------------\n";
+
+    amdsmi_dimm_thermal_t d_sensor;
+    cout<<"\n| Socket DIMM thermal sensor\t\t |\n";
+    ret = amdsmi_get_cpu_dimm_thermal_sensor(sockets[i], i, dimm_addr, &d_sensor);
+    CHK_AMDSMI_RET(ret)
+
+    if(ret) {
+        cout<<"\n| Temperature(°C)\t |"<<d_sensor.temp<<"\t|"<<endl;
+        cout<<"\n| Update rate(ms)\t |"<<d_sensor.update_rate<<"\t|"<<endl;
+        cout<<"\n| Dimm address returned\t |"<<d_sensor.dimm_addr<<"\t|"<<endl;
+    } else
+        cout<<"Failed: to get socket"<<"["<<i<<"] DIMM temperature and update rate, Err["<<ret<<"]: "
+            <<*amdsmi_get_esmi_err_msg(ret, &err_str1)<<endl;
+
+    cout<<"\n-------------------------------------------------\n";
+
+    uint8_t min, max;
+    cout<<"\nEnter the XGMI min value to be set:\n";
+    cin>>min;
+    cout<<"\nEnter the XGMI max value to be set:\n";
+    cin>>max;
+
+    ret = amdsmi_set_cpu_xgmi_width(sockets[i], min, max);
+    CHK_AMDSMI_RET(ret)
+
+    if(ret)
+        cout<<"Failed: to set xGMI link width, Err["<<ret<<"]: "
+            <<*amdsmi_get_esmi_err_msg(ret, &err_str1)<<endl;
+     else
+        cout<<"xGMI link width (min:"<<min<< "max:"<<max<<") is set successfully\n";
+
+    cout<<"\n-------------------------------------------------\n";
+
+    uint8_t min_link_width, max_link_width;
+    cout<<"\nEnter the GMI3 link width min value to be set:\n";
+    cin>>min_link_width;
+    cout<<"\nEnter the GMI3 link width max value to be set:\n";
+    cin>>max_link_width;
+
+    ret = amdsmi_set_cpu_gmi3_link_width_range(sockets[i], i, min_link_width, max_link_width);
+    CHK_AMDSMI_RET(ret)
+
+    if(ret)
+        cout<<"Failed to set gmi3 link width for socket["<<i<<"] Err["<<ret<<"]:"
+            <<*amdsmi_get_esmi_err_msg(ret, &err_str1)<<endl;
+     else
+        cout<<"Gmi3 link width range is set successfully\n";
+
+    cout<<"\n-------------------------------------------------\n";
+
+    ret = amdsmi_cpu_apb_enable(sockets[i], i);
+    CHK_AMDSMI_RET(ret)
+
+    if(ret)
+        cout<<"Failed: to enable DF performance boost algo on socket["<<i<<"] Err["<<ret<<"]:"
+            <<*amdsmi_get_esmi_err_msg(ret, &err_str1)<<endl;
+     else
+        cout<<"APB is enabled successfully on socket["<<i<<"]\n";
+
+    cout<<"\n-------------------------------------------------\n";
+
+    int32_t pstate;
+    cout<<"\nEnter the pstate to be set:\n";
+    cin>>pstate;
+    ret = amdsmi_cpu_apb_disable(sockets[i], i, pstate);
+    CHK_AMDSMI_RET(ret)
+
+    if(ret)
+        cout<<"Failed: to set socket["<<i<<"] DF pstate, Err["<<ret<<"]:"
+            <<*amdsmi_get_esmi_err_msg(ret, &err_str1)<<endl;
+     else
+        cout<<"APB is disabled, P-state is set to ["<<pstate<<"] on socket["<<i<<"] successfully\n";
+
+    cout<<"\n-------------------------------------------------\n";
+
+    uint8_t min_val=0, max_val=2;
+    uint8_t nbio_id=1;
+
+    ret = amdsmi_set_cpu_socket_lclk_dpm_level(sockets[i], i, nbio_id, min_val, max_val);
+    CHK_AMDSMI_RET(ret)
+
+    if(ret != AMDSMI_STATUS_SUCCESS)
+        cout<<"Failed: to set lclk dpm level for socket["<<i<<"], nbioid["<<unsigned(nbio_id)<<"], Err["<<ret<<"]:"
+            <<*amdsmi_get_esmi_err_msg(ret, &err_str1)<<endl;
+     else
+        cout<<"Socket["<<i<<"] nbio["<<unsigned(nbio_id)<<"] LCLK frequency set successfully\n";
+
+    cout<<"\n-------------------------------------------------\n";
+
+    amdsmi_dpm_level_t nbio;
+    ret = amdsmi_get_cpu_socket_lclk_dpm_level(sockets[i], i, nbio_id, &nbio);
+    CHK_AMDSMI_RET(ret)
+
+    if(ret != AMDSMI_STATUS_SUCCESS)
+        cout<<"Failed: to get lclk dpm level for socket["<<i<<"], nbioid["<<unsigned(nbio_id)<<"], Err["<<ret<<"]:"
+            <<*amdsmi_get_esmi_err_msg(ret, &err_str1)<<endl;
+     else {
+        cout<<"| \tMIN\t | "<<unsigned(nbio.min_dpm_level)<<"\t   |\n";
+        cout<<"| \tMAX\t | "<<unsigned(nbio.max_dpm_level)<<"\t   |\n";
+     }
+
+     cout<<"\n-------------------------------------------------\n";
+
+    uint8_t rate_ctrl;
+    uint8_t prev_mode;
+    string pcie_strings[] = {
+           "automatically detect based on bandwidth utilisation",
+           "limited to Gen4 rate",
+           "limited to Gen5 rate"
+           };
+    cout<<"\nEnter the rate ctrl to be set:\n";
+    cin>>rate_ctrl;
+
+    ret = amdsmi_set_cpu_pcie_link_rate(sockets[i], i, rate_ctrl, &prev_mode);
+    CHK_AMDSMI_RET(ret)
+
+    if(ret != AMDSMI_STATUS_SUCCESS)
+        cout<<"Failed to set pcie link rate control for socket["<<i<<"], Err["<<ret<<"]:"
+            <<*amdsmi_get_esmi_err_msg(ret, &err_str1)<<endl;
+     else {
+        cout<<"Pcie link rate is set to "<<rate_ctrl<<" (i.e. "<<pcie_strings[rate_ctrl]<<") successfully.\n";
+        cout<<"\nPrevious pcie link rate control was : "<<prev_mode<<"\n";
+     }
+
+    cout<<"\n-------------------------------------------------\n";
+    uint8_t max_pstate, min_pstate;
+    cout<<"\nEnter the max_pstate to be set:\n";
+    cin>>max_pstate;
+    cout<<"\nEnter the min_pstate to be set:\n";
+    cin>>min_pstate;
+
+    ret = amdsmi_set_cpu_df_pstate_range(sockets[i], i, max_pstate, min_pstate);
+    CHK_AMDSMI_RET(ret)
+
+    if(ret != AMDSMI_STATUS_SUCCESS)
+        cout<<"Failed to set df pstate range, Err["<<ret<<"]:"
+            <<*amdsmi_get_esmi_err_msg(ret, &err_str1)<<endl;
+     else
+        cout<<"Data Fabric PState range(max:"<<unsigned(max_pstate)
+            <<" min:"<<unsigned(min_pstate)<<") set successfully\n";
+
+    cout<<"\n-------------------------------------------------\n";
+
+    amdsmi_link_id_bw_type_t io_link;
+    uint32_t bw;
+    char *link = "P0";
+    io_link.link_name = link;
+    io_link.bw_type = static_cast<io_bw_encoding>(1) ;
+    ret = amdsmi_get_cpu_current_io_bandwidth(sockets[i], i, io_link, &bw);
+    CHK_AMDSMI_RET(ret)
+
+    if(ret != AMDSMI_STATUS_SUCCESS)
+        cout<<"Failed to get io bandwidth width for socket ["<<i<<"], Err["<<ret<<"]:"
+            <<*amdsmi_get_esmi_err_msg(ret, &err_str1)<<endl;
+     else
+        cout<<"| Current IO Aggregate bandwidth of link"<<io_link.link_name<<" | "<<bw<<" Mbps |\n";
+
+    cout<<"\n-------------------------------------------------\n";
+
+    amdsmi_link_id_bw_type_t xgmi_link;
+    uint32_t bw1;
+    char *link1 = "P0";
+    int bw_ind = 1;
+    xgmi_link.link_name = link1;
+    xgmi_link.bw_type = static_cast<io_bw_encoding>(1<<bw_ind) ;
+    ret = amdsmi_get_cpu_current_xgmi_bw(sockets[i], xgmi_link, &bw1);
+    CHK_AMDSMI_RET(ret)
+
+    if(ret != AMDSMI_STATUS_SUCCESS)
+        cout<<"Failed to get xgmi bandwidth width, Err["<<ret<<"]:"
+            <<*amdsmi_get_esmi_err_msg(ret, &err_str1)<<endl;
+     else
+        cout<<"| Current "<<bw_string[bw_ind]<<"bandwidth of xGMI link "<<xgmi_link.link_name<<" | "<<bw<<" Mbps |\n";
+
+     cout<<"\n-------------------------------------------------\n";
   }
   // Clean up resources allocated at amdsmi_init
   ret = amdsmi_shut_down();
