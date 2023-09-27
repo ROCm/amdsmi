@@ -390,14 +390,15 @@ class AMDSMICommands():
                 static_dict['limit'] = limit_info
 
         if args.driver:
+            driver_info = {"driver_version" : "N/A",
+                           "driver_date" : "N/A"}
+
             try:
-                driver_info = {}
                 driver_info = amdsmi_interface.amdsmi_get_gpu_driver_info(args.gpu)
-                static_dict['driver'] = driver_info
             except amdsmi_exception.AmdSmiLibraryException as e:
-                static_dict['driver'] = "N/A"
                 logging.debug("Failed to get driver info for gpu %s | %s", gpu_id, e.get_error_info())
 
+            static_dict['driver'] = driver_info
         if self.helpers.is_hypervisor() or self.helpers.is_baremetal():
             if args.ras:
                 try:
