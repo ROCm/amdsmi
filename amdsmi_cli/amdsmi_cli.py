@@ -42,6 +42,12 @@ def _print_error(e, destination):
 
 
 if __name__ == "__main__":
+    # Disable traceback before possible init errors in AMDSMICommands and AMDSMIParser
+    if "DEBUG" in sys.argv:
+        sys.tracebacklimit = 10
+    else:
+        sys.tracebacklimit = -1
+
     amd_smi_commands = AMDSMICommands()
     amd_smi_parser = AMDSMIParser(amd_smi_commands.version,
                                     amd_smi_commands.list,
@@ -80,7 +86,9 @@ if __name__ == "__main__":
         logging.basicConfig(format='%(levelname)s: %(message)s', level=logging_dict[args.loglevel])
 
         # Disable traceback for non-debug log levels
-        if args.loglevel != "DEBUG":
+        if args.loglevel == "DEBUG":
+            sys.tracebacklimit = 10
+        else:
             sys.tracebacklimit = -1
 
         # Execute subcommands

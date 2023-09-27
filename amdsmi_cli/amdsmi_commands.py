@@ -21,6 +21,7 @@
 #
 
 import logging
+import sys
 import threading
 import time
 
@@ -42,7 +43,12 @@ class AMDSMICommands():
         try:
             self.device_handles = amdsmi_interface.amdsmi_get_processor_handles()
         except amdsmi_exception.AmdSmiLibraryException as e:
-            raise e
+            if e.err_code in (amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NOT_INIT,
+                              amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_DRIVER_NOT_LOADED):
+                logging.error('Unable to get devices, driver not initialized (amdgpu not found in modules)')
+                sys.exit(-1)
+            else:
+                raise e
         self.stop = ''
         self.all_arguments = False
 
