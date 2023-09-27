@@ -7,20 +7,13 @@ set(CMAKE_INSTALL_RPATH
     "\$ORIGIN:\$ORIGIN/../../../lib"
     CACHE STRING "RUNPATH for tests. Helps find libgtest.so and libamd_smi.so")
 
-# Try to find googletest
-find_package(GTest 1.12.0)
-
-# GTest_FOUND is set to TRUE if ANY version is found
-# GTest_VERSION is set if 1.11.0 or newer version is found
-if(NOT GTest_FOUND STREQUAL "TRUE" OR NOT DEFINED GTest_VERSION)
-    # Google Test wasn't found. Download and compile ourselves
-    include(FetchContent)
-    FetchContent_Declare(
-        googletest
-        GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG release-1.12.0)
-    FetchContent_MakeAvailable(googletest)
-endif()
+# Download and compile googletest
+include(FetchContent)
+FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG v1.14.0)
+FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
@@ -70,10 +63,9 @@ target_link_libraries(${TEST}
                       stdc++
                       pthread)
 
-# Install tests and gtest
-# TODO: Remove GTest from here in the future and rely on INSTALL_GTEST?
+# Install tests
 install(
-    TARGETS ${TEST} gtest gtest_main
+    TARGETS ${TEST}
     DESTINATION ${SHARE_INSTALL_PREFIX}/tests
     COMPONENT ${TESTS_COMPONENT})
 
@@ -81,3 +73,9 @@ install(
     FILES amdsmitst.exclude
     DESTINATION ${SHARE_INSTALL_PREFIX}/tests
     COMPONENT ${TESTS_COMPONENT})
+
+# Install googletest libraries with tests
+install(TARGETS gtest gtest_main
+    DESTINATION ${SHARE_INSTALL_PREFIX}/tests
+    COMPONENT ${TESTS_COMPONENT})
+
