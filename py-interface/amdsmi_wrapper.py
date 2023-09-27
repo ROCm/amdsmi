@@ -1433,6 +1433,7 @@ struct_amdsmi_pcie_info_t._fields_ = [
     ('PADDING_0', ctypes.c_ubyte * 2),
     ('pcie_speed', ctypes.c_uint32),
     ('pcie_interface_version', ctypes.c_uint32),
+    ('pcie_slot_type', ctypes.c_uint32),
     ('reserved', ctypes.c_uint32 * 5),
 ]
 

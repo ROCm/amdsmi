@@ -1813,6 +1813,23 @@ amdsmi_get_pcie_link_status(amdsmi_processor_handle processor_handle, amdsmi_pci
         info->pcie_interface_version = 0;
     }
 
+    // default to PCIe
+    info->pcie_slot_type = 0;
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    status = get_gpu_device_from_handle(
+            processor_handle, &gpu_device);
+    if (status == AMDSMI_STATUS_SUCCESS
+            && gpu_device->check_if_drm_is_supported()) {
+        struct drm_amdgpu_info_device dev_info = {};
+        status = gpu_device->amdgpu_query_info(AMDGPU_INFO_DEV_INFO,
+                sizeof(struct drm_amdgpu_memory_info), &dev_info);
+        // bits [16:17] in ids_flags field as slot type
+        if (status == AMDSMI_STATUS_SUCCESS) {
+            // two bits starts with index 16
+            info->pcie_slot_type = (dev_info.ids_flags >> 16) & 0x03;
+        }
+    }
+
     return status;
 }
 
@@ -1885,6 +1902,19 @@ amdsmi_status_t amdsmi_get_pcie_link_caps(amdsmi_processor_handle processor_hand
         break;
       default:
         info->pcie_interface_version = 0;
+    }
+
+    // default to PCIe
+    info->pcie_slot_type = 0;
+    if (gpu_device->check_if_drm_is_supported()) {
+        struct drm_amdgpu_info_device dev_info = {};
+        status = gpu_device->amdgpu_query_info(AMDGPU_INFO_DEV_INFO,
+                sizeof(struct drm_amdgpu_memory_info), &dev_info);
+        // bits [16:17] in ids_flags field as slot type
+        if (status == AMDSMI_STATUS_SUCCESS) {
+            // two bits starts with index 16
+            info->pcie_slot_type = (dev_info.ids_flags >> 16) & 0x03;
+        }
     }
 
     return status;

@@ -1157,6 +1157,7 @@ typedef struct {
 	uint16_t pcie_lanes;
 	uint32_t pcie_speed;
 	uint32_t pcie_interface_version;
+  uint32_t pcie_slot_type;   // 0: PCIE, 1: CEM, 2: OAM, 3: Reserved
 	uint32_t reserved[5];
 } amdsmi_pcie_info_t;
 /**
