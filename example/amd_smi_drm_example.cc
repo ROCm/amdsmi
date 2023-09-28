@@ -379,9 +379,9 @@ int main() {
             ret = amdsmi_get_pcie_link_status(processor_handles[j], &pcie_info);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_pcie_link_status:\n");
-            printf("\tPCIe lanes: %d\n", pcie_info.pcie_lanes);
-            printf("\tPCIe speed: %d\n", pcie_info.pcie_speed);
-            printf("\tPCIe Interface Version: %d\n", pcie_info.pcie_interface_version);
+            printf("\tCurrent PCIe lanes: %d\n", pcie_info.pcie_lanes);
+            printf("\tCurrent PCIe speed: %d\n", pcie_info.pcie_speed);
+            printf("\tCurrent PCIe Interface Version: %d\n", pcie_info.pcie_interface_version);
             printf("\tPCIe slot type: %d\n\n", pcie_info.pcie_slot_type);
 
             // Get PCIe caps

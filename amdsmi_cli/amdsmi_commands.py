@@ -226,27 +226,21 @@ class AMDSMICommands():
 
                 bus_info['max_pcie_speed'] = pcie_speed_GTs_value
 
-                try:
-                    slot_type = amdsmi_interface.amdsmi_topo_get_link_type(args.gpu, args.gpu)['type']
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    slot_type = e.get_error_info()
+                slot_type = bus_info.pop('pcie_slot_type')
+                if isinstance(slot_type, int):
+                    slot_types = amdsmi_interface.amdsmi_wrapper.amdsmi_pcie_slot_type_t__enumvalues
+                    if slot_type in slot_types:
+                        bus_info['slot_type'] = slot_types[slot_type].replace("AMDSMI_SLOT_TYPE__", "")
+                    else:
+                        bus_info['slot_type'] = "Unknown"
+                else:
+                    bus_info['slot_type'] = "N/A"
 
                 if self.logger.is_human_readable_format():
                     unit ='GT/s'
                     bus_info['max_pcie_speed'] = f"{bus_info['max_pcie_speed']} {unit}"
-
                     if bus_info['pcie_interface_version'] > 0:
                         bus_info['pcie_interface_version'] = f"Gen {bus_info['pcie_interface_version']}"
-
-                    bus_info['slot_type'] = 'XXXX'
-                    if isinstance(slot_type, int):
-                        if slot_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_UNDEFINED:
-                            bus_info['slot_type'] = "UNKNOWN"
-                        elif slot_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_PCIEXPRESS:
-                            bus_info['slot_type'] = "PCIE"
-                        elif slot_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_XGMI:
-                            bus_info['slot_type'] = "XGMI"
-
             except amdsmi_exception.AmdSmiLibraryException as e:
                 bus_info = "N/A"
                 logging.debug("Failed to get bus info for gpu %s | %s", gpu_id, e.get_error_info())
