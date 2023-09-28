@@ -890,59 +890,62 @@ class AMDSMICommands():
 
                 values_dict['power'] = power_dict
             if args.clock:
-                clocks = {"gfx" : {"cur_clk": "N/A",
-                                   "max_clk": "N/A",
-                                   "min_clk": "N/A",
-                                   "sleep_clk": "N/A",
-                                   "is_clk_locked": "N/A"},
-                          "mem" : {"cur_clk": "N/A",
-                                   "max_clk": "N/A",
-                                   "min_clk": "N/A",
-                                   "sleep_clk": "N/A"}
-                         }
+                clocks = {}
+                clock_types = [amdsmi_interface.AmdSmiClkType.GFX,
+                                amdsmi_interface.AmdSmiClkType.MEM,
+                                amdsmi_interface.AmdSmiClkType.VCLK0,
+                                amdsmi_interface.AmdSmiClkType.VCLK1]
+                for clock_type in clock_types:
+                    clock_name = amdsmi_interface.amdsmi_wrapper.amdsmi_clk_type_t__enumvalues[clock_type].replace("CLK_TYPE_", "")
+                    # Ensure that gfx is the clock_name instead of another macro
+                    if clock_type == amdsmi_interface.AmdSmiClkType.GFX:
+                        clock_name = "gfx"
 
-                try:
-                    gfx_clock = amdsmi_interface.amdsmi_get_clock_info(args.gpu, amdsmi_interface.AmdSmiClkType.GFX)
-                    if gfx_clock['sleep_clk'] == 0xFFFFFFFF:
-                        gfx_clock['sleep_clk'] = "N/A"
+                    # Store the clock_name for vclk0
+                    vlck0_clock_name = None
+                    if clock_type == amdsmi_interface.AmdSmiClkType.VCLK0:
+                        vlck0_clock_name = clock_name
 
-                    if self.logger.is_human_readable_format():
-                        unit = 'MHz'
-                        for key, value in gfx_clock.items():
-                            if isinstance(value, int):
-                                gfx_clock[key] = f"{value} {unit}"
+                    try:
+                        clock_info = amdsmi_interface.amdsmi_get_clock_info(args.gpu, clock_type)
+                        if clock_info['sleep_clk'] == 0xFFFFFFFF:
+                            clock_info['sleep_clk'] = "N/A"
 
-                    clocks['gfx']['cur_clk'] = gfx_clock['cur_clk']
-                    clocks['gfx']['max_clk'] = gfx_clock['max_clk']
-                    clocks['gfx']['min_clk'] = gfx_clock['min_clk']
-                    clocks['gfx']['sleep_clk'] = gfx_clock['sleep_clk']
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    logging.debug("Failed to get gfx clock info for gpu %s | %s", gpu_id, e.get_error_info())
+                        if self.logger.is_human_readable_format():
+                            unit = 'MHz'
+                            for key, value in clock_info.items():
+                                if isinstance(value, int):
+                                    clock_info[key] = f"{value} {unit}"
+
+                        clocks[clock_name] = clock_info
+                    except amdsmi_exception.AmdSmiLibraryException as e:
+                        # Handle the case where VCLK1 is not enaled in sysfs on all GPUs
+                        if clock_type == amdsmi_interface.AmdSmiClkType.VCLK1:
+                            # Check if VCLK0 was retrieved successfully
+                            if vlck0_clock_name in clocks:
+                                # Since VCLK0 exists, do not error
+                                logging.debug("VLCK0 exists, not adding %s clock info to output for gpu %s | %s", clock_name, gpu_id, e.get_error_info())
+                                continue
+                        else:
+                            # Handle all other failed to get clock info
+                            clocks[clock_name] = {"cur_clk": "N/A",
+                                                  "max_clk": "N/A",
+                                                  "min_clk": "N/A",
+                                                  "sleep_clk": "N/A"}
+                            logging.debug("Failed to get %s clock info for gpu %s | %s", clock_name, gpu_id, e.get_error_info())
 
                 try:
                     # is_clk_locked = amdsmi_interface.amdsmi_is_clk_locked(args.gpu, amdsmi_interface.AmdSmiClkType.GFX)
                     is_clk_locked = "N/A"
-                    clocks['gfx']['is_clk_locked'] = is_clk_locked
                 except amdsmi_exception.AmdSmiLibraryException as e:
+                    is_clk_locked = "N/A"
                     logging.debug("Failed to get gfx clock lock status info for gpu %s | %s", gpu_id, e.get_error_info())
 
-                try:
-                    mem_clock = amdsmi_interface.amdsmi_get_clock_info(args.gpu, amdsmi_interface.AmdSmiClkType.MEM)
-                    if mem_clock['sleep_clk'] == 0xFFFFFFFF:
-                        mem_clock['sleep_clk'] = "N/A"
-
-                    if self.logger.is_human_readable_format():
-                        unit = 'MHz'
-                        for key, value in mem_clock.items():
-                            if isinstance(value, int):
-                                gfx_clock[key] = f"{value} {unit}"
-
-                    clocks['mem']['cur_clk'] = mem_clock['cur_clk']
-                    clocks['mem']['max_clk'] = mem_clock['max_clk']
-                    clocks['mem']['min_clk'] = mem_clock['min_clk']
-                    clocks['mem']['sleep_clk'] = mem_clock['sleep_clk']
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    logging.debug("Failed to get mem clock info for gpu %s | %s", gpu_id, e.get_error_info())
+                if "gfx" in clocks:
+                    if isinstance(clocks['gfx'], dict):
+                        clocks['gfx']['is_clk_locked'] = is_clk_locked
+                    else:
+                        clocks['gfx'] = {"is_clk_locked": is_clk_locked}
 
                 values_dict['clock'] = clocks
             if args.temperature:
@@ -1645,7 +1648,7 @@ class AMDSMICommands():
                         link_type = amdsmi_interface.amdsmi_topo_get_link_type(src_gpu, dest_gpu)['type']
                         if isinstance(link_type, int):
                             if link_type != 2:
-                                non_xgmi = True
+                                # non_xgmi = True
                                 src_gpu_link_type[dest_gpu_key] = "N/A"
                                 continue
                     except amdsmi_exception.AmdSmiLibraryException as e:
