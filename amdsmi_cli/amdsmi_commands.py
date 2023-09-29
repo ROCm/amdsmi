@@ -269,18 +269,19 @@ class AMDSMICommands():
 
         if self.helpers.is_linux() and self.helpers.is_baremetal():
             if args.board:
+                static_dict['board'] = {"model_number": "N/A",
+                                        "product_serial": "N/A",
+                                        "fru_id": "N/A",
+                                        "manufacturer_name": "N/A",
+                                        "product_name": "N/A"}
                 try:
                     board_info = amdsmi_interface.amdsmi_get_gpu_board_info(args.gpu)
-                    board_info['serial_number'] = hex(board_info['serial_number'])
-                    board_info['model_number'] = board_info['model_number'].strip()
-                    board_info['product_name'] = board_info['product_name'].strip()
-                    board_info['manufacturer_name'] = board_info['manufacturer_name'].strip()
-                    board_info.pop('product_serial')
-                    board_info.pop('manufacturer_name')
-
+                    for key, value in board_info.items():
+                        if isinstance(value, str):
+                            if value.strip() == '':
+                                board_info[key] = "N/A"
                     static_dict['board'] = board_info
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict['board'] = "N/A"
                     logging.debug("Failed to get board info for gpu %s | %s", gpu_id, e.get_error_info())
             if args.limit:
                 # Power limits
