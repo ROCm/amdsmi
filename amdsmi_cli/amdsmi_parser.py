@@ -348,7 +348,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         err_records_help = "All error records information"
 
         # Create firmware subparser
-        firmware_parser = subparsers.add_parser('firmware', help=firmware_help, description=firmware_subcommand_help)
+        firmware_parser = subparsers.add_parser('firmware', help=firmware_help, description=firmware_subcommand_help, aliases=['ucode'])
         firmware_parser._optionals.title = firmware_optionals_title
         firmware_parser.formatter_class=lambda prog: argparse.RawTextHelpFormatter(prog, max_help_position=80, width=90)
         firmware_parser.set_defaults(func=func)
