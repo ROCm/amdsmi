@@ -457,7 +457,7 @@ amdsmi_status_t amdsmi_get_gpu_board_info(amdsmi_processor_handle processor_hand
         return r;
 
     if (gpu_device->check_if_drm_is_supported()) {
-        // Get from sys file
+        // Populate product_serial, product_name, & product_number from sysfs
         status = smi_amdgpu_get_board_info(gpu_device, board_info);
     }
     else {
@@ -471,6 +471,9 @@ amdsmi_status_t amdsmi_get_gpu_board_info(amdsmi_processor_handle processor_hand
                         board_info->product_serial, AMDSMI_NORMAL_STRING_LENGTH);
         }
     }
+
+    // Get FRU ID
+    // Get manufacturer name
 
     return AMDSMI_STATUS_SUCCESS;
 }
