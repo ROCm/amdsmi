@@ -1013,7 +1013,7 @@ class AMDSMICommands():
                     values_dict['ecc_block'] = "N/A"
                     logging.debug("Failed to get ecc block features for gpu %s | %s", gpu_id, e.get_error_info())
             if args.pcie:
-                pcie_dict = {'current_width': "N/A",
+                pcie_dict = {'current_lanes': "N/A",
                              'current_speed': "N/A",
                              'replay_count' : "N/A",
                              'current_bandwith_sent': "N/A",
@@ -1029,7 +1029,7 @@ class AMDSMICommands():
                         pcie_speed_GTs_value = round(pcie_link_status['pcie_speed'] / 1000)
 
                     pcie_dict['current_speed'] = pcie_speed_GTs_value
-                    pcie_dict['current_width'] = pcie_link_status['pcie_lanes']
+                    pcie_dict['current_lanes'] = pcie_link_status['pcie_lanes']
 
                     if self.logger.is_human_readable_format():
                         unit = 'GT/s'
