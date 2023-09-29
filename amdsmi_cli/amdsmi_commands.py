@@ -391,7 +391,8 @@ class AMDSMICommands():
                 static_dict['limit'] = limit_info
 
         if args.driver:
-            driver_info = {"driver_version" : "N/A",
+            driver_info = {"driver_name" : "N/A",
+                           "driver_version" : "N/A",
                            "driver_date" : "N/A"}
 
             try:

@@ -774,6 +774,7 @@ class struct_amdsmi_driver_info_t(Structure):
 
 struct_amdsmi_driver_info_t._pack_ = 1 # source:False
 struct_amdsmi_driver_info_t._fields_ = [
+    ('driver_name', ctypes.c_char * 64),
     ('driver_version', ctypes.c_char * 64),
     ('driver_date', ctypes.c_char * 64),
 ]
