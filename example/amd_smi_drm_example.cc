@@ -322,6 +322,7 @@ int main() {
             ret = amdsmi_get_gpu_driver_info(processor_handles[j], &driver_info);
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_gpu_driver_info:\n");
+            printf("\tDriver name: %s\n", driver_info.driver_name);
             printf("\tDriver version: %s\n", driver_info.driver_version);
             printf("\tDriver date: %s\n\n", driver_info.driver_date);
 

@@ -444,6 +444,7 @@ typedef struct{
 
 
 typedef struct {
+	char  driver_name[AMDSMI_MAX_STRING_LENGTH];
 	char  driver_version[AMDSMI_MAX_STRING_LENGTH];
 	char  driver_date[AMDSMI_MAX_STRING_LENGTH];
 } amdsmi_driver_info_t;

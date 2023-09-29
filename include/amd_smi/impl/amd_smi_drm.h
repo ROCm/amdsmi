@@ -75,6 +75,7 @@ class AMDSmiDrm {
     amdsmi_status_t amdgpu_query_hw_ip(int fd, unsigned info_id,
                unsigned hw_ip_type, unsigned size, void *value);
     amdsmi_status_t amdgpu_query_vbios(int fd, void *info);
+    amdsmi_status_t amdgpu_query_driver_name(int fd, std::string& driver_name);
     amdsmi_status_t amdgpu_query_driver_date(int fd, std::string& driver_date);
 
  private:

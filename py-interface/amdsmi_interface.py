@@ -962,6 +962,7 @@ def amdsmi_get_gpu_driver_info(
     )
 
     return {
+        "driver_name": info.driver_name.decode("utf-8"),
         "driver_version": info.driver_version.decode("utf-8"),
         "driver_date": info.driver_date.decode("utf-8")
     }
