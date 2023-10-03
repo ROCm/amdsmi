@@ -911,6 +911,29 @@ rsmi_dev_vendor_id_get(uint32_t dv_ind, uint16_t *id) {
 }
 
 rsmi_status_t
+rsmi_dev_pcie_slot_type_get(uint32_t dv_ind, rsmi_pcie_slot_type_t* type) {
+  TRY
+
+  std::ostringstream ss;
+  ss << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ss);
+  CHK_SUPPORT_NAME_ONLY(type)
+  DEVICE_MUTEX
+
+  std::string value;
+  int ret = dev->readDevInfo(amd::smi::kDevBoardInfo, "type", value);
+  if (ret != 0) return RSMI_STATUS_NOT_SUPPORTED;
+
+  *type = RSMI_PCIE_SLOT_PCIE;
+  if (value.compare("oam") == 0) *type=RSMI_PCIE_SLOT_OAM;
+  else if (value.compare("cem") == 0 ) *type=RSMI_PCIE_SLOT_CEM;
+  else if (value.compare("unknown") == 0 ) *type=RSMI_PCIE_SLOT_UNKNOWN;
+  return RSMI_STATUS_SUCCESS;
+
+  CATCH
+}
+
+rsmi_status_t
 rsmi_dev_subsystem_vendor_id_get(uint32_t dv_ind, uint16_t *id) {
   std::ostringstream ss;
   ss << __PRETTY_FUNCTION__ << "| ======= start =======";

@@ -269,6 +269,9 @@ class ScopedAcquire {
 // In VM environment, the /proc/cpuinfo set hypervisor flag by default
 bool is_vm_guest();
 
+// trim a string
+std::string trim(const std::string &s);
+
 }  // namespace smi
 }  // namespace amd
 
