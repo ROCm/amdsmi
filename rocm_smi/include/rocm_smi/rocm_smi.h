@@ -625,6 +625,19 @@ typedef enum {
 typedef rsmi_freq_ind_t rsmi_freq_ind;
 /// \endcond
 
+/**
+ * @brief The values of this enum are used as PCIe slot type.
+ */
+typedef enum {
+  RSMI_PCIE_SLOT_PCIE = 0,
+  RSMI_PCIE_SLOT_CEM = 1,
+  RSMI_PCIE_SLOT_OAM = 2,
+  RSMI_PCIE_SLOT_UNKNOWN = 3  //!< An unknown
+} rsmi_pcie_slot_type_t;
+/// \cond Ignore in docs.
+typedef rsmi_pcie_slot_type_t rsmi_pcie_slot_type;
+/// \endcond
+
 
 /**
  * @brief The values of this enum are used to identify the various firmware
@@ -1390,6 +1403,26 @@ rsmi_status_t rsmi_dev_vendor_name_get(uint32_t dv_ind, char *name,
  */
 rsmi_status_t rsmi_dev_vram_vendor_get(uint32_t dv_ind, char *brand,
                                                                 uint32_t len);
+
+
+/**
+ *  @brief Get the PCIe slot type of a gpu device.
+ *
+ *  @details Given a device index @p dv_ind, a pointer to a caller provided
+ *  char buffer @p type, this function will write the PCIe slot type of the
+ *  device to @p type.
+ *
+ *
+ *  @param[in] dv_ind a device index
+ *
+ *  @param[inout] type a pointer to a caller provided buffer to which the
+ *  type info will be written
+ *
+ *  @retval ::RSMI_STATUS_SUCCESS is returned upon successful call.
+ *
+ */
+rsmi_status_t rsmi_dev_pcie_slot_type_get(uint32_t dv_ind,
+        rsmi_pcie_slot_type_t* type);
 
 /**
  * @brief Get the serial number string for a device

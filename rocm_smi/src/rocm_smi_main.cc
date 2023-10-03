@@ -86,6 +86,7 @@ amd::smi::RocmSMI::devInfoTypesStrings = {
   {amd::smi::kDevDevID, amdSMI + "kDevDevID"},
   {amd::smi::kDevDevRevID, amdSMI + "kDevDevRevID"},
   {amd::smi::kDevDevProdName, amdSMI + "kDevDevProdName"},
+  {amd::smi::kDevBoardInfo, amdSMI + "kDevBoardInfo"},
   {amd::smi::kDevDevProdNum, amdSMI + "kDevDevProdNum"},
   {amd::smi::kDevVendorID, amdSMI + "kDevVendorID"},
   {amd::smi::kDevSubSysDevID, amdSMI + "kDevSubSysDevID"},
