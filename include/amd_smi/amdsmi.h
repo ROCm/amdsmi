@@ -84,6 +84,7 @@ typedef enum {
 #define AMDSMI_MAX_DRIVER_VERSION_LENGTH 80
 #define AMDSMI_PRODUCT_NAME_LENGTH 128
 #define AMDSMI_MAX_CONTAINER_TYPE    2
+#define AMDSMI_MAX_CACHE_TYPES 10
 
 #define AMDSMI_GPU_UUID_SIZE 38
 
@@ -414,6 +415,16 @@ typedef struct {
   char    version[AMDSMI_NORMAL_STRING_LENGTH];
   uint32_t reserved[16];
 } amdsmi_vbios_info_t;
+
+typedef struct {
+  uint32_t num_cache_types;
+  struct {
+    uint32_t cache_size_kb; /* In KB */
+    uint32_t cache_level;
+    uint32_t reserved[3];
+  } cache[AMDSMI_MAX_CACHE_TYPES];
+  uint32_t reserved[15];
+} amdsmi_gpu_cache_info_t;
 
 typedef struct {
   uint8_t num_fw_info;
@@ -2157,6 +2168,19 @@ amdsmi_status_t amdsmi_get_gpu_fan_speed_max(amdsmi_processor_handle processor_h
 amdsmi_status_t  amdsmi_get_temp_metric(amdsmi_processor_handle processor_handle,
                       amdsmi_temperature_type_t sensor_type,
                       amdsmi_temperature_metric_t metric, int64_t *temperature);
+
+/**
+ *  @brief Returns gpu cache info.
+ *
+ *  @param[in] processor_handle PF of a processor for which to query
+ *
+ *  @param[out] info reference to the cache info struct.
+ *  Must be allocated by user.
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_get_gpu_cache_info(
+      amdsmi_processor_handle processor_handle, amdsmi_gpu_cache_info_t *info);
 
 /**
  *  @brief Get the voltage metric value for the specified metric, from the
