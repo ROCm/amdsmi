@@ -478,6 +478,33 @@ amdsmi_status_t amdsmi_get_gpu_board_info(amdsmi_processor_handle processor_hand
     return AMDSMI_STATUS_SUCCESS;
 }
 
+amdsmi_status_t amdsmi_get_gpu_cache_info(
+      amdsmi_processor_handle processor_handle, amdsmi_gpu_cache_info_t *info) {
+    AMDSMI_CHECK_INIT();
+    if (info == nullptr) {
+        return AMDSMI_STATUS_INVAL;
+    }
+
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    amdsmi_status_t status = get_gpu_device_from_handle(
+                        processor_handle, &gpu_device);
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    rsmi_gpu_cache_info_t rsmi_info;
+    status = rsmi_wrapper(rsmi_dev_cache_info_get,
+                    processor_handle, &rsmi_info);
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    info->num_cache_types = rsmi_info.num_cache_types;
+    for (unsigned int i =0; i < rsmi_info.num_cache_types; i++) {
+        info->cache[i].cache_size_kb = rsmi_info.cache[i].cache_size_kb;
+        info->cache[i].cache_level = rsmi_info.cache[i].cache_level;
+    }
+    return AMDSMI_STATUS_SUCCESS;
+}
+
 amdsmi_status_t  amdsmi_get_temp_metric(amdsmi_processor_handle processor_handle,
                     amdsmi_temperature_type_t sensor_type,
                     amdsmi_temperature_metric_t metric, int64_t *temperature) {

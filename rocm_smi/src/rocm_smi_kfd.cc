@@ -130,6 +130,25 @@ static std::string KFDDevicePath(uint32_t dev_id) {
   return node_path;
 }
 
+// A generic function to extract out a property from file.
+// return empty string if file or property not found
+// Assume the property_name is at the beginning of the line.
+static std::string get_properties_from_file(const std::string& file_name,
+                    const std::string& property_name) {
+  std::ifstream infile(file_name);
+  if (!infile) return "";
+  std::string line;
+  while (std::getline(infile, line)) {
+    std::istringstream iss(line);
+    // the property name is at the beginning of the line
+    if (line.rfind(property_name.c_str(), 0) == 0) {
+      return line.substr(property_name.length());
+    }
+  }
+  return "";
+}
+
+
 static int OpenKFDNodeFile(uint32_t dev_id, std::string node_file,
                                                           std::ifstream *fs) {
   std::string line;
@@ -872,6 +891,51 @@ int KFDNode::get_used_memory(uint64_t* used) {
   }
 
   return 1;
+}
+
+int KFDNode::get_cache_info(rsmi_gpu_cache_info_t *info) {
+  if (info == nullptr) return EINVAL;
+  uint64_t caches_count = 0;
+  int ret = get_property_value("caches_count", &caches_count);
+  if (ret != 0)  return ret;
+
+  // /sys/class/kfd/kfd/topology/nodes/1/caches/0/properties
+  std::string f_path  = kKFDNodesPathRoot;
+  f_path += "/";
+  f_path += std::to_string(node_indx_);
+  f_path += "/";
+  f_path += "caches/";
+
+  info->num_cache_types = 0;
+  for (unsigned int cache_id = 0; cache_id < caches_count; cache_id++) {
+    const auto prop_file = f_path + std::to_string(cache_id) + "/properties";
+    std::string level = get_properties_from_file(prop_file, "level ");
+    try {
+      int cache_level = std::stoi(level);
+      if (cache_level < 0 ) continue;
+
+      // only count once
+      bool is_count_already = false;
+      for (unsigned int i=0; i < info->num_cache_types; i++) {
+        if (info->cache->cache_level == static_cast<uint32_t>(cache_level)) {
+          is_count_already = true;
+          break;
+        }
+      }
+      if (is_count_already) continue;
+
+      if (info->num_cache_types >= RSMI_MAX_CACHE_TYPES) return 1;
+      std::string size = get_properties_from_file(prop_file, "size ");
+      int cache_size = std::stoi(size);
+      if (cache_size <= 0) continue;
+      info->cache[info->num_cache_types].cache_level = cache_level;
+      info->cache[info->num_cache_types].cache_size_kb = cache_size;
+      info->num_cache_types++;
+    } catch (...) {
+      continue;
+    }
+  }
+  return 0;
 }
 
 // /sys/class/kfd/kfd/topology/nodes/*/properties

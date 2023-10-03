@@ -845,6 +845,22 @@ typedef struct {
 /// \cond Ignore in docs.
 typedef rsmi_version_t rsmi_version;
 /// \endcond
+
+/**
+ * @brief This structure represents the cache size and level
+ */
+#define RSMI_MAX_CACHE_TYPES 10
+typedef struct {
+  uint32_t num_cache_types;
+  struct {
+    uint32_t cache_size_kb; /* In KB */
+    uint32_t cache_level;
+  } cache[RSMI_MAX_CACHE_TYPES];
+} rsmi_gpu_cache_info_t;
+/// \cond Ignore in docs.
+typedef rsmi_gpu_cache_info_t rsmi_gpu_cache_info;
+/// \endcond
+
 /**
  * @brief This structure represents a range (e.g., frequencies or voltages).
  */
@@ -2034,6 +2050,22 @@ rsmi_dev_power_profile_set(uint32_t dv_ind, uint32_t reserved,
 rsmi_status_t
 rsmi_dev_memory_total_get(uint32_t dv_ind, rsmi_memory_type_t mem_type,
                                                              uint64_t *total);
+
+/**
+ *  @brief Get gpu cache info.
+ * 
+ *  @details Given a device index @p dv_ind, and a pointer to a cache 
+ *  info @p info, this function will write the cache size and level 
+ *  to the location pointed to by @p info.
+ *  @param[in] dv_ind a device index
+ *
+ *  @param[inout] info reference to the cache info struct.
+ *  Must be allocated by user.
+ *
+ *  @return ::rsmi_status_t | ::RSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+rsmi_status_t rsmi_dev_cache_info_get(
+      uint32_t dv_ind, rsmi_gpu_cache_info_t *info);
 
 /**
  *  @brief Get the current memory usage
