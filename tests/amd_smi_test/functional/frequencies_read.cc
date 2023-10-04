@@ -43,9 +43,7 @@
  *
  */
 
-#include <stdint.h>
-#include <stddef.h>
-
+#include <cstdint>
 #include <iostream>
 #include <string>
 
@@ -87,15 +85,23 @@ void TestFrequenciesRead::Close() {
 
 static void print_frequencies(amdsmi_frequencies_t *f, uint32_t *l = nullptr) {
   assert(f != nullptr);
-  for (uint32_t j = 0; j < f->num_supported; ++j) {
-    std::cout << "\t**  " << j << ": " << f->frequency[j];
+  for (uint32_t clk_i = 0; clk_i < f->num_supported; ++clk_i) {
+    std::string clk_i_str;
+    if (f->has_deep_sleep) {
+      clk_i_str = (clk_i == 0) ? "S" : std::to_string(clk_i-1);
+    } else {
+      clk_i_str = std::to_string(clk_i);
+    }
+    std::cout << "\t**  " <<
+      std::setw(2) << std::right << clk_i_str << ": " <<
+      std::setw(11) << std::right << f->frequency[clk_i];
     if (l != nullptr) {
-      std::cout << "T/s; x" << l[j];
+      std::cout << "T/s; x" << l[clk_i];
     } else {
       std::cout << "Hz";
     }
 
-    if (j == f->current) {
+    if (clk_i == f->current) {
       std::cout << " *";
     }
     std::cout << std::endl;
@@ -123,23 +129,30 @@ void TestFrequenciesRead::Run(void) {
           // Verify api support checking functionality is working
           err =  amdsmi_get_clk_freq(processor_handles_[i], t, nullptr);
           ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
-        } else if (err == AMDSMI_STATUS_NOT_YET_IMPLEMENTED) {
+          return;
+        }
+
+        if (err == AMDSMI_STATUS_NOT_YET_IMPLEMENTED) {
           std::cout << "\t**Get " << name <<
                                ": Not implemented on this machine" << std::endl;
-        // special driver issue, shouldn't normally occur
-        } else if (err == AMDSMI_STATUS_UNEXPECTED_DATA) {
+          return;
+        }
+
+        if (err == AMDSMI_STATUS_UNEXPECTED_DATA) {
+          // special driver issue, shouldn't normally occur
           std::cerr << "WARN: Clock file [" << FreqEnumToStr(t) << "] exists on device [" << i << "] but empty!" << std::endl;
           std::cerr << "      Likely a driver issue!" << std::endl;
-        } else {
-          CHK_ERR_ASRT(err)
-          IF_VERB(STANDARD) {
-            std::cout << "\t**Supported " << name << " clock frequencies: ";
-            std::cout << f.num_supported << std::endl;
-            print_frequencies(&f);
-            // Verify api support checking functionality is working
-            err =  amdsmi_get_clk_freq(processor_handles_[i], t, nullptr);
-            ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
-          }
+          return;
+        }
+
+        CHK_ERR_ASRT(err)
+        IF_VERB(STANDARD) {
+          std::cout << "\t**Supported " << name << " clock frequencies: ";
+          std::cout << f.num_supported << std::endl;
+          print_frequencies(&f);
+          // Verify api support checking functionality is working
+          err =  amdsmi_get_clk_freq(processor_handles_[i], t, nullptr);
+          ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
         }
       };
 
@@ -162,15 +175,15 @@ void TestFrequenciesRead::Run(void) {
           std::cout << "\t**Get PCIE Bandwidth "
                     << ": Not implemented on this machine" << std::endl;
       } else {
-          CHK_ERR_ASRT(err)
-          IF_VERB(STANDARD) {
-            std::cout << "\t**Supported PCIe bandwidths: ";
-            std::cout << b.transfer_rate.num_supported << std::endl;
-            print_frequencies(&b.transfer_rate, b.lanes);
-            // Verify api support checking functionality is working
-            err = amdsmi_get_gpu_pci_bandwidth(processor_handles_[i], nullptr);
-            ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
-          }
+        CHK_ERR_ASRT(err)
+        IF_VERB(STANDARD) {
+          std::cout << "\t**Supported PCIe bandwidths: ";
+          std::cout << b.transfer_rate.num_supported << std::endl;
+          print_frequencies(&b.transfer_rate, b.lanes);
+          // Verify api support checking functionality is working
+          err = amdsmi_get_gpu_pci_bandwidth(processor_handles_[i], nullptr);
+          ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
+        }
       }
     }
   }
