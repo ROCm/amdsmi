@@ -163,10 +163,12 @@ class AMDSMICommands():
             args.bus = bus
         if vbios:
             args.vbios = vbios
-        if driver:
-            args.driver = driver
         if numa:
             args.numa = numa
+        if board:
+            args.board = board
+        if driver:
+            args.driver = driver
         if vram:
             args.vram = vram
         if self.helpers.is_linux() and self.helpers.is_baremetal():
@@ -174,8 +176,6 @@ class AMDSMICommands():
                 args.ras = ras
             if limit:
                 args.limit = limit
-            if board:
-                args.board = board
 
         # Handle No GPU passed
         if args.gpu == None:
@@ -189,11 +189,11 @@ class AMDSMICommands():
 
         # If all arguments are False, it means that no argument was passed and the entire static should be printed
         if self.helpers.is_linux() and self.helpers.is_baremetal():
-            if not any([args.asic, args.bus, args.vbios, args.limit, args.driver, args.ras, args.board, args.numa, args.vram]):
-                args.asic = args.bus = args.vbios = args.limit = args.driver = args.ras = args.board = args.numa = args.vram = self.all_arguments = True
+            if not any([args.asic, args.bus, args.vbios, args.limit, args.board, args.ras, args.driver, args.numa, args.vram]):
+                args.asic = args.bus = args.vbios = args.limit = args.board = args.ras = args.driver = args.numa = args.vram = self.all_arguments = True
         if self.helpers.is_linux() and self.helpers.is_virtual_os():
-            if not any([args.asic, args.bus, args.vbios, args.driver, args.vram]):
-                args.asic = args.bus = args.vbios = args.driver = args.vram = self.all_arguments = True
+            if not any([args.asic, args.bus, args.vbios, args.board, args.driver, args.vram]):
+                args.asic = args.bus = args.vbios = args.board = args.driver = args.vram = self.all_arguments = True
 
         static_dict = {}
 
@@ -260,23 +260,23 @@ class AMDSMICommands():
             except amdsmi_exception.AmdSmiLibraryException as e:
                 static_dict['vbios'] = "N/A"
                 logging.debug("Failed to get vbios info for gpu %s | %s", gpu_id, e.get_error_info())
+        if args.board:
+            static_dict['board'] = {"model_number": "N/A",
+                                    "product_serial": "N/A",
+                                    "fru_id": "N/A",
+                                    "manufacturer_name": "N/A",
+                                    "product_name": "N/A"}
+            try:
+                board_info = amdsmi_interface.amdsmi_get_gpu_board_info(args.gpu)
+                for key, value in board_info.items():
+                    if isinstance(value, str):
+                        if value.strip() == '':
+                            board_info[key] = "N/A"
+                static_dict['board'] = board_info
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                logging.debug("Failed to get board info for gpu %s | %s", gpu_id, e.get_error_info())
 
         if self.helpers.is_linux() and self.helpers.is_baremetal():
-            if args.board:
-                static_dict['board'] = {"model_number": "N/A",
-                                        "product_serial": "N/A",
-                                        "fru_id": "N/A",
-                                        "manufacturer_name": "N/A",
-                                        "product_name": "N/A"}
-                try:
-                    board_info = amdsmi_interface.amdsmi_get_gpu_board_info(args.gpu)
-                    for key, value in board_info.items():
-                        if isinstance(value, str):
-                            if value.strip() == '':
-                                board_info[key] = "N/A"
-                    static_dict['board'] = board_info
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    logging.debug("Failed to get board info for gpu %s | %s", gpu_id, e.get_error_info())
             if args.limit:
                 # Power limits
                 try:
