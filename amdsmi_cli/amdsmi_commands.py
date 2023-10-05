@@ -615,19 +615,16 @@ class AMDSMICommands():
 
         try:
             bad_page_info = amdsmi_interface.amdsmi_get_gpu_bad_page_info(args.gpu)
-            bad_page_error = False
         except amdsmi_exception.AmdSmiLibraryException as e:
-            bad_page_error = True
-            bad_page_err_output = "N/A"
+            bad_page_info = "N/A"
             logging.debug("Failed to get bad page info for gpu %s | %s", gpu_id, e.get_error_info())
 
-        if bad_page_info == "No bad pages found.":
+        if bad_page_info == "N/A" or bad_page_info == "No bad pages found.":
             bad_page_error = True
-            bad_page_err_output = bad_page_info
 
         if args.retired:
             if bad_page_error:
-                bad_page_info_output = bad_page_err_output
+                values_dict['retired'] = bad_page_info
             else:
                 bad_page_info_output = []
                 for bad_page in bad_page_info:
@@ -636,17 +633,16 @@ class AMDSMICommands():
                         bad_page_info_entry["page_address"] = bad_page["page_address"]
                         bad_page_info_entry["page_size"] = bad_page["page_size"]
                         bad_page_info_entry["status"] = bad_page["status"].name
-
                         bad_page_info_output.append(bad_page_info_entry)
                 # Remove brackets if there is only one value
                 if len(bad_page_info_output) == 1:
                     bad_page_info_output = bad_page_info_output[0]
 
-            values_dict['retired'] = bad_page_info_output
+                values_dict['retired'] = bad_page_info_output
 
         if args.pending:
             if bad_page_error:
-                bad_page_info_output = bad_page_err_output
+                values_dict['pending'] = bad_page_info
             else:
                 bad_page_info_output = []
                 for bad_page in bad_page_info:
@@ -655,17 +651,16 @@ class AMDSMICommands():
                         bad_page_info_entry["page_address"] = bad_page["page_address"]
                         bad_page_info_entry["page_size"] = bad_page["page_size"]
                         bad_page_info_entry["status"] = bad_page["status"].name
-
                         bad_page_info_output.append(bad_page_info_entry)
                 # Remove brackets if there is only one value
                 if len(bad_page_info_output) == 1:
                     bad_page_info_output = bad_page_info_output[0]
 
-            values_dict['pending'] = bad_page_info_output
+                values_dict['pending'] = bad_page_info_output
 
         if args.un_res:
             if bad_page_error:
-                bad_page_info_output = bad_page_err_output
+                values_dict['un_res'] = bad_page_info
             else:
                 bad_page_info_output = []
                 for bad_page in bad_page_info:
@@ -674,13 +669,12 @@ class AMDSMICommands():
                         bad_page_info_entry["page_address"] = bad_page["page_address"]
                         bad_page_info_entry["page_size"] = bad_page["page_size"]
                         bad_page_info_entry["status"] = bad_page["status"].name
-
                         bad_page_info_output.append(bad_page_info_entry)
                 # Remove brackets if there is only one value
                 if len(bad_page_info_output) == 1:
                     bad_page_info_output = bad_page_info_output[0]
 
-            values_dict['un_res'] = bad_page_info_output
+                values_dict['un_res'] = bad_page_info_output
 
         # Store values in logger.output
         self.logger.store_output(args.gpu, 'values', values_dict)
