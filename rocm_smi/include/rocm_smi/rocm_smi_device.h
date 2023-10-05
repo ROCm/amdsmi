@@ -105,6 +105,7 @@ enum DevInfoTypes {
   kDevDevRevID,
   kDevDevProdName,
   kDevDevProdNum,
+  kDevBoardInfo,
   kDevVendorID,
   kDevSubSysDevID,
   kDevSubSysVendorID,
@@ -200,6 +201,9 @@ class Device {
     int readDevInfo(DevInfoTypes type, std::vector<std::string> *retVec);
     int readDevInfo(DevInfoTypes type, std::size_t b_size,
                                       void *p_binary_data);
+    // Get the property from a file which may contain multiple properties.
+    int readDevInfo(DevInfoTypes type, const std::string& property,
+                                      std::string& value);
     int writeDevInfo(DevInfoTypes type, uint64_t val);
     int writeDevInfo(DevInfoTypes type, std::string val);
 

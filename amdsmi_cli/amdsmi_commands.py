@@ -21,6 +21,7 @@
 #
 
 import logging
+import sys
 import threading
 import time
 
@@ -42,7 +43,12 @@ class AMDSMICommands():
         try:
             self.device_handles = amdsmi_interface.amdsmi_get_processor_handles()
         except amdsmi_exception.AmdSmiLibraryException as e:
-            raise e
+            if e.err_code in (amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NOT_INIT,
+                              amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_DRIVER_NOT_LOADED):
+                logging.error('Unable to get devices, driver not initialized (amdgpu not found in modules)')
+                sys.exit(-1)
+            else:
+                raise e
         self.stop = ''
         self.all_arguments = False
 
@@ -220,27 +226,21 @@ class AMDSMICommands():
 
                 bus_info['max_pcie_speed'] = pcie_speed_GTs_value
 
-                try:
-                    slot_type = amdsmi_interface.amdsmi_topo_get_link_type(args.gpu, args.gpu)['type']
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    slot_type = e.get_error_info()
+                slot_type = bus_info.pop('pcie_slot_type')
+                if isinstance(slot_type, int):
+                    slot_types = amdsmi_interface.amdsmi_wrapper.amdsmi_pcie_slot_type_t__enumvalues
+                    if slot_type in slot_types:
+                        bus_info['slot_type'] = slot_types[slot_type].replace("AMDSMI_SLOT_TYPE__", "")
+                    else:
+                        bus_info['slot_type'] = "Unknown"
+                else:
+                    bus_info['slot_type'] = "N/A"
 
                 if self.logger.is_human_readable_format():
                     unit ='GT/s'
                     bus_info['max_pcie_speed'] = f"{bus_info['max_pcie_speed']} {unit}"
-
                     if bus_info['pcie_interface_version'] > 0:
                         bus_info['pcie_interface_version'] = f"Gen {bus_info['pcie_interface_version']}"
-
-                    bus_info['slot_type'] = 'XXXX'
-                    if isinstance(slot_type, int):
-                        if slot_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_UNDEFINED:
-                            bus_info['slot_type'] = "UNKNOWN"
-                        elif slot_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_PCIEXPRESS:
-                            bus_info['slot_type'] = "PCIE"
-                        elif slot_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_XGMI:
-                            bus_info['slot_type'] = "XGMI"
-
             except amdsmi_exception.AmdSmiLibraryException as e:
                 bus_info = "N/A"
                 logging.debug("Failed to get bus info for gpu %s | %s", gpu_id, e.get_error_info())
@@ -263,18 +263,19 @@ class AMDSMICommands():
 
         if self.helpers.is_linux() and self.helpers.is_baremetal():
             if args.board:
+                static_dict['board'] = {"model_number": "N/A",
+                                        "product_serial": "N/A",
+                                        "fru_id": "N/A",
+                                        "manufacturer_name": "N/A",
+                                        "product_name": "N/A"}
                 try:
                     board_info = amdsmi_interface.amdsmi_get_gpu_board_info(args.gpu)
-                    board_info['serial_number'] = hex(board_info['serial_number'])
-                    board_info['model_number'] = board_info['model_number'].strip()
-                    board_info['product_name'] = board_info['product_name'].strip()
-                    board_info['manufacturer_name'] = board_info['manufacturer_name'].strip()
-                    board_info.pop('product_serial')
-                    board_info.pop('manufacturer_name')
-
+                    for key, value in board_info.items():
+                        if isinstance(value, str):
+                            if value.strip() == '':
+                                board_info[key] = "N/A"
                     static_dict['board'] = board_info
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict['board'] = "N/A"
                     logging.debug("Failed to get board info for gpu %s | %s", gpu_id, e.get_error_info())
             if args.limit:
                 # Power limits
@@ -390,14 +391,16 @@ class AMDSMICommands():
                 static_dict['limit'] = limit_info
 
         if args.driver:
+            driver_info = {"driver_name" : "N/A",
+                           "driver_version" : "N/A",
+                           "driver_date" : "N/A"}
+
             try:
-                driver_info = {}
                 driver_info = amdsmi_interface.amdsmi_get_gpu_driver_info(args.gpu)
-                static_dict['driver'] = driver_info
             except amdsmi_exception.AmdSmiLibraryException as e:
-                static_dict['driver'] = "N/A"
                 logging.debug("Failed to get driver info for gpu %s | %s", gpu_id, e.get_error_info())
 
+            static_dict['driver'] = driver_info
         if self.helpers.is_hypervisor() or self.helpers.is_baremetal():
             if args.ras:
                 try:
@@ -1006,7 +1009,7 @@ class AMDSMICommands():
                     values_dict['ecc_block'] = "N/A"
                     logging.debug("Failed to get ecc block features for gpu %s | %s", gpu_id, e.get_error_info())
             if args.pcie:
-                pcie_dict = {'current_width': "N/A",
+                pcie_dict = {'current_lanes': "N/A",
                              'current_speed': "N/A",
                              'replay_count' : "N/A",
                              'current_bandwith_sent': "N/A",
@@ -1022,7 +1025,7 @@ class AMDSMICommands():
                         pcie_speed_GTs_value = round(pcie_link_status['pcie_speed'] / 1000)
 
                     pcie_dict['current_speed'] = pcie_speed_GTs_value
-                    pcie_dict['current_width'] = pcie_link_status['pcie_lanes']
+                    pcie_dict['current_lanes'] = pcie_link_status['pcie_lanes']
 
                     if self.logger.is_human_readable_format():
                         unit = 'GT/s'

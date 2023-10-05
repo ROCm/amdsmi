@@ -36,9 +36,9 @@ from amdsmi import amdsmi_interface
 from amdsmi import amdsmi_exception
 
 # Using basic python logging for user errors and development
-logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.ERROR) # User level logging
+logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.ERROR) # User level logging
 # This traceback limit only affects this file, once the code hit's the cli portion it get's reset to the user's preference
-sys.tracebacklimit = -1 # Disable traceback for user errors
+sys.tracebacklimit = -1 # Disable traceback when raising errors
 
 # On initial import set initialized variable
 AMDSMI_INITIALIZED = False
@@ -47,11 +47,9 @@ AMD_VENDOR_ID = 4098
 def check_amdgpu_driver():
     """ Returns true if amdgpu is found in the list of initialized modules """
     amd_gpu_status_file = Path("/sys/module/amdgpu/initstate")
-
     if amd_gpu_status_file.exists():
-        if amd_gpu_status_file.read_text(encoding='ascii').strip() == 'live':
+        if amd_gpu_status_file.read_text(encoding="ascii").strip() == "live":
             return True
-
     return False
 
 
@@ -61,17 +59,22 @@ def init_amdsmi(flag=amdsmi_interface.AmdSmiInitFlags.INIT_AMD_GPUS):
     Raises:
         err: AmdSmiLibraryException if not successful
     """
-    # Check if amdgpu driver is up & Handle error gracefully
+    # # Check if amdgpu driver is up & Handle error gracefully
     if check_amdgpu_driver():
         # Only init AMD GPUs for now, waiting for future support for AMD CPUs
         try:
             amdsmi_interface.amdsmi_init(flag)
-        except (amdsmi_interface.AmdSmiLibraryException, amdsmi_interface.AmdSmiParameterException) as err:
-            raise err
-        logging.debug('AMDSMI initialized successfully')
+        except (amdsmi_interface.AmdSmiLibraryException, amdsmi_interface.AmdSmiParameterException) as e:
+            if e.err_code in (amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NOT_INIT,
+                                amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_DRIVER_NOT_LOADED):
+                logging.error("Driver not loaded (amdgpu not found in modules)")
+                sys.exit(-1)
+            else:
+                raise e
+        logging.debug("AMDSMI initialized successfully, but initstate was not live")
     else:
-        logging.error('Driver not initialized (amdgpu not found in modules)')
-        exit(-1)
+        logging.error("Driver not found (amdgpu not found in modules)")
+        sys.exit(-1)
 
 
 def shut_down_amdsmi():
@@ -82,12 +85,13 @@ def shut_down_amdsmi():
     """
     try:
         amdsmi_interface.amdsmi_shut_down()
-    except amdsmi_exception.AmdSmiLibraryException as err:
-        raise err
+    except amdsmi_exception.AmdSmiLibraryException as e:
+        logging.error("Unable to cleanly shut down amd-smi-lib")
+        raise e
 
 
 def signal_handler(sig, frame):
-    logging.debug(f'Handling signal: {sig}')
+    logging.debug(f"Handling signal: {sig}")
     sys.exit(0)
 
 

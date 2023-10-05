@@ -457,7 +457,7 @@ amdsmi_status_t amdsmi_get_gpu_board_info(amdsmi_processor_handle processor_hand
         return r;
 
     if (gpu_device->check_if_drm_is_supported()) {
-        // Get from sys file
+        // Populate product_serial, product_name, & product_number from sysfs
         status = smi_amdgpu_get_board_info(gpu_device, board_info);
     }
     else {
@@ -471,6 +471,9 @@ amdsmi_status_t amdsmi_get_gpu_board_info(amdsmi_processor_handle processor_hand
                         board_info->product_serial, AMDSMI_NORMAL_STRING_LENGTH);
         }
     }
+
+    // Get FRU ID
+    // Get manufacturer name
 
     return AMDSMI_STATUS_SUCCESS;
 }
@@ -1718,18 +1721,30 @@ amdsmi_status_t amdsmi_get_gpu_driver_info(amdsmi_processor_handle processor_han
         return r;
 
     int length = AMDSMI_MAX_STRING_LENGTH;
+
+    // Get the driver version
     status = smi_amdgpu_get_driver_version(gpu_device,
                 &length, info->driver_version);
+
+    // Get the driver date
     std::string driver_date;
     status = gpu_device->amdgpu_query_driver_date(driver_date);
-    if (status != AMDSMI_STATUS_SUCCESS)  return r;
-
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return r;
     // Reformat the driver date from 20150101 to 2015/01/01 00:00
     if (driver_date.length() == 8) {
         driver_date = driver_date.substr(0, 4) + "/" + driver_date.substr(4, 2)
                         + "/" + driver_date.substr(6, 2) + " 00:00";
     }
     strncpy(info->driver_date, driver_date.c_str(), AMDSMI_MAX_STRING_LENGTH-1);
+
+    // Get the driver name
+    std::string driver_name;
+    status = gpu_device->amdgpu_query_driver_name(driver_name);
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return r;
+    strncpy(info->driver_name, driver_name.c_str(), AMDSMI_MAX_STRING_LENGTH-1);
+
     return status;
 }
 
@@ -1813,7 +1828,16 @@ amdsmi_get_pcie_link_status(amdsmi_processor_handle processor_handle, amdsmi_pci
         info->pcie_interface_version = 0;
     }
 
-    return status;
+    // default to PCIe
+    info->pcie_slot_type = AMDSMI_SLOT_TYPE__PCIE;
+    rsmi_pcie_slot_type_t slot_type;
+    status = rsmi_wrapper(rsmi_dev_pcie_slot_type_get,
+            processor_handle, &slot_type);
+    if (status == AMDSMI_STATUS_SUCCESS) {
+        info->pcie_slot_type = static_cast<amdsmi_pcie_slot_type_t>(slot_type);
+    }
+
+    return AMDSMI_STATUS_SUCCESS;
 }
 
 amdsmi_status_t amdsmi_get_pcie_link_caps(amdsmi_processor_handle processor_handle, amdsmi_pcie_info_t *info) {
@@ -1887,7 +1911,16 @@ amdsmi_status_t amdsmi_get_pcie_link_caps(amdsmi_processor_handle processor_hand
         info->pcie_interface_version = 0;
     }
 
-    return status;
+    // default to PCIe
+    info->pcie_slot_type = AMDSMI_SLOT_TYPE__PCIE;
+    rsmi_pcie_slot_type_t slot_type;
+    status = rsmi_wrapper(rsmi_dev_pcie_slot_type_get,
+            processor_handle, &slot_type);
+    if (status == AMDSMI_STATUS_SUCCESS) {
+        info->pcie_slot_type = static_cast<amdsmi_pcie_slot_type_t>(slot_type);
+    }
+
+    return AMDSMI_STATUS_SUCCESS;
 }
 
 amdsmi_status_t amdsmi_get_processor_handle_from_bdf(amdsmi_bdf_t bdf,

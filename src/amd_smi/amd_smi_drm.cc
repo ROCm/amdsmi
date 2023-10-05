@@ -197,6 +197,18 @@ amdsmi_status_t AMDSmiDrm::cleanup() {
     return AMDSMI_STATUS_SUCCESS;
 }
 
+amdsmi_status_t AMDSmiDrm::amdgpu_query_driver_name(int fd, std::string& driver_name) {
+    // RAII handler
+    using drm_version_ptr = std::unique_ptr<drmVersion,
+            decltype(&drmFreeVersion)>;
+    std::lock_guard<std::mutex> guard(drm_mutex_);
+    auto version = drm_version_ptr(
+                drm_get_version_(fd), drm_free_version_);
+    if (version == nullptr) return AMDSMI_STATUS_DRM_ERROR;
+    driver_name = version->name;
+    return AMDSMI_STATUS_SUCCESS;
+}
+
 amdsmi_status_t AMDSmiDrm::amdgpu_query_driver_date(int fd, std::string& driver_date) {
     // RAII handler
     using drm_version_ptr = std::unique_ptr<drmVersion,

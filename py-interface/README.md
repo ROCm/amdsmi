@@ -310,7 +310,13 @@ Input parameters:
 
 * `processor_handle` dev for which to query
 
-Output: Driver info that is handling the device
+Output: Dictionary with fields
+
+Field | Content
+---|---
+`driver_name` |  driver name
+`driver_version` |  driver_version
+`driver_date` |  driver_date
 
 Exceptions that can be thrown by `amdsmi_get_gpu_driver_info` function:
 

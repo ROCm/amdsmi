@@ -823,11 +823,11 @@ def amdsmi_get_gpu_board_info(
     )
 
     return {
-        "serial_number": board_info.serial_number,
-        "model_number": board_info.model_number.decode("utf-8"),
-        "product_serial": board_info.product_serial.decode("utf-8"),
-        "product_name": board_info.product_name.decode("utf-8"),
-        "manufacturer_name" : board_info.product_name.decode("utf-8")
+        "model_number": board_info.model_number.decode("utf-8").strip(),
+        "product_serial": board_info.serial_number,
+        "fru_id": board_info.fru_id.decode("utf-8").strip(),
+        "manufacturer_name" : board_info.manufacturer_name.decode("utf-8").strip(),
+        "product_name": board_info.product_name.decode("utf-8").strip()
     }
 
 
@@ -962,6 +962,7 @@ def amdsmi_get_gpu_driver_info(
     )
 
     return {
+        "driver_name": info.driver_name.decode("utf-8"),
         "driver_version": info.driver_version.decode("utf-8"),
         "driver_date": info.driver_date.decode("utf-8")
     }
@@ -1061,7 +1062,8 @@ def amdsmi_get_pcie_link_status(
 
     return {"pcie_speed": pcie_info.pcie_speed,
             "pcie_lanes": pcie_info.pcie_lanes,
-            "pcie_interface_version": pcie_info.pcie_interface_version}
+            "pcie_interface_version": pcie_info.pcie_interface_version,
+            "pcie_slot_type": pcie_info.pcie_slot_type}
 
 def amdsmi_get_pcie_link_caps(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
@@ -1079,7 +1081,8 @@ def amdsmi_get_pcie_link_caps(
 
     return {"max_pcie_speed": pcie_info.pcie_speed,
             "max_pcie_lanes": pcie_info.pcie_lanes,
-            "pcie_interface_version": pcie_info.pcie_interface_version}
+            "pcie_interface_version": pcie_info.pcie_interface_version,
+            "pcie_slot_type": pcie_info.pcie_slot_type}
 
 
 def amdsmi_get_processor_handle_from_bdf(bdf):

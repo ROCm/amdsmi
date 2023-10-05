@@ -141,8 +141,17 @@ class AMDSMIHelpers():
         gpu_choices = {}
         gpu_choices_str = ""
 
-        # amdsmi_get_processor_handles returns the device_handles storted for gpu_id
-        device_handles = amdsmi_interface.amdsmi_get_processor_handles()
+        try:
+            # amdsmi_get_processor_handles returns the device_handles storted for gpu_id
+            device_handles = amdsmi_interface.amdsmi_get_processor_handles()
+        except amdsmi_interface.AmdSmiLibraryException as e:
+            if e.err_code in (amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NOT_INIT,
+                              amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_DRIVER_NOT_LOADED):
+                logging.error('Unable to get device choices, driver not initialized (amdgpu not found in modules)')
+                sys.exit(-1)
+            else:
+                raise e
+
         for gpu_id, device_handle in enumerate(device_handles):
             bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(device_handle)
             uuid = amdsmi_interface.amdsmi_get_gpu_device_uuid(device_handle)

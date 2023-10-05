@@ -444,6 +444,7 @@ typedef struct{
 
 
 typedef struct {
+	char  driver_name[AMDSMI_MAX_STRING_LENGTH];
 	char  driver_version[AMDSMI_MAX_STRING_LENGTH];
 	char  driver_date[AMDSMI_MAX_STRING_LENGTH];
 } amdsmi_driver_info_t;
@@ -1151,14 +1152,26 @@ typedef struct {
 } amdsmi_error_count_t;
 
 /**
+ * @brief This is a enum translation for pcie_slot_type
+ */
+typedef enum {
+  AMDSMI_SLOT_TYPE__PCIE = 0,
+  AMDSMI_SLOT_TYPE__CEM = 1,
+  AMDSMI_SLOT_TYPE__OAM = 2,
+  AMDSMI_SLOT_TYPE__RESERVED = 3,
+} amdsmi_pcie_slot_type_t;
+
+/**
  * @brief This structure holds pcie info.
  */
 typedef struct {
 	uint16_t pcie_lanes;
 	uint32_t pcie_speed;
 	uint32_t pcie_interface_version;
-	uint32_t reserved[5];
+	amdsmi_pcie_slot_type_t pcie_slot_type;   // 0: PCIE, 1: CEM, 2: OAM, 3: Reserved
+	uint32_t reserved[4];
 } amdsmi_pcie_info_t;
+
 /**
  * @brief This structure contains information specific to a process.
  */
