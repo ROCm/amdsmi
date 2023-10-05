@@ -805,7 +805,9 @@ amdsmi_status_t amdsmi_get_gpu_vram_info(
     uint64_t total = 0;
     r = rsmi_wrapper(rsmi_dev_memory_total_get, processor_handle,
                     RSMI_MEM_TYPE_VRAM, &total);
-    info->vram_size_mb = total / (1024 * 1024);
+    if (r == AMDSMI_STATUS_SUCCESS) {
+        info->vram_size_mb = total / (1024 * 1024);
+    }
 
     return AMDSMI_STATUS_SUCCESS;
 }
