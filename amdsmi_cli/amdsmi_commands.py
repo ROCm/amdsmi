@@ -215,10 +215,17 @@ class AMDSMICommands():
                 static_dict['asic'] = "N/A"
                 logging.debug("Failed to get asic info for gpu %s | %s", gpu_id, e.get_error_info())
         if args.bus:
-            bus_output_info = {}
+            bus_info = {}
 
             try:
-                bus_info = amdsmi_interface.amdsmi_get_pcie_link_caps(args.gpu)
+                bus_info['bdf'] = amdsmi_interface.amdsmi_get_gpu_device_bdf(args.gpu)
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                bus_info['bdf'] = "N/A"
+                logging.debug("Failed to get bdf for gpu %s | %s", gpu_id, e.get_error_info())
+
+            try:
+                link_caps = amdsmi_interface.amdsmi_get_pcie_link_caps(args.gpu)
+                bus_info.update(link_caps)
                 if bus_info['max_pcie_speed'] % 1000 != 0:
                     pcie_speed_GTs_value = round(bus_info['max_pcie_speed'] / 1000, 1)
                 else:
@@ -245,14 +252,7 @@ class AMDSMICommands():
                 bus_info = "N/A"
                 logging.debug("Failed to get bus info for gpu %s | %s", gpu_id, e.get_error_info())
 
-            try:
-                bus_output_info['bdf'] = amdsmi_interface.amdsmi_get_gpu_device_bdf(args.gpu)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                bus_output_info['bdf'] = "N/A"
-                logging.debug("Failed to get bdf for gpu %s | %s", gpu_id, e.get_error_info())
-
-            bus_output_info.update(bus_info)
-            static_dict['bus'] = bus_output_info
+            static_dict['bus'] = bus_info
         if args.vbios:
             try:
                 vbios_info = amdsmi_interface.amdsmi_get_gpu_vbios_info(args.gpu)
