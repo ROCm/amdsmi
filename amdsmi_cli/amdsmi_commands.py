@@ -1022,12 +1022,16 @@ class AMDSMICommands():
                     values_dict['ecc_block'] = "N/A"
                     logging.debug("Failed to get ecc block features for gpu %s | %s", gpu_id, e.get_error_info())
             if args.pcie:
-                pcie_dict = {'current_lanes': "N/A",
-                             'current_speed': "N/A",
-                             'replay_count' : "N/A",
-                             'current_bandwith_sent': "N/A",
-                             'current_bandwith_received': "N/A",
-                             'max_packet_size': "N/A"}
+                pcie_dict = {"current_lanes": "N/A",
+                             "current_speed": "N/A",
+                             "replay_count" : "N/A",
+                             "l0_to_recovery_count" : "N/A",
+                             "replay_roll_over_count" : "N/A",
+                             "nak_sent_count" : "N/A",
+                             "nak_received_count" : "N/A",
+                             "current_bandwith_sent": "N/A",
+                             "current_bandwith_received": "N/A",
+                             "max_packet_size": "N/A"}
 
                 try:
                     pcie_link_status = amdsmi_interface.amdsmi_get_pcie_link_status(args.gpu)
@@ -1051,6 +1055,33 @@ class AMDSMICommands():
                     pcie_dict['replay_count'] = pci_replay_counter
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     logging.debug("Failed to get pci replay counter for gpu %s | %s", gpu_id, e.get_error_info())
+
+                try:
+                    # l0_to_recovery_counter = amdsmi_interface.amdsmi_get_gpu_pci_l0_to_recovery_counter(args.gpu)
+                    # pcie_dict['l0_to_recovery_count'] = l0_to_recovery_counter
+                    pcie_dict['l0_to_recovery_count'] = "N/A"
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    pcie_dict['l0_to_recovery_count'] = "N/A"
+                    logging.debug("Failed to get pcie l0 to recovery counter for gpu %s | %s", gpu_id, e.get_error_info())
+
+                try:
+                    # pci_replay_rollover_counter = amdsmi_interface.amdsmi_get_gpu_pci_replay_rollover_counter(args.gpu)
+                    # pcie_dict['replay_roll_over_count'] = pci_replay_rollover_counter
+                    pcie_dict['replay_roll_over_count'] = "N/A"
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    pcie_dict['replay_roll_over_count'] = "N/A"
+                    logging.debug("Failed to get pcie replay rollover counter for gpu %s | %s", gpu_id, e.get_error_info())
+
+                try:
+                    # nak_info = amdsmi_interface.amdsmi_get_gpu_pci_nak_info(args.gpu)
+                    # pcie_dict['nak_sent_count'] = nak_info['nak_sent_count']
+                    # pcie_dict['nak_received_count'] = nak_info['nak_received_count']
+                    pcie_dict['nak_sent_count'] = "N/A"
+                    pcie_dict['nak_received_count'] = "N/A"
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    pcie_dict['nak_sent_count'] = "N/A"
+                    pcie_dict['nak_received_count'] = "N/A"
+                    logging.debug("Failed to get pcie nak info for gpu %s | %s", gpu_id, e.get_error_info())
 
                 try:
                     pcie_bw = amdsmi_interface.amdsmi_get_gpu_pci_throughput(args.gpu)
