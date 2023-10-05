@@ -320,11 +320,11 @@ class AMDSMIParser(argparse.ArgumentParser):
         static_parser.add_argument('-b', '--bus', action='store_true', required=False, help=bus_help)
         static_parser.add_argument('-V', '--vbios', action='store_true', required=False, help=vbios_help)
         static_parser.add_argument('-d', '--driver', action='store_true', required=False, help=driver_help)
+        static_parser.add_argument('-v', '--vram', action='store_true', required=False, help=vram_help)
 
         # Options to display on Hypervisors and Baremetal
         if self.helpers.is_hypervisor() or self.helpers.is_baremetal():
             static_parser.add_argument('-r', '--ras', action='store_true', required=False, help=ras_help)
-            static_parser.add_argument('-v', '--vram', action='store_true', required=False, help=vram_help)
             if self.helpers.is_linux():
                 static_parser.add_argument('-B', '--board', action='store_true', required=False, help=board_help)
                 static_parser.add_argument('-l', '--limit', action='store_true', required=False, help=limit_help)
