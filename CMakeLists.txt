@@ -1,7 +1,7 @@
 #
 # Minimum version of cmake required
 #
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.14)
 
 set(AMD_SMI "amd_smi")
 set(AMD_SMI_COMPONENT "lib${AMD_SMI}")
@@ -49,6 +49,8 @@ set(AMD_SMI_PACKAGE
     CACHE STRING "")
 
 project(${AMD_SMI_LIBS_TARGET})
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(GNUInstallDirs)
 
@@ -78,7 +80,7 @@ set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
 generic_package()
 
 ## Compiler flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -fno-rtti -m64 -msse -msse2 -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -fno-rtti -m64 -msse -msse2")
 # Security options
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion -Wcast-align")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wformat=2 -fno-common -Wstrict-overflow")

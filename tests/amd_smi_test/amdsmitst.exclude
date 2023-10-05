@@ -14,12 +14,13 @@ PERMANENT_BLACKLIST_ALL_ASICS=
 # is failing consistently
 TEMPORARY_BLACKLIST_ALL_ASICS=
 
-if [ -z $PERMANENT_BLACKLIST_ALL_ASICS -a -z $TEMPORARY_BLACKLIST_ALL_ASICS ]; then
+
+if [ -z "$PERMANENT_BLACKLIST_ALL_ASICS" -a -z "$TEMPORARY_BLACKLIST_ALL_ASICS" ]; then
   BLACKLIST_ALL_ASICS=
 else
   BLACKLIST_ALL_ASICS=\
-    "$PERMANENT_BLACKLIST_ALL_ASICS:"\
-    "$TEMPORARY_BLACKLIST_ALL_ASICS"
+"$PERMANENT_BLACKLIST_ALL_ASICS:"\
+"$TEMPORARY_BLACKLIST_ALL_ASICS:"
 fi
 
 # Device specific blacklists
@@ -54,6 +55,18 @@ $BLACKLIST_ALL_ASICS\
 FILTER[sienna_cichlid]=\
 $BLACKLIST_ALL_ASICS\
 "amdsmitstReadWrite.TestPerfLevelReadWrite"
+
+# SWDEV-391407
+# aqua_vanjaram and later systems show 'ip discovery' in
+# /sys/class/kfd/kfd/topology/nodes/*/name
+#
+# For those systems gfx_target_version must be used. It can be found in
+# /sys/class/kfd/kfd/topology/nodes/*/properties
+FILTER[90400]=\
+$BLACKLIST_ALL_ASICS\
+"amdsmitstReadOnly.TestVoltCurvRead"
+FILTER[90401]=${FILTER[90400]}
+FILTER[90402]=${FILTER[90400]}
 
 # SWDEV-321166
 FILTER[virtualization]=\

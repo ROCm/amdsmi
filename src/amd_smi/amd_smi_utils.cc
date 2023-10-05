@@ -138,7 +138,7 @@ amdsmi_status_t smi_amdgpu_get_board_info(amd::smi::AMDSmiGPUDevice* device, amd
 
     fp = fopen(serial_number_path.c_str(), "rb");
     if (fp) {
-        fscanf(fp, "%lx", &info->serial_number);
+        fscanf(fp, "%lx", &info->product_serial);
         fclose(fp);
     }
 

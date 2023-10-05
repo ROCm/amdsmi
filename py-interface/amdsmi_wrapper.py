@@ -774,6 +774,7 @@ class struct_amdsmi_driver_info_t(Structure):
 
 struct_amdsmi_driver_info_t._pack_ = 1 # source:False
 struct_amdsmi_driver_info_t._fields_ = [
+    ('driver_name', ctypes.c_char * 64),
     ('driver_version', ctypes.c_char * 64),
     ('driver_date', ctypes.c_char * 64),
 ]
@@ -1424,6 +1425,19 @@ struct_amdsmi_error_count_t._fields_ = [
 ]
 
 amdsmi_error_count_t = struct_amdsmi_error_count_t
+
+# values for enumeration 'amdsmi_pcie_slot_type_t'
+amdsmi_pcie_slot_type_t__enumvalues = {
+    0: 'AMDSMI_SLOT_TYPE__PCIE',
+    1: 'AMDSMI_SLOT_TYPE__CEM',
+    2: 'AMDSMI_SLOT_TYPE__OAM',
+    3: 'AMDSMI_SLOT_TYPE__RESERVED',
+}
+AMDSMI_SLOT_TYPE__PCIE = 0
+AMDSMI_SLOT_TYPE__CEM = 1
+AMDSMI_SLOT_TYPE__OAM = 2
+AMDSMI_SLOT_TYPE__RESERVED = 3
+amdsmi_pcie_slot_type_t = ctypes.c_uint32 # enum
 class struct_amdsmi_pcie_info_t(Structure):
     pass
 
@@ -1433,7 +1447,8 @@ struct_amdsmi_pcie_info_t._fields_ = [
     ('PADDING_0', ctypes.c_ubyte * 2),
     ('pcie_speed', ctypes.c_uint32),
     ('pcie_interface_version', ctypes.c_uint32),
-    ('reserved', ctypes.c_uint32 * 5),
+    ('pcie_slot_type', amdsmi_pcie_slot_type_t),
+    ('reserved', ctypes.c_uint32 * 4),
 ]
 
 amdsmi_pcie_info_t = struct_amdsmi_pcie_info_t
@@ -1804,7 +1819,9 @@ __all__ = \
     'AMDSMI_RAS_ERR_STATE_INVALID', 'AMDSMI_RAS_ERR_STATE_LAST',
     'AMDSMI_RAS_ERR_STATE_MULT_UC', 'AMDSMI_RAS_ERR_STATE_NONE',
     'AMDSMI_RAS_ERR_STATE_PARITY', 'AMDSMI_RAS_ERR_STATE_POISON',
-    'AMDSMI_RAS_ERR_STATE_SING_C', 'AMDSMI_STATUS_ADDRESS_FAULT',
+    'AMDSMI_RAS_ERR_STATE_SING_C', 'AMDSMI_SLOT_TYPE__CEM',
+    'AMDSMI_SLOT_TYPE__OAM', 'AMDSMI_SLOT_TYPE__PCIE',
+    'AMDSMI_SLOT_TYPE__RESERVED', 'AMDSMI_STATUS_ADDRESS_FAULT',
     'AMDSMI_STATUS_API_FAILED', 'AMDSMI_STATUS_BUSY',
     'AMDSMI_STATUS_DRIVER_NOT_LOADED', 'AMDSMI_STATUS_DRM_ERROR',
     'AMDSMI_STATUS_FAIL_LOAD_MODULE',
@@ -1954,8 +1971,8 @@ __all__ = \
     'amdsmi_mm_ip_t', 'amdsmi_od_vddc_point_t',
     'amdsmi_od_volt_curve_t', 'amdsmi_od_volt_freq_data_t',
     'amdsmi_pcie_bandwidth_t', 'amdsmi_pcie_info_t',
-    'amdsmi_power_cap_info_t', 'amdsmi_power_info_t',
-    'amdsmi_power_profile_preset_masks_t',
+    'amdsmi_pcie_slot_type_t', 'amdsmi_power_cap_info_t',
+    'amdsmi_power_info_t', 'amdsmi_power_profile_preset_masks_t',
     'amdsmi_power_profile_status_t', 'amdsmi_proc_info_t',
     'amdsmi_process_handle_t', 'amdsmi_process_info_t',
     'amdsmi_processor_handle', 'amdsmi_range_t',

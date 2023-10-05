@@ -87,6 +87,7 @@ static const char *kDevDevProdNumFName = "product_number";
 static const char *kDevDevIDFName = "device";
 static const char *kDevDevRevIDFName = "revision";
 static const char *kDevVendorIDFName = "vendor";
+static const char *kDevBoardInfoFName = "board_info";
 static const char *kDevSubSysDevIDFName = "subsystem_device";
 static const char *kDevSubSysVendorIDFName = "subsystem_vendor";
 static const char *kDevOverDriveLevelFName = "pp_sclk_od";
@@ -238,6 +239,7 @@ static const std::map<DevInfoTypes, const char *> kDevAttribNameMap = {
     {kDevPerfLevel, kDevPerfLevelFName},
     {kDevOverDriveLevel, kDevOverDriveLevelFName},
     {kDevMemOverDriveLevel, kDevMemOverDriveLevelFName},
+    {kDevBoardInfo, kDevBoardInfoFName},
     {kDevDevProdName, kDevDevProdNameFName},
     {kDevDevProdNum, kDevDevProdNumFName},
     {kDevDevID, kDevDevIDFName},
@@ -388,6 +390,7 @@ static const std::map<const char *, dev_depends_t> kDevFuncDependsMap = {
   {"rsmi_dev_name_get",                  {{kDevVendorIDFName,
                                            kDevDevIDFName}, {}}},
   {"rsmi_dev_sku_get",                   {{kDevDevProdNumFName}, {}}},
+  {"rsmi_dev_pcie_slot_type_get",            {{kDevBoardInfoFName}, {}}},
   {"rsmi_dev_brand_get",                 {{kDevVendorIDFName,
                                            kDevVBiosVerFName}, {}}},
   {"rsmi_dev_vendor_name_get",           {{kDevVendorIDFName}, {}}},
@@ -1001,6 +1004,34 @@ int Device::readDevInfo(DevInfoTypes type, uint64_t *val) {
       return EINVAL;
   }
   return 0;
+}
+
+// Read a property from a file which may contain multiple properties
+int Device::readDevInfo(DevInfoTypes type, const std::string& property,
+                                      std::string& value) {
+  std::vector<std::string> val;
+  int ret = 0;
+  switch (type) {
+    case kDevBoardInfo:
+      ret = readDevInfoMultiLineStr(type, &val);
+      break;
+    default:
+      return EINVAL;
+  }
+  if (ret != 0) return ret;
+
+  // Find the property from the file
+  for (unsigned int i = 0; i < val.size(); i++) {
+    auto pos = val[i].find(":");  // delimiter
+    if (pos == std::string::npos) continue;
+    auto name = trim(val[i].substr(0, pos));
+    if (name != property) continue;
+    value = trim(val[i].substr(pos+1));
+    return 0;
+  }
+
+
+  return EINVAL;
 }
 
 int Device::readDevInfo(DevInfoTypes type, std::vector<std::string> *val) {
