@@ -49,6 +49,7 @@
 #include <iomanip>
 #include "amd_smi/amdsmi.h"
 #include <cstring>
+#include <cmath>
 
 using namespace std;
 
@@ -624,6 +625,39 @@ int main(int argc, char **argv) {
         cout<<"| Current "<<bw_string[bw_ind]<<"bandwidth of xGMI link "<<xgmi_link.link_name<<" | "<<bw<<" Mbps |\n";
 
      cout<<"\n-------------------------------------------------\n";
+
+    uint32_t met_ver;
+    ret = amdsmi_get_metrics_table_version(sockets[i], &met_ver);
+    CHK_AMDSMI_RET(ret)
+
+    if (ret != AMDSMI_STATUS_SUCCESS) {
+        cout<<"Failed to get Metrics Table Version, Err["<<ret<<"]:"
+            <<*amdsmi_get_esmi_err_msg(ret, &err_str1)<<endl;
+     } else
+        cout<<"\n| METRICS TABLE Version   |  "<<met_ver<<" \t\t |\n";
+
+    cout<<"\n-------------------------------------------------\n";
+
+    double fraction_q10 = 1/pow(2,10);
+    double fraction_uq10 = fraction_q10;
+    double fraction_uq16 = 1/pow(2,16);
+
+    struct hsmp_metric_table mtbl = {0};
+    ret = amdsmi_get_metrics_table(sockets[i], i, &mtbl);
+    CHK_AMDSMI_RET(ret)
+
+    if (ret != AMDSMI_STATUS_SUCCESS) {
+        cout<<"Failed to get Metrics Table for socket["<<i<<"], Err["<<ret<<"]:"
+            <<*amdsmi_get_esmi_err_msg(ret, &err_str1)<<endl;
+     } else {
+        cout<<"\n| METRICS TABLE  \t\t |\n";
+        cout<<"\n| ACCUMULATOR COUNTER                   |  "<<mtbl.accumulation_counter<<"\t\t|\n";
+        cout<<"\n| SOCKET POWER LIMIT                    |  "<<(mtbl.socket_power_limit * fraction_uq10)<<" W\t\t|\n";
+        cout<<"\n| MAX SOCKET POWER LIMIT                    |  "<<(mtbl.max_socket_power_limit * fraction_uq10)<<" W\t\t|\n";
+        cout<<"\n| SOCKET POWER                     |  "<<(mtbl.socket_power * fraction_uq10)<<" W\t\t|\n";
+    }
+    cout<<"\n-------------------------------------------------\n";
+
   }
   // Clean up resources allocated at amdsmi_init
   ret = amdsmi_shut_down();
