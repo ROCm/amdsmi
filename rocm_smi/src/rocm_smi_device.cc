@@ -85,6 +85,7 @@ static const char *kDevPerfLevelFName = "power_dpm_force_performance_level";
 static const char *kDevDevProdNameFName = "product_name";
 static const char *kDevDevProdNumFName = "product_number";
 static const char *kDevDevIDFName = "device";
+static const char* kDevXGMIPhysicalIDFName = "xgmi_physical_id";
 static const char *kDevDevRevIDFName = "revision";
 static const char *kDevVendorIDFName = "vendor";
 static const char *kDevBoardInfoFName = "board_info";
@@ -243,6 +244,7 @@ static const std::map<DevInfoTypes, const char *> kDevAttribNameMap = {
     {kDevDevProdName, kDevDevProdNameFName},
     {kDevDevProdNum, kDevDevProdNumFName},
     {kDevDevID, kDevDevIDFName},
+    {kDevXGMIPhysicalID, kDevXGMIPhysicalIDFName},
     {kDevDevRevID, kDevDevRevIDFName},
     {kDevVendorID, kDevVendorIDFName},
     {kDevPCieVendorID, kDevPCieVendorIDFName},
@@ -385,6 +387,7 @@ static const std::map<const char *, dev_depends_t> kDevFuncDependsMap = {
     // Functions with only mandatory dependencies
   {"rsmi_dev_vram_vendor_get",           {{kDevVramVendorFName}, {}}},
   {"rsmi_dev_id_get",                    {{kDevDevIDFName}, {}}},
+  {"rsmi_dev_xgmi_physical_id_get",      {{kDevXGMIPhysicalIDFName}, {}}},
   {"rsmi_dev_revision_get",              {{kDevDevRevIDFName}, {}}},
   {"rsmi_dev_vendor_id_get",             {{kDevVendorIDFName}, {}}},
   {"rsmi_dev_name_get",                  {{kDevVendorIDFName,
@@ -929,6 +932,7 @@ int Device::readDevInfo(DevInfoTypes type, uint64_t *val) {
     case kDevVendorID:
     case kDevPCieVendorID:
     case kDevErrCntFeatures:
+    case kDevXGMIPhysicalID:
       ret = readDevInfoStr(type, &tempStr);
       RET_IF_NONZERO(ret);
 
@@ -1104,6 +1108,7 @@ int Device::readDevInfo(DevInfoTypes type, std::string *val) {
     case kDevComputePartition:
     case kDevMemoryPartition:
     case kDevNumaNode:
+    case kDevXGMIPhysicalID:
       return readDevInfoStr(type, val);
       break;
 

@@ -102,6 +102,7 @@ enum DevInfoTypes {
   kDevOverDriveLevel,
   kDevMemOverDriveLevel,
   kDevDevID,
+  kDevXGMIPhysicalID,
   kDevDevRevID,
   kDevDevProdName,
   kDevDevProdNum,

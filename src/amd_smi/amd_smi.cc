@@ -721,6 +721,11 @@ amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_i
     status =  rsmi_wrapper(rsmi_dev_pcie_vendor_name_get, processor_handle,
                     info->vendor_name, AMDSMI_MAX_STRING_LENGTH);
 
+    // default to 0xffff as not supported
+    info->xgmi_physical_id = std::numeric_limits<uint16_t>::max();
+    status =  rsmi_wrapper(rsmi_dev_xgmi_physical_id_get, processor_handle,
+                    &(info->xgmi_physical_id));
+
     return AMDSMI_STATUS_SUCCESS;
 }
 
