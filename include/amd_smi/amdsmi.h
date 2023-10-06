@@ -444,7 +444,8 @@ typedef struct {
   uint64_t device_id;   //< The device id of a GPU
   uint32_t rev_id;
   char asic_serial[AMDSMI_NORMAL_STRING_LENGTH];
-  uint32_t reserved[19];
+  uint16_t xgmi_physical_id;   //< 0xFFFF if not supported
+  uint16_t reserved[37];
 } amdsmi_asic_info_t;
 
 typedef struct{
