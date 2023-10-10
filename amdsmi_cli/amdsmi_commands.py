@@ -437,11 +437,25 @@ class AMDSMICommands():
 
         if self.helpers.is_hypervisor() or self.helpers.is_baremetal():
             if args.ras:
+                ras_dict = {"eeprom_version": "N/A",
+                            "parity_schema" : "N/A",
+                            "single_bit_schema" : "N/A",
+                            "double_bit_schema" : "N/A",
+                            "poison_schema" : "N/A",
+                            "ecc_block_state": "N/A"}
+
                 try:
-                    static_dict['ras'] = amdsmi_interface.amdsmi_get_gpu_ras_block_features_enabled(args.gpu)
+                    ras_info = amdsmi_interface.amdsmi_get_gpu_ras_feature_info(args.gpu)
+                    ras_dict.update(ras_info)
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict['ras'] = "N/A"
+                    logging.debug("Failed to get ras info for gpu %s | %s", gpu_id, e.get_error_info())
+
+                try:
+                    ras_dict["ecc_block_state"] = amdsmi_interface.amdsmi_get_gpu_ras_block_features_enabled(args.gpu)
+                except amdsmi_exception.AmdSmiLibraryException as e:
                     logging.debug("Failed to get ras block features for gpu %s | %s", gpu_id, e.get_error_info())
+
+                static_dict["ras"] = ras_dict
         if self.helpers.is_linux() and self.helpers.is_baremetal():
             if args.numa:
                 try:
@@ -467,11 +481,11 @@ class AMDSMICommands():
         if self.logger.is_csv_format():
             # expand if ras blocks are populated
             if self.helpers.is_linux() and self.helpers.is_baremetal() and args.ras:
-                if isinstance(static_dict['ras'], list):
-                    ras_dicts = static_dict.pop('ras')
+                if isinstance(static_dict['ras']['ecc_block_state'], list):
+                    ecc_block_dicts = static_dict['ras'].pop('ecc_block_state')
                     multiple_devices_csv_override = True
-                    for ras_dict in ras_dicts:
-                        for key, value in ras_dict.items():
+                    for ecc_block_dict in ecc_block_dicts:
+                        for key, value in ecc_block_dict.items():
                             self.logger.store_output(args.gpu, key, value)
                         self.logger.store_output(args.gpu, 'values', static_dict)
                         self.logger.store_multiple_device_output()

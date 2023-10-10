@@ -832,9 +832,26 @@ def amdsmi_get_gpu_board_info(
     }
 
 
-def amdsmi_get_gpu_ras_block_features_enabled(
+def amdsmi_get_gpu_ras_feature_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+    # Dummy data waiting on population
+    ras_info = {"eeprom_version": "N/A",
+                "parity_schema" : "N/A",
+                "single_bit_schema" : "N/A",
+                "double_bit_schema" : "N/A",
+                "poison_schema" : "N/A"}
+
+    return ras_info
+
+
+def amdsmi_get_gpu_ras_block_features_enabled(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> List[Dict[str, Any]]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
