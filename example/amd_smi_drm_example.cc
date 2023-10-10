@@ -306,6 +306,17 @@ int main() {
             printf("\tVBios Version String: %s\n\n",
                    vbios_info.version);
 
+            // Get Cache info
+            amdsmi_gpu_cache_info_t cache_info = {};
+            ret = amdsmi_get_gpu_cache_info(processor_handles[j], &cache_info);
+            CHK_AMDSMI_RET(ret)
+            printf("    Output of amdsmi_get_gpu_cache_info:\n");
+            for (unsigned int i = 0 ; i < cache_info.num_cache_types; i++) {
+                printf("\tCache Level: %d, Cache Size: %d KB\n",
+                    cache_info.cache[i].cache_level,
+                    cache_info.cache[i].cache_size_kb);
+            }
+
             // Get power measure
             amdsmi_power_info_t power_measure = {};
             ret = amdsmi_get_power_info(processor_handles[j], &power_measure);
