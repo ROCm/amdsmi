@@ -1600,6 +1600,34 @@ amdsmi_get_gpu_bad_page_info(amdsmi_processor_handle processor_handle, uint32_t 
     return AMDSMI_STATUS_SUCCESS;
 }
 
+amdsmi_status_t amdsmi_get_gpu_ras_feature_info(
+  amdsmi_processor_handle processor_handle, amdsmi_ras_feature_t *ras_feature) {
+    AMDSMI_CHECK_INIT();
+
+    if (ras_feature == nullptr) {
+        return AMDSMI_STATUS_INVAL;
+    }
+
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    amdsmi_status_t r = get_gpu_device_from_handle(processor_handle,
+                                &gpu_device);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    rsmi_ras_feature_info_t rsmi_ras_feature;
+    r = rsmi_wrapper(rsmi_ras_feature_info_get, processor_handle,
+                &rsmi_ras_feature);
+
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    ras_feature->ecc_correction_schema_flag
+                = rsmi_ras_feature.ecc_correction_schema_flag;
+    ras_feature->ras_eeprom_version = rsmi_ras_feature.ras_eeprom_version;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
 amdsmi_status_t
 amdsmi_get_gpu_total_ecc_count(amdsmi_processor_handle processor_handle, amdsmi_error_count_t *ec) {
     AMDSMI_CHECK_INIT();

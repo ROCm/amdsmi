@@ -129,6 +129,8 @@ enum DevInfoTypes {
   kDevErrCntPCIEBIF,
   kDevErrCntHDP,
   kDevErrCntXGMIWAFL,
+  kDevErrTableVersion,
+  kDevErrRASSchema,
   kDevErrCntFeatures,
   kDevMemTotGTT,
   kDevMemTotVisVRAM,

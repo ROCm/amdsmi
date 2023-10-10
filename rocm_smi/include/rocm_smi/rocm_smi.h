@@ -1060,6 +1060,16 @@ typedef struct {
 } rsmi_error_count_t;
 
 /**
+ * @brief This structure holds ras feature
+ */
+typedef struct {
+  uint32_t ras_eeprom_version;
+  // PARITY error(bit 0), Single Bit correctable (bit1),
+  // Double bit error detection (bit2), Poison (bit 3).
+  uint32_t ecc_correction_schema_flag;    //!< ecc_correction_schema mask
+} rsmi_ras_feature_info_t;
+
+/**
  * @brief This structure contains information specific to a process.
  */
 typedef struct {
@@ -3279,6 +3289,33 @@ rsmi_status_t rsmi_dev_ecc_enabled_get(uint32_t dv_ind,
  */
 rsmi_status_t rsmi_dev_ecc_status_get(uint32_t dv_ind, rsmi_gpu_block_t block,
                                                   rsmi_ras_err_state_t *state);
+
+
+/**
+ *  @brief Returns RAS features info.
+ *
+ *  @details Given a device index @p dv_ind, and
+ *  a pointer to an ::rsmi_ras_feature_info_t  @p ras_feature, this function will write
+ *  the ras feature info to memory pointed to by @p ras_feature.
+ *
+ *  @param[in] dv_ind a device index
+ *
+ *  @param[inout] ras_feature A pointer to an ::rsmi_ras_feature_info_t to which the
+ *  RAS info should be written
+ *  If this parameter is nullptr, this function will return
+ *  ::RSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  arguments and ::RSMI_STATUS_NOT_SUPPORTED if it is not supported with the
+ *  provided arguments.
+ *
+ *  @retval ::RSMI_STATUS_SUCCESS call was successful
+ *  @retval ::RSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
+ *  support this function with the given arguments
+ *  @retval ::RSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ */
+rsmi_status_t rsmi_ras_feature_info_get(
+  uint32_t dv_ind, rsmi_ras_feature_info_t *ras_feature);
+
+
 /**
  *  @brief Get a description of a provided RSMI error status
  *
