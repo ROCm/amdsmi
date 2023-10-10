@@ -549,6 +549,34 @@ def amdsmi_get_socket_handles() -> List[amdsmi_wrapper.amdsmi_socket_handle]:
 
     return sockets
 
+def amdsmi_get_cpusocket_handles() -> List[amdsmi_wrapper.amdsmi_cpusocket_handle]:
+    """
+    Function that gets cpu socket handles. Wraps the same named function call.
+
+    Parameters:
+        `None`.
+
+    Returns:
+        `List`: List containing all of the found cpu socket handles.
+    """
+    socket_count = ctypes.c_uint32(0)
+    null_ptr = ctypes.POINTER(amdsmi_wrapper.amdsmi_cpusocket_handle)()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpusocket_handles(
+            ctypes.byref(socket_count), null_ptr)
+    )
+    socket_handles = (amdsmi_wrapper.amdsmi_cpusocket_handle *
+                      socket_count.value)()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpusocket_handles(
+            ctypes.byref(socket_count), socket_handles)
+    )
+    sockets = [
+        amdsmi_wrapper.amdsmi_cpusocket_handle(socket_handles[sock_idx])
+        for sock_idx in range(socket_count.value)
+    ]
+
+    return sockets
 
 def amdsmi_get_socket_info(socket_handle):
     if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_socket_handle):
@@ -562,6 +590,19 @@ def amdsmi_get_socket_info(socket_handle):
     )
 
     return socket_info.value.decode()
+
+def amdsmi_get_cpusocket_info(socket_handle):
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle)
+
+    socket_id = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpusocket_info(
+            socket_handle, socket_id)
+    )
+
+    return socket_id
 
 def amdsmi_get_processor_handles() -> List[amdsmi_wrapper.amdsmi_processor_handle]:
     socket_handles = amdsmi_get_socket_handles()
@@ -594,6 +635,69 @@ def amdsmi_get_processor_handles() -> List[amdsmi_wrapper.amdsmi_processor_handl
 
     return devices
 
+def amdsmi_get_cpucore_handles() -> List[amdsmi_wrapper.amdsmi_processor_handle]:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    processors = []
+    for socket in socket_handles:
+        processor_count = ctypes.c_uint32()
+        null_ptr = ctypes.POINTER(amdsmi_wrapper.amdsmi_processor_handle)()
+        _check_res(
+            amdsmi_wrapper.amdsmi_get_cpucore_handles(
+                socket,
+                ctypes.byref(processor_count),
+                null_ptr,
+            )
+        )
+        processor_handles = (
+            amdsmi_wrapper.amdsmi_processor_handle * processor_count.value)()
+        _check_res(
+            amdsmi_wrapper.amdsmi_get_cpucore_handles(
+                socket,
+                ctypes.byref(processor_count),
+                processor_handles,
+            )
+        )
+        processors.extend(
+            [
+                amdsmi_wrapper.amdsmi_processor_handle(processor_handles[dev_idx])
+                for dev_idx in range(processor_count.value)
+            ]
+        )
+
+    return processors
+
+def amdsmi_get_cpu_hsmp_proto_ver(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle,
+) -> int:
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+
+    proto_ver = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpu_hsmp_proto_ver(
+            socket_handle, ctypes.byref(proto_ver)
+        )
+    )
+
+    return proto_ver.value
+
+def amdsmi_get_cpu_smu_fw_version(socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle):
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+
+    smu_fw = amdsmi_wrapper.amdsmi_smu_fw_version_t()
+
+    _check_res(amdsmi_wrapper.amdsmi_get_cpu_smu_fw_version(socket_handle, smu_fw))
+
+    return {
+        "smu_fw_debug_ver_num": smu_fw.debug,
+        "smu_fw_minor_ver_num": smu_fw.minor,
+        "smu_fw_major_ver_num": smu_fw.major
+    }
 
 def amdsmi_get_cpu_core_energy(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, core_idx: int
