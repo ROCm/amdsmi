@@ -112,6 +112,8 @@ amd::smi::RocmSMI::devInfoTypesStrings = {
   {amd::smi::kDevErrCntHDP, amdSMI + "kDevErrCntHDP"},
   {amd::smi::kDevErrCntXGMIWAFL, amdSMI + "kDevErrCntXGMIWAFL"},
   {amd::smi::kDevErrCntFeatures, amdSMI + "kDevErrCntFeatures"},
+  {amd::smi::kDevErrRASSchema, amdSMI + "kDevErrRASSchema"},
+  {amd::smi::kDevErrTableVersion, amdSMI + "kDevErrTableVersion"},
   {amd::smi::kDevMemTotGTT, amdSMI + "kDevMemTotGTT"},
   {amd::smi::kDevMemTotVisVRAM, amdSMI + "kDevMemTotVisVRAM"},
   {amd::smi::kDevMemTotVRAM, amdSMI + "kDevMemTotVRAM"},

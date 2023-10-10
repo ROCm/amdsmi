@@ -1164,6 +1164,16 @@ typedef struct {
 } amdsmi_gpu_metrics_t;
 
 /**
+ * @brief This structure holds ras feature
+ */
+typedef struct {
+  uint32_t ras_eeprom_version;
+  // PARITY error(bit 0), Single Bit correctable (bit1),
+  // Double bit error detection (bit2), Poison (bit 3).
+  uint32_t ecc_correction_schema_flag;    //!< ecc_correction_schema mask
+} amdsmi_ras_feature_t;
+
+/**
  * @brief This structure holds error counts.
  */
 typedef struct {
@@ -2003,6 +2013,20 @@ amdsmi_get_gpu_memory_usage(amdsmi_processor_handle processor_handle, amdsmi_mem
  */
 amdsmi_status_t
 amdsmi_get_gpu_bad_page_info(amdsmi_processor_handle processor_handle, uint32_t *num_pages, amdsmi_retired_page_record_t *info);
+
+/**
+ *  @brief Returns RAS features info.
+ *
+ *  @param[in] processor_handle Device handle which to query
+ *
+ *  @param[out] ras_feature RAS features that are currently enabled and supported on
+ *  the processor. Must be allocated by user.
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_get_gpu_ras_feature_info(
+  amdsmi_processor_handle processor_handle, amdsmi_ras_feature_t *ras_feature);
+
 
 /**
  * @brief Returns if RAS features are enabled or disabled for given block. It is not
