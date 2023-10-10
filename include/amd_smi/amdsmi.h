@@ -418,7 +418,7 @@ typedef struct {
 
 typedef struct {
   uint32_t num_cache_types;
-  struct {
+  struct cache_ {
     uint32_t cache_size_kb; /* In KB */
     uint32_t cache_level;
     uint32_t reserved[3];
