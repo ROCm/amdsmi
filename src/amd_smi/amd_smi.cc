@@ -1609,19 +1609,32 @@ amdsmi_get_gpu_total_ecc_count(amdsmi_processor_handle processor_handle, amdsmi_
     }
 
     amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
-    amdsmi_status_t r = get_gpu_device_from_handle(processor_handle, &gpu_device);
-    if (r != AMDSMI_STATUS_SUCCESS)
-        return r;
+    amdsmi_status_t status = get_gpu_device_from_handle(processor_handle, &gpu_device);
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
 
-    amdsmi_status_t status;
     if (gpu_device->check_if_drm_is_supported()){
-        status = smi_amdgpu_get_ecc_error_count(gpu_device, ec);
-        if (status != AMDSMI_STATUS_SUCCESS) {
-            return status;
+        amdsmi_ras_err_state_t state = {};
+        // Iterate through the ecc blocks
+        for (auto block = AMDSMI_GPU_BLOCK_FIRST; block <= AMDSMI_GPU_BLOCK_LAST;
+                block = (amdsmi_gpu_block_t)(block * 2)) {
+            // Clear the previous ecc block counts
+            amdsmi_error_count_t block_ec = {};
+            // Check if the current ecc block is enabled
+            status = amdsmi_get_gpu_ras_block_features_enabled(processor_handle, block, &state);
+            if (status == AMDSMI_STATUS_SUCCESS && state == AMDSMI_RAS_ERR_STATE_ENABLED) {
+                // Increment the total ecc counts by the ecc block counts
+                status = amdsmi_get_gpu_ecc_count(processor_handle, block, &block_ec);
+                if (status == AMDSMI_STATUS_SUCCESS) {
+                    // Increase the total ecc counts
+                    ec->correctable_count += block_ec.correctable_count;
+                    ec->uncorrectable_count += block_ec.uncorrectable_count;
+                }
+            }
         }
     }
     else {
-        // rocm
+        return AMDSMI_STATUS_NOT_SUPPORTED;
     }
 
     return AMDSMI_STATUS_SUCCESS;
