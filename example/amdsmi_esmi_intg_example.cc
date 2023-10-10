@@ -436,15 +436,15 @@ int main(int argc, char **argv) {
 
     cout<<"\n-------------------------------------------------\n";
 
-    amdsmi_dimm_power_t pow;
+    amdsmi_dimm_power_t p;
     cout<<"\n| Socket DIMM power consumption\t\t |\n";
-    ret = amdsmi_get_cpu_dimm_power_consumption(sockets[i], i, dimm_addr, &pow);
+    ret = amdsmi_get_cpu_dimm_power_consumption(sockets[i], i, dimm_addr, &p);
     CHK_AMDSMI_RET(ret)
 
     if(ret) {
-        cout<<"\n| Power(mWatts)\t\t |"<<pow.power<<"\t|"<<endl;
-        cout<<"\n| Power update rate(ms)\t |"<<pow.update_rate<<"\t|"<<endl;
-        cout<<"\n| Dimm address \t\t |"<<pow.dimm_addr<<"\t|"<<endl;
+        cout<<"\n| Power(mWatts)\t\t |"<<p.power<<"\t|"<<endl;
+        cout<<"\n| Power update rate(ms)\t |"<<p.update_rate<<"\t|"<<endl;
+        cout<<"\n| Dimm address \t\t |"<<p.dimm_addr<<"\t|"<<endl;
     } else
         cout<<"Failed: to get socket"<<"["<<i<<"] DIMM power and update rate, Err["<<ret<<"]: "
             <<*amdsmi_get_esmi_err_msg(ret, &err_str1)<<endl;
