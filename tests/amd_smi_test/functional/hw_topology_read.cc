@@ -137,7 +137,7 @@ void TestHWTopologyRead::Run(void) {
         gpu_links[dv_ind_src][dv_ind_dst].weight = 0;
         gpu_links[dv_ind_src][dv_ind_dst].accessible = true;
       } else {
-        AMDSMI_IO_LINK_TYPE type;
+        amdsmi_io_link_type_t type;
         err = amdsmi_topo_get_link_type(processor_handles_[dv_ind_src], 
                 processor_handles_[dv_ind_dst],
                 &gpu_links[dv_ind_src][dv_ind_dst].hops, &type);

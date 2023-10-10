@@ -264,6 +264,8 @@ TEST(amdsmitstReadOnly, TestMutualExclusion) {
   RunCustomTestEpilog(&tst);
 }
 */
+// TODO: add TestComputePartitionReadWrite
+// TODO: add TestMemoryPartitionReadWrite
 TEST(amdsmitstReadWrite, TestEvtNotifReadWrite) {
   TestEvtNotifReadWrite tst;
   RunGenericTest(&tst);
