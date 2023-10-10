@@ -3282,6 +3282,26 @@ rsmi_dev_memory_total_get(uint32_t dv_ind, rsmi_memory_type_t mem_type,
   return ret;
   CATCH
 }
+
+
+rsmi_status_t rsmi_dev_cache_info_get(
+      uint32_t dv_ind, rsmi_gpu_cache_info_t *info) {
+  TRY
+  rsmi_status_t ret;
+  std::ostringstream ss;
+  ss << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ss);
+
+  if (info == nullptr) return RSMI_STATUS_INVALID_ARGS;
+
+  GET_DEV_AND_KFDNODE_FROM_INDX
+
+  if (kfd_node->get_cache_info(info) == 0) return RSMI_STATUS_SUCCESS;
+
+  return RSMI_STATUS_NOT_SUPPORTED;
+  CATCH
+}
+
 rsmi_status_t
 rsmi_dev_memory_usage_get(uint32_t dv_ind, rsmi_memory_type_t mem_type,
                                                               uint64_t *used) {
