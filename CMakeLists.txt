@@ -39,8 +39,8 @@ set(${AMD_SMI_LIBS_TARGET}_VERSION_BUILD "0")
 # ABI breaks (update MAJOR and MINOR), and ABI/API additions (update MINOR).
 # Until ABI stabilizes VERSION_MAJOR will be 0. This should be over-ridden
 # by git tags (through "git describe") when they are present.
-set(PKG_VERSION_MAJOR 1)
-set(PKG_VERSION_MINOR 0)
+set(PKG_VERSION_MAJOR "${VERSION_MAJOR}")
+set(PKG_VERSION_MINOR "${VERSION_MINOR}")
 set(PKG_VERSION_PATCH 0)
 set(PKG_VERSION_NUM_COMMIT 0)
 
@@ -139,6 +139,7 @@ set(CMN_INC_LIST
     "${ROCM_INC_DIR}/rocm_smi_common.h"
     "${ROCM_INC_DIR}/rocm_smi_counters.h"
     "${ROCM_INC_DIR}/rocm_smi_device.h"
+    "${ROCM_INC_DIR}/rocm_smi_gpu_metrics.h"
     "${ROCM_INC_DIR}/rocm_smi_exception.h"
     "${ROCM_INC_DIR}/rocm_smi_io_link.h"
     "${ROCM_INC_DIR}/rocm_smi_kfd.h"

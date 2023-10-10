@@ -951,7 +951,7 @@ amdsmi_status_t
 
 amdsmi_status_t
 amdsmi_topo_get_link_type(amdsmi_processor_handle processor_handle_src, amdsmi_processor_handle processor_handle_dst,
-                        uint64_t *hops, AMDSMI_IO_LINK_TYPE *type) {
+                        uint64_t *hops, amdsmi_io_link_type_t *type) {
     AMDSMI_CHECK_INIT();
 
     amd::smi::AMDSmiGPUDevice* src_device = nullptr;
