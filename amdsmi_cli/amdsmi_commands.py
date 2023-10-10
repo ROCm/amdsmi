@@ -1003,19 +1003,22 @@ class AMDSMICommands():
                 values_dict['ecc'] = ecc_count
             if args.ecc_block:
                 ecc_dict = {}
+                uncountable_blocks = ["ATHUB", "DF", "SMN", "SEM", "MP0", "MP1", "FUSE"]
                 try:
                     ras_states = amdsmi_interface.amdsmi_get_gpu_ras_block_features_enabled(args.gpu)
                     for state in ras_states:
                         if state['status'] == amdsmi_interface.AmdSmiRasErrState.ENABLED.name:
                             gpu_block = amdsmi_interface.AmdSmiGpuBlock[state['block']]
-                            try:
-                                ecc_count = amdsmi_interface.amdsmi_get_gpu_ecc_count(args.gpu, gpu_block)
-                                ecc_dict[state['block']] = {'correctable' : ecc_count['correctable_count'],
-                                                            'uncorrectable': ecc_count['uncorrectable_count']}
-                            except amdsmi_exception.AmdSmiLibraryException as e:
-                                ecc_dict[state['block']] = {'correctable' : "N/A",
-                                                            'uncorrectable': "N/A"}
-                                logging.debug("Failed to get ecc count for gpu %s at block %s | %s", gpu_id, gpu_block, e.get_error_info())
+                            # if the blocks are uncountable do not add them at all.
+                            if gpu_block.name not in uncountable_blocks:
+                                try:
+                                    ecc_count = amdsmi_interface.amdsmi_get_gpu_ecc_count(args.gpu, gpu_block)
+                                    ecc_dict[state['block']] = {'correctable' : ecc_count['correctable_count'],
+                                                                'uncorrectable': ecc_count['uncorrectable_count']}
+                                except amdsmi_exception.AmdSmiLibraryException as e:
+                                    ecc_dict[state['block']] = {'correctable' : "N/A",
+                                                                'uncorrectable': "N/A"}
+                                    logging.debug("Failed to get ecc count for gpu %s at block %s | %s", gpu_id, gpu_block, e.get_error_info())
 
                     values_dict['ecc_block'] = ecc_dict
                 except amdsmi_exception.AmdSmiLibraryException as e:
