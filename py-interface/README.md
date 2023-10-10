@@ -942,6 +942,46 @@ except AmdSmiException as e:
     print(e)
 ```
 
+### amdsmi_get_gpu_ras_feature_info
+
+Description: Returns RAS version and schema information
+It is not supported on virtual machine guest
+
+Input parameters:
+
+* `processor_handle` device which to query
+
+Output: List containing dictionaries with fields
+
+Field | Description
+---|---
+`eeprom_version` | eeprom version
+`parity_schema` | parity schema
+`single_bit_schema` | single bit schema
+`double_bit_schema` | double bit schema
+`poison_schema` | poison schema
+
+Exceptions that can be thrown by `amdsmi_get_gpu_ras_feature_info` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            ras_info = amdsmi_get_gpu_ras_feature_info(device)
+            print(ras_info)
+except AmdSmiException as e:
+    print(e)
+```
+
 ### amdsmi_get_gpu_ras_block_features_enabled
 
 Description: Returns status of each RAS block for the given GPU.
