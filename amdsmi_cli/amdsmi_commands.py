@@ -209,7 +209,8 @@ class AMDSMICommands():
                 asic_info['rev_id'] = hex(asic_info['rev_id'])
                 if asic_info['asic_serial'] != '':
                     asic_info['asic_serial'] = hex(int(asic_info['asic_serial'], base=16))
-
+                if asic_info['xgmi_physical_id'] == 0xFFFF: # uint 16 max
+                    asic_info['xgmi_physical_id'] = "N/A"
                 static_dict['asic'] = asic_info
             except amdsmi_exception.AmdSmiLibraryException as e:
                 static_dict['asic'] = "N/A"
