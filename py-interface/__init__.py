@@ -29,6 +29,21 @@ from .amdsmi_interface import amdsmi_get_processor_handles
 from .amdsmi_interface import amdsmi_get_socket_handles
 from .amdsmi_interface import amdsmi_get_socket_info
 
+from .amdsmi_interface import amdsmi_get_cpusocket_handles
+from .amdsmi_interface import amdsmi_get_cpusocket_info
+from .amdsmi_interface import amdsmi_get_cpucore_handles
+from .amdsmi_interface import amdsmi_get_cpu_hsmp_proto_ver
+from .amdsmi_interface import amdsmi_get_cpu_smu_fw_version
+from .amdsmi_interface import amdsmi_get_cpu_core_energy
+from .amdsmi_interface import amdsmi_get_cpu_socket_energy
+from .amdsmi_interface import amdsmi_get_cpu_prochot_status
+from .amdsmi_interface import amdsmi_get_cpu_fclk_mclk
+from .amdsmi_interface import amdsmi_get_cpu_cclk_limit
+from .amdsmi_interface import amdsmi_get_cpu_socket_current_active_freq_limit
+from .amdsmi_interface import amdsmi_get_cpu_socket_freq_range
+from .amdsmi_interface import amdsmi_get_cpu_core_current_freq_limit
+from .amdsmi_interface import amdsmi_get_cpu_socket_power
+
 from .amdsmi_interface import amdsmi_get_gpu_device_bdf
 from .amdsmi_interface import amdsmi_get_gpu_device_uuid
 from .amdsmi_interface import amdsmi_get_processor_handle_from_bdf
