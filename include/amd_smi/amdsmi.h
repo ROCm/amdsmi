@@ -1266,6 +1266,15 @@ typedef struct {
 } amdsmi_dimm_thermal_t;
 
 /**
+ * @brief xGMI Bandwidth Encoding types
+ */
+typedef enum {
+    AGG_BW0 = 1, //!< Aggregate Bandwidth
+    RD_BW0 = 2,      //!< Read Bandwidth
+    WR_BW0 = 4       //!< Write Bandwdith
+} amdsmi_io_bw_encoding_t;
+
+/**
  * @brief LINK name and Bandwidth type Information.It contains
  * link names i.e valid link names are
  * "P0", "P1", "P2", "P3", "P4", "G0", "G1", "G2", "G3", "G4"
@@ -1273,7 +1282,7 @@ typedef struct {
  * Valid bandwidth types 1(Aggregate_BW), 2 (Read BW), 4 (Write BW).
  */
 typedef struct {
-    io_bw_encoding bw_type;         //!< Bandwidth Type Information [1, 2, 4]
+    amdsmi_io_bw_encoding_t bw_type;         //!< Bandwidth Type Information [1, 2, 4]
     char *link_name;            //!< Link name [P0, P1, G0, G1 etc]
 } amdsmi_link_id_bw_type_t;
 

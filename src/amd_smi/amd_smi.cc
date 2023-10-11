@@ -2826,7 +2826,7 @@ amdsmi_status_t amdsmi_get_cpu_current_io_bandwidth(amdsmi_cpusocket_handle sock
         return status;
 
     link.link_name = io_link.link_name;
-    link.bw_type= io_link.bw_type;
+    link.bw_type = static_cast<amdsmi_io_bw_encoding_t>(io_link.bw_type);
     *io_bw = bw;
 
     return AMDSMI_STATUS_SUCCESS;
@@ -2852,7 +2852,7 @@ amdsmi_status_t amdsmi_get_cpu_current_xgmi_bw(amdsmi_cpusocket_handle socket_ha
         return status;
 
     link.link_name = io_link.link_name;
-    link.bw_type= io_link.bw_type;
+    link.bw_type= static_cast<amdsmi_io_bw_encoding_t>(io_link.bw_type);
     *xgmi_bw = bw;
 
     return AMDSMI_STATUS_SUCCESS;

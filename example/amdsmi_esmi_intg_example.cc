@@ -135,24 +135,6 @@ int main(int argc, char **argv) {
     uint32_t err_bits = 0;
 
     uint64_t pkg_input;
-    cout<<"\n-------------------------------------------------";
-    cout<<"\n| Sensor Name\t\t\t |";
-    for (uint32_t i = 0; i < socket_count; i++) {
-        cout<<setprecision(3)<<" Socket "<<i<<"\t|";
-    }
-    cout<<"\n-------------------------------------------------";
-    cout<<"\n| Energy (K Joules)\t\t | ";
-
-    ret = amdsmi_get_cpu_socket_energy(sockets[i], i, &pkg_input);
-    CHK_AMDSMI_RET(ret)
-
-    if (!ret) {
-        cout<<setprecision(7)<<static_cast<double>(pkg_input)/1000000000<<"\t|";
-    } else {
-        err_bits |= 1 << ret;
-        cout<<" NA (Err:" <<ret<<"     |";
-    }
-    cout<<"\n-------------------------------------------------\n";
 
     err_bits = 0;
     uint32_t prochot;
@@ -209,31 +191,6 @@ int main(int argc, char **argv) {
     CHK_AMDSMI_RET(ret)
     cout<<"\n| SOCKET["<<i<<"] core clock current frequency limit (MHz) : "<<cclk<<"\t|\n";
     cout<<"-----------------------------------------------------------------\n";
-
-    uint64_t core_input = 0;
-    ret = amdsmi_get_cpu_core_energy(processor_handles[i], i, &core_input);
-    CHK_AMDSMI_RET(ret)
-    cout<<"\n-------------------------------------------------";
-    cout<<"\n| core["<<i<<"] energy  | "<<setprecision(7)
-        <<static_cast<double>(core_input)/1000000<<" Joules\t\t|\n";
-    cout<<"-------------------------------------------------\n";
-
-    core_input = 0;
-    cout<<"\n| CPU energies in Joules:\t\t\t\t\t\t\t\t\t|";
-    for (uint32_t j = 0; j < core_count; j++) {
-        ret = amdsmi_get_cpu_core_energy(processor_handles[j], j, &core_input);
-        CHK_AMDSMI_RET(ret)
-        if(!(j % 8)) {
-            if(j < 10)
-                cout<<"\n| cpu [0"<<j<<"] :";
-            else
-                cout<<"\n| cpu ["<<j<<"] :";
-        }
-        cout<<setw(8)<<right<<fixed<<setprecision(3)<<static_cast<double>(core_input)/1000000<<"  ";
-        if (j % 8 == 7)
-            cout<<"\t|";
-    }
-        cout<<"\n-------------------------------------------------\n";
 
     uint32_t c_clk = 0;
     ret = amdsmi_get_cpu_core_current_freq_limit(processor_handles[i], i, &c_clk);
@@ -597,7 +554,7 @@ int main(int argc, char **argv) {
     uint32_t bw;
     char *link = "P0";
     io_link.link_name = link;
-    io_link.bw_type = static_cast<io_bw_encoding>(1) ;
+    io_link.bw_type = static_cast<amdsmi_io_bw_encoding_t>(1) ;
     ret = amdsmi_get_cpu_current_io_bandwidth(sockets[i], i, io_link, &bw);
     CHK_AMDSMI_RET(ret)
 
@@ -614,7 +571,7 @@ int main(int argc, char **argv) {
     char *link1 = "P0";
     int bw_ind = 1;
     xgmi_link.link_name = link1;
-    xgmi_link.bw_type = static_cast<io_bw_encoding>(1<<bw_ind) ;
+    xgmi_link.bw_type = static_cast<amdsmi_io_bw_encoding_t>(1<<bw_ind) ;
     ret = amdsmi_get_cpu_current_xgmi_bw(sockets[i], xgmi_link, &bw1);
     CHK_AMDSMI_RET(ret)
 
