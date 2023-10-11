@@ -595,6 +595,186 @@ def amdsmi_get_processor_handles() -> List[amdsmi_wrapper.amdsmi_processor_handl
     return devices
 
 
+def amdsmi_get_cpu_core_energy(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle, core_idx: int
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+    if not isinstance(core_idx, int):
+        raise AmdSmiParameterException(core_idx, int)
+
+    penergy = ctypes.c_uint64()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpu_core_energy(
+            processor_handle, core_idx, ctypes.byref(penergy)
+        )
+    )
+
+    return penergy.value
+
+def amdsmi_get_cpu_socket_energy(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle, sock_idx: int
+) -> int:
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+
+    penergy = ctypes.c_uint64()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpu_socket_energy(
+            socket_handle, sock_idx, ctypes.byref(penergy)
+        )
+    )
+
+    return penergy.value
+
+def amdsmi_get_cpu_prochot_status(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle, sock_idx: int
+) -> int:
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+
+    prochot = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpu_socket_energy(
+            socket_handle, sock_idx, ctypes.byref(prochot)
+        )
+    )
+
+    return prochot.value
+
+def amdsmi_get_cpu_fclk_mclk(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle, sock_idx: int
+):
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+
+    fclk = ctypes.c_uint32()
+    mclk = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpu_fclk_mclk(
+            socket_handle, sock_idx, ctypes.byref(fclk), ctypes.byref(mclk)
+        )
+    )
+
+    return {
+       "fclk": fclk.value,
+       "mclk": mclk.value
+    }
+
+def amdsmi_get_cpu_cclk_limit(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle, sock_idx: int
+) -> int:
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+
+    cclk = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpu_cclk_limit(
+            socket_handle, sock_idx, ctypes.byref(cclk)
+        )
+    )
+
+    return cclk.value
+
+def amdsmi_get_cpu_socket_current_active_freq_limit(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle, sock_idx: int
+) -> int:
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+
+    freq = ctypes.c_uint16()
+    src_type = ctypes.pointer(ctypes.pointer(ctypes.c_char()))
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpu_socket_current_active_freq_limit(
+            socket_handle, sock_idx, ctypes.byref(freq), src_type
+        )
+    )
+
+    return freq.value
+
+def amdsmi_get_cpu_socket_freq_range(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle, sock_idx: int
+):
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+
+    freq_max = ctypes.c_uint16()
+    freq_min = ctypes.c_uint16()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpu_socket_freq_range(
+            socket_handle, sock_idx, ctypes.byref(freq_max), ctypes.byref(freq_min)
+        )
+    )
+
+    return {
+       "max_socket_freq": freq_max.value,
+       "min_socket_freq": freq_min.value
+    }
+
+def amdsmi_get_cpu_core_current_freq_limit(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle, core_idx: int
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+    if not isinstance(core_idx, int):
+        raise AmdSmiParameterException(core_idx, int)
+
+    freq = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpu_core_current_freq_limit(
+            processor_handle, core_idx, ctypes.byref(freq)
+        )
+    )
+
+    return freq.value
+
+def amdsmi_get_cpu_socket_power(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle, sock_idx: int
+) -> int:
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+
+    ppower = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpu_socket_power(
+            socket_handle, sock_idx, ctypes.byref(ppower)
+        )
+    )
+
+    return ppower.value
+
 def amdsmi_init(flag=AmdSmiInitFlags.INIT_AMD_GPUS):
     if not isinstance(flag, AmdSmiInitFlags):
         raise AmdSmiParameterException(flag, AmdSmiInitFlags)
