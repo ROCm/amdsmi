@@ -40,6 +40,7 @@ from .amdsmi_interface import amdsmi_get_gpu_driver_info
 from .amdsmi_interface import amdsmi_get_gpu_asic_info
 from .amdsmi_interface import amdsmi_get_power_cap_info
 from .amdsmi_interface import amdsmi_get_gpu_vram_info
+from .amdsmi_interface import amdsmi_get_gpu_cache_info
 
 # # Microcode and VBIOS Information
 from .amdsmi_interface import amdsmi_get_gpu_vbios_info

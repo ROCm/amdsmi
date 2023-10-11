@@ -424,6 +424,85 @@ except AmdSmiException as e:
     print(e)
 ```
 
+### amdsmi_get_gpu_vram_info
+
+Description: Returns dictionary of vram information for the given GPU.
+
+Input parameters:
+
+* `processor_handle` device which to query
+
+Output: Dictionary with fields
+
+Field | Description
+---|---
+`vram_type` |  vram type
+`vram_vendor` |  vram vendor
+`vram_size_mb` |  vram size in mb
+
+Exceptions that can be thrown by `amdsmi_get_gpu_vram_info` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            vram_info = amdsmi_get_gpu_vram_info(device)
+            print(vram_info['vram_type'])
+            print(vram_info['vram_vendor'])
+            print(vram_info['vram_size_mb'])
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_gpu_cache_info
+
+Description: Returns dictionary of cache information for the given GPU.
+
+Input parameters:
+
+* `processor_handle` device which to query
+
+Output: Dictionary of Dictionaries containing cache information
+
+Field | Description
+---|---
+`cache #` |  upt 10 caches will be available
+`cache_size` | size of cache in KB
+`cache_level` | level of cache
+
+Exceptions that can be thrown by `amdsmi_get_gpu_cache_info` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            cache_info = amdsmi_get_gpu_cache_info(device)
+            for cache_index, cache_values in cache_info.items():
+                print(cache_index)
+                print(cache_values['cache_size'])
+                print(cache_values['cache_level'])
+except AmdSmiException as e:
+    print(e)
+```
+
 ### amdsmi_get_gpu_vbios_info
 
 Description:  Returns the static information for the VBIOS on the device.
