@@ -176,6 +176,7 @@ Static Arguments:
   -d, --driver                                    Displays driver version
   -r, --ras                                       Displays RAS features information
   -v, --vram                                      All vram information
+  -c, --cache                                     All cache information
   -B, --board                                     All board information
   -l, --limit                                     All limit metric values (i.e. power and thermal limits)
   -u, --numa                                      All numa node information

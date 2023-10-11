@@ -293,11 +293,12 @@ class AMDSMIParser(argparse.ArgumentParser):
         vbios_help = "All video bios information (if available)"
         limit_help = "All limit metric values (i.e. power and thermal limits)"
         driver_help = "Displays driver version"
+        vram_help = "All vram information"
+        cache_help = "All cache information"
+        board_help = "All board information"
 
         # Options arguments help text for Hypervisors and Baremetal
         ras_help = "Displays RAS features information"
-        vram_help = "All vram information"
-        board_help = "All board information" # Linux Baremetal only
         numa_help = "All numa node information" # Linux Baremetal only
 
         # Options arguments help text for Hypervisors
@@ -321,6 +322,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         static_parser.add_argument('-V', '--vbios', action='store_true', required=False, help=vbios_help)
         static_parser.add_argument('-d', '--driver', action='store_true', required=False, help=driver_help)
         static_parser.add_argument('-v', '--vram', action='store_true', required=False, help=vram_help)
+        static_parser.add_argument('-c', '--cache', action='store_true', required=False, help=cache_help)
         static_parser.add_argument('-B', '--board', action='store_true', required=False, help=board_help)
 
         # Options to display on Hypervisors and Baremetal

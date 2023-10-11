@@ -691,6 +691,30 @@ def amdsmi_get_gpu_vram_info(
     }
 
 
+def amdsmi_get_gpu_cache_info(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> Dict[str, Any]:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    cache_info = amdsmi_wrapper.amdsmi_gpu_cache_info_t()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_cache_info(
+            processor_handle, ctypes.byref(cache_info))
+    )
+
+    cache_info_dict = {}
+    for cache_index in range(cache_info.num_cache_types):
+        cache_size = cache_info.cache[cache_index].cache_size_kb
+        cache_level = cache_info.cache[cache_index].cache_level
+        cache_info_dict[f"cache {cache_index}"] = {"cache_size": cache_size,
+                                                   "cache_level": cache_level}
+
+    return cache_info_dict
+
+
 def amdsmi_get_gpu_vbios_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:

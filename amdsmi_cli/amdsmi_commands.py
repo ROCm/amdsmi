@@ -131,7 +131,7 @@ class AMDSMICommands():
 
     def static(self, args, multiple_devices=False, gpu=None, asic=None,
                 bus=None, vbios=None, limit=None, driver=None,
-                ras=None, board=None, numa=None, vram=None):
+                ras=None, board=None, numa=None, vram=None, cache=None):
         """Get Static information for target gpu
 
         Args:
@@ -147,6 +147,7 @@ class AMDSMICommands():
             board (bool, optional): Value override for args.board. Defaults to None.
             numa (bool, optional): Value override for args.numa. Defaults to None.
             vram (bool, optional): Value override for args.vram. Defaults to None.
+            cache (bool, optional): Value override for args.cache. Defaults to None.
 
         Raises:
             IndexError: Index error if gpu list is empty
@@ -171,6 +172,8 @@ class AMDSMICommands():
             args.driver = driver
         if vram:
             args.vram = vram
+        if cache:
+            args.cache = cache
         if self.helpers.is_linux() and self.helpers.is_baremetal():
             if ras:
                 args.ras = ras
@@ -189,11 +192,11 @@ class AMDSMICommands():
 
         # If all arguments are False, it means that no argument was passed and the entire static should be printed
         if self.helpers.is_linux() and self.helpers.is_baremetal():
-            if not any([args.asic, args.bus, args.vbios, args.limit, args.board, args.ras, args.driver, args.numa, args.vram]):
-                args.asic = args.bus = args.vbios = args.limit = args.board = args.ras = args.driver = args.numa = args.vram = self.all_arguments = True
+            if not any([args.asic, args.bus, args.vbios, args.limit, args.board, args.ras, args.driver, args.numa, args.vram, args.cache]):
+                args.asic = args.bus = args.vbios = args.limit = args.board = args.ras = args.driver = args.numa = args.vram = args.cache = self.all_arguments = True
         if self.helpers.is_linux() and self.helpers.is_virtual_os():
-            if not any([args.asic, args.bus, args.vbios, args.board, args.driver, args.vram]):
-                args.asic = args.bus = args.vbios = args.board = args.driver = args.vram = self.all_arguments = True
+            if not any([args.asic, args.bus, args.vbios, args.board, args.driver, args.vram, args.cache]):
+                args.asic = args.bus = args.vbios = args.board = args.driver = args.vram = args.cache = self.all_arguments = True
 
         static_dict = {}
 
@@ -434,7 +437,17 @@ class AMDSMICommands():
                 logging.debug("Failed to get vram info for gpu %s | %s", gpu_id, e.get_error_info())
 
             static_dict['vram'] = vram_info
+        if args.cache:
+            try:
+                cache_info = amdsmi_interface.amdsmi_get_gpu_cache_info(args.gpu)
+                if self.logger.is_human_readable_format():
+                    for _ , cache_values in cache_info.items():
+                        cache_values['cache_size'] = f"{cache_values['cache_size']} KB"
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                cache_info = "N/A"
+                logging.debug("Failed to get cache info for gpu %s | %s", gpu_id, e.get_error_info())
 
+            static_dict['cache'] = cache_info
         if self.helpers.is_hypervisor() or self.helpers.is_baremetal():
             if args.ras:
                 ras_dict = {"eeprom_version": "N/A",
