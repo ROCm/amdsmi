@@ -451,6 +451,9 @@ class AMDSMICommands():
 
                 try:
                     numa_affinity = amdsmi_interface.amdsmi_get_gpu_topo_numa_affinity(args.gpu)
+                    # -1 means No numa node is assigned to the GPU, so there is no numa affinity
+                    if self.logger.is_human_readable_format() and numa_affinity == -1:
+                        numa_affinity = "NONE"
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     numa_affinity = "N/A"
                     logging.debug("Failed to get numa affinity for gpu %s | %s", gpu_id, e.get_error_info())

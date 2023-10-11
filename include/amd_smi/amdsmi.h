@@ -444,7 +444,8 @@ typedef struct {
   uint64_t device_id;   //< The device id of a GPU
   uint32_t rev_id;
   char asic_serial[AMDSMI_NORMAL_STRING_LENGTH];
-  uint32_t reserved[19];
+  uint16_t xgmi_physical_id;   //< 0xFFFF if not supported
+  uint16_t reserved[37];
 } amdsmi_asic_info_t;
 
 typedef struct{
@@ -4282,6 +4283,36 @@ amdsmi_status_t amdsmi_get_cpu_current_io_bandwidth(amdsmi_cpusocket_handle sock
  */
 amdsmi_status_t amdsmi_get_cpu_current_xgmi_bw(amdsmi_cpusocket_handle socket_handle,
         amdsmi_link_id_bw_type_t link, uint32_t *xgmi_bw);
+
+/** @} */
+
+/*---------------------------------------------------------------------------*/
+/**  @defgroup MetQuer Metrics Table                                         */
+/*---------------------------------------------------------------------------*/
+/** @{  */
+
+/**
+ *  @brief Get metrics table version
+ *
+ *  @param[in]      socket_handle Cpu socket which to query
+ *  @param[in,out]  metrics_version input buffer to return the metrics table version.
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_get_metrics_table_version(amdsmi_cpusocket_handle socket_handle,
+        uint32_t *metrics_version);
+
+/**
+ *  @brief Get metrics table
+ *
+ *  @param[in]      socket_handle Cpu socket which to query
+ *  @param[in]		sock_ind - socket index
+ *  @param[in,out]  metrics_table input buffer to return the metrics table.
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_get_metrics_table(amdsmi_cpusocket_handle socket_handle, uint8_t sock_ind,
+         struct hsmp_metric_table *metrics_table);
 
 /** @} */
 
