@@ -118,7 +118,7 @@ To build the documentation locally, run the commands below:
 ``` bash
 cd docs
 
-pip3 install -r sphinx/requirements.txt
+python3 -m pip install -r sphinx/requirements.txt
 
 python3 -m sphinx -T -E -b html -d _build/doctrees -D language=en . _build/html
 ```
@@ -203,15 +203,14 @@ The python wrapper (binding) is an auto-generated file `py-interface/amdsmi_wrap
 Wrapper should be re-generated on each C++ API change, by doing:
 
 ```bash
-cmake .. -DBUILD_WRAPPER=on
-make python_wrapper # or simply 'make'
+./update_wrapper.sh
 ```
 
 After this command, the file in `py-interface/amdsmi_wrapper.py` will be automatically updated on each compile.
 
-Note: To be able to re-generate python wrapper you need several tools installed on your system: clang-14, clang-format, libclang-dev, and ***python3.7 or newer***.
+Note: To be able to re-generate python wrapper you need **docker** installed.
 
-Note: python_wrapper is NOT automatically re-generated. You must run `cmake` with `-DBUILD_WRAPPER=on` argument.
+Note: python_wrapper is NOT automatically re-generated. You must run `./update_wrapper.sh`.
 
 ## Building AMD SMI
 
@@ -219,14 +218,14 @@ Note: python_wrapper is NOT automatically re-generated. You must run `cmake` wit
 
 In order to build the AMD SMI library, the following components are required. Note that the software versions listed are what was used in development. Earlier versions are not guaranteed to work:
 
-* CMake (v3.11.0) - `pip3 install cmake`
+* CMake (v3.14.0) - `python3 -m pip install cmake`
 * g++ (5.4.0)
 
 In order to build the AMD SMI python package, the following components are required:
 
 * clang (14.0 or above)
-* python (3.6 or above)
-* virtualenv - `pip3 install virtualenv`
+* python (3.7 or above)
+* virtualenv - `python3 -m pip install virtualenv`
 
 In order to build the latest documentation, the following are required:
 

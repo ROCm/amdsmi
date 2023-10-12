@@ -1,8 +1,9 @@
 # Generate py-interface and package targets
 
-# CLANG installed must be 14.0 or above
-set(clang_ver 14.0)
-set(ctypeslib_ver 2.3.2)
+# CLANG installed must be 16.0 or above
+set(clang_ver 16.0)
+set(clang_ver_py 16.0.1)
+set(ctypeslib_ver_py 2.3.4)
 
 set(PY_BUILD_DIR "python_package")
 # amdsmi part of this string is the directory containing all python files
@@ -52,7 +53,7 @@ else()
     endif()
     add_custom_target(
         python_pre_reqs
-        COMMAND ${Python3_EXECUTABLE} -m pip install ${Python3_BREAK_SYSTEM_PACKAGES} clang==${clang_ver} ctypeslib2==${ctypeslib_ver})
+        COMMAND ${Python3_EXECUTABLE} -m pip install ${Python3_BREAK_SYSTEM_PACKAGES} clang==${clang_ver_py} ctypeslib2==${ctypeslib_ver_py})
     # generate new wrapper
     configure_file(${PROJECT_SOURCE_DIR}/tools/generator.py generator.py @ONLY COPYONLY)
     add_custom_command(
