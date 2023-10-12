@@ -418,7 +418,7 @@ typedef struct {
 
 typedef struct {
   uint32_t num_cache_types;
-  struct {
+  struct cache_ {
     uint32_t cache_size_kb; /* In KB */
     uint32_t cache_level;
     uint32_t reserved[3];
@@ -897,7 +897,7 @@ typedef enum {
   AMDSMI_IOLINK_TYPE_XGMI           = 2,          //!< XGMI
   AMDSMI_IOLINK_TYPE_NUMIOLINKTYPES,              //!< Number of IO Link types
   AMDSMI_IOLINK_TYPE_SIZE           = 0xFFFFFFFF  //!< Max of IO Link types
-} AMDSMI_IO_LINK_TYPE;
+} amdsmi_io_link_type_t;
 
 /**
  * @brief The utilization counter type
@@ -908,13 +908,22 @@ typedef enum {
   AMDSMI_COARSE_GRAIN_GFX_ACTIVITY  = AMDSMI_UTILIZATION_COUNTER_FIRST,
   AMDSMI_COARSE_GRAIN_MEM_ACTIVITY,    //!< Memory Activity
   AMDSMI_UTILIZATION_COUNTER_LAST = AMDSMI_COARSE_GRAIN_MEM_ACTIVITY
-} AMDSMI_UTILIZATION_COUNTER_TYPE;
+} amdsmi_utilization_counter_type_t;
+
+/**
+ * @brief Power types
+ */
+typedef enum {
+  AMDSMI_AVERAGE_POWER = 0,            //!< Average Power
+  AMDSMI_CURRENT_POWER,                //!< Current / Instant Power
+  AMDSMI_INVALID_POWER = 0xFFFFFFFF    //!< Invalid / Undetected Power
+} amdsmi_power_type_t;
 
 /**
  * @brief The utilization counter data
  */
 typedef struct {
-  AMDSMI_UTILIZATION_COUNTER_TYPE type;   //!< Utilization counter type
+  amdsmi_utilization_counter_type_t type;   //!< Utilization counter type
   uint64_t value;                       //!< Utilization counter value
 } amdsmi_utilization_counter_t;
 
@@ -3303,7 +3312,7 @@ amdsmi_status_t
 amdsmi_status_t
 amdsmi_topo_get_link_type(amdsmi_processor_handle processor_handle_src,
                         amdsmi_processor_handle processor_handle_dst,
-                        uint64_t *hops, AMDSMI_IO_LINK_TYPE *type);
+                        uint64_t *hops, amdsmi_io_link_type_t *type);
 
 /**
  *  @brief Return P2P availability status between 2 GPUs

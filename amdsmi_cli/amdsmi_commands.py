@@ -209,7 +209,8 @@ class AMDSMICommands():
                 asic_info['rev_id'] = hex(asic_info['rev_id'])
                 if asic_info['asic_serial'] != '':
                     asic_info['asic_serial'] = hex(int(asic_info['asic_serial'], base=16))
-
+                if asic_info['xgmi_physical_id'] == 0xFFFF: # uint 16 max
+                    asic_info['xgmi_physical_id'] = "N/A"
                 static_dict['asic'] = asic_info
             except amdsmi_exception.AmdSmiLibraryException as e:
                 static_dict['asic'] = "N/A"
@@ -436,11 +437,25 @@ class AMDSMICommands():
 
         if self.helpers.is_hypervisor() or self.helpers.is_baremetal():
             if args.ras:
+                ras_dict = {"eeprom_version": "N/A",
+                            "parity_schema" : "N/A",
+                            "single_bit_schema" : "N/A",
+                            "double_bit_schema" : "N/A",
+                            "poison_schema" : "N/A",
+                            "ecc_block_state": "N/A"}
+
                 try:
-                    static_dict['ras'] = amdsmi_interface.amdsmi_get_gpu_ras_block_features_enabled(args.gpu)
+                    ras_info = amdsmi_interface.amdsmi_get_gpu_ras_feature_info(args.gpu)
+                    ras_dict.update(ras_info)
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict['ras'] = "N/A"
+                    logging.debug("Failed to get ras info for gpu %s | %s", gpu_id, e.get_error_info())
+
+                try:
+                    ras_dict["ecc_block_state"] = amdsmi_interface.amdsmi_get_gpu_ras_block_features_enabled(args.gpu)
+                except amdsmi_exception.AmdSmiLibraryException as e:
                     logging.debug("Failed to get ras block features for gpu %s | %s", gpu_id, e.get_error_info())
+
+                static_dict["ras"] = ras_dict
         if self.helpers.is_linux() and self.helpers.is_baremetal():
             if args.numa:
                 try:
@@ -466,11 +481,11 @@ class AMDSMICommands():
         if self.logger.is_csv_format():
             # expand if ras blocks are populated
             if self.helpers.is_linux() and self.helpers.is_baremetal() and args.ras:
-                if isinstance(static_dict['ras'], list):
-                    ras_dicts = static_dict.pop('ras')
+                if isinstance(static_dict['ras']['ecc_block_state'], list):
+                    ecc_block_dicts = static_dict['ras'].pop('ecc_block_state')
                     multiple_devices_csv_override = True
-                    for ras_dict in ras_dicts:
-                        for key, value in ras_dict.items():
+                    for ecc_block_dict in ecc_block_dicts:
+                        for key, value in ecc_block_dict.items():
                             self.logger.store_output(args.gpu, key, value)
                         self.logger.store_output(args.gpu, 'values', static_dict)
                         self.logger.store_multiple_device_output()
@@ -1003,19 +1018,22 @@ class AMDSMICommands():
                 values_dict['ecc'] = ecc_count
             if args.ecc_block:
                 ecc_dict = {}
+                uncountable_blocks = ["ATHUB", "DF", "SMN", "SEM", "MP0", "MP1", "FUSE"]
                 try:
                     ras_states = amdsmi_interface.amdsmi_get_gpu_ras_block_features_enabled(args.gpu)
                     for state in ras_states:
                         if state['status'] == amdsmi_interface.AmdSmiRasErrState.ENABLED.name:
                             gpu_block = amdsmi_interface.AmdSmiGpuBlock[state['block']]
-                            try:
-                                ecc_count = amdsmi_interface.amdsmi_get_gpu_ecc_count(args.gpu, gpu_block)
-                                ecc_dict[state['block']] = {'correctable' : ecc_count['correctable_count'],
-                                                            'uncorrectable': ecc_count['uncorrectable_count']}
-                            except amdsmi_exception.AmdSmiLibraryException as e:
-                                ecc_dict[state['block']] = {'correctable' : "N/A",
-                                                            'uncorrectable': "N/A"}
-                                logging.debug("Failed to get ecc count for gpu %s at block %s | %s", gpu_id, gpu_block, e.get_error_info())
+                            # if the blocks are uncountable do not add them at all.
+                            if gpu_block.name not in uncountable_blocks:
+                                try:
+                                    ecc_count = amdsmi_interface.amdsmi_get_gpu_ecc_count(args.gpu, gpu_block)
+                                    ecc_dict[state['block']] = {'correctable' : ecc_count['correctable_count'],
+                                                                'uncorrectable': ecc_count['uncorrectable_count']}
+                                except amdsmi_exception.AmdSmiLibraryException as e:
+                                    ecc_dict[state['block']] = {'correctable' : "N/A",
+                                                                'uncorrectable': "N/A"}
+                                    logging.debug("Failed to get ecc count for gpu %s at block %s | %s", gpu_id, gpu_block, e.get_error_info())
 
                     values_dict['ecc_block'] = ecc_dict
                 except amdsmi_exception.AmdSmiLibraryException as e:
