@@ -863,14 +863,22 @@ def amdsmi_get_gpu_ras_feature_info(
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
-    # Dummy data waiting on population
-    ras_info = {"eeprom_version": "N/A",
-                "parity_schema" : "N/A",
-                "single_bit_schema" : "N/A",
-                "double_bit_schema" : "N/A",
-                "poison_schema" : "N/A"}
 
-    return ras_info
+    ras_feature = amdsmi_wrapper.amdsmi_ras_feature_t()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_ras_feature_info(
+            processor_handle, ctypes.byref(ras_feature)
+        )
+    )
+
+    return {
+        "eeprom_version": ras_feature.ras_eeprom_version,
+        "parity_schema" : bool(ras_feature.ecc_correction_schema_flags & 1),
+        "single_bit_schema" : bool(ras_feature.ecc_correction_schema_flags & 2),
+        "double_bit_schema" : bool(ras_feature.ecc_correction_schema_flags & 4),
+        "poison_schema" : bool(ras_feature.ecc_correction_schema_flags & 8)
+    }
 
 
 def amdsmi_get_gpu_ras_block_features_enabled(

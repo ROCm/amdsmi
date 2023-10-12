@@ -1447,6 +1447,17 @@ struct_amdsmi_gpu_metrics_t._fields_ = [
 ]
 
 amdsmi_gpu_metrics_t = struct_amdsmi_gpu_metrics_t
+
+class struct_amdsmi_ras_feature_t(Structure):
+    pass
+
+struct_amdsmi_ras_feature_t._pack_ = 1 # source:False
+struct_amdsmi_ras_feature_t._fields_ = [
+    ('ras_eeprom_version', ctypes.c_uint32),
+    ('ecc_correction_schema_flag', ctypes.c_uint32),
+]
+
+amdsmi_ras_feature_t = struct_amdsmi_ras_feature_t
 class struct_amdsmi_error_count_t(Structure):
     pass
 
@@ -1637,6 +1648,9 @@ amdsmi_get_gpu_od_volt_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(
 amdsmi_get_gpu_metrics_info = _libraries['libamd_smi.so'].amdsmi_get_gpu_metrics_info
 amdsmi_get_gpu_metrics_info.restype = amdsmi_status_t
 amdsmi_get_gpu_metrics_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_gpu_metrics_t)]
+amdsmi_get_gpu_ras_feature_info = _libraries['libamd_smi.so'].amdsmi_get_gpu_ras_feature_info
+amdsmi_get_gpu_ras_feature_info.restype = amdsmi_status_t
+amdsmi_get_gpu_ras_feature_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_ras_feature_t)]
 amdsmi_set_gpu_clk_range = _libraries['libamd_smi.so'].amdsmi_set_gpu_clk_range
 amdsmi_set_gpu_clk_range.restype = amdsmi_status_t
 amdsmi_set_gpu_clk_range.argtypes = [amdsmi_processor_handle, uint64_t, uint64_t, amdsmi_clk_type_t]
@@ -1972,7 +1986,7 @@ __all__ = \
     'amdsmi_get_gpu_fan_speed', 'amdsmi_get_gpu_fan_speed_max',
     'amdsmi_get_gpu_id', 'amdsmi_get_gpu_memory_reserved_pages',
     'amdsmi_get_gpu_memory_total', 'amdsmi_get_gpu_memory_usage',
-    'amdsmi_get_gpu_metrics_info',
+    'amdsmi_get_gpu_metrics_info', 'amdsmi_get_gpu_ras_feature_info',
     'amdsmi_get_gpu_od_volt_curve_regions',
     'amdsmi_get_gpu_od_volt_info', 'amdsmi_get_gpu_overdrive_level',
     'amdsmi_get_gpu_pci_bandwidth',
@@ -2029,7 +2043,7 @@ __all__ = \
     'amdsmi_temperature_metric_t', 'amdsmi_temperature_type_t',
     'amdsmi_topo_get_link_type', 'amdsmi_topo_get_link_weight',
     'amdsmi_topo_get_numa_node_number',
-    'amdsmi_utilization_counter_t',
+    'amdsmi_utilization_counter_t', 'struct_amdsmi_ras_feature_t',
     'amdsmi_utilization_counter_type_t', 'amdsmi_vbios_info_t',
     'amdsmi_version_t', 'amdsmi_voltage_metric_t',
     'amdsmi_voltage_type_t', 'amdsmi_vram_info_t',
