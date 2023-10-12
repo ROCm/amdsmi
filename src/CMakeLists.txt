@@ -21,7 +21,7 @@ message("--------Proj Src Dir: " ${PROJECT_SOURCE_DIR})
 include(utils)
 
 ################# Determine the library version #########################
-set(SO_VERSION_GIT_TAG_PREFIX "amd_smi_so_ver")
+set(SO_VERSION_GIT_TAG_PREFIX "amdsmi_so_ver")
 
 set(SRC_DIR "amd_smi")
 set(INC_DIR "${PROJECT_SOURCE_DIR}/include/amd_smi")
