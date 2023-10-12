@@ -861,16 +861,6 @@ amdsmi_process_handle_t = ctypes.c_uint32
 class struct_amdsmi_proc_info_t(Structure):
     pass
 
-class struct_engine_usage_(Structure):
-    pass
-
-struct_engine_usage_._pack_ = 1 # source:False
-struct_engine_usage_._fields_ = [
-    ('gfx', ctypes.c_uint64),
-    ('enc', ctypes.c_uint64),
-    ('reserved', ctypes.c_uint32 * 12),
-]
-
 class struct_memory_usage_(Structure):
     pass
 
@@ -880,6 +870,16 @@ struct_memory_usage_._fields_ = [
     ('cpu_mem', ctypes.c_uint64),
     ('vram_mem', ctypes.c_uint64),
     ('reserved', ctypes.c_uint32 * 10),
+]
+
+class struct_engine_usage_(Structure):
+    pass
+
+struct_engine_usage_._pack_ = 1 # source:False
+struct_engine_usage_._fields_ = [
+    ('gfx', ctypes.c_uint64),
+    ('enc', ctypes.c_uint64),
+    ('reserved', ctypes.c_uint32 * 12),
 ]
 
 struct_amdsmi_proc_info_t._pack_ = 1 # source:False
@@ -1242,8 +1242,8 @@ AMDSMI_MEM_PAGE_STATUS_PENDING = 1
 AMDSMI_MEM_PAGE_STATUS_UNRESERVABLE = 2
 amdsmi_memory_page_status_t = ctypes.c_uint32 # enum
 
-# values for enumeration 'AMDSMI_IO_LINK_TYPE'
-AMDSMI_IO_LINK_TYPE__enumvalues = {
+# values for enumeration 'amdsmi_io_link_type_t'
+amdsmi_io_link_type_t__enumvalues = {
     0: 'AMDSMI_IOLINK_TYPE_UNDEFINED',
     1: 'AMDSMI_IOLINK_TYPE_PCIEXPRESS',
     2: 'AMDSMI_IOLINK_TYPE_XGMI',
@@ -1255,10 +1255,10 @@ AMDSMI_IOLINK_TYPE_PCIEXPRESS = 1
 AMDSMI_IOLINK_TYPE_XGMI = 2
 AMDSMI_IOLINK_TYPE_NUMIOLINKTYPES = 3
 AMDSMI_IOLINK_TYPE_SIZE = 4294967295
-AMDSMI_IO_LINK_TYPE = ctypes.c_uint32 # enum
+amdsmi_io_link_type_t = ctypes.c_uint32 # enum
 
-# values for enumeration 'AMDSMI_UTILIZATION_COUNTER_TYPE'
-AMDSMI_UTILIZATION_COUNTER_TYPE__enumvalues = {
+# values for enumeration 'amdsmi_utilization_counter_type_t'
+amdsmi_utilization_counter_type_t__enumvalues = {
     0: 'AMDSMI_UTILIZATION_COUNTER_FIRST',
     0: 'AMDSMI_COARSE_GRAIN_GFX_ACTIVITY',
     1: 'AMDSMI_COARSE_GRAIN_MEM_ACTIVITY',
@@ -1268,13 +1268,24 @@ AMDSMI_UTILIZATION_COUNTER_FIRST = 0
 AMDSMI_COARSE_GRAIN_GFX_ACTIVITY = 0
 AMDSMI_COARSE_GRAIN_MEM_ACTIVITY = 1
 AMDSMI_UTILIZATION_COUNTER_LAST = 1
-AMDSMI_UTILIZATION_COUNTER_TYPE = ctypes.c_uint32 # enum
+amdsmi_utilization_counter_type_t = ctypes.c_uint32 # enum
+
+# values for enumeration 'amdsmi_power_type_t'
+amdsmi_power_type_t__enumvalues = {
+    0: 'AMDSMI_AVERAGE_POWER',
+    1: 'AMDSMI_CURRENT_POWER',
+    4294967295: 'AMDSMI_INVALID_POWER',
+}
+AMDSMI_AVERAGE_POWER = 0
+AMDSMI_CURRENT_POWER = 1
+AMDSMI_INVALID_POWER = 4294967295
+amdsmi_power_type_t = ctypes.c_uint32 # enum
 class struct_amdsmi_utilization_counter_t(Structure):
     pass
 
 struct_amdsmi_utilization_counter_t._pack_ = 1 # source:False
 struct_amdsmi_utilization_counter_t._fields_ = [
-    ('type', AMDSMI_UTILIZATION_COUNTER_TYPE),
+    ('type', amdsmi_utilization_counter_type_t),
     ('PADDING_0', ctypes.c_ubyte * 4),
     ('value', ctypes.c_uint64),
 ]
@@ -1709,7 +1720,7 @@ amdsmi_get_minmax_bandwidth_between_processors.restype = amdsmi_status_t
 amdsmi_get_minmax_bandwidth_between_processors.argtypes = [amdsmi_processor_handle, amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(ctypes.c_uint64)]
 amdsmi_topo_get_link_type = _libraries['libamd_smi.so'].amdsmi_topo_get_link_type
 amdsmi_topo_get_link_type.restype = amdsmi_status_t
-amdsmi_topo_get_link_type.argtypes = [amdsmi_processor_handle, amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(AMDSMI_IO_LINK_TYPE)]
+amdsmi_topo_get_link_type.argtypes = [amdsmi_processor_handle, amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(amdsmi_io_link_type_t)]
 amdsmi_is_P2P_accessible = _libraries['libamd_smi.so'].amdsmi_is_P2P_accessible
 amdsmi_is_P2P_accessible.restype = amdsmi_status_t
 amdsmi_is_P2P_accessible.argtypes = [amdsmi_processor_handle, amdsmi_processor_handle, ctypes.POINTER(ctypes.c_bool)]
@@ -1780,10 +1791,11 @@ amdsmi_get_gpu_total_ecc_count = _libraries['libamd_smi.so'].amdsmi_get_gpu_tota
 amdsmi_get_gpu_total_ecc_count.restype = amdsmi_status_t
 amdsmi_get_gpu_total_ecc_count.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_error_count_t)]
 __all__ = \
-    ['AMDSMI_ARG_PTR_NULL', 'AMDSMI_CNTR_CMD_START',
-    'AMDSMI_CNTR_CMD_STOP', 'AMDSMI_COARSE_GRAIN_GFX_ACTIVITY',
-    'AMDSMI_COARSE_GRAIN_MEM_ACTIVITY', 'AMDSMI_DEV_PERF_LEVEL_AUTO',
-    'AMDSMI_DEV_PERF_LEVEL_DETERMINISM',
+    ['AMDSMI_ARG_PTR_NULL', 'AMDSMI_AVERAGE_POWER',
+    'AMDSMI_CNTR_CMD_START', 'AMDSMI_CNTR_CMD_STOP',
+    'AMDSMI_COARSE_GRAIN_GFX_ACTIVITY',
+    'AMDSMI_COARSE_GRAIN_MEM_ACTIVITY', 'AMDSMI_CURRENT_POWER',
+    'AMDSMI_DEV_PERF_LEVEL_AUTO', 'AMDSMI_DEV_PERF_LEVEL_DETERMINISM',
     'AMDSMI_DEV_PERF_LEVEL_FIRST', 'AMDSMI_DEV_PERF_LEVEL_HIGH',
     'AMDSMI_DEV_PERF_LEVEL_LAST', 'AMDSMI_DEV_PERF_LEVEL_LOW',
     'AMDSMI_DEV_PERF_LEVEL_MANUAL',
@@ -1821,10 +1833,10 @@ __all__ = \
     'AMDSMI_HSMP_TIMEOUT', 'AMDSMI_INIT_ALL_PROCESSORS',
     'AMDSMI_INIT_AMD_CPUS', 'AMDSMI_INIT_AMD_GPUS',
     'AMDSMI_INIT_NON_AMD_CPUS', 'AMDSMI_INIT_NON_AMD_GPUS',
-    'AMDSMI_IOLINK_TYPE_NUMIOLINKTYPES',
+    'AMDSMI_INVALID_POWER', 'AMDSMI_IOLINK_TYPE_NUMIOLINKTYPES',
     'AMDSMI_IOLINK_TYPE_PCIEXPRESS', 'AMDSMI_IOLINK_TYPE_SIZE',
     'AMDSMI_IOLINK_TYPE_UNDEFINED', 'AMDSMI_IOLINK_TYPE_XGMI',
-    'AMDSMI_IO_LINK_TYPE', 'AMDSMI_MEM_PAGE_STATUS_PENDING',
+    'AMDSMI_MEM_PAGE_STATUS_PENDING',
     'AMDSMI_MEM_PAGE_STATUS_RESERVED',
     'AMDSMI_MEM_PAGE_STATUS_UNRESERVABLE', 'AMDSMI_MEM_TYPE_FIRST',
     'AMDSMI_MEM_TYPE_GTT', 'AMDSMI_MEM_TYPE_LAST',
@@ -1872,8 +1884,7 @@ __all__ = \
     'AMDSMI_TEMP_LOWEST', 'AMDSMI_TEMP_MAX', 'AMDSMI_TEMP_MAX_HYST',
     'AMDSMI_TEMP_MIN', 'AMDSMI_TEMP_MIN_HYST', 'AMDSMI_TEMP_OFFSET',
     'AMDSMI_UTILIZATION_COUNTER_FIRST',
-    'AMDSMI_UTILIZATION_COUNTER_LAST',
-    'AMDSMI_UTILIZATION_COUNTER_TYPE', 'AMDSMI_VOLT_AVERAGE',
+    'AMDSMI_UTILIZATION_COUNTER_LAST', 'AMDSMI_VOLT_AVERAGE',
     'AMDSMI_VOLT_CURRENT', 'AMDSMI_VOLT_FIRST', 'AMDSMI_VOLT_HIGHEST',
     'AMDSMI_VOLT_LAST', 'AMDSMI_VOLT_LOWEST', 'AMDSMI_VOLT_MAX',
     'AMDSMI_VOLT_MAX_CRIT', 'AMDSMI_VOLT_MIN', 'AMDSMI_VOLT_MIN_CRIT',
@@ -1990,7 +2001,8 @@ __all__ = \
     'amdsmi_gpu_destroy_counter', 'amdsmi_gpu_metrics_t',
     'amdsmi_gpu_read_counter', 'amdsmi_gpu_xgmi_error_status',
     'amdsmi_init', 'amdsmi_init_flags_t',
-    'amdsmi_init_gpu_event_notification', 'amdsmi_is_P2P_accessible',
+    'amdsmi_init_gpu_event_notification', 'amdsmi_io_link_type_t',
+    'amdsmi_is_P2P_accessible',
     'amdsmi_is_gpu_power_management_enabled',
     'amdsmi_memory_page_status_t', 'amdsmi_memory_type_t',
     'amdsmi_mm_ip_t', 'amdsmi_od_vddc_point_t',
@@ -1998,10 +2010,10 @@ __all__ = \
     'amdsmi_pcie_bandwidth_t', 'amdsmi_pcie_info_t',
     'amdsmi_pcie_slot_type_t', 'amdsmi_power_cap_info_t',
     'amdsmi_power_info_t', 'amdsmi_power_profile_preset_masks_t',
-    'amdsmi_power_profile_status_t', 'amdsmi_proc_info_t',
-    'amdsmi_process_handle_t', 'amdsmi_process_info_t',
-    'amdsmi_processor_handle', 'amdsmi_range_t',
-    'amdsmi_ras_err_state_t', 'amdsmi_reset_gpu',
+    'amdsmi_power_profile_status_t', 'amdsmi_power_type_t',
+    'amdsmi_proc_info_t', 'amdsmi_process_handle_t',
+    'amdsmi_process_info_t', 'amdsmi_processor_handle',
+    'amdsmi_range_t', 'amdsmi_ras_err_state_t', 'amdsmi_reset_gpu',
     'amdsmi_reset_gpu_fan', 'amdsmi_reset_gpu_xgmi_error',
     'amdsmi_retired_page_record_t', 'amdsmi_set_clk_freq',
     'amdsmi_set_gpu_clk_range',
@@ -2017,7 +2029,8 @@ __all__ = \
     'amdsmi_temperature_metric_t', 'amdsmi_temperature_type_t',
     'amdsmi_topo_get_link_type', 'amdsmi_topo_get_link_weight',
     'amdsmi_topo_get_numa_node_number',
-    'amdsmi_utilization_counter_t', 'amdsmi_vbios_info_t',
+    'amdsmi_utilization_counter_t',
+    'amdsmi_utilization_counter_type_t', 'amdsmi_vbios_info_t',
     'amdsmi_version_t', 'amdsmi_voltage_metric_t',
     'amdsmi_voltage_type_t', 'amdsmi_vram_info_t',
     'amdsmi_vram_type_t', 'amdsmi_vram_usage_t',
