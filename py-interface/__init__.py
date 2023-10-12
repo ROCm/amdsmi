@@ -66,6 +66,7 @@ from .amdsmi_interface import amdsmi_get_gpu_total_ecc_count
 from .amdsmi_interface import amdsmi_get_gpu_board_info
 
 # # Ras Information
+from .amdsmi_interface import amdsmi_get_gpu_ras_feature_info
 from .amdsmi_interface import amdsmi_get_gpu_ras_block_features_enabled
 
 # # Unsupported Functions In Virtual Environment

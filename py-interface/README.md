@@ -351,6 +351,7 @@ Field | Content
 `device_id` |  device id
 `rev_id` |  revision id
 `asic_serial` | asic serial
+`xgmi_physical_id` | xgmi physical id
 
 Exceptions that can be thrown by `amdsmi_get_gpu_asic_info` function:
 
@@ -370,9 +371,11 @@ try:
             asic_info = amdsmi_get_gpu_asic_info(device)
             print(asic_info['market_name'])
             print(hex(asic_info['vendor_id']))
+            print(asic_info['vendor_name'])
             print(hex(asic_info['device_id']))
             print(hex(asic_info['rev_id']))
             print(asic_info['asic_serial'])
+            print(asic_info['xgmi_physical_id'])
 except AmdSmiException as e:
     print(e)
 ```
@@ -935,6 +938,46 @@ try:
     print(board_info["serial_number"])
     print(board_info["product_serial"])
     print(board_info["product_name"])
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_gpu_ras_feature_info
+
+Description: Returns RAS version and schema information
+It is not supported on virtual machine guest
+
+Input parameters:
+
+* `processor_handle` device which to query
+
+Output: List containing dictionaries with fields
+
+Field | Description
+---|---
+`eeprom_version` | eeprom version
+`parity_schema` | parity schema
+`single_bit_schema` | single bit schema
+`double_bit_schema` | double bit schema
+`poison_schema` | poison schema
+
+Exceptions that can be thrown by `amdsmi_get_gpu_ras_feature_info` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            ras_info = amdsmi_get_gpu_ras_feature_info(device)
+            print(ras_info)
 except AmdSmiException as e:
     print(e)
 ```

@@ -413,7 +413,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         power_help = "Current power usage"
         clock_help = "Average, max, and current clock frequencies"
         temperature_help = "Current temperatures"
-        ecc_help = "Number of ECC errors"
+        ecc_help = "Total number of ECC errors"
         ecc_block_help = "Number of ECC errors per block"
         pcie_help = "Current PCIe speed, width, and replay count"
 

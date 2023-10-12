@@ -40,8 +40,8 @@
  * DEALINGS WITH THE SOFTWARE.
  *
  */
-#ifndef INCLUDE_ROCM_SMI_ROCM_SMI_H_
-#define INCLUDE_ROCM_SMI_ROCM_SMI_H_
+#ifndef ROCM_SMI_ROCM_SMI_H_
+#define ROCM_SMI_ROCM_SMI_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -393,27 +393,27 @@ typedef rsmi_compute_partition_type_t rsmi_compute_partition_type;
 /// \endcond
 
 /**
- * @brief NPS Modes. This enum is used to identify various
- * NPS mode types.
+ * @brief Memory Partitions. This enum is used to identify various
+ * memory partition types.
  */
 typedef enum {
   RSMI_MEMORY_PARTITION_UNKNOWN = 0,
-  RSMI_MEMORY_PARTITION_NPS1,        //!< NPS1 - All CCD & XCD data is interleaved
-                                     //!< accross all 8 HBM stacks (all stacks/1).
-  RSMI_MEMORY_PARTITION_NPS2,        //!< NPS2 - 2 sets of CCDs or 4 XCD interleaved
-                                     //!< accross the 4 HBM stacks per AID pair
-                                     //!< (8 stacks/2).
-  RSMI_MEMORY_PARTITION_NPS4,        //!< NPS4 - Each XCD data is interleaved accross
-                                     //!< accross 2 (or single) HBM stacks
-                                     //!< (8 stacks/8 or 8 stacks/4).
-  RSMI_MEMORY_PARTITION_NPS8,        //!< NPS8 - Each XCD uses a single HBM stack
-                                     //!< (8 stacks/8). Or each XCD uses a single
-                                     //!< HBM stack & CCDs share 2 non-interleaved
-                                     //!< HBM stacks on its AID
-                                     //!< (AID[1,2,3] = 6 stacks/6).
-} rsmi_nps_mode_type_t;
+  RSMI_MEMORY_PARTITION_NPS1,  //!< NPS1 - All CCD & XCD data is interleaved
+                               //!< accross all 8 HBM stacks (all stacks/1).
+  RSMI_MEMORY_PARTITION_NPS2,  //!< NPS2 - 2 sets of CCDs or 4 XCD interleaved
+                               //!< accross the 4 HBM stacks per AID pair
+                               //!< (8 stacks/2).
+  RSMI_MEMORY_PARTITION_NPS4,  //!< NPS4 - Each XCD data is interleaved accross
+                               //!< accross 2 (or single) HBM stacks
+                               //!< (8 stacks/8 or 8 stacks/4).
+  RSMI_MEMORY_PARTITION_NPS8,  //!< NPS8 - Each XCD uses a single HBM stack
+                               //!< (8 stacks/8). Or each XCD uses a single
+                               //!< HBM stack & CCDs share 2 non-interleaved
+                               //!< HBM stacks on its AID
+                               //!< (AID[1,2,3] = 6 stacks/6).
+} rsmi_memory_partition_type_t;
 /// \cond Ignore in docs.
-typedef rsmi_nps_mode_type_t rsmi_nps_mode_type;
+typedef rsmi_memory_partition_type_t rsmi_memory_partition_type;
 /// \endcond
 
 /**
@@ -725,6 +725,15 @@ typedef enum {
 } RSMI_UTILIZATION_COUNTER_TYPE;
 
 /**
+ * @brief Power types
+ */
+typedef enum {
+  RSMI_AVERAGE_POWER = 0,            //!< Average Power
+  RSMI_CURRENT_POWER,                //!< Current / Instant Power
+  RSMI_INVALID_POWER = 0xFFFFFFFF    //!< Invalid / Undetected Power
+} RSMI_POWER_TYPE;
+
+/**
  * @brief The utilization counter data
  */
 typedef struct  {
@@ -972,12 +981,10 @@ struct metrics_table_header_t {
  * @brief The GPU metrics version 3
  */
 #define RSMI_GPU_METRICS_API_CONTENT_VER_3 3
-
 /**
  * @brief This should match NUM_HBM_INSTANCES
  */
 #define RSMI_NUM_HBM_INSTANCES 4
-
 /**
  * @brief Unit conversion factor for HBM temperatures
  */
@@ -1856,6 +1863,40 @@ rsmi_status_t
 rsmi_dev_current_socket_power_get(uint32_t dv_ind, uint64_t *socket_power);
 
 /**
+ *  @brief A generic get which attempts to retieve current socket power
+ *  (also known as instant power) of the device index provided, if not
+ *  supported tries to get average power consumed by device. Current
+ *  socket power is typically supported by newer devices, whereas average
+ *  power is generally reported on older devices. This function
+ *  aims to provide backwards compatability depending on device support.
+ *
+ *  @details Given a device index @p dv_ind, a pointer to a uint64_t
+ *  @p power, and @p type this function will write the current socket or
+ *  average power (in microwatts) to the uint64_t pointed to by @p power and
+ *  a pointer to its @p type RSMI_POWER_TYPE read.
+ *
+ *  @param[in] dv_ind a device index
+ *
+ *  @param[inout] power a pointer to uint64_t to which the current or average
+ *  power will be written to. If this parameter is nullptr,
+ *  this function will return ::RSMI_STATUS_INVALID_ARGS if the function is
+ *  supported with the provided, arguments and ::RSMI_STATUS_NOT_SUPPORTED
+ *  if it is not supported with the provided arguments.
+ *
+ *  @param[inout] type a pointer to RSMI_POWER_TYPE object. Returns the type
+ *  of power retrieved from the device. Current power is ::RSMI_CURRENT_POWER
+ *  and average power is ::RSMI_AVERAGE_POWER. If an error occurs,
+ *  returns an invalid power type ::RSMI_INVALID_POWER.
+ *
+ *  @retval ::RSMI_STATUS_SUCCESS call was successful
+ *  @retval ::RSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
+ *  support this function with the given arguments
+ *  @retval ::RSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ */
+rsmi_status_t rsmi_dev_power_get(uint32_t dv_ind, uint64_t *power,
+                                 RSMI_POWER_TYPE *type);
+
+/**
  *  @brief Get the energy accumulator counter of the device with provided
  *  device index.
  *
@@ -2553,7 +2594,8 @@ rsmi_status_t rsmi_dev_perf_level_get(uint32_t dv_ind,
  *  @retval ::RSMI_STATUS_INVALID_ARGS the provided arguments are not valid
  *
  */
-rsmi_status_t rsmi_perf_determinism_mode_set(uint32_t dv_ind, uint64_t clkvalue);
+rsmi_status_t rsmi_perf_determinism_mode_set(uint32_t dv_ind,
+                                             uint64_t clkvalue);
 
 /**
  *  @brief Get the overdrive percent associated with the device with provided
@@ -3907,27 +3949,28 @@ rsmi_status_t rsmi_dev_compute_partition_reset(uint32_t dv_ind);
 /** @} */  // end of ComputePartition
 
 /*****************************************************************************/
-/** @defgroup NPSMode NPS Mode Functions
- *  These functions are used to query the device's NPS mode (memory partition).
+/** @defgroup memory_partition The Memory Partition Functions
+ *  These functions are used to query and set the device's current memory
+ *  partition.
  *  @{
  */
 
 /**
- *  @brief Retrieves the NPS mode (memory partition) for a desired device
+ *  @brief Retrieves the current memory partition for a desired device
  *
  *  @details
- *  Given a device index @p dv_ind and a string @p nps_mode ,
+ *  Given a device index @p dv_ind and a string @p memory_partition ,
  *  and uint32 @p len , this function will attempt to obtain the device's
- *  nps mode string. Upon successful retreival, the obtained device's
- *  nps mode string shall be stored in the passed @p nps_mode char string
- *  variable.
+ *  memory partition string. Upon successful retreival, the obtained device's
+ *  memory partition string shall be stored in the passed @p memory_partition
+ *  char string variable.
  *
  *  @param[in] dv_ind a device index
  *
- *  @param[inout] nps_mode a pointer to a char string variable,
- *  which the device's nps mode will be written to.
+ *  @param[inout] memory_partition a pointer to a char string variable,
+ *  which the device's memory partition will be written to.
  *
- *  @param[in] len the length of the caller provided buffer @p nps_mode ,
+ *  @param[in] len the length of the caller provided buffer @p memory_partition ,
  *  suggested length is 5 or greater.
  *
  *  @retval ::RSMI_STATUS_SUCCESS call was successful
@@ -3936,24 +3979,25 @@ rsmi_status_t rsmi_dev_compute_partition_reset(uint32_t dv_ind);
  *  @retval ::RSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function
  *  @retval ::RSMI_STATUS_INSUFFICIENT_SIZE is returned if @p len bytes is not
- *  large enough to hold the entire nps mode value. In this case,
+ *  large enough to hold the entire memory partition value. In this case,
  *  only @p len bytes will be written.
  *
  */
 rsmi_status_t
-rsmi_dev_nps_mode_get(uint32_t dv_ind, char *nps_mode, uint32_t len);
+rsmi_dev_memory_partition_get(uint32_t dv_ind, char *memory_partition,
+                              uint32_t len);
 
 /**
- *  @brief Modifies a selected device's NPS mode (memory partition) setting.
+ *  @brief Modifies a selected device's current memory partition setting.
  *
- *  @details Given a device index @p dv_ind and a type of nps mode
- *  @p nps_mode, this function will attempt to update the selected
- *  device's nps mode setting.
+ *  @details Given a device index @p dv_ind and a type of memory partition
+ *  @p memory_partition, this function will attempt to update the selected
+ *  device's memory partition setting.
  *
  *  @param[in] dv_ind a device index
  *
- *  @param[in] nps_mode using enum ::rsmi_nps_mode_type_t,
- *  define what the selected device's NPS mode setting should be updated to.
+ *  @param[in] memory_partition using enum ::rsmi_memory_partition_type_t,
+ *  define what the selected device's current mode setting should be updated to.
  *
  *  @retval ::RSMI_STATUS_SUCCESS call was successful
  *  @retval ::RSMI_STATUS_PERMISSION function requires root access
@@ -3965,14 +4009,15 @@ rsmi_dev_nps_mode_get(uint32_t dv_ind, char *nps_mode, uint32_t len);
  *
  */
 rsmi_status_t
-rsmi_dev_nps_mode_set(uint32_t dv_ind, rsmi_nps_mode_type_t nps_mode);
+rsmi_dev_memory_partition_set(uint32_t dv_ind,
+                              rsmi_memory_partition_type_t memory_partition);
 
 /**
- *  @brief Reverts a selected device's NPS mode setting back to its
+ *  @brief Reverts a selected device's memory partition setting back to its
  *  boot state.
  *
  *  @details Given a device index @p dv_ind , this function will attempt to
- *  revert its NPS mode setting back to its boot state.
+ *  revert its current memory partition setting back to its boot state.
  *
  *  @param[in] dv_ind a device index
  *
@@ -3984,9 +4029,9 @@ rsmi_dev_nps_mode_set(uint32_t dv_ind, rsmi_nps_mode_type_t nps_mode);
  *  the amdgpu driver
  *
  */
-rsmi_status_t rsmi_dev_nps_mode_reset(uint32_t dv_ind);
+rsmi_status_t rsmi_dev_memory_partition_reset(uint32_t dv_ind);
 
-/** @} */  // end of NPSMode
+/** @} */  // end of memory_partition
 
 /*****************************************************************************/
 /** @defgroup APISupport Supported Functions
@@ -4333,4 +4378,4 @@ rsmi_status_t rsmi_event_notification_stop(uint32_t dv_ind);
 #ifdef __cplusplus
 }
 #endif  // __cplusplus
-#endif  // INCLUDE_ROCM_SMI_ROCM_SMI_H_
+#endif  // ROCM_SMI_ROCM_SMI_H_
