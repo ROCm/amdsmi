@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# PYTHON_ARGCOMPLETE_OK
+
 #
 # Copyright (C) 2023 Advanced Micro Devices. All rights reserved.
 #
@@ -22,6 +24,11 @@
 
 import logging
 import sys
+
+try:
+    import argcomplete
+except ImportError:
+    logging.debug("argcomplete module not found. Autocomplete will not work.")
 
 from amdsmi_commands import AMDSMICommands
 from amdsmi_parser import AMDSMIParser
@@ -63,6 +70,11 @@ if __name__ == "__main__":
                                     amd_smi_commands.reset,
                                     amd_smi_commands.rocm_smi)
     try:
+        try:
+            argcomplete.autocomplete(amd_smi_parser)
+        except NameError:
+            logging.debug("argcomplete module not found. Autocomplete will not work.")
+
         args = amd_smi_parser.parse_args(args=None if sys.argv[1:] else ['--help'])
 
         # Handle command modifiers before subcommand execution
