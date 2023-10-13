@@ -342,6 +342,20 @@ class AMDSMIHelpers():
         return perf_levels_str, perf_levels_int
 
 
+    def get_compute_partition_types(self):
+        compute_partitions_str = [partition.name for partition in amdsmi_interface.AmdSmiComputePartitionType]
+        if 'INVALID' in compute_partitions_str:
+            compute_partitions_str.remove('INVALID')
+        return compute_partitions_str
+
+
+    def get_memory_partition_types(self):
+        memory_partitions_str = [partition.name for partition in amdsmi_interface.AmdSmiMemoryPartitionType]
+        if 'UNKNOWN' in memory_partitions_str:
+            memory_partitions_str.remove('UNKNOWN')
+        return memory_partitions_str
+
+
     def get_clock_types(self):
         clock_types_str = [clock.name for clock in amdsmi_interface.AmdSmiClkType]
         clock_types_int = list(set(clock.value for clock in amdsmi_interface.AmdSmiClkType))
