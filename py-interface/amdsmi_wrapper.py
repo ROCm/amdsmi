@@ -1447,7 +1447,6 @@ struct_amdsmi_gpu_metrics_t._fields_ = [
 ]
 
 amdsmi_gpu_metrics_t = struct_amdsmi_gpu_metrics_t
-
 class struct_amdsmi_ras_feature_t(Structure):
     pass
 
@@ -1588,6 +1587,9 @@ amdsmi_get_gpu_memory_usage.argtypes = [amdsmi_processor_handle, amdsmi_memory_t
 amdsmi_get_gpu_bad_page_info = _libraries['libamd_smi.so'].amdsmi_get_gpu_bad_page_info
 amdsmi_get_gpu_bad_page_info.restype = amdsmi_status_t
 amdsmi_get_gpu_bad_page_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(struct_amdsmi_retired_page_record_t)]
+amdsmi_get_gpu_ras_feature_info = _libraries['libamd_smi.so'].amdsmi_get_gpu_ras_feature_info
+amdsmi_get_gpu_ras_feature_info.restype = amdsmi_status_t
+amdsmi_get_gpu_ras_feature_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_ras_feature_t)]
 amdsmi_get_gpu_ras_block_features_enabled = _libraries['libamd_smi.so'].amdsmi_get_gpu_ras_block_features_enabled
 amdsmi_get_gpu_ras_block_features_enabled.restype = amdsmi_status_t
 amdsmi_get_gpu_ras_block_features_enabled.argtypes = [amdsmi_processor_handle, amdsmi_gpu_block_t, ctypes.POINTER(amdsmi_ras_err_state_t)]
@@ -1648,9 +1650,6 @@ amdsmi_get_gpu_od_volt_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(
 amdsmi_get_gpu_metrics_info = _libraries['libamd_smi.so'].amdsmi_get_gpu_metrics_info
 amdsmi_get_gpu_metrics_info.restype = amdsmi_status_t
 amdsmi_get_gpu_metrics_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_gpu_metrics_t)]
-amdsmi_get_gpu_ras_feature_info = _libraries['libamd_smi.so'].amdsmi_get_gpu_ras_feature_info
-amdsmi_get_gpu_ras_feature_info.restype = amdsmi_status_t
-amdsmi_get_gpu_ras_feature_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_ras_feature_t)]
 amdsmi_set_gpu_clk_range = _libraries['libamd_smi.so'].amdsmi_set_gpu_clk_range
 amdsmi_set_gpu_clk_range.restype = amdsmi_status_t
 amdsmi_set_gpu_clk_range.argtypes = [amdsmi_processor_handle, uint64_t, uint64_t, amdsmi_clk_type_t]
@@ -1986,7 +1985,7 @@ __all__ = \
     'amdsmi_get_gpu_fan_speed', 'amdsmi_get_gpu_fan_speed_max',
     'amdsmi_get_gpu_id', 'amdsmi_get_gpu_memory_reserved_pages',
     'amdsmi_get_gpu_memory_total', 'amdsmi_get_gpu_memory_usage',
-    'amdsmi_get_gpu_metrics_info', 'amdsmi_get_gpu_ras_feature_info',
+    'amdsmi_get_gpu_metrics_info',
     'amdsmi_get_gpu_od_volt_curve_regions',
     'amdsmi_get_gpu_od_volt_info', 'amdsmi_get_gpu_overdrive_level',
     'amdsmi_get_gpu_pci_bandwidth',
@@ -1995,8 +1994,8 @@ __all__ = \
     'amdsmi_get_gpu_power_profile_presets',
     'amdsmi_get_gpu_process_info', 'amdsmi_get_gpu_process_list',
     'amdsmi_get_gpu_ras_block_features_enabled',
-    'amdsmi_get_gpu_revision', 'amdsmi_get_gpu_subsystem_id',
-    'amdsmi_get_gpu_subsystem_name',
+    'amdsmi_get_gpu_ras_feature_info', 'amdsmi_get_gpu_revision',
+    'amdsmi_get_gpu_subsystem_id', 'amdsmi_get_gpu_subsystem_name',
     'amdsmi_get_gpu_topo_numa_affinity',
     'amdsmi_get_gpu_total_ecc_count', 'amdsmi_get_gpu_vbios_info',
     'amdsmi_get_gpu_vendor_name', 'amdsmi_get_gpu_volt_metric',
@@ -2027,7 +2026,8 @@ __all__ = \
     'amdsmi_power_profile_status_t', 'amdsmi_power_type_t',
     'amdsmi_proc_info_t', 'amdsmi_process_handle_t',
     'amdsmi_process_info_t', 'amdsmi_processor_handle',
-    'amdsmi_range_t', 'amdsmi_ras_err_state_t', 'amdsmi_reset_gpu',
+    'amdsmi_range_t', 'amdsmi_ras_err_state_t',
+    'amdsmi_ras_feature_t', 'amdsmi_reset_gpu',
     'amdsmi_reset_gpu_fan', 'amdsmi_reset_gpu_xgmi_error',
     'amdsmi_retired_page_record_t', 'amdsmi_set_clk_freq',
     'amdsmi_set_gpu_clk_range',
@@ -2043,7 +2043,7 @@ __all__ = \
     'amdsmi_temperature_metric_t', 'amdsmi_temperature_type_t',
     'amdsmi_topo_get_link_type', 'amdsmi_topo_get_link_weight',
     'amdsmi_topo_get_numa_node_number',
-    'amdsmi_utilization_counter_t', 'struct_amdsmi_ras_feature_t',
+    'amdsmi_utilization_counter_t',
     'amdsmi_utilization_counter_type_t', 'amdsmi_vbios_info_t',
     'amdsmi_version_t', 'amdsmi_voltage_metric_t',
     'amdsmi_voltage_type_t', 'amdsmi_vram_info_t',
@@ -2064,7 +2064,8 @@ __all__ = \
     'struct_amdsmi_power_cap_info_t', 'struct_amdsmi_power_info_t',
     'struct_amdsmi_power_profile_status_t',
     'struct_amdsmi_proc_info_t', 'struct_amdsmi_process_info_t',
-    'struct_amdsmi_range_t', 'struct_amdsmi_retired_page_record_t',
+    'struct_amdsmi_range_t', 'struct_amdsmi_ras_feature_t',
+    'struct_amdsmi_retired_page_record_t',
     'struct_amdsmi_utilization_counter_t',
     'struct_amdsmi_vbios_info_t', 'struct_amdsmi_version_t',
     'struct_amdsmi_vram_info_t', 'struct_amdsmi_vram_usage_t',
