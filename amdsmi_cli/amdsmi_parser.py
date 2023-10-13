@@ -33,6 +33,19 @@ from amdsmi_helpers import AMDSMIHelpers
 import amdsmi_cli_exceptions
 
 
+# Custom Help Formatter for increasing the action max length
+class SubparserHelpFormatter(argparse.HelpFormatter):
+    def __init__(self, prog,
+                 indent_increment=2,
+                 max_help_position=24,
+                 width=90):
+        super().__init__(prog,
+                 indent_increment=indent_increment,
+                 max_help_position=max_help_position,
+                 width=width)
+        self._action_max_length = 20
+
+
 class AMDSMIParser(argparse.ArgumentParser):
     """Unified Parser for AMDSMI CLI.
         This parser doesn't access amdsmi's lib directly,but via AMDSMIHelpers,
@@ -56,9 +69,7 @@ class AMDSMIParser(argparse.ArgumentParser):
 
         # Adjust argument parser options
         super().__init__(
-            formatter_class=lambda prog: argparse.RawTextHelpFormatter(prog,
-                                                                       max_help_position=80,
-                                                                       width=90),
+            formatter_class= lambda prog: SubparserHelpFormatter(prog),
             description=f"AMD System Management Interface | {version_string} | {platform_string}",
             add_help=True,
             prog=program_name)
