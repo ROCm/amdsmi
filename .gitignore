@@ -31,3 +31,6 @@ docBin/
 
 # Simulated SYSFS - for early development or debug
 device/
+
+# misc
+esmi_ib_library/

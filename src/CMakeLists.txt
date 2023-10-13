@@ -50,7 +50,7 @@ set(INC_LIST
     "${PROJECT_SOURCE_DIR}/rocm_smi/include/rocm_smi/rocm_smi.h"
     "${PROJECT_SOURCE_DIR}/rocm_smi/include/rocm_smi/rocm_smi_utils.h")
 
-if(ESMI_AVAILABLE)
+if(ENABLE_ESMI_LIB)
 	list(APPEND INC_LIST ${ESMI_INC_DIR}/e_smi/e_smi.h)
 	list(APPEND INC_LIST ${ESMI_INC_DIR}/e_smi/e_smi_monitor.h)
 	list(APPEND INC_LIST ${ESMI_INC_DIR}/e_smi/e_smi_utils.h)
