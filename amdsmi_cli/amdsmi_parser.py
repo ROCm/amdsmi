@@ -311,6 +311,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         # Options arguments help text for Hypervisors and Baremetal
         ras_help = "Displays RAS features information"
         numa_help = "All numa node information" # Linux Baremetal only
+        partition_help = "Partition information"
 
         # Options arguments help text for Hypervisors
         dfc_help = "All DFC FW table information"
@@ -339,6 +340,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         # Options to display on Hypervisors and Baremetal
         if self.helpers.is_hypervisor() or self.helpers.is_baremetal():
             static_parser.add_argument('-r', '--ras', action='store_true', required=False, help=ras_help)
+            static_parser.add_argument('-p', '--partition', action='store_true', required=False, help=partition_help)
             if self.helpers.is_linux():
                 static_parser.add_argument('-l', '--limit', action='store_true', required=False, help=limit_help)
                 static_parser.add_argument('-u', '--numa', action='store_true', required=False, help=numa_help)
@@ -615,11 +617,13 @@ class AMDSMIParser(argparse.ArgumentParser):
                                     \nA set argument must be provided; Multiple set arguments are accepted"
         set_value_optionals_title = "Set Arguments"
 
-        # Help text for Arguments only on Guest and BM platforms
+        # Help text for Arguments only on BM platforms
         set_fan_help = "Sets GPU fan speed (0-255 or 0-100%%)"
         set_perf_level_help = "Sets performance level"
         set_profile_help = "Set power profile level (#) or a quoted string of custom profile attributes"
         set_perf_det_help = "Sets GPU clock frequency limit and performance level to determinism to get minimal performance variation"
+        set_compute_partition_help = "Sets compute partition mode"
+        set_memory_partition_help = "Sets memory partition mode"
 
         # Create set_value subparser
         set_value_parser = subparsers.add_parser('set', help=set_value_help, description=set_value_subcommand_help)
@@ -633,9 +637,11 @@ class AMDSMIParser(argparse.ArgumentParser):
 
         # Optional Args
         set_value_parser.add_argument('-f', '--fan', action=self._validate_fan_speed(), required=False, help=set_fan_help, metavar='%')
-        set_value_parser.add_argument('-l', '--perflevel', action='store', choices=self.helpers.get_perf_levels()[0], type=str.upper, required=False, help=set_perf_level_help, metavar='LEVEL')
+        set_value_parser.add_argument('-l', '--perf-level', action='store', choices=self.helpers.get_perf_levels()[0], type=str.upper, required=False, help=set_perf_level_help, metavar='LEVEL')
         set_value_parser.add_argument('-P', '--profile', action='store', required=False, help=set_profile_help, metavar='SETPROFILE')
-        set_value_parser.add_argument('-d', '--perfdeterminism', action='store', type=self._positive_int, required=False, help=set_perf_det_help, metavar='SCLKMAX')
+        set_value_parser.add_argument('-d', '--perf-determinism', action='store', type=self._positive_int, required=False, help=set_perf_det_help, metavar='SCLKMAX')
+        set_value_parser.add_argument('-C', '--compute-partition', action='store', choices=self.helpers.get_compute_partition_types(), type=str.upper, required=False, help=set_compute_partition_help, metavar='PARTITION')
+        set_value_parser.add_argument('-M', '--memory-partition', action='store', choices=self.helpers.get_memory_partition_types(), type=str.upper, required=False, help=set_memory_partition_help, metavar='PARTITION')
 
 
     def _validate_set_clock(self, validate_clock_type=True):
@@ -744,11 +750,13 @@ class AMDSMIParser(argparse.ArgumentParser):
 
         # Help text for Arguments only on Guest and BM platforms
         gpureset_help = "Reset the specified GPU"
-        resetclocks_help = "Reset clocks and overdrive to default"
-        resetfans_help = "Reset fans to automatic (driver) control"
-        resetprofile_help = "Reset power profile back to default"
-        resetxgmierr_help = "Reset XGMI error counts"
-        resetperfdet_help = "Disable performance determinism"
+        reset_clocks_help = "Reset clocks and overdrive to default"
+        reset_fans_help = "Reset fans to automatic (driver) control"
+        reset_profile_help = "Reset power profile back to default"
+        reset_xgmierr_help = "Reset XGMI error counts"
+        reset_perfdet_help = "Disable performance determinism"
+        reset_compute_help = "Reset compute partitions on the specified GPU"
+        reset_memory_help = "Reset memory partitions on the specified GPU"
 
         # Create reset subparser
         reset_parser = subparsers.add_parser('reset', help=reset_help, description=reset_subcommand_help)
@@ -762,11 +770,13 @@ class AMDSMIParser(argparse.ArgumentParser):
 
         # Optional Args
         reset_parser.add_argument('-G', '--gpureset', action='store_true', required=False, help=gpureset_help)
-        reset_parser.add_argument('-c', '--clocks', action='store_true', required=False, help=resetclocks_help)
-        reset_parser.add_argument('-f', '--fans', action='store_true', required=False, help=resetfans_help)
-        reset_parser.add_argument('-p', '--profile', action='store_true', required=False, help=resetprofile_help)
-        reset_parser.add_argument('-x', '--xgmierr', action='store_true', required=False, help=resetxgmierr_help)
-        reset_parser.add_argument('-d', '--perfdeterminism', action='store_true', required=False, help=resetperfdet_help)
+        reset_parser.add_argument('-c', '--clocks', action='store_true', required=False, help=reset_clocks_help)
+        reset_parser.add_argument('-f', '--fans', action='store_true', required=False, help=reset_fans_help)
+        reset_parser.add_argument('-p', '--profile', action='store_true', required=False, help=reset_profile_help)
+        reset_parser.add_argument('-x', '--xgmierr', action='store_true', required=False, help=reset_xgmierr_help)
+        reset_parser.add_argument('-d', '--perf-determinism', action='store_true', required=False, help=reset_perfdet_help)
+        reset_parser.add_argument('-C', '--compute-partition', action='store_true', required=False, help=reset_compute_help)
+        reset_parser.add_argument('-M', '--memory-partition', action='store_true', required=False, help=reset_memory_help)
 
 
     def _add_rocm_smi_parser(self, subparsers, func):

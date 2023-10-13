@@ -160,9 +160,9 @@ Command Modifiers:
 amd-smi static --help
 usage: amd-smi static [-h] [--json | --csv] [--file FILE]
                       [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] [-g GPU [GPU ...]]
-                      [-a] [-b] [-V] [-d] [-r] [-v] [-B] [-l] [-u]
+                      [-a] [-b] [-V] [-d] [-v] [-c] [-B] [-r] [-p] [-l] [-u]
 
-If no GPU is specified, returns static information for all GPUs on the system.
+If no GPU is specified, returns static information for all GPUs on the system.                                
 If no static argument is provided, all static information will be displayed.
 
 Static Arguments:
@@ -174,10 +174,11 @@ Static Arguments:
   -b, --bus                                       All bus information
   -V, --vbios                                     All video bios information (if available)
   -d, --driver                                    Displays driver version
-  -r, --ras                                       Displays RAS features information
   -v, --vram                                      All vram information
   -c, --cache                                     All cache information
   -B, --board                                     All board information
+  -r, --ras                                       Displays RAS features information
+  -p, --partition                                 Partition information
   -l, --limit                                     All limit metric values (i.e. power and thermal limits)
   -u, --numa                                      All numa node information
 
@@ -314,7 +315,8 @@ Command Modifiers:
 amd-smi set --help
 usage: amd-smi set [-h] [--json | --csv] [--file FILE]
                    [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] -g GPU [GPU ...]
-                   [-f %] [-l LEVEL] [-P SETPROFILE] [-d SCLKMAX]
+                   [-f %] [-l LEVEL] [-P SETPROFILE] [-d SCLKMAX] [-C PARTITION]
+                   [-M PARTITION]
 
 A GPU must be specified to set a configuration.                                    
 A set argument must be provided; Multiple set arguments are accepted
@@ -325,9 +327,11 @@ Set Arguments:
                                                   ID:0 | BDF:0000:23:00.0 | UUID:c4ff73bf-0000-1000-80ff-ffffffffffff
                                                    all | Selects all devices
   -f %, --fan %                                   Sets GPU fan speed (0-255 or 0-100%)
-  -l LEVEL, --perflevel LEVEL                     Sets performance level
+  -l LEVEL, --perf-level LEVEL                    Sets performance level
   -P SETPROFILE, --profile SETPROFILE             Set power profile level (#) or a quoted string of custom profile attributes
-  -d SCLKMAX, --perfdeterminism SCLKMAX           Sets GPU clock frequency limit and performance level to determinism to get minimal performance variation
+  -d SCLKMAX, --perf-determinism SCLKMAX          Sets GPU clock frequency limit and performance level to determinism to get minimal performance variation
+  -C PARTITION, --compute-partition PARTITION     Sets compute partition mode
+  -M PARTITION, --memory-partition PARTITION      Sets memory partition mode
 
 Command Modifiers:
   --json                                          Displays output in JSON format (human readable by default).
@@ -340,7 +344,7 @@ Command Modifiers:
 amd-smi reset --help
 usage: amd-smi reset [-h] [--json | --csv] [--file FILE]
                      [--loglevel {DEBUG,INFO,WARNING,ERROR,CRITICAL}] -g GPU [GPU ...]
-                     [-G] [-c] [-f] [-p] [-x] [-d]
+                     [-G] [-c] [-f] [-p] [-x] [-d] [-C] [-M]
 
 A GPU must be specified to reset a configuration.                                
 A reset argument must be provided; Multiple reset arguments are accepted
@@ -355,7 +359,9 @@ Reset Arguments:
   -f, --fans                                      Reset fans to automatic (driver) control
   -p, --profile                                   Reset power profile back to default
   -x, --xgmierr                                   Reset XGMI error counts
-  -d, --perfdeterminism                           Disable performance determinism
+  -d, --perf-determinism                          Disable performance determinism
+  -C, --compute-partition                         Reset compute partitions on the specified GPU
+  -M, --memory-partition                          Reset memory partitions on the specified GPU
 
 Command Modifiers:
   --json                                          Displays output in JSON format (human readable by default).
