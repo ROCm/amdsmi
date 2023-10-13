@@ -986,6 +986,52 @@ amdsmi_is_P2P_accessible(amdsmi_processor_handle processor_handle_src,
     return amd::smi::rsmi_to_amdsmi_status(rstatus);
 }
 
+// Compute Partition functions
+amdsmi_status_t
+amdsmi_dev_compute_partition_get(amdsmi_processor_handle processor_handle,
+                                  char *compute_partition, uint32_t len) {
+    AMDSMI_CHECK_INIT();
+    return rsmi_wrapper(rsmi_dev_compute_partition_get, processor_handle,
+                          compute_partition, len);
+}
+
+amdsmi_status_t
+amdsmi_dev_compute_partition_set(amdsmi_processor_handle processor_handle,
+                                  amdsmi_compute_partition_type_t compute_partition) {
+    AMDSMI_CHECK_INIT();
+    return rsmi_wrapper(rsmi_dev_compute_partition_set, processor_handle,
+                          static_cast<rsmi_compute_partition_type_t>(compute_partition));
+}
+
+amdsmi_status_t
+amdsmi_dev_compute_partition_reset(amdsmi_processor_handle processor_handle) {
+    AMDSMI_CHECK_INIT();
+    return rsmi_wrapper(rsmi_dev_compute_partition_reset, processor_handle);
+}
+
+// Memory Partition functions
+amdsmi_status_t
+amdsmi_dev_memory_partition_get(amdsmi_processor_handle processor_handle,
+                                  char *memory_partition, uint32_t len) {
+    AMDSMI_CHECK_INIT();
+    return rsmi_wrapper(rsmi_dev_memory_partition_get, processor_handle,
+                          memory_partition, len);
+}
+
+amdsmi_status_t
+amdsmi_dev_memory_partition_set(amdsmi_processor_handle processor_handle,
+                                  amdsmi_memory_partition_type_t memory_partition) {
+    AMDSMI_CHECK_INIT();
+    return rsmi_wrapper(rsmi_dev_memory_partition_set, processor_handle,
+                          static_cast<rsmi_memory_partition_type_t>(memory_partition));
+}
+
+amdsmi_status_t
+amdsmi_dev_memory_partition_reset(amdsmi_processor_handle processor_handle) {
+    AMDSMI_CHECK_INIT();
+    return rsmi_wrapper(rsmi_dev_memory_partition_reset, processor_handle);
+}
+
 // TODO(bliu) : other xgmi related information
 amdsmi_status_t
 amdsmi_get_xgmi_info(amdsmi_processor_handle processor_handle, amdsmi_xgmi_info_t *info) {

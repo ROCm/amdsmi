@@ -222,6 +222,45 @@ typedef enum {
 } amdsmi_clk_type_t;
 
 /**
+ * @brief Compute Partition. This enum is used to identify
+ * various compute partitioning settings.
+ */
+typedef enum {
+  COMPUTE_PARTITION_INVALID = 0,
+  COMPUTE_PARTITION_CPX, //!< Core mode (CPX)- Per-chip XCC with
+                         //!< shared memory
+  COMPUTE_PARTITION_SPX, //!< Single GPU mode (SPX)- All XCCs work
+                         //!< together with shared memory
+  COMPUTE_PARTITION_DPX, //!< Dual GPU mode (DPX)- Half XCCs work
+                         //!< together with shared memory
+  COMPUTE_PARTITION_TPX, //!< Triple GPU mode (TPX)- One-third XCCs
+                         //!< work together with shared memory
+  COMPUTE_PARTITION_QPX  //!< Quad GPU mode (QPX)- Quarter XCCs
+                         //!< work together with shared memory
+} amdsmi_compute_partition_type_t;
+
+/**
+ * @brief Memory Partitions. This enum is used to identify various
+ * memory partition types.
+ */
+typedef enum {
+  MEMORY_PARTITION_UNKNOWN = 0,
+  MEMORY_PARTITION_NPS1,  //!< NPS1 - All CCD & XCD data is interleaved
+                          //!< accross all 8 HBM stacks (all stacks/1).
+  MEMORY_PARTITION_NPS2,  //!< NPS2 - 2 sets of CCDs or 4 XCD interleaved
+                          //!< accross the 4 HBM stacks per AID pair
+                          //!< (8 stacks/2).
+  MEMORY_PARTITION_NPS4,  //!< NPS4 - Each XCD data is interleaved accross
+                          //!< accross 2 (or single) HBM stacks
+                          //!< (8 stacks/8 or 8 stacks/4).
+  MEMORY_PARTITION_NPS8,  //!< NPS8 - Each XCD uses a single HBM stack
+                          //!< (8 stacks/8). Or each XCD uses a single
+                          //!< HBM stack & CCDs share 2 non-interleaved
+                          //!< HBM stacks on its AID
+                          //!< (AID[1,2,3] = 6 stacks/6).
+} amdsmi_memory_partition_type_t;
+
+/**
  * @brief This enumeration is used to indicate from which part of the device a
  * temperature reading should be obtained.
  */
@@ -1525,7 +1564,8 @@ amdsmi_status_t amdsmi_get_processor_type(amdsmi_processor_handle processor_hand
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_processor_handle_from_bdf(amdsmi_bdf_t bdf, amdsmi_processor_handle* processor_handle);
+amdsmi_status_t amdsmi_get_processor_handle_from_bdf(amdsmi_bdf_t bdf,
+              amdsmi_processor_handle* processor_handle);
 
 /** @} End DiscQueries */
 
@@ -1715,7 +1755,8 @@ amdsmi_get_gpu_subsystem_name(amdsmi_processor_handle processor_handle, char *na
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_gpu_pci_bandwidth(amdsmi_processor_handle processor_handle, amdsmi_pcie_bandwidth_t *bandwidth);
+amdsmi_get_gpu_pci_bandwidth(amdsmi_processor_handle processor_handle,
+                              amdsmi_pcie_bandwidth_t *bandwidth);
 
 /**
  *  @brief Get the unique PCI device identifier associated for a device
@@ -1770,7 +1811,8 @@ amdsmi_status_t amdsmi_get_gpu_bdf_id(amdsmi_processor_handle processor_handle, 
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_gpu_topo_numa_affinity(amdsmi_processor_handle processor_handle, int32_t *numa_node);
+amdsmi_status_t amdsmi_get_gpu_topo_numa_affinity(amdsmi_processor_handle processor_handle,
+                                                    int32_t *numa_node);
 
 /**
  *  @brief Get PCIe traffic information. It is not supported on virtual machine guest
@@ -1816,7 +1858,7 @@ amdsmi_status_t amdsmi_get_gpu_pci_throughput(amdsmi_processor_handle processor_
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_get_gpu_pci_replay_counter(amdsmi_processor_handle processor_handle,
+amdsmi_status_t amdsmi_get_gpu_pci_replay_counter(amdsmi_processor_handle processor_handle,
                                                            uint64_t *counter);
 
 /** @} End PCIeQuer */
@@ -1857,7 +1899,8 @@ amdsmi_status_t  amdsmi_get_gpu_pci_replay_counter(amdsmi_processor_handle proce
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_set_gpu_pci_bandwidth(amdsmi_processor_handle processor_handle, uint64_t bw_bitmask);
+amdsmi_status_t amdsmi_set_gpu_pci_bandwidth(amdsmi_processor_handle processor_handle,
+                                              uint64_t bw_bitmask);
 
 /** @} End PCIeCont */
 
@@ -2021,7 +2064,8 @@ amdsmi_get_gpu_memory_usage(amdsmi_processor_handle processor_handle, amdsmi_mem
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_gpu_bad_page_info(amdsmi_processor_handle processor_handle, uint32_t *num_pages, amdsmi_retired_page_record_t *info);
+amdsmi_get_gpu_bad_page_info(amdsmi_processor_handle processor_handle, uint32_t *num_pages,
+                              amdsmi_retired_page_record_t *info);
 
 /**
  *  @brief Returns RAS features info.
@@ -2059,8 +2103,9 @@ amdsmi_status_t amdsmi_get_gpu_ras_feature_info(
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_gpu_ras_block_features_enabled(amdsmi_processor_handle processor_handle, amdsmi_gpu_block_t block,
-                                                                  amdsmi_ras_err_state_t *state);
+amdsmi_get_gpu_ras_block_features_enabled(amdsmi_processor_handle processor_handle,
+                                            amdsmi_gpu_block_t block,
+                                            amdsmi_ras_err_state_t *state);
 
 /**
  *  @brief Get information about reserved ("retired") memory pages. It is not supported on
@@ -2094,8 +2139,9 @@ amdsmi_get_gpu_ras_block_features_enabled(amdsmi_processor_handle processor_hand
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_get_gpu_memory_reserved_pages(amdsmi_processor_handle processor_handle, uint32_t *num_pages,
-                                         amdsmi_retired_page_record_t *records);
+amdsmi_get_gpu_memory_reserved_pages(amdsmi_processor_handle processor_handle,
+                                      uint32_t *num_pages,
+                                      amdsmi_retired_page_record_t *records);
 
 /** @} End MemQuer */
 
@@ -2127,8 +2173,8 @@ amdsmi_get_gpu_memory_reserved_pages(amdsmi_processor_handle processor_handle, u
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_gpu_fan_rpms(amdsmi_processor_handle processor_handle, uint32_t sensor_ind,
-                                                              int64_t *speed);
+amdsmi_status_t amdsmi_get_gpu_fan_rpms(amdsmi_processor_handle processor_handle,
+                                          uint32_t sensor_ind, int64_t *speed);
 
 /**
  *  @brief Get the fan speed for the specified device as a value relative to
@@ -2208,7 +2254,7 @@ amdsmi_status_t amdsmi_get_gpu_fan_speed_max(amdsmi_processor_handle processor_h
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_get_temp_metric(amdsmi_processor_handle processor_handle,
+amdsmi_status_t amdsmi_get_temp_metric(amdsmi_processor_handle processor_handle,
                       amdsmi_temperature_type_t sensor_type,
                       amdsmi_temperature_metric_t metric, int64_t *temperature);
 
@@ -2252,7 +2298,7 @@ amdsmi_status_t amdsmi_get_gpu_cache_info(
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_get_gpu_volt_metric(amdsmi_processor_handle processor_handle,
+amdsmi_status_t amdsmi_get_gpu_volt_metric(amdsmi_processor_handle processor_handle,
                                amdsmi_voltage_type_t sensor_type,
                               amdsmi_voltage_metric_t metric, int64_t *voltage);
 
@@ -2354,7 +2400,8 @@ amdsmi_get_utilization_count(amdsmi_processor_handle processor_handle,
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_pcie_link_status(amdsmi_processor_handle processor_handle, amdsmi_pcie_info_t *info);
+amdsmi_status_t amdsmi_get_pcie_link_status(amdsmi_processor_handle processor_handle,
+                                              amdsmi_pcie_info_t *info);
 
 /**
  *  @brief Get max PCIe capabilities of the device with provided processor handle.
@@ -2368,7 +2415,8 @@ amdsmi_status_t amdsmi_get_pcie_link_status(amdsmi_processor_handle processor_ha
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_pcie_link_caps(amdsmi_processor_handle processor_handle, amdsmi_pcie_info_t *info);
+amdsmi_status_t amdsmi_get_pcie_link_caps(amdsmi_processor_handle processor_handle,
+                                            amdsmi_pcie_info_t *info);
 
 /**
  *  @brief Get the performance level of the device. It is not supported on virtual
@@ -2433,7 +2481,8 @@ amdsmi_set_gpu_perf_determinism_mode(amdsmi_processor_handle processor_handle, u
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 
-amdsmi_status_t amdsmi_get_gpu_overdrive_level(amdsmi_processor_handle processor_handle, uint32_t *od);
+amdsmi_status_t amdsmi_get_gpu_overdrive_level(amdsmi_processor_handle processor_handle,
+                                                uint32_t *od);
 
 /**
  *  @brief Get the list of possible system clock speeds of device for a
@@ -2454,7 +2503,7 @@ amdsmi_status_t amdsmi_get_gpu_overdrive_level(amdsmi_processor_handle processor
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_get_clk_freq(amdsmi_processor_handle processor_handle,
+amdsmi_status_t amdsmi_get_clk_freq(amdsmi_processor_handle processor_handle,
                              amdsmi_clk_type_t clk_type, amdsmi_frequencies_t *f);
 
 /**
@@ -2487,7 +2536,7 @@ amdsmi_status_t amdsmi_reset_gpu(amdsmi_processor_handle processor_handle);
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_get_gpu_od_volt_info(amdsmi_processor_handle processor_handle,
+amdsmi_status_t amdsmi_get_gpu_od_volt_info(amdsmi_processor_handle processor_handle,
                                                amdsmi_od_volt_freq_data_t *odv);
 
 /**
@@ -2508,7 +2557,7 @@ amdsmi_status_t  amdsmi_get_gpu_od_volt_info(amdsmi_processor_handle processor_h
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_get_gpu_metrics_info(amdsmi_processor_handle processor_handle,
+amdsmi_status_t amdsmi_get_gpu_metrics_info(amdsmi_processor_handle processor_handle,
                                             amdsmi_gpu_metrics_t *pgpu_metrics);
 
 /**
@@ -2531,9 +2580,10 @@ amdsmi_status_t  amdsmi_get_gpu_metrics_info(amdsmi_processor_handle processor_h
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_set_gpu_clk_range(amdsmi_processor_handle processor_handle, uint64_t minclkvalue,
-                                       uint64_t maxclkvalue,
-                                       amdsmi_clk_type_t clkType);
+amdsmi_status_t amdsmi_set_gpu_clk_range(amdsmi_processor_handle processor_handle,
+                                          uint64_t minclkvalue,
+                                          uint64_t maxclkvalue,
+                                          amdsmi_clk_type_t clkType);
 
 /**
  *  @brief This function sets the clock frequency information. It is not supported on
@@ -2555,9 +2605,10 @@ amdsmi_status_t amdsmi_set_gpu_clk_range(amdsmi_processor_handle processor_handl
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_set_gpu_od_clk_info(amdsmi_processor_handle processor_handle, amdsmi_freq_ind_t level,
-                                       uint64_t clkvalue,
-                                       amdsmi_clk_type_t clkType);
+amdsmi_status_t amdsmi_set_gpu_od_clk_info(amdsmi_processor_handle processor_handle,
+                                        amdsmi_freq_ind_t level,
+                                        uint64_t clkvalue,
+                                        amdsmi_clk_type_t clkType);
 
 /**
  *  @brief This function sets  1 of the 3 voltage curve points. It is not supported
@@ -2578,8 +2629,10 @@ amdsmi_status_t  amdsmi_set_gpu_od_clk_info(amdsmi_processor_handle processor_ha
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_set_gpu_od_volt_info(amdsmi_processor_handle processor_handle, uint32_t vpoint,
-                                        uint64_t clkvalue, uint64_t voltvalue);
+amdsmi_status_t amdsmi_set_gpu_od_volt_info(amdsmi_processor_handle processor_handle,
+                                              uint32_t vpoint,
+                                              uint64_t clkvalue,
+                                              uint64_t voltvalue);
 
 /**
  *  @brief This function will retrieve the current valid regions in the
@@ -2616,7 +2669,7 @@ amdsmi_status_t  amdsmi_set_gpu_od_volt_info(amdsmi_processor_handle processor_h
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_get_gpu_od_volt_curve_regions(amdsmi_processor_handle processor_handle,
+amdsmi_status_t amdsmi_get_gpu_od_volt_curve_regions(amdsmi_processor_handle processor_handle,
                       uint32_t *num_regions, amdsmi_freq_volt_region_t *buffer);
 
 /**
@@ -2720,7 +2773,7 @@ amdsmi_status_t
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_set_gpu_overdrive_level(amdsmi_processor_handle processor_handle, uint32_t od);
+amdsmi_status_t amdsmi_set_gpu_overdrive_level(amdsmi_processor_handle processor_handle, uint32_t od);
 
 /**
  * @brief Control the set of allowed frequencies that can be used for the
@@ -2754,7 +2807,7 @@ amdsmi_status_t  amdsmi_set_gpu_overdrive_level(amdsmi_processor_handle processo
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_set_clk_freq(amdsmi_processor_handle processor_handle,
+amdsmi_status_t amdsmi_set_clk_freq(amdsmi_processor_handle processor_handle,
                              amdsmi_clk_type_t clk_type, uint64_t freq_bitmask);
 
 /** @} End PerfCont */
@@ -2811,7 +2864,7 @@ amdsmi_get_lib_version(amdsmi_version_t *version);
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_get_gpu_ecc_count(amdsmi_processor_handle processor_handle,
+amdsmi_status_t amdsmi_get_gpu_ecc_count(amdsmi_processor_handle processor_handle,
                               amdsmi_gpu_block_t block, amdsmi_error_count_t *ec);
 
 /**
@@ -2838,7 +2891,7 @@ amdsmi_status_t  amdsmi_get_gpu_ecc_count(amdsmi_processor_handle processor_hand
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_get_gpu_ecc_enabled(amdsmi_processor_handle processor_handle,
+amdsmi_status_t amdsmi_get_gpu_ecc_enabled(amdsmi_processor_handle processor_handle,
                                                     uint64_t *enabled_blocks);
 
 /**
@@ -2863,7 +2916,8 @@ amdsmi_status_t  amdsmi_get_gpu_ecc_enabled(amdsmi_processor_handle processor_ha
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t  amdsmi_get_gpu_ecc_status(amdsmi_processor_handle processor_handle, amdsmi_gpu_block_t block,
+amdsmi_status_t amdsmi_get_gpu_ecc_status(amdsmi_processor_handle processor_handle,
+                                                  amdsmi_gpu_block_t block,
                                                   amdsmi_ras_err_state_t *state);
 
 /**
@@ -3317,8 +3371,10 @@ amdsmi_topo_get_link_weight(amdsmi_processor_handle processor_handle_src, amdsmi
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
- amdsmi_get_minmax_bandwidth_between_processors(amdsmi_processor_handle processor_handle_src, amdsmi_processor_handle processor_handle_dst,
-                          uint64_t *min_bandwidth, uint64_t *max_bandwidth);
+ amdsmi_get_minmax_bandwidth_between_processors(amdsmi_processor_handle processor_handle_src,
+                                                  amdsmi_processor_handle processor_handle_dst,
+                                                  uint64_t *min_bandwidth,
+                                                  uint64_t *max_bandwidth);
 
 /**
  *  @brief Retrieve the hops and the connection type between 2 GPUs
@@ -3366,10 +3422,180 @@ amdsmi_topo_get_link_type(amdsmi_processor_handle processor_handle_src,
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t
-amdsmi_is_P2P_accessible(amdsmi_processor_handle processor_handle_src, amdsmi_processor_handle processor_handle_dst,
-                       bool *accessible);
+amdsmi_is_P2P_accessible(amdsmi_processor_handle processor_handle_src,
+                          amdsmi_processor_handle processor_handle_dst,
+                          bool *accessible);
 
 /** @} End HWTopo */
+
+/*****************************************************************************/
+/** @defgroup compute_partition Compute Partition Functions
+ *  These functions are used to configure and query the device's
+ *  compute parition setting.
+ *  @{
+ */
+
+/**
+ *  @brief Retrieves the current compute partitioning for a desired device
+ *
+ *  @details
+ *  Given a device index @p dv_ind and a string @p compute_partition ,
+ *  and uint32 @p len , this function will attempt to obtain the device's
+ *  current compute partition setting string. Upon successful retreival,
+ *  the obtained device's compute partition settings string shall be stored in
+ *  the passed @p compute_partition char string variable.
+ *
+ *  @param[in] dv_ind a device index
+ *
+ *  @param[inout] compute_partition a pointer to a char string variable,
+ *  which the device's current compute partition will be written to.
+ *
+ *  @param[in] len the length of the caller provided buffer @p compute_partition
+ *  , suggested length is 4 or greater.
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
+ *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_UNEXPECTED_DATA data provided to function is not valid
+ *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
+ *  support this function
+ *  @retval ::AMDSMI_STATUS_INSUFFICIENT_SIZE is returned if @p len bytes is not
+ *  large enough to hold the entire compute partition value. In this case,
+ *  only @p len bytes will be written.
+ *
+ */
+amdsmi_status_t
+amdsmi_dev_compute_partition_get(amdsmi_processor_handle processor_handle,
+                                  char *compute_partition, uint32_t len);
+
+/**
+ *  @brief Modifies a selected device's compute partition setting.
+ *
+ *  @details Given a device index @p dv_ind, a type of compute partition
+ *  @p compute_partition, this function will attempt to update the selected
+ *  device's compute partition setting.
+ *
+ *  @param[in] dv_ind a device index
+ *
+ *  @param[in] compute_partition using enum ::amdsmi_compute_partition_type_t,
+ *  define what the selected device's compute partition setting should be
+ *  updated to.
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
+ *  @retval ::AMDSMI_STATUS_PERMISSION function requires root access
+ *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_SETTING_UNAVAILABLE the provided setting is
+ *  unavailable for current device
+ *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
+ *  support this function
+ *
+ */
+amdsmi_status_t
+amdsmi_dev_compute_partition_set(amdsmi_processor_handle processor_handle,
+                                  amdsmi_compute_partition_type_t compute_partition);
+
+/**
+ *  @brief Reverts a selected device's compute partition setting back to its
+ *  boot state.
+ *
+ *  @details Given a device index @p dv_ind , this function will attempt to
+ *  revert its compute partition setting back to its boot state.
+ *
+ *  @param[in] dv_ind a device index
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
+ *  @retval ::AMDSMI_STATUS_PERMISSION function requires root access
+ *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
+ *  support this function
+ *
+ */
+amdsmi_status_t amdsmi_dev_compute_partition_reset(amdsmi_processor_handle processor_handle);
+
+/** @} */  // end of compute_partition
+
+/*****************************************************************************/
+/** @defgroup memory_partition Memory Partition Functions
+ *  These functions are used to query and set the device's current memory
+ *  partition.
+ *  @{
+ */
+
+/**
+ *  @brief Retrieves the current memory partition for a desired device
+ *
+ *  @details
+ *  Given a device index @p dv_ind and a string @p memory_partition ,
+ *  and uint32 @p len , this function will attempt to obtain the device's
+ *  memory partition string. Upon successful retreival, the obtained device's
+ *  memory partition string shall be stored in the passed @p memory_partition
+ *  char string variable.
+ *
+ *  @param[in] dv_ind a device index
+ *
+ *  @param[inout] memory_partition a pointer to a char string variable,
+ *  which the device's memory partition will be written to.
+ *
+ *  @param[in] len the length of the caller provided buffer @p memory_partition ,
+ *  suggested length is 5 or greater.
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
+ *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_UNEXPECTED_DATA data provided to function is not valid
+ *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
+ *  support this function
+ *  @retval ::AMDSMI_STATUS_INSUFFICIENT_SIZE is returned if @p len bytes is not
+ *  large enough to hold the entire memory partition value. In this case,
+ *  only @p len bytes will be written.
+ *
+ */
+amdsmi_status_t
+amdsmi_dev_memory_partition_get(amdsmi_processor_handle processor_handle,
+                                  char *memory_partition, uint32_t len);
+
+/**
+ *  @brief Modifies a selected device's current memory partition setting.
+ *
+ *  @details Given a device index @p dv_ind and a type of memory partition
+ *  @p memory_partition, this function will attempt to update the selected
+ *  device's memory partition setting.
+ *
+ *  @param[in] dv_ind a device index
+ *
+ *  @param[in] memory_partition using enum ::amdsmi_memory_partition_type_t,
+ *  define what the selected device's current mode setting should be updated to.
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
+ *  @retval ::AMDSMI_STATUS_PERMISSION function requires root access
+ *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
+ *  support this function
+ *  @retval ::AMDSMI_STATUS_AMDGPU_RESTART_ERR could not successfully restart
+ *  the amdgpu driver
+ *
+ */
+amdsmi_status_t
+amdsmi_dev_memory_partition_set(amdsmi_processor_handle processor_handle,
+                                  amdsmi_memory_partition_type_t memory_partition);
+
+/**
+ *  @brief Reverts a selected device's memory partition setting back to its
+ *  boot state.
+ *
+ *  @details Given a device index @p dv_ind , this function will attempt to
+ *  revert its current memory partition setting back to its boot state.
+ *
+ *  @param[in] dv_ind a device index
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
+ *  @retval ::AMDSMI_STATUS_PERMISSION function requires root access
+ *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
+ *  support this function
+ *  @retval ::AMDSMI_STATUS_AMDGPU_RESTART_ERR could not successfully restart
+ *  the amdgpu driver
+ *
+ */
+amdsmi_status_t amdsmi_dev_memory_partition_reset(amdsmi_processor_handle processor_handle);
+
+/** @} */  // end of memory_partition
 
 /*****************************************************************************/
 /** @defgroup EvntNotif Event Notification Functions

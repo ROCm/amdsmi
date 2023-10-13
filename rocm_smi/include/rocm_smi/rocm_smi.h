@@ -377,16 +377,16 @@ typedef rsmi_clk_type_t rsmi_clk_type;
  */
 typedef enum {
   RSMI_COMPUTE_PARTITION_INVALID = 0,
-  RSMI_COMPUTE_PARTITION_CPX,         //!< Core mode (CPX)- Per-chip XCC with
-                                      //!< shared memory
-  RSMI_COMPUTE_PARTITION_SPX,         //!< Single GPU mode (SPX)- All XCCs work
-                                      //!< together with shared memory
-  RSMI_COMPUTE_PARTITION_DPX,         //!< Dual GPU mode (DPX)- Half XCCs work
-                                      //!< together with shared memory
-  RSMI_COMPUTE_PARTITION_TPX,         //!< Triple GPU mode (TPX)- One-third XCCs
-                                      //!< work together with shared memory
-  RSMI_COMPUTE_PARTITION_QPX          //!< Quad GPU mode (QPX)- Quarter XCCs
-                                      //!< work together with shared memory
+  RSMI_COMPUTE_PARTITION_CPX, //!< Core mode (CPX)- Per-chip XCC with
+                              //!< shared memory
+  RSMI_COMPUTE_PARTITION_SPX, //!< Single GPU mode (SPX)- All XCCs work
+                              //!< together with shared memory
+  RSMI_COMPUTE_PARTITION_DPX, //!< Dual GPU mode (DPX)- Half XCCs work
+                              //!< together with shared memory
+  RSMI_COMPUTE_PARTITION_TPX, //!< Triple GPU mode (TPX)- One-third XCCs
+                              //!< work together with shared memory
+  RSMI_COMPUTE_PARTITION_QPX  //!< Quad GPU mode (QPX)- Quarter XCCs
+                              //!< work together with shared memory
 } rsmi_compute_partition_type_t;
 /// \cond Ignore in docs.
 typedef rsmi_compute_partition_type_t rsmi_compute_partition_type;
@@ -3902,7 +3902,7 @@ rsmi_is_P2P_accessible(uint32_t dv_ind_src, uint32_t dv_ind_dst,
 /** @} */  // end of HWTopo
 
 /*****************************************************************************/
-/** @defgroup ComputePartition Compute Partition Functions
+/** @defgroup compute_partition Compute Partition Functions
  *  These functions are used to configure and query the device's
  *  compute parition setting.
  *  @{
@@ -3983,10 +3983,10 @@ rsmi_dev_compute_partition_set(uint32_t dv_ind,
  */
 rsmi_status_t rsmi_dev_compute_partition_reset(uint32_t dv_ind);
 
-/** @} */  // end of ComputePartition
+/** @} */  // end of compute_partition
 
 /*****************************************************************************/
-/** @defgroup memory_partition The Memory Partition Functions
+/** @defgroup memory_partition Memory Partition Functions
  *  These functions are used to query and set the device's current memory
  *  partition.
  *  @{
