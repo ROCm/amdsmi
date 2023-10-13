@@ -244,6 +244,23 @@ class AmdSmiVoltageType(IntEnum):
     INVALID = amdsmi_wrapper.AMDSMI_VOLT_TYPE_INVALID
 
 
+class AmdSmiComputePartitionType(IntEnum):
+    CPX = amdsmi_wrapper.COMPUTE_PARTITION_CPX
+    SPX = amdsmi_wrapper.COMPUTE_PARTITION_SPX
+    DPX = amdsmi_wrapper.COMPUTE_PARTITION_DPX
+    TPX = amdsmi_wrapper.COMPUTE_PARTITION_TPX
+    QPX = amdsmi_wrapper.COMPUTE_PARTITION_QPX
+    INVALID = amdsmi_wrapper.COMPUTE_PARTITION_INVALID
+
+
+class AmdSmiMemoryPartitionType(IntEnum):
+    NPS1 = amdsmi_wrapper.MEMORY_PARTITION_NPS1
+    NPS2 = amdsmi_wrapper.MEMORY_PARTITION_NPS2
+    NPS4 = amdsmi_wrapper.MEMORY_PARTITION_NPS4
+    NPS8 = amdsmi_wrapper.MEMORY_PARTITION_NPS8
+    UNKNOWN = amdsmi_wrapper.MEMORY_PARTITION_UNKNOWN
+
+
 class AmdSmiPowerProfilePresetMasks(IntEnum):
     CUSTOM_MASK = amdsmi_wrapper.AMDSMI_PWR_PROF_PRST_CUSTOM_MASK
     VIDEO_MASK = amdsmi_wrapper.AMDSMI_PWR_PROF_PRST_VIDEO_MASK
@@ -1372,6 +1389,98 @@ def amdsmi_is_P2P_accessible(
     )
 
     return accessible.value
+
+
+def amdsmi_dev_compute_partition_get(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    length = ctypes.c_uint32()
+    length.value = _AMDSMI_STRING_LENGTH
+
+    compute_partition = ctypes.create_string_buffer(_AMDSMI_STRING_LENGTH)
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_dev_compute_partition_get(
+            processor_handle, compute_partition, length
+        )
+    )
+
+    return compute_partition.value.decode("utf-8")
+
+
+def amdsmi_dev_compute_partition_set(processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+                                     compute_partition: AmdSmiComputePartitionType):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    if not isinstance(compute_partition, AmdSmiComputePartitionType):
+        raise AmdSmiParameterException(compute_partition, AmdSmiComputePartitionType)
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_dev_compute_partition_set(
+            processor_handle, compute_partition
+        )
+    )
+
+
+def amdsmi_dev_compute_partition_reset(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    _check_res(amdsmi_wrapper.amdsmi_dev_compute_partition_reset(processor_handle))
+
+
+def amdsmi_dev_memory_partition_get(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    length = ctypes.c_uint32()
+    length.value = _AMDSMI_STRING_LENGTH
+
+    memory_partition = ctypes.create_string_buffer(_AMDSMI_STRING_LENGTH)
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_dev_memory_partition_get(
+            processor_handle, memory_partition, length
+        )
+    )
+
+    return memory_partition.value.decode("utf-8")
+
+
+def amdsmi_dev_memory_partition_set(processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+                                    memory_partition: AmdSmiMemoryPartitionType):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    if not isinstance(memory_partition, AmdSmiMemoryPartitionType):
+        raise AmdSmiParameterException(memory_partition, AmdSmiMemoryPartitionType)
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_dev_memory_partition_set(
+            processor_handle, memory_partition
+        )
+    )
+
+
+def amdsmi_dev_memory_partition_reset(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    _check_res(amdsmi_wrapper.amdsmi_dev_memory_partition_reset(processor_handle))
 
 
 def amdsmi_get_xgmi_info(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):

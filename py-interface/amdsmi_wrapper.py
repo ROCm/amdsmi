@@ -368,6 +368,38 @@ CLK_TYPE_DCLK1 = 9
 CLK_TYPE__MAX = 9
 amdsmi_clk_type_t = ctypes.c_uint32 # enum
 
+# values for enumeration 'amdsmi_compute_partition_type_t'
+amdsmi_compute_partition_type_t__enumvalues = {
+    0: 'COMPUTE_PARTITION_INVALID',
+    1: 'COMPUTE_PARTITION_CPX',
+    2: 'COMPUTE_PARTITION_SPX',
+    3: 'COMPUTE_PARTITION_DPX',
+    4: 'COMPUTE_PARTITION_TPX',
+    5: 'COMPUTE_PARTITION_QPX',
+}
+COMPUTE_PARTITION_INVALID = 0
+COMPUTE_PARTITION_CPX = 1
+COMPUTE_PARTITION_SPX = 2
+COMPUTE_PARTITION_DPX = 3
+COMPUTE_PARTITION_TPX = 4
+COMPUTE_PARTITION_QPX = 5
+amdsmi_compute_partition_type_t = ctypes.c_uint32 # enum
+
+# values for enumeration 'amdsmi_memory_partition_type_t'
+amdsmi_memory_partition_type_t__enumvalues = {
+    0: 'MEMORY_PARTITION_UNKNOWN',
+    1: 'MEMORY_PARTITION_NPS1',
+    2: 'MEMORY_PARTITION_NPS2',
+    3: 'MEMORY_PARTITION_NPS4',
+    4: 'MEMORY_PARTITION_NPS8',
+}
+MEMORY_PARTITION_UNKNOWN = 0
+MEMORY_PARTITION_NPS1 = 1
+MEMORY_PARTITION_NPS2 = 2
+MEMORY_PARTITION_NPS4 = 3
+MEMORY_PARTITION_NPS8 = 4
+amdsmi_memory_partition_type_t = ctypes.c_uint32 # enum
+
 # values for enumeration 'amdsmi_temperature_type_t'
 amdsmi_temperature_type_t__enumvalues = {
     0: 'TEMPERATURE_TYPE_EDGE',
@@ -1737,6 +1769,24 @@ amdsmi_topo_get_link_type.argtypes = [amdsmi_processor_handle, amdsmi_processor_
 amdsmi_is_P2P_accessible = _libraries['libamd_smi.so'].amdsmi_is_P2P_accessible
 amdsmi_is_P2P_accessible.restype = amdsmi_status_t
 amdsmi_is_P2P_accessible.argtypes = [amdsmi_processor_handle, amdsmi_processor_handle, ctypes.POINTER(ctypes.c_bool)]
+amdsmi_dev_compute_partition_get = _libraries['libamd_smi.so'].amdsmi_dev_compute_partition_get
+amdsmi_dev_compute_partition_get.restype = amdsmi_status_t
+amdsmi_dev_compute_partition_get.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_char), uint32_t]
+amdsmi_dev_compute_partition_set = _libraries['libamd_smi.so'].amdsmi_dev_compute_partition_set
+amdsmi_dev_compute_partition_set.restype = amdsmi_status_t
+amdsmi_dev_compute_partition_set.argtypes = [amdsmi_processor_handle, amdsmi_compute_partition_type_t]
+amdsmi_dev_compute_partition_reset = _libraries['libamd_smi.so'].amdsmi_dev_compute_partition_reset
+amdsmi_dev_compute_partition_reset.restype = amdsmi_status_t
+amdsmi_dev_compute_partition_reset.argtypes = [amdsmi_processor_handle]
+amdsmi_dev_memory_partition_get = _libraries['libamd_smi.so'].amdsmi_dev_memory_partition_get
+amdsmi_dev_memory_partition_get.restype = amdsmi_status_t
+amdsmi_dev_memory_partition_get.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_char), uint32_t]
+amdsmi_dev_memory_partition_set = _libraries['libamd_smi.so'].amdsmi_dev_memory_partition_set
+amdsmi_dev_memory_partition_set.restype = amdsmi_status_t
+amdsmi_dev_memory_partition_set.argtypes = [amdsmi_processor_handle, amdsmi_memory_partition_type_t]
+amdsmi_dev_memory_partition_reset = _libraries['libamd_smi.so'].amdsmi_dev_memory_partition_reset
+amdsmi_dev_memory_partition_reset.restype = amdsmi_status_t
+amdsmi_dev_memory_partition_reset.argtypes = [amdsmi_processor_handle]
 amdsmi_init_gpu_event_notification = _libraries['libamd_smi.so'].amdsmi_init_gpu_event_notification
 amdsmi_init_gpu_event_notification.restype = amdsmi_status_t
 amdsmi_init_gpu_event_notification.argtypes = [amdsmi_processor_handle]
@@ -1920,6 +1970,9 @@ __all__ = \
     'CLK_TYPE_DCLK1', 'CLK_TYPE_DF', 'CLK_TYPE_FIRST', 'CLK_TYPE_GFX',
     'CLK_TYPE_MEM', 'CLK_TYPE_PCIE', 'CLK_TYPE_SOC', 'CLK_TYPE_SYS',
     'CLK_TYPE_VCLK0', 'CLK_TYPE_VCLK1', 'CLK_TYPE__MAX',
+    'COMPUTE_PARTITION_CPX', 'COMPUTE_PARTITION_DPX',
+    'COMPUTE_PARTITION_INVALID', 'COMPUTE_PARTITION_QPX',
+    'COMPUTE_PARTITION_SPX', 'COMPUTE_PARTITION_TPX',
     'CONTAINER_DOCKER', 'CONTAINER_LXC', 'FW_ID_ASD', 'FW_ID_CP_CE',
     'FW_ID_CP_ME', 'FW_ID_CP_MEC1', 'FW_ID_CP_MEC2',
     'FW_ID_CP_MEC_JT1', 'FW_ID_CP_MEC_JT2', 'FW_ID_CP_MES',
@@ -1947,21 +2000,30 @@ __all__ = \
     'FW_ID_SDMA6', 'FW_ID_SDMA7', 'FW_ID_SDMA_TH0', 'FW_ID_SDMA_TH1',
     'FW_ID_SEC_POLICY_STAGE2', 'FW_ID_SMC', 'FW_ID_SMU',
     'FW_ID_TA_RAS', 'FW_ID_UVD', 'FW_ID_VCE', 'FW_ID_VCN',
-    'FW_ID_XGMI', 'FW_ID__MAX', 'NON_AMD_CPU', 'NON_AMD_GPU',
-    'TEMPERATURE_TYPE_EDGE', 'TEMPERATURE_TYPE_FIRST',
-    'TEMPERATURE_TYPE_HBM_0', 'TEMPERATURE_TYPE_HBM_1',
-    'TEMPERATURE_TYPE_HBM_2', 'TEMPERATURE_TYPE_HBM_3',
-    'TEMPERATURE_TYPE_HOTSPOT', 'TEMPERATURE_TYPE_JUNCTION',
-    'TEMPERATURE_TYPE_PLX', 'TEMPERATURE_TYPE_VRAM',
-    'TEMPERATURE_TYPE__MAX', 'UNKNOWN', 'VRAM_TYPE_DDR2',
-    'VRAM_TYPE_DDR3', 'VRAM_TYPE_DDR4', 'VRAM_TYPE_GDDR1',
-    'VRAM_TYPE_GDDR3', 'VRAM_TYPE_GDDR4', 'VRAM_TYPE_GDDR5',
-    'VRAM_TYPE_GDDR6', 'VRAM_TYPE_HBM', 'VRAM_TYPE_UNKNOWN',
-    'VRAM_TYPE__MAX', 'amd_metrics_table_header_t',
-    'amdsmi_asic_info_t', 'amdsmi_bdf_t', 'amdsmi_bit_field_t',
-    'amdsmi_board_info_t', 'amdsmi_clk_info_t', 'amdsmi_clk_type_t',
-    'amdsmi_container_types_t', 'amdsmi_counter_command_t',
-    'amdsmi_counter_value_t', 'amdsmi_dev_perf_level_t',
+    'FW_ID_XGMI', 'FW_ID__MAX', 'MEMORY_PARTITION_NPS1',
+    'MEMORY_PARTITION_NPS2', 'MEMORY_PARTITION_NPS4',
+    'MEMORY_PARTITION_NPS8', 'MEMORY_PARTITION_UNKNOWN',
+    'NON_AMD_CPU', 'NON_AMD_GPU', 'TEMPERATURE_TYPE_EDGE',
+    'TEMPERATURE_TYPE_FIRST', 'TEMPERATURE_TYPE_HBM_0',
+    'TEMPERATURE_TYPE_HBM_1', 'TEMPERATURE_TYPE_HBM_2',
+    'TEMPERATURE_TYPE_HBM_3', 'TEMPERATURE_TYPE_HOTSPOT',
+    'TEMPERATURE_TYPE_JUNCTION', 'TEMPERATURE_TYPE_PLX',
+    'TEMPERATURE_TYPE_VRAM', 'TEMPERATURE_TYPE__MAX', 'UNKNOWN',
+    'VRAM_TYPE_DDR2', 'VRAM_TYPE_DDR3', 'VRAM_TYPE_DDR4',
+    'VRAM_TYPE_GDDR1', 'VRAM_TYPE_GDDR3', 'VRAM_TYPE_GDDR4',
+    'VRAM_TYPE_GDDR5', 'VRAM_TYPE_GDDR6', 'VRAM_TYPE_HBM',
+    'VRAM_TYPE_UNKNOWN', 'VRAM_TYPE__MAX',
+    'amd_metrics_table_header_t', 'amdsmi_asic_info_t',
+    'amdsmi_bdf_t', 'amdsmi_bit_field_t', 'amdsmi_board_info_t',
+    'amdsmi_clk_info_t', 'amdsmi_clk_type_t',
+    'amdsmi_compute_partition_type_t', 'amdsmi_container_types_t',
+    'amdsmi_counter_command_t', 'amdsmi_counter_value_t',
+    'amdsmi_dev_compute_partition_get',
+    'amdsmi_dev_compute_partition_reset',
+    'amdsmi_dev_compute_partition_set',
+    'amdsmi_dev_memory_partition_get',
+    'amdsmi_dev_memory_partition_reset',
+    'amdsmi_dev_memory_partition_set', 'amdsmi_dev_perf_level_t',
     'amdsmi_driver_info_t', 'amdsmi_engine_usage_t',
     'amdsmi_error_count_t', 'amdsmi_event_group_t',
     'amdsmi_event_handle_t', 'amdsmi_event_type_t',
@@ -2017,12 +2079,13 @@ __all__ = \
     'amdsmi_init_gpu_event_notification', 'amdsmi_io_link_type_t',
     'amdsmi_is_P2P_accessible',
     'amdsmi_is_gpu_power_management_enabled',
-    'amdsmi_memory_page_status_t', 'amdsmi_memory_type_t',
-    'amdsmi_mm_ip_t', 'amdsmi_od_vddc_point_t',
-    'amdsmi_od_volt_curve_t', 'amdsmi_od_volt_freq_data_t',
-    'amdsmi_pcie_bandwidth_t', 'amdsmi_pcie_info_t',
-    'amdsmi_pcie_slot_type_t', 'amdsmi_power_cap_info_t',
-    'amdsmi_power_info_t', 'amdsmi_power_profile_preset_masks_t',
+    'amdsmi_memory_page_status_t', 'amdsmi_memory_partition_type_t',
+    'amdsmi_memory_type_t', 'amdsmi_mm_ip_t',
+    'amdsmi_od_vddc_point_t', 'amdsmi_od_volt_curve_t',
+    'amdsmi_od_volt_freq_data_t', 'amdsmi_pcie_bandwidth_t',
+    'amdsmi_pcie_info_t', 'amdsmi_pcie_slot_type_t',
+    'amdsmi_power_cap_info_t', 'amdsmi_power_info_t',
+    'amdsmi_power_profile_preset_masks_t',
     'amdsmi_power_profile_status_t', 'amdsmi_power_type_t',
     'amdsmi_proc_info_t', 'amdsmi_process_handle_t',
     'amdsmi_process_info_t', 'amdsmi_processor_handle',
