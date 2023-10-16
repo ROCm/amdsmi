@@ -61,6 +61,7 @@ def _get_error_message(error_code):
         return AMDSMI_ERROR_MESSAGES[abs(error_code)]
     return "Generic error"
 
+
 class AmdSmiException(Exception):
     def __init__(self):
         self.json_message = {}
@@ -125,6 +126,7 @@ class AmdSmiDeviceNotFoundException(AmdSmiException):
         self.csv_message = f"error,code\n{common_message}, {self.value}"
         self.stdout_message = f"{common_message} Error code: {self.value}"
 
+
 class AmdSmiInvalidFilePathException(AmdSmiException):
     def __init__(self, command, outputformat):
         super().__init__()
@@ -184,6 +186,22 @@ class AmdSmiParameterNotSupportedException(AmdSmiException):
         self.csv_message = f"error,code\n{common_message}, {self.value}"
         self.stdout_message = f"{common_message} Error code: {self.value}"
 
+
+class AmdSmiRequiredCommandException(AmdSmiException):
+    def __init__(self, command, outputformat):
+        super().__init__()
+        self.value = -9
+        self.command = command
+        self.output_format = outputformat
+
+        common_message = f"Command '{self.command}' requires a target argument. Run '--help' for more info."
+
+        self.json_message["error"] = common_message
+        self.json_message["code"] = self.value
+        self.csv_message = f"error,code\n{common_message}, {self.value}"
+        self.stdout_message = f"{common_message} Error code: {self.value}"
+
+
 class AmdSmiUnknownErrorException(AmdSmiException):
     def __init__(self, command, outputformat):
         super().__init__()
@@ -197,6 +215,7 @@ class AmdSmiUnknownErrorException(AmdSmiException):
         self.json_message["code"] = self.value
         self.csv_message = f"error,code\n{common_message}, {self.value}"
         self.stdout_message = f"{common_message} Error code: {self.value}"
+
 
 class AmdSmiAMDSMIErrorException(AmdSmiException):
     def __init__(self, outputformat, error_code):

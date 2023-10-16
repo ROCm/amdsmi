@@ -281,6 +281,8 @@ class AMDSMIParser(argparse.ArgumentParser):
         version_parser._optionals.title = None
         version_parser.formatter_class=lambda prog: AMDSMISubparserHelpFormatter(prog)
         version_parser.set_defaults(func=func)
+
+        # Add Universal Arguments
         self._add_command_modifiers(version_parser)
 
 
@@ -298,10 +300,8 @@ class AMDSMIParser(argparse.ArgumentParser):
         list_parser.formatter_class=lambda prog: AMDSMISubparserHelpFormatter(prog)
         list_parser.set_defaults(func=func)
 
-        # Add Command Modifiers
+        # Add Universal Arguments
         self._add_command_modifiers(list_parser)
-
-        # Add Device args
         self._add_device_arguments(list_parser, required=False)
 
 
@@ -337,9 +337,9 @@ class AMDSMIParser(argparse.ArgumentParser):
         static_parser._optionals.title = static_optionals_title
         static_parser.formatter_class=lambda prog: AMDSMISubparserHelpFormatter(prog)
         static_parser.set_defaults(func=func)
-        self._add_command_modifiers(static_parser)
 
-        # Add Device args
+        # Add Universal Arguments
+        self._add_command_modifiers(static_parser)
         self._add_device_arguments(static_parser, required=False)
 
         # Optional Args
@@ -381,9 +381,9 @@ class AMDSMIParser(argparse.ArgumentParser):
         firmware_parser._optionals.title = firmware_optionals_title
         firmware_parser.formatter_class=lambda prog: AMDSMISubparserHelpFormatter(prog)
         firmware_parser.set_defaults(func=func)
-        self._add_command_modifiers(firmware_parser)
 
-        # Add Device args
+        # Add Universal Arguments
+        self._add_command_modifiers(firmware_parser)
         self._add_device_arguments(firmware_parser, required=False)
 
         # Optional Args
@@ -414,9 +414,9 @@ class AMDSMIParser(argparse.ArgumentParser):
         bad_pages_parser._optionals.title = bad_pages_optionals_title
         bad_pages_parser.formatter_class=lambda prog: AMDSMISubparserHelpFormatter(prog)
         bad_pages_parser.set_defaults(func=func)
-        self._add_command_modifiers(bad_pages_parser)
 
-        # Add Device args
+        # Add Universal Arguments
+        self._add_command_modifiers(bad_pages_parser)
         self._add_device_arguments(bad_pages_parser, required=False)
 
         # Optional Args
@@ -464,9 +464,9 @@ class AMDSMIParser(argparse.ArgumentParser):
         metric_parser._optionals.title = metric_optionals_title
         metric_parser.formatter_class=lambda prog: AMDSMISubparserHelpFormatter(prog)
         metric_parser.set_defaults(func=func)
-        self._add_command_modifiers(metric_parser)
 
-        # Add Device args
+        # Add Universal Arguments
+        self._add_command_modifiers(metric_parser)
         self._add_device_arguments(metric_parser, required=False)
 
         # Add Watch args
@@ -527,9 +527,9 @@ class AMDSMIParser(argparse.ArgumentParser):
         process_parser._optionals.title = process_optionals_title
         process_parser.formatter_class=lambda prog: AMDSMISubparserHelpFormatter(prog)
         process_parser.set_defaults(func=func)
-        self._add_command_modifiers(process_parser)
 
-        # Add Device args
+        # Add Universal Arguments
+        self._add_command_modifiers(process_parser)
         self._add_device_arguments(process_parser, required=False)
 
         # Add Watch args
@@ -557,9 +557,9 @@ class AMDSMIParser(argparse.ArgumentParser):
         profile_parser._optionals.title = profile_optionals_title
         profile_parser.formatter_class=lambda prog: AMDSMISubparserHelpFormatter(prog)
         profile_parser.set_defaults(func=func)
-        self._add_command_modifiers(profile_parser)
 
-        # Add Device args
+        # Add Universal Arguments
+        self._add_command_modifiers(profile_parser)
         self._add_device_arguments(profile_parser, required=False)
 
 
@@ -578,9 +578,9 @@ class AMDSMIParser(argparse.ArgumentParser):
         event_parser._optionals.title = event_optionals_title
         event_parser.formatter_class=lambda prog: AMDSMISubparserHelpFormatter(prog)
         event_parser.set_defaults(func=func)
-        self._add_command_modifiers(event_parser)
 
-        # Add Device args
+        # Add Universal Arguments
+        self._add_command_modifiers(event_parser)
         self._add_device_arguments(event_parser, required=False)
 
 
@@ -607,9 +607,9 @@ class AMDSMIParser(argparse.ArgumentParser):
         topology_parser._optionals.title = topology_optionals_title
         topology_parser.formatter_class=lambda prog: AMDSMISubparserHelpFormatter(prog)
         topology_parser.set_defaults(func=func)
-        self._add_command_modifiers(topology_parser)
 
-        # Add Device args
+        # Add Universal Arguments
+        self._add_command_modifiers(topology_parser)
         self._add_device_arguments(topology_parser, required=False)
 
         # Optional Args
@@ -644,8 +644,9 @@ class AMDSMIParser(argparse.ArgumentParser):
         set_value_parser._optionals.title = set_value_optionals_title
         set_value_parser.formatter_class=lambda prog: AMDSMISubparserHelpFormatter(prog)
         set_value_parser.set_defaults(func=func)
-        self._add_command_modifiers(set_value_parser)
 
+        # Add Universal Arguments
+        self._add_command_modifiers(set_value_parser)
         # Device args are required as safeguard from the user applying the operation to all gpus unintentionally
         self._add_device_arguments(set_value_parser, required=True)
 
@@ -777,12 +778,13 @@ class AMDSMIParser(argparse.ArgumentParser):
         reset_parser._optionals.title = reset_optionals_title
         reset_parser.formatter_class=lambda prog: AMDSMISubparserHelpFormatter(prog)
         reset_parser.set_defaults(func=func)
-        self._add_command_modifiers(reset_parser)
 
+        # Add Universal Arguments
+        self._add_command_modifiers(reset_parser)
         # Device args are required as safeguard from the user applying the operation to all gpus unintentionally
         self._add_device_arguments(reset_parser, required=True)
 
-        # Optional Args
+        # Add reset arguments
         reset_parser.add_argument('-G', '--gpureset', action='store_true', required=False, help=gpureset_help)
         reset_parser.add_argument('-c', '--clocks', action='store_true', required=False, help=reset_clocks_help)
         reset_parser.add_argument('-f', '--fans', action='store_true', required=False, help=reset_fans_help)

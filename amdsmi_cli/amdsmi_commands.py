@@ -20,6 +20,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
+import argparse
 import logging
 import sys
 import threading
@@ -28,6 +29,7 @@ import time
 from _version import __version__
 from amdsmi_helpers import AMDSMIHelpers
 from amdsmi_logger import AMDSMILogger
+from amdsmi_cli_exceptions import AmdSmiRequiredCommandException
 from amdsmi import amdsmi_interface
 from amdsmi import amdsmi_exception
 
@@ -1780,6 +1782,11 @@ class AMDSMICommands():
 
         args.gpu = device_handle
 
+        # Error if no subcommand args are passed
+        if not any([args.fan, args.perflevel, args.profile, args.perfdeterminism]):
+            command = " ".join(sys.argv[1:])
+            raise AmdSmiRequiredCommandException(command, self.logger.format)
+
         # Build GPU string for errors
         try:
             gpu_bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(args.gpu)
@@ -1903,6 +1910,11 @@ class AMDSMICommands():
 
         # Get gpu_id for logging
         gpu_id = self.helpers.get_gpu_id_from_device_handle(args.gpu)
+
+        # Error if no subcommand args are passed
+        if not any([args.gpureset, args.clocks, args.fans, args.profile, args.xgmierr, args.perfdeterminism]):
+            command = " ".join(sys.argv[1:])
+            raise AmdSmiRequiredCommandException(command, self.logger.format)
 
         if args.gpureset:
             if self.helpers.is_amd_device(args.gpu):
