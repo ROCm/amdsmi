@@ -60,7 +60,7 @@ message("Package version: ${PKG_VERSION_STR}")
 
 # Debian package specific variables
 # Set a default value for the package version
-get_version_from_tag("1.0.0.0" ${SO_VERSION_GIT_TAG_PREFIX} GIT)
+get_version_from_tag("${${AMD_SMI_LIBS_TARGET}_VERSION_MAJOR}.${${AMD_SMI_LIBS_TARGET}_VERSION_MINOR}.0.0" ${SO_VERSION_GIT_TAG_PREFIX} GIT)
 
 # VERSION_* variables should be set by get_version_from_tag
 if(${ROCM_PATCH_VERSION})
