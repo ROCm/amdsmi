@@ -23,7 +23,7 @@
 from .amdsmi_interface import amdsmi_init
 from .amdsmi_interface import amdsmi_shut_down
 
-# Device Descovery
+# Device Discovery
 from .amdsmi_interface import amdsmi_get_processor_type
 from .amdsmi_interface import amdsmi_get_processor_handles
 from .amdsmi_interface import amdsmi_get_socket_handles
