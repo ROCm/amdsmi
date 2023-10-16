@@ -72,7 +72,6 @@ int main(int argc, char **argv) {
   amdsmi_status_t ret;
   uint32_t proto_ver;
   amdsmi_smu_fw_version_t smu_fw = {};
-  amdsmi_cpusocket_handle socket_handle;
 
   // Initialize esmi for AMD CPUs
   ret = amdsmi_init(AMDSMI_INIT_AMD_CPUS);
@@ -94,9 +93,9 @@ int main(int argc, char **argv) {
   cout << "Total Socket: " << socket_count << endl;
 
   // For each socket, get identifier and cores
-  for (uint32_t i = 0; i < socket_count; i++) {
+  for (uint8_t i = 0; i < socket_count; i++) {
     // Get Socket info
-    uint32_t socket_info;
+    uint32_t socket_info = 0;
     ret = amdsmi_get_cpusocket_info(sockets[i], socket_info);
     CHK_AMDSMI_RET(ret)
     cout << "Socket " << socket_info << endl;
@@ -134,9 +133,6 @@ int main(int argc, char **argv) {
 
     uint32_t err_bits = 0;
 
-    uint64_t pkg_input;
-
-    err_bits = 0;
     uint32_t prochot;
     cout<<"\n-------------------------------------------------";
     cout<<"\n| Sensor Name\t\t\t |";
@@ -379,7 +375,7 @@ int main(int argc, char **argv) {
     cout<<"\n-------------------------------------------------\n";
 
     amdsmi_temp_range_refresh_rate_t rate;
-    uint8_t dimm_addr;
+    uint8_t dimm_addr = 0x80;
     cout<<"\n| Socket DIMM temp range and refresh rate\t\t |\n";
     ret = amdsmi_get_cpu_dimm_temp_range_and_refresh_rate(sockets[i], i, dimm_addr, &rate);
     CHK_AMDSMI_RET(ret)
@@ -468,7 +464,7 @@ int main(int argc, char **argv) {
 
     cout<<"\n-------------------------------------------------\n";
 
-    int32_t pstate;
+    int8_t pstate;
     cout<<"\nEnter the pstate to be set:\n";
     cin>>pstate;
     ret = amdsmi_cpu_apb_disable(sockets[i], i, pstate);
@@ -552,7 +548,7 @@ int main(int argc, char **argv) {
 
     amdsmi_link_id_bw_type_t io_link;
     uint32_t bw;
-    char *link = "P0";
+    char* link = "P0";
     io_link.link_name = link;
     io_link.bw_type = static_cast<amdsmi_io_bw_encoding_t>(1) ;
     ret = amdsmi_get_cpu_current_io_bandwidth(sockets[i], i, io_link, &bw);
@@ -568,8 +564,8 @@ int main(int argc, char **argv) {
 
     amdsmi_link_id_bw_type_t xgmi_link;
     uint32_t bw1;
-    char *link1 = "P0";
     int bw_ind = 1;
+    char* link1 = "P1";
     xgmi_link.link_name = link1;
     xgmi_link.bw_type = static_cast<amdsmi_io_bw_encoding_t>(1<<bw_ind) ;
     ret = amdsmi_get_cpu_current_xgmi_bw(sockets[i], xgmi_link, &bw1);
@@ -597,9 +593,8 @@ int main(int argc, char **argv) {
 
     double fraction_q10 = 1/pow(2,10);
     double fraction_uq10 = fraction_q10;
-    double fraction_uq16 = 1/pow(2,16);
 
-    struct hsmp_metric_table mtbl = {0};
+    struct hsmp_metric_table mtbl;
     ret = amdsmi_get_metrics_table(sockets[i], i, &mtbl);
     CHK_AMDSMI_RET(ret)
 
