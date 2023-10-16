@@ -1526,13 +1526,31 @@ class AMDSMICommands():
         print('Not applicable to linux baremetal')
 
 
-    def event(self, args):
+    def event(self, args, gpu=None):
+        """ Get event information for target gpus
+
+        Args:
+            args (Namespace): argparser args to pass to subcommand
+            gpu (device_handle, optional): device_handle for target device. Defaults to None.
+
+        Return:
+            stdout event information for target gpus
+        """
+        if args.gpu:
+            gpu = args.gpu
+
+        if gpu == None:
+            args.gpu = self.device_handles
+
+        if not isinstance(args.gpu, list):
+            args.gpu = [args.gpu]
+
         print('EVENT LISTENING:\n')
-        print('Press q and hit ENTER when you want to stop (listening will stop inside 10 seconds)')
+        print('Press q and hit ENTER when you want to stop (listening will stop within 10 seconds)')
 
         threads = []
-        for i in range(len(self.device_handles)):
-            x = threading.Thread(target=self._event_thread, args=(self, i))
+        for gpu in range(len(args.gpu)):
+            x = threading.Thread(target=self._event_thread, args=(self, gpu))
             threads.append(x)
             x.start()
 
@@ -2058,8 +2076,8 @@ class AMDSMICommands():
             return
 
         device = devices[i]
-        listener = amdsmi_interface.AmdSmiEventReader(device, amdsmi_interface.AmdSmiEvtNotificationType.GPU_PRE_RESET,
-                            amdsmi_interface.AmdSmiEvtNotificationType.GPU_POST_RESET)
+        listener = amdsmi_interface.AmdSmiEventReader(device,
+                                        amdsmi_interface.AmdSmiEvtNotificationType)
         values_dict = {}
 
         while self.stop!='q':
