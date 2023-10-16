@@ -48,10 +48,9 @@
 #include <bitset>
 #include <iomanip>
 #include "amd_smi/amdsmi.h"
+#include "asm/amd_hsmp.h"
 #include <cstring>
 #include <cmath>
-
-using namespace std;
 
 #define SHOWLINESZ 256
 
@@ -67,6 +66,13 @@ using namespace std;
             return RET;                                                        \
         }                                                                      \
     }
+
+using std::cin;
+using std::cout;
+using std::endl;
+using std::fixed;
+using std::setprecision;
+using std::vector;
 
 int main(int argc, char **argv) {
   amdsmi_status_t ret;
@@ -196,7 +202,7 @@ int main(int argc, char **argv) {
     cout<<"\n| CPU["<<i<<"] core clock current frequency limit (MHz) : "<<c_clk<<"\t|\n";
     cout<<"--------------------------------------------------------------\n";
 
-    uint32_t power;
+    uint32_t socket_power;
     cout<<"\n-------------------------------------------------";
     cout<<"\n| Sensor Name\t\t\t |";
     for (uint32_t i = 0; i < socket_count; i++) {
@@ -205,37 +211,37 @@ int main(int argc, char **argv) {
     cout<<"\n-------------------------------------------------";
     cout<<"\n| Power (Watts)\t\t\t | ";
 
-    ret = amdsmi_get_cpu_socket_power(sockets[i], i, &power);
+    ret = amdsmi_get_cpu_socket_power(sockets[i], i, &socket_power);
     CHK_AMDSMI_RET(ret)
 
     if (!ret) {
-        cout<<fixed<<setprecision(3)<<static_cast<double>(power)/1000<<"\t|";
+        cout<<fixed<<setprecision(3)<<static_cast<double>(socket_power)/1000<<"\t|";
     } else {
         err_bits |= 1 << ret;
         cout<<" NA (Err:" <<ret<<"     |";
     }
 
-    uint32_t powerlimit;
+    uint32_t power_limit;
     cout<<"\n| PowerLimit (Watts)\t\t | ";
 
-    ret = amdsmi_get_cpu_socket_power_cap(sockets[i], i, &powerlimit);
+    ret = amdsmi_get_cpu_socket_power_cap(sockets[i], i, &power_limit);
     CHK_AMDSMI_RET(ret)
 
     if (!ret) {
-        cout<<fixed<<setprecision(3)<<static_cast<double>(powerlimit)/1000<<"\t|";
+        cout<<fixed<<setprecision(3)<<static_cast<double>(power_limit)/1000<<"\t|";
     } else {
         err_bits |= 1 << ret;
         cout<<" NA (Err:" <<ret<<"     |";
     }
 
-    uint32_t powermax;
+    uint32_t power_max;
     cout<<"\n| PowerLimitMax (Watts)\t\t | ";
 
-    ret = amdsmi_get_cpu_socket_power_cap_max(sockets[i], i, &powermax);
+    ret = amdsmi_get_cpu_socket_power_cap_max(sockets[i], i, &power_max);
     CHK_AMDSMI_RET(ret)
 
     if (!ret) {
-        cout<<fixed<<setprecision(3)<<static_cast<double>(powermax)/1000<<"\t|";
+        cout<<fixed<<setprecision(3)<<static_cast<double>(power_max)/1000<<"\t|";
     } else {
         err_bits |= 1 << ret;
         cout<<" NA (Err:" <<ret<<"     |";
@@ -243,15 +249,15 @@ int main(int argc, char **argv) {
     cout<<"\n-------------------------------------------------\n";
 
     uint32_t input_power;
-    powermax = 0;
+    power_max = 0;
     cout<<"\nEnter the max power to be set:\n";
     cin>>input_power;
-    ret = amdsmi_get_cpu_socket_power_cap_max(sockets[i], i, &powermax);
+    ret = amdsmi_get_cpu_socket_power_cap_max(sockets[i], i, &power_max);
     CHK_AMDSMI_RET(ret)
-    if ((ret == AMDSMI_STATUS_SUCCESS) && (input_power > powermax)) {
+    if ((ret == AMDSMI_STATUS_SUCCESS) && (input_power > power_max)) {
         cout<<"Input power is more than max power limit,"
-            " limiting to "<<static_cast<double>(powermax)/1000<<"Watts\n";
-        input_power = powermax;
+            " limiting to "<<static_cast<double>(power_max)/1000<<"Watts\n";
+        input_power = power_max;
     }
     ret = amdsmi_set_cpu_socket_power_cap(sockets[i], i, input_power);
     CHK_AMDSMI_RET(ret)
@@ -389,15 +395,15 @@ int main(int argc, char **argv) {
 
     cout<<"\n-------------------------------------------------\n";
 
-    amdsmi_dimm_power_t p;
+    amdsmi_dimm_power_t dimm_power;
     cout<<"\n| Socket DIMM power consumption\t\t |\n";
-    ret = amdsmi_get_cpu_dimm_power_consumption(sockets[i], i, dimm_addr, &p);
+    ret = amdsmi_get_cpu_dimm_power_consumption(sockets[i], i, dimm_addr, &dimm_power);
     CHK_AMDSMI_RET(ret)
 
     if(ret) {
-        cout<<"\n| Power(mWatts)\t\t |"<<p.power<<"\t|"<<endl;
-        cout<<"\n| Power update rate(ms)\t |"<<p.update_rate<<"\t|"<<endl;
-        cout<<"\n| Dimm address \t\t |"<<p.dimm_addr<<"\t|"<<endl;
+        cout<<"\n| Power(mWatts)\t\t |"<<dimm_power.power<<"\t|"<<endl;
+        cout<<"\n| Power update rate(ms)\t |"<<dimm_power.update_rate<<"\t|"<<endl;
+        cout<<"\n| Dimm address \t\t |"<<dimm_power.dimm_addr<<"\t|"<<endl;
     } else
         cout<<"Failed: to get socket"<<"["<<i<<"] DIMM power and update rate, Err["<<ret<<"]: "
             <<*amdsmi_get_esmi_err_msg(ret, &err_str1)<<endl;
@@ -508,7 +514,7 @@ int main(int argc, char **argv) {
 
     uint8_t rate_ctrl;
     uint8_t prev_mode;
-    string pcie_strings[] = {
+    std::string pcie_strings[] = {
            "automatically detect based on bandwidth utilisation",
            "limited to Gen4 rate",
            "limited to Gen5 rate"
