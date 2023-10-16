@@ -30,7 +30,21 @@ if ! does_image_exist; then
     DOCKER_BUILDKIT="${DOCKER_BUILDKIT:0}" docker build "$DIR/py-interface" -t "$DOCKER_NAME":latest
 fi
 
-docker run --rm -ti --volume "$DIR":/src:rw "$DOCKER_NAME":latest
+ENABLE_ESMI_LIB=""
+# source ENABLE_ESMI_LIB variable from the previous build if it exists
+if [ -e 'build/CMakeCache.txt' ]; then
+    GREP_RESULT=$(grep "ENABLE_ESMI_LIB" "${DIR}/build/CMakeCache.txt" | cut -d = -f 2)
+    ENABLE_ESMI_LIB="-DENABLE_ESMI_LIB=$GREP_RESULT"
+    echo "ENABLE_ESMI_LIB: [$ENABLE_ESMI_LIB]"
+fi
+
+docker run --rm -ti --volume "$DIR":/src:rw "$DOCKER_NAME":latest bash -c "
+cp -r /src /tmp/src \
+    && cd /tmp/src \
+    && rm -rf build .cache \
+    && cmake -B build -DBUILD_WRAPPER=ON $ENABLE_ESMI_LIB \
+    && make -C build -j $(nproc) \
+    && cp /tmp/src/py-interface/amdsmi_wrapper.py /src/py-interface/amdsmi_wrapper.py"
 
 echo -e "Generated new wrapper!
 [$DIR/py-interface/amdsmi_wrapper.py]"

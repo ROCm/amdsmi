@@ -66,7 +66,7 @@ else()
                 generator.py
                 ${PROJECT_SOURCE_DIR}/include/amd_smi/amdsmi.h
         COMMAND cp ${PROJECT_SOURCE_DIR}/include/amd_smi/amdsmi.h ./
-        COMMAND ${Python3_EXECUTABLE} generator.py -i amdsmi.h -l ${PROJECT_BINARY_DIR}/src/libamd_smi.so -o ${CMAKE_CURRENT_SOURCE_DIR}/amdsmi_wrapper.py
+        COMMAND ${Python3_EXECUTABLE} generator.py "$<$<BOOL:${ENABLE_ESMI_LIB}>:-e -DENABLE_ESMI_LIB>" -i amdsmi.h -l ${PROJECT_BINARY_DIR}/src/libamd_smi.so -o ${CMAKE_CURRENT_SOURCE_DIR}/amdsmi_wrapper.py
         COMMAND cp -f ${CMAKE_CURRENT_SOURCE_DIR}/amdsmi_wrapper.py ${CMAKE_CURRENT_BINARY_DIR}/
         # hacky alternative to configure_file that will run at MAKE compile instead of CMake configure
         COMMAND sed -i

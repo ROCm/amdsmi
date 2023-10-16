@@ -63,9 +63,11 @@ def parseArgument():
                         help='The input file name')
     parser.add_argument('-l', '--library', type=str, required=True,
                         help='Loading dynamic link libraries')
+    parser.add_argument('-e', '--extra-args', type=str, required=False,
+                        help='Parse extra arguments to clang')
     args = vars(parser.parse_args())
 
-    return args['output'], args['input'], args['library']
+    return args['output'], args['input'], args['library'], args['extra_args']
 
 
 def replace_line(full_path_file_name, string_to_repalce, new_string):
@@ -82,7 +84,13 @@ def replace_line(full_path_file_name, string_to_repalce, new_string):
 
 
 def main():
-    output_file, input_file, library =  parseArgument()
+    output_file, input_file, library, clang_extra_args =  parseArgument()
+
+    # make args string easy to append
+    if clang_extra_args is None:
+        clang_extra_args = ""
+    else:
+        clang_extra_args = " " + clang_extra_args
 
     library_name = os.path.basename(library)
 
@@ -131,7 +139,7 @@ except OSError as error:
         print("Unknown operating system. It is only supporing Linux and Windows.")
         return
 
-    arguments.append("--clang-args=-I" + clang_include_dir)
+    arguments.append("--clang-args=-I" + clang_include_dir + clang_extra_args)
     clangToPy(arguments)
 
     replace_line(output_file, line_to_replace, new_line)
