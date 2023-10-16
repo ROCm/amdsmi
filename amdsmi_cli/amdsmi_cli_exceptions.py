@@ -22,6 +22,7 @@
 
 import json
 
+
 AMDSMI_ERROR_MESSAGES = {
     0: "Sucess",
     1: "Invalid parameters",
@@ -117,7 +118,7 @@ class AmdSmiDeviceNotFoundException(AmdSmiException):
         self.command = command
         self.output_format = outputformat
 
-        common_message = f"GPU Device with GPU_INDEX '{self.command}' cannot be found on the system."
+        common_message = f"Can not find a GPU with the corresponding identifier: '{self.command}'"
 
         self.json_message["error"] = common_message
         self.json_message["code"] = self.value

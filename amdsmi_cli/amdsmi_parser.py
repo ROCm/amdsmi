@@ -24,9 +24,10 @@
 import argparse
 import errno
 import os
-import time
-from pathlib import Path
 import sys
+import time
+
+from pathlib import Path
 
 from _version import __version__
 from amdsmi_helpers import AMDSMIHelpers
@@ -205,6 +206,8 @@ class AMDSMIParser(argparse.ArgumentParser):
             ouputformat=self.helpers.get_output_format()
             # Checks the values
             def __call__(self, parser, args, values, option_string=None):
+                if "all" in gpu_choices:
+                    del gpu_choices["all"]
                 status, selected_device_handles = amdsmi_helpers.get_device_handles_from_gpu_selections(gpu_selections=values,
                                                                                                          gpu_choices=gpu_choices)
                 if status:

@@ -659,7 +659,6 @@ class AMDSMICommands():
             args.retired = args.pending = args.un_res = True
 
         values_dict = {}
-        bad_page_err_output = ''
 
         # Get gpu_id for logging
         gpu_id = self.helpers.get_gpu_id_from_device_handle(args.gpu)
