@@ -226,7 +226,8 @@ class AMDSMIParser(argparse.ArgumentParser):
         csv_help = "Displays output in CSV format (human readable by default)."
         file_help = "Saves output into a file on the provided path (stdout by default)."
         loglevel_choices = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
-        loglevel_help = f"Set the logging level from the possible choices:\n{loglevel_choices}"
+        loglevel_choices_str = ", ".join(loglevel_choices)
+        loglevel_help = f"Set the logging level from the possible choices:\n\t{loglevel_choices_str}"
 
         command_modifier_group = subcommand_parser.add_argument_group('Command Modifiers')
 
@@ -632,12 +633,14 @@ class AMDSMIParser(argparse.ArgumentParser):
         set_value_optionals_title = "Set Arguments"
 
         # Help text for Arguments only on BM platforms
-        set_fan_help = "Sets GPU fan speed (0-255 or 0-100%%)"
-        set_perf_level_help = "Sets performance level"
+        set_fan_help = "Set GPU fan speed (0-255 or 0-100%%)"
+        set_perf_level_help = "Set performance level"
         set_profile_help = "Set power profile level (#) or a quoted string of custom profile attributes"
-        set_perf_det_help = "Sets GPU clock frequency limit and performance level to determinism to get minimal performance variation"
-        set_compute_partition_help = "Sets compute partition mode"
-        set_memory_partition_help = "Sets memory partition mode"
+        set_perf_det_help = "Set GPU clock frequency limit and performance level to determinism to get minimal performance variation"
+        compute_partition_choices_str = ", ".join(self.helpers.get_compute_partition_types())
+        memory_partition_choices_str = ", ".join(self.helpers.get_memory_partition_types())
+        set_compute_partition_help = f"Set one of the following the compute partition modes:\n\t{compute_partition_choices_str}"
+        set_memory_partition_help = f"Set one of the following the memory partition modes:\n\t{memory_partition_choices_str}"
 
         # Create set_value subparser
         set_value_parser = subparsers.add_parser('set', help=set_value_help, description=set_value_subcommand_help)
@@ -769,7 +772,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         reset_fans_help = "Reset fans to automatic (driver) control"
         reset_profile_help = "Reset power profile back to default"
         reset_xgmierr_help = "Reset XGMI error counts"
-        reset_perfdet_help = "Disable performance determinism"
+        reset_perf_det_help = "Disable performance determinism"
         reset_compute_help = "Reset compute partitions on the specified GPU"
         reset_memory_help = "Reset memory partitions on the specified GPU"
 
@@ -790,7 +793,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         reset_parser.add_argument('-f', '--fans', action='store_true', required=False, help=reset_fans_help)
         reset_parser.add_argument('-p', '--profile', action='store_true', required=False, help=reset_profile_help)
         reset_parser.add_argument('-x', '--xgmierr', action='store_true', required=False, help=reset_xgmierr_help)
-        reset_parser.add_argument('-d', '--perf-determinism', action='store_true', required=False, help=reset_perfdet_help)
+        reset_parser.add_argument('-d', '--perf-determinism', action='store_true', required=False, help=reset_perf_det_help)
         reset_parser.add_argument('-C', '--compute-partition', action='store_true', required=False, help=reset_compute_help)
         reset_parser.add_argument('-M', '--memory-partition', action='store_true', required=False, help=reset_memory_help)
 

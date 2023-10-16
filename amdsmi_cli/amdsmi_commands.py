@@ -1751,7 +1751,7 @@ class AMDSMICommands():
 
 
     def set_value(self, args, multiple_devices=False, gpu=None, fan=None, perf_level=None,
-                  profile=None, perfdeterminism=None, compute_partition=None,
+                  profile=None, perf_determinism=None, compute_partition=None,
                   memory_partition=None):
         """Issue reset commands to target gpu(s)
 
@@ -1762,7 +1762,7 @@ class AMDSMICommands():
             fan (int, optional): Value override for args.fan. Defaults to None.
             perf_level (amdsmi_interface.AmdSmiDevPerfLevel, optional): Value override for args.perf_level. Defaults to None.
             profile (bool, optional): Value override for args.profile. Defaults to None.
-            perfdeterminism (int, optional): Value override for args.perfdeterminism. Defaults to None.
+            perf_determinism (int, optional): Value override for args.perf_determinism. Defaults to None.
             compute_partition (amdsmi_interface.AmdSmiComputePartitionType, optional): Value override for args.compute_partition. Defaults to None.
             memory_partition (amdsmi_interface.AmdSmiMemoryPartitionType, optional): Value override for args.memory_partition. Defaults to None.
 
@@ -1782,8 +1782,8 @@ class AMDSMICommands():
             args.perf_level = perf_level
         if profile:
             args.profile = profile
-        if perfdeterminism:
-            args.perfdeterminism = perfdeterminism
+        if perf_determinism:
+            args.perf_determinism = perf_determinism
         if compute_partition:
             args.compute_partition = compute_partition
         if memory_partition:
@@ -1801,7 +1801,7 @@ class AMDSMICommands():
         args.gpu = device_handle
 
         # Error if no subcommand args are passed
-        if not any([args.fan, args.perflevel, args.profile, args.perfdeterminism]):
+        if not any([args.fan, args.perflevel, args.profile, args.perf_determinism]):
             command = " ".join(sys.argv[1:])
             raise AmdSmiRequiredCommandException(command, self.logger.format)
 
@@ -1838,15 +1838,15 @@ class AMDSMICommands():
             self.logger.store_output(args.gpu, 'perflevel', f"Successfully set performance level {args.perf_level}")
         if args.profile:
             self.logger.store_output(args.gpu, 'profile', "Not Yet Implemented")
-        if isinstance(args.perfdeterminism, int):
+        if isinstance(args.perf_determinism, int):
             try:
-                amdsmi_interface.amdsmi_set_gpu_perf_determinism_mode(args.gpu, args.perfdeterminism)
+                amdsmi_interface.amdsmi_set_gpu_perf_determinism_mode(args.gpu, args.perf_determinism)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
-                raise ValueError(f"Unable to set performance determinism and clock frequency to {args.perfdeterminism} on {gpu_string}") from e
+                raise ValueError(f"Unable to set performance determinism and clock frequency to {args.perf_determinism} on {gpu_string}") from e
 
-            self.logger.store_output(args.gpu, 'perfdeterminism', f"Successfully enabled performance determinism and set GFX clock frequency to {args.perfdeterminism}")
+            self.logger.store_output(args.gpu, 'perfdeterminism', f"Successfully enabled performance determinism and set GFX clock frequency to {args.perf_determinism}")
         if args.compute_partition:
             compute_partition = amdsmi_interface.AmdSmiComputePartitionType[args.compute_partition]
             try:
@@ -1871,7 +1871,7 @@ class AMDSMICommands():
 
 
     def reset(self, args, multiple_devices=False, gpu=None, gpureset=None,
-                clocks=None, fans=None, profile=None, xgmierr=None, perfdeterminism=None,
+                clocks=None, fans=None, profile=None, xgmierr=None, perf_determinism=None,
                 compute_partition=None, memory_partition=None):
         """Issue reset commands to target gpu(s)
 
@@ -1884,7 +1884,7 @@ class AMDSMICommands():
             fans (bool, optional): Value override for args.fans. Defaults to None.
             profile (bool, optional): Value override for args.profile. Defaults to None.
             xgmierr (bool, optional): Value override for args.xgmierr. Defaults to None.
-            perfdeterminism (bool, optional): Value override for args.perfdeterminism. Defaults to None.
+            perf_determinism (bool, optional): Value override for args.perf_determinism. Defaults to None.
             compute_partition (bool, optional): Value override for args.compute_partition. Defaults to None.
             memory_partition (bool, optional): Value override for args.memory_partition. Defaults to None.
 
@@ -1908,8 +1908,8 @@ class AMDSMICommands():
             args.profile = profile
         if xgmierr:
             args.xgmierr = xgmierr
-        if perfdeterminism:
-            args.perfdeterminism = perfdeterminism
+        if perf_determinism:
+            args.perf_determinism = perf_determinism
         if compute_partition:
             args.compute_partition = compute_partition
         if memory_partition:
@@ -1930,7 +1930,7 @@ class AMDSMICommands():
         gpu_id = self.helpers.get_gpu_id_from_device_handle(args.gpu)
 
         # Error if no subcommand args are passed
-        if not any([args.gpureset, args.clocks, args.fans, args.profile, args.xgmierr, args.perfdeterminism]):
+        if not any([args.gpureset, args.clocks, args.fans, args.profile, args.xgmierr, args.perf_determinism]):
             command = " ".join(sys.argv[1:])
             raise AmdSmiRequiredCommandException(command, self.logger.format)
 
@@ -2026,7 +2026,7 @@ class AMDSMICommands():
                 result = "N/A"
                 logging.debug("Failed to reset xgmi error count on gpu %s | %s", gpu_id, e.get_error_info())
             self.logger.store_output(args.gpu, 'reset_xgmi_err', result)
-        if args.perfdeterminism:
+        if args.perf_determinism:
             try:
                 level_auto = amdsmi_interface.AmdSmiDevPerfLevel.AUTO
                 amdsmi_interface.amdsmi_set_gpu_perf_level(args.gpu, level_auto)
@@ -2039,7 +2039,7 @@ class AMDSMICommands():
             self.logger.store_output(args.gpu, 'reset_perf_determinism', result)
         if args.compute_partition:
             try:
-                amdsmi_interface.amdsmi_reset_gpu_compute_partition(args.gpu)
+                amdsmi_interface.amdsmi_dev_compute_partition_reset(args.gpu)
                 result = 'Successfully reset compute partition'
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
@@ -2049,7 +2049,7 @@ class AMDSMICommands():
             self.logger.store_output(args.gpu, 'reset_compute_partition', result)
         if args.memory_partition:
             try:
-                amdsmi_interface.amdsmi_reset_gpu_memory_partition(args.gpu)
+                amdsmi_interface.amdsmi_dev_memory_partition_reset(args.gpu)
                 result = 'Successfully reset memory partition'
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:

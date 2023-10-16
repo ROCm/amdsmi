@@ -21,6 +21,7 @@
 #
 
 import logging
+import math
 import platform
 import sys
 import time
@@ -133,7 +134,7 @@ class AMDSMIHelpers():
         """Return dictionary of possible GPU choices and string of the output:
             Dictionary will be in format: gpus[ID] : (BDF, UUID, Device Handle)
             String output will be in format:
-                "ID:0  | BDF:0000:23:00.0 | UUID:ffffffff-0000-1000-0000-000000000000"
+                "ID: 0 | BDF: 0000:23:00.0 | UUID: ffffffff-0000-1000-0000-000000000000"
         params:
             None
         return:
@@ -153,6 +154,9 @@ class AMDSMIHelpers():
             else:
                 raise e
 
+        # Handle spacing for the gpu_choices_str
+        max_padding = int(math.log10(len(device_handles))) + 1
+
         for gpu_id, device_handle in enumerate(device_handles):
             bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(device_handle)
             uuid = amdsmi_interface.amdsmi_get_gpu_device_uuid(device_handle)
@@ -161,11 +165,16 @@ class AMDSMIHelpers():
                 "UUID": uuid,
                 "Device Handle": device_handle,
             }
-            gpu_choices_str += f"ID:{gpu_id} | BDF:{bdf} | UUID:{uuid}\n"
+
+            if gpu_id == 0:
+                id_padding = max_padding
+            else:
+                id_padding = max_padding - int(math.log10(gpu_id))
+            gpu_choices_str += f"\tID: {gpu_id}{' ' * id_padding}| BDF: {bdf} | UUID: {uuid}\n"
 
         # Add the all option to the gpu_choices
         gpu_choices["all"] = "all"
-        gpu_choices_str += " all | Selects all devices\n"
+        gpu_choices_str += f"\t  all{' ' * max_padding}| Selects all devices\n"
 
         return (gpu_choices, gpu_choices_str)
 
