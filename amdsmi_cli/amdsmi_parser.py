@@ -564,8 +564,8 @@ class AMDSMIParser(argparse.ArgumentParser):
 
 
     def _add_event_parser(self, subparsers, func):
-        if self.helpers.is_linux() and not self.helpers.is_virtual_os():
-            # This subparser only applies to Linux Hypervisors, NOT Linux Guest
+        if self.helpers.is_virtual_os():
+            # This subparser doesn't only apply to guest systems
             return
 
         # Subparser help text

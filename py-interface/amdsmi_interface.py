@@ -348,7 +348,8 @@ class AmdSmiProcessorType(IntEnum):
 
 class AmdSmiEventReader:
     def __init__(
-        self, processor_handle: amdsmi_wrapper.amdsmi_processor_handle, *event_types
+        self, processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+        event_types: List[AmdSmiEvtNotificationType]
     ):
         if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
             raise AmdSmiParameterException(
@@ -375,8 +376,7 @@ class AmdSmiEventReader:
             processor_handle, ctypes.c_uint64(mask)))
 
     def read(self, timestamp, num_elem=10):
-        self.event_info = (
-            amdsmi_wrapper.amdsmi_evt_notification_data_t * num_elem)()
+        self.event_info = (amdsmi_wrapper.amdsmi_evt_notification_data_t * num_elem)()
         _check_res(
             amdsmi_wrapper.amdsmi_get_gpu_event_notification(
                 ctypes.c_int(timestamp),
@@ -387,15 +387,12 @@ class AmdSmiEventReader:
 
         ret = list()
         for i in range(0, num_elem):
-            if self.event_info[i].event in set(
-                event.value for event in AmdSmiEvtNotificationType
-            ):
+            unique_event_values = set(event.value for event in AmdSmiEvtNotificationType)
+            if self.event_info[i].event in unique_event_values:
                 ret.append(
                     {
                         "processor_handle": self.event_info[i].processor_handle,
-                        "event": AmdSmiEvtNotificationType(
-                            self.event_info[i].event
-                        ).name,
+                        "event": AmdSmiEvtNotificationType(self.event_info[i].event).name,
                         "message": self.event_info[i].message.decode("utf-8"),
                     }
                 )

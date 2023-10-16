@@ -823,14 +823,14 @@ amdsmi_init_gpu_event_notification(amdsmi_processor_handle processor_handle) {
 }
 
 amdsmi_status_t
- amdsmi_set_gpu_event_notification_mask(amdsmi_processor_handle processor_handle,
-            uint64_t mask) {
+amdsmi_set_gpu_event_notification_mask(amdsmi_processor_handle processor_handle,
+          uint64_t mask) {
     return rsmi_wrapper(rsmi_event_notification_mask_set, processor_handle, mask);
 }
 
 amdsmi_status_t
- amdsmi_get_gpu_event_notification(int timeout_ms,
-                     uint32_t *num_elem, amdsmi_evt_notification_data_t *data) {
+amdsmi_get_gpu_event_notification(int timeout_ms,
+                    uint32_t *num_elem, amdsmi_evt_notification_data_t *data) {
     AMDSMI_CHECK_INIT();
 
     if (num_elem == nullptr || data == nullptr) {
