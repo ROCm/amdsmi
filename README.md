@@ -132,7 +132,7 @@ For additional details, see the [ROCm Contributing Guide](https://rocm.docs.amd.
 ### Requirements
 
 * python 3.7+ 64-bit
-* driver must be loaded for amdsmi_init() to pass
+* amdgpu driver must be loaded for amdsmi_init() to pass
 
 ### CLI Installation
 
@@ -147,7 +147,7 @@ python3 -m pip uninstall amdsmi
 * Install amd-smi-lib package through package manager
 * amd-smi --help
 
-#### Install Example for Ubuntu 22.04
+### Install Example for Ubuntu 22.04
 
 ``` bash
 python3 -m pip list | grep amd
@@ -156,7 +156,7 @@ apt install amd-smi-lib
 amd-smi --help
 ```
 
-### Python Library Installation
+### Python Development Library Installation
 
 This option is for users who want to develop their own scripts using amd-smi's python library
 
@@ -171,11 +171,18 @@ Verify that your python version is 3.7+ to install the python library
 
 Warning: this will take precedence over the cli tool's library install, to avoid issues run these steps after every amd-smi-lib update.
 
-#### RHEL 8 & SLES 15
+#### Older RPM Packaged OS's
 
-The default python versions in RHEL 8 and SLES 15 are 3.6.8 and 3.6.15
+The default python versions in older RPM based OS's are not gauranteed to have the minium version.
 
-While the CLI will work with these python versions, to install the python library you need to upgrade to python 3.7+
+For example RHEL 8 and SLES 15 are 3.6.8 and 3.6.15 . You will need to ensure the latest yaml package is installed ( pyyaml >= 5.1) pyyaml is installed to your pip instance:
+
+``` bash
+python3 -m pip install pyyaml
+amd-smi list
+```
+
+While the CLI will work with these older python versions, to install the python development library you need to upgrade to python 3.7+
 
 #### Python Library Install Example for Ubuntu 22.04
 
