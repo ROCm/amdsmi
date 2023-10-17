@@ -21,7 +21,7 @@ message("--------Proj Src Dir: " ${PROJECT_SOURCE_DIR})
 include(utils)
 
 ################# Determine the library version #########################
-set(SO_VERSION_GIT_TAG_PREFIX "amd_smi_so_ver")
+set(SO_VERSION_GIT_TAG_PREFIX "amdsmi_so_ver")
 
 set(SRC_DIR "amd_smi")
 set(INC_DIR "${PROJECT_SOURCE_DIR}/include/amd_smi")
@@ -50,7 +50,7 @@ set(INC_LIST
     "${PROJECT_SOURCE_DIR}/rocm_smi/include/rocm_smi/rocm_smi.h"
     "${PROJECT_SOURCE_DIR}/rocm_smi/include/rocm_smi/rocm_smi_utils.h")
 
-if(ESMI_AVAILABLE)
+if(ENABLE_ESMI_LIB)
 	list(APPEND INC_LIST ${ESMI_INC_DIR}/e_smi/e_smi.h)
 	list(APPEND INC_LIST ${ESMI_INC_DIR}/e_smi/e_smi_monitor.h)
 	list(APPEND INC_LIST ${ESMI_INC_DIR}/e_smi/e_smi_utils.h)
@@ -60,7 +60,7 @@ message("Package version: ${PKG_VERSION_STR}")
 
 # Debian package specific variables
 # Set a default value for the package version
-get_version_from_tag("1.0.0.0" ${SO_VERSION_GIT_TAG_PREFIX} GIT)
+get_version_from_tag("${${AMD_SMI_LIBS_TARGET}_VERSION_MAJOR}.${${AMD_SMI_LIBS_TARGET}_VERSION_MINOR}.0.0" ${SO_VERSION_GIT_TAG_PREFIX} GIT)
 
 # VERSION_* variables should be set by get_version_from_tag
 if(${ROCM_PATCH_VERSION})

@@ -21,12 +21,14 @@
 #
 
 import logging
+import math
 import platform
 import sys
 import time
 
 from subprocess import run
 from subprocess import PIPE, STDOUT
+from typing import List
 
 from amdsmi_init import *
 from BDF import BDF
@@ -132,7 +134,7 @@ class AMDSMIHelpers():
         """Return dictionary of possible GPU choices and string of the output:
             Dictionary will be in format: gpus[ID] : (BDF, UUID, Device Handle)
             String output will be in format:
-                "ID:0  | BDF:0000:23:00.0 | UUID:ffffffff-0000-1000-0000-000000000000"
+                "ID: 0 | BDF: 0000:23:00.0 | UUID: ffffffff-0000-1000-0000-000000000000"
         params:
             None
         return:
@@ -152,6 +154,9 @@ class AMDSMIHelpers():
             else:
                 raise e
 
+        # Handle spacing for the gpu_choices_str
+        max_padding = int(math.log10(len(device_handles))) + 1
+
         for gpu_id, device_handle in enumerate(device_handles):
             bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(device_handle)
             uuid = amdsmi_interface.amdsmi_get_gpu_device_uuid(device_handle)
@@ -160,20 +165,25 @@ class AMDSMIHelpers():
                 "UUID": uuid,
                 "Device Handle": device_handle,
             }
-            gpu_choices_str += f"ID:{gpu_id} | BDF:{bdf} | UUID:{uuid}\n"
+
+            if gpu_id == 0:
+                id_padding = max_padding
+            else:
+                id_padding = max_padding - int(math.log10(gpu_id))
+            gpu_choices_str += f"\tID: {gpu_id}{' ' * id_padding}| BDF: {bdf} | UUID: {uuid}\n"
 
         # Add the all option to the gpu_choices
         gpu_choices["all"] = "all"
-        gpu_choices_str += " all | Selects all devices\n"
+        gpu_choices_str += f"\t  all{' ' * max_padding}| Selects all devices\n"
 
         return (gpu_choices, gpu_choices_str)
 
 
-    def get_device_handles_from_gpu_selections(self, gpu_selections, gpu_choices=None):
+    def get_device_handles_from_gpu_selections(self, gpu_selections: List[str], gpu_choices=None):
         """Convert provided gpu_selections to device_handles
 
         Args:
-            gpu_selections (list[str]): This will be the GPU ID, BDF, or UUID:
+            gpu_selections (list[str]): Selected GPU ID(s), BDF(s), or UUID(s):
                     ex: ID:0  | BDF:0000:23:00.0 | UUID:ffffffff-0000-1000-0000-000000000000
             gpu_choices (dict{gpu_choices}): This is a dictionary of the possible gpu_choices
         Returns:
@@ -181,7 +191,7 @@ class AMDSMIHelpers():
                 amdsmi device_handles
             (False, str): Return False, and the first input that failed to be converted
         """
-        if gpu_selections == ["all"]:
+        if 'all' in gpu_selections:
             return (True, amdsmi_interface.amdsmi_get_processor_handles())
 
         if isinstance(gpu_selections, str):
@@ -307,7 +317,9 @@ class AMDSMIHelpers():
         for gpu_index, device_handle in enumerate(device_handles):
             if input_device_handle.value == device_handle.value:
                 return gpu_index
-        raise IndexError("Unable to find gpu ID from device_handle")
+        raise amdsmi_exception.AmdSmiParameterException(input_device_handle,
+                                                        amdsmi_interface.amdsmi_wrapper.amdsmi_processor_handle,
+                                                        "Unable to find gpu ID from device_handle")
 
 
     def get_amd_gpu_bdfs(self):
@@ -340,6 +352,20 @@ class AMDSMIHelpers():
         perf_levels_str = [clock.name for clock in amdsmi_interface.AmdSmiDevPerfLevel]
         perf_levels_int = list(set(clock.value for clock in amdsmi_interface.AmdSmiDevPerfLevel))
         return perf_levels_str, perf_levels_int
+
+
+    def get_compute_partition_types(self):
+        compute_partitions_str = [partition.name for partition in amdsmi_interface.AmdSmiComputePartitionType]
+        if 'INVALID' in compute_partitions_str:
+            compute_partitions_str.remove('INVALID')
+        return compute_partitions_str
+
+
+    def get_memory_partition_types(self):
+        memory_partitions_str = [partition.name for partition in amdsmi_interface.AmdSmiMemoryPartitionType]
+        if 'UNKNOWN' in memory_partitions_str:
+            memory_partitions_str.remove('UNKNOWN')
+        return memory_partitions_str
 
 
     def get_clock_types(self):

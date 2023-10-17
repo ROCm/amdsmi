@@ -23,11 +23,26 @@
 from .amdsmi_interface import amdsmi_init
 from .amdsmi_interface import amdsmi_shut_down
 
-# Device Descovery
+# Device Discovery
 from .amdsmi_interface import amdsmi_get_processor_type
 from .amdsmi_interface import amdsmi_get_processor_handles
 from .amdsmi_interface import amdsmi_get_socket_handles
 from .amdsmi_interface import amdsmi_get_socket_info
+
+from .amdsmi_interface import amdsmi_get_cpusocket_handles
+from .amdsmi_interface import amdsmi_get_cpusocket_info
+from .amdsmi_interface import amdsmi_get_cpucore_handles
+from .amdsmi_interface import amdsmi_get_cpu_hsmp_proto_ver
+from .amdsmi_interface import amdsmi_get_cpu_smu_fw_version
+from .amdsmi_interface import amdsmi_get_cpu_core_energy
+from .amdsmi_interface import amdsmi_get_cpu_socket_energy
+from .amdsmi_interface import amdsmi_get_cpu_prochot_status
+from .amdsmi_interface import amdsmi_get_cpu_fclk_mclk
+from .amdsmi_interface import amdsmi_get_cpu_cclk_limit
+from .amdsmi_interface import amdsmi_get_cpu_socket_current_active_freq_limit
+from .amdsmi_interface import amdsmi_get_cpu_socket_freq_range
+from .amdsmi_interface import amdsmi_get_cpu_core_current_freq_limit
+from .amdsmi_interface import amdsmi_get_cpu_socket_power
 
 from .amdsmi_interface import amdsmi_get_gpu_device_bdf
 from .amdsmi_interface import amdsmi_get_gpu_device_uuid
@@ -40,6 +55,7 @@ from .amdsmi_interface import amdsmi_get_gpu_driver_info
 from .amdsmi_interface import amdsmi_get_gpu_asic_info
 from .amdsmi_interface import amdsmi_get_power_cap_info
 from .amdsmi_interface import amdsmi_get_gpu_vram_info
+from .amdsmi_interface import amdsmi_get_gpu_cache_info
 
 # # Microcode and VBIOS Information
 from .amdsmi_interface import amdsmi_get_gpu_vbios_info

@@ -48,10 +48,9 @@
 #include <bitset>
 #include <iomanip>
 #include "amd_smi/amdsmi.h"
+#include "asm/amd_hsmp.h"
 #include <cstring>
 #include <cmath>
-
-using namespace std;
 
 #define SHOWLINESZ 256
 
@@ -68,11 +67,17 @@ using namespace std;
         }                                                                      \
     }
 
+using std::cin;
+using std::cout;
+using std::endl;
+using std::fixed;
+using std::setprecision;
+using std::vector;
+
 int main(int argc, char **argv) {
   amdsmi_status_t ret;
   uint32_t proto_ver;
   amdsmi_smu_fw_version_t smu_fw = {};
-  amdsmi_cpusocket_handle socket_handle;
 
   // Initialize esmi for AMD CPUs
   ret = amdsmi_init(AMDSMI_INIT_AMD_CPUS);
@@ -94,9 +99,9 @@ int main(int argc, char **argv) {
   cout << "Total Socket: " << socket_count << endl;
 
   // For each socket, get identifier and cores
-  for (uint32_t i = 0; i < socket_count; i++) {
+  for (uint8_t i = 0; i < socket_count; i++) {
     // Get Socket info
-    uint32_t socket_info;
+    uint32_t socket_info = 0;
     ret = amdsmi_get_cpusocket_info(sockets[i], socket_info);
     CHK_AMDSMI_RET(ret)
     cout << "Socket " << socket_info << endl;
@@ -134,27 +139,6 @@ int main(int argc, char **argv) {
 
     uint32_t err_bits = 0;
 
-    uint64_t pkg_input;
-    cout<<"\n-------------------------------------------------";
-    cout<<"\n| Sensor Name\t\t\t |";
-    for (uint32_t i = 0; i < socket_count; i++) {
-        cout<<setprecision(3)<<" Socket "<<i<<"\t|";
-    }
-    cout<<"\n-------------------------------------------------";
-    cout<<"\n| Energy (K Joules)\t\t | ";
-
-    ret = amdsmi_get_cpu_socket_energy(sockets[i], i, &pkg_input);
-    CHK_AMDSMI_RET(ret)
-
-    if (!ret) {
-        cout<<setprecision(7)<<static_cast<double>(pkg_input)/1000000000<<"\t|";
-    } else {
-        err_bits |= 1 << ret;
-        cout<<" NA (Err:" <<ret<<"     |";
-    }
-    cout<<"\n-------------------------------------------------\n";
-
-    err_bits = 0;
     uint32_t prochot;
     cout<<"\n-------------------------------------------------";
     cout<<"\n| Sensor Name\t\t\t |";
@@ -210,31 +194,6 @@ int main(int argc, char **argv) {
     cout<<"\n| SOCKET["<<i<<"] core clock current frequency limit (MHz) : "<<cclk<<"\t|\n";
     cout<<"-----------------------------------------------------------------\n";
 
-    uint64_t core_input = 0;
-    ret = amdsmi_get_cpu_core_energy(processor_handles[i], i, &core_input);
-    CHK_AMDSMI_RET(ret)
-    cout<<"\n-------------------------------------------------";
-    cout<<"\n| core["<<i<<"] energy  | "<<setprecision(7)
-        <<static_cast<double>(core_input)/1000000<<" Joules\t\t|\n";
-    cout<<"-------------------------------------------------\n";
-
-    core_input = 0;
-    cout<<"\n| CPU energies in Joules:\t\t\t\t\t\t\t\t\t|";
-    for (uint32_t j = 0; j < core_count; j++) {
-        ret = amdsmi_get_cpu_core_energy(processor_handles[j], j, &core_input);
-        CHK_AMDSMI_RET(ret)
-        if(!(j % 8)) {
-            if(j < 10)
-                cout<<"\n| cpu [0"<<j<<"] :";
-            else
-                cout<<"\n| cpu ["<<j<<"] :";
-        }
-        cout<<setw(8)<<right<<fixed<<setprecision(3)<<static_cast<double>(core_input)/1000000<<"  ";
-        if (j % 8 == 7)
-            cout<<"\t|";
-    }
-        cout<<"\n-------------------------------------------------\n";
-
     uint32_t c_clk = 0;
     ret = amdsmi_get_cpu_core_current_freq_limit(processor_handles[i], i, &c_clk);
     CHK_AMDSMI_RET(ret)
@@ -243,7 +202,7 @@ int main(int argc, char **argv) {
     cout<<"\n| CPU["<<i<<"] core clock current frequency limit (MHz) : "<<c_clk<<"\t|\n";
     cout<<"--------------------------------------------------------------\n";
 
-    uint32_t power;
+    uint32_t socket_power;
     cout<<"\n-------------------------------------------------";
     cout<<"\n| Sensor Name\t\t\t |";
     for (uint32_t i = 0; i < socket_count; i++) {
@@ -252,37 +211,37 @@ int main(int argc, char **argv) {
     cout<<"\n-------------------------------------------------";
     cout<<"\n| Power (Watts)\t\t\t | ";
 
-    ret = amdsmi_get_cpu_socket_power(sockets[i], i, &power);
+    ret = amdsmi_get_cpu_socket_power(sockets[i], i, &socket_power);
     CHK_AMDSMI_RET(ret)
 
     if (!ret) {
-        cout<<fixed<<setprecision(3)<<static_cast<double>(power)/1000<<"\t|";
+        cout<<fixed<<setprecision(3)<<static_cast<double>(socket_power)/1000<<"\t|";
     } else {
         err_bits |= 1 << ret;
         cout<<" NA (Err:" <<ret<<"     |";
     }
 
-    uint32_t powerlimit;
+    uint32_t power_limit;
     cout<<"\n| PowerLimit (Watts)\t\t | ";
 
-    ret = amdsmi_get_cpu_socket_power_cap(sockets[i], i, &powerlimit);
+    ret = amdsmi_get_cpu_socket_power_cap(sockets[i], i, &power_limit);
     CHK_AMDSMI_RET(ret)
 
     if (!ret) {
-        cout<<fixed<<setprecision(3)<<static_cast<double>(powerlimit)/1000<<"\t|";
+        cout<<fixed<<setprecision(3)<<static_cast<double>(power_limit)/1000<<"\t|";
     } else {
         err_bits |= 1 << ret;
         cout<<" NA (Err:" <<ret<<"     |";
     }
 
-    uint32_t powermax;
+    uint32_t power_max;
     cout<<"\n| PowerLimitMax (Watts)\t\t | ";
 
-    ret = amdsmi_get_cpu_socket_power_cap_max(sockets[i], i, &powermax);
+    ret = amdsmi_get_cpu_socket_power_cap_max(sockets[i], i, &power_max);
     CHK_AMDSMI_RET(ret)
 
     if (!ret) {
-        cout<<fixed<<setprecision(3)<<static_cast<double>(powermax)/1000<<"\t|";
+        cout<<fixed<<setprecision(3)<<static_cast<double>(power_max)/1000<<"\t|";
     } else {
         err_bits |= 1 << ret;
         cout<<" NA (Err:" <<ret<<"     |";
@@ -290,15 +249,15 @@ int main(int argc, char **argv) {
     cout<<"\n-------------------------------------------------\n";
 
     uint32_t input_power;
-    powermax = 0;
+    power_max = 0;
     cout<<"\nEnter the max power to be set:\n";
     cin>>input_power;
-    ret = amdsmi_get_cpu_socket_power_cap_max(sockets[i], i, &powermax);
+    ret = amdsmi_get_cpu_socket_power_cap_max(sockets[i], i, &power_max);
     CHK_AMDSMI_RET(ret)
-    if ((ret == AMDSMI_STATUS_SUCCESS) && (input_power > powermax)) {
+    if ((ret == AMDSMI_STATUS_SUCCESS) && (input_power > power_max)) {
         cout<<"Input power is more than max power limit,"
-            " limiting to "<<static_cast<double>(powermax)/1000<<"Watts\n";
-        input_power = powermax;
+            " limiting to "<<static_cast<double>(power_max)/1000<<"Watts\n";
+        input_power = power_max;
     }
     ret = amdsmi_set_cpu_socket_power_cap(sockets[i], i, input_power);
     CHK_AMDSMI_RET(ret)
@@ -422,7 +381,7 @@ int main(int argc, char **argv) {
     cout<<"\n-------------------------------------------------\n";
 
     amdsmi_temp_range_refresh_rate_t rate;
-    uint8_t dimm_addr;
+    uint8_t dimm_addr = 0x80;
     cout<<"\n| Socket DIMM temp range and refresh rate\t\t |\n";
     ret = amdsmi_get_cpu_dimm_temp_range_and_refresh_rate(sockets[i], i, dimm_addr, &rate);
     CHK_AMDSMI_RET(ret)
@@ -436,15 +395,15 @@ int main(int argc, char **argv) {
 
     cout<<"\n-------------------------------------------------\n";
 
-    amdsmi_dimm_power_t pow;
+    amdsmi_dimm_power_t dimm_power;
     cout<<"\n| Socket DIMM power consumption\t\t |\n";
-    ret = amdsmi_get_cpu_dimm_power_consumption(sockets[i], i, dimm_addr, &pow);
+    ret = amdsmi_get_cpu_dimm_power_consumption(sockets[i], i, dimm_addr, &dimm_power);
     CHK_AMDSMI_RET(ret)
 
     if(ret) {
-        cout<<"\n| Power(mWatts)\t\t |"<<pow.power<<"\t|"<<endl;
-        cout<<"\n| Power update rate(ms)\t |"<<pow.update_rate<<"\t|"<<endl;
-        cout<<"\n| Dimm address \t\t |"<<pow.dimm_addr<<"\t|"<<endl;
+        cout<<"\n| Power(mWatts)\t\t |"<<dimm_power.power<<"\t|"<<endl;
+        cout<<"\n| Power update rate(ms)\t |"<<dimm_power.update_rate<<"\t|"<<endl;
+        cout<<"\n| Dimm address \t\t |"<<dimm_power.dimm_addr<<"\t|"<<endl;
     } else
         cout<<"Failed: to get socket"<<"["<<i<<"] DIMM power and update rate, Err["<<ret<<"]: "
             <<*amdsmi_get_esmi_err_msg(ret, &err_str1)<<endl;
@@ -511,7 +470,7 @@ int main(int argc, char **argv) {
 
     cout<<"\n-------------------------------------------------\n";
 
-    int32_t pstate;
+    int8_t pstate;
     cout<<"\nEnter the pstate to be set:\n";
     cin>>pstate;
     ret = amdsmi_cpu_apb_disable(sockets[i], i, pstate);
@@ -555,7 +514,7 @@ int main(int argc, char **argv) {
 
     uint8_t rate_ctrl;
     uint8_t prev_mode;
-    string pcie_strings[] = {
+    std::string pcie_strings[] = {
            "automatically detect based on bandwidth utilisation",
            "limited to Gen4 rate",
            "limited to Gen5 rate"
@@ -595,9 +554,9 @@ int main(int argc, char **argv) {
 
     amdsmi_link_id_bw_type_t io_link;
     uint32_t bw;
-    char *link = "P0";
+    char* link = "P0";
     io_link.link_name = link;
-    io_link.bw_type = static_cast<io_bw_encoding>(1) ;
+    io_link.bw_type = static_cast<amdsmi_io_bw_encoding_t>(1) ;
     ret = amdsmi_get_cpu_current_io_bandwidth(sockets[i], i, io_link, &bw);
     CHK_AMDSMI_RET(ret)
 
@@ -611,10 +570,10 @@ int main(int argc, char **argv) {
 
     amdsmi_link_id_bw_type_t xgmi_link;
     uint32_t bw1;
-    char *link1 = "P0";
     int bw_ind = 1;
+    char* link1 = "P1";
     xgmi_link.link_name = link1;
-    xgmi_link.bw_type = static_cast<io_bw_encoding>(1<<bw_ind) ;
+    xgmi_link.bw_type = static_cast<amdsmi_io_bw_encoding_t>(1<<bw_ind) ;
     ret = amdsmi_get_cpu_current_xgmi_bw(sockets[i], xgmi_link, &bw1);
     CHK_AMDSMI_RET(ret)
 
@@ -640,9 +599,8 @@ int main(int argc, char **argv) {
 
     double fraction_q10 = 1/pow(2,10);
     double fraction_uq10 = fraction_q10;
-    double fraction_uq16 = 1/pow(2,16);
 
-    struct hsmp_metric_table mtbl = {0};
+    struct hsmp_metric_table mtbl;
     ret = amdsmi_get_metrics_table(sockets[i], i, &mtbl);
     CHK_AMDSMI_RET(ret)
 

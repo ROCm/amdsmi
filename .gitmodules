@@ -1,4 +1,0 @@
-[submodule "e_smi_library"]
-	path = e_smi_library
-	url = ssh://gerritgit/SYS-MGMT/er/HPC/e_smi_library
-	branch = amd-dev

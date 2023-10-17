@@ -22,6 +22,7 @@
 
 import json
 
+
 AMDSMI_ERROR_MESSAGES = {
     0: "Sucess",
     1: "Invalid parameters",
@@ -59,6 +60,7 @@ def _get_error_message(error_code):
     if abs(error_code) in AMDSMI_ERROR_MESSAGES:
         return AMDSMI_ERROR_MESSAGES[abs(error_code)]
     return "Generic error"
+
 
 class AmdSmiException(Exception):
     def __init__(self):
@@ -117,12 +119,13 @@ class AmdSmiDeviceNotFoundException(AmdSmiException):
         self.command = command
         self.output_format = outputformat
 
-        common_message = f"GPU Device with GPU_INDEX '{self.command}' cannot be found on the system."
+        common_message = f"Can not find a GPU with the corresponding identifier: '{self.command}'"
 
         self.json_message["error"] = common_message
         self.json_message["code"] = self.value
         self.csv_message = f"error,code\n{common_message}, {self.value}"
         self.stdout_message = f"{common_message} Error code: {self.value}"
+
 
 class AmdSmiInvalidFilePathException(AmdSmiException):
     def __init__(self, command, outputformat):
@@ -183,6 +186,22 @@ class AmdSmiParameterNotSupportedException(AmdSmiException):
         self.csv_message = f"error,code\n{common_message}, {self.value}"
         self.stdout_message = f"{common_message} Error code: {self.value}"
 
+
+class AmdSmiRequiredCommandException(AmdSmiException):
+    def __init__(self, command, outputformat):
+        super().__init__()
+        self.value = -9
+        self.command = command
+        self.output_format = outputformat
+
+        common_message = f"Command '{self.command}' requires a target argument. Run '--help' for more info."
+
+        self.json_message["error"] = common_message
+        self.json_message["code"] = self.value
+        self.csv_message = f"error,code\n{common_message}, {self.value}"
+        self.stdout_message = f"{common_message} Error code: {self.value}"
+
+
 class AmdSmiUnknownErrorException(AmdSmiException):
     def __init__(self, command, outputformat):
         super().__init__()
@@ -196,6 +215,7 @@ class AmdSmiUnknownErrorException(AmdSmiException):
         self.json_message["code"] = self.value
         self.csv_message = f"error,code\n{common_message}, {self.value}"
         self.stdout_message = f"{common_message} Error code: {self.value}"
+
 
 class AmdSmiAMDSMIErrorException(AmdSmiException):
     def __init__(self, outputformat, error_code):
