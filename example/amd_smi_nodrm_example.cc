@@ -122,6 +122,16 @@ int main() {
                 return AMDSMI_STATUS_NOT_SUPPORTED;
             }
 
+            amdsmi_ras_feature_t ras_feature;
+            ret = amdsmi_get_gpu_ras_feature_info(
+                processor_handles[j] ,&ras_feature);
+            if (ret != AMDSMI_STATUS_NOT_SUPPORTED) {
+                CHK_AMDSMI_RET(ret)
+                printf("\tras_feature: version: %x, schema: %x\n",
+                        ras_feature.ras_eeprom_version, ras_feature.ecc_correction_schema_flag);
+            }
+
+
             amdsmi_bdf_t bdf = {};
             ret = amdsmi_get_gpu_device_bdf(processor_handles[j], &bdf);
             CHK_AMDSMI_RET(ret)

@@ -849,6 +849,73 @@ get_id(uint32_t dv_ind, amd::smi::DevInfoTypes typ, uint16_t *id) {
   CATCH
 }
 
+rsmi_status_t rsmi_ras_feature_info_get(
+  uint32_t dv_ind, rsmi_ras_feature_info_t *ras_feature) {
+  TRY
+  rsmi_status_t ret;
+  std::string feature_line;
+  std::string tmp_str;
+  std::ostringstream ss;
+  ss << __PRETTY_FUNCTION__ << " | ======= start =======";
+  LOG_TRACE(ss);
+
+  CHK_SUPPORT_NAME_ONLY(ras_feature)
+
+  DEVICE_MUTEX
+
+  ret = get_dev_value_line(amd::smi::kDevErrTableVersion,
+                dv_ind, &feature_line);
+  if (ret != RSMI_STATUS_SUCCESS) {
+    ss << __PRETTY_FUNCTION__ << " | ======= end ======="
+       << ", returning get_dev_value_line() response = "
+       << amd::smi::getRSMIStatusString(ret);
+    LOG_ERROR(ss);
+    return ret;
+  }
+
+  // table version: 0x10000
+  const char* version_key = "table version: ";
+  if (feature_line.rfind(version_key, 0) == 0) {
+    errno = 0;
+    auto eeprom_version = strtoul(
+      feature_line.substr(strlen(version_key)).c_str(), nullptr, 16);
+    if (errno == 0) {
+      ras_feature->ras_eeprom_version = eeprom_version;
+    } else {
+      return RSMI_STATUS_NOT_SUPPORTED;
+    }
+  } else {
+    return RSMI_STATUS_NOT_SUPPORTED;
+  }
+
+  ret = get_dev_value_line(amd::smi::kDevErrRASSchema,
+                dv_ind, &feature_line);
+  if (ret != RSMI_STATUS_SUCCESS) {
+    ss << __PRETTY_FUNCTION__ << " | ======= end ======="
+       << ", returning get_dev_value_line() response = "
+       << amd::smi::getRSMIStatusString(ret);
+    LOG_ERROR(ss);
+    return ret;
+  }
+  // schema: 0xf
+  const char* schema_key = "schema: ";
+  if (feature_line.rfind(schema_key, 0) == 0) {
+    errno = 0;
+    auto schema = strtoul(
+      feature_line.substr(strlen(schema_key)).c_str(), nullptr, 16);
+    if (errno == 0) {
+      ras_feature->ecc_correction_schema_flag = schema;
+    } else {
+      return RSMI_STATUS_NOT_SUPPORTED;
+    }
+  } else {
+    return RSMI_STATUS_NOT_SUPPORTED;
+  }
+
+  return RSMI_STATUS_SUCCESS;
+  CATCH
+}
+
 rsmi_status_t
 rsmi_dev_id_get(uint32_t dv_ind, uint16_t *id) {
   std::ostringstream ss;

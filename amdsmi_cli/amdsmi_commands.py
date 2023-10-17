@@ -20,6 +20,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
+import argparse
 import logging
 import sys
 import threading
@@ -28,6 +29,7 @@ import time
 from _version import __version__
 from amdsmi_helpers import AMDSMIHelpers
 from amdsmi_logger import AMDSMILogger
+from amdsmi_cli_exceptions import AmdSmiRequiredCommandException
 from amdsmi import amdsmi_interface
 from amdsmi import amdsmi_exception
 
@@ -130,8 +132,8 @@ class AMDSMICommands():
 
 
     def static(self, args, multiple_devices=False, gpu=None, asic=None,
-                bus=None, vbios=None, limit=None, driver=None,
-                ras=None, board=None, numa=None, vram=None):
+                bus=None, vbios=None, limit=None, driver=None, ras=None,
+                board=None, numa=None, vram=None, cache=None, partition=None):
         """Get Static information for target gpu
 
         Args:
@@ -147,6 +149,8 @@ class AMDSMICommands():
             board (bool, optional): Value override for args.board. Defaults to None.
             numa (bool, optional): Value override for args.numa. Defaults to None.
             vram (bool, optional): Value override for args.vram. Defaults to None.
+            cache (bool, optional): Value override for args.cache. Defaults to None.
+            partition (bool, optional): Value override for args.partition. Defaults to None.
 
         Raises:
             IndexError: Index error if gpu list is empty
@@ -171,9 +175,13 @@ class AMDSMICommands():
             args.driver = driver
         if vram:
             args.vram = vram
+        if cache:
+            args.cache = cache
         if self.helpers.is_linux() and self.helpers.is_baremetal():
             if ras:
                 args.ras = ras
+            if partition:
+                args.partition = partition
             if limit:
                 args.limit = limit
 
@@ -189,11 +197,11 @@ class AMDSMICommands():
 
         # If all arguments are False, it means that no argument was passed and the entire static should be printed
         if self.helpers.is_linux() and self.helpers.is_baremetal():
-            if not any([args.asic, args.bus, args.vbios, args.limit, args.board, args.ras, args.driver, args.numa, args.vram]):
-                args.asic = args.bus = args.vbios = args.limit = args.board = args.ras = args.driver = args.numa = args.vram = self.all_arguments = True
+            if not any([args.asic, args.bus, args.vbios, args.limit, args.board, args.ras, args.driver, args.numa, args.vram, args.cache, args.partition]):
+                args.asic = args.bus = args.vbios = args.limit = args.board = args.ras = args.driver = args.numa = args.vram = args.cache  = args.partition = self.all_arguments = True
         if self.helpers.is_linux() and self.helpers.is_virtual_os():
-            if not any([args.asic, args.bus, args.vbios, args.board, args.driver, args.vram]):
-                args.asic = args.bus = args.vbios = args.board = args.driver = args.vram = self.all_arguments = True
+            if not any([args.asic, args.bus, args.vbios, args.board, args.driver, args.vram, args.cache]):
+                args.asic = args.bus = args.vbios = args.board = args.driver = args.vram = args.cache = self.all_arguments = True
 
         static_dict = {}
 
@@ -434,6 +442,17 @@ class AMDSMICommands():
                 logging.debug("Failed to get vram info for gpu %s | %s", gpu_id, e.get_error_info())
 
             static_dict['vram'] = vram_info
+        if args.cache:
+            try:
+                cache_info = amdsmi_interface.amdsmi_get_gpu_cache_info(args.gpu)
+                if self.logger.is_human_readable_format():
+                    for _ , cache_values in cache_info.items():
+                        cache_values['cache_size'] = f"{cache_values['cache_size']} KB"
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                cache_info = "N/A"
+                logging.debug("Failed to get cache info for gpu %s | %s", gpu_id, e.get_error_info())
+
+            static_dict['cache'] = cache_info
 
         if self.helpers.is_hypervisor() or self.helpers.is_baremetal():
             if args.ras:
@@ -456,6 +475,22 @@ class AMDSMICommands():
                     logging.debug("Failed to get ras block features for gpu %s | %s", gpu_id, e.get_error_info())
 
                 static_dict["ras"] = ras_dict
+            if args.partition:
+                try:
+                    compute_partition = amdsmi_interface.amdsmi_dev_compute_partition_get(args.gpu)
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    compute_partition = "N/A"
+                    logging.debug("Failed to get compute partition info for gpu %s | %s", gpu_id, e.get_error_info())
+
+                try:
+                    memory_partition = amdsmi_interface.amdsmi_dev_memory_partition_get(args.gpu)
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    memory_partition = "N/A"
+                    logging.debug("Failed to get memory partition info for gpu %s | %s", gpu_id, e.get_error_info())
+
+                static_dict['partition'] = {"compute_partition": compute_partition,
+                                            "memory_partition": memory_partition}
+
         if self.helpers.is_linux() and self.helpers.is_baremetal():
             if args.numa:
                 try:
@@ -626,7 +661,6 @@ class AMDSMICommands():
             args.retired = args.pending = args.un_res = True
 
         values_dict = {}
-        bad_page_err_output = ''
 
         # Get gpu_id for logging
         gpu_id = self.helpers.get_gpu_id_from_device_handle(args.gpu)
@@ -1492,13 +1526,31 @@ class AMDSMICommands():
         print('Not applicable to linux baremetal')
 
 
-    def event(self, args):
+    def event(self, args, gpu=None):
+        """ Get event information for target gpus
+
+        Args:
+            args (Namespace): argparser args to pass to subcommand
+            gpu (device_handle, optional): device_handle for target device. Defaults to None.
+
+        Return:
+            stdout event information for target gpus
+        """
+        if args.gpu:
+            gpu = args.gpu
+
+        if gpu == None:
+            args.gpu = self.device_handles
+
+        if not isinstance(args.gpu, list):
+            args.gpu = [args.gpu]
+
         print('EVENT LISTENING:\n')
-        print('Press q and hit ENTER when you want to stop (listening will stop inside 10 seconds)')
+        print('Press q and hit ENTER when you want to stop (listening will stop within 10 seconds)')
 
         threads = []
-        for i in range(len(self.device_handles)):
-            x = threading.Thread(target=self._event_thread, args=(self, i))
+        for gpu in range(len(args.gpu)):
+            x = threading.Thread(target=self._event_thread, args=(self, gpu))
             threads.append(x)
             x.start()
 
@@ -1698,8 +1750,9 @@ class AMDSMICommands():
         self.logger.print_output(multiple_device_enabled=True)
 
 
-    def set_value(self, args, multiple_devices=False, gpu=None, fan=None, perflevel=None,
-                  profile=None, perfdeterminism=None):
+    def set_value(self, args, multiple_devices=False, gpu=None, fan=None, perf_level=None,
+                  profile=None, perf_determinism=None, compute_partition=None,
+                  memory_partition=None):
         """Issue reset commands to target gpu(s)
 
         Args:
@@ -1707,9 +1760,11 @@ class AMDSMICommands():
             multiple_devices (bool, optional): True if checking for multiple devices. Defaults to False.
             gpu (device_handle, optional): device_handle for target device. Defaults to None.
             fan (int, optional): Value override for args.fan. Defaults to None.
-            perflevel (amdsmi_interface.AmdSmiDevPerfLevel, optional): Value override for args.perflevel. Defaults to None.
+            perf_level (amdsmi_interface.AmdSmiDevPerfLevel, optional): Value override for args.perf_level. Defaults to None.
             profile (bool, optional): Value override for args.profile. Defaults to None.
-            perfdeterminism (int, optional): Value override for args.perfdeterminism. Defaults to None.
+            perf_determinism (int, optional): Value override for args.perf_determinism. Defaults to None.
+            compute_partition (amdsmi_interface.AmdSmiComputePartitionType, optional): Value override for args.compute_partition. Defaults to None.
+            memory_partition (amdsmi_interface.AmdSmiMemoryPartitionType, optional): Value override for args.memory_partition. Defaults to None.
 
         Raises:
             ValueError: Value error if no gpu value is provided
@@ -1723,12 +1778,16 @@ class AMDSMICommands():
             args.gpu = gpu
         if fan:
             args.fan = fan
-        if perflevel:
-            args.perflevel = perflevel
+        if perf_level:
+            args.perf_level = perf_level
         if profile:
             args.profile = profile
-        if perfdeterminism:
-            args.perfdeterminism = perfdeterminism
+        if perf_determinism:
+            args.perf_determinism = perf_determinism
+        if compute_partition:
+            args.compute_partition = compute_partition
+        if memory_partition:
+            args.memory_partition = memory_partition
 
         # Handle No GPU passed
         if args.gpu == None:
@@ -1740,6 +1799,11 @@ class AMDSMICommands():
             return # This function is recursive
 
         args.gpu = device_handle
+
+        # Error if no subcommand args are passed
+        if not any([args.fan, args.perflevel, args.profile, args.perf_determinism]):
+            command = " ".join(sys.argv[1:])
+            raise AmdSmiRequiredCommandException(command, self.logger.format)
 
         # Build GPU string for errors
         try:
@@ -1762,28 +1826,43 @@ class AMDSMICommands():
                 raise ValueError(f"Unable to set fan speed {args.fan} on {gpu_string}") from e
 
             self.logger.store_output(args.gpu, 'fan', f"Successfully set fan speed {args.fan}")
-        if args.perflevel:
-            perf_level = amdsmi_interface.AmdSmiDevPerfLevel[args.perflevel]
+        if args.perf_level:
+            perf_level = amdsmi_interface.AmdSmiDevPerfLevel[args.perf_level]
             try:
                 amdsmi_interface.amdsmi_set_gpu_perf_level(args.gpu, perf_level)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
-                raise ValueError(f"Unable to set performance level {args.perflevel} on {gpu_string}") from e
+                raise ValueError(f"Unable to set performance level {args.perf_level} on {gpu_string}") from e
 
-            self.logger.store_output(args.gpu, 'perflevel', f"Successfully set performance level {args.perflevel}")
+            self.logger.store_output(args.gpu, 'perflevel', f"Successfully set performance level {args.perf_level}")
         if args.profile:
             self.logger.store_output(args.gpu, 'profile', "Not Yet Implemented")
-        if isinstance(args.perfdeterminism, int):
+        if isinstance(args.perf_determinism, int):
             try:
-                amdsmi_interface.amdsmi_set_gpu_perf_determinism_mode(args.gpu, args.perfdeterminism)
+                amdsmi_interface.amdsmi_set_gpu_perf_determinism_mode(args.gpu, args.perf_determinism)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
-                raise ValueError(f"Unable to set performance determinism and clock frequency to {args.perfdeterminism} on {gpu_string}") from e
+                raise ValueError(f"Unable to set performance determinism and clock frequency to {args.perf_determinism} on {gpu_string}") from e
 
-            self.logger.store_output(args.gpu, 'perfdeterminism', f"Successfully enabled performance determinism and set GFX clock frequency to {args.perfdeterminism}")
-
+            self.logger.store_output(args.gpu, 'perfdeterminism', f"Successfully enabled performance determinism and set GFX clock frequency to {args.perf_determinism}")
+        if args.compute_partition:
+            compute_partition = amdsmi_interface.AmdSmiComputePartitionType[args.compute_partition]
+            try:
+                amdsmi_interface.amdsmi_dev_compute_partition_set(args.gpu, compute_partition)
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
+                    raise PermissionError('Command requires elevation') from e
+                raise ValueError(f"Unable to set compute partition to {args.compute_partition} on {gpu_string}") from e
+        if args.memory_partition:
+            memory_partition = amdsmi_interface.AmdSmiMemoryPartitionType[args.memory_partition]
+            try:
+                amdsmi_interface.amdsmi_dev_memory_partition_set(args.gpu, memory_partition)
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
+                    raise PermissionError('Command requires elevation') from e
+                raise ValueError(f"Unable to set memory partition to {args.memory_partition} on {gpu_string}") from e
         if multiple_devices:
             self.logger.store_multiple_device_output()
             return # Skip printing when there are multiple devices
@@ -1792,7 +1871,8 @@ class AMDSMICommands():
 
 
     def reset(self, args, multiple_devices=False, gpu=None, gpureset=None,
-                clocks=None, fans=None, profile=None, xgmierr=None, perfdeterminism=None):
+                clocks=None, fans=None, profile=None, xgmierr=None, perf_determinism=None,
+                compute_partition=None, memory_partition=None):
         """Issue reset commands to target gpu(s)
 
         Args:
@@ -1804,7 +1884,9 @@ class AMDSMICommands():
             fans (bool, optional): Value override for args.fans. Defaults to None.
             profile (bool, optional): Value override for args.profile. Defaults to None.
             xgmierr (bool, optional): Value override for args.xgmierr. Defaults to None.
-            perfdeterminism (bool, optional): Value override for args.perfdeterminism. Defaults to None.
+            perf_determinism (bool, optional): Value override for args.perf_determinism. Defaults to None.
+            compute_partition (bool, optional): Value override for args.compute_partition. Defaults to None.
+            memory_partition (bool, optional): Value override for args.memory_partition. Defaults to None.
 
         Raises:
             ValueError: Value error if no gpu value is provided
@@ -1826,8 +1908,12 @@ class AMDSMICommands():
             args.profile = profile
         if xgmierr:
             args.xgmierr = xgmierr
-        if perfdeterminism:
-            args.perfdeterminism = perfdeterminism
+        if perf_determinism:
+            args.perf_determinism = perf_determinism
+        if compute_partition:
+            args.compute_partition = compute_partition
+        if memory_partition:
+            args.memory_partition = memory_partition
 
         # Handle No GPU passed
         if args.gpu == None:
@@ -1842,6 +1928,11 @@ class AMDSMICommands():
 
         # Get gpu_id for logging
         gpu_id = self.helpers.get_gpu_id_from_device_handle(args.gpu)
+
+        # Error if no subcommand args are passed
+        if not any([args.gpureset, args.clocks, args.fans, args.profile, args.xgmierr, args.perf_determinism]):
+            command = " ".join(sys.argv[1:])
+            raise AmdSmiRequiredCommandException(command, self.logger.format)
 
         if args.gpureset:
             if self.helpers.is_amd_device(args.gpu):
@@ -1935,7 +2026,7 @@ class AMDSMICommands():
                 result = "N/A"
                 logging.debug("Failed to reset xgmi error count on gpu %s | %s", gpu_id, e.get_error_info())
             self.logger.store_output(args.gpu, 'reset_xgmi_err', result)
-        if args.perfdeterminism:
+        if args.perf_determinism:
             try:
                 level_auto = amdsmi_interface.AmdSmiDevPerfLevel.AUTO
                 amdsmi_interface.amdsmi_set_gpu_perf_level(args.gpu, level_auto)
@@ -1945,8 +2036,27 @@ class AMDSMICommands():
                     raise PermissionError('Command requires elevation') from e
                 result = "N/A"
                 logging.debug("Failed to set perf level on gpu %s | %s", gpu_id, e.get_error_info())
-
             self.logger.store_output(args.gpu, 'reset_perf_determinism', result)
+        if args.compute_partition:
+            try:
+                amdsmi_interface.amdsmi_dev_compute_partition_reset(args.gpu)
+                result = 'Successfully reset compute partition'
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
+                    raise PermissionError('Command requires elevation') from e
+                result = "N/A"
+                logging.debug("Failed to reset compute partition on gpu %s | %s", gpu_id, e.get_error_info())
+            self.logger.store_output(args.gpu, 'reset_compute_partition', result)
+        if args.memory_partition:
+            try:
+                amdsmi_interface.amdsmi_dev_memory_partition_reset(args.gpu)
+                result = 'Successfully reset memory partition'
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
+                    raise PermissionError('Command requires elevation') from e
+                result = "N/A"
+                logging.debug("Failed to reset memory partition on gpu %s | %s", gpu_id, e.get_error_info())
+            self.logger.store_output(args.gpu, 'reset_memory_partition', result)
 
         if multiple_devices:
             self.logger.store_multiple_device_output()
@@ -1966,8 +2076,8 @@ class AMDSMICommands():
             return
 
         device = devices[i]
-        listener = amdsmi_interface.AmdSmiEventReader(device, amdsmi_interface.AmdSmiEvtNotificationType.GPU_PRE_RESET,
-                            amdsmi_interface.AmdSmiEvtNotificationType.GPU_POST_RESET)
+        listener = amdsmi_interface.AmdSmiEventReader(device,
+                                        amdsmi_interface.AmdSmiEvtNotificationType)
         values_dict = {}
 
         while self.stop!='q':

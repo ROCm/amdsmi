@@ -1,8 +1,9 @@
 # Generate py-interface and package targets
 
-# CLANG installed must be 14.0 or above
-set(clang_ver 14.0)
-set(ctypeslib_ver 2.3.2)
+# CLANG installed must be 16.0 or above
+set(clang_ver 16.0)
+set(clang_ver_py 16.0.1)
+set(ctypeslib_ver_py 2.3.4)
 
 set(PY_BUILD_DIR "python_package")
 # amdsmi part of this string is the directory containing all python files
@@ -52,7 +53,7 @@ else()
     endif()
     add_custom_target(
         python_pre_reqs
-        COMMAND ${Python3_EXECUTABLE} -m pip install ${Python3_BREAK_SYSTEM_PACKAGES} clang==${clang_ver} ctypeslib2==${ctypeslib_ver})
+        COMMAND ${Python3_EXECUTABLE} -m pip install ${Python3_BREAK_SYSTEM_PACKAGES} clang==${clang_ver_py} ctypeslib2==${ctypeslib_ver_py})
     # generate new wrapper
     configure_file(${PROJECT_SOURCE_DIR}/tools/generator.py generator.py @ONLY COPYONLY)
     add_custom_command(
@@ -65,7 +66,7 @@ else()
                 generator.py
                 ${PROJECT_SOURCE_DIR}/include/amd_smi/amdsmi.h
         COMMAND cp ${PROJECT_SOURCE_DIR}/include/amd_smi/amdsmi.h ./
-        COMMAND ${Python3_EXECUTABLE} generator.py -i amdsmi.h -l ${PROJECT_BINARY_DIR}/src/libamd_smi.so -o ${CMAKE_CURRENT_SOURCE_DIR}/amdsmi_wrapper.py
+        COMMAND ${Python3_EXECUTABLE} generator.py "$<$<BOOL:${ENABLE_ESMI_LIB}>:-e -DENABLE_ESMI_LIB>" -i amdsmi.h -l ${PROJECT_BINARY_DIR}/src/libamd_smi.so -o ${CMAKE_CURRENT_SOURCE_DIR}/amdsmi_wrapper.py
         COMMAND cp -f ${CMAKE_CURRENT_SOURCE_DIR}/amdsmi_wrapper.py ${CMAKE_CURRENT_BINARY_DIR}/
         # hacky alternative to configure_file that will run at MAKE compile instead of CMake configure
         COMMAND sed -i

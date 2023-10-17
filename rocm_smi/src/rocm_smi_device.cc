@@ -112,6 +112,8 @@ static const char *kDevErrCntPCIEBIFFName = "ras/pcie_bif_err_count";
 static const char *kDevErrCntHDPFName = "ras/hdp_err_count";
 static const char *kDevErrCntXGMIWAFLFName = "ras/xgmi_wafl_err_count";
 static const char *kDevErrCntFeaturesFName = "ras/features";
+static const char *kDevErrRASSchemaFName = "ras/schema";
+static const char *kDevErrTableVersionFName = "ras/version";
 static const char *kDevMemPageBadFName = "ras/gpu_vram_bad_pages";
 static const char *kDevMemTotGTTFName = "mem_info_gtt_total";
 static const char *kDevMemTotVisVRAMFName = "mem_info_vis_vram_total";
@@ -269,6 +271,8 @@ static const std::map<DevInfoTypes, const char *> kDevAttribNameMap = {
     {kDevErrCntHDP, kDevErrCntHDPFName},
     {kDevErrCntXGMIWAFL, kDevErrCntXGMIWAFLFName},
     {kDevErrCntFeatures, kDevErrCntFeaturesFName},
+    {kDevErrTableVersion, kDevErrTableVersionFName},
+    {kDevErrRASSchema, kDevErrRASSchemaFName},
     {kDevMemTotGTT, kDevMemTotGTTFName},
     {kDevMemTotVisVRAM, kDevMemTotVisVRAMFName},
     {kDevMemBusyPercent, kDevMemBusyPercentFName},
@@ -432,6 +436,8 @@ static const std::map<const char *, dev_depends_t> kDevFuncDependsMap = {
   {"rsmi_dev_od_volt_curve_regions_get", {{kDevPowerODVoltageFName}, {}}},
   {"rsmi_dev_ecc_enabled_get",           {{kDevErrCntFeaturesFName}, {}}},
   {"rsmi_dev_ecc_status_get",            {{kDevErrCntFeaturesFName}, {}}},
+  {"rsmi_ras_feature_info_get",           {{kDevErrRASSchemaFName,
+                                           kDevErrTableVersionFName}, {}}},
   {"rsmi_dev_counter_group_supported",   {{}, {}}},
   {"rsmi_dev_counter_create",            {{}, {}}},
   {"rsmi_dev_xgmi_error_status",         {{kDevXGMIErrorFName}, {}}},
@@ -933,6 +939,8 @@ int Device::readDevInfo(DevInfoTypes type, uint64_t *val) {
     case kDevPCieVendorID:
     case kDevErrCntFeatures:
     case kDevXGMIPhysicalID:
+    case kDevErrRASSchema:
+    case kDevErrTableVersion:
       ret = readDevInfoStr(type, &tempStr);
       RET_IF_NONZERO(ret);
 

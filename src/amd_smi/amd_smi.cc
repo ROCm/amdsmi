@@ -823,14 +823,14 @@ amdsmi_init_gpu_event_notification(amdsmi_processor_handle processor_handle) {
 }
 
 amdsmi_status_t
- amdsmi_set_gpu_event_notification_mask(amdsmi_processor_handle processor_handle,
-            uint64_t mask) {
+amdsmi_set_gpu_event_notification_mask(amdsmi_processor_handle processor_handle,
+          uint64_t mask) {
     return rsmi_wrapper(rsmi_event_notification_mask_set, processor_handle, mask);
 }
 
 amdsmi_status_t
- amdsmi_get_gpu_event_notification(int timeout_ms,
-                     uint32_t *num_elem, amdsmi_evt_notification_data_t *data) {
+amdsmi_get_gpu_event_notification(int timeout_ms,
+                    uint32_t *num_elem, amdsmi_evt_notification_data_t *data) {
     AMDSMI_CHECK_INIT();
 
     if (num_elem == nullptr || data == nullptr) {
@@ -984,6 +984,52 @@ amdsmi_is_P2P_accessible(amdsmi_processor_handle processor_handle_src,
     auto rstatus = rsmi_is_P2P_accessible(src_device->get_gpu_id(), dst_device->get_gpu_id(),
                 accessible);
     return amd::smi::rsmi_to_amdsmi_status(rstatus);
+}
+
+// Compute Partition functions
+amdsmi_status_t
+amdsmi_dev_compute_partition_get(amdsmi_processor_handle processor_handle,
+                                  char *compute_partition, uint32_t len) {
+    AMDSMI_CHECK_INIT();
+    return rsmi_wrapper(rsmi_dev_compute_partition_get, processor_handle,
+                          compute_partition, len);
+}
+
+amdsmi_status_t
+amdsmi_dev_compute_partition_set(amdsmi_processor_handle processor_handle,
+                                  amdsmi_compute_partition_type_t compute_partition) {
+    AMDSMI_CHECK_INIT();
+    return rsmi_wrapper(rsmi_dev_compute_partition_set, processor_handle,
+                          static_cast<rsmi_compute_partition_type_t>(compute_partition));
+}
+
+amdsmi_status_t
+amdsmi_dev_compute_partition_reset(amdsmi_processor_handle processor_handle) {
+    AMDSMI_CHECK_INIT();
+    return rsmi_wrapper(rsmi_dev_compute_partition_reset, processor_handle);
+}
+
+// Memory Partition functions
+amdsmi_status_t
+amdsmi_dev_memory_partition_get(amdsmi_processor_handle processor_handle,
+                                  char *memory_partition, uint32_t len) {
+    AMDSMI_CHECK_INIT();
+    return rsmi_wrapper(rsmi_dev_memory_partition_get, processor_handle,
+                          memory_partition, len);
+}
+
+amdsmi_status_t
+amdsmi_dev_memory_partition_set(amdsmi_processor_handle processor_handle,
+                                  amdsmi_memory_partition_type_t memory_partition) {
+    AMDSMI_CHECK_INIT();
+    return rsmi_wrapper(rsmi_dev_memory_partition_set, processor_handle,
+                          static_cast<rsmi_memory_partition_type_t>(memory_partition));
+}
+
+amdsmi_status_t
+amdsmi_dev_memory_partition_reset(amdsmi_processor_handle processor_handle) {
+    AMDSMI_CHECK_INIT();
+    return rsmi_wrapper(rsmi_dev_memory_partition_reset, processor_handle);
 }
 
 // TODO(bliu) : other xgmi related information
@@ -1596,6 +1642,34 @@ amdsmi_get_gpu_bad_page_info(amdsmi_processor_handle processor_handle, uint32_t 
     else {
         // rocm
     }
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_get_gpu_ras_feature_info(
+  amdsmi_processor_handle processor_handle, amdsmi_ras_feature_t *ras_feature) {
+    AMDSMI_CHECK_INIT();
+
+    if (ras_feature == nullptr) {
+        return AMDSMI_STATUS_INVAL;
+    }
+
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    amdsmi_status_t r = get_gpu_device_from_handle(processor_handle,
+                                &gpu_device);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    rsmi_ras_feature_info_t rsmi_ras_feature;
+    r = rsmi_wrapper(rsmi_ras_feature_info_get, processor_handle,
+                &rsmi_ras_feature);
+
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+
+    ras_feature->ecc_correction_schema_flag
+                = rsmi_ras_feature.ecc_correction_schema_flag;
+    ras_feature->ras_eeprom_version = rsmi_ras_feature.ras_eeprom_version;
 
     return AMDSMI_STATUS_SUCCESS;
 }
@@ -2798,7 +2872,7 @@ amdsmi_status_t amdsmi_get_cpu_current_io_bandwidth(amdsmi_cpusocket_handle sock
         return status;
 
     link.link_name = io_link.link_name;
-    link.bw_type= io_link.bw_type;
+    link.bw_type = static_cast<amdsmi_io_bw_encoding_t>(io_link.bw_type);
     *io_bw = bw;
 
     return AMDSMI_STATUS_SUCCESS;
@@ -2824,7 +2898,7 @@ amdsmi_status_t amdsmi_get_cpu_current_xgmi_bw(amdsmi_cpusocket_handle socket_ha
         return status;
 
     link.link_name = io_link.link_name;
-    link.bw_type= io_link.bw_type;
+    link.bw_type= static_cast<amdsmi_io_bw_encoding_t>(io_link.bw_type);
     *xgmi_bw = bw;
 
     return AMDSMI_STATUS_SUCCESS;

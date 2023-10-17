@@ -28,7 +28,7 @@ find_program(GIT NAMES git)
 
 ## Setup the package version based on git tags.
 set(PKG_VERSION_GIT_TAG_PREFIX "amdsmi_pkg_ver")
-get_package_version_number("1.0.0" ${PKG_VERSION_GIT_TAG_PREFIX} GIT)
+get_package_version_number("23.4.0" ${PKG_VERSION_GIT_TAG_PREFIX} GIT)
 message("Package version: ${PKG_VERSION_STR}")
 set(${AMD_SMI_LIBS_TARGET}_VERSION_MAJOR "${VERSION_MAJOR}")
 set(${AMD_SMI_LIBS_TARGET}_VERSION_MINOR "${VERSION_MINOR}")
@@ -51,6 +51,7 @@ set(AMD_SMI_PACKAGE
 project(${AMD_SMI_LIBS_TARGET})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(GNUInstallDirs)
 
@@ -60,7 +61,7 @@ option(BUILD_WRAPPER "Rebuild AMDSMI-wrapper" OFF)
 option(BUILD_CLI "Build AMDSMI-CLI and install" ON)
 option(ENABLE_LDCONFIG "Set library links and caches using ldconfig." ON)
 option(ENABLE_ASAN_PACKAGING "" OFF)
-option(ENABLE_ESMI_LIB "" OFF)
+option(ENABLE_ESMI_LIB "" ON)
 
 # Set share path here because project name != amd_smi
 set(SHARE_INSTALL_PREFIX "share/${AMD_SMI}" CACHE STRING "Tests and Example install directory")
@@ -95,16 +96,21 @@ set(AMDSMI_INC_DIR "${PROJECT_SOURCE_DIR}/include/amd_smi")
 set(ROCM_INC_DIR "${PROJECT_SOURCE_DIR}/rocm_smi/include/rocm_smi")
 set(SHR_MUTEX_DIR "${PROJECT_SOURCE_DIR}/third_party/shared_mutex")
 if(ENABLE_ESMI_LIB)
-if((EXISTS ${PROJECT_SOURCE_DIR}/e_smi_library/src) AND (EXISTS ${PROJECT_SOURCE_DIR}/e_smi_library/src/e_smi_plat.c))
-	set(ESMI_AVAILABLE TRUE)
+    if(NOT EXISTS ${PROJECT_SOURCE_DIR}/esmi_ib_library/src)
+        # TODO: use ExternalProject_Add instead or a submodule
+        # as of 2023.10.16 CI builds are broken with an updated submodule
+        execute_process(COMMAND git clone --depth=1 -b esmi_so_ver-3.0 https://github.com/amd/esmi_ib_library.git ${PROJECT_SOURCE_DIR}/esmi_ib_library)
+    endif()
+    if(NOT EXISTS ${PROJECT_SOURCE_DIR}/esmi_ib_library/include/asm/amd_hsmp.h)
+        file(DOWNLOAD
+            https://git.kernel.org/pub/scm/linux/kernel/git/pdx86/platform-drivers-x86.git/plain/arch/x86/include/uapi/asm/amd_hsmp.h?h=review-ilpo
+            ${PROJECT_SOURCE_DIR}/esmi_ib_library/include/asm/amd_hsmp.h)
+    endif()
     add_definitions("-DENABLE_ESMI_LIB=1")
-else()
-	message("E-smi source not found. Errors will be encountered during compilation!!!")
-endif()
-if(ESMI_AVAILABLE)
-	set(ESMI_INC_DIR "${PROJECT_SOURCE_DIR}/e_smi_library/include")
-	set(ESMI_SRC_DIR "${PROJECT_SOURCE_DIR}/e_smi_library/src")
-endif()
+    set(ESMI_INC_DIR "${PROJECT_SOURCE_DIR}/esmi_ib_library/include")
+    set(ESMI_SRC_DIR "${PROJECT_SOURCE_DIR}/esmi_ib_library/src")
+    # esmi has a lot of write-strings warnings - silence them
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-write-strings")
 endif()
 
 pkg_check_modules(DRM REQUIRED libdrm)
@@ -127,7 +133,7 @@ set(CMN_SRC_LIST
     "${ROCM_SRC_DIR}/rocm_smi_logger.cc"
     "${SHR_MUTEX_DIR}/shared_mutex.cc")
 
-if(ESMI_AVAILABLE)
+if(ENABLE_ESMI_LIB)
 	list(APPEND CMN_SRC_LIST ${ESMI_SRC_DIR}/e_smi.c)
 	list(APPEND CMN_SRC_LIST ${ESMI_SRC_DIR}/e_smi_monitor.c)
 	list(APPEND CMN_SRC_LIST ${ESMI_SRC_DIR}/e_smi_plat.c)
@@ -229,7 +235,7 @@ endif()
 
 #Debian package specific variables
 set(CPACK_DEBIAN_PACKAGE_PROVIDES "amd-smi")
-set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "sudo, libdrm-dev")
+set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "sudo, libdrm-dev, python3-yaml")
 set(CPACK_DEBIAN_ASAN_PACKAGE_RECOMMENDS ${CPACK_DEBIAN_PACKAGE_RECOMMENDS})
 set(CPACK_DEBIAN_DEV_PACKAGE_RECOMMENDS ${CPACK_DEBIAN_PACKAGE_RECOMMENDS})
 set(CPACK_DEBIAN_ASAN_PACKAGE_PROVIDES "${AMD_SMI_PACKAGE}-asan")

@@ -424,6 +424,85 @@ except AmdSmiException as e:
     print(e)
 ```
 
+### amdsmi_get_gpu_vram_info
+
+Description: Returns dictionary of vram information for the given GPU.
+
+Input parameters:
+
+* `processor_handle` device which to query
+
+Output: Dictionary with fields
+
+Field | Description
+---|---
+`vram_type` |  vram type
+`vram_vendor` |  vram vendor
+`vram_size_mb` |  vram size in mb
+
+Exceptions that can be thrown by `amdsmi_get_gpu_vram_info` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            vram_info = amdsmi_get_gpu_vram_info(device)
+            print(vram_info['vram_type'])
+            print(vram_info['vram_vendor'])
+            print(vram_info['vram_size_mb'])
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_gpu_cache_info
+
+Description: Returns dictionary of cache information for the given GPU.
+
+Input parameters:
+
+* `processor_handle` device which to query
+
+Output: Dictionary of Dictionaries containing cache information
+
+Field | Description
+---|---
+`cache #` |  upt 10 caches will be available
+`cache_size` | size of cache in KB
+`cache_level` | level of cache
+
+Exceptions that can be thrown by `amdsmi_get_gpu_cache_info` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            cache_info = amdsmi_get_gpu_cache_info(device)
+            for cache_index, cache_values in cache_info.items():
+                print(cache_index)
+                print(cache_values['cache_size'])
+                print(cache_values['cache_level'])
+except AmdSmiException as e:
+    print(e)
+```
+
 ### amdsmi_get_gpu_vbios_info
 
 Description:  Returns the static information for the VBIOS on the device.
@@ -3185,6 +3264,193 @@ try:
         processor_handle_dest = devices[1]
         accessible = amdsmi_is_P2P_accessible(processor_handle_src, processor_handle_dest)
         print(accessible)
+except AmdSmiException as e:
+    print(e)
+```
+
+
+### amdsmi_dev_compute_partition_get
+
+Description: Get the compute partition from the given GPU
+
+Input parameters:
+
+* `processor_handle` the device handle
+
+Output: String of the partition type
+
+Exceptions that can be thrown by `amdsmi_dev_compute_partition_get` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            compute_partition_type = amdsmi_dev_compute_partition_get(device)
+            print(compute_partition_type)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_dev_compute_partition_set
+
+Description: Set the compute partition to the given GPU
+
+Input parameters:
+
+* `processor_handle` the device handle
+* `compute_partition` the type of compute_partition to set
+
+Output: String of the partition type
+
+Exceptions that can be thrown by `amdsmi_dev_compute_partition_set` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    compute_partition = AmdSmiComputePartitionType.SPX
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            amdsmi_dev_compute_partition_set(device, compute_partition)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_dev_compute_partition_reset
+
+Description: Reset the compute partitioning on the given GPU
+
+Input parameters:
+
+* `processor_handle` the device handle
+
+Output: String of the partition type
+
+Exceptions that can be thrown by `amdsmi_dev_compute_partition_reset` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            amdsmi_dev_compute_partition_reset(device)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_dev_memory_partition_get
+
+Description: Get the memory partition from the given GPU
+
+Input parameters:
+
+* `processor_handle` the device handle
+
+Output: String of the partition type
+
+Exceptions that can be thrown by `amdsmi_dev_memory_partition_get` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            memory_partition_type = amdsmi_dev_memory_partition_get(device)
+            print(memory_partition_type)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_dev_memory_partition_set
+
+Description: Set the memory partition to the given GPU
+
+Input parameters:
+
+* `processor_handle` the device handle
+* `memory_partition` the type of memory_partition to set
+
+Output: String of the partition type
+
+Exceptions that can be thrown by `amdsmi_dev_memory_partition_set` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    memory_partition = AmdSmiMemoryPartitionType.NPS1
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            amdsmi_dev_memory_partition_set(device, memory_partition)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_dev_memory_partition_reset
+
+Description: Reset the memory partitioning on the given GPU
+
+Input parameters:
+
+* `processor_handle` the device handle
+
+Output: String of the partition type
+
+Exceptions that can be thrown by `amdsmi_dev_memory_partition_reset` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            amdsmi_dev_memory_partition_reset(device)
 except AmdSmiException as e:
     print(e)
 ```
