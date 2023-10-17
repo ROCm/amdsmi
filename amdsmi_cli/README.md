@@ -123,10 +123,10 @@ For convenience, here is the help output for each command
 usage: amd-smi list [-h] [--json | --csv] [--file FILE] [--loglevel LEVEL]
                     [-g GPU [GPU ...]]
 
-Lists all the devices on the system and the links between devices.                            
-Lists all the sockets and for each socket, GPUs and/or CPUs associated to                            
-that socket alongside some basic information for each device.                            
-In virtualization environments, it can also list VFs associated to each                            
+Lists all the devices on the system and the links between devices.
+Lists all the sockets and for each socket, GPUs and/or CPUs associated to
+that socket alongside some basic information for each device.
+In virtualization environments, it can also list VFs associated to each
 GPU with some basic information for each VF.
 
 optional arguments:
@@ -149,7 +149,7 @@ usage: amd-smi static [-h] [--json | --csv] [--file FILE] [--loglevel LEVEL]
                       [-g GPU [GPU ...]] [-a] [-b] [-V] [-d] [-v] [-c] [-B] [-r] [-p] [-l]
                       [-u]
 
-If no GPU is specified, returns static information for all GPUs on the system.                                
+If no GPU is specified, returns static information for all GPUs on the system.
 If no static argument is provided, all static information will be displayed.
 
 Static Arguments:
@@ -229,7 +229,7 @@ usage: amd-smi metric [-h] [--json | --csv] [--file FILE] [--loglevel LEVEL]
                       [-g GPU [GPU ...]] [-w INTERVAL] [-W TIME] [-i ITERATIONS] [-m] [-u]
                       [-p] [-c] [-t] [-e] [-k] [-P] [-f] [-C] [-o] [-l] [-x] [-E]
 
-If no GPU is specified, returns metric information for all GPUs on the system.                                
+If no GPU is specified, returns metric information for all GPUs on the system.
 If no metric argument is provided all metric information will be displayed.
 
 Metric arguments:
@@ -269,29 +269,29 @@ usage: amd-smi process [-h] [--json | --csv] [--file FILE] [--loglevel LEVEL]
                        [-g GPU [GPU ...]] [-w INTERVAL] [-W TIME] [-i ITERATIONS] [-G]
                        [-e] [-p PID] [-n NAME]
 
-If no GPU is specified, returns information for all GPUs on the system.                                
+If no GPU is specified, returns information for all GPUs on the system.
 If no process argument is provided all process information will be displayed.
 
 Process arguments:
   -h, --help                   show this help message and exit
   -g, --gpu GPU [GPU ...]      Select a GPU ID, BDF, or UUID from the possible choices:
-                               ID:0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
-                                all | Selects all devices
+                                ID: 0 | BDF: 0000:23:00.0 | UUID: c4ff73bf-0000-1000-802e-0812b504ed69
+                                  all | Selects all devices
   -w, --watch INTERVAL         Reprint the command in a loop of INTERVAL seconds
   -W, --watch_time TIME        The total TIME to watch the given command
   -i, --iterations ITERATIONS  Total number of ITERATIONS to loop on the given command
   -G, --general                pid, process name, memory usage
   -e, --engine                 All engine usages
   -p, --pid PID                Gets all process information about the specified process based on Process ID
-  -n, --name NAME              Gets all process information about the specified process based on Process Name.         
-                                                                                                                                                      If multiple processes have the same name information is returned for all of them.
+  -n, --name NAME              Gets all process information about the specified process based on Process Name.
+                               If multiple processes have the same name information is returned for all of them.
 
 Command Modifiers:
   --json                       Displays output in JSON format (human readable by default).
   --csv                        Displays output in CSV format (human readable by default).
   --file FILE                  Saves output into a file on the provided path (stdout by default).
   --loglevel LEVEL             Set the logging level from the possible choices:
-                                  DEBUG, INFO, WARNING, ERROR, CRITICAL
+                                DEBUG, INFO, WARNING, ERROR, CRITICAL
 ```
 
 ```bash
@@ -320,7 +320,7 @@ Command Modifiers:
 usage: amd-smi topology [-h] [--json | --csv] [--file FILE] [--loglevel LEVEL]
                         [-g GPU [GPU ...]] [-a] [-w] [-o] [-t] [-b]
 
-If no GPU is specified, returns information for all GPUs on the system.                                
+If no GPU is specified, returns information for all GPUs on the system.
 If no topology argument is provided all topology information will be displayed.
 
 Topology arguments:
@@ -347,9 +347,9 @@ Command Modifiers:
 ~$ amd-smi set --help
 usage: amd-smi set [-h] [--json | --csv] [--file FILE] [--loglevel LEVEL] -g GPU [GPU ...]
                    [-f %] [-l LEVEL] [-P SETPROFILE] [-d SCLKMAX] [-C PARTITION]
-                   [-M PARTITION]
+                   [-M PARTITION] [-o WATTS]
 
-A GPU must be specified to set a configuration.                                    
+A GPU must be specified to set a configuration.
 A set argument must be provided; Multiple set arguments are accepted
 
 Set Arguments:
@@ -365,6 +365,7 @@ Set Arguments:
                                         CPX, SPX, DPX, TPX, QPX
   -M, --memory-partition PARTITION   Set one of the following the memory partition modes:
                                         NPS1, NPS2, NPS4, NPS8
+  -o, --power-cap WATTS              Set power capacity limit
 
 Command Modifiers:
   --json                             Displays output in JSON format (human readable by default).
@@ -377,9 +378,9 @@ Command Modifiers:
 ```bash
 ~$ amd-smi reset --help
 usage: amd-smi reset [-h] [--json | --csv] [--file FILE] [--loglevel LEVEL] -g GPU
-                     [GPU ...] [-G] [-c] [-f] [-p] [-x] [-d] [-C] [-M]
+                     [GPU ...] [-G] [-c] [-f] [-p] [-x] [-d] [-C] [-M] [-o]
 
-A GPU must be specified to reset a configuration.                                
+A GPU must be specified to reset a configuration.
 A reset argument must be provided; Multiple reset arguments are accepted
 
 Reset Arguments:
@@ -395,6 +396,7 @@ Reset Arguments:
   -d, --perf-determinism   Disable performance determinism
   -C, --compute-partition  Reset compute partitions on the specified GPU
   -M, --memory-partition   Reset memory partitions on the specified GPU
+  -o, --power-cap          Reset power capacity limit to max capable
 
 Command Modifiers:
   --json                   Displays output in JSON format (human readable by default).
