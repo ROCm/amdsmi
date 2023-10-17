@@ -874,7 +874,10 @@ class AMDSMICommands():
 
         # Get gpu_id for logging
         gpu_id = self.helpers.get_gpu_id_from_device_handle(args.gpu)
-        logging.debug("GPU Metrics table for %s | %s", gpu_id, amdsmi_interface.amdsmi_get_gpu_metrics_info(args.gpu))
+        try:
+            logging.debug("GPU Metrics table for %s | %s", gpu_id, amdsmi_interface.amdsmi_get_gpu_metrics_info(args.gpu))
+        except amdsmi_exception.AmdSmiLibraryException as e:
+            logging.debug("Unabled to load GPU Metrics table for %s | %s", gpu_id, e.err_info)
 
         if self.helpers.is_linux() and self.helpers.is_baremetal():
             if args.usage:
@@ -1855,6 +1858,7 @@ class AMDSMICommands():
                 if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
                 raise ValueError(f"Unable to set compute partition to {args.compute_partition} on {gpu_string}") from e
+            self.logger.store_output(args.gpu, 'computepartition', f"Successfully set compute partition to {args.compute_partition}")
         if args.memory_partition:
             memory_partition = amdsmi_interface.AmdSmiMemoryPartitionType[args.memory_partition]
             try:
@@ -1863,6 +1867,8 @@ class AMDSMICommands():
                 if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
                 raise ValueError(f"Unable to set memory partition to {args.memory_partition} on {gpu_string}") from e
+            self.logger.store_output(args.gpu, 'memorypartition', f"Successfully set memory partition to {args.memory_partition}")
+
         if multiple_devices:
             self.logger.store_multiple_device_output()
             return # Skip printing when there are multiple devices
