@@ -290,9 +290,9 @@ class AMDSMICommands():
                 # Power limits
                 try:
                     power_limit_error = False
-                    power_info = amdsmi_interface.amdsmi_get_power_cap_info(args.gpu)
-                    max_power_limit = power_info['max_power_cap']
-                    current_power_limit = power_info['power_cap']
+                    power_cap_info = amdsmi_interface.amdsmi_get_power_cap_info(args.gpu)
+                    max_power_limit = power_cap_info['max_power_cap']
+                    current_power_limit = power_cap_info['power_cap']
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     power_limit_error = True
                     max_power_limit = "N/A"
@@ -1761,7 +1761,7 @@ class AMDSMICommands():
 
     def set_value(self, args, multiple_devices=False, gpu=None, fan=None, perf_level=None,
                   profile=None, perf_determinism=None, compute_partition=None,
-                  memory_partition=None):
+                  memory_partition=None, power_cap=None):
         """Issue reset commands to target gpu(s)
 
         Args:
@@ -1774,6 +1774,7 @@ class AMDSMICommands():
             perf_determinism (int, optional): Value override for args.perf_determinism. Defaults to None.
             compute_partition (amdsmi_interface.AmdSmiComputePartitionType, optional): Value override for args.compute_partition. Defaults to None.
             memory_partition (amdsmi_interface.AmdSmiMemoryPartitionType, optional): Value override for args.memory_partition. Defaults to None.
+            power_cap (int, optional): Value override for args.power_cap. Defaults to None.
 
         Raises:
             ValueError: Value error if no gpu value is provided
@@ -1785,18 +1786,20 @@ class AMDSMICommands():
         # Set args.* to passed in arguments
         if gpu:
             args.gpu = gpu
-        if fan:
+        if fan is not None:
             args.fan = fan
         if perf_level:
             args.perf_level = perf_level
         if profile:
             args.profile = profile
-        if perf_determinism:
+        if perf_determinism is not None:
             args.perf_determinism = perf_determinism
         if compute_partition:
             args.compute_partition = compute_partition
         if memory_partition:
             args.memory_partition = memory_partition
+        if power_cap:
+            args.power_cap = power_cap
 
         # Handle No GPU passed
         if args.gpu == None:
@@ -1810,7 +1813,11 @@ class AMDSMICommands():
         args.gpu = device_handle
 
         # Error if no subcommand args are passed
-        if not any([args.fan, args.perflevel, args.profile, args.perf_determinism]):
+        if not any([args.fan is not None,
+                    args.perf_level,
+                    args.profile,
+                    args.perf_determinism is not None,
+                    args.power_cap]):
             command = " ".join(sys.argv[1:])
             raise AmdSmiRequiredCommandException(command, self.logger.format)
 
@@ -1874,6 +1881,31 @@ class AMDSMICommands():
                     raise PermissionError('Command requires elevation') from e
                 raise ValueError(f"Unable to set memory partition to {args.memory_partition} on {gpu_string}") from e
             self.logger.store_output(args.gpu, 'memorypartition', f"Successfully set memory partition to {args.memory_partition}")
+        if isinstance(args.power_cap, int):
+            try:
+                power_cap_info = amdsmi_interface.amdsmi_get_power_cap_info(args.gpu)
+                logging.debug(f"Power cap info for gpu {gpu_id} | {power_cap_info}")
+                min_power_cap = power_cap_info["min_power_cap"]
+                max_power_cap = power_cap_info["max_power_cap"]
+                current_power_cap = power_cap_info["power_cap"]
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                raise ValueError(f"Unable to get power cap info from {gpu_string}") from e
+
+            if args.power_cap == current_power_cap:
+                self.logger.store_output(args.gpu, 'powercap', f"Power cap is already set to {args.power_cap}")
+            elif args.power_cap >= min_power_cap and args.power_cap <= max_power_cap:
+                try:
+                    amdsmi_interface.amdsmi_set_power_cap(args.gpu, 0, args.power_cap * 1000000)
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
+                        raise PermissionError('Command requires elevation') from e
+                    raise ValueError(f"Unable to set power cap to {args.power_cap} on {gpu_string}") from e
+                self.logger.store_output(args.gpu, 'powercap', f"Successfully set power cap to {args.power_cap}")
+            else:
+                # setting power cap to 0 will return the current power cap so the technical minimum value is 1
+                if min_power_cap == 0:
+                    min_power_cap = 1
+                self.logger.store_output(args.gpu, 'powercap', f"Power cap must be between {min_power_cap} and {max_power_cap}")
 
         if multiple_devices:
             self.logger.store_multiple_device_output()
@@ -1884,7 +1916,7 @@ class AMDSMICommands():
 
     def reset(self, args, multiple_devices=False, gpu=None, gpureset=None,
                 clocks=None, fans=None, profile=None, xgmierr=None, perf_determinism=None,
-                compute_partition=None, memory_partition=None):
+                compute_partition=None, memory_partition=None, power_cap=None):
         """Issue reset commands to target gpu(s)
 
         Args:
@@ -1899,6 +1931,7 @@ class AMDSMICommands():
             perf_determinism (bool, optional): Value override for args.perf_determinism. Defaults to None.
             compute_partition (bool, optional): Value override for args.compute_partition. Defaults to None.
             memory_partition (bool, optional): Value override for args.memory_partition. Defaults to None.
+            power_cap (int, optional): Value override for args.power_cap. Defaults to None.
 
         Raises:
             ValueError: Value error if no gpu value is provided
@@ -1926,6 +1959,8 @@ class AMDSMICommands():
             args.compute_partition = compute_partition
         if memory_partition:
             args.memory_partition = memory_partition
+        if power_cap:
+            args.power_cap = power_cap
 
         # Handle No GPU passed
         if args.gpu == None:
@@ -1942,7 +1977,9 @@ class AMDSMICommands():
         gpu_id = self.helpers.get_gpu_id_from_device_handle(args.gpu)
 
         # Error if no subcommand args are passed
-        if not any([args.gpureset, args.clocks, args.fans, args.profile, args.xgmierr, args.perf_determinism]):
+        if not any([args.gpureset, args.clocks, args.fans, args.profile, args.xgmierr, \
+                    args.perf_determinism, args.compute_partition, args.memory_partition, \
+                    args.power_cap]):
             command = " ".join(sys.argv[1:])
             raise AmdSmiRequiredCommandException(command, self.logger.format)
 
@@ -1960,8 +1997,8 @@ class AMDSMICommands():
 
             self.logger.store_output(args.gpu, 'gpu_reset', result)
         if args.clocks:
-            reset_clocks_results = {'overdrive' : '',
-                                    'clocks' : '',
+            reset_clocks_results = {'overdrive': '',
+                                    'clocks': '',
                                     'performance': ''}
             try:
                 amdsmi_interface.amdsmi_set_gpu_overdrive_level(args.gpu, 0)
@@ -2069,6 +2106,24 @@ class AMDSMICommands():
                 result = "N/A"
                 logging.debug("Failed to reset memory partition on gpu %s | %s", gpu_id, e.get_error_info())
             self.logger.store_output(args.gpu, 'reset_memory_partition', result)
+        if args.power_cap:
+            try:
+                power_cap_info = amdsmi_interface.amdsmi_get_power_cap_info(args.gpu)
+                logging.debug(f"Power cap info for gpu {gpu_id} | {power_cap_info}")
+                default_power_cap = power_cap_info["default_power_cap"]
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                raise ValueError(f"Unable to get power cap info from {gpu_id}") from e
+
+            if args.power_cap == default_power_cap:
+                self.logger.store_output(args.gpu, 'powercap', f"Power cap is already set to {default_power_cap}")
+            else:
+                try:
+                    amdsmi_interface.amdsmi_set_power_cap(args.gpu, 0, default_power_cap * 1000000)
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
+                        raise PermissionError('Command requires elevation') from e
+                    raise ValueError(f"Unable to reset power cap to {default_power_cap} on GPU {gpu_id}") from e
+                self.logger.store_output(args.gpu, 'powercap', f"Successfully set power cap to {default_power_cap}")
 
         if multiple_devices:
             self.logger.store_multiple_device_output()
