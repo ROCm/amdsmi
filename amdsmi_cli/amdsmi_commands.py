@@ -465,6 +465,14 @@ class AMDSMICommands():
 
                 try:
                     ras_info = amdsmi_interface.amdsmi_get_gpu_ras_feature_info(args.gpu)
+                    for key, value in ras_info.items():
+                        if isinstance(value, int):
+                            if value >= 65535:
+                                logging.debug(f"Failed to get ras {key} for gpu {gpu_id}")
+                                ras_info[key] = "N/A"
+                                continue
+                        if self.logger.is_human_readable_format():
+                            ras_info[key] = f"{value}"
                     ras_dict.update(ras_info)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     logging.debug("Failed to get ras info for gpu %s | %s", gpu_id, e.get_error_info())
@@ -888,7 +896,7 @@ class AMDSMICommands():
                     engine_usage['mm_ip_usage'] = engine_usage.pop('mm_activity')
 
                     for key, value in engine_usage.items():
-                        if value == 65535:
+                        if value >= 65535:
                             engine_usage[key] = "N/A"
 
                         if self.logger.is_human_readable_format():
@@ -1729,10 +1737,8 @@ class AMDSMICommands():
                                         e.get_error_info())
 
                     try:
-                        min_bw = amdsmi_interface.amdsmi_get_minmax_bandwidth_between_processors(src_gpu, dest_gpu)['min_bandwidth']
-                        max_bw = amdsmi_interface.amdsmi_get_minmax_bandwidth_between_processors(src_gpu, dest_gpu)['max_bandwidth']
-
-                        src_gpu_link_type[dest_gpu_key] = f'{min_bw}-{max_bw}'
+                        bw_dict = amdsmi_interface.amdsmi_get_minmax_bandwidth_between_processors(src_gpu, dest_gpu)
+                        src_gpu_link_type[dest_gpu_key] = f"{bw_dict['min_bandwidth']}-{bw_dict['max_bandwidth']}"
                     except amdsmi_exception.AmdSmiLibraryException as e:
                         src_gpu_link_type[dest_gpu_key] =  e.get_error_info()
                         logging.debug("Failed to get min max bandwidth for %s to %s | %s",
