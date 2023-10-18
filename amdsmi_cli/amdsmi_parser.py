@@ -108,13 +108,22 @@ class AMDSMIParser(argparse.ArgumentParser):
         self._add_rocm_smi_parser(self.subparsers, rocmsmi)
 
 
+    def _not_negative_int(self, int_value):
+        # Argument type validator
+        if int_value.isdigit():  # Is digit doesn't work on negative numbers
+            return int(int_value)
+
+        outputformat = self.helpers.get_output_format()
+        raise amdsmi_cli_exceptions.AmdSmiInvalidParameterValueException(int_value, outputformat)
+
     def _positive_int(self, int_value):
         # Argument type validator
-        if int_value.isdigit():  # Is digit works only on positive numbers
-            return int(int_value)
-        else:
-            outputformat = self.helpers.get_output_format()
-            raise amdsmi_cli_exceptions.AmdSmiInvalidParameterValueException(int_value, outputformat)
+        if int_value.isdigit():  # Is digit doesn't work on negative numbers
+            if int(int_value) > 0:
+                return int(int_value)
+
+        outputformat = self.helpers.get_output_format()
+        raise amdsmi_cli_exceptions.AmdSmiInvalidParameterValueException(int_value, outputformat)
 
 
     def _check_output_file_path(self):
@@ -539,7 +548,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         # Optional Args
         process_parser.add_argument('-G', '--general', action='store_true', required=False, help=general_help)
         process_parser.add_argument('-e', '--engine', action='store_true', required=False, help=engine_help)
-        process_parser.add_argument('-p', '--pid', action='store', type=self._positive_int, required=False, help=pid_help)
+        process_parser.add_argument('-p', '--pid', action='store', type=self._not_negative_int, required=False, help=pid_help)
         process_parser.add_argument('-n', '--name', action='store', required=False, help=name_help)
 
 
@@ -641,6 +650,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         memory_partition_choices_str = ", ".join(self.helpers.get_memory_partition_types())
         set_compute_partition_help = f"Set one of the following the compute partition modes:\n\t{compute_partition_choices_str}"
         set_memory_partition_help = f"Set one of the following the memory partition modes:\n\t{memory_partition_choices_str}"
+        set_power_cap_help = "Set power capacity limit"
 
         # Create set_value subparser
         set_value_parser = subparsers.add_parser('set', help=set_value_help, description=set_value_subcommand_help)
@@ -657,9 +667,10 @@ class AMDSMIParser(argparse.ArgumentParser):
         set_value_parser.add_argument('-f', '--fan', action=self._validate_fan_speed(), required=False, help=set_fan_help, metavar='%')
         set_value_parser.add_argument('-l', '--perf-level', action='store', choices=self.helpers.get_perf_levels()[0], type=str.upper, required=False, help=set_perf_level_help, metavar='LEVEL')
         set_value_parser.add_argument('-P', '--profile', action='store', required=False, help=set_profile_help, metavar='SETPROFILE')
-        set_value_parser.add_argument('-d', '--perf-determinism', action='store', type=self._positive_int, required=False, help=set_perf_det_help, metavar='SCLKMAX')
+        set_value_parser.add_argument('-d', '--perf-determinism', action='store', type=self._not_negative_int, required=False, help=set_perf_det_help, metavar='SCLKMAX')
         set_value_parser.add_argument('-C', '--compute-partition', action='store', choices=self.helpers.get_compute_partition_types(), type=str.upper, required=False, help=set_compute_partition_help, metavar='PARTITION')
         set_value_parser.add_argument('-M', '--memory-partition', action='store', choices=self.helpers.get_memory_partition_types(), type=str.upper, required=False, help=set_memory_partition_help, metavar='PARTITION')
+        set_value_parser.add_argument('-o', '--power-cap', action='store', type=self._positive_int, required=False, help=set_power_cap_help, metavar='WATTS')
 
 
     def _validate_set_clock(self, validate_clock_type=True):
@@ -775,6 +786,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         reset_perf_det_help = "Disable performance determinism"
         reset_compute_help = "Reset compute partitions on the specified GPU"
         reset_memory_help = "Reset memory partitions on the specified GPU"
+        reset_power_cap_help = "Reset power capacity limit to max capable"
 
         # Create reset subparser
         reset_parser = subparsers.add_parser('reset', help=reset_help, description=reset_subcommand_help)
@@ -796,6 +808,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         reset_parser.add_argument('-d', '--perf-determinism', action='store_true', required=False, help=reset_perf_det_help)
         reset_parser.add_argument('-C', '--compute-partition', action='store_true', required=False, help=reset_compute_help)
         reset_parser.add_argument('-M', '--memory-partition', action='store_true', required=False, help=reset_memory_help)
+        reset_parser.add_argument('-o', '--power-cap', action='store_true', required=False, help=reset_power_cap_help)
 
 
     def _add_rocm_smi_parser(self, subparsers, func):
