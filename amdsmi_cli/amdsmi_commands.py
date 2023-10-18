@@ -1816,6 +1816,8 @@ class AMDSMICommands():
         if not any([args.fan is not None,
                     args.perf_level,
                     args.profile,
+                    args.compute_partition,
+                    args.memory_partition,
                     args.perf_determinism is not None,
                     args.power_cap]):
             command = " ".join(sys.argv[1:])
