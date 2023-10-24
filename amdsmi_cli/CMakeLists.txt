@@ -9,10 +9,12 @@ set(PY_CLI_INSTALL_DIR
     "${CMAKE_INSTALL_LIBEXECDIR}" CACHE STRING
     "CLI tool installation directory")
 
+# populate version string
+configure_file(_version.py.in ${PY_PACKAGE_DIR}/_version.py @ONLY)
+
 # hard-linking instead of copying avoids unnecessarry regeneration of packaged files
 add_custom_command(
     OUTPUT ${PY_PACKAGE_DIR}/__init__.py
-           ${PY_PACKAGE_DIR}/_version.py
            ${PY_PACKAGE_DIR}/amdsmi_cli.py
            ${PY_PACKAGE_DIR}/amdsmi_commands.py
            ${PY_PACKAGE_DIR}/amdsmi_helpers.py
@@ -26,7 +28,6 @@ add_custom_command(
     DEPENDS amdsmi_cli
     COMMAND mkdir -p ${PY_PACKAGE_DIR}/
     COMMAND ln -Pf ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py ${PY_PACKAGE_DIR}/
-    COMMAND ln -Pf ${CMAKE_CURRENT_SOURCE_DIR}/_version.py ${PY_PACKAGE_DIR}/
     COMMAND ln -Pf ${CMAKE_CURRENT_SOURCE_DIR}/amdsmi_cli.py ${PY_PACKAGE_DIR}/
     COMMAND ln -Pf ${CMAKE_CURRENT_SOURCE_DIR}/amdsmi_commands.py ${PY_PACKAGE_DIR}/
     COMMAND ln -Pf ${CMAKE_CURRENT_SOURCE_DIR}/amdsmi_helpers.py ${PY_PACKAGE_DIR}/
