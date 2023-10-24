@@ -134,6 +134,17 @@ For additional details, see the [ROCm Contributing Guide](https://rocm.docs.amd.
 * python 3.7+ 64-bit
 * amdgpu driver must be loaded for amdsmi_init() to pass
 
+### Optional autocompletion
+
+`amd-smi` cli application supports autocompletion. It is enabled by using the
+following commands:
+
+```bash
+python3 -m pip install argcomplete
+activate-global-python-argcomplete
+# restart shell to enable
+```
+
 ### CLI Installation
 
 Before amd-smi install, ensure previous versions of amdsmi library are uninstalled using pip:
