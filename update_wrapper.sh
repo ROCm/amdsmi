@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# this program generates py-interface/amdsmi_wrapper.py
+# this program generates py-interface/amdsmi_wrapper.py.in
 
 set -eu
 
@@ -44,7 +44,7 @@ cp -r /src /tmp/src \
     && rm -rf build .cache \
     && cmake -B build -DBUILD_WRAPPER=ON $ENABLE_ESMI_LIB \
     && make -C build -j $(nproc) \
-    && cp /tmp/src/py-interface/amdsmi_wrapper.py /src/py-interface/amdsmi_wrapper.py"
+    && cp /tmp/src/py-interface/amdsmi_wrapper.py.in /src/py-interface/amdsmi_wrapper.py.in"
 
 echo -e "Generated new wrapper!
-[$DIR/py-interface/amdsmi_wrapper.py]"
+[$DIR/py-interface/amdsmi_wrapper.py.in]"
