@@ -576,7 +576,7 @@ try:
             firmware_list = amdsmi_get_fw_info(device)['fw_list']
             for firmware_block in firmware_list:
                 print(firmware_block['fw_name'])
-                print(firmware_block['fw_version'])
+                print(firmware_block['fw_version']) # String formated hex version ie: 21.00.00.AC
 except AmdSmiException as e:
     print(e)
 ```
