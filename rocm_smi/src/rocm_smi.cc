@@ -3969,7 +3969,6 @@ rsmi_status_t rsmi_dev_serial_number_get(uint32_t dv_ind,
   if (ret != RSMI_STATUS_SUCCESS) {
     return ret;
   }
-
   uint32_t ln = static_cast<uint32_t>(val_str.copy(serial_num, len));
 
   serial_num[std::min(len - 1, ln)] = '\0';
