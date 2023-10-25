@@ -466,14 +466,9 @@ amdsmi_status_t amdsmi_get_gpu_board_info(amdsmi_processor_handle processor_hand
         status = rsmi_wrapper(rsmi_dev_name_get, processor_handle,
                         board_info->product_name, AMDSMI_PRODUCT_NAME_LENGTH);
 
-        if (board_info->product_serial[0] == '\0') {
-            status = rsmi_wrapper(rsmi_dev_serial_number_get, processor_handle,
+        status = rsmi_wrapper(rsmi_dev_serial_number_get, processor_handle,
                         board_info->product_serial, AMDSMI_NORMAL_STRING_LENGTH);
-        }
     }
-
-    // Get FRU ID
-    // Get manufacturer name
 
     return AMDSMI_STATUS_SUCCESS;
 }
