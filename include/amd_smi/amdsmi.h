@@ -501,13 +501,12 @@ typedef struct {
 } amdsmi_driver_info_t;
 
 typedef struct {
-  uint64_t serial_number;
   bool  is_master;
   char  model_number[AMDSMI_NORMAL_STRING_LENGTH];
   char  product_serial[AMDSMI_NORMAL_STRING_LENGTH];
   char  fru_id[AMDSMI_NORMAL_STRING_LENGTH];
-  char  product_name[AMDSMI_PRODUCT_NAME_LENGTH];
   char  manufacturer_name[AMDSMI_NORMAL_STRING_LENGTH];
+  char  product_name[AMDSMI_PRODUCT_NAME_LENGTH];
 } amdsmi_board_info_t;
 
 typedef struct {

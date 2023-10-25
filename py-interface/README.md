@@ -2,7 +2,7 @@
 
 ## Requirements
 
-* python 3.6 64-bit
+* python 3.7+ 64-bit
 * driver must be loaded for amdsmi_init() to pass
 
 ## Overview
@@ -998,8 +998,10 @@ Output:  Dictionary with fields correctable and uncorrectable
 
 Field | Description
 ---|---
-`serial_number` | Board serial number
+`model_number` | Board serial number
 `product_serial` | Product serial
+`fru_id` | FRU ID
+`manufacturer_name` | Manufacturer name
 `product_name` | Product name
 
 Exceptions that can be thrown by `amdsmi_get_gpu_board_info` function:
@@ -1014,8 +1016,10 @@ Example:
 try:
     device = amdsmi_get_processor_handle_from_bdf("0000:23.00.0")
     board_info = amdsmi_get_gpu_board_info(device)
-    print(board_info["serial_number"])
+    print(board_info["model_number"])
     print(board_info["product_serial"])
+    print(board_info["fru_id"])
+    print(board_info["manufacturer_name"])
     print(board_info["product_name"])
 except AmdSmiException as e:
     print(e)
