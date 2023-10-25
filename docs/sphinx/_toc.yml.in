@@ -17,6 +17,10 @@ subtrees:
         title: Python CLI Tool
       - file: amdsmi_release_notes_link
         title: Python CLI Release Notes
+  - caption: Libraries
+    entries:
+      - file: esmi_lib_readme_link
+        title: ESMI Library
   - caption: About
     entries:
       - file: license

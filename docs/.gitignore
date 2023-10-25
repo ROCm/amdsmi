@@ -9,3 +9,6 @@
 /latex/
 404.md
 data/AMD-404.png
+
+# file below is overwritten by sphinx script!
+./esmi_lib_readme_link.md
