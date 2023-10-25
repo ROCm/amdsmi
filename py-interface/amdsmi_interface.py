@@ -1365,11 +1365,14 @@ def amdsmi_get_fw_info(
     fw_info = amdsmi_wrapper.amdsmi_fw_info_t()
     _check_res(amdsmi_wrapper.amdsmi_get_fw_info(
         processor_handle, ctypes.byref(fw_info)))
-    firmwares = list()
+
+    firmwares = []
     for i in range(0, fw_info.num_fw_info):
+        fw_version = hex(fw_info.fw_info_list[i].fw_version)
+        fw_version_string = ".".join(re.findall('..?', fw_version[2:]))
         firmwares.append({
             'fw_name': AmdSmiFwBlock(fw_info.fw_info_list[i].fw_id),
-            'fw_version':  fw_info.fw_info_list[i].fw_version,
+            'fw_version': fw_version_string.upper(),
         })
     return {
         'fw_list': firmwares
