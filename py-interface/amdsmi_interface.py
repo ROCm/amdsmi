@@ -385,7 +385,7 @@ class AmdSmiEventReader:
             )
         )
 
-        ret = list()
+        ret = []
         for i in range(0, num_elem):
             unique_event_values = set(event.value for event in AmdSmiEvtNotificationType)
             if self.event_info[i].event in unique_event_values:
@@ -436,7 +436,7 @@ def _format_bad_page_info(bad_page_info, bad_page_count: ctypes.c_uint32) -> Lis
                 amdsmi_wrapper.amdsmi_retired_page_record_t)
         )
 
-    table_records = list()
+    table_records = []
     for i in range(bad_page_count.value):
         table_records.append(
             {
