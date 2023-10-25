@@ -2,7 +2,7 @@
 
 ## Requirements
 
-* python 3.7+ 64-bit
+* python 3.6+ 64-bit
 * driver must be loaded for amdsmi_init() to pass
 
 ## Overview

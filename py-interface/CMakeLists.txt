@@ -46,7 +46,7 @@ if(NOT GOOD_CLANG_FOUND)
         COMMAND mkdir -p ${PY_PACKAGE_DIR}
         COMMAND ln -Pf ${CMAKE_CURRENT_BINARY_DIR}/amdsmi_wrapper.py ${PY_PACKAGE_DIR}/)
 else()
-    find_package(Python3 3.7 COMPONENTS Interpreter Development REQUIRED)
+    find_package(Python3 3.6 COMPONENTS Interpreter Development REQUIRED)
     # --break-system-packages is needed for python 3.11
     # see: https://peps.python.org/pep-0668/
     if (NOT Python3_VERSION VERSION_LESS "3.11")

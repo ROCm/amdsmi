@@ -10,17 +10,10 @@ Recommended: At least one AMD GPU with AMD driver installed
 
 ### Requirements
 
-* python 3.7+ 64-bit
+* python 3.6.8+ 64-bit
 * amdgpu driver must be loaded for amdsmi_init() to pass
 
-### CLI Installation
-
-Before amd-smi install, ensure previous versions of amdsmi library are uninstalled using pip:
-
-```bash
-python3 -m pip list | grep amd
-python3 -m pip uninstall amdsmi
-```
+### Installation
 
 * Install amdgpu driver
 * Install amd-smi-lib package through package manager
@@ -29,41 +22,34 @@ python3 -m pip uninstall amdsmi
 ### Install Example for Ubuntu 22.04
 
 ``` bash
-python3 -m pip list | grep amd
-python3 -m pip uninstall amdsmi
 apt install amd-smi-lib
 amd-smi --help
 ```
 
-### Python Development Library Installation
+### Optional autocompletion
 
-This option is for users who want to develop their own scripts using amd-smi's python library
+`amd-smi` cli application supports autocompletion. The package should attempt to install it, if argcomplete is not installed you can enable it by using the following commands:
 
-Verify that your python version is 3.7+ to install the python library
-
-* Install amdgpu driver
-* Install amd-smi-lib package through package manager
-* cd /opt/rocm/share/amd_smi
-* python3 -m pip install --upgrade pip
-* python3 -m pip install --user .
-* import amdsmi in python to start development
-
-Warning: this will take precedence over the cli tool's library install, to avoid issues run these steps after every amd-smi-lib update.
-
-#### Older RPM Packaged OS's
-
-The default python versions in older RPM based OS's are not gauranteed to have the minium version.
-
-For example RHEL 8 and SLES 15 are 3.6.8 and 3.6.15 . You will need to ensure the latest yaml package is installed ( pyyaml >= 5.1) pyyaml is installed to your pip instance:
-
-``` bash
-python3 -m pip install pyyaml
-amd-smi list
+```bash
+python3 -m pip install argcomplete
+activate-global-python-argcomplete
+# restart shell to enable
 ```
 
-While the CLI will work with these older python versions, to install the python development library you need to upgrade to python 3.7+
+### Manual/Multiple Rocm Instance Python Library Install
+
+In the event there are multiple rocm installations and pyenv is not being used, to use the correct amdsmi version you must uninstall previous versions of amd-smi and install the version you want directly from your rocm instance.
 
 #### Python Library Install Example for Ubuntu 22.04
+
+Remove previous amdsmi installation:
+
+```bash
+python3 -m pip list | grep amd
+python3 -m pip uninstall amdsmi
+```
+
+Then install Python library from your target rocm instance:
 
 ``` bash
 apt install amd-smi-lib
@@ -72,6 +58,8 @@ cd /opt/rocm/share/amd_smi
 python3 -m pip install --upgrade pip
 python3 -m pip install --user .
 ```
+
+Now you have the amdsmi python library in your python path:
 
 ``` bash
 ~$ python3
