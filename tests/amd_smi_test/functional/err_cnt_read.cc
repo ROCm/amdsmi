@@ -109,7 +109,7 @@ void TestErrCntRead::Run(void) {
         }
         // Verify api support checking functionality is working
         err =  amdsmi_get_gpu_ecc_enabled(processor_handles_[i], nullptr);
-        ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
+        ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
 
         continue;
       } else {
@@ -150,7 +150,7 @@ void TestErrCntRead::Run(void) {
           // Verify api support checking functionality is working
           err =  amdsmi_get_gpu_ecc_count(processor_handles_[i], static_cast<amdsmi_gpu_block_t>(b),
                                                                        nullptr);
-          ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
+          ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
 
         } else {
             CHK_ERR_ASRT(err)
