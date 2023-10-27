@@ -107,6 +107,9 @@ void TestFanRead::Run(void) {
             std::cout << "\t**" <<  ": " <<
                                "Not supported on this machine" << std::endl;
           }
+          // Verify api support checking functionality is working
+          err = amdsmi_get_gpu_fan_speed(processor_handles_[i], 0, nullptr);
+          ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
           return;
       } else {
         CHK_ERR_ASRT(err)
