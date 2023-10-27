@@ -51,7 +51,6 @@ class AMDSMICommands():
             else:
                 raise e
         self.stop = ''
-        self.all_arguments = False
 
 
     def version(self, args):
@@ -132,7 +131,8 @@ class AMDSMICommands():
 
     def static(self, args, multiple_devices=False, gpu=None, asic=None,
                 bus=None, vbios=None, limit=None, driver=None, ras=None,
-                board=None, numa=None, vram=None, cache=None, partition=None):
+                board=None, numa=None, vram=None, cache=None, partition=None,
+                dfc_ucode=None, fb_info=None, num_vf=None):
         """Get Static information for target gpu
 
         Args:
@@ -150,6 +150,9 @@ class AMDSMICommands():
             vram (bool, optional): Value override for args.vram. Defaults to None.
             cache (bool, optional): Value override for args.cache. Defaults to None.
             partition (bool, optional): Value override for args.partition. Defaults to None.
+            dfc_ucode (bool, optional): Value override for args.dfc_ucode. Defaults to None.
+            fb_info (bool, optional): Value override for args.fb_info. Defaults to None.
+            num_vf (bool, optional): Value override for args.num_vf. Defaults to None.
 
         Raises:
             IndexError: Index error if gpu list is empty
@@ -166,8 +169,6 @@ class AMDSMICommands():
             args.bus = bus
         if vbios:
             args.vbios = vbios
-        if numa:
-            args.numa = numa
         if board:
             args.board = board
         if driver:
@@ -176,6 +177,11 @@ class AMDSMICommands():
             args.vram = vram
         if cache:
             args.cache = cache
+
+        # Store args that are applicable to the current platform
+        current_platform_args = ["asic", "bus", "vbios", "driver", "vram", "cache", "board"]
+        current_platform_values = [args.asic, args.bus, args.vbios, args.driver, args.vram, args.cache, args.board]
+
         if self.helpers.is_linux() and self.helpers.is_baremetal():
             if ras:
                 args.ras = ras
@@ -183,6 +189,24 @@ class AMDSMICommands():
                 args.partition = partition
             if limit:
                 args.limit = limit
+            current_platform_args += ["ras", "limit", "partition"]
+            current_platform_values += [args.ras, args.limit, args.partition]
+
+        if self.helpers.is_linux() and not self.helpers.is_virtual_os():
+            if numa:
+                args.numa = numa
+            current_platform_args += ["numa"]
+            current_platform_values += [args.numa]
+
+        if self.helpers.is_hypervisor():
+            if dfc_ucode:
+                args.dfc_ucode = dfc_ucode
+            if fb_info:
+                args.fb_info = fb_info
+            if num_vf:
+                args.num_vf = num_vf
+            current_platform_args += ["dfc_ucode", "fb_info", "num_vf"]
+            current_platform_values += [args.dfc_ucode, args.fb_info, args.num_vf]
 
         # Handle No GPU passed
         if args.gpu == None:
@@ -194,18 +218,18 @@ class AMDSMICommands():
             return # This function is recursive
         args.gpu = device_handle
 
-        # If all arguments are False, it means that no argument was passed and the entire static should be printed
-        if self.helpers.is_linux() and self.helpers.is_baremetal():
-            if not any([args.asic, args.bus, args.vbios, args.limit, args.board, args.ras, args.driver, args.numa, args.vram, args.cache, args.partition]):
-                args.asic = args.bus = args.vbios = args.limit = args.board = args.ras = args.driver = args.numa = args.vram = args.cache  = args.partition = self.all_arguments = True
-        if self.helpers.is_linux() and self.helpers.is_virtual_os():
-            if not any([args.asic, args.bus, args.vbios, args.board, args.driver, args.vram, args.cache]):
-                args.asic = args.bus = args.vbios = args.board = args.driver = args.vram = args.cache = self.all_arguments = True
-
-        static_dict = {}
-
         # Get gpu_id for logging
         gpu_id = self.helpers.get_gpu_id_from_device_handle(args.gpu)
+
+        logging.debug(f"Static Arg information for GPU {gpu_id} on {self.helpers.os_info()}")
+        logging.debug(f"Applicable Args: {current_platform_args}")
+        logging.debug(f"Arg Values:      {current_platform_values}")
+        # Set the platform applicable args to True if no args are set
+        if not any(current_platform_values):
+            for arg in current_platform_args:
+                setattr(args, arg, True)
+
+        static_dict = {}
 
         if args.asic:
             try:
@@ -283,8 +307,7 @@ class AMDSMICommands():
                 static_dict['board'] = board_info
             except amdsmi_exception.AmdSmiLibraryException as e:
                 logging.debug("Failed to get board info for gpu %s | %s", gpu_id, e.get_error_info())
-
-        if self.helpers.is_linux() and self.helpers.is_baremetal():
+        if 'limit' in current_platform_args:
             if args.limit:
                 # Power limits
                 try:
@@ -397,7 +420,6 @@ class AMDSMICommands():
                 limit_info['shutdown_hotspot_temperature'] = shutdown_temp_hotspot_limit
                 limit_info['shutdown_vram_temperature'] = shutdown_temp_vram_limit
                 static_dict['limit'] = limit_info
-
         if args.driver:
             driver_info = {"driver_name" : "N/A",
                            "driver_version" : "N/A",
@@ -452,8 +474,7 @@ class AMDSMICommands():
                 logging.debug("Failed to get cache info for gpu %s | %s", gpu_id, e.get_error_info())
 
             static_dict['cache'] = cache_info
-
-        if self.helpers.is_hypervisor() or self.helpers.is_baremetal():
+        if 'ras' in current_platform_args:
             if args.ras:
                 ras_dict = {"eeprom_version": "N/A",
                             "parity_schema" : "N/A",
@@ -482,6 +503,7 @@ class AMDSMICommands():
                     logging.debug("Failed to get ras block features for gpu %s | %s", gpu_id, e.get_error_info())
 
                 static_dict["ras"] = ras_dict
+        if 'partition' in current_platform_args:
             if args.partition:
                 try:
                     compute_partition = amdsmi_interface.amdsmi_dev_compute_partition_get(args.gpu)
@@ -497,8 +519,7 @@ class AMDSMICommands():
 
                 static_dict['partition'] = {"compute_partition": compute_partition,
                                             "memory_partition": memory_partition}
-
-        if self.helpers.is_linux() and self.helpers.is_baremetal():
+        if 'numa' in current_platform_args:
             if args.numa:
                 try:
                     numa_node_number = amdsmi_interface.amdsmi_topo_get_numa_node_number(args.gpu)
@@ -748,7 +769,8 @@ class AMDSMICommands():
                 usage=None, watch=None, watch_time=None, iterations=None, power=None,
                 clock=None, temperature=None, ecc=None, ecc_block=None, pcie=None,
                 fan=None, voltage_curve=None, overdrive=None, perf_level=None,
-                xgmi_err=None, energy=None, mem_usage=None):
+                xgmi_err=None, energy=None, mem_usage=None, schedule=None,
+                guard=None, guest_data=None, fb_usage=None, xgmi=None,):
         """Get Metric information for target gpu
 
         Args:
@@ -773,6 +795,11 @@ class AMDSMICommands():
             xgmi_err (bool, optional): Value override for args.xgmi_err. Defaults to None.
             energy (bool, optional): Value override for args.energy. Defaults to None.
             mem_usage (bool, optional): Value override for args.mem_usage. Defaults to None.
+            schedule (bool, optional): Value override for args.schedule. Defaults to None.
+            guard (bool, optional): Value override for args.guard. Defaults to None.
+            guest_data (bool, optional): Value override for args.guest_data. Defaults to None.
+            fb_usage (bool, optional): Value override for args.fb_usage. Defaults to None.
+            xgmi (bool, optional): Value override for args.xgmi. Defaults to None.
 
         Raises:
             IndexError: Index error if gpu list is empty
@@ -789,11 +816,18 @@ class AMDSMICommands():
             args.watch_time = watch_time
         if iterations:
             args.iterations = iterations
-        if self.helpers.is_linux():
+
+        # Store args that are applicable to the current platform
+        current_platform_args = []
+        current_platform_values = []
+
+        if not self.helpers.is_hypervisor() and not self.helpers.is_windows():
             if mem_usage:
                 args.mem_usage = mem_usage
+            current_platform_args += ["mem_usage"]
+            current_platform_values += [args.mem_usage]
 
-        if self.helpers.is_linux() and self.helpers.is_baremetal():
+        if self.helpers.is_hypervisor() or self.helpers.is_baremetal():
             if usage:
                 args.usage = usage
             if power:
@@ -804,10 +838,14 @@ class AMDSMICommands():
                 args.temperature = temperature
             if ecc:
                 args.ecc = ecc
-            if ecc_block:
-                args.ecc_block = ecc_block
             if pcie:
                 args.pcie = pcie
+            current_platform_args += ["usage", "power", "clock", "temperature", "ecc", "pcie"]
+            current_platform_values += [args.usage, args.power, args.clock, args.temperature, args.ecc, args.pcie]
+
+        if self.helpers.is_baremetal() and self.helpers.is_linux():
+            if ecc_block:
+                args.ecc_block = ecc_block
             if fan:
                 args.fan = fan
             if voltage_curve:
@@ -820,6 +858,22 @@ class AMDSMICommands():
                 args.xgmi_err = xgmi_err
             if energy:
                 args.energy = energy
+            current_platform_args += ["ecc_block", "fan", "voltage_curve", "overdrive", "perf_level", "xgmi_err", "energy"]
+            current_platform_values += [args.ecc_block, args.fan, args.voltage_curve, args.overdrive, args.perf_level, args.xgmi_err, args.energy]
+
+        if self.helpers.is_hypervisor():
+            if schedule:
+                args.schedule = schedule
+            if guard:
+                args.guard = guard
+            if guest_data:
+                args.guest_data = guest_data
+            if fb_usage:
+                args.fb_usage = fb_usage
+            if xgmi:
+                args.xgmi = xgmi
+            current_platform_args += ["schedule", "guard", "guest_data", "fb_usage", "xgmi"]
+            current_platform_values += [args.schedule, args.guard, args.guest_data, args.fb_usage, args.xgmi]
 
         # Handle No GPU passed
         if args.gpu == None:
@@ -861,31 +915,27 @@ class AMDSMICommands():
             else:
                 raise IndexError("args.gpu should not be an empty list")
 
-        # Check if any of the options have been set, if not then set them all to true
-        if self.helpers.is_linux() and self.helpers.is_virtual_os():
-            if not any([args.mem_usage]):
-                args.mem_usage = self.all_arguments = True
-
-        if self.helpers.is_linux() and self.helpers.is_baremetal():
-            if not any([args.usage, args.mem_usage, args.power, args.clock, args.temperature,
-                        args.ecc,  args.ecc_block, args.pcie, args.fan, args.voltage_curve,
-                        args.overdrive, args.perf_level, args.xgmi_err, args.energy]):
-                args.usage = args.mem_usage = args.power = args.clock = args.temperature = \
-                    args.ecc = args.ecc_block = args.pcie = args.fan = args.voltage_curve = \
-                    args.overdrive = args.perf_level = args.xgmi_err = args.energy = \
-                    self.all_arguments = True
-
-        # Add timestamp and store values for specified arguments
-        values_dict = {}
-
         # Get gpu_id for logging
         gpu_id = self.helpers.get_gpu_id_from_device_handle(args.gpu)
+
+        # Put the metrics table in the debug logs
         try:
             logging.debug("GPU Metrics table for %s | %s", gpu_id, amdsmi_interface.amdsmi_get_gpu_metrics_info(args.gpu))
         except amdsmi_exception.AmdSmiLibraryException as e:
             logging.debug("Unabled to load GPU Metrics table for %s | %s", gpu_id, e.err_info)
 
-        if self.helpers.is_linux() and self.helpers.is_baremetal():
+        logging.debug(f"Metric Arg information for GPU {gpu_id} on {self.helpers.os_info()}")
+        logging.debug(f"Args:   {current_platform_args}")
+        logging.debug(f"Values: {current_platform_values}")
+        # Set the platform applicable args to True if no args are set
+        if not any(current_platform_values):
+            for arg in current_platform_args:
+                setattr(args, arg, True)
+
+        # Add timestamp and store values for specified arguments
+        values_dict = {}
+
+        if "usage" in current_platform_args:
             if args.usage:
                 try:
                     engine_usage = amdsmi_interface.amdsmi_get_gpu_activity(args.gpu)
@@ -906,6 +956,7 @@ class AMDSMICommands():
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     values_dict['usage'] = "N/A"
                     logging.debug("Failed to get gpu activity for gpu %s | %s", gpu_id, e.get_error_info())
+        if "power" in current_platform_args:
             if args.power:
                 power_dict = {'current_power': "N/A",
                               'current_gfx_voltage': "N/A",
@@ -944,6 +995,7 @@ class AMDSMICommands():
                     logging.debug("Failed to get power management status for gpu %s | %s", gpu_id, e.get_error_info())
 
                 values_dict['power'] = power_dict
+        if "clock" in current_platform_args:
             if args.clock:
                 clocks = {}
                 clock_types = [amdsmi_interface.AmdSmiClkType.GFX,
@@ -1003,6 +1055,7 @@ class AMDSMICommands():
                         clocks['gfx'] = {"is_clk_locked": is_clk_locked}
 
                 values_dict['clock'] = clocks
+        if "temperature" in current_platform_args:
             if args.temperature:
                 try:
                     temperature_edge_current = amdsmi_interface.amdsmi_get_temp_metric(
@@ -1047,6 +1100,7 @@ class AMDSMICommands():
                             temperatures[temperature_key] = f"{temperature_value} {unit}"
 
                 values_dict['temperature'] = temperatures
+        if "ecc" in current_platform_args:
             if args.ecc:
                 ecc_count = {}
                 try:
@@ -1059,29 +1113,7 @@ class AMDSMICommands():
                     logging.debug("Failed to get ecc count for gpu %s | %s", gpu_id, e.get_error_info())
 
                 values_dict['ecc'] = ecc_count
-            if args.ecc_block:
-                ecc_dict = {}
-                uncountable_blocks = ["ATHUB", "DF", "SMN", "SEM", "MP0", "MP1", "FUSE"]
-                try:
-                    ras_states = amdsmi_interface.amdsmi_get_gpu_ras_block_features_enabled(args.gpu)
-                    for state in ras_states:
-                        if state['status'] == amdsmi_interface.AmdSmiRasErrState.ENABLED.name:
-                            gpu_block = amdsmi_interface.AmdSmiGpuBlock[state['block']]
-                            # if the blocks are uncountable do not add them at all.
-                            if gpu_block.name not in uncountable_blocks:
-                                try:
-                                    ecc_count = amdsmi_interface.amdsmi_get_gpu_ecc_count(args.gpu, gpu_block)
-                                    ecc_dict[state['block']] = {'correctable' : ecc_count['correctable_count'],
-                                                                'uncorrectable': ecc_count['uncorrectable_count']}
-                                except amdsmi_exception.AmdSmiLibraryException as e:
-                                    ecc_dict[state['block']] = {'correctable' : "N/A",
-                                                                'uncorrectable': "N/A"}
-                                    logging.debug("Failed to get ecc count for gpu %s at block %s | %s", gpu_id, gpu_block, e.get_error_info())
-
-                    values_dict['ecc_block'] = ecc_dict
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    values_dict['ecc_block'] = "N/A"
-                    logging.debug("Failed to get ecc block features for gpu %s | %s", gpu_id, e.get_error_info())
+        if "pcie" in current_platform_args:
             if args.pcie:
                 pcie_dict = {"current_lanes": "N/A",
                              "current_speed": "N/A",
@@ -1166,6 +1198,31 @@ class AMDSMICommands():
                     logging.debug("Failed to get pcie bandwidth for gpu %s | %s", gpu_id, e.get_error_info())
 
                 values_dict['pcie'] = pcie_dict
+        if "ecc_block" in current_platform_args:
+            if args.ecc_block:
+                ecc_dict = {}
+                uncountable_blocks = ["ATHUB", "DF", "SMN", "SEM", "MP0", "MP1", "FUSE"]
+                try:
+                    ras_states = amdsmi_interface.amdsmi_get_gpu_ras_block_features_enabled(args.gpu)
+                    for state in ras_states:
+                        if state['status'] == amdsmi_interface.AmdSmiRasErrState.ENABLED.name:
+                            gpu_block = amdsmi_interface.AmdSmiGpuBlock[state['block']]
+                            # if the blocks are uncountable do not add them at all.
+                            if gpu_block.name not in uncountable_blocks:
+                                try:
+                                    ecc_count = amdsmi_interface.amdsmi_get_gpu_ecc_count(args.gpu, gpu_block)
+                                    ecc_dict[state['block']] = {'correctable' : ecc_count['correctable_count'],
+                                                                'uncorrectable': ecc_count['uncorrectable_count']}
+                                except amdsmi_exception.AmdSmiLibraryException as e:
+                                    ecc_dict[state['block']] = {'correctable' : "N/A",
+                                                                'uncorrectable': "N/A"}
+                                    logging.debug("Failed to get ecc count for gpu %s at block %s | %s", gpu_id, gpu_block, e.get_error_info())
+
+                    values_dict['ecc_block'] = ecc_dict
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    values_dict['ecc_block'] = "N/A"
+                    logging.debug("Failed to get ecc block features for gpu %s | %s", gpu_id, e.get_error_info())
+        if "fan" in current_platform_args:
             if args.fan:
                 fan_dict = {"speed" : "N/A",
                             "max" : "N/A",
@@ -1198,6 +1255,7 @@ class AMDSMICommands():
                     logging.debug("Failed to get fan rpms for gpu %s | %s", args.gpu, e.get_error_info())
 
                 values_dict["fan"] = fan_dict
+        if "voltage_curve" in current_platform_args:
             if args.voltage_curve:
                 try:
                     od_volt = amdsmi_interface.amdsmi_get_gpu_od_volt_info(args.gpu)
@@ -1217,6 +1275,7 @@ class AMDSMICommands():
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     values_dict['voltage_curve'] = "N/A"
                     logging.debug("Failed to get voltage curve for gpu %s | %s", gpu_id, e.get_error_info())
+        if "overdrive" in current_platform_args:
             if args.overdrive:
                 try:
                     overdrive_level = amdsmi_interface.amdsmi_get_gpu_overdrive_level(args.gpu)
@@ -1229,6 +1288,7 @@ class AMDSMICommands():
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     values_dict['overdrive'] = "N/A"
                     logging.debug("Failed to get overdrive level for gpu %s | %s", gpu_id, e.get_error_info())
+        if "perf_level" in current_platform_args:
             if args.perf_level:
                 try:
                     perf_level = amdsmi_interface.amdsmi_get_gpu_perf_level(args.gpu)
@@ -1236,8 +1296,7 @@ class AMDSMICommands():
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     values_dict['perf_level'] = "N/A"
                     logging.debug("Failed to get perf level for gpu %s | %s", gpu_id, e.get_error_info())
-
-        if self.helpers.is_linux() and self.helpers.is_baremetal():
+        if "xgmi_err" in current_platform_args:
             if args.xgmi_err:
                 try:
                     xgmi_err_status = amdsmi_interface.amdsmi_gpu_xgmi_error_status(args.gpu)
@@ -1245,6 +1304,7 @@ class AMDSMICommands():
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     values_dict['xgmi_err'] = "N/A"
                     logging.debug("Failed to get xgmi error status for gpu %s | %s", gpu_id, e.get_error_info())
+        if "energy" in current_platform_args:
             if args.energy:
                 try:
                     energy_dict = amdsmi_interface.amdsmi_get_energy_count(args.gpu)
@@ -1261,8 +1321,7 @@ class AMDSMICommands():
                 except amdsmi_interface.AmdSmiLibraryException as e:
                     values_dict['energy'] = "N/A"
                     logging.debug("Failed to get energy usage for gpu %s | %s", args.gpu, e.get_error_info())
-
-        if self.helpers.is_linux() and (self.helpers.is_baremetal() or self.helpers.is_virtual_os()):
+        if "mem_usage" in current_platform_args:
             if args.mem_usage:
                 unit = 'MB'
                 memory_usage = {'total_vram': "N/A",
@@ -1558,8 +1617,8 @@ class AMDSMICommands():
         print('Press q and hit ENTER when you want to stop (listening will stop within 10 seconds)')
 
         threads = []
-        for gpu in range(len(args.gpu)):
-            x = threading.Thread(target=self._event_thread, args=(self, gpu))
+        for device_handle in range(len(args.gpu)):
+            x = threading.Thread(target=self._event_thread, args=(self, device_handle))
             threads.append(x)
             x.start()
 

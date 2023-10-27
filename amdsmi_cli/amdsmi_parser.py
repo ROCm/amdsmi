@@ -116,6 +116,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         outputformat = self.helpers.get_output_format()
         raise amdsmi_cli_exceptions.AmdSmiInvalidParameterValueException(int_value, outputformat)
 
+
     def _positive_int(self, int_value):
         # Argument type validator
         if int_value.isdigit():  # Is digit doesn't work on negative numbers
@@ -365,9 +366,10 @@ class AMDSMIParser(argparse.ArgumentParser):
         if self.helpers.is_hypervisor() or self.helpers.is_baremetal():
             static_parser.add_argument('-r', '--ras', action='store_true', required=False, help=ras_help)
             static_parser.add_argument('-p', '--partition', action='store_true', required=False, help=partition_help)
-            if self.helpers.is_linux():
-                static_parser.add_argument('-l', '--limit', action='store_true', required=False, help=limit_help)
-                static_parser.add_argument('-u', '--numa', action='store_true', required=False, help=numa_help)
+            static_parser.add_argument('-l', '--limit', action='store_true', required=False, help=limit_help)
+
+        if self.helpers.is_linux() and not self.helpers.is_virtual_os():
+            static_parser.add_argument('-u', '--numa', action='store_true', required=False, help=numa_help)
 
         # Options to only display on a Hypervisor
         if self.helpers.is_hypervisor():
@@ -445,7 +447,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         # Optional arguments help text
         usage_help = "Displays engine usage information"
 
-        # Help text for Arguments only Available on Virtual OS and Baremetal platforms
+        # Help text for Arguments only Available on Linux Virtual OS and Baremetal platforms
         mem_usage_help = "Memory usage per block"
 
         # Help text for Arguments only on Hypervisor and Baremetal platforms
@@ -467,7 +469,9 @@ class AMDSMIParser(argparse.ArgumentParser):
         # Help text for Arguments only on Hypervisors
         schedule_help = "All scheduling information"
         guard_help = "All guard information"
-        guest_help = "All guest data information"
+        guest_data_help = "All guest data information"
+        fb_usage_help = "Displays total and used Frame Buffer usage information"
+        xgmi_help = "Table of current XGMI metrics information"
 
         # Create metric subparser
         metric_parser = subparsers.add_parser('metric', help=metric_help, description=metric_subcommand_help)
@@ -482,8 +486,8 @@ class AMDSMIParser(argparse.ArgumentParser):
         # Add Watch args
         self._add_watch_arguments(metric_parser)
 
-        # Optional Args for Virtual OS and Baremetal systems
-        if self.helpers.is_virtual_os() or self.helpers.is_baremetal():
+        # Optional Args for Linux Virtual OS and Baremetal systems
+        if not self.helpers.is_hypervisor() and not self.helpers.is_windows():
             metric_parser.add_argument('-m', '--mem-usage', action='store_true', required=False, help=mem_usage_help)
 
         # Optional Args for Hypervisors and Baremetal systems
@@ -493,11 +497,11 @@ class AMDSMIParser(argparse.ArgumentParser):
             metric_parser.add_argument('-c', '--clock', action='store_true', required=False, help=clock_help)
             metric_parser.add_argument('-t', '--temperature', action='store_true', required=False, help=temperature_help)
             metric_parser.add_argument('-e', '--ecc', action='store_true', required=False, help=ecc_help)
-            metric_parser.add_argument('-k', '--ecc-block', action='store_true', required=False, help=ecc_block_help)
             metric_parser.add_argument('-P', '--pcie', action='store_true', required=False, help=pcie_help)
 
         # Optional Args for Linux Baremetal Systems
         if self.helpers.is_baremetal() and self.helpers.is_linux():
+            metric_parser.add_argument('-k', '--ecc-block', action='store_true', required=False, help=ecc_block_help)
             metric_parser.add_argument('-f', '--fan', action='store_true', required=False, help=fan_help)
             metric_parser.add_argument('-C', '--voltage-curve', action='store_true', required=False, help=vc_help)
             metric_parser.add_argument('-o', '--overdrive', action='store_true', required=False, help=overdrive_help)
@@ -509,7 +513,9 @@ class AMDSMIParser(argparse.ArgumentParser):
         if self.helpers.is_hypervisor():
             metric_parser.add_argument('-s', '--schedule', action='store_true', required=False, help=schedule_help)
             metric_parser.add_argument('-G', '--guard', action='store_true', required=False, help=guard_help)
-            metric_parser.add_argument('-u', '--guest', action='store_true', required=False, help=guest_help)
+            metric_parser.add_argument('-u', '--guest-data', action='store_true', required=False, help=guest_data_help)
+            metric_parser.add_argument('-f', '--fb_usage', action='store_true', required=False, help=fb_usage_help)
+            metric_parser.add_argument('-m', '--xgmi', action='store_true', required=False, help=xgmi_help)
 
 
     def _add_process_parser(self, subparsers, func):
@@ -574,10 +580,6 @@ class AMDSMIParser(argparse.ArgumentParser):
 
 
     def _add_event_parser(self, subparsers, func):
-        if self.helpers.is_virtual_os():
-            # This subparser doesn't only apply to guest systems
-            return
-
         # Subparser help text
         event_help = "Displays event information for the given GPU"
         event_subcommand_help = "If no GPU is specified, returns event information for all GPUs on the system."
