@@ -330,6 +330,25 @@ amdsmi_status_t amdsmi_get_cpusocket_info(
 
     return AMDSMI_STATUS_SUCCESS;
 }
+
+amdsmi_status_t amdsmi_get_cpucore_info(
+                amdsmi_processor_handle core_handle,
+                uint32_t core_id) {
+    AMDSMI_CHECK_INIT();
+
+    if (core_handle == nullptr) {
+        return AMDSMI_STATUS_INVAL;
+    }
+
+    amd::smi::AMDSmiProcessor* core = nullptr;
+    amdsmi_status_t r = amd::smi::AMDSmiSystem::getInstance()
+                    .handle_to_processor(core_handle, &core);
+    if (r != AMDSMI_STATUS_SUCCESS) return r;
+
+    core_id = static_cast<amd::smi::AMDSmiCpuCore*>(core)->get_core_id();
+
+    return AMDSMI_STATUS_SUCCESS;
+}
 #endif
 
 amdsmi_status_t amdsmi_get_processor_handles(amdsmi_socket_handle socket_handle,
@@ -2942,51 +2961,6 @@ amdsmi_status_t amdsmi_get_metrics_table(amdsmi_cpusocket_handle socket_handle, 
     status = static_cast<amdsmi_status_t>(esmi_metrics_table_get(sock_ind, &metrics_tbl));
     *metrics_table = metrics_tbl;
 
-    if (status != AMDSMI_STATUS_SUCCESS)
-        return status;
-
-    return AMDSMI_STATUS_SUCCESS;
-}
-
-amdsmi_status_t amdsmi_get_number_of_cpu_sockets(uint32_t sockets)
-{
-    amdsmi_status_t status = amd::smi::AMDSmiSystem::getInstance().get_cpu_sockets(sockets);
-    if (status != AMDSMI_STATUS_SUCCESS)
-        return status;
-
-    return AMDSMI_STATUS_SUCCESS;
-}
-
-amdsmi_status_t amdsmi_get_number_of_cpu_cores(uint32_t cpus)
-{
-    amdsmi_status_t status = amd::smi::AMDSmiSystem::getInstance().get_cpu_cores(cpus);
-    if (status != AMDSMI_STATUS_SUCCESS)
-        return status;
-
-    return AMDSMI_STATUS_SUCCESS;
-}
-
-amdsmi_status_t amdsmi_get_cpu_threads_per_core(uint32_t threads)
-{
-    amdsmi_status_t status = amd::smi::AMDSmiSystem::getInstance().get_threads_per_core(threads);
-    if (status != AMDSMI_STATUS_SUCCESS)
-        return status;
-
-    return AMDSMI_STATUS_SUCCESS;
-}
-
-amdsmi_status_t amdsmi_get_cpu_family(uint32_t family)
-{
-    amdsmi_status_t status = amd::smi::AMDSmiSystem::getInstance().get_cpu_family(family);
-    if (status != AMDSMI_STATUS_SUCCESS)
-        return status;
-
-    return AMDSMI_STATUS_SUCCESS;
-}
-
-amdsmi_status_t amdsmi_get_cpu_model(uint32_t model)
-{
-    amdsmi_status_t status = amd::smi::AMDSmiSystem::getInstance().get_cpu_model(model);
     if (status != AMDSMI_STATUS_SUCCESS)
         return status;
 

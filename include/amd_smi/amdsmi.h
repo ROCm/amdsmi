@@ -1469,6 +1469,20 @@ amdsmi_status_t amdsmi_get_socket_info(
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t amdsmi_get_cpusocket_info(amdsmi_cpusocket_handle socket_handle, uint32_t sockid);
+
+/**
+ *  @brief Get information about the given cpu core
+ *
+ *  @details This function retrieves cpu core information. The @p core_handle must
+ *  be provided to retrieve the core ID.
+ *
+ *  @param[in] core_handle a processor handle
+ *
+ *  @param[out] coreid The id of the core.
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_get_cpucore_info(amdsmi_processor_handle core_handle, uint32_t coreid);
 #endif
 
 /**
@@ -4587,51 +4601,6 @@ amdsmi_status_t amdsmi_get_metrics_table(amdsmi_cpusocket_handle socket_handle, 
 /**  @defgroup auxiquer     Auxillary functions                              */
 /*---------------------------------------------------------------------------*/
 /** @{  */
-
-/**
- *  @brief Get cpu family.
- *
- *  @param[in,out]	family - Input buffer to fill family
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t amdsmi_get_cpu_family(uint32_t family);
-
-/**
- *  @brief Get cpu model.
- *
- *  @param[in,out]	family - Input buffer to fill family
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t amdsmi_get_cpu_model(uint32_t model);
-
-/**
- *  @brief Get threads per core.
- *
- *  @param[in,out]	threads - Input buffer to fill threads count.
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t amdsmi_get_cpu_threads_per_core(uint32_t threads);
-
-/**
- *  @brief Get number of cpus.
- *
- *  @param[in,out]	cpus - Input buffer to fill number of cpus.
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t amdsmi_get_number_of_cpu_cores(uint32_t cpus);
-
-/**
- *  @brief Get number of sockets
- *
- *  @param[in,out]	sockets - Input buffer to fill number of sockets.
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t amdsmi_get_number_of_cpu_sockets(uint32_t sockets);
 
 /**
  *  @brief Get first online core on socket.
