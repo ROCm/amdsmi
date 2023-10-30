@@ -86,7 +86,7 @@ amdsmi_status_t AMDSmiDrm::init() {
     int fd = -1;
 
 
-    amdsmi_status_t status = lib_loader_.load("libdrm.so");
+    amdsmi_status_t status = lib_loader_.load("libdrm.so.2");
     if (status != AMDSMI_STATUS_SUCCESS) {
         return status;
     }
