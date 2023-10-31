@@ -2,5 +2,5 @@
 # mostly a rhel8 limitation...
 
 [metadata]
-name = "amdsmi"
-version = "@amd_smi_libraries_VERSION_STRING@"
+name = amdsmi
+version = @amd_smi_libraries_VERSION_STRING@
