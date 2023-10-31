@@ -106,7 +106,8 @@ do_ldconfig() {
 
 do_install_amdsmi_python_lib() {
   # get python version
-  local python3_minor_version=$(python3 -c 'import sys;print(sys.version_info.minor)')
+  local python3_minor_version
+  python3_minor_version=$(python3 -c 'import sys;print(sys.version_info.minor)')
   if [ $? -ne 0 ]; then
     echo "[WARNING] Could not determine python version. "\
       "AMD-SMI python library will not be installed."
@@ -135,7 +136,7 @@ do_install_amdsmi_python_lib() {
 
 # post install or upgrade, $i is 1 or 2 -> do these actions
 if [ "$1" -ge 1 ]; then
-  do_install_amdsmi_python_lib
+  do_install_amdsmi_python_lib || return 0
   do_ldconfig
   do_configureLogrotate || return 0
 fi
