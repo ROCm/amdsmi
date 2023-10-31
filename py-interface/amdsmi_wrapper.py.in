@@ -892,16 +892,6 @@ amdsmi_process_handle_t = ctypes.c_uint32
 class struct_amdsmi_proc_info_t(Structure):
     pass
 
-class struct_engine_usage_(Structure):
-    pass
-
-struct_engine_usage_._pack_ = 1 # source:False
-struct_engine_usage_._fields_ = [
-    ('gfx', ctypes.c_uint64),
-    ('enc', ctypes.c_uint64),
-    ('reserved', ctypes.c_uint32 * 12),
-]
-
 class struct_memory_usage_(Structure):
     pass
 
@@ -911,6 +901,16 @@ struct_memory_usage_._fields_ = [
     ('cpu_mem', ctypes.c_uint64),
     ('vram_mem', ctypes.c_uint64),
     ('reserved', ctypes.c_uint32 * 10),
+]
+
+class struct_engine_usage_(Structure):
+    pass
+
+struct_engine_usage_._pack_ = 1 # source:False
+struct_engine_usage_._fields_ = [
+    ('gfx', ctypes.c_uint64),
+    ('enc', ctypes.c_uint64),
+    ('reserved', ctypes.c_uint32 * 12),
 ]
 
 struct_amdsmi_proc_info_t._pack_ = 1 # source:False
@@ -1656,6 +1656,9 @@ uint32_t = ctypes.c_uint32
 amdsmi_get_cpusocket_info = _libraries['libamd_smi.so'].amdsmi_get_cpusocket_info
 amdsmi_get_cpusocket_info.restype = amdsmi_status_t
 amdsmi_get_cpusocket_info.argtypes = [amdsmi_cpusocket_handle, uint32_t]
+amdsmi_get_cpucore_info = _libraries['libamd_smi.so'].amdsmi_get_cpucore_info
+amdsmi_get_cpucore_info.restype = amdsmi_status_t
+amdsmi_get_cpucore_info.argtypes = [amdsmi_processor_handle, uint32_t]
 amdsmi_get_processor_handles = _libraries['libamd_smi.so'].amdsmi_get_processor_handles
 amdsmi_get_processor_handles.restype = amdsmi_status_t
 amdsmi_get_processor_handles.argtypes = [amdsmi_socket_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.POINTER(None))]
@@ -2071,21 +2074,6 @@ class struct_hsmp_metric_table(Structure):
 amdsmi_get_metrics_table = _libraries['libamd_smi.so'].amdsmi_get_metrics_table
 amdsmi_get_metrics_table.restype = amdsmi_status_t
 amdsmi_get_metrics_table.argtypes = [amdsmi_cpusocket_handle, uint8_t, ctypes.POINTER(struct_hsmp_metric_table)]
-amdsmi_get_cpu_family = _libraries['libamd_smi.so'].amdsmi_get_cpu_family
-amdsmi_get_cpu_family.restype = amdsmi_status_t
-amdsmi_get_cpu_family.argtypes = [uint32_t]
-amdsmi_get_cpu_model = _libraries['libamd_smi.so'].amdsmi_get_cpu_model
-amdsmi_get_cpu_model.restype = amdsmi_status_t
-amdsmi_get_cpu_model.argtypes = [uint32_t]
-amdsmi_get_cpu_threads_per_core = _libraries['libamd_smi.so'].amdsmi_get_cpu_threads_per_core
-amdsmi_get_cpu_threads_per_core.restype = amdsmi_status_t
-amdsmi_get_cpu_threads_per_core.argtypes = [uint32_t]
-amdsmi_get_number_of_cpu_cores = _libraries['libamd_smi.so'].amdsmi_get_number_of_cpu_cores
-amdsmi_get_number_of_cpu_cores.restype = amdsmi_status_t
-amdsmi_get_number_of_cpu_cores.argtypes = [uint32_t]
-amdsmi_get_number_of_cpu_sockets = _libraries['libamd_smi.so'].amdsmi_get_number_of_cpu_sockets
-amdsmi_get_number_of_cpu_sockets.restype = amdsmi_status_t
-amdsmi_get_number_of_cpu_sockets.argtypes = [uint32_t]
 amdsmi_first_online_core_on_cpu_socket = _libraries['libamd_smi.so'].amdsmi_first_online_core_on_cpu_socket
 amdsmi_first_online_core_on_cpu_socket.restype = amdsmi_status_t
 amdsmi_first_online_core_on_cpu_socket.argtypes = [amdsmi_cpusocket_handle, uint32_t, ctypes.POINTER(ctypes.c_uint32)]
@@ -2283,9 +2271,8 @@ __all__ = \
     'amdsmi_get_cpu_current_xgmi_bw', 'amdsmi_get_cpu_ddr_bw',
     'amdsmi_get_cpu_dimm_power_consumption',
     'amdsmi_get_cpu_dimm_temp_range_and_refresh_rate',
-    'amdsmi_get_cpu_dimm_thermal_sensor', 'amdsmi_get_cpu_family',
-    'amdsmi_get_cpu_fclk_mclk', 'amdsmi_get_cpu_hsmp_proto_ver',
-    'amdsmi_get_cpu_model', 'amdsmi_get_cpu_prochot_status',
+    'amdsmi_get_cpu_dimm_thermal_sensor', 'amdsmi_get_cpu_fclk_mclk',
+    'amdsmi_get_cpu_hsmp_proto_ver', 'amdsmi_get_cpu_prochot_status',
     'amdsmi_get_cpu_pwr_svi_telemetry_all_rails',
     'amdsmi_get_cpu_smu_fw_version',
     'amdsmi_get_cpu_socket_c0_residency',
@@ -2295,12 +2282,12 @@ __all__ = \
     'amdsmi_get_cpu_socket_lclk_dpm_level',
     'amdsmi_get_cpu_socket_power', 'amdsmi_get_cpu_socket_power_cap',
     'amdsmi_get_cpu_socket_power_cap_max',
-    'amdsmi_get_cpu_socket_temperature',
-    'amdsmi_get_cpu_threads_per_core', 'amdsmi_get_cpucore_handles',
-    'amdsmi_get_cpusocket_handles', 'amdsmi_get_cpusocket_info',
-    'amdsmi_get_energy_count', 'amdsmi_get_esmi_err_msg',
-    'amdsmi_get_fw_info', 'amdsmi_get_gpu_activity',
-    'amdsmi_get_gpu_asic_info', 'amdsmi_get_gpu_available_counters',
+    'amdsmi_get_cpu_socket_temperature', 'amdsmi_get_cpucore_handles',
+    'amdsmi_get_cpucore_info', 'amdsmi_get_cpusocket_handles',
+    'amdsmi_get_cpusocket_info', 'amdsmi_get_energy_count',
+    'amdsmi_get_esmi_err_msg', 'amdsmi_get_fw_info',
+    'amdsmi_get_gpu_activity', 'amdsmi_get_gpu_asic_info',
+    'amdsmi_get_gpu_available_counters',
     'amdsmi_get_gpu_bad_page_info', 'amdsmi_get_gpu_bdf_id',
     'amdsmi_get_gpu_board_info', 'amdsmi_get_gpu_cache_info',
     'amdsmi_get_gpu_compute_process_gpus',
@@ -2331,10 +2318,9 @@ __all__ = \
     'amdsmi_get_gpu_vram_vendor', 'amdsmi_get_lib_version',
     'amdsmi_get_metrics_table', 'amdsmi_get_metrics_table_version',
     'amdsmi_get_minmax_bandwidth_between_processors',
-    'amdsmi_get_number_of_cpu_cores',
-    'amdsmi_get_number_of_cpu_sockets', 'amdsmi_get_pcie_link_caps',
-    'amdsmi_get_pcie_link_status', 'amdsmi_get_power_cap_info',
-    'amdsmi_get_power_info', 'amdsmi_get_processor_handle_from_bdf',
+    'amdsmi_get_pcie_link_caps', 'amdsmi_get_pcie_link_status',
+    'amdsmi_get_power_cap_info', 'amdsmi_get_power_info',
+    'amdsmi_get_processor_handle_from_bdf',
     'amdsmi_get_processor_handles', 'amdsmi_get_processor_type',
     'amdsmi_get_socket_handles', 'amdsmi_get_socket_info',
     'amdsmi_get_temp_metric', 'amdsmi_get_utilization_count',
