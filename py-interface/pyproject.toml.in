@@ -25,3 +25,7 @@ dependencies = [
 
 [tool.setuptools]
 packages = ["amdsmi"]
+
+# install libamd_smi.so
+[tool.setuptools.package-data]
+amdsmi = ["*.so"]
