@@ -34,6 +34,8 @@ installed to query firmware information and hardware IPs.
 
 ``` bash
 apt install amd-smi-lib
+# if installed with rocm ignore the export
+export PATH="$PATH:/opt/rocm/bin"
 amd-smi --help
 ```
 
@@ -64,7 +66,6 @@ Then install Python library from your target rocm instance:
 
 ``` bash
 apt install amd-smi-lib
-amd-smi --help
 cd /opt/rocm/share/amd_smi
 python3 -m pip install --upgrade pip
 python3 -m pip install --user .

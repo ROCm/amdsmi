@@ -168,20 +168,11 @@ def char_pointer_cast(string, encoding='utf-8'):
 
 _libraries = {}
 from pathlib import Path
-### TODO: Add lib build folder cmake variable or dynamic
-libamd_smi_cpack = Path("@CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@/libamd_smi.so")
-libamd_smi_optrocm = Path("/opt/rocm/lib/libamd_smi.so")
 libamd_smi_parent_dir = Path(__file__).resolve().parent / "libamd_smi.so"
 libamd_smi_cwd = Path.cwd() / "libamd_smi.so"
 
 try:
-    if libamd_smi_cpack.is_file():
-        # try to find library in install directory provided by CMake
-        _libraries['libamd_smi.so'] = ctypes.CDLL(libamd_smi_cpack)
-    elif libamd_smi_optrocm.is_file():
-        # try /opt/rocm/lib as a fallback
-        _libraries['libamd_smi.so'] = ctypes.CDLL(libamd_smi_optrocm)
-    elif libamd_smi_parent_dir.is_file():
+    if libamd_smi_parent_dir.is_file():
         # try to fall back to parent directory
         _libraries['libamd_smi.so'] = ctypes.CDLL(libamd_smi_parent_dir)
     else:
