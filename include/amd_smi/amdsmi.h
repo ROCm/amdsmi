@@ -455,11 +455,23 @@ typedef struct {
   uint32_t reserved[16];
 } amdsmi_vbios_info_t;
 
+/**
+ * @brief cache flags
+ */
+typedef enum {
+  CACHE_FLAGS_ENABLED = 0x00000001,
+  CACHE_FLAGS_DATA_CACHE = 0x00000002,
+  CACHE_FLAGS_INST_CACHE = 0x00000004,
+  CACHE_FLAGS_CPU_CACHE = 0x00000008,
+  CACHE_FLAGS_SIMD_CACHE = 0x00000010,
+} amdsmi_cache_flags_type_t;
+
 typedef struct {
   uint32_t num_cache_types;
   struct cache_ {
     uint32_t cache_size_kb; /* In KB */
     uint32_t cache_level;
+    uint32_t flags;  // amdsmi_cache_flags_type_t which is a bitmask
     uint32_t reserved[3];
   } cache[AMDSMI_MAX_CACHE_TYPES];
   uint32_t reserved[15];

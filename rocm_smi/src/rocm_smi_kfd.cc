@@ -926,10 +926,15 @@ int KFDNode::get_cache_info(rsmi_gpu_cache_info_t *info) {
       int cache_level = std::stoi(level);
       if (cache_level < 0 ) continue;
 
+      std::string type = get_properties_from_file(prop_file, "type ");
+      int cache_type = std::stoi(type);
+      if (cache_type <= 0) continue;
+
       // only count once
       bool is_count_already = false;
       for (unsigned int i=0; i < info->num_cache_types; i++) {
-        if (info->cache->cache_level == static_cast<uint32_t>(cache_level)) {
+        if (info->cache[i].cache_level == static_cast<uint32_t>(cache_level) &&
+            info->cache[i].flags == static_cast<uint32_t>(cache_type)) {
           is_count_already = true;
           break;
         }
@@ -940,8 +945,10 @@ int KFDNode::get_cache_info(rsmi_gpu_cache_info_t *info) {
       std::string size = get_properties_from_file(prop_file, "size ");
       int cache_size = std::stoi(size);
       if (cache_size <= 0) continue;
+
       info->cache[info->num_cache_types].cache_level = cache_level;
       info->cache[info->num_cache_types].cache_size_kb = cache_size;
+      info->cache[info->num_cache_types].flags = cache_type;
       info->num_cache_types++;
     } catch (...) {
       continue;
