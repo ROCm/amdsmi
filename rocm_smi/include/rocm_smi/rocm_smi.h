@@ -864,6 +864,14 @@ typedef struct {
   struct {
     uint32_t cache_size_kb; /* In KB */
     uint32_t cache_level;
+    /* 
+    HSA_CACHE_TYPE_DATA     0x00000001
+    HSA_CACHE_TYPE_INSTRUCTION  0x00000002
+    HSA_CACHE_TYPE_CPU      0x00000004
+    HSA_CACHE_TYPE_HSACU        0x00000008
+    so HSA_CACHE_TYPE_DATA|HSA_CACHE_TYPE_HSACU == 9
+    */
+    uint32_t flags;
   } cache[RSMI_MAX_CACHE_TYPES];
 } rsmi_gpu_cache_info_t;
 /// \cond Ignore in docs.

@@ -510,12 +510,29 @@ amdsmi_status_t amdsmi_get_gpu_cache_info(
                     processor_handle, &rsmi_info);
     if (status != AMDSMI_STATUS_SUCCESS)
         return status;
+    // Sysfs cache type
+    #define  HSA_CACHE_TYPE_DATA     0x00000001
+    #define  HSA_CACHE_TYPE_INSTRUCTION  0x00000002
+    #define  HSA_CACHE_TYPE_CPU      0x00000004
+    #define  HSA_CACHE_TYPE_HSACU    0x00000008
 
     info->num_cache_types = rsmi_info.num_cache_types;
     for (unsigned int i =0; i < rsmi_info.num_cache_types; i++) {
         info->cache[i].cache_size_kb = rsmi_info.cache[i].cache_size_kb;
         info->cache[i].cache_level = rsmi_info.cache[i].cache_level;
+        // convert from sysfs type to CRAT type(HSA Cache Affinity type)
+        info->cache[i].flags = 0;
+        if (rsmi_info.cache[i].flags & HSA_CACHE_TYPE_DATA)
+            info->cache[i].flags |= CACHE_FLAGS_DATA_CACHE;
+        if (rsmi_info.cache[i].flags & HSA_CACHE_TYPE_INSTRUCTION)
+            info->cache[i].flags |= CACHE_FLAGS_INST_CACHE;
+        if (rsmi_info.cache[i].flags & HSA_CACHE_TYPE_CPU)
+            info->cache[i].flags |= CACHE_FLAGS_CPU_CACHE;
+        if (rsmi_info.cache[i].flags & HSA_CACHE_TYPE_HSACU)
+            info->cache[i].flags |= CACHE_FLAGS_SIMD_CACHE;
     }
+
+
     return AMDSMI_STATUS_SUCCESS;
 }
 
