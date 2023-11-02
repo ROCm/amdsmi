@@ -876,6 +876,101 @@ def amdsmi_get_cpu_socket_power(
 
     return ppower.value
 
+def amdsmi_get_cpu_socket_power_cap(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle, sock_idx: int
+) -> int:
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+
+    pcap = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpu_socket_power_cap(
+            socket_handle, sock_idx, ctypes.byref(pcap)
+        )
+    )
+
+    return pcap.value
+
+def amdsmi_get_cpu_socket_power_cap_max(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle, sock_idx: int
+) -> int:
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+
+    pmax = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpu_socket_power_cap_max(
+            socket_handle, sock_idx, ctypes.byref(pmax)
+        )
+    )
+
+    return pmax.value
+
+def amdsmi_get_cpu_pwr_svi_telemetry_all_rails(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle, sock_idx: int
+) -> int:
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+
+    power = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpu_pwr_svi_telemetry_all_rails(
+            socket_handle, sock_idx, ctypes.byref(power)
+        )
+    )
+
+    return power.value
+
+def amdsmi_set_cpu_socket_power_cap(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle, sock_idx: int, power_cap: int
+):
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+    if not isinstance(power_cap, int):
+        raise AmdSmiParameterException(power_cap, int)
+    sock_idx = ctypes.c_uint32(sock_idx)
+    power_cap = ctypes.c_uint32(power_cap)
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_set_cpu_socket_power_cap(
+            processor_handle, sock_idx, power_cap)
+    )
+
+def amdsmi_set_cpu_pwr_efficiency_mode(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle, sock_idx: int, mode: int
+):
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+    if not isinstance(mode, int):
+        raise AmdSmiParameterException(mode, int)
+    sock_idx = ctypes.c_uint8(sock_idx)
+    mode = ctypes.c_uint8(mode)
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_set_cpu_pwr_efficiency_mode(
+            socket_handle, sock_idx, mode)
+    )
+
 def amdsmi_init(flag=AmdSmiInitFlags.INIT_AMD_GPUS):
     if not isinstance(flag, AmdSmiInitFlags):
         raise AmdSmiParameterException(flag, AmdSmiInitFlags)
