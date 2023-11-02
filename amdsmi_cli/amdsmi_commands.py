@@ -496,7 +496,7 @@ class AMDSMICommands():
                     ras_info = amdsmi_interface.amdsmi_get_gpu_ras_feature_info(args.gpu)
                     for key, value in ras_info.items():
                         if isinstance(value, int):
-                            if value >= 65535:
+                            if value == 65535 or value == 0:
                                 logging.debug(f"Failed to get ras {key} for gpu {gpu_id}")
                                 ras_info[key] = "N/A"
                                 continue
@@ -953,7 +953,7 @@ class AMDSMICommands():
                     engine_usage['mm_ip_usage'] = engine_usage.pop('mm_activity')
 
                     for key, value in engine_usage.items():
-                        if value >= 65535:
+                        if value == 65535:
                             engine_usage[key] = "N/A"
 
                         if self.logger.is_human_readable_format():

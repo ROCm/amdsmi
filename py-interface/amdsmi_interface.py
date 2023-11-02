@@ -1180,7 +1180,7 @@ def amdsmi_get_gpu_ras_feature_info(
     )
 
     return {
-        "eeprom_version": ras_feature.ras_eeprom_version,
+        "eeprom_version": hex(ras_feature.ras_eeprom_version),
         "parity_schema" : bool(ras_feature.ecc_correction_schema_flag & 1),
         "single_bit_schema" : bool(ras_feature.ecc_correction_schema_flag & 2),
         "double_bit_schema" : bool(ras_feature.ecc_correction_schema_flag & 4),
