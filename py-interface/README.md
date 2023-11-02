@@ -1784,19 +1784,23 @@ except AmdSmiException as e:
 ```
 
 ## amdsmi_is_gpu_power_management_enabled
+
 Description: Returns is power management enabled
 
 Input parameters:
+
 * `processor_handle` GPU device which to query
 
 Output: Bool true if power management enabled else false
 
 Exceptions that can be thrown by `amdsmi_is_gpu_power_management_enabled` function:
+
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
 
 Example:
+
 ```python
 try:
     devices = amdsmi_get_processor_handles()
@@ -3281,7 +3285,6 @@ except AmdSmiException as e:
     print(e)
 ```
 
-
 ### amdsmi_dev_compute_partition_get
 
 Description: Get the compute partition from the given GPU
@@ -3559,7 +3562,6 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-
 
 ### amdsmi_get_cpucore_handles
 
