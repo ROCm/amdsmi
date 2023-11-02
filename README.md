@@ -6,13 +6,15 @@ For additional information refer to [ROCm Documentation](https://rocm.docs.amd.c
 
 Note: This project is a successor to [rocm_smi_lib](https://github.com/RadeonOpenCompute/rocm_smi_lib)
 
+and [esmi_ib_library](https://github.com/amd/esmi_ib_library)
+
 ## Supported platforms
 
 At initial release, the AMD SMI library will support Linux bare metal and Linux virtual machine guest for AMD GPUs. In the future release, the library will be extended to support AMD EPYC™ CPUs.
 
 AMD SMI library can run on AMD ROCm supported platforms, please refer to [List of Supported Operating Systems and GPUs](https://rocm.docs.amd.com/en/latest/release/gpu_os_support.html)
 
-To run the AMD SMI library, the amdgpu driver needs to be installed. Optionally, the libdrm can be
+To run the AMD SMI library, the amdgpu driver and the hsmp driver needs to be installed. Optionally, the libdrm can be
 installed to query firmware information and hardware IPs.
 
 ## Usage Basics
@@ -24,6 +26,10 @@ GPU device and CPU device on the same socket. Moreover, for MI200, it may have m
 
 To discover the sockets in the system, `amdsmi_get_socket_handles()` is called to get list of sockets
 handles, which in turn can be used to query the devices in that socket using `amdsmi_get_processor_handles()`. The device handler is used to distinguish the detected devices from one another. It is important to note that a device may end up with a different device handles after restart application, so a device handle should not be relied upon to be constant over process.
+
+To discover the cpu sockets in the system, `amdsmi_get_cpusocket_handles()` is called to get list of cpu sockets
+handles, which in turn can be used to query the cpu cores in that cpu socket using `amdsmi_get_cpucore_handles()`. The cpu core handler is used to distinguish the detected cpu cores from one another.
+
 
 ## Hello AMD SMI
 
@@ -132,7 +138,7 @@ For additional details, see the [ROCm Contributing Guide](https://rocm.docs.amd.
 ### Requirements
 
 * python 3.7+ 64-bit
-* amdgpu driver must be loaded for amdsmi_init() to pass
+* amdgpu driver and hsmp driver must be loaded for amdsmi_init() to pass
 
 ### Optional autocompletion
 
