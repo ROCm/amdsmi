@@ -466,9 +466,18 @@ class AMDSMICommands():
         if args.cache:
             try:
                 cache_info = amdsmi_interface.amdsmi_get_gpu_cache_info(args.gpu)
+                for cache_key, cache_dict in cache_info.items():
+                    for key, value in cache_dict.items():
+                        if key == 'cache_size' or key == 'cache_level':
+                            continue
+                        if value:
+                            cache_info[cache_key][key] = "ENABLED"
+                        else:
+                            cache_info[cache_key][key] = "DISABLED"
                 if self.logger.is_human_readable_format():
                     for _ , cache_values in cache_info.items():
                         cache_values['cache_size'] = f"{cache_values['cache_size']} KB"
+
             except amdsmi_exception.AmdSmiLibraryException as e:
                 cache_info = "N/A"
                 logging.debug("Failed to get cache info for gpu %s | %s", gpu_id, e.get_error_info())
