@@ -120,8 +120,8 @@ GPU with some basic information for each VF.
 optional arguments:
   -h, --help               show this help message and exit
   -g, --gpu GPU [GPU ...]  Select a GPU ID, BDF, or UUID from the possible choices:
-                              ID:0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
-                                all | Selects all devices
+                           ID: 0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
+                             all | Selects all devices
 
 Command Modifiers:
   --json                   Displays output in JSON format (human readable by default).
@@ -143,8 +143,8 @@ If no static argument is provided, all static information will be displayed.
 Static Arguments:
   -h, --help               show this help message and exit
   -g, --gpu GPU [GPU ...]  Select a GPU ID, BDF, or UUID from the possible choices:
-                              ID:0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
-                                all | Selects all devices
+                           ID: 0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
+                             all | Selects all devices
   -a, --asic               All asic information
   -b, --bus                All bus information
   -V, --vbios              All video bios information (if available)
@@ -175,8 +175,8 @@ If no GPU is specified, return firmware information for all GPUs on the system.
 Firmware Arguments:
   -h, --help                   show this help message and exit
   -g, --gpu GPU [GPU ...]      Select a GPU ID, BDF, or UUID from the possible choices:
-                               ID:0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
-                                all | Selects all devices
+                               ID: 0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
+                                 all | Selects all devices
   -f, --ucode-list, --fw-list  All FW list information
 
 Command Modifiers:
@@ -197,8 +197,8 @@ If no GPU is specified, return bad page information for all GPUs on the system.
 Bad Pages Arguments:
   -h, --help               show this help message and exit
   -g, --gpu GPU [GPU ...]  Select a GPU ID, BDF, or UUID from the possible choices:
-                              ID:0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
-                                all | Selects all devices
+                           ID: 0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
+                             all | Selects all devices
   -p, --pending            Displays all pending retired pages
   -r, --retired            Displays retired pages
   -u, --un-res             Displays unreservable pages
@@ -223,8 +223,8 @@ If no metric argument is provided all metric information will be displayed.
 Metric arguments:
   -h, --help                   show this help message and exit
   -g, --gpu GPU [GPU ...]      Select a GPU ID, BDF, or UUID from the possible choices:
-                               ID:0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
-                                all | Selects all devices
+                               ID: 0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
+                                 all | Selects all devices
   -w, --watch INTERVAL         Reprint the command in a loop of INTERVAL seconds
   -W, --watch_time TIME        The total TIME to watch the given command
   -i, --iterations ITERATIONS  Total number of ITERATIONS to loop on the given command
@@ -263,8 +263,8 @@ If no process argument is provided all process information will be displayed.
 Process arguments:
   -h, --help                   show this help message and exit
   -g, --gpu GPU [GPU ...]      Select a GPU ID, BDF, or UUID from the possible choices:
-                                ID: 0 | BDF: 0000:23:00.0 | UUID: c4ff73bf-0000-1000-802e-0812b504ed69
-                                  all | Selects all devices
+                               ID: 0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
+                                 all | Selects all devices
   -w, --watch INTERVAL         Reprint the command in a loop of INTERVAL seconds
   -W, --watch_time TIME        The total TIME to watch the given command
   -i, --iterations ITERATIONS  Total number of ITERATIONS to loop on the given command
@@ -292,8 +292,8 @@ If no GPU is specified, returns event information for all GPUs on the system.
 Event Arguments:
   -h, --help               show this help message and exit
   -g, --gpu GPU [GPU ...]  Select a GPU ID, BDF, or UUID from the possible choices:
-                              ID:0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
-                                all | Selects all devices
+                           ID: 0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
+                             all | Selects all devices
 
 Command Modifiers:
   --json                   Displays output in JSON format (human readable by default).
@@ -314,8 +314,8 @@ If no topology argument is provided all topology information will be displayed.
 Topology arguments:
   -h, --help               show this help message and exit
   -g, --gpu GPU [GPU ...]  Select a GPU ID, BDF, or UUID from the possible choices:
-                              ID:0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
-                                all | Selects all devices
+                           ID: 0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
+                             all | Selects all devices
   -a, --access             Displays link accessibility between GPUs
   -w, --weight             Displays relative weight between GPUs
   -o, --hops               Displays the number of hops between GPUs
@@ -343,8 +343,8 @@ A set argument must be provided; Multiple set arguments are accepted
 Set Arguments:
   -h, --help                         show this help message and exit
   -g, --gpu GPU [GPU ...]            Select a GPU ID, BDF, or UUID from the possible choices:
-                                        ID: 0 | BDF: 0000:23:00.0 | UUID: c4ff73bf-0000-1000-802e-0812b504ed69
-                                          all | Selects all devices
+                                     ID: 0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
+                                       all | Selects all devices
   -f, --fan %                        Set GPU fan speed (0-255 or 0-100%)
   -l, --perf-level LEVEL             Set performance level
   -P, --profile SETPROFILE           Set power profile level (#) or a quoted string of custom profile attributes
@@ -374,8 +374,8 @@ A reset argument must be provided; Multiple reset arguments are accepted
 Reset Arguments:
   -h, --help               show this help message and exit
   -g, --gpu GPU [GPU ...]  Select a GPU ID, BDF, or UUID from the possible choices:
-                                ID: 0 | BDF: 0000:23:00.0 | UUID: c4ff73bf-0000-1000-802e-0812b504ed69
-                                  all | Selects all devices
+                           ID: 0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
+                             all | Selects all devices
   -G, --gpureset           Reset the specified GPU
   -c, --clocks             Reset clocks and overdrive to default
   -f, --fans               Reset fans to automatic (driver) control

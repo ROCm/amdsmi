@@ -170,11 +170,11 @@ class AMDSMIHelpers():
                 id_padding = max_padding
             else:
                 id_padding = max_padding - int(math.log10(gpu_id))
-            gpu_choices_str += f"\tID: {gpu_id}{' ' * id_padding}| BDF: {bdf} | UUID: {uuid}\n"
+            gpu_choices_str += f"ID: {gpu_id}{' ' * id_padding}| BDF: {bdf} | UUID: {uuid}\n"
 
         # Add the all option to the gpu_choices
         gpu_choices["all"] = "all"
-        gpu_choices_str += f"\t  all{' ' * max_padding}| Selects all devices\n"
+        gpu_choices_str += f"  all{' ' * max_padding}| Selects all devices\n"
 
         return (gpu_choices, gpu_choices_str)
 

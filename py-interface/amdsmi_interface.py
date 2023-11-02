@@ -1375,12 +1375,26 @@ def amdsmi_get_fw_info(
     _check_res(amdsmi_wrapper.amdsmi_get_fw_info(
         processor_handle, ctypes.byref(fw_info)))
 
+    hex_format_fw = [AmdSmiFwBlock.FW_ID_SMC,
+                     AmdSmiFwBlock.FW_ID_PSP_SOSDRV,
+                     AmdSmiFwBlock.FW_ID_TA_RAS,
+                     AmdSmiFwBlock.FW_ID_XGMI,
+                     AmdSmiFwBlock.FW_ID_UVD,
+                     AmdSmiFwBlock.FW_ID_VCE,
+                     AmdSmiFwBlock.FW_ID_VCN]
+
     firmwares = []
     for i in range(0, fw_info.num_fw_info):
-        fw_version = hex(fw_info.fw_info_list[i].fw_version)
-        fw_version_string = ".".join(re.findall('..?', fw_version[2:]))
+        fw_name = AmdSmiFwBlock(fw_info.fw_info_list[i].fw_id)
+        fw_version = fw_info.fw_info_list[i].fw_version
+
+        if fw_name in hex_format_fw:
+            fw_version_string = ".".join(re.findall('..?', hex(fw_version)[2:]))
+        else:
+            fw_version_string = str(fw_version)
+
         firmwares.append({
-            'fw_name': AmdSmiFwBlock(fw_info.fw_info_list[i].fw_id),
+            'fw_name': fw_name,
             'fw_version': fw_version_string.upper(),
         })
     return {
