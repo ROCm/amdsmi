@@ -1131,8 +1131,8 @@ class AMDSMICommands():
                              "replay_roll_over_count" : "N/A",
                              "nak_sent_count" : "N/A",
                              "nak_received_count" : "N/A",
-                             "current_bandwith_sent": "N/A",
-                             "current_bandwith_received": "N/A",
+                             "current_bandwidth_sent": "N/A",
+                             "current_bandwidth_received": "N/A",
                              "max_packet_size": "N/A"}
 
                 try:
@@ -1200,8 +1200,8 @@ class AMDSMICommands():
                         received = f"{received} MB/s"
                         pcie_bw['max_pkt_sz'] = f"{pcie_bw['max_pkt_sz']} B"
 
-                    pcie_dict['current_bandwith_sent'] = sent
-                    pcie_dict['current_bandwith_received'] = received
+                    pcie_dict['current_bandwidth_sent'] = sent
+                    pcie_dict['current_bandwidth_received'] = received
                     pcie_dict['max_packet_size'] = pcie_bw['max_pkt_sz']
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     logging.debug("Failed to get pcie bandwidth for gpu %s | %s", gpu_id, e.get_error_info())
