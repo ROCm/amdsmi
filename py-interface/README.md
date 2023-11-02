@@ -3821,3 +3821,126 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
+
+### amdsmi_get_cpu_socket_power_cap
+
+Description: Get the socket power cap.
+
+Output: amdsmi socket power cap
+
+Exceptions that can be thrown by `amdsmi_get_cpu_socket_power_cap` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            sock_power = amdsmi_get_cpu_socket_power_cap(socket)
+            print(sock_power)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpu_socket_power_cap_max
+
+Description: Get the socket power cap max.
+
+Output: amdsmi socket power cap max
+
+Exceptions that can be thrown by `amdsmi_get_cpu_socket_power_cap_max` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            sock_power = amdsmi_get_cpu_socket_power_cap_max(socket)
+            print(sock_power)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpu_pwr_svi_telemetry_all_rails
+
+Description: Get the SVI based power telemetry for all rails.
+
+Output: amdsmi svi based power value
+
+Exceptions that can be thrown by `amdsmi_get_cpu_pwr_svi_telemetry_all_rails` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            power = amdsmi_get_cpu_pwr_svi_telemetry_all_rails(socket)
+            print(power)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_set_cpu_socket_power_cap
+
+Description: Set the power cap value for a given socket.
+
+Input: socket index, amdsmi socket power cap value
+
+Exceptions that can be thrown by `amdsmi_set_cpu_socket_power_cap` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            power = amdsmi_set_cpu_socket_power_cap(socket, 0, 1000)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_set_cpu_pwr_efficiency_mode
+
+Description: Set the power efficiency profile policy.
+
+Input: socket index, mode(0, 1, or 2)
+
+Exceptions that can be thrown by `amdsmi_set_cpu_pwr_efficiency_mode` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            policy = amdsmi_set_cpu_pwr_efficiency_mode(socket, 0, 0)
+except AmdSmiException as e:
+    print(e)
+```
