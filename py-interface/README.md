@@ -478,6 +478,10 @@ Field | Description
 `cache #` |  upt 10 caches will be available
 `cache_size` | size of cache in KB
 `cache_level` | level of cache
+`data_cache` | True if data cache is enabled, false otherwise
+`instruction_cache` | True if instruction cache is enabled, false otherwise
+`cpu_cache` | True if cpu cache is enabled, false otherwise
+`simd_cache` | True if simd cache is enabled, false otherwise
 
 Exceptions that can be thrown by `amdsmi_get_gpu_cache_info` function:
 
@@ -499,6 +503,10 @@ try:
                 print(cache_index)
                 print(cache_values['cache_size'])
                 print(cache_values['cache_level'])
+                print(cache_values['data_cache'])
+                print(cache_values['instruction_cache'])
+                print(cache_values['cpu_cache'])
+                print(cache_values['simd_cache'])
 except AmdSmiException as e:
     print(e)
 ```
