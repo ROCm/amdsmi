@@ -37,6 +37,9 @@ docs_core = ROCmDocs(f"{name} Documentation")
 docs_core.run_doxygen(doxygen_root="doxygen", doxygen_path="doxygen/docBin/xml")
 docs_core.enable_api_reference()
 docs_core.setup()
+docs_core.html_theme_options = {
+    "repository_url": "https://github.com/RadeonOpenCompute/amdsmi"
+}
 
 for sphinx_var in ROCmDocs.SPHINX_VARS:
     globals()[sphinx_var] = getattr(docs_core, sphinx_var)
