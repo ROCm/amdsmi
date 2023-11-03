@@ -160,6 +160,7 @@ void TestVoltCurvRead::Run(void) {
     err =  amdsmi_get_gpu_od_volt_info(processor_handles_[i], &odv);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED
           || err == AMDSMI_STATUS_NOT_YET_IMPLEMENTED) {
+      //TODO add perf_level tests
       IF_VERB(STANDARD) {
         std::cout <<
             "\t** amdsmi_get_gpu_od_volt_info: Not supported on this machine"
