@@ -2,7 +2,7 @@
 
 ## Requirements
 
-* python 3.6 64-bit
+* python 3.6+ 64-bit
 * driver must be loaded for amdsmi_init() to pass
 
 ## Overview
@@ -478,6 +478,10 @@ Field | Description
 `cache #` |  upt 10 caches will be available
 `cache_size` | size of cache in KB
 `cache_level` | level of cache
+`data_cache` | True if data cache is enabled, false otherwise
+`instruction_cache` | True if instruction cache is enabled, false otherwise
+`cpu_cache` | True if cpu cache is enabled, false otherwise
+`simd_cache` | True if simd cache is enabled, false otherwise
 
 Exceptions that can be thrown by `amdsmi_get_gpu_cache_info` function:
 
@@ -499,6 +503,10 @@ try:
                 print(cache_index)
                 print(cache_values['cache_size'])
                 print(cache_values['cache_level'])
+                print(cache_values['data_cache'])
+                print(cache_values['instruction_cache'])
+                print(cache_values['cpu_cache'])
+                print(cache_values['simd_cache'])
 except AmdSmiException as e:
     print(e)
 ```
@@ -576,6 +584,7 @@ try:
             firmware_list = amdsmi_get_fw_info(device)['fw_list']
             for firmware_block in firmware_list:
                 print(firmware_block['fw_name'])
+                # String formated hex or decimal value ie: 21.00.00.AC or 130
                 print(firmware_block['fw_version'])
 except AmdSmiException as e:
     print(e)
@@ -998,8 +1007,10 @@ Output:  Dictionary with fields correctable and uncorrectable
 
 Field | Description
 ---|---
-`serial_number` | Board serial number
+`model_number` | Board serial number
 `product_serial` | Product serial
+`fru_id` | FRU ID
+`manufacturer_name` | Manufacturer name
 `product_name` | Product name
 
 Exceptions that can be thrown by `amdsmi_get_gpu_board_info` function:
@@ -1014,8 +1025,10 @@ Example:
 try:
     device = amdsmi_get_processor_handle_from_bdf("0000:23.00.0")
     board_info = amdsmi_get_gpu_board_info(device)
-    print(board_info["serial_number"])
+    print(board_info["model_number"])
     print(board_info["product_serial"])
+    print(board_info["fru_id"])
+    print(board_info["manufacturer_name"])
     print(board_info["product_name"])
 except AmdSmiException as e:
     print(e)
@@ -1771,19 +1784,23 @@ except AmdSmiException as e:
 ```
 
 ## amdsmi_is_gpu_power_management_enabled
+
 Description: Returns is power management enabled
 
 Input parameters:
+
 * `processor_handle` GPU device which to query
 
 Output: Bool true if power management enabled else false
 
 Exceptions that can be thrown by `amdsmi_is_gpu_power_management_enabled` function:
+
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
 * `AmdSmiParameterException`
 
 Example:
+
 ```python
 try:
     devices = amdsmi_get_processor_handles()
@@ -3268,7 +3285,6 @@ except AmdSmiException as e:
     print(e)
 ```
 
-
 ### amdsmi_dev_compute_partition_get
 
 Description: Get the compute partition from the given GPU
@@ -3492,6 +3508,439 @@ try:
             print(xgmi_info['xgmi_hive_id'])
             print(xgmi_info['xgmi_node_id'])
             print(xgmi_info['index'])
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpusocket_handles
+
+**Note: CURRENTLY HARDCODED TO RETURN DUMMY DATA**
+Description: Returns list of cpusocket handle objects on current machine
+
+Input parameters: `None`
+
+Output: List of cpusocket handle objects
+
+Exceptions that can be thrown by `amdsmi_get_cpusocket_handles` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    sockets = amdsmi_get_cpusocket_handles()
+    print('Socket numbers: {}'.format(len(sockets)))
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpusocket_info
+
+**Note: CURRENTLY HARDCODED TO RETURN EMPTY VALUES**
+Description: Return cpu socket index
+
+Input parameters:
+`socket_handle` cpu socket handle
+
+Output: Socket index
+
+Exceptions that can be thrown by `amdsmi_get_cpusocket_info` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            print(amdsmi_get_cpusocket_info(socket))
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpucore_handles
+
+Description: Returns list of CPU core handle objects on current machine
+
+Input parameters: `None`
+
+Output: List of CPU core handle objects
+
+Exceptions that can be thrown by `amdsmi_get_cpucore_handles` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    core_handles = amdsmi_get_cpucore_handles()
+    if len(core_handles) == 0:
+        print("No CPU cores on machine")
+    else:
+        for core in core_handles:
+            print(amdsmi_get_cpucore_info(core))
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpu_hsmp_proto_ver
+
+Description: Get the hsmp protocol version.
+
+Output: amdsmi hsmp protocol version
+
+Exceptions that can be thrown by `amdsmi_get_cpu_hsmp_proto_ver` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            version = amdsmi_get_cpu_hsmp_proto_ver(socket)
+            print(version)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpu_smu_fw_version
+
+Description: Get the SMU Firmware version.
+
+Output: amdsmi SMU Firmware version
+
+Exceptions that can be thrown by `amdsmi_get_cpu_smu_fw_version` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            version = amdsmi_get_cpu_smu_fw_version(socket)
+            print(version['debug'])
+            print(version['minor'])
+            print(version['major'])
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpu_prochot_status
+
+Description: Get the CPU's prochot status.
+
+Output: amdsmi cpu prochot status
+
+Exceptions that can be thrown by `amdsmi_get_cpu_prochot_status` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            prochot = amdsmi_get_cpu_prochot_status(socket)
+            print(prochot)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpu_fclk_mclk
+
+Description: Get the Data fabric clock and Memory clock in MHz.
+
+Output: amdsmi data fabric clock and memory clock
+
+Exceptions that can be thrown by `amdsmi_get_cpu_fclk_mclk` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            clk = amdsmi_get_cpu_fclk_mclk(socket)
+            for fclk, mclk in clk.items():
+                print(fclk)
+                print(mclk)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpu_cclk_limit
+
+Description: Get the core clock in MHz.
+
+Output: amdsmi core clock
+
+Exceptions that can be thrown by `amdsmi_get_cpu_cclk_limit` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            cclk_limit = amdsmi_get_cpu_cclk_limit(socket)
+            print(cclk_limit)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpu_socket_current_active_freq_limit
+
+Description: Get current active frequency limit of the socket.
+
+Output: amdsmi frequency value in MHz and frequency source name
+
+Exceptions that can be thrown by `amdsmi_get_cpu_socket_current_active_freq_limit` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            freq_limit = amdsmi_get_cpu_socket_current_active_freq_limit(socket)
+            for freq, src in freq_limit.items():
+                print(freq)
+                print(src)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpu_socket_freq_range
+
+Description: Get socket frequency range
+
+Output: amdsmi maximum frequency and minimum frequency
+
+Exceptions that can be thrown by `amdsmi_get_cpu_socket_freq_range` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            freq_range = amdsmi_get_cpu_socket_freq_range(socket)
+            for fmax, fmin in freq_range.items():
+                print(fmax)
+                print(fmin)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpu_core_current_freq_limit
+
+Description: Get socket frequency limit of the core
+
+Output: amdsmi frequency
+
+Exceptions that can be thrown by `amdsmi_get_cpu_core_current_freq_limit` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    core_handles = amdsmi_get_cpucore_handles()
+    if len(core_handles) == 0:
+        print("No CPU cores on machine")
+    else:
+        for core in core_handles:
+            freq_limit = amdsmi_get_cpu_core_current_freq_limit(core)
+            print(freq_limit)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpu_socket_power
+
+Description: Get the socket power.
+
+Output: amdsmi socket power
+
+Exceptions that can be thrown by `amdsmi_get_cpu_socket_power` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            sock_power = amdsmi_get_cpu_socket_power(socket)
+            print(sock_power)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpu_socket_power_cap
+
+Description: Get the socket power cap.
+
+Output: amdsmi socket power cap
+
+Exceptions that can be thrown by `amdsmi_get_cpu_socket_power_cap` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            sock_power = amdsmi_get_cpu_socket_power_cap(socket)
+            print(sock_power)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpu_socket_power_cap_max
+
+Description: Get the socket power cap max.
+
+Output: amdsmi socket power cap max
+
+Exceptions that can be thrown by `amdsmi_get_cpu_socket_power_cap_max` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            sock_power = amdsmi_get_cpu_socket_power_cap_max(socket)
+            print(sock_power)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpu_pwr_svi_telemetry_all_rails
+
+Description: Get the SVI based power telemetry for all rails.
+
+Output: amdsmi svi based power value
+
+Exceptions that can be thrown by `amdsmi_get_cpu_pwr_svi_telemetry_all_rails` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            power = amdsmi_get_cpu_pwr_svi_telemetry_all_rails(socket)
+            print(power)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_set_cpu_socket_power_cap
+
+Description: Set the power cap value for a given socket.
+
+Input: socket index, amdsmi socket power cap value
+
+Exceptions that can be thrown by `amdsmi_set_cpu_socket_power_cap` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            power = amdsmi_set_cpu_socket_power_cap(socket, 0, 1000)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_set_cpu_pwr_efficiency_mode
+
+Description: Set the power efficiency profile policy.
+
+Input: socket index, mode(0, 1, or 2)
+
+Exceptions that can be thrown by `amdsmi_set_cpu_pwr_efficiency_mode` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            policy = amdsmi_set_cpu_pwr_efficiency_mode(socket, 0, 0)
 except AmdSmiException as e:
     print(e)
 ```

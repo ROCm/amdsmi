@@ -6,8 +6,20 @@
 
 import subprocess
 
+import urllib
 from rocm_docs import ROCmDocs
 
+esmi_readme_link = "https://raw.githubusercontent.com/amd/esmi_ib_library/master/docs/README.md"
+try:
+    # Try to override esmi_lib_readme_link.md with the github esmi readme contents
+    with urllib.request.urlopen(esmi_readme_link) as f:
+        esmi_readme = f.read().decode('utf-8')
+
+    with open("./esmi_lib_readme_link.md", "w", encoding='utf-8') as f:
+        f.write(esmi_readme)
+except urllib.error.URLError:
+    # don't care about the error because there is backup link in the file already
+    pass
 
 get_version_year = r'sed -n -e "s/^#define\ AMDSMI_LIB_VERSION_YEAR\ //p" ../include/amd_smi/amdsmi.h'
 get_version_major = r'sed -n -e "s/^#define\ AMDSMI_LIB_VERSION_MAJOR\ //p" ../include/amd_smi/amdsmi.h'
@@ -25,6 +37,9 @@ docs_core = ROCmDocs(f"{name} Documentation")
 docs_core.run_doxygen(doxygen_root="doxygen", doxygen_path="doxygen/docBin/xml")
 docs_core.enable_api_reference()
 docs_core.setup()
+docs_core.html_theme_options = {
+    "repository_url": "https://github.com/RadeonOpenCompute/amdsmi"
+}
 
 for sphinx_var in ROCmDocs.SPHINX_VARS:
     globals()[sphinx_var] = getattr(docs_core, sphinx_var)

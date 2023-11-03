@@ -385,7 +385,7 @@ class AmdSmiEventReader:
             )
         )
 
-        ret = list()
+        ret = []
         for i in range(0, num_elem):
             unique_event_values = set(event.value for event in AmdSmiEvtNotificationType)
             if self.event_info[i].event in unique_event_values:
@@ -436,7 +436,7 @@ def _format_bad_page_info(bad_page_info, bad_page_count: ctypes.c_uint32) -> Lis
                 amdsmi_wrapper.amdsmi_retired_page_record_t)
         )
 
-    table_records = list()
+    table_records = []
     for i in range(bad_page_count.value):
         table_records.append(
             {
@@ -876,6 +876,101 @@ def amdsmi_get_cpu_socket_power(
 
     return ppower.value
 
+def amdsmi_get_cpu_socket_power_cap(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle, sock_idx: int
+) -> int:
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+
+    pcap = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpu_socket_power_cap(
+            socket_handle, sock_idx, ctypes.byref(pcap)
+        )
+    )
+
+    return pcap.value
+
+def amdsmi_get_cpu_socket_power_cap_max(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle, sock_idx: int
+) -> int:
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+
+    pmax = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpu_socket_power_cap_max(
+            socket_handle, sock_idx, ctypes.byref(pmax)
+        )
+    )
+
+    return pmax.value
+
+def amdsmi_get_cpu_pwr_svi_telemetry_all_rails(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle, sock_idx: int
+) -> int:
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+
+    power = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpu_pwr_svi_telemetry_all_rails(
+            socket_handle, sock_idx, ctypes.byref(power)
+        )
+    )
+
+    return power.value
+
+def amdsmi_set_cpu_socket_power_cap(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle, sock_idx: int, power_cap: int
+):
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+    if not isinstance(power_cap, int):
+        raise AmdSmiParameterException(power_cap, int)
+    sock_idx = ctypes.c_uint32(sock_idx)
+    power_cap = ctypes.c_uint32(power_cap)
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_set_cpu_socket_power_cap(
+            processor_handle, sock_idx, power_cap)
+    )
+
+def amdsmi_set_cpu_pwr_efficiency_mode(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle, sock_idx: int, mode: int
+):
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+    if not isinstance(mode, int):
+        raise AmdSmiParameterException(mode, int)
+    sock_idx = ctypes.c_uint8(sock_idx)
+    mode = ctypes.c_uint8(mode)
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_set_cpu_pwr_efficiency_mode(
+            socket_handle, sock_idx, mode)
+    )
+
 def amdsmi_init(flag=AmdSmiInitFlags.INIT_AMD_GPUS):
     if not isinstance(flag, AmdSmiInitFlags):
         raise AmdSmiParameterException(flag, AmdSmiInitFlags)
@@ -991,7 +1086,7 @@ def amdsmi_get_gpu_vram_info(
 
 def amdsmi_get_gpu_cache_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
-) -> Dict[str, Any]:
+) -> Dict[str, Dict[str, Any]]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
@@ -1007,8 +1102,17 @@ def amdsmi_get_gpu_cache_info(
     for cache_index in range(cache_info.num_cache_types):
         cache_size = cache_info.cache[cache_index].cache_size_kb
         cache_level = cache_info.cache[cache_index].cache_level
+        cache_flags = cache_info.cache[cache_index].flags
+        data_cache = bool(cache_flags & amdsmi_wrapper.CACHE_FLAGS_DATA_CACHE)
+        inst_cache = bool(cache_flags & amdsmi_wrapper.CACHE_FLAGS_INST_CACHE)
+        cpu_cache = bool(cache_flags & amdsmi_wrapper.CACHE_FLAGS_CPU_CACHE)
+        simd_cache = bool(cache_flags & amdsmi_wrapper.CACHE_FLAGS_SIMD_CACHE)
         cache_info_dict[f"cache {cache_index}"] = {"cache_size": cache_size,
-                                                   "cache_level": cache_level}
+                                                   "cache_level": cache_level,
+                                                   "data_cache": data_cache,
+                                                   "instruction_cache": inst_cache,
+                                                   "cpu_cache": cpu_cache,
+                                                   "simd_cache": simd_cache}
 
     return cache_info_dict
 
@@ -1147,7 +1251,7 @@ def amdsmi_get_gpu_board_info(
 
     return {
         "model_number": board_info.model_number.decode("utf-8").strip(),
-        "product_serial": board_info.serial_number,
+        "product_serial": board_info.product_serial.decode("utf-8").strip(),
         "fru_id": board_info.fru_id.decode("utf-8").strip(),
         "manufacturer_name" : board_info.manufacturer_name.decode("utf-8").strip(),
         "product_name": board_info.product_name.decode("utf-8").strip()
@@ -1171,7 +1275,7 @@ def amdsmi_get_gpu_ras_feature_info(
     )
 
     return {
-        "eeprom_version": ras_feature.ras_eeprom_version,
+        "eeprom_version": hex(ras_feature.ras_eeprom_version),
         "parity_schema" : bool(ras_feature.ecc_correction_schema_flag & 1),
         "single_bit_schema" : bool(ras_feature.ecc_correction_schema_flag & 2),
         "double_bit_schema" : bool(ras_feature.ecc_correction_schema_flag & 4),
@@ -1365,11 +1469,28 @@ def amdsmi_get_fw_info(
     fw_info = amdsmi_wrapper.amdsmi_fw_info_t()
     _check_res(amdsmi_wrapper.amdsmi_get_fw_info(
         processor_handle, ctypes.byref(fw_info)))
-    firmwares = list()
+
+    hex_format_fw = [AmdSmiFwBlock.FW_ID_SMC,
+                     AmdSmiFwBlock.FW_ID_PSP_SOSDRV,
+                     AmdSmiFwBlock.FW_ID_TA_RAS,
+                     AmdSmiFwBlock.FW_ID_XGMI,
+                     AmdSmiFwBlock.FW_ID_UVD,
+                     AmdSmiFwBlock.FW_ID_VCE,
+                     AmdSmiFwBlock.FW_ID_VCN]
+
+    firmwares = []
     for i in range(0, fw_info.num_fw_info):
+        fw_name = AmdSmiFwBlock(fw_info.fw_info_list[i].fw_id)
+        fw_version = fw_info.fw_info_list[i].fw_version
+
+        if fw_name in hex_format_fw:
+            fw_version_string = ".".join(re.findall('..?', hex(fw_version)[2:]))
+        else:
+            fw_version_string = str(fw_version)
+
         firmwares.append({
-            'fw_name': AmdSmiFwBlock(fw_info.fw_info_list[i].fw_id),
-            'fw_version':  fw_info.fw_info_list[i].fw_version,
+            'fw_name': fw_name,
+            'fw_version': fw_version_string.upper(),
         })
     return {
         'fw_list': firmwares

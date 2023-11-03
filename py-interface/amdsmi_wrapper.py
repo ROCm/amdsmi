@@ -168,19 +168,11 @@ def char_pointer_cast(string, encoding='utf-8'):
 
 _libraries = {}
 from pathlib import Path
-libamd_smi_cpack = Path("@CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@/libamd_smi.so")
-libamd_smi_optrocm = Path("/opt/rocm/lib/libamd_smi.so")
 libamd_smi_parent_dir = Path(__file__).resolve().parent / "libamd_smi.so"
 libamd_smi_cwd = Path.cwd() / "libamd_smi.so"
 
 try:
-    if libamd_smi_cpack.is_file():
-        # try to find library in install directory provided by CMake
-        _libraries['libamd_smi.so'] = ctypes.CDLL(libamd_smi_cpack)
-    elif libamd_smi_optrocm.is_file():
-        # try /opt/rocm/lib as a fallback
-        _libraries['libamd_smi.so'] = ctypes.CDLL(libamd_smi_optrocm)
-    elif libamd_smi_parent_dir.is_file():
+    if libamd_smi_parent_dir.is_file():
         # try to fall back to parent directory
         _libraries['libamd_smi.so'] = ctypes.CDLL(libamd_smi_parent_dir)
     else:
@@ -751,6 +743,21 @@ struct_amdsmi_vbios_info_t._fields_ = [
 ]
 
 amdsmi_vbios_info_t = struct_amdsmi_vbios_info_t
+
+# values for enumeration 'amdsmi_cache_flags_type_t'
+amdsmi_cache_flags_type_t__enumvalues = {
+    1: 'CACHE_FLAGS_ENABLED',
+    2: 'CACHE_FLAGS_DATA_CACHE',
+    4: 'CACHE_FLAGS_INST_CACHE',
+    8: 'CACHE_FLAGS_CPU_CACHE',
+    16: 'CACHE_FLAGS_SIMD_CACHE',
+}
+CACHE_FLAGS_ENABLED = 1
+CACHE_FLAGS_DATA_CACHE = 2
+CACHE_FLAGS_INST_CACHE = 4
+CACHE_FLAGS_CPU_CACHE = 8
+CACHE_FLAGS_SIMD_CACHE = 16
+amdsmi_cache_flags_type_t = ctypes.c_uint32 # enum
 class struct_amdsmi_gpu_cache_info_t(Structure):
     pass
 
@@ -761,6 +768,7 @@ struct_cache_._pack_ = 1 # source:False
 struct_cache_._fields_ = [
     ('cache_size_kb', ctypes.c_uint32),
     ('cache_level', ctypes.c_uint32),
+    ('flags', ctypes.c_uint32),
     ('reserved', ctypes.c_uint32 * 3),
 ]
 
@@ -840,14 +848,12 @@ class struct_amdsmi_board_info_t(Structure):
 
 struct_amdsmi_board_info_t._pack_ = 1 # source:False
 struct_amdsmi_board_info_t._fields_ = [
-    ('serial_number', ctypes.c_uint64),
     ('is_master', ctypes.c_bool),
     ('model_number', ctypes.c_char * 32),
     ('product_serial', ctypes.c_char * 32),
     ('fru_id', ctypes.c_char * 32),
-    ('product_name', ctypes.c_char * 128),
     ('manufacturer_name', ctypes.c_char * 32),
-    ('PADDING_0', ctypes.c_ubyte * 7),
+    ('product_name', ctypes.c_char * 128),
 ]
 
 amdsmi_board_info_t = struct_amdsmi_board_info_t
@@ -1658,6 +1664,9 @@ uint32_t = ctypes.c_uint32
 amdsmi_get_cpusocket_info = _libraries['libamd_smi.so'].amdsmi_get_cpusocket_info
 amdsmi_get_cpusocket_info.restype = amdsmi_status_t
 amdsmi_get_cpusocket_info.argtypes = [amdsmi_cpusocket_handle, uint32_t]
+amdsmi_get_cpucore_info = _libraries['libamd_smi.so'].amdsmi_get_cpucore_info
+amdsmi_get_cpucore_info.restype = amdsmi_status_t
+amdsmi_get_cpucore_info.argtypes = [amdsmi_processor_handle, uint32_t]
 amdsmi_get_processor_handles = _libraries['libamd_smi.so'].amdsmi_get_processor_handles
 amdsmi_get_processor_handles.restype = amdsmi_status_t
 amdsmi_get_processor_handles.argtypes = [amdsmi_socket_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.POINTER(None))]
@@ -2073,21 +2082,6 @@ class struct_hsmp_metric_table(Structure):
 amdsmi_get_metrics_table = _libraries['libamd_smi.so'].amdsmi_get_metrics_table
 amdsmi_get_metrics_table.restype = amdsmi_status_t
 amdsmi_get_metrics_table.argtypes = [amdsmi_cpusocket_handle, uint8_t, ctypes.POINTER(struct_hsmp_metric_table)]
-amdsmi_get_cpu_family = _libraries['libamd_smi.so'].amdsmi_get_cpu_family
-amdsmi_get_cpu_family.restype = amdsmi_status_t
-amdsmi_get_cpu_family.argtypes = [uint32_t]
-amdsmi_get_cpu_model = _libraries['libamd_smi.so'].amdsmi_get_cpu_model
-amdsmi_get_cpu_model.restype = amdsmi_status_t
-amdsmi_get_cpu_model.argtypes = [uint32_t]
-amdsmi_get_cpu_threads_per_core = _libraries['libamd_smi.so'].amdsmi_get_cpu_threads_per_core
-amdsmi_get_cpu_threads_per_core.restype = amdsmi_status_t
-amdsmi_get_cpu_threads_per_core.argtypes = [uint32_t]
-amdsmi_get_number_of_cpu_cores = _libraries['libamd_smi.so'].amdsmi_get_number_of_cpu_cores
-amdsmi_get_number_of_cpu_cores.restype = amdsmi_status_t
-amdsmi_get_number_of_cpu_cores.argtypes = [uint32_t]
-amdsmi_get_number_of_cpu_sockets = _libraries['libamd_smi.so'].amdsmi_get_number_of_cpu_sockets
-amdsmi_get_number_of_cpu_sockets.restype = amdsmi_status_t
-amdsmi_get_number_of_cpu_sockets.argtypes = [uint32_t]
 amdsmi_first_online_core_on_cpu_socket = _libraries['libamd_smi.so'].amdsmi_first_online_core_on_cpu_socket
 amdsmi_first_online_core_on_cpu_socket.restype = amdsmi_status_t
 amdsmi_first_online_core_on_cpu_socket.argtypes = [amdsmi_cpusocket_handle, uint32_t, ctypes.POINTER(ctypes.c_uint32)]
@@ -2207,22 +2201,24 @@ __all__ = \
     'AMDSMI_VRAM_VENDOR__WINBOND', 'AMDSMI_XGMI_STATUS_ERROR',
     'AMDSMI_XGMI_STATUS_MULTIPLE_ERRORS',
     'AMDSMI_XGMI_STATUS_NO_ERRORS', 'AMD_APU', 'AMD_CPU',
-    'AMD_CPU_CORE', 'AMD_GPU', 'CLK_TYPE_DCEF', 'CLK_TYPE_DCLK0',
-    'CLK_TYPE_DCLK1', 'CLK_TYPE_DF', 'CLK_TYPE_FIRST', 'CLK_TYPE_GFX',
-    'CLK_TYPE_MEM', 'CLK_TYPE_PCIE', 'CLK_TYPE_SOC', 'CLK_TYPE_SYS',
-    'CLK_TYPE_VCLK0', 'CLK_TYPE_VCLK1', 'CLK_TYPE__MAX',
-    'COMPUTE_PARTITION_CPX', 'COMPUTE_PARTITION_DPX',
-    'COMPUTE_PARTITION_INVALID', 'COMPUTE_PARTITION_QPX',
-    'COMPUTE_PARTITION_SPX', 'COMPUTE_PARTITION_TPX',
-    'CONTAINER_DOCKER', 'CONTAINER_LXC', 'FW_ID_ASD', 'FW_ID_CP_CE',
-    'FW_ID_CP_ME', 'FW_ID_CP_MEC1', 'FW_ID_CP_MEC2',
-    'FW_ID_CP_MEC_JT1', 'FW_ID_CP_MEC_JT2', 'FW_ID_CP_MES',
-    'FW_ID_CP_PFP', 'FW_ID_CP_PM4', 'FW_ID_DFC', 'FW_ID_DMCU',
-    'FW_ID_DMCU_ERAM', 'FW_ID_DMCU_ISR', 'FW_ID_DRV_CAP',
-    'FW_ID_FIRST', 'FW_ID_IMU_DRAM', 'FW_ID_IMU_IRAM', 'FW_ID_ISP',
-    'FW_ID_MC', 'FW_ID_MES_KIQ', 'FW_ID_MES_STACK',
-    'FW_ID_MES_THREAD1', 'FW_ID_MES_THREAD1_STACK', 'FW_ID_MMSCH',
-    'FW_ID_PPTABLE', 'FW_ID_PSP_BL', 'FW_ID_PSP_DBG',
+    'AMD_CPU_CORE', 'AMD_GPU', 'CACHE_FLAGS_CPU_CACHE',
+    'CACHE_FLAGS_DATA_CACHE', 'CACHE_FLAGS_ENABLED',
+    'CACHE_FLAGS_INST_CACHE', 'CACHE_FLAGS_SIMD_CACHE',
+    'CLK_TYPE_DCEF', 'CLK_TYPE_DCLK0', 'CLK_TYPE_DCLK1',
+    'CLK_TYPE_DF', 'CLK_TYPE_FIRST', 'CLK_TYPE_GFX', 'CLK_TYPE_MEM',
+    'CLK_TYPE_PCIE', 'CLK_TYPE_SOC', 'CLK_TYPE_SYS', 'CLK_TYPE_VCLK0',
+    'CLK_TYPE_VCLK1', 'CLK_TYPE__MAX', 'COMPUTE_PARTITION_CPX',
+    'COMPUTE_PARTITION_DPX', 'COMPUTE_PARTITION_INVALID',
+    'COMPUTE_PARTITION_QPX', 'COMPUTE_PARTITION_SPX',
+    'COMPUTE_PARTITION_TPX', 'CONTAINER_DOCKER', 'CONTAINER_LXC',
+    'FW_ID_ASD', 'FW_ID_CP_CE', 'FW_ID_CP_ME', 'FW_ID_CP_MEC1',
+    'FW_ID_CP_MEC2', 'FW_ID_CP_MEC_JT1', 'FW_ID_CP_MEC_JT2',
+    'FW_ID_CP_MES', 'FW_ID_CP_PFP', 'FW_ID_CP_PM4', 'FW_ID_DFC',
+    'FW_ID_DMCU', 'FW_ID_DMCU_ERAM', 'FW_ID_DMCU_ISR',
+    'FW_ID_DRV_CAP', 'FW_ID_FIRST', 'FW_ID_IMU_DRAM',
+    'FW_ID_IMU_IRAM', 'FW_ID_ISP', 'FW_ID_MC', 'FW_ID_MES_KIQ',
+    'FW_ID_MES_STACK', 'FW_ID_MES_THREAD1', 'FW_ID_MES_THREAD1_STACK',
+    'FW_ID_MMSCH', 'FW_ID_PPTABLE', 'FW_ID_PSP_BL', 'FW_ID_PSP_DBG',
     'FW_ID_PSP_INTF', 'FW_ID_PSP_KEYDB', 'FW_ID_PSP_SOC',
     'FW_ID_PSP_SOSDRV', 'FW_ID_PSP_SPL', 'FW_ID_PSP_SYSDRV',
     'FW_ID_PSP_TOC', 'FW_ID_REG_ACCESS_WHITELIST', 'FW_ID_RLC',
@@ -2256,12 +2252,12 @@ __all__ = \
     'VRAM_TYPE_UNKNOWN', 'VRAM_TYPE__MAX', 'WR_BW0',
     'amd_metrics_table_header_t', 'amdsmi_asic_info_t',
     'amdsmi_bdf_t', 'amdsmi_bit_field_t', 'amdsmi_board_info_t',
-    'amdsmi_clk_info_t', 'amdsmi_clk_type_t',
-    'amdsmi_compute_partition_type_t', 'amdsmi_container_types_t',
-    'amdsmi_counter_command_t', 'amdsmi_counter_value_t',
-    'amdsmi_cpu_apb_disable', 'amdsmi_cpu_apb_enable',
-    'amdsmi_cpusocket_handle', 'amdsmi_ddr_bw_metrics_t',
-    'amdsmi_dev_compute_partition_get',
+    'amdsmi_cache_flags_type_t', 'amdsmi_clk_info_t',
+    'amdsmi_clk_type_t', 'amdsmi_compute_partition_type_t',
+    'amdsmi_container_types_t', 'amdsmi_counter_command_t',
+    'amdsmi_counter_value_t', 'amdsmi_cpu_apb_disable',
+    'amdsmi_cpu_apb_enable', 'amdsmi_cpusocket_handle',
+    'amdsmi_ddr_bw_metrics_t', 'amdsmi_dev_compute_partition_get',
     'amdsmi_dev_compute_partition_reset',
     'amdsmi_dev_compute_partition_set',
     'amdsmi_dev_memory_partition_get',
@@ -2285,9 +2281,8 @@ __all__ = \
     'amdsmi_get_cpu_current_xgmi_bw', 'amdsmi_get_cpu_ddr_bw',
     'amdsmi_get_cpu_dimm_power_consumption',
     'amdsmi_get_cpu_dimm_temp_range_and_refresh_rate',
-    'amdsmi_get_cpu_dimm_thermal_sensor', 'amdsmi_get_cpu_family',
-    'amdsmi_get_cpu_fclk_mclk', 'amdsmi_get_cpu_hsmp_proto_ver',
-    'amdsmi_get_cpu_model', 'amdsmi_get_cpu_prochot_status',
+    'amdsmi_get_cpu_dimm_thermal_sensor', 'amdsmi_get_cpu_fclk_mclk',
+    'amdsmi_get_cpu_hsmp_proto_ver', 'amdsmi_get_cpu_prochot_status',
     'amdsmi_get_cpu_pwr_svi_telemetry_all_rails',
     'amdsmi_get_cpu_smu_fw_version',
     'amdsmi_get_cpu_socket_c0_residency',
@@ -2297,12 +2292,12 @@ __all__ = \
     'amdsmi_get_cpu_socket_lclk_dpm_level',
     'amdsmi_get_cpu_socket_power', 'amdsmi_get_cpu_socket_power_cap',
     'amdsmi_get_cpu_socket_power_cap_max',
-    'amdsmi_get_cpu_socket_temperature',
-    'amdsmi_get_cpu_threads_per_core', 'amdsmi_get_cpucore_handles',
-    'amdsmi_get_cpusocket_handles', 'amdsmi_get_cpusocket_info',
-    'amdsmi_get_energy_count', 'amdsmi_get_esmi_err_msg',
-    'amdsmi_get_fw_info', 'amdsmi_get_gpu_activity',
-    'amdsmi_get_gpu_asic_info', 'amdsmi_get_gpu_available_counters',
+    'amdsmi_get_cpu_socket_temperature', 'amdsmi_get_cpucore_handles',
+    'amdsmi_get_cpucore_info', 'amdsmi_get_cpusocket_handles',
+    'amdsmi_get_cpusocket_info', 'amdsmi_get_energy_count',
+    'amdsmi_get_esmi_err_msg', 'amdsmi_get_fw_info',
+    'amdsmi_get_gpu_activity', 'amdsmi_get_gpu_asic_info',
+    'amdsmi_get_gpu_available_counters',
     'amdsmi_get_gpu_bad_page_info', 'amdsmi_get_gpu_bdf_id',
     'amdsmi_get_gpu_board_info', 'amdsmi_get_gpu_cache_info',
     'amdsmi_get_gpu_compute_process_gpus',
@@ -2333,10 +2328,9 @@ __all__ = \
     'amdsmi_get_gpu_vram_vendor', 'amdsmi_get_lib_version',
     'amdsmi_get_metrics_table', 'amdsmi_get_metrics_table_version',
     'amdsmi_get_minmax_bandwidth_between_processors',
-    'amdsmi_get_number_of_cpu_cores',
-    'amdsmi_get_number_of_cpu_sockets', 'amdsmi_get_pcie_link_caps',
-    'amdsmi_get_pcie_link_status', 'amdsmi_get_power_cap_info',
-    'amdsmi_get_power_info', 'amdsmi_get_processor_handle_from_bdf',
+    'amdsmi_get_pcie_link_caps', 'amdsmi_get_pcie_link_status',
+    'amdsmi_get_power_cap_info', 'amdsmi_get_power_info',
+    'amdsmi_get_processor_handle_from_bdf',
     'amdsmi_get_processor_handles', 'amdsmi_get_processor_type',
     'amdsmi_get_socket_handles', 'amdsmi_get_socket_info',
     'amdsmi_get_temp_metric', 'amdsmi_get_utilization_count',

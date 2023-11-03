@@ -30,8 +30,8 @@ import sys
 from pathlib import Path
 
 sys.path.append(f"{Path(__file__).resolve().parent}/../../share/amd_smi")
-sys.path.append("/opt/rocm/share/amd_smi")
 
+# If the python library is installed, it will overwrite the path above
 from amdsmi import amdsmi_interface
 from amdsmi import amdsmi_exception
 

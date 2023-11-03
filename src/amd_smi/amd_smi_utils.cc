@@ -116,29 +116,41 @@ amdsmi_status_t smi_amdgpu_get_board_info(amd::smi::AMDSmiGPUDevice* device, amd
         return AMDSMI_STATUS_NOT_SUPPORTED;
     }
     SMIGPUDEVICE_MUTEX(device->get_mutex())
-        std::string product_name_path = "/sys/class/drm/" + device->get_gpu_path() + std::string("/device/product_name");
-    std::string product_number_path = "/sys/class/drm/" + device->get_gpu_path() + std::string("/device/product_number");
-    std::string serial_number_path = "/sys/class/drm/" + device->get_gpu_path() + std::string("/device/serial_number");
+    std::string model_number_path = "/sys/class/drm/" + device->get_gpu_path() + std::string("/device/product_number");
+    std::string product_serial_path = "/sys/class/drm/" + device->get_gpu_path() + std::string("/device/serial_number");
+    std::string fru_id_path = "/sys/class/drm/" + device->get_gpu_path() + std::string("/device/fru_id");
+    std::string manufacturer_name_path = "/sys/class/drm/" + device->get_gpu_path() + std::string("/device/manufacturer");
+    std::string product_name_path = "/sys/class/drm/" + device->get_gpu_path() + std::string("/device/product_name");
 
     FILE *fp;
 
-    fp = fopen(product_name_path.c_str(), "rb");
-    if (fp) {
-        fgets(info->product_name, sizeof(info->product_name), fp);
-        fclose(fp);
-    }
-
-
-    fp = fopen(product_number_path.c_str(), "rb");
+    fp = fopen(model_number_path.c_str(), "rb");
     if (fp) {
         fgets(info->model_number, sizeof(info->model_number), fp);
         fclose(fp);
     }
 
-
-    fp = fopen(serial_number_path.c_str(), "rb");
+    fp = fopen(product_serial_path.c_str(), "rb");
     if (fp) {
-        fscanf(fp, "%lx", &info->product_serial);
+        fgets(info->product_serial, sizeof(info->product_serial), fp);
+        fclose(fp);
+    }
+
+    fp = fopen(fru_id_path.c_str(), "rb");
+    if (fp) {
+        fgets(info->fru_id, sizeof(info->fru_id), fp);
+        fclose(fp);
+    }
+
+    fp = fopen(manufacturer_name_path.c_str(), "rb");
+    if (fp) {
+        fgets(info->manufacturer_name, sizeof(info->manufacturer_name), fp);
+        fclose(fp);
+    }
+
+    fp = fopen(product_name_path.c_str(), "rb");
+    if (fp) {
+        fgets(info->product_name, sizeof(info->product_name), fp);
         fclose(fp);
     }
 
