@@ -104,8 +104,39 @@ do_ldconfig() {
   fi
 }
 
+do_install_amdsmi_python_lib() {
+  # get python version
+  local python3_minor_version
+  python3_minor_version=$(python3 -c 'import sys;print(sys.version_info.minor)')
+  if [ $? -ne 0 ]; then
+    echo "[WARNING] Could not determine python version. "\
+      "AMD-SMI python library will not be installed."
+    return
+  fi
+
+  # check if python version is supported
+  if [ "$python3_minor_version" -lt 6 ]; then
+    echo "[WARNING] AMD-SMI python library is not "\
+      "supported on python version 3.$python3_minor_version. "\
+      "AMD-SMI python library will not be installed."
+    return
+  fi
+
+  # Remove old python library
+  python3 -m pip uninstall amdsmi --yes --quiet
+
+  # install python library at @CPACK_PACKAGING_INSTALL_PREFIX@/@SHARE_INSTALL_PREFIX@/amdsmi
+  local python_lib_path=@CPACK_PACKAGING_INSTALL_PREFIX@/@SHARE_INSTALL_PREFIX@
+  python3 -m pip install "$python_lib_path"
+  python3 -m pip show argcomplete
+  if [ $? -ne 1 ]; then
+    activate-global-python-argcomplete
+  fi
+}
+
 case "$1" in
   ( configure )
+    do_install_amdsmi_python_lib || return 0
     do_ldconfig
     do_configureLogrotate || return 0
   ;;

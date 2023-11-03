@@ -10,17 +10,10 @@ Recommended: At least one AMD GPU with AMD driver installed
 
 ### Requirements
 
-* python 3.7+ 64-bit
+* python 3.6.8+ 64-bit
 * amdgpu driver must be loaded for amdsmi_init() to pass
 
-### CLI Installation
-
-Before amd-smi install, ensure previous versions of amdsmi library are uninstalled using pip:
-
-```bash
-python3 -m pip list | grep amd
-python3 -m pip uninstall amdsmi
-```
+### Installation
 
 * Install amdgpu driver
 * Install amd-smi-lib package through package manager
@@ -29,41 +22,34 @@ python3 -m pip uninstall amdsmi
 ### Install Example for Ubuntu 22.04
 
 ``` bash
-python3 -m pip list | grep amd
-python3 -m pip uninstall amdsmi
 apt install amd-smi-lib
 amd-smi --help
 ```
 
-### Python Development Library Installation
+### Optional autocompletion
 
-This option is for users who want to develop their own scripts using amd-smi's python library
+`amd-smi` cli application supports autocompletion. The package should attempt to install it, if argcomplete is not installed you can enable it by using the following commands:
 
-Verify that your python version is 3.7+ to install the python library
-
-* Install amdgpu driver
-* Install amd-smi-lib package through package manager
-* cd /opt/rocm/share/amd_smi
-* python3 -m pip install --upgrade pip
-* python3 -m pip install --user .
-* import amdsmi in python to start development
-
-Warning: this will take precedence over the cli tool's library install, to avoid issues run these steps after every amd-smi-lib update.
-
-#### Older RPM Packaged OS's
-
-The default python versions in older RPM based OS's are not gauranteed to have the minium version.
-
-For example RHEL 8 and SLES 15 are 3.6.8 and 3.6.15 . You will need to ensure the latest yaml package is installed ( pyyaml >= 5.1) pyyaml is installed to your pip instance:
-
-``` bash
-python3 -m pip install pyyaml
-amd-smi list
+```bash
+python3 -m pip install argcomplete
+activate-global-python-argcomplete
+# restart shell to enable
 ```
 
-While the CLI will work with these older python versions, to install the python development library you need to upgrade to python 3.7+
+### Manual/Multiple Rocm Instance Python Library Install
+
+In the event there are multiple rocm installations and pyenv is not being used, to use the correct amdsmi version you must uninstall previous versions of amd-smi and install the version you want directly from your rocm instance.
 
 #### Python Library Install Example for Ubuntu 22.04
+
+Remove previous amdsmi installation:
+
+```bash
+python3 -m pip list | grep amd
+python3 -m pip uninstall amdsmi
+```
+
+Then install Python library from your target rocm instance:
 
 ``` bash
 apt install amd-smi-lib
@@ -72,6 +58,8 @@ cd /opt/rocm/share/amd_smi
 python3 -m pip install --upgrade pip
 python3 -m pip install --user .
 ```
+
+Now you have the amdsmi python library in your python path:
 
 ``` bash
 ~$ python3
@@ -132,8 +120,8 @@ GPU with some basic information for each VF.
 optional arguments:
   -h, --help               show this help message and exit
   -g, --gpu GPU [GPU ...]  Select a GPU ID, BDF, or UUID from the possible choices:
-                              ID:0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
-                                all | Selects all devices
+                           ID: 0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
+                             all | Selects all devices
 
 Command Modifiers:
   --json                   Displays output in JSON format (human readable by default).
@@ -155,8 +143,8 @@ If no static argument is provided, all static information will be displayed.
 Static Arguments:
   -h, --help               show this help message and exit
   -g, --gpu GPU [GPU ...]  Select a GPU ID, BDF, or UUID from the possible choices:
-                              ID:0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
-                                all | Selects all devices
+                           ID: 0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
+                             all | Selects all devices
   -a, --asic               All asic information
   -b, --bus                All bus information
   -V, --vbios              All video bios information (if available)
@@ -187,8 +175,8 @@ If no GPU is specified, return firmware information for all GPUs on the system.
 Firmware Arguments:
   -h, --help                   show this help message and exit
   -g, --gpu GPU [GPU ...]      Select a GPU ID, BDF, or UUID from the possible choices:
-                               ID:0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
-                                all | Selects all devices
+                               ID: 0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
+                                 all | Selects all devices
   -f, --ucode-list, --fw-list  All FW list information
 
 Command Modifiers:
@@ -209,8 +197,8 @@ If no GPU is specified, return bad page information for all GPUs on the system.
 Bad Pages Arguments:
   -h, --help               show this help message and exit
   -g, --gpu GPU [GPU ...]  Select a GPU ID, BDF, or UUID from the possible choices:
-                              ID:0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
-                                all | Selects all devices
+                           ID: 0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
+                             all | Selects all devices
   -p, --pending            Displays all pending retired pages
   -r, --retired            Displays retired pages
   -u, --un-res             Displays unreservable pages
@@ -235,8 +223,8 @@ If no metric argument is provided all metric information will be displayed.
 Metric arguments:
   -h, --help                   show this help message and exit
   -g, --gpu GPU [GPU ...]      Select a GPU ID, BDF, or UUID from the possible choices:
-                               ID:0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
-                                all | Selects all devices
+                               ID: 0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
+                                 all | Selects all devices
   -w, --watch INTERVAL         Reprint the command in a loop of INTERVAL seconds
   -W, --watch_time TIME        The total TIME to watch the given command
   -i, --iterations ITERATIONS  Total number of ITERATIONS to loop on the given command
@@ -275,8 +263,8 @@ If no process argument is provided all process information will be displayed.
 Process arguments:
   -h, --help                   show this help message and exit
   -g, --gpu GPU [GPU ...]      Select a GPU ID, BDF, or UUID from the possible choices:
-                                ID: 0 | BDF: 0000:23:00.0 | UUID: c4ff73bf-0000-1000-802e-0812b504ed69
-                                  all | Selects all devices
+                               ID: 0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
+                                 all | Selects all devices
   -w, --watch INTERVAL         Reprint the command in a loop of INTERVAL seconds
   -W, --watch_time TIME        The total TIME to watch the given command
   -i, --iterations ITERATIONS  Total number of ITERATIONS to loop on the given command
@@ -304,8 +292,8 @@ If no GPU is specified, returns event information for all GPUs on the system.
 Event Arguments:
   -h, --help               show this help message and exit
   -g, --gpu GPU [GPU ...]  Select a GPU ID, BDF, or UUID from the possible choices:
-                              ID:0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
-                                all | Selects all devices
+                           ID: 0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
+                             all | Selects all devices
 
 Command Modifiers:
   --json                   Displays output in JSON format (human readable by default).
@@ -326,8 +314,8 @@ If no topology argument is provided all topology information will be displayed.
 Topology arguments:
   -h, --help               show this help message and exit
   -g, --gpu GPU [GPU ...]  Select a GPU ID, BDF, or UUID from the possible choices:
-                              ID:0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
-                                all | Selects all devices
+                           ID: 0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
+                             all | Selects all devices
   -a, --access             Displays link accessibility between GPUs
   -w, --weight             Displays relative weight between GPUs
   -o, --hops               Displays the number of hops between GPUs
@@ -355,8 +343,8 @@ A set argument must be provided; Multiple set arguments are accepted
 Set Arguments:
   -h, --help                         show this help message and exit
   -g, --gpu GPU [GPU ...]            Select a GPU ID, BDF, or UUID from the possible choices:
-                                        ID: 0 | BDF: 0000:23:00.0 | UUID: c4ff73bf-0000-1000-802e-0812b504ed69
-                                          all | Selects all devices
+                                     ID: 0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
+                                       all | Selects all devices
   -f, --fan %                        Set GPU fan speed (0-255 or 0-100%)
   -l, --perf-level LEVEL             Set performance level
   -P, --profile SETPROFILE           Set power profile level (#) or a quoted string of custom profile attributes
@@ -386,8 +374,8 @@ A reset argument must be provided; Multiple reset arguments are accepted
 Reset Arguments:
   -h, --help               show this help message and exit
   -g, --gpu GPU [GPU ...]  Select a GPU ID, BDF, or UUID from the possible choices:
-                                ID: 0 | BDF: 0000:23:00.0 | UUID: c4ff73bf-0000-1000-802e-0812b504ed69
-                                  all | Selects all devices
+                           ID: 0 | BDF:0000:23:00.0 | UUID:ffff73bf-0000-1000-80ff-ffffffffffff
+                             all | Selects all devices
   -G, --gpureset           Reset the specified GPU
   -c, --clocks             Reset clocks and overdrive to default
   -f, --fans               Reset fans to automatic (driver) control

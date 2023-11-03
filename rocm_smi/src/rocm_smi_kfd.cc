@@ -926,10 +926,15 @@ int KFDNode::get_cache_info(rsmi_gpu_cache_info_t *info) {
       int cache_level = std::stoi(level);
       if (cache_level < 0 ) continue;
 
+      std::string type = get_properties_from_file(prop_file, "type ");
+      int cache_type = std::stoi(type);
+      if (cache_type <= 0) continue;
+
       // only count once
       bool is_count_already = false;
       for (unsigned int i=0; i < info->num_cache_types; i++) {
-        if (info->cache->cache_level == static_cast<uint32_t>(cache_level)) {
+        if (info->cache[i].cache_level == static_cast<uint32_t>(cache_level) &&
+            info->cache[i].flags == static_cast<uint32_t>(cache_type)) {
           is_count_already = true;
           break;
         }
@@ -940,8 +945,10 @@ int KFDNode::get_cache_info(rsmi_gpu_cache_info_t *info) {
       std::string size = get_properties_from_file(prop_file, "size ");
       int cache_size = std::stoi(size);
       if (cache_size <= 0) continue;
+
       info->cache[info->num_cache_types].cache_level = cache_level;
       info->cache[info->num_cache_types].cache_size_kb = cache_size;
+      info->cache[info->num_cache_types].flags = cache_type;
       info->num_cache_types++;
     } catch (...) {
       continue;
@@ -1033,6 +1040,27 @@ int get_gpu_id(uint32_t node, uint64_t *gpu_id) {
     LOG_ERROR(ss);
   }
   return retVal;
+}
+
+// /sys/class/kfd/kfd/topology/nodes/*/properties | grep gfx_target_version
+int KFDNode::get_gfx_target_version(uint64_t *gfx_target_version) {
+  std::ostringstream ss;
+  std::string properties_path = "/sys/class/kfd/kfd/topology/nodes/"
+    + std::to_string(this->node_indx_) + "/properties";
+  uint64_t gfx_version = 0;
+  int ret = read_node_properties(this->node_indx_, "gfx_target_version",
+                                 &gfx_version);
+  *gfx_target_version = gfx_version;
+  ss << __PRETTY_FUNCTION__
+     << " | File: " << properties_path
+     << " | Successfully read node #" << std::to_string(this->node_indx_)
+     << " for gfx_target_version"
+     << " | Data (gfx_target_version) *gfx_target_version = "
+     << std::to_string(*gfx_target_version)
+     << " | return = " << std::to_string(ret)
+     << " | ";
+  LOG_DEBUG(ss);
+  return ret;
 }
 
 }  // namespace smi

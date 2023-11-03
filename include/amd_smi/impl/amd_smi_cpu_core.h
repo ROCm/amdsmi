@@ -60,14 +60,13 @@ public:
 
     virtual ~AMDSmiCpuCore() {}
 
+    const uint32_t& get_core_id() const { return core_idx_; }
     void add_processor(AMDSmiProcessor* processor) { processors_.push_back(processor); }
     std::vector<AMDSmiProcessor*>& get_processors() { return processors_;}
     amdsmi_status_t get_processor_count(uint32_t* processor_count) const;
 
 private:
     uint32_t core_idx_;
-    //uint64_t input;
-    //uint32_t idx;
     std::vector<AMDSmiProcessor*> processors_;
 };
 

@@ -1,1 +1,1 @@
-__version__ = "23.4.0.0"
+from _version import __version__

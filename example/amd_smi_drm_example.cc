@@ -312,9 +312,10 @@ int main() {
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_gpu_cache_info:\n");
             for (unsigned int i = 0 ; i < cache_info.num_cache_types; i++) {
-                printf("\tCache Level: %d, Cache Size: %d KB\n",
+                printf("\tCache Level: %d, Cache Size: %d KB, Cache type: 0x%x\n",
                     cache_info.cache[i].cache_level,
-                    cache_info.cache[i].cache_size_kb);
+                    cache_info.cache[i].cache_size_kb,
+                    cache_info.cache[i].flags);
             }
 
             // Get power measure
@@ -619,9 +620,11 @@ int main() {
             std::cout << "\tdevice [" << j
                       << "]\n\t\tProduct name: " << board_info.product_name
                       << "\n"
-                      << "\t\tProduct number: " << board_info.product_serial
+                      << "\t\tModel Number: " << board_info.model_number
                       << "\n"
-                      << "\t\tSerial number: " << board_info.serial_number
+                      << "\t\tBoard Serial: " << board_info.product_serial
+                      << "\n"
+                      << "\t\tManufacturer Name: " << board_info.manufacturer_name
                       << "\n\n";
 
             // Get temperature

@@ -2,7 +2,7 @@
 # https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
 
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=59.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -10,11 +10,11 @@ name = "amdsmi"
 authors = [
     {name = "AMD", email = "amd-smi.support@amd.com"},
 ]
-version = "23.4.0.0"
+version = "@amd_smi_libraries_VERSION_STRING@"
 license = {file = "amdsmi/LICENSE"}
 readme = {file = "amdsmi/README.md", content-type = "text/markdown"}
 description = "AMDSMI Python LIB - AMD GPU Monitoring Library"
-requires-python = ">=3.7"
+requires-python = ">=3.6"
 dependencies = [
     "PyYAML >= 5.0",
     "clang >= 14.0"
@@ -25,3 +25,7 @@ dependencies = [
 
 [tool.setuptools]
 packages = ["amdsmi"]
+
+# install libamd_smi.so
+[tool.setuptools.package-data]
+amdsmi = ["*.so"]

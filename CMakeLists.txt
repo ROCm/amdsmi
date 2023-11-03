@@ -28,20 +28,33 @@ find_program(GIT NAMES git)
 
 ## Setup the package version based on git tags.
 set(PKG_VERSION_GIT_TAG_PREFIX "amdsmi_pkg_ver")
-get_package_version_number("23.4.0" ${PKG_VERSION_GIT_TAG_PREFIX} GIT)
+get_package_version_number("23.4.2" ${PKG_VERSION_GIT_TAG_PREFIX} GIT)
 message("Package version: ${PKG_VERSION_STR}")
-set(${AMD_SMI_LIBS_TARGET}_VERSION_MAJOR "${VERSION_MAJOR}")
-set(${AMD_SMI_LIBS_TARGET}_VERSION_MINOR "${VERSION_MINOR}")
-set(${AMD_SMI_LIBS_TARGET}_VERSION_PATCH "0")
+set(${AMD_SMI_LIBS_TARGET}_VERSION_MAJOR "${CPACK_PACKAGE_VERSION_MAJOR}")
+set(${AMD_SMI_LIBS_TARGET}_VERSION_MINOR "${CPACK_PACKAGE_VERSION_MINOR}")
+set(${AMD_SMI_LIBS_TARGET}_VERSION_PATCH "${CPACK_PACKAGE_VERSION_PATCH}")
 set(${AMD_SMI_LIBS_TARGET}_VERSION_BUILD "0")
+set(${AMD_SMI_LIBS_TARGET}_VERSION_HASH "${PKG_VERSION_HASH}")
+
+set(${AMD_SMI_LIBS_TARGET}_VERSION_STRING "${${AMD_SMI_LIBS_TARGET}_VERSION_MAJOR}.${${AMD_SMI_LIBS_TARGET}_VERSION_MINOR}.${${AMD_SMI_LIBS_TARGET}_VERSION_PATCH}+${${AMD_SMI_LIBS_TARGET}_VERSION_HASH}")
+
+# Make proper version for appending
+# Default Value is 99999
+set(ROCM_VERSION_FOR_PACKAGE "99999")
+if(DEFINED ENV{ROCM_LIBPATCH_VERSION})
+    set(ROCM_VERSION_FOR_PACKAGE $ENV{ROCM_LIBPATCH_VERSION})
+endif()
+#Prepare final version for the CPACK use
+set(CPACK_PACKAGE_VERSION
+    "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}.${ROCM_VERSION_FOR_PACKAGE}")
 
 # The following default version values should be updated as appropriate for
 # ABI breaks (update MAJOR and MINOR), and ABI/API additions (update MINOR).
 # Until ABI stabilizes VERSION_MAJOR will be 0. This should be over-ridden
 # by git tags (through "git describe") when they are present.
-set(PKG_VERSION_MAJOR "${VERSION_MAJOR}")
-set(PKG_VERSION_MINOR "${VERSION_MINOR}")
-set(PKG_VERSION_PATCH 0)
+set(PKG_VERSION_MAJOR "${CPACK_PACKAGE_VERSION_MAJOR}")
+set(PKG_VERSION_MINOR "${CPACK_PACKAGE_VERSION_MINOR}")
+set(PKG_VERSION_PATCH "${CPACK_PACKAGE_VERSION_PATCH}")
 set(PKG_VERSION_NUM_COMMIT 0)
 
 set(AMD_SMI_PACKAGE
@@ -81,7 +94,11 @@ set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
 generic_package()
 
 ## Compiler flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -fno-rtti -m64 -msse -msse2")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -fno-rtti")
+if (${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "x86_64")
+    set(CMAKE_CXX_FLAGS
+     "${CMAKE_CXX_FLAGS} -m64 -msse -msse2")
+endif()
 # Security options
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion -Wcast-align")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wformat=2 -fno-common -Wstrict-overflow")
@@ -226,21 +243,14 @@ install(
     DESTINATION share/doc/${AMD_SMI}
     COMPONENT dev)
 
-#Make proper version for appending
-#Default Value is 99999, setting it first
-set(ROCM_VERSION_FOR_PACKAGE "99999")
-if(DEFINED ENV{ROCM_LIBPATCH_VERSION})
-    set(ROCM_VERSION_FOR_PACKAGE $ENV{ROCM_LIBPATCH_VERSION})
-endif()
-
 #Debian package specific variables
 set(CPACK_DEBIAN_PACKAGE_PROVIDES "amd-smi")
-set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "sudo, libdrm-dev, python3-yaml")
+set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "sudo, libdrm-dev, python3-yaml, python3-argcomplete")
 set(CPACK_DEBIAN_ASAN_PACKAGE_RECOMMENDS ${CPACK_DEBIAN_PACKAGE_RECOMMENDS})
 set(CPACK_DEBIAN_DEV_PACKAGE_RECOMMENDS ${CPACK_DEBIAN_PACKAGE_RECOMMENDS})
 set(CPACK_DEBIAN_ASAN_PACKAGE_PROVIDES "${AMD_SMI_PACKAGE}-asan")
 set(CPACK_DEBIAN_DEV_PACKAGE_PROVIDES "${AMD_SMI_PACKAGE}")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "python3 (>= 3.7.9)")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "python3 (>= 3.6.8), python3-pip")
 set(CPACK_DEBIAN_ASAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS})
 set(CPACK_DEBIAN_DEV_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS})
 
@@ -259,9 +269,13 @@ endif()
 set(CPACK_RPM_PACKAGE_PROVIDES "amd-smi")
 set(CPACK_RPM_DEV_PACKAGE_PROVIDES "${AMD_SMI_PACKAGE}")
 set(CPACK_RPM_ASAN_PACKAGE_PROVIDES "${AMD_SMI_PACKAGE}-asan")
-set(CPACK_RPM_PACKAGE_SUGGESTS "python3 >= 3.7.9")
+set(CPACK_RPM_PACKAGE_SUGGESTS "python3-argcomplete")
 set(CPACK_RPM_DEV_PACKAGE_SUGGESTS ${CPACK_RPM_PACKAGE_SUGGESTS})
 set(CPACK_RPM_ASAN_PACKAGE_SUGGESTS ${CPACK_RPM_PACKAGE_SUGGESTS})
+# python version gated by rhel8 :(
+set(CPACK_RPM_PACKAGE_REQUIRES "python3 >= 3.6.8, python3-pip")
+set(CPACK_RPM_DEV_PACKAGE_REQUIRES ${CPACK_RPM_PACKAGE_REQUIRES})
+set(CPACK_RPM_ASAN_PACKAGE_REQUIRES ${CPACK_RPM_PACKAGE_REQUIRES})
 
 # don't terminate if bytecompile of python files fails
 set(CPACK_RPM_SPEC_MORE_DEFINE "%define _python_bytecompile_errors_terminate_build 0")
@@ -294,17 +308,12 @@ endif()
 # https://bugzilla.redhat.com/show_bug.cgi?id=1811358
 # set(CPACK_RPM_PACKAGE_SUGGESTS "sudo, libdrm-dev")
 
-#Prepare final version for the CPACK use
-set(CPACK_PACKAGE_VERSION
-    "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}.${ROCM_VERSION_FOR_PACKAGE}"
-)
-
 ## Process the Rpm install/remove scripts to update the CPACK variables
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/RPM/post.in" RPM/post @ONLY)
-configure_file ( "${CMAKE_CURRENT_SOURCE_DIR}/RPM/preun.in" RPM/preun @ONLY )
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/RPM/preun.in" RPM/preun @ONLY)
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/RPM/postun.in" RPM/postun @ONLY)
 set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_BINARY_DIR}/RPM/post")
-set ( CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_BINARY_DIR}/RPM/preun" )
+set(CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_BINARY_DIR}/RPM/preun")
 set(CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_BINARY_DIR}/RPM/postun")
 
 #Set the names now using CPACK utility
