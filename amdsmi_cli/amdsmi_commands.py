@@ -50,6 +50,11 @@ class AMDSMICommands():
                 sys.exit(-1)
             else:
                 raise e
+
+        if len(self.device_handles) == 0:
+            logging.error('Unable to detect any devices, check if driver is initialized (amdgpu not found in modules)')
+            sys.exit(-1)
+
         self.stop = ''
 
 
