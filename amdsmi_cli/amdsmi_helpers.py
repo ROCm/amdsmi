@@ -154,6 +154,10 @@ class AMDSMIHelpers():
             else:
                 raise e
 
+        if len(device_handles) == 0:
+            logging.error('Unable to find any devices, check if driver is initialized (amdgpu not found in modules)')
+            sys.exit(-1)
+
         # Handle spacing for the gpu_choices_str
         max_padding = int(math.log10(len(device_handles))) + 1
 
@@ -170,11 +174,11 @@ class AMDSMIHelpers():
                 id_padding = max_padding
             else:
                 id_padding = max_padding - int(math.log10(gpu_id))
-            gpu_choices_str += f"\tID: {gpu_id}{' ' * id_padding}| BDF: {bdf} | UUID: {uuid}\n"
+            gpu_choices_str += f"ID: {gpu_id}{' ' * id_padding}| BDF: {bdf} | UUID: {uuid}\n"
 
         # Add the all option to the gpu_choices
         gpu_choices["all"] = "all"
-        gpu_choices_str += f"\t  all{' ' * max_padding}| Selects all devices\n"
+        gpu_choices_str += f"  all{' ' * max_padding}| Selects all devices\n"
 
         return (gpu_choices, gpu_choices_str)
 

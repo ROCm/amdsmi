@@ -1,0 +1,9 @@
+# this file is only required for setuptools < 61.0
+# mostly a rhel8 limitation...
+
+[metadata]
+name = amdsmi
+version = @amd_smi_libraries_VERSION_STRING@
+
+[options.package_data]
+amdsmi = *.so

@@ -87,6 +87,9 @@ class KFDNode {
     // Get cache info from kfd
     int get_cache_info(rsmi_gpu_cache_info_t *info);
 
+    // Get gfx target version from kfd
+    int get_gfx_target_version(uint64_t* gfx_target_version);
+
  private:
     uint32_t node_indx_;
     uint32_t amdgpu_dev_index_;

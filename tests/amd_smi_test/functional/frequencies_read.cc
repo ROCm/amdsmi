@@ -128,7 +128,7 @@ void TestFrequenciesRead::Run(void) {
                                ": Not supported on this machine" << std::endl;
           // Verify api support checking functionality is working
           err =  amdsmi_get_clk_freq(processor_handles_[i], t, nullptr);
-          ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
+          ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
           return;
         }
 

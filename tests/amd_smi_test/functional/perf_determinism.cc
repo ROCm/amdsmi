@@ -5,7 +5,7 @@
  * The University of Illinois/NCSA
  * Open Source License (NCSA)
  *
- * Copyright (c) 022, Advanced Micro Devices, Inc.
+ * Copyright (c) 2020-2023, Advanced Micro Devices, Inc.
  * All rights reserved.
  *
  * Developed by:
@@ -106,20 +106,25 @@ void TestPerfDeterminism::Run(void) {
     err =  amdsmi_get_gpu_od_volt_info(processor_handles_[i], &odv);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       IF_VERB(STANDARD) {
-        std::cout << "\t** Not supported on this machine" << std::endl;
+        std::cout << "\t** Not supported on this machine\n";
       }
       return;
-    }
-    else{
+    }  else if (err == AMDSMI_STATUS_SUCCESS) {
       clkvalue = (odv.curr_sclk_range.lower_bound/1000000) + 50;
+    } else {
+      IF_VERB(STANDARD) {
+        std::cout << "\t** Unable to retrieve lower bound sclk, continue.. \n";
+      }
+      continue;
     }
+    std::cout << "About to rsmi_perf_determinism_mode_set() -->\n";
 
     err = amdsmi_set_gpu_perf_determinism_mode(processor_handles_[i], clkvalue);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       IF_VERB(STANDARD) {
         std::cout << "\t**Not supported on this machine" << std::endl;
       }
-      return;
+      continue;
     } else {
       ret = amdsmi_get_gpu_perf_level(processor_handles_[i], &pfl);
       CHK_ERR_ASRT(ret)
@@ -138,7 +143,6 @@ void TestPerfDeterminism::Run(void) {
           std::cout << "\t**New Perf Level:" <<  GetPerfLevelStr(pfl) <<
                                                                   std::endl;
       }
-      return;
-    }
-  }
+    }  // END - SET SUPPORTED
+  }  // END - DEVICE LOOP
 }

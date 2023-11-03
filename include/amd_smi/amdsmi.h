@@ -455,11 +455,23 @@ typedef struct {
   uint32_t reserved[16];
 } amdsmi_vbios_info_t;
 
+/**
+ * @brief cache flags
+ */
+typedef enum {
+  CACHE_FLAGS_ENABLED = 0x00000001,
+  CACHE_FLAGS_DATA_CACHE = 0x00000002,
+  CACHE_FLAGS_INST_CACHE = 0x00000004,
+  CACHE_FLAGS_CPU_CACHE = 0x00000008,
+  CACHE_FLAGS_SIMD_CACHE = 0x00000010,
+} amdsmi_cache_flags_type_t;
+
 typedef struct {
   uint32_t num_cache_types;
   struct cache_ {
     uint32_t cache_size_kb; /* In KB */
     uint32_t cache_level;
+    uint32_t flags;  // amdsmi_cache_flags_type_t which is a bitmask
     uint32_t reserved[3];
   } cache[AMDSMI_MAX_CACHE_TYPES];
   uint32_t reserved[15];
@@ -501,13 +513,12 @@ typedef struct {
 } amdsmi_driver_info_t;
 
 typedef struct {
-  uint64_t serial_number;
   bool  is_master;
   char  model_number[AMDSMI_NORMAL_STRING_LENGTH];
   char  product_serial[AMDSMI_NORMAL_STRING_LENGTH];
   char  fru_id[AMDSMI_NORMAL_STRING_LENGTH];
-  char  product_name[AMDSMI_PRODUCT_NAME_LENGTH];
   char  manufacturer_name[AMDSMI_NORMAL_STRING_LENGTH];
+  char  product_name[AMDSMI_PRODUCT_NAME_LENGTH];
 } amdsmi_board_info_t;
 
 typedef struct {
@@ -1470,6 +1481,20 @@ amdsmi_status_t amdsmi_get_socket_info(
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t amdsmi_get_cpusocket_info(amdsmi_cpusocket_handle socket_handle, uint32_t sockid);
+
+/**
+ *  @brief Get information about the given cpu core
+ *
+ *  @details This function retrieves cpu core information. The @p core_handle must
+ *  be provided to retrieve the core ID.
+ *
+ *  @param[in] core_handle a processor handle
+ *
+ *  @param[out] coreid The id of the core.
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_get_cpucore_info(amdsmi_processor_handle core_handle, uint32_t coreid);
 #endif
 
 /**
@@ -4588,51 +4613,6 @@ amdsmi_status_t amdsmi_get_metrics_table(amdsmi_cpusocket_handle socket_handle, 
 /**  @defgroup auxiquer     Auxillary functions                              */
 /*---------------------------------------------------------------------------*/
 /** @{  */
-
-/**
- *  @brief Get cpu family.
- *
- *  @param[in,out]	family - Input buffer to fill family
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t amdsmi_get_cpu_family(uint32_t family);
-
-/**
- *  @brief Get cpu model.
- *
- *  @param[in,out]	family - Input buffer to fill family
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t amdsmi_get_cpu_model(uint32_t model);
-
-/**
- *  @brief Get threads per core.
- *
- *  @param[in,out]	threads - Input buffer to fill threads count.
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t amdsmi_get_cpu_threads_per_core(uint32_t threads);
-
-/**
- *  @brief Get number of cpus.
- *
- *  @param[in,out]	cpus - Input buffer to fill number of cpus.
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t amdsmi_get_number_of_cpu_cores(uint32_t cpus);
-
-/**
- *  @brief Get number of sockets
- *
- *  @param[in,out]	sockets - Input buffer to fill number of sockets.
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t amdsmi_get_number_of_cpu_sockets(uint32_t sockets);
 
 /**
  *  @brief Get first online core on socket.
