@@ -154,6 +154,10 @@ class AMDSMIHelpers():
             else:
                 raise e
 
+        if len(device_handles) == 0:
+            logging.error('Unable to find any devices, check if driver is initialized (amdgpu not found in modules)')
+            sys.exit(-1)
+
         # Handle spacing for the gpu_choices_str
         max_padding = int(math.log10(len(device_handles))) + 1
 
