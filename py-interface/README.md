@@ -3944,3 +3944,128 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
+
+### amdsmi_get_cpu_core_boostlimit
+
+Description: Get boost limit of the cpu core
+
+Output: amdsmi frequency
+
+Exceptions that can be thrown by `amdsmi_get_cpu_core_boostlimit` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    core_handles = amdsmi_get_cpucore_handles()
+    if len(core_handles) == 0:
+        print("No CPU cores on machine")
+    else:
+        for core in core_handles:
+            boost_limit = amdsmi_get_cpu_core_boostlimit(core)
+            print(boost_limit)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpu_socket_c0_residency
+
+Description: Get the cpu socket C0 residency.
+
+Output: amdsmi C0 residency value
+
+Exceptions that can be thrown by `amdsmi_get_cpu_socket_c0_residency` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            c0_residency = amdsmi_get_cpu_socket_c0_residency(socket)
+            print(c0_residency)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_set_cpu_core_boostlimit
+
+Description: Set the cpu core boost limit.
+
+Output: amdsmi boostlimit value
+
+Exceptions that can be thrown by `amdsmi_set_cpu_core_boostlimit` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    core_handles = amdsmi_get_cpucore_handles()
+    if len(core_handles) == 0:
+        print("No CPU cores on machine")
+    else:
+        for core in core_handles:
+            boost_limit = amdsmi_set_cpu_core_boostlimit(core, 1000)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_set_cpu_socket_boostlimit
+
+Description: Set the cpu socket boost limit.
+
+Input: amdsmi boostlimit value
+
+Exceptions that can be thrown by `amdsmi_set_cpu_socket_boostlimit` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            boost_limit = amdsmi_set_cpu_socket_boostlimit(socket, 1000)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpu_ddr_bw
+
+Description: Get the CPU DDR Bandwidth.
+
+Output: amdsmi ddr bandwidth data
+
+Exceptions that can be thrown by `amdsmi_get_cpu_ddr_bw` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            ddr_bw = amdsmi_get_cpu_ddr_bw(socket)
+            print(ddr_bw['max_bw'])
+            print(ddr_bw['utilized_bw'])
+            print(ddr_bw['utilized_pct'])
+except AmdSmiException as e:
+    print(e)
+```
