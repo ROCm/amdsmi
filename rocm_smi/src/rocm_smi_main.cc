@@ -52,6 +52,7 @@
 #include <fstream>
 #include <functional>
 #include <iostream>
+#include <algorithm>
 #include <memory>
 #include <set>
 #include <sstream>
@@ -393,6 +394,29 @@ RocmSMI::Initialize(uint64_t flags) {
             "Failed to initialize rocm_smi library (amdgpu node discovery).");
   }
 
+  std::shared_ptr<amd::smi::Device> dev;
+  // Sort index based on the BDF, collect BDF id firstly.
+  std::vector<std::pair<uint64_t, std::shared_ptr<amd::smi::Device>>> dv_to_id;
+  dv_to_id.reserve(devices_.size());
+  for (uint32_t dv_ind = 0; dv_ind < devices_.size(); ++dv_ind) {
+      dev = devices_[dv_ind];
+      uint64_t bdfid = dev->bdfid();
+      dv_to_id.push_back({bdfid, dev});
+    }
+  ss << __PRETTY_FUNCTION__ << " Sort index based on BDF.";
+  LOG_DEBUG(ss);
+
+  // Stable sort to keep the order if bdf is equal.
+  std::stable_sort(dv_to_id.begin(), dv_to_id.end(), []
+  (const std::pair<uint64_t, std::shared_ptr<amd::smi::Device>>& p1,
+    const std::pair<uint64_t, std::shared_ptr<amd::smi::Device>>& p2) {
+        return p1.first < p2.first;
+  });
+  devices_.clear();
+  for (uint32_t dv_ind = 0; dv_ind < dv_to_id.size(); ++dv_ind) {
+    devices_.push_back(dv_to_id[dv_ind].second);
+  }
+
   std::map<uint64_t, std::shared_ptr<KFDNode>> tmp_map;
   i_ret = DiscoverKFDNodes(&tmp_map);
   if (i_ret != 0) {
@@ -410,8 +434,6 @@ RocmSMI::Initialize(uint64_t flags) {
   std::map<std::pair<uint32_t, uint32_t>, std::shared_ptr<IOLink>>::iterator it;
   for (it = io_link_map_tmp.begin(); it != io_link_map_tmp.end(); it++)
     io_link_map_[it->first] = it->second;
-
-  std::shared_ptr<amd::smi::Device> dev;
 
   // Remove any drm nodes that don't have  a corresponding readable kfd node.
   // kfd nodes will not be added if their properties file is not readable.

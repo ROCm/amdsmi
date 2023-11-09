@@ -971,6 +971,98 @@ def amdsmi_set_cpu_pwr_efficiency_mode(
             socket_handle, sock_idx, mode)
     )
 
+def amdsmi_get_cpu_core_boostlimit(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle, core_idx: int
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+    if not isinstance(core_idx, int):
+        raise AmdSmiParameterException(core_idx, int)
+
+    boostlimit = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpu_core_boostlimit(
+            processor_handle, core_idx, ctypes.byref(boostlimit)
+        )
+    )
+
+    return boostlimit.value
+
+def amdsmi_get_cpu_socket_c0_residency(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle, sock_idx: int
+) -> int:
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+
+    c0_residency = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpu_socket_c0_residency(
+            socket_handle, sock_idx, ctypes.byref(c0_residency)
+        )
+    )
+
+    return c0_residency.value
+
+def amdsmi_set_cpu_core_boostlimit(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle, core_idx: int, boostlimit: int
+):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+    if not isinstance(core_idx, int):
+        raise AmdSmiParameterException(core_idx, int)
+    if not isinstance(boostlimit, int):
+        raise AmdSmiParameterException(boostlimit, int)
+    core_idx = ctypes.c_uint32(core_idx)
+    boostlimit = ctypes.c_uint32(boostlimit)
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_set_cpu_core_boostlimit(
+            processor_handle, core_idx, boostlimit)
+    )
+
+def amdsmi_set_cpu_socket_boostlimit(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle, sock_idx: int, boostlimit: int
+):
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+    if not isinstance(boostlimit, int):
+        raise AmdSmiParameterException(boostlimit, int)
+    sock_idx = ctypes.c_uint32(sock_idx)
+    boostlimit = ctypes.c_uint32(boostlimit)
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_set_cpu_socket_boostlimit(
+            socket_handle, sock_idx, boostlimit)
+    )
+
+def amdsmi_get_cpu_ddr_bw(socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle):
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+
+    ddr_bw = amdsmi_wrapper.amdsmi_ddr_bw_metrics_t()
+
+    _check_res(amdsmi_wrapper.amdsmi_get_cpu_ddr_bw(socket_handle, ddr_bw))
+
+    return {
+        "ddr_bw_max_bw": ddr_bw.max_bw,
+        "ddr_bw_utilized_bw": ddr_bw.utilized_bw,
+        "ddr_bw_utilized_pct": ddr_bw.utilized_pct
+    }
+
 def amdsmi_init(flag=AmdSmiInitFlags.INIT_AMD_GPUS):
     if not isinstance(flag, AmdSmiInitFlags):
         raise AmdSmiParameterException(flag, AmdSmiInitFlags)
