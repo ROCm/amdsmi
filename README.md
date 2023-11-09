@@ -45,7 +45,7 @@ amd-smi --help
 
 ```bash
 python3 -m pip install argcomplete
-activate-global-python-argcomplete
+activate-global-python-argcomplete --user
 # restart shell to enable
 ```
 

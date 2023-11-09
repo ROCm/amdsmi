@@ -105,6 +105,7 @@ do_ldconfig() {
 }
 
 do_install_amdsmi_python_lib() {
+  echo "Installing AMD-SMI python library (amdsmi)..."
   # get python version
   local python3_minor_version
   python3_minor_version=$(python3 -c 'import sys;print(sys.version_info.minor)')
@@ -122,21 +123,43 @@ do_install_amdsmi_python_lib() {
     return
   fi
 
+  local PREVIOUS_PIP_ROOT_ACTION="$PIP_ROOT_USER_ACTION"
+  export PIP_ROOT_USER_ACTION=ignore
+
   # Remove old python library
-  python3 -m pip uninstall amdsmi --yes --quiet
+  local pip_list_output
+  pip_list_output=$(python3 -m pip list --disable-pip-version-check)
+  # check pip list output for amdsmi
+  if [[ $pip_list_output == *"amdsmi"* ]]; then
+    echo "Detected old AMD-SMI python library (amdsmi)..."
+    python3 -m pip uninstall amdsmi --yes --quiet --disable-pip-version-check
+    echo "Removed old AMD-SMI python library (amdsmi)..."
+  fi
 
   # install python library at @CPACK_PACKAGING_INSTALL_PREFIX@/@SHARE_INSTALL_PREFIX@/amdsmi
   local python_lib_path=@CPACK_PACKAGING_INSTALL_PREFIX@/@SHARE_INSTALL_PREFIX@
-  python3 -m pip install "$python_lib_path"
-  python3 -m pip show argcomplete
-  if [ $? -ne 1 ]; then
-    activate-global-python-argcomplete
+  python3 -m pip install "$python_lib_path" --quiet --disable-pip-version-check
+
+  unset PIP_ROOT_USER_ACTION
+  export PIP_ROOT_USER_ACTION="$PREVIOUS_PIP_ROOT_ACTION"
+
+  pip_list_output=$(python3 -m pip list --disable-pip-version-check)
+  # check pip list output for argcomplete
+  if [[ $pip_list_output == *"argcomplete"* ]]; then
+    activate-global-python-argcomplete3
+    # Newer versions of argcomplete do not have the 3 at the end
+    if [ $? -ne 0 ]; then
+      echo "[WARNING] Could not find activate-global-python-argcomplete3. "\
+        "Trying newer activate-global-python-argcomplete..."
+      activate-global-python-argcomplete
+    fi
   fi
+  echo "Installed AMD-SMI python library (amdsmi)..."
 }
 
 # post install or upgrade, $i is 1 or 2 -> do these actions
 if [ "$1" -ge 1 ]; then
-  do_install_amdsmi_python_lib || return 0
+  do_install_amdsmi_python_lib
   do_ldconfig
-  do_configureLogrotate || return 0
+  do_configureLogrotate || exit 0
 fi
