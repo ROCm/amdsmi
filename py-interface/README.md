@@ -4069,3 +4069,133 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
+
+### amdsmi_get_cpu_socket_temperature
+
+Description: Get the socket temperature.
+
+Output: amdsmi temperature value
+
+Exceptions that can be thrown by `amdsmi_get_cpu_socket_temperature` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            ptmon = amdsmi_get_cpu_socket_temperature(socket)
+            print(ptmon)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpu_dimm_temp_range_and_refresh_rate
+
+Description: Get DIMM temperature range and refresh rate.
+
+Output: amdsmi dimm metric data
+
+Exceptions that can be thrown by `amdsmi_get_cpu_dimm_temp_range_and_refresh_rate` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            dimm = amdsmi_get_cpu_dimm_temp_range_and_refresh_rate(socket)
+            print(dimm['range'])
+            print(dimm['ref_rate'])
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpu_dimm_power_consumption
+
+Description: amdsmi_get_cpu_dimm_power_consumption.
+
+Output: amdsmi dimm power consumption value
+
+Exceptions that can be thrown by `amdsmi_get_cpu_dimm_power_consumption` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            dimm = amdsmi_get_cpu_dimm_power_consumption(socket)
+            print(dimm['power'])
+            print(dimm['update_rate'])
+            print(dimm['dimm_addr'])
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpu_dimm_thermal_sensor
+
+Description: Get DIMM thermal sensor value.
+
+Output: amdsmi dimm temperature data
+
+Exceptions that can be thrown by `amdsmi_get_cpu_dimm_thermal_sensor` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            dimm = amdsmi_get_cpu_dimm_thermal_sensor(socket)
+            print(dimm['sensor'])
+            print(dimm['update_rate'])
+            print(dimm['dimm_addr'])
+            print(dimm['temp'])
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_set_cpu_xgmi_width
+
+Description:  Set xgmi width.
+
+Input: amdsmi xgmi width
+
+Exceptions that can be thrown by `amdsmi_set_cpu_xgmi_width` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    socket_handles = amdsmi_get_cpusocket_handles()
+    if len(socket_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for socket in socket_handles:
+            xgmi_width = amdsmi_set_cpu_xgmi_width(socket, 0, 100)
+except AmdSmiException as e:
+    print(e)
+```
