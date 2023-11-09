@@ -1063,6 +1063,111 @@ def amdsmi_get_cpu_ddr_bw(socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle)
         "ddr_bw_utilized_pct": ddr_bw.utilized_pct
     }
 
+def amdsmi_get_cpu_socket_temperature(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle, sock_idx: int
+) -> int:
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+
+    ptmon = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpu_socket_temperature(
+            socket_handle, sock_idx, ctypes.byref(ptmon)
+        )
+    )
+
+    return ptmon.value
+
+def amdsmi_get_cpu_dimm_temp_range_and_refresh_rate(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle,
+    sock_idx: int, dimm_addr: int):
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+    if not isinstance(dimm_addr, int):
+        raise AmdSmiParameterException(dimm_addr, int)
+
+    dimm = amdsmi_wrapper.amdsmi_temp_range_refresh_rate_t()
+
+    _check_res(amdsmi_wrapper.amdsmi_get_cpu_dimm_temp_range_and_refresh_rate(socket_handle, dimm))
+
+    return {
+        "dimm_temperature_range": dimm.range,
+        "dimm_refresh_rate": dimm.ref_rate
+    }
+
+def amdsmi_get_cpu_dimm_power_consumption(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle,
+    sock_idx: int, dimm_addr: int):
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+    if not isinstance(dimm_addr, int):
+        raise AmdSmiParameterException(dimm_addr, int)
+
+    dimm = amdsmi_wrapper.amdsmi_dimm_power_t()
+
+    _check_res(amdsmi_wrapper.amdsmi_get_cpu_dimm_power_consumption(socket_handle, dimm))
+
+    return {
+        "dimm_power_consumed": dimm.power,
+        "dimm_power_update_rate": dimm.update_rate,
+        "dimm_dimm_addr": dimm.dimm_addr
+    }
+
+def amdsmi_get_cpu_dimm_thermal_sensor(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle,
+    sock_idx: int, dimm_addr: int):
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+    if not isinstance(dimm_addr, int):
+        raise AmdSmiParameterException(dimm_addr, int)
+
+    dimm_thermal = amdsmi_wrapper.amdsmi_dimm_thermal_t()
+
+    _check_res(amdsmi_wrapper.amdsmi_get_cpu_dimm_thermal_sensor(socket_handle, dimm_thermal))
+
+    return {
+        "dimm_thermal_sensor_value": dimm_thermal.sensor,
+        "dimm_thermal_update_rate": dimm_thermal.update_rate,
+        "dimm_thermal_dimm_addr": dimm_thermal.dimm_addr,
+        "dimm_thermal_temperature": dimm_thermal.temp
+    }
+
+def amdsmi_set_cpu_xgmi_width(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle, min_width: int, max_width: int
+):
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(min_width, int):
+        raise AmdSmiParameterException(min_width, int)
+    if not isinstance(max_width, int):
+        raise AmdSmiParameterException(max_width, int)
+
+    min_width = ctypes.c_uint8(min_width)
+    max_width = ctypes.c_uint8(max_width)
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_set_cpu_xgmi_width(
+            socket_handle, min_width, max_width)
+    )
+
 def amdsmi_init(flag=AmdSmiInitFlags.INIT_AMD_GPUS):
     if not isinstance(flag, AmdSmiInitFlags):
         raise AmdSmiParameterException(flag, AmdSmiInitFlags)
