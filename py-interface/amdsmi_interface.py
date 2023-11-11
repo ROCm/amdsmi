@@ -130,10 +130,10 @@ class AmdSmiFwBlock(IntEnum):
     FW_ID_RLC_SAVE_RESTORE_LIST = amdsmi_wrapper.FW_ID_RLC_SAVE_RESTORE_LIST
     FW_ID_ASD = amdsmi_wrapper.FW_ID_ASD
     FW_ID_TA_RAS = amdsmi_wrapper.FW_ID_TA_RAS
-    FW_ID_XGMI = amdsmi_wrapper.FW_ID_XGMI
+    FW_ID_TA_XGMI = amdsmi_wrapper.FW_ID_TA_XGMI
     FW_ID_RLC_SRLG = amdsmi_wrapper.FW_ID_RLC_SRLG
     FW_ID_RLC_SRLS = amdsmi_wrapper.FW_ID_RLC_SRLS
-    FW_ID_SMC = amdsmi_wrapper.FW_ID_SMC
+    FW_ID_PM = amdsmi_wrapper.FW_ID_PM
     FW_ID_DMCU = amdsmi_wrapper.FW_ID_DMCU
 
 
@@ -1667,13 +1667,14 @@ def amdsmi_get_fw_info(
     _check_res(amdsmi_wrapper.amdsmi_get_fw_info(
         processor_handle, ctypes.byref(fw_info)))
 
-    hex_format_fw = [AmdSmiFwBlock.FW_ID_SMC,
-                     AmdSmiFwBlock.FW_ID_PSP_SOSDRV,
+    hex_format_fw = [AmdSmiFwBlock.FW_ID_PSP_SOSDRV,
                      AmdSmiFwBlock.FW_ID_TA_RAS,
-                     AmdSmiFwBlock.FW_ID_XGMI,
+                     AmdSmiFwBlock.FW_ID_TA_XGMI,
                      AmdSmiFwBlock.FW_ID_UVD,
                      AmdSmiFwBlock.FW_ID_VCE,
                      AmdSmiFwBlock.FW_ID_VCN]
+
+    dec_format_fw = [AmdSmiFwBlock.FW_ID_PM]
 
     firmwares = []
     for i in range(0, fw_info.num_fw_info):
@@ -1682,6 +1683,12 @@ def amdsmi_get_fw_info(
 
         if fw_name in hex_format_fw:
             fw_version_string = ".".join(re.findall('..?', hex(fw_version)[2:]))
+        elif fw_name in dec_format_fw:
+            # Convert every two hex digits to decimal and join them with a dot
+            dec_version_string = ''
+            for ver1,ver2 in zip(hex(fw_version)[2::2], hex(fw_version)[3::2]):
+                dec_version_string += str(int(f"0x{ver1}{ver2}", 0)) + "."
+            fw_version_string = dec_version_string.strip('.')
         else:
             fw_version_string = str(fw_version)
 
