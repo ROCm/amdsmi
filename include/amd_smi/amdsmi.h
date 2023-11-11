@@ -357,10 +357,10 @@ typedef enum {
     FW_ID_RLC_SAVE_RESTORE_LIST,
     FW_ID_ASD,
     FW_ID_TA_RAS,
-    FW_ID_XGMI,
+    FW_ID_TA_XGMI,
     FW_ID_RLC_SRLG,
     FW_ID_RLC_SRLS,
-    FW_ID_SMC,
+    FW_ID_PM,
     FW_ID_DMCU,
     FW_ID__MAX
 } amdsmi_fw_block_t;

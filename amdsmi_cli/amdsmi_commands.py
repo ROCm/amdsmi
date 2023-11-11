@@ -625,7 +625,7 @@ class AMDSMICommands():
 
                 for fw_index, fw_entry in enumerate(fw_info['fw_list']):
                     # Change fw_name to fw_id
-                    fw_entry['fw_id'] = fw_entry.pop('fw_name').name.strip('FW_ID_')
+                    fw_entry['fw_id'] = fw_entry.pop('fw_name').name.replace("FW_ID_", "")
                     fw_entry['fw_version'] = fw_entry.pop('fw_version') # popping to ensure order
 
                     # Add custom human readable formatting
