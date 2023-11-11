@@ -293,6 +293,10 @@ class AMDSMICommands():
         if args.vbios:
             try:
                 vbios_info = amdsmi_interface.amdsmi_get_gpu_vbios_info(args.gpu)
+                for key, value in vbios_info.items():
+                    if isinstance(value, str):
+                        if value.strip() == '':
+                            vbios_info[key] = "N/A"
                 static_dict['vbios'] = vbios_info
             except amdsmi_exception.AmdSmiLibraryException as e:
                 static_dict['vbios'] = "N/A"

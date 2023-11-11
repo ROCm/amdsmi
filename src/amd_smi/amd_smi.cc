@@ -1499,20 +1499,19 @@ amdsmi_get_gpu_vbios_info(amdsmi_processor_handle processor_handle, amdsmi_vbios
     amdsmi_status_t status;
 
     amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
-    amdsmi_status_t r = get_gpu_device_from_handle(processor_handle, &gpu_device);
-    if (r != AMDSMI_STATUS_SUCCESS)
-        return r;
+    status = get_gpu_device_from_handle(processor_handle, &gpu_device);
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
 
 
     if (gpu_device->check_if_drm_is_supported()) {
         status = gpu_device->amdgpu_query_vbios(&vbios);
-        if (status != AMDSMI_STATUS_SUCCESS) {
-            return status;
+        if (status == AMDSMI_STATUS_SUCCESS) {
+            strncpy(info->name, (char *) vbios.name, AMDSMI_MAX_STRING_LENGTH);
+            strncpy(info->build_date, (char *) vbios.date, AMDSMI_MAX_DATE_LENGTH);
+            strncpy(info->part_number, (char *) vbios.vbios_pn, AMDSMI_MAX_STRING_LENGTH);
+            strncpy(info->version, (char *) vbios.vbios_ver_str, AMDSMI_NORMAL_STRING_LENGTH);
         }
-        strncpy(info->name, (char *) vbios.name, AMDSMI_MAX_STRING_LENGTH);
-        strncpy(info->build_date, (char *) vbios.date, AMDSMI_MAX_DATE_LENGTH);
-        strncpy(info->part_number, (char *) vbios.vbios_pn, AMDSMI_MAX_STRING_LENGTH);
-        strncpy(info->version, (char *) vbios.vbios_ver_str, AMDSMI_NORMAL_STRING_LENGTH);
     }
     else {
         // get vbios version string from rocm_smi
@@ -1528,7 +1527,7 @@ amdsmi_get_gpu_vbios_info(amdsmi_processor_handle processor_handle, amdsmi_vbios
         }
     }
 
-    return AMDSMI_STATUS_SUCCESS;
+    return status;
 }
 
 amdsmi_status_t
