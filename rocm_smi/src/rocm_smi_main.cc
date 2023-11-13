@@ -154,6 +154,8 @@ amd::smi::RocmSMI::devInfoTypesStrings = {
   {amd::smi::kDevMemPageBad, amdSMI + "kDevMemPageBad"},
   {amd::smi::kDevNumaNode, amdSMI + "kDevNumaNode"},
   {amd::smi::kDevGpuMetrics, amdSMI + "kDevGpuMetrics"},
+  {amd::smi::kDevPmMetrics, amdSMI + "kDevPmMetrics"},
+  {amd::smi::kDevRegMetrics, amdSMI + "kDevRegMetrics"},
   {amd::smi::kDevGpuReset, amdSMI + "kDevGpuReset"},
   {amd::smi::kDevAvailableComputePartition, amdSMI +
       "kDevAvailableComputePartition"},

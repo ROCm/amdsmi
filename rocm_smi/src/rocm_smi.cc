@@ -106,6 +106,14 @@ static const std::map<rsmi_clk_type_t, amd::smi::DevInfoTypes> kClkTypeMap = {
 #define TRY try {
 #define CATCH } catch (...) {return amd::smi::handleException();}
 
+// declare pm metrics and register table function
+namespace amd::smi {
+int present_pmmetrics(const char* sysfs_file_name,
+        rsmi_name_value_t **kv, uint32_t *kvnum);
+int present_reg_state(const char* fname, rsmi_reg_type_t reg_type,
+        rsmi_name_value_t **kv, uint32_t *kvnum);
+}
+
 static uint64_t get_multiplier_from_str(char units_char) {
   uint32_t multiplier = 0;
 
@@ -2479,6 +2487,40 @@ rsmi_dev_vendor_name_get(uint32_t dv_ind, char *name, size_t len) {
   CATCH
 }
 
+rsmi_status_t rsmi_dev_pm_metrics_info_get(uint32_t dv_ind,
+                      rsmi_name_value_t** pm_metrics,
+                      uint32_t *num_of_metrics) {
+  TRY
+  DEVICE_MUTEX
+  CHK_SUPPORT_NAME_ONLY(num_of_metrics)
+  std::string file_path = dev->
+          get_sys_file_path_by_type(amd::smi::kDevPmMetrics);
+
+  int ret = amd::smi::present_pmmetrics(
+          file_path.c_str(), pm_metrics, num_of_metrics);
+  if (ret == 0) return RSMI_STATUS_SUCCESS;
+  return RSMI_STATUS_NOT_SUPPORTED;
+
+  CATCH
+}
+
+rsmi_status_t rsmi_dev_reg_table_info_get(uint32_t dv_ind,
+                      rsmi_reg_type_t reg_type,
+                      rsmi_name_value_t** reg_metrics,
+                      uint32_t *num_of_metrics) {
+  TRY
+  DEVICE_MUTEX
+  CHK_SUPPORT_NAME_ONLY(num_of_metrics)
+  std::string file_path = dev->
+          get_sys_file_path_by_type(amd::smi::kDevRegMetrics);
+
+  int ret = amd::smi::present_reg_state(
+          file_path.c_str(), reg_type, reg_metrics, num_of_metrics);
+  if (ret == 0) return RSMI_STATUS_SUCCESS;
+  return RSMI_STATUS_NOT_SUPPORTED;
+
+  CATCH
+}
 
 rsmi_status_t
 rsmi_dev_pci_bandwidth_get(uint32_t dv_ind, rsmi_pcie_bandwidth_t *b) {

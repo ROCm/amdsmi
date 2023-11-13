@@ -1157,6 +1157,31 @@ amdsmi_status_t  amdsmi_get_gpu_metrics_info(
                     reinterpret_cast<rsmi_gpu_metrics_t*>(pgpu_metrics));
 }
 
+
+amdsmi_status_t amdsmi_get_gpu_pm_metrics_info(
+                      amdsmi_processor_handle processor_handle,
+                      amdsmi_name_value_t** pm_metrics,
+                      uint32_t *num_of_metrics) {
+    AMDSMI_CHECK_INIT();
+
+    return rsmi_wrapper(rsmi_dev_pm_metrics_info_get, processor_handle,
+                    reinterpret_cast<rsmi_name_value_t**>(pm_metrics),
+                    num_of_metrics);
+}
+
+amdsmi_status_t amdsmi_get_gpu_reg_table_info(
+                      amdsmi_processor_handle processor_handle,
+                      amdsmi_reg_type_t reg_type,
+                      amdsmi_name_value_t** reg_metrics,
+                      uint32_t *num_of_metrics) {
+    AMDSMI_CHECK_INIT();
+
+    return rsmi_wrapper(rsmi_dev_reg_table_info_get, processor_handle,
+                    static_cast<rsmi_reg_type_t>(reg_type),
+                    reinterpret_cast<rsmi_name_value_t**>(reg_metrics),
+                    num_of_metrics);
+}
+
 amdsmi_status_t
 amdsmi_get_power_cap_info(amdsmi_processor_handle processor_handle,
                     uint32_t sensor_ind,

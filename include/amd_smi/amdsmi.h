@@ -1213,6 +1213,28 @@ typedef struct {
   /// @endcond
 } amdsmi_gpu_metrics_t;
 
+
+#define  MAX_AMDSMI_NAME_LENGTH 64
+
+/**
+ * @brief This structure holds the name value pairs
+ */
+typedef struct {
+    char name[MAX_AMDSMI_NAME_LENGTH];     //!< Name
+    uint64_t value;   //!< Use uint64_t to make it universal
+} amdsmi_name_value_t;
+
+/**
+ * @brief This register type for register table
+ */
+typedef enum {
+  AMDSMI_REG_XGMI,
+  AMDSMI_REG_WAFL,
+  AMDSMI_REG_PCIE,
+  AMDSMI_REG_USR,
+  AMDSMI_REG_USR1,
+} amdsmi_reg_type_t;
+
 /**
  * @brief This structure holds ras feature
  */
@@ -2584,6 +2606,77 @@ amdsmi_status_t amdsmi_get_gpu_od_volt_info(amdsmi_processor_handle processor_ha
  */
 amdsmi_status_t amdsmi_get_gpu_metrics_info(amdsmi_processor_handle processor_handle,
                                             amdsmi_gpu_metrics_t *pgpu_metrics);
+
+/**
+ *  @brief Get the pm metrics table with provided device index.
+ *
+ *  @details Given a device handle @p processor_handle, @p pm_metrics pointer,
+ *  and @p num_of_metrics pointer, 
+ *  this function will write the pm metrics name value pair
+ *  to the array at @p pm_metrics and the number of metrics retreived to @p num_of_metrics
+ *  Note: the library allocated memory for pm_metrics, and user must call
+ *  free(pm_metrics) to free it after use.
+ * 
+ *  @param[in] processor_handle a processor handle
+ *
+ *  @param[inout] pm_metrics A pointerto an array to hold multiple PM metrics. On successs,
+ *  the library will allocate memory of pm_metrics and write metrics to this array. 
+ *  The caller must free this memory after usage to avoid memory leak.
+ *
+ *  @param[inout] num_of_metrics a pointer to uint32_t to which the number of
+ *  metrics is allocated for pm_metrics array as input, and the number of metrics retreived
+ *  as output. If this parameter is NULL, this function will return
+ *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
+ *  provided arguments.
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
+ *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
+ *  support this function with the given arguments
+ *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *
+ */
+amdsmi_status_t amdsmi_get_gpu_pm_metrics_info(
+                      amdsmi_processor_handle processor_handle,
+                      amdsmi_name_value_t** pm_metrics,
+                      uint32_t *num_of_metrics);
+
+/**
+ *  @brief Get the register metrics table with provided device index and register type.
+ *
+ *  @details Given a device handle @p processor_handle, @p reg_type, @p reg_metrics pointer,
+ *  and @p num_of_metrics pointer, 
+ *  this function will write the register metrics name value pair
+ *  to the array at @p reg_metrics and the number of metrics retreived to @p num_of_metrics
+ *  Note: the library allocated memory for reg_metrics, and user must call
+ *  free(reg_metrics) to free it after use.
+ * 
+ *  @param[in] processor_handle a processor handle
+ * 
+ *  @param[in] reg_type The register type
+ *
+ *  @param[inout] reg_metrics A pointerto an array to hold multiple register metrics. On successs,
+ *  the library will allocate memory of reg_metrics and write metrics to this array. 
+ *  The caller must free this memory after usage to avoid memory leak.
+ *
+ *  @param[inout] num_of_metrics a pointer to uint32_t to which the number of
+ *  metrics is allocated for reg_metrics array as input, and the number of metrics retreived
+ *  as output. If this parameter is NULL, this function will return
+ *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
+ *  provided arguments.
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
+ *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
+ *  support this function with the given arguments
+ *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *
+ */
+amdsmi_status_t amdsmi_get_gpu_reg_table_info(
+                      amdsmi_processor_handle processor_handle,
+                      amdsmi_reg_type_t reg_type,
+                      amdsmi_name_value_t** reg_metrics,
+                      uint32_t *num_of_metrics);
 
 /**
  *  @brief This function sets the clock range information. It is not supported on virtual

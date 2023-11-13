@@ -1063,6 +1063,28 @@ typedef struct {
   /// \endcond
 } rsmi_gpu_metrics_t;
 
+
+#define  MAX_RSMI_NAME_LENGTH 64
+
+/**
+ * @brief This structure holds the name value pairs
+ */
+typedef struct {
+    char name[MAX_RSMI_NAME_LENGTH];     //!< Name
+    uint64_t value;   //!< Use uint64_t to make it universal
+} rsmi_name_value_t;
+
+/**
+ * @brief This register type for register table
+ */
+typedef enum {
+  RSMI_REG_XGMI,
+  RSMI_REG_WAFL,
+  RSMI_REG_PCIE,
+  RSMI_REG_USR,
+  RSMI_REG_USR1,
+} rsmi_reg_type_t;
+
 /**
  * @brief This structure holds error counts.
  */
@@ -2764,6 +2786,76 @@ rsmi_status_t rsmi_dev_od_volt_info_get(uint32_t dv_ind,
  */
 rsmi_status_t rsmi_dev_gpu_metrics_info_get(uint32_t dv_ind,
                                             rsmi_gpu_metrics_t *pgpu_metrics);
+
+/**
+ *  @brief Get the pm metrics table with provided device index.
+ *
+ *  @details Given a device index @p dv_ind, @p pm_metrics pointer,
+ *  and @p num_of_metrics pointer, 
+ *  this function will write the pm metrics name value pair
+ *  to the array at @p pm_metrics and the number of metrics retreived to @p num_of_metrics
+ *  Note: the library allocated memory for pm_metrics, and user must call
+ *  free(pm_metrics) to free it after use.
+ * 
+ *  @param[in] dv_ind a device index
+ *
+ *  @param[inout] pm_metrics A pointerto an array to hold multiple PM metrics. On successs,
+ *  the library will allocate memory of pm_metrics and write metrics to this array. 
+ *  The caller must free this memory after usage to avoid memory leak.
+ *
+ *  @param[inout] num_of_metrics a pointer to uint32_t to which the number of
+ *  metrics is allocated for pm_metrics array as input, and the number of metrics retreived
+ *  as output. If this parameter is NULL, this function will return
+ *  ::RSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  arguments and ::RSMI_STATUS_NOT_SUPPORTED if it is not supported with the
+ *  provided arguments.
+ *
+ *  @retval ::RSMI_STATUS_SUCCESS call was successful
+ *  @retval ::RSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
+ *  support this function with the given arguments
+ *  @retval ::RSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *
+ */
+rsmi_status_t rsmi_dev_pm_metrics_info_get(uint32_t dv_ind,
+                      rsmi_name_value_t** pm_metrics,
+                      uint32_t *num_of_metrics);
+
+
+/**
+ *  @brief Get the register metrics table with provided device index and registertype.
+ *
+ *  @details Given a device index @p dv_ind, @p reg_type, @p reg_metrics pointer,
+ *  and @p num_of_metrics pointer, 
+ *  this function will write the register metrics name value pair
+ *  to the array at @p reg_metrics and the number of metrics retreived to @p num_of_metrics
+ *  Note: the library allocated memory for reg_metrics, and user must call
+ *  free(reg_metrics) to free it after use.
+ * 
+ *  @param[in] dv_ind a device index
+ * 
+ *  @param[in] reg_type The register type
+ *
+ *  @param[inout] reg_metrics A pointerto an array to hold multiple register metrics. On successs,
+ *  the library will allocate memory of reg_metrics and write metrics to this array. 
+ *  The caller must free this memory after usage to avoid memory leak.
+ *
+ *  @param[inout] num_of_metrics a pointer to uint32_t to which the number of
+ *  metrics is allocated for reg_metrics array as input, and the number of metrics retreived
+ *  as output. If this parameter is NULL, this function will return
+ *  ::RSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  arguments and ::RSMI_STATUS_NOT_SUPPORTED if it is not supported with the
+ *  provided arguments.
+ *
+ *  @retval ::RSMI_STATUS_SUCCESS call was successful
+ *  @retval ::RSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
+ *  support this function with the given arguments
+ *  @retval ::RSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *
+ */
+rsmi_status_t rsmi_dev_reg_table_info_get(uint32_t dv_ind,
+                      rsmi_reg_type_t reg_type,
+                      rsmi_name_value_t** reg_metrics,
+                      uint32_t *num_of_metrics);
 
 /**
  *  @brief This function sets the clock range information

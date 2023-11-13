@@ -171,6 +171,8 @@ enum DevInfoTypes {
   kDevMemPageBad,
   kDevNumaNode,
   kDevGpuMetrics,
+  kDevPmMetrics,
+  kDevRegMetrics,
   kDevGpuReset,
   kDevAvailableComputePartition,
   kDevComputePartition,
@@ -205,6 +207,7 @@ class Device {
     int readDevInfo(DevInfoTypes type, std::vector<std::string> *retVec);
     int readDevInfo(DevInfoTypes type, std::size_t b_size,
                                       void *p_binary_data);
+    std::string get_sys_file_path_by_type(DevInfoTypes type) const;
     // Get the property from a file which may contain multiple properties.
     int readDevInfo(DevInfoTypes type, const std::string& property,
                                       std::string& value);

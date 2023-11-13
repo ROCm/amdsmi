@@ -130,6 +130,8 @@ static const char *kDevXGMIErrorFName = "xgmi_error";
 static const char *kDevSerialNumberFName = "serial_number";
 static const char *kDevNumaNodeFName = "numa_node";
 static const char *kDevGpuMetricsFName = "gpu_metrics";
+static const char *kDevPmMetricsFName = "pm_metrics";   // PM log
+static const char *kDevRegMetricsFName = "reg_state";   // register table
 static const char *kDevAvailableComputePartitionFName =
                   "available_compute_partition";
 static const char *kDevComputePartitionFName = "current_compute_partition";
@@ -312,6 +314,8 @@ static const std::map<DevInfoTypes, const char *> kDevAttribNameMap = {
     {kDevMemPageBad, kDevMemPageBadFName},
     {kDevNumaNode, kDevNumaNodeFName},
     {kDevGpuMetrics, kDevGpuMetricsFName},
+    {kDevPmMetrics, kDevPmMetricsFName},
+    {kDevRegMetrics, kDevRegMetricsFName},
     {kDevGpuReset, kDevGpuResetFName},
     {kDevAvailableComputePartition, kDevAvailableComputePartitionFName},
     {kDevComputePartition, kDevComputePartitionFName},
@@ -445,6 +449,8 @@ static const std::map<const char *, dev_depends_t> kDevFuncDependsMap = {
   {"rsmi_dev_memory_reserved_pages_get", {{kDevMemPageBadFName}, {}}},
   {"rsmi_topo_numa_affinity_get",        {{kDevNumaNodeFName}, {}}},
   {"rsmi_dev_gpu_metrics_info_get",      {{kDevGpuMetricsFName}, {}}},
+  {"rsmi_dev_pm_metrics_info_get",       {{kDevPmMetricsFName}, {}}},
+  {"rsmi_dev_reg_table_info_get",        {{kDevRegMetricsFName}, {}}},
   {"rsmi_dev_gpu_reset",                 {{kDevGpuResetFName}, {}}},
   {"rsmi_dev_compute_partition_get",     {{kDevComputePartitionFName}, {}}},
   {"rsmi_dev_compute_partition_set",     {{kDevComputePartitionFName}, {}}},
@@ -592,6 +598,14 @@ int Device::openDebugFileStream(DevInfoTypes type, T *fs, const char *str) {
       return errno;
   }
   return 0;
+}
+
+std::string Device::get_sys_file_path_by_type(DevInfoTypes type) const {
+  auto sysfs_path = path_;
+  sysfs_path += "/device/";
+  sysfs_path += kDevAttribNameMap.at(type);
+
+  return sysfs_path;
 }
 
 template <typename T>
