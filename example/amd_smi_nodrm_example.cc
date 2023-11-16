@@ -186,8 +186,8 @@ int main() {
             printf("\tSMU: %ld\n",
                    fw_information.fw_info_list[amdsmi_fw_block_t::FW_ID_SMU]
                        .fw_version);
-            printf("\tSMC: %ld\n",
-                   fw_information.fw_info_list[amdsmi_fw_block_t::FW_ID_SMC]
+            printf("\tPM: %ld\n",
+                   fw_information.fw_info_list[amdsmi_fw_block_t::FW_ID_PM]
                        .fw_version);
             printf("\tVCN: %ld\n",
                    fw_information.fw_info_list[amdsmi_fw_block_t::FW_ID_VCN]

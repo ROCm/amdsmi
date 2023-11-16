@@ -87,15 +87,15 @@ class AMDSmiSystem {
     amdsmi_status_t cpu_index_to_handle(uint32_t cpu_index,
                     amdsmi_cpusocket_handle* cpusock_handle);
 
-    amdsmi_status_t get_cpu_sockets(uint32_t socks);
+    amdsmi_status_t get_cpu_sockets(uint32_t *socks);
 
-    amdsmi_status_t get_cpu_cores(uint32_t cpus);
+    amdsmi_status_t get_cpu_cores(uint32_t *cpus);
 
-    amdsmi_status_t get_threads_per_core(uint32_t threads);
+    amdsmi_status_t get_threads_per_core(uint32_t *threads);
 
-    amdsmi_status_t get_cpu_family(uint32_t family);
+    amdsmi_status_t get_cpu_family(uint32_t *family);
 
-    amdsmi_status_t get_cpu_model(uint32_t model);
+    amdsmi_status_t get_cpu_model(uint32_t *model);
 #endif
  private:
     AMDSmiSystem() : init_flag_(AMDSMI_INIT_AMD_GPUS) {}
