@@ -293,6 +293,10 @@ class AMDSMICommands():
         if args.vbios:
             try:
                 vbios_info = amdsmi_interface.amdsmi_get_gpu_vbios_info(args.gpu)
+                for key, value in vbios_info.items():
+                    if isinstance(value, str):
+                        if value.strip() == '':
+                            vbios_info[key] = "N/A"
                 static_dict['vbios'] = vbios_info
             except amdsmi_exception.AmdSmiLibraryException as e:
                 static_dict['vbios'] = "N/A"
@@ -625,7 +629,7 @@ class AMDSMICommands():
 
                 for fw_index, fw_entry in enumerate(fw_info['fw_list']):
                     # Change fw_name to fw_id
-                    fw_entry['fw_id'] = fw_entry.pop('fw_name').name.strip('FW_ID_')
+                    fw_entry['fw_id'] = fw_entry.pop('fw_name').name.replace("FW_ID_", "")
                     fw_entry['fw_version'] = fw_entry.pop('fw_version') # popping to ensure order
 
                     # Add custom human readable formatting

@@ -130,10 +130,10 @@ class AmdSmiFwBlock(IntEnum):
     FW_ID_RLC_SAVE_RESTORE_LIST = amdsmi_wrapper.FW_ID_RLC_SAVE_RESTORE_LIST
     FW_ID_ASD = amdsmi_wrapper.FW_ID_ASD
     FW_ID_TA_RAS = amdsmi_wrapper.FW_ID_TA_RAS
-    FW_ID_XGMI = amdsmi_wrapper.FW_ID_XGMI
+    FW_ID_TA_XGMI = amdsmi_wrapper.FW_ID_TA_XGMI
     FW_ID_RLC_SRLG = amdsmi_wrapper.FW_ID_RLC_SRLG
     FW_ID_RLC_SRLS = amdsmi_wrapper.FW_ID_RLC_SRLS
-    FW_ID_SMC = amdsmi_wrapper.FW_ID_SMC
+    FW_ID_PM = amdsmi_wrapper.FW_ID_PM
     FW_ID_DMCU = amdsmi_wrapper.FW_ID_DMCU
 
 
@@ -1063,6 +1063,111 @@ def amdsmi_get_cpu_ddr_bw(socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle)
         "ddr_bw_utilized_pct": ddr_bw.utilized_pct
     }
 
+def amdsmi_get_cpu_socket_temperature(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle, sock_idx: int
+) -> int:
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+
+    ptmon = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpu_socket_temperature(
+            socket_handle, sock_idx, ctypes.byref(ptmon)
+        )
+    )
+
+    return ptmon.value
+
+def amdsmi_get_cpu_dimm_temp_range_and_refresh_rate(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle,
+    sock_idx: int, dimm_addr: int):
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+    if not isinstance(dimm_addr, int):
+        raise AmdSmiParameterException(dimm_addr, int)
+
+    dimm = amdsmi_wrapper.amdsmi_temp_range_refresh_rate_t()
+
+    _check_res(amdsmi_wrapper.amdsmi_get_cpu_dimm_temp_range_and_refresh_rate(socket_handle, dimm))
+
+    return {
+        "dimm_temperature_range": dimm.range,
+        "dimm_refresh_rate": dimm.ref_rate
+    }
+
+def amdsmi_get_cpu_dimm_power_consumption(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle,
+    sock_idx: int, dimm_addr: int):
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+    if not isinstance(dimm_addr, int):
+        raise AmdSmiParameterException(dimm_addr, int)
+
+    dimm = amdsmi_wrapper.amdsmi_dimm_power_t()
+
+    _check_res(amdsmi_wrapper.amdsmi_get_cpu_dimm_power_consumption(socket_handle, dimm))
+
+    return {
+        "dimm_power_consumed": dimm.power,
+        "dimm_power_update_rate": dimm.update_rate,
+        "dimm_dimm_addr": dimm.dimm_addr
+    }
+
+def amdsmi_get_cpu_dimm_thermal_sensor(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle,
+    sock_idx: int, dimm_addr: int):
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(sock_idx, int):
+        raise AmdSmiParameterException(sock_idx, int)
+    if not isinstance(dimm_addr, int):
+        raise AmdSmiParameterException(dimm_addr, int)
+
+    dimm_thermal = amdsmi_wrapper.amdsmi_dimm_thermal_t()
+
+    _check_res(amdsmi_wrapper.amdsmi_get_cpu_dimm_thermal_sensor(socket_handle, dimm_thermal))
+
+    return {
+        "dimm_thermal_sensor_value": dimm_thermal.sensor,
+        "dimm_thermal_update_rate": dimm_thermal.update_rate,
+        "dimm_thermal_dimm_addr": dimm_thermal.dimm_addr,
+        "dimm_thermal_temperature": dimm_thermal.temp
+    }
+
+def amdsmi_set_cpu_xgmi_width(
+    socket_handle: amdsmi_wrapper.amdsmi_cpusocket_handle, min_width: int, max_width: int
+):
+    if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle):
+        raise AmdSmiParameterException(
+            socket_handle, amdsmi_wrapper.amdsmi_cpusocket_handle
+        )
+    if not isinstance(min_width, int):
+        raise AmdSmiParameterException(min_width, int)
+    if not isinstance(max_width, int):
+        raise AmdSmiParameterException(max_width, int)
+
+    min_width = ctypes.c_uint8(min_width)
+    max_width = ctypes.c_uint8(max_width)
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_set_cpu_xgmi_width(
+            socket_handle, min_width, max_width)
+    )
+
 def amdsmi_init(flag=AmdSmiInitFlags.INIT_AMD_GPUS):
     if not isinstance(flag, AmdSmiInitFlags):
         raise AmdSmiParameterException(flag, AmdSmiInitFlags)
@@ -1562,13 +1667,14 @@ def amdsmi_get_fw_info(
     _check_res(amdsmi_wrapper.amdsmi_get_fw_info(
         processor_handle, ctypes.byref(fw_info)))
 
-    hex_format_fw = [AmdSmiFwBlock.FW_ID_SMC,
-                     AmdSmiFwBlock.FW_ID_PSP_SOSDRV,
+    hex_format_fw = [AmdSmiFwBlock.FW_ID_PSP_SOSDRV,
                      AmdSmiFwBlock.FW_ID_TA_RAS,
-                     AmdSmiFwBlock.FW_ID_XGMI,
+                     AmdSmiFwBlock.FW_ID_TA_XGMI,
                      AmdSmiFwBlock.FW_ID_UVD,
                      AmdSmiFwBlock.FW_ID_VCE,
                      AmdSmiFwBlock.FW_ID_VCN]
+
+    dec_format_fw = [AmdSmiFwBlock.FW_ID_PM]
 
     firmwares = []
     for i in range(0, fw_info.num_fw_info):
@@ -1577,6 +1683,12 @@ def amdsmi_get_fw_info(
 
         if fw_name in hex_format_fw:
             fw_version_string = ".".join(re.findall('..?', hex(fw_version)[2:]))
+        elif fw_name in dec_format_fw:
+            # Convert every two hex digits to decimal and join them with a dot
+            dec_version_string = ''
+            for ver1,ver2 in zip(hex(fw_version)[2::2], hex(fw_version)[3::2]):
+                dec_version_string += str(int(f"0x{ver1}{ver2}", 0)) + "."
+            fw_version_string = dec_version_string.strip('.')
         else:
             fw_version_string = str(fw_version)
 
