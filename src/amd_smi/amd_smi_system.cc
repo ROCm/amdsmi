@@ -100,11 +100,11 @@ amdsmi_status_t AMDSmiSystem::populate_amd_cpus() {
         }
     }
 
-    amd_smi_status = get_cpu_sockets(sockets);
-    amd_smi_status = get_cpu_cores(cpus);
-    amd_smi_status = get_threads_per_core(threads);
-    amd_smi_status = get_cpu_family(family);
-    amd_smi_status = get_cpu_model(model);
+    amd_smi_status = get_cpu_sockets(&sockets);
+    amd_smi_status = get_cpu_cores(&cpus);
+    amd_smi_status = get_threads_per_core(&threads);
+    amd_smi_status = get_cpu_family(&family);
+    amd_smi_status = get_cpu_model(&model);
     std::cout << "\n***********************EPYC METRICS***********************" << std::endl;
     std::cout <<"| NR_SOCKETS            | "<<sockets<<"\t\t|" << std::endl;
     std::cout <<"| NR_CPUS               | "<<cpus<<"\t\t|" << std::endl;
@@ -145,10 +145,10 @@ amdsmi_status_t AMDSmiSystem::populate_amd_cpus() {
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t AMDSmiSystem::get_cpu_sockets(uint32_t num_socks) {
+amdsmi_status_t AMDSmiSystem::get_cpu_sockets(uint32_t *num_socks) {
     amdsmi_status_t ret;
-    ret = static_cast<amdsmi_status_t>(esmi_number_of_sockets_get(&num_socks));
-    sockets = num_socks;
+    ret = static_cast<amdsmi_status_t>(esmi_number_of_sockets_get(num_socks));
+    sockets = *num_socks;
 
     if (ret != AMDSMI_STATUS_SUCCESS) {
 	    std::cout << "Failed to get number of sockets, Err["<<ret<<"]" << std::endl;
@@ -157,10 +157,10 @@ amdsmi_status_t AMDSmiSystem::get_cpu_sockets(uint32_t num_socks) {
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t AMDSmiSystem::get_cpu_cores(uint32_t num_cpus) {
+amdsmi_status_t AMDSmiSystem::get_cpu_cores(uint32_t *num_cpus) {
     amdsmi_status_t ret;
-    ret = static_cast<amdsmi_status_t>(esmi_number_of_cpus_get(&num_cpus));
-    cpus = num_cpus;
+    ret = static_cast<amdsmi_status_t>(esmi_number_of_cpus_get(num_cpus));
+    cpus = *num_cpus;
 
     if (ret != AMDSMI_STATUS_SUCCESS) {
 	    std::cout << "Failed to get number of cpus, Err["<<ret<<"]" << std::endl;
@@ -169,10 +169,10 @@ amdsmi_status_t AMDSmiSystem::get_cpu_cores(uint32_t num_cpus) {
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t AMDSmiSystem::get_threads_per_core(uint32_t threads_per_core) {
+amdsmi_status_t AMDSmiSystem::get_threads_per_core(uint32_t *threads_per_core) {
     amdsmi_status_t ret;
-    ret = static_cast<amdsmi_status_t>(esmi_threads_per_core_get(&threads_per_core));
-    threads = threads_per_core;
+    ret = static_cast<amdsmi_status_t>(esmi_threads_per_core_get(threads_per_core));
+    threads = *threads_per_core;
 
     if (ret != AMDSMI_STATUS_SUCCESS) {
 	    std::cout << "Failed to get threads per core, Err["<<ret<<"]" << std::endl;
@@ -181,10 +181,10 @@ amdsmi_status_t AMDSmiSystem::get_threads_per_core(uint32_t threads_per_core) {
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t AMDSmiSystem::get_cpu_family(uint32_t cpu_family) {
+amdsmi_status_t AMDSmiSystem::get_cpu_family(uint32_t *cpu_family) {
     amdsmi_status_t ret;
-    ret = static_cast<amdsmi_status_t>(esmi_cpu_family_get(&cpu_family));
-    family = cpu_family;
+    ret = static_cast<amdsmi_status_t>(esmi_cpu_family_get(cpu_family));
+    family = *cpu_family;
 
     if (ret != AMDSMI_STATUS_SUCCESS) {
 	    std::cout << "Failed to get cpu family, Err["<<ret<<"]" << std::endl;
@@ -193,10 +193,10 @@ amdsmi_status_t AMDSmiSystem::get_cpu_family(uint32_t cpu_family) {
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t AMDSmiSystem::get_cpu_model(uint32_t cpu_model) {
+amdsmi_status_t AMDSmiSystem::get_cpu_model(uint32_t *cpu_model) {
     amdsmi_status_t ret;
-    ret = static_cast<amdsmi_status_t>(esmi_cpu_model_get(&cpu_model));
-    model = cpu_model;
+    ret = static_cast<amdsmi_status_t>(esmi_cpu_model_get(cpu_model));
+    model = *cpu_model;
 
     if (ret != AMDSMI_STATUS_SUCCESS) {
 	    std::cout << "Failed to get cpu model, Err["<<ret<<"]" << std::endl;

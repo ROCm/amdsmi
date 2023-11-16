@@ -191,8 +191,8 @@ void getFWNameFromId(int id, char *name)
 	case FW_ID_TA_RAS:
 		strcpy(name, "ID_TA_RAS");
 		break;
-	case FW_ID_XGMI:
-		strcpy(name, "ID_XGMI");
+	case FW_ID_TA_XGMI:
+		strcpy(name, "ID_TA_XGMI");
 		break;
 	case FW_ID_RLC_SRLG:
 		strcpy(name, "ID_RLC_SRLG");
@@ -200,8 +200,8 @@ void getFWNameFromId(int id, char *name)
 	case FW_ID_RLC_SRLS:
 		strcpy(name, "ID_RLC_SRLS");
 		break;
-	case FW_ID_SMC:
-		strcpy(name, "ID_SMC");
+	case FW_ID_PM:
+		strcpy(name, "ID_PM");
 		break;
 	case FW_ID_DMCU:
 		strcpy(name, "ID_DMCU");

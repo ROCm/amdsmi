@@ -45,6 +45,21 @@ try:
     from .amdsmi_interface import amdsmi_get_cpu_socket_freq_range
     from .amdsmi_interface import amdsmi_get_cpu_core_current_freq_limit
     from .amdsmi_interface import amdsmi_get_cpu_socket_power
+    from .amdsmi_interface import amdsmi_get_cpu_socket_power_cap
+    from .amdsmi_interface import amdsmi_get_cpu_socket_power_cap_max
+    from .amdsmi_interface import amdsmi_get_cpu_pwr_svi_telemetry_all_rails
+    from .amdsmi_interface import amdsmi_set_cpu_socket_power_cap
+    from .amdsmi_interface import amdsmi_set_cpu_pwr_efficiency_mode
+    from .amdsmi_interface import amdsmi_get_cpu_core_boostlimit
+    from .amdsmi_interface import amdsmi_get_cpu_socket_c0_residency
+    from .amdsmi_interface import amdsmi_set_cpu_core_boostlimit
+    from .amdsmi_interface import amdsmi_set_cpu_socket_boostlimit
+    from .amdsmi_interface import amdsmi_get_cpu_ddr_bw
+    from .amdsmi_interface import amdsmi_get_cpu_socket_temperature
+    from .amdsmi_interface import amdsmi_get_cpu_dimm_temp_range_and_refresh_rate
+    from .amdsmi_interface import amdsmi_get_cpu_dimm_power_consumption
+    from .amdsmi_interface import amdsmi_get_cpu_dimm_thermal_sensor
+    from .amdsmi_interface import amdsmi_set_cpu_xgmi_width
 except AttributeError:
     pass
 

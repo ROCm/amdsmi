@@ -662,10 +662,10 @@ amdsmi_status_t amdsmi_get_fw_info(amdsmi_processor_handle processor_handle,
         { FW_ID_RLC_RESTORE_LIST_SRM_MEM, RSMI_FW_BLOCK_RLC_SRLS},
         { FW_ID_SDMA0, RSMI_FW_BLOCK_SDMA},
         { FW_ID_SDMA1, RSMI_FW_BLOCK_SDMA2},
-        { FW_ID_SMC, RSMI_FW_BLOCK_SMC},
+        { FW_ID_PM, RSMI_FW_BLOCK_SMC},
         { FW_ID_PSP_SOSDRV, RSMI_FW_BLOCK_SOS},
         { FW_ID_TA_RAS, RSMI_FW_BLOCK_TA_RAS},
-        { FW_ID_XGMI, RSMI_FW_BLOCK_TA_XGMI},
+        { FW_ID_TA_XGMI, RSMI_FW_BLOCK_TA_XGMI},
         { FW_ID_UVD, RSMI_FW_BLOCK_UVD},
         { FW_ID_VCE, RSMI_FW_BLOCK_VCE},
         { FW_ID_VCN, RSMI_FW_BLOCK_VCN}
@@ -1499,20 +1499,19 @@ amdsmi_get_gpu_vbios_info(amdsmi_processor_handle processor_handle, amdsmi_vbios
     amdsmi_status_t status;
 
     amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
-    amdsmi_status_t r = get_gpu_device_from_handle(processor_handle, &gpu_device);
-    if (r != AMDSMI_STATUS_SUCCESS)
-        return r;
+    status = get_gpu_device_from_handle(processor_handle, &gpu_device);
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
 
 
     if (gpu_device->check_if_drm_is_supported()) {
         status = gpu_device->amdgpu_query_vbios(&vbios);
-        if (status != AMDSMI_STATUS_SUCCESS) {
-            return status;
+        if (status == AMDSMI_STATUS_SUCCESS) {
+            strncpy(info->name, (char *) vbios.name, AMDSMI_MAX_STRING_LENGTH);
+            strncpy(info->build_date, (char *) vbios.date, AMDSMI_MAX_DATE_LENGTH);
+            strncpy(info->part_number, (char *) vbios.vbios_pn, AMDSMI_MAX_STRING_LENGTH);
+            strncpy(info->version, (char *) vbios.vbios_ver_str, AMDSMI_NORMAL_STRING_LENGTH);
         }
-        strncpy(info->name, (char *) vbios.name, AMDSMI_MAX_STRING_LENGTH);
-        strncpy(info->build_date, (char *) vbios.date, AMDSMI_MAX_DATE_LENGTH);
-        strncpy(info->part_number, (char *) vbios.vbios_pn, AMDSMI_MAX_STRING_LENGTH);
-        strncpy(info->version, (char *) vbios.vbios_ver_str, AMDSMI_NORMAL_STRING_LENGTH);
     }
     else {
         // get vbios version string from rocm_smi
@@ -1528,7 +1527,7 @@ amdsmi_get_gpu_vbios_info(amdsmi_processor_handle processor_handle, amdsmi_vbios
         }
     }
 
-    return AMDSMI_STATUS_SUCCESS;
+    return status;
 }
 
 amdsmi_status_t
@@ -2138,6 +2137,8 @@ amdsmi_status_t amdsmi_get_cpu_hsmp_proto_ver(amdsmi_cpusocket_handle socket_han
     amdsmi_status_t status;
     uint32_t hsmp_proto_ver;
 
+    AMDSMI_CHECK_INIT();
+
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
@@ -2160,6 +2161,8 @@ amdsmi_status_t amdsmi_get_cpu_smu_fw_version(amdsmi_cpusocket_handle socket_han
 {
     amdsmi_status_t status;
     struct smu_fw_version smu_fw;
+
+    AMDSMI_CHECK_INIT();
 
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
@@ -2187,6 +2190,8 @@ amdsmi_status_t amdsmi_get_cpu_core_energy(amdsmi_processor_handle processor_han
     amdsmi_status_t status;
     uint64_t core_input;
 
+    AMDSMI_CHECK_INIT();
+
     if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
@@ -2211,6 +2216,8 @@ amdsmi_status_t amdsmi_get_cpu_socket_energy(amdsmi_cpusocket_handle socket_hand
     amdsmi_status_t status;
     uint64_t pkg_input;
 
+    AMDSMI_CHECK_INIT();
+
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
@@ -2234,6 +2241,8 @@ amdsmi_status_t amdsmi_get_cpu_prochot_status(amdsmi_cpusocket_handle socket_han
     amdsmi_status_t status;
     uint32_t phot;
 
+    AMDSMI_CHECK_INIT();
+
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
@@ -2256,6 +2265,8 @@ amdsmi_status_t amdsmi_get_cpu_fclk_mclk(amdsmi_cpusocket_handle socket_handle,
 {
     amdsmi_status_t status;
     uint32_t f_clk, m_clk;
+
+    AMDSMI_CHECK_INIT();
 
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
@@ -2281,6 +2292,8 @@ amdsmi_status_t amdsmi_get_cpu_cclk_limit(amdsmi_cpusocket_handle socket_handle,
     amdsmi_status_t status;
     uint32_t c_clk;
 
+    AMDSMI_CHECK_INIT();
+
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
@@ -2303,6 +2316,8 @@ amdsmi_status_t amdsmi_get_cpu_socket_current_active_freq_limit(amdsmi_cpusocket
 {
     amdsmi_status_t status;
     uint16_t limit;
+
+    AMDSMI_CHECK_INIT();
 
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
@@ -2328,6 +2343,8 @@ amdsmi_status_t amdsmi_get_cpu_socket_freq_range(amdsmi_cpusocket_handle socket_
     uint16_t f_max;
     uint16_t f_min;
 
+    AMDSMI_CHECK_INIT();
+
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
@@ -2351,6 +2368,8 @@ amdsmi_status_t amdsmi_get_cpu_core_current_freq_limit(amdsmi_processor_handle p
 {
     amdsmi_status_t status;
     uint32_t c_clk;
+
+    AMDSMI_CHECK_INIT();
 
     if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
@@ -2376,6 +2395,8 @@ amdsmi_status_t amdsmi_get_cpu_socket_power(amdsmi_cpusocket_handle socket_handl
     amdsmi_status_t status;
     uint32_t avg_power;
 
+    AMDSMI_CHECK_INIT();
+
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
@@ -2398,6 +2419,8 @@ amdsmi_status_t amdsmi_get_cpu_socket_power_cap(amdsmi_cpusocket_handle socket_h
 {
     amdsmi_status_t status;
     uint32_t p_cap;
+
+    AMDSMI_CHECK_INIT();
 
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
@@ -2422,6 +2445,8 @@ amdsmi_status_t amdsmi_get_cpu_socket_power_cap_max(amdsmi_cpusocket_handle sock
     amdsmi_status_t status;
     uint32_t p_max;
 
+    AMDSMI_CHECK_INIT();
+
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
@@ -2445,6 +2470,8 @@ amdsmi_status_t amdsmi_get_cpu_pwr_svi_telemetry_all_rails(amdsmi_cpusocket_hand
     amdsmi_status_t status;
     uint32_t pow;
 
+    AMDSMI_CHECK_INIT();
+
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
@@ -2467,6 +2494,8 @@ amdsmi_status_t amdsmi_set_cpu_socket_power_cap(amdsmi_cpusocket_handle socket_h
 {
     amdsmi_status_t status;
 
+    AMDSMI_CHECK_INIT();
+
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
@@ -2487,6 +2516,8 @@ amdsmi_status_t amdsmi_set_cpu_pwr_efficiency_mode(amdsmi_cpusocket_handle socke
         uint8_t sock_ind, uint8_t mode)
 {
     amdsmi_status_t status;
+
+    AMDSMI_CHECK_INIT();
 
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
@@ -2509,6 +2540,8 @@ amdsmi_status_t amdsmi_get_cpu_core_boostlimit(amdsmi_processor_handle processor
 {
     amdsmi_status_t status;
     uint32_t boostlimit;
+
+    AMDSMI_CHECK_INIT();
 
     if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
@@ -2533,6 +2566,8 @@ amdsmi_status_t amdsmi_get_cpu_socket_c0_residency(amdsmi_cpusocket_handle socke
     amdsmi_status_t status;
     uint32_t res;
 
+    AMDSMI_CHECK_INIT();
+
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
@@ -2555,6 +2590,8 @@ amdsmi_status_t amdsmi_set_cpu_core_boostlimit(amdsmi_processor_handle processor
 {
     amdsmi_status_t status;
 
+    AMDSMI_CHECK_INIT();
+
     if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
@@ -2575,6 +2612,8 @@ amdsmi_status_t amdsmi_set_cpu_socket_boostlimit(amdsmi_cpusocket_handle socket_
         uint32_t sock_ind, uint32_t boostlimit)
 {
     amdsmi_status_t status;
+
+    AMDSMI_CHECK_INIT();
 
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
@@ -2597,6 +2636,8 @@ amdsmi_status_t amdsmi_get_cpu_ddr_bw(amdsmi_cpusocket_handle socket_handle,
 {
     amdsmi_status_t status;
     struct ddr_bw_metrics ddr;
+
+    AMDSMI_CHECK_INIT();
 
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
@@ -2623,6 +2664,8 @@ amdsmi_status_t amdsmi_get_cpu_socket_temperature(amdsmi_cpusocket_handle socket
     amdsmi_status_t status;
     uint32_t tmon;
 
+    AMDSMI_CHECK_INIT();
+
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
@@ -2646,6 +2689,8 @@ amdsmi_status_t amdsmi_get_cpu_dimm_temp_range_and_refresh_rate(
 {
     amdsmi_status_t status;
     struct temp_range_refresh_rate dimm_rate;
+
+    AMDSMI_CHECK_INIT();
 
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
@@ -2671,6 +2716,8 @@ amdsmi_status_t amdsmi_get_cpu_dimm_power_consumption(amdsmi_cpusocket_handle so
 {
     amdsmi_status_t status;
     struct dimm_power d_power;
+
+    AMDSMI_CHECK_INIT();
 
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
@@ -2698,6 +2745,8 @@ amdsmi_status_t amdsmi_get_cpu_dimm_thermal_sensor(amdsmi_cpusocket_handle socke
     amdsmi_status_t status;
     struct dimm_thermal d_sensor;
 
+    AMDSMI_CHECK_INIT();
+
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
@@ -2723,6 +2772,8 @@ amdsmi_status_t amdsmi_set_cpu_xgmi_width(amdsmi_cpusocket_handle socket_handle,
 {
     amdsmi_status_t status;
 
+    AMDSMI_CHECK_INIT();
+
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
@@ -2742,6 +2793,8 @@ amdsmi_status_t amdsmi_set_cpu_gmi3_link_width_range(amdsmi_cpusocket_handle soc
         uint8_t sock_ind, uint8_t min_link_width, uint8_t max_link_width)
 {
     amdsmi_status_t status;
+
+    AMDSMI_CHECK_INIT();
 
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
@@ -2763,6 +2816,8 @@ amdsmi_status_t amdsmi_cpu_apb_enable(amdsmi_cpusocket_handle socket_handle, uin
 {
     amdsmi_status_t status;
 
+    AMDSMI_CHECK_INIT();
+
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
@@ -2782,6 +2837,8 @@ amdsmi_status_t amdsmi_cpu_apb_disable(amdsmi_cpusocket_handle socket_handle,
         uint32_t sock_ind, uint8_t pstate)
 {
     amdsmi_status_t status;
+
+    AMDSMI_CHECK_INIT();
 
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
@@ -2803,6 +2860,8 @@ amdsmi_status_t amdsmi_set_cpu_socket_lclk_dpm_level(amdsmi_cpusocket_handle soc
 {
     amdsmi_status_t status;
 
+    AMDSMI_CHECK_INIT();
+
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
@@ -2823,6 +2882,8 @@ amdsmi_status_t amdsmi_get_cpu_socket_lclk_dpm_level(amdsmi_cpusocket_handle soc
 {
     amdsmi_status_t status;
     struct dpm_level nb;
+
+    AMDSMI_CHECK_INIT();
 
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
@@ -2848,6 +2909,8 @@ amdsmi_status_t amdsmi_set_cpu_pcie_link_rate(amdsmi_cpusocket_handle socket_han
 {
     amdsmi_status_t status;
 
+    AMDSMI_CHECK_INIT();
+
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
@@ -2868,6 +2931,8 @@ amdsmi_status_t amdsmi_set_cpu_df_pstate_range(amdsmi_cpusocket_handle socket_ha
         uint8_t sock_ind, uint8_t max_pstate, uint8_t min_pstate)
 {
     amdsmi_status_t status;
+
+    AMDSMI_CHECK_INIT();
 
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
@@ -2891,6 +2956,8 @@ amdsmi_status_t amdsmi_get_cpu_current_io_bandwidth(amdsmi_cpusocket_handle sock
     amdsmi_status_t status;
     uint32_t bw;
     struct link_id_bw_type io_link;
+
+    AMDSMI_CHECK_INIT();
 
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
@@ -2919,6 +2986,8 @@ amdsmi_status_t amdsmi_get_cpu_current_xgmi_bw(amdsmi_cpusocket_handle socket_ha
     uint32_t bw;
     struct link_id_bw_type io_link;
 
+    AMDSMI_CHECK_INIT();
+
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
@@ -2944,6 +3013,8 @@ amdsmi_status_t amdsmi_get_metrics_table_version(amdsmi_cpusocket_handle socket_
     amdsmi_status_t status;
     uint32_t metrics_tbl_ver;
 
+    AMDSMI_CHECK_INIT();
+
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
@@ -2967,6 +3038,8 @@ amdsmi_status_t amdsmi_get_metrics_table(amdsmi_cpusocket_handle socket_handle, 
     amdsmi_status_t status;
     struct hsmp_metric_table metrics_tbl;
 
+    AMDSMI_CHECK_INIT();
+
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
@@ -2989,6 +3062,8 @@ amdsmi_status_t amdsmi_first_online_core_on_cpu_socket(amdsmi_cpusocket_handle s
 {
     amdsmi_status_t status;
     uint32_t online_core;
+
+    AMDSMI_CHECK_INIT();
 
     if (socket_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
