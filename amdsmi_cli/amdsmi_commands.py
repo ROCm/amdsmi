@@ -524,13 +524,13 @@ class AMDSMICommands():
         if 'partition' in current_platform_args:
             if args.partition:
                 try:
-                    compute_partition = amdsmi_interface.amdsmi_dev_compute_partition_get(args.gpu)
+                    compute_partition = amdsmi_interface.amdsmi_get_gpu_compute_partition(args.gpu)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     compute_partition = "N/A"
                     logging.debug("Failed to get compute partition info for gpu %s | %s", gpu_id, e.get_error_info())
 
                 try:
-                    memory_partition = amdsmi_interface.amdsmi_dev_memory_partition_get(args.gpu)
+                    memory_partition = amdsmi_interface.amdsmi_get_gpu_memory_partition(args.gpu)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     memory_partition = "N/A"
                     logging.debug("Failed to get memory partition info for gpu %s | %s", gpu_id, e.get_error_info())
@@ -1943,7 +1943,7 @@ class AMDSMICommands():
         if args.compute_partition:
             compute_partition = amdsmi_interface.AmdSmiComputePartitionType[args.compute_partition]
             try:
-                amdsmi_interface.amdsmi_dev_compute_partition_set(args.gpu, compute_partition)
+                amdsmi_interface.amdsmi_set_gpu_compute_partition(args.gpu, compute_partition)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
@@ -1952,7 +1952,7 @@ class AMDSMICommands():
         if args.memory_partition:
             memory_partition = amdsmi_interface.AmdSmiMemoryPartitionType[args.memory_partition]
             try:
-                amdsmi_interface.amdsmi_dev_memory_partition_set(args.gpu, memory_partition)
+                amdsmi_interface.amdsmi_set_gpu_memory_partition(args.gpu, memory_partition)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
@@ -2165,7 +2165,7 @@ class AMDSMICommands():
             self.logger.store_output(args.gpu, 'reset_perf_determinism', result)
         if args.compute_partition:
             try:
-                amdsmi_interface.amdsmi_dev_compute_partition_reset(args.gpu)
+                amdsmi_interface.amdsmi_reset_gpu_compute_partition(args.gpu)
                 result = 'Successfully reset compute partition'
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
@@ -2175,7 +2175,7 @@ class AMDSMICommands():
             self.logger.store_output(args.gpu, 'reset_compute_partition', result)
         if args.memory_partition:
             try:
-                amdsmi_interface.amdsmi_dev_memory_partition_reset(args.gpu)
+                amdsmi_interface.amdsmi_reset_gpu_memory_partition(args.gpu)
                 result = 'Successfully reset memory partition'
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:

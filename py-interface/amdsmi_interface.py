@@ -30,6 +30,14 @@ from .amdsmi_exception import *
 
 MAX_NUM_PROCESSES = 1024
 
+# gpu metrics macros defined in amdsmi.h
+AMDSMI_NUM_HBM_INSTANCES = 4
+AMDSMI_MAX_NUM_VCN = 4
+AMDSMI_MAX_NUM_CLKS = 4
+AMDSMI_MAX_NUM_XGMI_LINKS = 8
+AMDSMI_MAX_NUM_GFX_CLKS = 8
+
+
 class AmdSmiInitFlags(IntEnum):
     INIT_ALL_PROCESSORS = amdsmi_wrapper.AMDSMI_INIT_ALL_PROCESSORS
     INIT_AMD_CPUS = amdsmi_wrapper.AMDSMI_INIT_AMD_CPUS
@@ -337,6 +345,7 @@ class AmdSmiIoLinkType(IntEnum):
 class AmdSmiUtilizationCounterType(IntEnum):
     COARSE_GRAIN_GFX_ACTIVITY = amdsmi_wrapper.AMDSMI_COARSE_GRAIN_GFX_ACTIVITY
     COARSE_GRAIN_MEM_ACTIVITY = amdsmi_wrapper.AMDSMI_COARSE_GRAIN_MEM_ACTIVITY
+
 
 class AmdSmiProcessorType(IntEnum):
     UNKNOWN = amdsmi_wrapper.UNKNOWN
@@ -1997,7 +2006,7 @@ def amdsmi_is_P2P_accessible(
     return accessible.value
 
 
-def amdsmi_dev_compute_partition_get(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_get_gpu_compute_partition(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
@@ -2009,7 +2018,7 @@ def amdsmi_dev_compute_partition_get(processor_handle: amdsmi_wrapper.amdsmi_pro
     compute_partition = ctypes.create_string_buffer(_AMDSMI_STRING_LENGTH)
 
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_compute_partition_get(
+        amdsmi_wrapper.amdsmi_get_gpu_compute_partition(
             processor_handle, compute_partition, length
         )
     )
@@ -2017,7 +2026,7 @@ def amdsmi_dev_compute_partition_get(processor_handle: amdsmi_wrapper.amdsmi_pro
     return compute_partition.value.decode("utf-8")
 
 
-def amdsmi_dev_compute_partition_set(processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+def amdsmi_set_gpu_compute_partition(processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
                                      compute_partition: AmdSmiComputePartitionType):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
@@ -2028,22 +2037,22 @@ def amdsmi_dev_compute_partition_set(processor_handle: amdsmi_wrapper.amdsmi_pro
         raise AmdSmiParameterException(compute_partition, AmdSmiComputePartitionType)
 
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_compute_partition_set(
+        amdsmi_wrapper.amdsmi_set_gpu_compute_partition(
             processor_handle, compute_partition
         )
     )
 
 
-def amdsmi_dev_compute_partition_reset(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_reset_gpu_compute_partition(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    _check_res(amdsmi_wrapper.amdsmi_dev_compute_partition_reset(processor_handle))
+    _check_res(amdsmi_wrapper.amdsmi_reset_gpu_compute_partition(processor_handle))
 
 
-def amdsmi_dev_memory_partition_get(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_get_gpu_memory_partition(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
@@ -2055,7 +2064,7 @@ def amdsmi_dev_memory_partition_get(processor_handle: amdsmi_wrapper.amdsmi_proc
     memory_partition = ctypes.create_string_buffer(_AMDSMI_STRING_LENGTH)
 
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_memory_partition_get(
+        amdsmi_wrapper.amdsmi_get_gpu_memory_partition(
             processor_handle, memory_partition, length
         )
     )
@@ -2063,7 +2072,7 @@ def amdsmi_dev_memory_partition_get(processor_handle: amdsmi_wrapper.amdsmi_proc
     return memory_partition.value.decode("utf-8")
 
 
-def amdsmi_dev_memory_partition_set(processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+def amdsmi_set_gpu_memory_partition(processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
                                     memory_partition: AmdSmiMemoryPartitionType):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
@@ -2074,19 +2083,19 @@ def amdsmi_dev_memory_partition_set(processor_handle: amdsmi_wrapper.amdsmi_proc
         raise AmdSmiParameterException(memory_partition, AmdSmiMemoryPartitionType)
 
     _check_res(
-        amdsmi_wrapper.amdsmi_dev_memory_partition_set(
+        amdsmi_wrapper.amdsmi_set_gpu_memory_partition(
             processor_handle, memory_partition
         )
     )
 
 
-def amdsmi_dev_memory_partition_reset(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+def amdsmi_reset_gpu_memory_partition(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    _check_res(amdsmi_wrapper.amdsmi_dev_memory_partition_reset(processor_handle))
+    _check_res(amdsmi_wrapper.amdsmi_reset_gpu_memory_partition(processor_handle))
 
 
 def amdsmi_get_xgmi_info(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
@@ -2937,10 +2946,30 @@ def amdsmi_get_gpu_metrics_info(
         "current_fan_speed": gpu_metrics.current_fan_speed,
         "pcie_link_width": gpu_metrics.pcie_link_width,
         "pcie_link_speed": gpu_metrics.pcie_link_speed,
-        "padding": gpu_metrics.padding,
         "gfx_activity_acc": gpu_metrics.gfx_activity_acc,
         "mem_activity_acc": gpu_metrics.mem_activity_acc,
         "temperature_hbm": list(gpu_metrics.temperature_hbm),
+        "firmware_timestamp": gpu_metrics.firmware_timestamp,
+        "voltage_soc": gpu_metrics.voltage_soc,
+        "voltage_gfx": gpu_metrics.voltage_gfx,
+        "voltage_mem": gpu_metrics.voltage_mem,
+        "indep_throttle_status": gpu_metrics.indep_throttle_status,
+        "current_socket_power": gpu_metrics.current_socket_power,
+        "vcn_activity": list(gpu_metrics.vcn_activity),
+        "gfxclk_lock_status": gpu_metrics.gfxclk_lock_status,
+        "xgmi_link_width": gpu_metrics.xgmi_link_width,
+        "xgmi_link_speed": gpu_metrics.xgmi_link_speed,
+        "pcie_bandwidth_acc": gpu_metrics.pcie_bandwidth_acc,
+        "pcie_bandwidth_inst": gpu_metrics.pcie_bandwidth_inst,
+        "pcie_l0_to_recov_count_acc": gpu_metrics.pcie_l0_to_recov_count_acc,
+        "pcie_replay_count_acc": gpu_metrics.pcie_replay_count_acc,
+        "pcie_replay_rover_count_acc": gpu_metrics.pcie_replay_rover_count_acc,
+        "xgmi_read_data_acc": list(gpu_metrics.xgmi_read_data_acc),
+        "xgmi_write_data_acc": list(gpu_metrics.xgmi_write_data_acc),
+        "current_gfxclks": list(gpu_metrics.current_gfxclks),
+        "current_socclks": list(gpu_metrics.current_socclks),
+        "current_vclk0s": list(gpu_metrics.current_vclk0s),
+        "current_dclk0s": list(gpu_metrics.current_dclk0s),
     }
 
 
@@ -3200,3 +3229,1076 @@ def amdsmi_get_gpu_memory_reserved_pages(
         table_records = _format_bad_page_info(retired_page_record, num_pages)
 
     return table_records
+
+
+### Individual GPU Metrics Functions
+def amdsmi_get_gpu_metrics_temp_hotspot(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    hotspot_value = ctypes.c_int16()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_temp_hotspot(
+            processor_handle, ctypes.byref(hotspot_value)
+        )
+    )
+
+    if hotspot_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return hotspot_value.value
+
+
+def amdsmi_get_gpu_metrics_temp_mem(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    mem_value = ctypes.c_int16()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_temp_mem(
+            processor_handle, ctypes.byref(mem_value)
+        )
+    )
+
+    if mem_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return mem_value.value
+
+
+def amdsmi_get_gpu_metrics_temp_vrsoc(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    vrsoc_value = ctypes.c_int16()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_temp_vrsoc(
+            processor_handle, ctypes.byref(vrsoc_value)
+        )
+    )
+
+    if vrsoc_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return vrsoc_value.value
+
+
+def amdsmi_get_gpu_metrics_curr_socket_power(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    socket_power_value = ctypes.c_uint16()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_curr_socket_power(
+            processor_handle, ctypes.byref(socket_power_value)
+        )
+    )
+
+    if socket_power_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return socket_power_value.value
+
+
+def amdsmi_get_gpu_metrics_avg_gfx_activity(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    gfx_activity_value = ctypes.c_uint16()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_avg_gfx_activity(
+            processor_handle, ctypes.byref(gfx_activity_value)
+        )
+    )
+
+    if gfx_activity_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return gfx_activity_value.value
+
+
+def amdsmi_get_gpu_metrics_avg_umc_activity(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    umc_activity_value = ctypes.c_uint16()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_avg_umc_activity(
+            processor_handle, ctypes.byref(umc_activity_value)
+        )
+    )
+
+    if umc_activity_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return umc_activity_value.value
+
+
+def amdsmi_get_gpu_metrics_energy_acc(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    energy_acc_value = ctypes.c_uint64()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_energy_acc(
+            processor_handle, ctypes.byref(energy_acc_value)
+        )
+    )
+
+    if energy_acc_value.value == 0xFFFFFFFFFFFFFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return energy_acc_value.value
+
+
+def amdsmi_get_gpu_metrics_system_clock_counter(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    system_clock_counter_value = ctypes.c_uint64()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_system_clock_counter(
+            processor_handle, ctypes.byref(system_clock_counter_value)
+        )
+    )
+
+    if system_clock_counter_value.value == 0xFFFFFFFFFFFFFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return system_clock_counter_value.value
+
+
+def amdsmi_get_gpu_metrics_firmware_timestamp(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    firmware_timestamp_value = ctypes.c_uint64()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_firmware_timestamp(
+            processor_handle, ctypes.byref(firmware_timestamp_value)
+        )
+    )
+
+    if firmware_timestamp_value.value == 0xFFFFFFFFFFFFFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return firmware_timestamp_value.value
+
+
+def amdsmi_get_gpu_metrics_throttle_status(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> bool:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    throttle_status_value = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_throttle_status(
+            processor_handle, ctypes.byref(throttle_status_value)
+        )
+    )
+
+    if throttle_status_value.value == 0xFFFFFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return bool(throttle_status_value.value)
+
+
+def amdsmi_get_gpu_metrics_pcie_link_width(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    pcie_link_width_value = ctypes.c_uint16()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_pcie_link_width(
+            processor_handle, ctypes.byref(pcie_link_width_value)
+        )
+    )
+
+    if pcie_link_width_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return pcie_link_width_value.value
+
+
+def amdsmi_get_gpu_metrics_pcie_link_speed(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    pcie_link_speed_value = ctypes.c_uint16()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_pcie_link_speed(
+            processor_handle, ctypes.byref(pcie_link_speed_value)
+        )
+    )
+
+    if pcie_link_speed_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return pcie_link_speed_value.value
+
+
+def amdsmi_get_gpu_metrics_xgmi_link_width(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    xgmi_link_width_value = ctypes.c_uint16()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_xgmi_link_width(
+            processor_handle, ctypes.byref(xgmi_link_width_value)
+        )
+    )
+
+    if xgmi_link_width_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return xgmi_link_width_value.value
+
+
+def amdsmi_get_gpu_metrics_xgmi_link_speed(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    xgmi_link_speed_value = ctypes.c_uint16()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_xgmi_link_speed(
+            processor_handle, ctypes.byref(xgmi_link_speed_value)
+        )
+    )
+
+    if xgmi_link_speed_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return xgmi_link_speed_value.value
+
+
+def amdsmi_get_gpu_metrics_gfxclk_lock_status(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> bool:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    gfxclk_lock_status_value = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_gfxclk_lock_status(
+            processor_handle, ctypes.byref(gfxclk_lock_status_value)
+        )
+    )
+
+    if gfxclk_lock_status_value.value == 0xFFFFFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return bool(gfxclk_lock_status_value.value)
+
+
+def amdsmi_get_gpu_metrics_gfx_activity_acc(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    gfx_activity_acc_value = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_gfx_activity_acc(
+            processor_handle, ctypes.byref(gfx_activity_acc_value)
+        )
+    )
+
+    if gfx_activity_acc_value.value == 0xFFFFFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return gfx_activity_acc_value.value
+
+
+def amdsmi_get_gpu_metrics_mem_activity_acc(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    mem_activity_acc_value = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_mem_activity_acc(
+            processor_handle, ctypes.byref(mem_activity_acc_value)
+        )
+    )
+
+    if mem_activity_acc_value.value == 0xFFFFFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return mem_activity_acc_value.value
+
+
+def amdsmi_get_gpu_metrics_pcie_bandwidth_acc(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    pcie_bandwidth_acc_value = ctypes.c_uint64()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_pcie_bandwidth_acc(
+            processor_handle, ctypes.byref(pcie_bandwidth_acc_value)
+        )
+    )
+
+    if pcie_bandwidth_acc_value.value == 0xFFFFFFFFFFFFFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return pcie_bandwidth_acc_value.value
+
+
+def amdsmi_get_gpu_metrics_pcie_bandwidth_inst(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    pcie_bandwidth_inst_value = ctypes.c_uint64()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_pcie_bandwidth_inst(
+            processor_handle, ctypes.byref(pcie_bandwidth_inst_value)
+        )
+    )
+
+    if pcie_bandwidth_inst_value.value == 0xFFFFFFFFFFFFFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return pcie_bandwidth_inst_value.value
+
+
+def amdsmi_get_gpu_metrics_pcie_l0_recov_count_acc(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    pcie_count_acc_value = ctypes.c_uint64()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_pcie_l0_recov_count_acc(
+            processor_handle, ctypes.byref(pcie_count_acc_value)
+        )
+    )
+
+    if pcie_count_acc_value.value == 0xFFFFFFFFFFFFFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return pcie_count_acc_value.value
+
+
+def amdsmi_get_gpu_metrics_pcie_replay_count_acc(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    pcie_count_acc_value = ctypes.c_uint64()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_pcie_replay_count_acc(
+            processor_handle, ctypes.byref(pcie_count_acc_value)
+        )
+    )
+
+    if pcie_count_acc_value.value == 0xFFFFFFFFFFFFFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return pcie_count_acc_value.value
+
+
+def amdsmi_get_gpu_metrics_pcie_replay_rover_count_acc(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    pcie_count_acc_value = ctypes.c_uint64()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_pcie_replay_rover_count_acc(
+            processor_handle, ctypes.byref(pcie_count_acc_value)
+        )
+    )
+
+    if pcie_count_acc_value.value == 0xFFFFFFFFFFFFFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return pcie_count_acc_value.value
+
+
+def amdsmi_get_gpu_metrics_curr_uclk(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    uclk_value = ctypes.c_uint16()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_curr_uclk(
+            processor_handle, ctypes.byref(uclk_value)
+        )
+    )
+
+    if uclk_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return uclk_value.value
+
+
+def amdsmi_get_gpu_metrics_temp_hbm(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> List[int]:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+        processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    temp_hbm_value = (ctypes.c_uint16 * AMDSMI_NUM_HBM_INSTANCES)()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_temp_hbm(
+            processor_handle, temp_hbm_value
+        )
+    )
+
+    return [temp_hbm.value for temp_hbm in temp_hbm_value]
+
+
+def amdsmi_get_gpu_metrics_vcn_activity(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> List[int]:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+        processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    vcn_activity_value = (ctypes.c_uint16 * AMDSMI_MAX_NUM_VCN)()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_vcn_activity(
+            processor_handle, vcn_activity_value
+        )
+    )
+
+    return [vcn_activity.value for vcn_activity in vcn_activity_value]
+
+
+def amdsmi_get_gpu_metrics_xgmi_read_data(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> List[int]:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+        processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    xgmi_write_data_acc_value = (ctypes.c_uint64 * AMDSMI_MAX_NUM_XGMI_LINKS)()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_xgmi_read_data(
+            processor_handle, xgmi_write_data_acc_value
+        )
+    )
+
+    return [xgmi_read_data_acc.value for xgmi_read_data_acc in xgmi_write_data_acc_value]
+
+
+def amdsmi_get_gpu_metrics_xgmi_write_data(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> List[int]:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+        processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    xgmi_write_data_acc_value = (ctypes.c_uint64 * AMDSMI_MAX_NUM_XGMI_LINKS)()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_xgmi_write_data(
+            processor_handle, xgmi_write_data_acc_value
+        )
+    )
+
+    return [xgmi_write_data_acc.value for xgmi_write_data_acc in xgmi_write_data_acc_value]
+
+
+def amdsmi_get_gpu_metrics_curr_gfxclk(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> List[int]:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+        processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    current_gfxclk_value = (ctypes.c_uint16 * AMDSMI_MAX_NUM_GFX_CLKS)()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_curr_gfxclk(
+            processor_handle, current_gfxclk_value
+        )
+    )
+
+    return [curr_gfxclk.value for curr_gfxclk in current_gfxclk_value]
+
+
+def amdsmi_get_gpu_metrics_curr_socclk(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> List[int]:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+        processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    current_socclk_value = (ctypes.c_uint16 * AMDSMI_MAX_NUM_CLKS)()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_curr_socclk(
+            processor_handle, current_socclk_value
+        )
+    )
+
+    return [curr_socclk.value for curr_socclk in current_socclk_value]
+
+
+def amdsmi_get_gpu_metrics_curr_vclk0(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> List[int]:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+        processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    current_vclk_value = (ctypes.c_uint16 * AMDSMI_MAX_NUM_CLKS)()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_curr_vclk0(
+            processor_handle, current_vclk_value
+        )
+    )
+
+    return [curr_vclk0.value for curr_vclk0 in current_vclk_value]
+
+
+def amdsmi_get_gpu_metrics_curr_dclk0(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> List[int]:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+        processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    current_dclk_value = (ctypes.c_uint16 * AMDSMI_MAX_NUM_CLKS)()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_curr_dclk0(
+            processor_handle, current_dclk_value
+        )
+    )
+
+    return [curr_dclk0.value for curr_dclk0 in current_dclk_value]
+
+
+def amdsmi_get_gpu_metrics_temp_edge(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+        processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    edge_value = ctypes.c_int16()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_temp_edge(
+            processor_handle, ctypes.byref(edge_value)
+        )
+    )
+
+    if edge_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return edge_value.value
+
+
+def amdsmi_get_gpu_metrics_temp_vrgfx(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+        processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    vrgfx_value = ctypes.c_int16()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_temp_vrgfx(
+            processor_handle, ctypes.byref(vrgfx_value)
+        )
+    )
+
+    if vrgfx_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return vrgfx_value.value
+
+
+def amdsmi_get_gpu_metrics_temp_vrmem(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+        processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    vrmem_value = ctypes.c_int16()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_temp_vrmem(
+            processor_handle, ctypes.byref(vrmem_value)
+        )
+    )
+
+    if vrmem_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return vrmem_value.value
+
+
+def amdsmi_get_gpu_metrics_avg_mm_activity(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+        processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    mm_activity_value = ctypes.c_uint16()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_avg_mm_activity(
+            processor_handle, ctypes.byref(mm_activity_value)
+        )
+    )
+
+    if mm_activity_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return mm_activity_value.value
+
+
+def amdsmi_get_gpu_metrics_curr_vclk1(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+        processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    current_vclk_value = ctypes.c_uint16()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_curr_vclk1(
+            processor_handle, ctypes.byref(current_vclk_value)
+        )
+    )
+
+    if current_vclk_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return current_vclk_value.value
+
+
+def amdsmi_get_gpu_metrics_curr_dclk1(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+        processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    current_dclk_value = ctypes.c_uint16()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_curr_dclk1(
+            processor_handle, ctypes.byref(current_dclk_value)
+        )
+    )
+
+    if current_dclk_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return current_dclk_value.value
+
+
+def amdsmi_get_gpu_metrics_indep_throttle_status(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> bool:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+        processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    throttle_status_value = ctypes.c_uint64()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_indep_throttle_status(
+            processor_handle, ctypes.byref(throttle_status_value)
+        )
+    )
+
+    if throttle_status_value.value == 0xFFFFFFFFFFFFFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return bool(throttle_status_value.value)
+
+
+def amdsmi_get_gpu_metrics_avg_socket_power(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+        processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    socket_power_value = ctypes.c_uint16()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_avg_socket_power(
+            processor_handle, ctypes.byref(socket_power_value)
+        )
+    )
+
+    if socket_power_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return socket_power_value.value
+
+
+def amdsmi_get_gpu_metrics_curr_fan_speed(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+        processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    fan_speed_value = ctypes.c_uint16()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_curr_fan_speed(
+            processor_handle, ctypes.byref(fan_speed_value)
+        )
+    )
+
+    if fan_speed_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return fan_speed_value.value
+
+
+def amdsmi_get_gpu_metrics_avg_gfx_clock_frequency(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+        processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    clock_frequency_value = ctypes.c_uint16()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_avg_gfx_clock_frequency(
+            processor_handle, ctypes.byref(clock_frequency_value)
+        )
+    )
+
+    if clock_frequency_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return clock_frequency_value.value
+
+
+def amdsmi_get_gpu_metrics_avg_soc_clock_frequency(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+        processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    clock_frequency_value = ctypes.c_uint16()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_avg_soc_clock_frequency(
+            processor_handle, ctypes.byref(clock_frequency_value)
+        )
+    )
+
+    if clock_frequency_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return clock_frequency_value.value
+
+
+def amdsmi_get_gpu_metrics_avg_uclock_frequency(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+        processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    clock_frequency_value = ctypes.c_uint16()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_avg_uclock_frequency(
+            processor_handle, ctypes.byref(clock_frequency_value)
+        )
+    )
+
+    if clock_frequency_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return clock_frequency_value.value
+
+
+def amdsmi_get_gpu_metrics_avg_vclock0_frequency(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+        processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    clock_frequency_value = ctypes.c_uint16()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_avg_vclock0_frequency(
+            processor_handle, ctypes.byref(clock_frequency_value)
+        )
+    )
+
+    if clock_frequency_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return clock_frequency_value.value
+
+
+def amdsmi_get_gpu_metrics_avg_dclock0_frequency(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+        processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    clock_frequency_value = ctypes.c_uint16()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_avg_dclock0_frequency(
+            processor_handle, ctypes.byref(clock_frequency_value)
+        )
+    )
+
+    if clock_frequency_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return clock_frequency_value.value
+
+
+def amdsmi_get_gpu_metrics_avg_vclock1_frequency(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+        processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    clock_frequency_value = ctypes.c_uint16()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_avg_vclock1_frequency(
+            processor_handle, ctypes.byref(clock_frequency_value)
+        )
+    )
+
+    if clock_frequency_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return clock_frequency_value.value
+
+
+def amdsmi_get_gpu_metrics_avg_dclock1_frequency(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+        processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    clock_frequency_value = ctypes.c_uint16()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_avg_dclock1_frequency(
+            processor_handle, ctypes.byref(clock_frequency_value)
+        )
+    )
+
+    if clock_frequency_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return clock_frequency_value.value
+
+
+def amdsmi_get_gpu_metrics_volt_soc(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    voltage_value = ctypes.c_uint16()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_volt_soc(
+            processor_handle, ctypes.byref(voltage_value)
+        )
+    )
+
+    if voltage_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return voltage_value.value
+
+
+def amdsmi_get_gpu_metrics_volt_gfx(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    voltage_value = ctypes.c_uint16()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_volt_gfx(
+            processor_handle, ctypes.byref(voltage_value)
+        )
+    )
+
+    return [volt_gfx.value for volt_gfx in voltage_value]
+
+
+def amdsmi_get_gpu_metrics_volt_mem(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    voltage_value = ctypes.c_uint16()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_volt_mem(
+            processor_handle, ctypes.byref(voltage_value)
+        )
+    )
+
+    if voltage_value.value == 0xFFFF:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED)
+
+    return voltage_value.value
+
+
+def amdsmi_get_gpu_metrics_header_info(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> Dict[str, int]:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    header_info = amdsmi_wrapper.amd_metrics_table_header_t()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_metrics_header_info(
+            ctypes.byref(header_info)
+        )
+    )
+
+    return {
+        "structure_size": header_info.structure_size.value,
+        "format_revision": header_info.format_revision.value,
+        "content_revision": header_info.content_revision.value
+    }
