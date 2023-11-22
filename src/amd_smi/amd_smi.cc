@@ -1859,22 +1859,21 @@ amdsmi_get_power_info(amdsmi_processor_handle processor_handle, amdsmi_power_inf
     if (status != AMDSMI_STATUS_SUCCESS)
         return status;
 
-    info->average_socket_power = 0xFFFFFFFF;
-    info->gfx_voltage = 0xFFFFFFFF;
-    info->soc_voltage = 0xFFFFFFFF; // Not implmented yet
-    info->mem_voltage = 0xFFFFFFFF; // Not implmented yet
-    info->power_limit = 0xFFFFFFFF;
+    info->current_socket_power = 0xFFFF;
+    info->average_socket_power = 0xFFFF;
+    info->gfx_voltage = 0xFFFF;
+    info->soc_voltage = 0xFFFF;
+    info->mem_voltage = 0xFFFF;
+    info->power_limit = 0xFFFF;
 
     amdsmi_gpu_metrics_t metrics = {};
     status = amdsmi_get_gpu_metrics_info(processor_handle, &metrics);
     if (status == AMDSMI_STATUS_SUCCESS) {
+        info->current_socket_power = metrics.current_socket_power;
         info->average_socket_power = metrics.average_socket_power;
-    }
-
-    int64_t voltage_read = 0;
-    status = amdsmi_get_gpu_volt_metric(processor_handle, AMDSMI_VOLT_TYPE_VDDGFX, AMDSMI_VOLT_CURRENT, &voltage_read);
-    if (status == AMDSMI_STATUS_SUCCESS) {
-        info->gfx_voltage = voltage_read;
+        info->gfx_voltage = metrics.voltage_gfx;
+        info->soc_voltage = metrics.voltage_soc;
+        info->mem_voltage = metrics.voltage_mem;
     }
 
     int power_limit = 0;

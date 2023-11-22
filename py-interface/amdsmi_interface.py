@@ -1320,6 +1320,9 @@ def amdsmi_get_gpu_cache_info(
                                                    "cpu_cache": cpu_cache,
                                                    "simd_cache": simd_cache}
 
+    if cache_info_dict == {}:
+        raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NO_DATA)
+
     return cache_info_dict
 
 
@@ -1642,6 +1645,7 @@ def amdsmi_get_power_info(
     )
 
     return {
+        "current_socket_power": power_measure.current_socket_power,
         "average_socket_power": power_measure.average_socket_power,
         "gfx_voltage": power_measure.gfx_voltage,
         "soc_voltage": power_measure.soc_voltage,

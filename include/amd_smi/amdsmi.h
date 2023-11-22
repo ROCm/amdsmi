@@ -525,6 +525,7 @@ typedef struct {
 } amdsmi_board_info_t;
 
 typedef struct {
+  uint32_t current_socket_power;
   uint32_t average_socket_power;
   uint32_t gfx_voltage;   // GFX voltage measurement in mV
   uint32_t soc_voltage;  // SOC voltage measurement in mV
@@ -2705,16 +2706,16 @@ amdsmi_status_t amdsmi_get_gpu_metrics_info(amdsmi_processor_handle processor_ha
  *  @brief Get the pm metrics table with provided device index.
  *
  *  @details Given a device handle @p processor_handle, @p pm_metrics pointer,
- *  and @p num_of_metrics pointer, 
+ *  and @p num_of_metrics pointer,
  *  this function will write the pm metrics name value pair
  *  to the array at @p pm_metrics and the number of metrics retreived to @p num_of_metrics
  *  Note: the library allocated memory for pm_metrics, and user must call
  *  free(pm_metrics) to free it after use.
- * 
+ *
  *  @param[in] processor_handle a processor handle
  *
  *  @param[inout] pm_metrics A pointerto an array to hold multiple PM metrics. On successs,
- *  the library will allocate memory of pm_metrics and write metrics to this array. 
+ *  the library will allocate memory of pm_metrics and write metrics to this array.
  *  The caller must free this memory after usage to avoid memory leak.
  *
  *  @param[inout] num_of_metrics a pointer to uint32_t to which the number of
@@ -2739,18 +2740,18 @@ amdsmi_status_t amdsmi_get_gpu_pm_metrics_info(
  *  @brief Get the register metrics table with provided device index and register type.
  *
  *  @details Given a device handle @p processor_handle, @p reg_type, @p reg_metrics pointer,
- *  and @p num_of_metrics pointer, 
+ *  and @p num_of_metrics pointer,
  *  this function will write the register metrics name value pair
  *  to the array at @p reg_metrics and the number of metrics retreived to @p num_of_metrics
  *  Note: the library allocated memory for reg_metrics, and user must call
  *  free(reg_metrics) to free it after use.
- * 
+ *
  *  @param[in] processor_handle a processor handle
- * 
+ *
  *  @param[in] reg_type The register type
  *
  *  @param[inout] reg_metrics A pointerto an array to hold multiple register metrics. On successs,
- *  the library will allocate memory of reg_metrics and write metrics to this array. 
+ *  the library will allocate memory of reg_metrics and write metrics to this array.
  *  The caller must free this memory after usage to avoid memory leak.
  *
  *  @param[inout] num_of_metrics a pointer to uint32_t to which the number of

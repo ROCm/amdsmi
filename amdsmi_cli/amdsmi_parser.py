@@ -248,7 +248,7 @@ class AMDSMIParser(argparse.ArgumentParser):
 
         command_modifier_group.add_argument('--file', action=self._check_output_file_path(), type=str, required=False, help=file_help)
         # Placing loglevel outside the subcommands so it can be used with any subcommand
-        command_modifier_group.add_argument('--loglevel', action='store', required=False, help=loglevel_help, default='ERROR', metavar='LEVEL',
+        command_modifier_group.add_argument('--loglevel', action='store', type=str.upper, required=False, help=loglevel_help, default='ERROR', metavar='LEVEL',
                                             choices=loglevel_choices)
 
 
