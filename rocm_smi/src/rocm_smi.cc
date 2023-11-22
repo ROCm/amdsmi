@@ -61,6 +61,7 @@
 #include <iostream>
 #include <map>
 #include <sstream>
+#include <vector>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -105,6 +106,14 @@ static const std::map<rsmi_clk_type_t, amd::smi::DevInfoTypes> kClkTypeMap = {
 
 #define TRY try {
 #define CATCH } catch (...) {return amd::smi::handleException();}
+
+// declare pm metrics and register table function
+namespace amd::smi {
+int present_pmmetrics(const char* sysfs_file_name,
+        rsmi_name_value_t **kv, uint32_t *kvnum);
+int present_reg_state(const char* fname, rsmi_reg_type_t reg_type,
+        rsmi_name_value_t **kv, uint32_t *kvnum);
+}
 
 static uint64_t get_multiplier_from_str(char units_char) {
   uint32_t multiplier = 0;
@@ -2479,6 +2488,40 @@ rsmi_dev_vendor_name_get(uint32_t dv_ind, char *name, size_t len) {
   CATCH
 }
 
+rsmi_status_t rsmi_dev_pm_metrics_info_get(uint32_t dv_ind,
+                      rsmi_name_value_t** pm_metrics,
+                      uint32_t *num_of_metrics) {
+  TRY
+  DEVICE_MUTEX
+  CHK_SUPPORT_NAME_ONLY(num_of_metrics)
+  std::string file_path = dev->
+          get_sys_file_path_by_type(amd::smi::kDevPmMetrics);
+
+  int ret = amd::smi::present_pmmetrics(
+          file_path.c_str(), pm_metrics, num_of_metrics);
+  if (ret == 0) return RSMI_STATUS_SUCCESS;
+  return RSMI_STATUS_NOT_SUPPORTED;
+
+  CATCH
+}
+
+rsmi_status_t rsmi_dev_reg_table_info_get(uint32_t dv_ind,
+                      rsmi_reg_type_t reg_type,
+                      rsmi_name_value_t** reg_metrics,
+                      uint32_t *num_of_metrics) {
+  TRY
+  DEVICE_MUTEX
+  CHK_SUPPORT_NAME_ONLY(num_of_metrics)
+  std::string file_path = dev->
+          get_sys_file_path_by_type(amd::smi::kDevRegMetrics);
+
+  int ret = amd::smi::present_reg_state(
+          file_path.c_str(), reg_type, reg_metrics, num_of_metrics);
+  if (ret == 0) return RSMI_STATUS_SUCCESS;
+  return RSMI_STATUS_NOT_SUPPORTED;
+
+  CATCH
+}
 
 rsmi_status_t
 rsmi_dev_pci_bandwidth_get(uint32_t dv_ind, rsmi_pcie_bandwidth_t *b) {
@@ -3232,16 +3275,16 @@ rsmi_dev_energy_count_get(uint32_t dv_ind, uint64_t *power,
   ss << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ss);
 
+  if (power == nullptr ||
+      timestamp == nullptr) {
+      return RSMI_STATUS_INVALID_ARGS;
+  }
+
   rsmi_status_t ret;
   rsmi_gpu_metrics_t gpu_metrics;
   ret = rsmi_dev_gpu_metrics_info_get(dv_ind, &gpu_metrics);
   if (ret != RSMI_STATUS_SUCCESS) {
     return ret;
-  }
-
-  if (power == nullptr ||
-      timestamp == nullptr) {
-      return RSMI_STATUS_INVALID_ARGS;
   }
 
   *power = gpu_metrics.energy_accumulator;
@@ -3734,6 +3777,11 @@ rsmi_utilization_count_get(uint32_t dv_ind,
                 uint64_t *timestamp) {
   TRY
 
+  if (timestamp == nullptr ||
+      utilization_counters == nullptr) {
+      return RSMI_STATUS_INVALID_ARGS;
+  }
+
   rsmi_status_t ret;
   rsmi_gpu_metrics_t gpu_metrics;
   uint32_t val_ui32;
@@ -3741,11 +3789,6 @@ rsmi_utilization_count_get(uint32_t dv_ind,
   ret = rsmi_dev_gpu_metrics_info_get(dv_ind, &gpu_metrics);
   if (ret != RSMI_STATUS_SUCCESS) {
     return ret;
-  }
-
-  if (timestamp == nullptr ||
-      utilization_counters == nullptr) {
-      return RSMI_STATUS_INVALID_ARGS;
   }
 
   for (uint32_t index = 0 ; index < count; index++) {
@@ -5796,12 +5839,44 @@ rsmi_status_t rsmi_event_notification_stop(uint32_t dv_ind) {
 //        so they can be used/tested.
 //
 rsmi_status_t
-rsmi_dev_temp_hotspot_get(uint32_t dv_ind, uint16_t* hotspot_value)
+rsmi_dev_metrics_temp_edge_get(uint32_t dv_ind, uint16_t* edge_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
+
+  assert(edge_value != nullptr);
+  if (edge_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricTempEdge);
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *edge_value);
+  ostrstream << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | End Result "
+             << " | Device #:  " << dv_ind
+             << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+  LOG_INFO(ostrstream);
+
+  return status_code;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_metrics_temp_hotspot_get(uint32_t dv_ind, uint16_t* hotspot_value)
+{
+  TRY
+  std::ostringstream ostrstream;
+  ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ostrstream);
+
+  assert(hotspot_value != nullptr);
+  if (hotspot_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
 
   const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricTempHotspot);
   auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *hotspot_value);
@@ -5818,12 +5893,17 @@ rsmi_dev_temp_hotspot_get(uint32_t dv_ind, uint16_t* hotspot_value)
 }
 
 rsmi_status_t
-rsmi_dev_temp_mem_get(uint32_t dv_ind, uint16_t* mem_value)
+rsmi_dev_metrics_temp_mem_get(uint32_t dv_ind, uint16_t* mem_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
+
+  assert(mem_value != nullptr);
+  if (mem_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
 
   const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricTempMem);
   auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *mem_value);
@@ -5840,12 +5920,44 @@ rsmi_dev_temp_mem_get(uint32_t dv_ind, uint16_t* mem_value)
 }
 
 rsmi_status_t
-rsmi_dev_temp_vrsoc_get(uint32_t dv_ind, uint16_t* vrsoc_value)
+rsmi_dev_metrics_temp_vrgfx_get(uint32_t dv_ind, uint16_t* vrgfx_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
+
+  assert(vrgfx_value != nullptr);
+  if (vrgfx_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricTempVrGfx);
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *vrgfx_value);
+  ostrstream << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | End Result "
+             << " | Device #:  " << dv_ind
+             << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+  LOG_INFO(ostrstream);
+
+  return status_code;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_metrics_temp_vrsoc_get(uint32_t dv_ind, uint16_t* vrsoc_value)
+{
+  TRY
+  std::ostringstream ostrstream;
+  ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ostrstream);
+
+  assert(vrsoc_value != nullptr);
+  if (vrsoc_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
 
   const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricTempVrSoc);
   auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *vrsoc_value);
@@ -5862,12 +5974,44 @@ rsmi_dev_temp_vrsoc_get(uint32_t dv_ind, uint16_t* vrsoc_value)
 }
 
 rsmi_status_t
-rsmi_dev_curr_socket_power_get(uint32_t dv_ind, uint16_t* socket_power_value)
+rsmi_dev_metrics_temp_vrmem_get(uint32_t dv_ind, uint16_t* vrmem_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
+
+  assert(vrmem_value != nullptr);
+  if (vrmem_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricTempVrMem);
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *vrmem_value);
+  ostrstream << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | End Result "
+             << " | Device #:  " << dv_ind
+             << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+  LOG_INFO(ostrstream);
+
+  return status_code;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_metrics_curr_socket_power_get(uint32_t dv_ind, uint16_t* socket_power_value)
+{
+  TRY
+  std::ostringstream ostrstream;
+  ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ostrstream);
+
+  assert(socket_power_value != nullptr);
+  if (socket_power_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
 
   const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricCurrSocketPower);
   auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *socket_power_value);
@@ -5883,13 +6027,46 @@ rsmi_dev_curr_socket_power_get(uint32_t dv_ind, uint16_t* socket_power_value)
   CATCH
 }
 
+
 rsmi_status_t
-rsmi_dev_avg_gfx_activity_get(uint32_t dv_ind, uint16_t* gfx_activity_value)
+rsmi_dev_metrics_avg_socket_power_get(uint32_t dv_ind, uint16_t* socket_power_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
+
+  assert(socket_power_value != nullptr);
+  if (socket_power_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricAvgSocketPower);
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *socket_power_value);
+  ostrstream << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | End Result "
+             << " | Device #:  " << dv_ind
+             << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+  LOG_INFO(ostrstream);
+
+  return status_code;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_metrics_avg_gfx_activity_get(uint32_t dv_ind, uint16_t* gfx_activity_value)
+{
+  TRY
+  std::ostringstream ostrstream;
+  ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ostrstream);
+
+  assert(gfx_activity_value != nullptr);
+  if (gfx_activity_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
 
   const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricAvgGfxActivity);
   auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *gfx_activity_value);
@@ -5906,12 +6083,17 @@ rsmi_dev_avg_gfx_activity_get(uint32_t dv_ind, uint16_t* gfx_activity_value)
 }
 
 rsmi_status_t
-rsmi_dev_avg_umc_activity_get(uint32_t dv_ind, uint16_t* umc_activity_value)
+rsmi_dev_metrics_avg_umc_activity_get(uint32_t dv_ind, uint16_t* umc_activity_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
+
+  assert(umc_activity_value != nullptr);
+  if (umc_activity_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
 
   const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricAvgUmcActivity);
   auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *umc_activity_value);
@@ -5928,12 +6110,44 @@ rsmi_dev_avg_umc_activity_get(uint32_t dv_ind, uint16_t* umc_activity_value)
 }
 
 rsmi_status_t
-rsmi_dev_energy_acc_get(uint32_t dv_ind, uint64_t* energy_acc_value)
+rsmi_dev_metrics_avg_mm_activity_get(uint32_t dv_ind, uint16_t* mm_activity_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
+
+  assert(mm_activity_value != nullptr);
+  if (mm_activity_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricAvgMmActivity);
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *mm_activity_value);
+  ostrstream << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | End Result "
+             << " | Device #:  " << dv_ind
+             << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+  LOG_INFO(ostrstream);
+
+  return status_code;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_metrics_energy_acc_get(uint32_t dv_ind, uint64_t* energy_acc_value)
+{
+  TRY
+  std::ostringstream ostrstream;
+  ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ostrstream);
+
+  assert(energy_acc_value != nullptr);
+  if (energy_acc_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
 
   const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricEnergyAccumulator);
   auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *energy_acc_value);
@@ -5950,12 +6164,17 @@ rsmi_dev_energy_acc_get(uint32_t dv_ind, uint64_t* energy_acc_value)
 }
 
 rsmi_status_t
-rsmi_dev_system_clock_counter_get(uint32_t dv_ind, uint64_t* system_clock_counter_value)
+rsmi_dev_metrics_system_clock_counter_get(uint32_t dv_ind, uint64_t* system_clock_counter_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
+
+  assert(system_clock_counter_value != nullptr);
+  if (system_clock_counter_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
 
   const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricTSClockCounter);
   auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *system_clock_counter_value);
@@ -5972,12 +6191,17 @@ rsmi_dev_system_clock_counter_get(uint32_t dv_ind, uint64_t* system_clock_counte
 }
 
 rsmi_status_t
-rsmi_dev_firmware_timestamp_get(uint32_t dv_ind, uint64_t* firmware_timestamp_value)
+rsmi_dev_metrics_firmware_timestamp_get(uint32_t dv_ind, uint64_t* firmware_timestamp_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
+
+  assert(firmware_timestamp_value != nullptr);
+  if (firmware_timestamp_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
 
   const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricTSFirmware);
   auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *firmware_timestamp_value);
@@ -5994,12 +6218,44 @@ rsmi_dev_firmware_timestamp_get(uint32_t dv_ind, uint64_t* firmware_timestamp_va
 }
 
 rsmi_status_t
-rsmi_dev_throttle_status_get(uint32_t dv_ind, uint32_t* throttle_status_value)
+rsmi_dev_metrics_indep_throttle_status_get(uint32_t dv_ind, uint64_t* throttle_status_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
+
+  assert(throttle_status_value != nullptr);
+  if (throttle_status_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricIndepThrottleStatus);
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *throttle_status_value);
+  ostrstream << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | End Result "
+             << " | Device #:  " << dv_ind
+             << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+  LOG_INFO(ostrstream);
+
+  return status_code;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_metrics_throttle_status_get(uint32_t dv_ind, uint32_t* throttle_status_value)
+{
+  TRY
+  std::ostringstream ostrstream;
+  ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ostrstream);
+
+  assert(throttle_status_value != nullptr);
+  if (throttle_status_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
 
   const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricThrottleStatus);
   auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *throttle_status_value);
@@ -6016,12 +6272,44 @@ rsmi_dev_throttle_status_get(uint32_t dv_ind, uint32_t* throttle_status_value)
 }
 
 rsmi_status_t
-rsmi_dev_pcie_link_width_get(uint32_t dv_ind, uint16_t* pcie_link_width_value)
+rsmi_dev_metrics_curr_fan_speed_get(uint32_t dv_ind, uint16_t* fan_speed_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
+
+  assert(fan_speed_value != nullptr);
+  if (fan_speed_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricCurrFanSpeed);
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *fan_speed_value);
+  ostrstream << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | End Result "
+             << " | Device #:  " << dv_ind
+             << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+  LOG_INFO(ostrstream);
+
+  return status_code;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_metrics_pcie_link_width_get(uint32_t dv_ind, uint16_t* pcie_link_width_value)
+{
+  TRY
+  std::ostringstream ostrstream;
+  ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ostrstream);
+
+  assert(pcie_link_width_value != nullptr);
+  if (pcie_link_width_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
 
   const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricPcieLinkWidth);
   auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *pcie_link_width_value);
@@ -6038,12 +6326,17 @@ rsmi_dev_pcie_link_width_get(uint32_t dv_ind, uint16_t* pcie_link_width_value)
 }
 
 rsmi_status_t
-rsmi_dev_pcie_link_speed_get(uint32_t dv_ind, uint16_t* pcie_link_speed_value)
+rsmi_dev_metrics_pcie_link_speed_get(uint32_t dv_ind, uint16_t* pcie_link_speed_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
+
+  assert(pcie_link_speed_value != nullptr);
+  if (pcie_link_speed_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
 
   const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricPcieLinkSpeed);
   auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *pcie_link_speed_value);
@@ -6060,12 +6353,17 @@ rsmi_dev_pcie_link_speed_get(uint32_t dv_ind, uint16_t* pcie_link_speed_value)
 }
 
 rsmi_status_t
-rsmi_dev_xgmi_link_width_get(uint32_t dv_ind, uint16_t* xgmi_link_width_value)
+rsmi_dev_metrics_xgmi_link_width_get(uint32_t dv_ind, uint16_t* xgmi_link_width_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
+
+  assert(xgmi_link_width_value != nullptr);
+  if (xgmi_link_width_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
 
   const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricXgmiLinkWidth);
   auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *xgmi_link_width_value);
@@ -6082,12 +6380,17 @@ rsmi_dev_xgmi_link_width_get(uint32_t dv_ind, uint16_t* xgmi_link_width_value)
 }
 
 rsmi_status_t
-rsmi_dev_xgmi_link_speed_get(uint32_t dv_ind, uint16_t* xgmi_link_speed_value)
+rsmi_dev_metrics_xgmi_link_speed_get(uint32_t dv_ind, uint16_t* xgmi_link_speed_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
+
+  assert(xgmi_link_speed_value != nullptr);
+  if (xgmi_link_speed_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
 
   const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricXgmiLinkSpeed);
   auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *xgmi_link_speed_value);
@@ -6104,12 +6407,17 @@ rsmi_dev_xgmi_link_speed_get(uint32_t dv_ind, uint16_t* xgmi_link_speed_value)
 }
 
 rsmi_status_t
-rsmi_dev_gfxclk_lock_status_get(uint32_t dv_ind, uint32_t* gfxclk_lock_status_value)
+rsmi_dev_metrics_gfxclk_lock_status_get(uint32_t dv_ind, uint32_t* gfxclk_lock_status_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
+
+  assert(gfxclk_lock_status_value != nullptr);
+  if (gfxclk_lock_status_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
 
   const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricGfxClkLockStatus);
   auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *gfxclk_lock_status_value);
@@ -6126,12 +6434,17 @@ rsmi_dev_gfxclk_lock_status_get(uint32_t dv_ind, uint32_t* gfxclk_lock_status_va
 }
 
 rsmi_status_t
-rsmi_dev_gfx_activity_acc_get(uint32_t dv_ind, uint32_t* gfx_activity_acc_value)
+rsmi_dev_metrics_gfx_activity_acc_get(uint32_t dv_ind, uint32_t* gfx_activity_acc_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
+
+  assert(gfx_activity_acc_value != nullptr);
+  if (gfx_activity_acc_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
 
   const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricGfxActivityAccumulator);
   auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *gfx_activity_acc_value);
@@ -6148,12 +6461,17 @@ rsmi_dev_gfx_activity_acc_get(uint32_t dv_ind, uint32_t* gfx_activity_acc_value)
 }
 
 rsmi_status_t
-rsmi_dev_mem_activity_acc_get(uint32_t dv_ind, uint32_t* mem_activity_acc_value)
+rsmi_dev_metrics_mem_activity_acc_get(uint32_t dv_ind, uint32_t* mem_activity_acc_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
+
+  assert(mem_activity_acc_value != nullptr);
+  if (mem_activity_acc_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
 
   const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricMemActivityAccumulator);
   auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *mem_activity_acc_value);
@@ -6170,12 +6488,17 @@ rsmi_dev_mem_activity_acc_get(uint32_t dv_ind, uint32_t* mem_activity_acc_value)
 }
 
 rsmi_status_t
-rsmi_dev_pcie_bandwidth_acc_get(uint32_t dv_ind, uint64_t* pcie_bandwidth_acc_value)
+rsmi_dev_metrics_pcie_bandwidth_acc_get(uint32_t dv_ind, uint64_t* pcie_bandwidth_acc_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
+
+  assert(pcie_bandwidth_acc_value != nullptr);
+  if (pcie_bandwidth_acc_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
 
   const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricPcieBandwidthAccumulator);
   auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *pcie_bandwidth_acc_value);
@@ -6192,12 +6515,17 @@ rsmi_dev_pcie_bandwidth_acc_get(uint32_t dv_ind, uint64_t* pcie_bandwidth_acc_va
 }
 
 rsmi_status_t
-rsmi_dev_pcie_bandwidth_inst_get(uint32_t dv_ind, uint64_t* pcie_bandwidth_inst_value)
+rsmi_dev_metrics_pcie_bandwidth_inst_get(uint32_t dv_ind, uint64_t* pcie_bandwidth_inst_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
+
+  assert(pcie_bandwidth_inst_value != nullptr);
+  if (pcie_bandwidth_inst_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
 
   const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricPcieBandwidthInst);
   auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *pcie_bandwidth_inst_value);
@@ -6213,13 +6541,100 @@ rsmi_dev_pcie_bandwidth_inst_get(uint32_t dv_ind, uint64_t* pcie_bandwidth_inst_
   CATCH
 }
 
+
 rsmi_status_t
-rsmi_dev_curr_uclk_get(uint32_t dv_ind, uint16_t* uclk_value)
+rsmi_dev_metrics_pcie_l0_recov_count_acc_get(uint32_t dv_ind, uint64_t* pcie_count_acc_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
+
+  assert(pcie_count_acc_value != nullptr);
+  if (pcie_count_acc_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricPcieL0RecovCountAccumulator);
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *pcie_count_acc_value);
+  ostrstream << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | End Result "
+             << " | Device #:  " << dv_ind
+             << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+  LOG_INFO(ostrstream);
+
+  return status_code;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_metrics_pcie_replay_count_acc_get(uint32_t dv_ind, uint64_t* pcie_count_acc_value)
+{
+  TRY
+  std::ostringstream ostrstream;
+  ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ostrstream);
+
+  assert(pcie_count_acc_value != nullptr);
+  if (pcie_count_acc_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricPcieReplayCountAccumulator);
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *pcie_count_acc_value);
+  ostrstream << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | End Result "
+             << " | Device #:  " << dv_ind
+             << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+  LOG_INFO(ostrstream);
+
+  return status_code;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_metrics_pcie_replay_rover_count_acc_get(uint32_t dv_ind, uint64_t* pcie_count_acc_value)
+{
+  TRY
+  std::ostringstream ostrstream;
+  ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ostrstream);
+
+  assert(pcie_count_acc_value != nullptr);
+  if (pcie_count_acc_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricPcieReplayRollOverCountAccumulator);
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *pcie_count_acc_value);
+  ostrstream << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | End Result "
+             << " | Device #:  " << dv_ind
+             << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+  LOG_INFO(ostrstream);
+
+  return status_code;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_metrics_curr_uclk_get(uint32_t dv_ind, uint16_t* uclk_value)
+{
+  TRY
+  std::ostringstream ostrstream;
+  ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ostrstream);
+
+  assert(uclk_value != nullptr);
+  if (uclk_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
 
   const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricCurrUClock);
   auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *uclk_value);
@@ -6236,155 +6651,258 @@ rsmi_dev_curr_uclk_get(uint32_t dv_ind, uint16_t* uclk_value)
 }
 
 rsmi_status_t
-rsmi_dev_vcn_activity_get(uint32_t dv_ind, amd::smi::GPUMetricVcnActivityTbl_t* vcn_activity_value)
+rsmi_dev_metrics_temp_hbm_get(uint32_t dv_ind, GPUMetricTempHbm_t* temp_hbm_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
 
-  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricVcnActivity);
-  amd::smi::GPUMetricVcnActivityTbl_t tmp_vcn_activity_value;
-  *vcn_activity_value = tmp_vcn_activity_value;
-  auto status_code(rsmi_status_t::RSMI_STATUS_SUCCESS);
+  assert(temp_hbm_value != nullptr);
+  if (temp_hbm_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricTempHbm);
+  amd::smi::GPUMetricTempHbmTbl_t tmp_hbl_tbl{};
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, tmp_hbl_tbl);
+  if (status_code == rsmi_status_t::RSMI_STATUS_SUCCESS) {
+    const auto max_num_elems =
+      static_cast<uint16_t>(std::end(*temp_hbm_value) - std::begin(*temp_hbm_value));
+    std::copy_n(std::begin(tmp_hbl_tbl), max_num_elems, *temp_hbm_value);
+  }
   ostrstream << __PRETTY_FUNCTION__
              << " | ======= end ======= "
              << " | End Result "
              << " | Device #:  " << dv_ind
              << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Metric Size: " << tmp_hbl_tbl.size()
              << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
   LOG_INFO(ostrstream);
+
   return status_code;
   CATCH
 }
 
 rsmi_status_t
-rsmi_dev_xgmi_read_data_get(uint32_t dv_ind, amd::smi::GPUMetricXgmiAccTbl_t* xgmi_read_data_acc_value)
+rsmi_dev_metrics_vcn_activity_get(uint32_t dv_ind, GPUMetricVcnActivity_t* vcn_activity_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
 
+  assert(vcn_activity_value != nullptr);
+  if (vcn_activity_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
   const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricVcnActivity);
-  amd::smi::GPUMetricXgmiAccTbl_t tmp_xgmi_read_data_acc_value;
-  *xgmi_read_data_acc_value = tmp_xgmi_read_data_acc_value;
-  auto status_code(rsmi_status_t::RSMI_STATUS_SUCCESS);
+  amd::smi::GPUMetricVcnActivityTbl_t tmp_vcn_tbl{};
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, tmp_vcn_tbl);
+  if (status_code == rsmi_status_t::RSMI_STATUS_SUCCESS) {
+    const auto max_num_elems =
+      static_cast<uint16_t>(std::end(*vcn_activity_value) - std::begin(*vcn_activity_value));
+    std::copy_n(std::begin(tmp_vcn_tbl), max_num_elems, *vcn_activity_value);
+  }
   ostrstream << __PRETTY_FUNCTION__
              << " | ======= end ======= "
              << " | End Result "
              << " | Device #:  " << dv_ind
              << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Metric Size: " << tmp_vcn_tbl.size()
              << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
   LOG_INFO(ostrstream);
+
   return status_code;
   CATCH
 }
 
 rsmi_status_t
-rsmi_dev_xgmi_write_data_get(uint32_t dv_ind, amd::smi::GPUMetricXgmiAccTbl_t* xgmi_write_data_acc_value)
+rsmi_dev_metrics_xgmi_read_data_get(uint32_t dv_ind, GPUMetricXgmiReadDataAcc_t* xgmi_read_data_acc_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
 
-  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricVcnActivity);
-  amd::smi::GPUMetricXgmiAccTbl_t tmp_xgmi_write_data_acc_value;
-  *xgmi_write_data_acc_value = tmp_xgmi_write_data_acc_value;
-  auto status_code(rsmi_status_t::RSMI_STATUS_SUCCESS);
+  assert(xgmi_read_data_acc_value != nullptr);
+  if (xgmi_read_data_acc_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricXgmiReadDataAccumulator);
+  amd::smi::GPUMetricXgmiAccTbl_t tmp_xgmi_acc_tbl{};
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, tmp_xgmi_acc_tbl);
+  if (status_code == rsmi_status_t::RSMI_STATUS_SUCCESS) {
+    const auto max_num_elems =
+      static_cast<uint16_t>(std::end(*xgmi_read_data_acc_value) - std::begin(*xgmi_read_data_acc_value));
+    std::copy_n(std::begin(tmp_xgmi_acc_tbl), max_num_elems, *xgmi_read_data_acc_value);
+  }
   ostrstream << __PRETTY_FUNCTION__
              << " | ======= end ======= "
              << " | End Result "
              << " | Device #:  " << dv_ind
              << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Metric Size: " << tmp_xgmi_acc_tbl.size()
              << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
   LOG_INFO(ostrstream);
+
   return status_code;
   CATCH
 }
 
 rsmi_status_t
-rsmi_dev_curr_gfxclk_get(uint32_t dv_ind, amd::smi::GPUMetricCurrGfxClkTbl_t* current_gfxclk_value)
+rsmi_dev_metrics_xgmi_write_data_get(uint32_t dv_ind, GPUMetricXgmiWriteDataAcc_t* xgmi_write_data_acc_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
 
-  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricVcnActivity);
-  amd::smi::GPUMetricCurrGfxClkTbl_t tmp_current_gfxclk_value;
-  *current_gfxclk_value = tmp_current_gfxclk_value;
-  auto status_code(rsmi_status_t::RSMI_STATUS_SUCCESS);
+  assert(xgmi_write_data_acc_value != nullptr);
+  if (xgmi_write_data_acc_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricXgmiWriteDataAccumulator);
+  amd::smi::GPUMetricXgmiAccTbl_t tmp_xgmi_acc_tbl{};
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, tmp_xgmi_acc_tbl);
+  if (status_code == rsmi_status_t::RSMI_STATUS_SUCCESS) {
+    const auto max_num_elems =
+      static_cast<uint16_t>(std::end(*xgmi_write_data_acc_value) - std::begin(*xgmi_write_data_acc_value));
+    std::copy_n(std::begin(tmp_xgmi_acc_tbl), max_num_elems, *xgmi_write_data_acc_value);
+  }
   ostrstream << __PRETTY_FUNCTION__
              << " | ======= end ======= "
              << " | End Result "
              << " | Device #:  " << dv_ind
              << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Metric Size: " << tmp_xgmi_acc_tbl.size()
              << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
   LOG_INFO(ostrstream);
+
   return status_code;
   CATCH
 }
 
 rsmi_status_t
-rsmi_dev_curr_socclk_get(uint32_t dv_ind, amd::smi::GPUMetricCurrSocClkTbl_t* current_socclk_value)
+rsmi_dev_metrics_curr_gfxclk_get(uint32_t dv_ind, GPUMetricCurrGfxClk_t* current_gfxclk_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
 
-  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricVcnActivity);
-  amd::smi::GPUMetricCurrSocClkTbl_t tmp_current_socclk_value;
-  *current_socclk_value = tmp_current_socclk_value;
-  auto status_code(rsmi_status_t::RSMI_STATUS_SUCCESS);
+  assert(current_gfxclk_value != nullptr);
+  if (current_gfxclk_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricCurrGfxClock);
+  amd::smi::GPUMetricCurrGfxClkTbl_t tmp_curr_gfxclk_tbl{};
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, tmp_curr_gfxclk_tbl);
+  if (status_code == rsmi_status_t::RSMI_STATUS_SUCCESS) {
+    const auto max_num_elems =
+      static_cast<uint16_t>(std::end(*current_gfxclk_value) - std::begin(*current_gfxclk_value));
+    std::copy_n(std::begin(tmp_curr_gfxclk_tbl), max_num_elems, *current_gfxclk_value);
+  }
   ostrstream << __PRETTY_FUNCTION__
              << " | ======= end ======= "
              << " | End Result "
              << " | Device #:  " << dv_ind
              << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Metric Size: " << tmp_curr_gfxclk_tbl.size()
              << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
   LOG_INFO(ostrstream);
+
   return status_code;
   CATCH
 }
 
 rsmi_status_t
-rsmi_dev_curr_vclk0_get(uint32_t dv_ind, amd::smi::GPUMetricCurrVClkTbl_t* current_vclk_value)
+rsmi_dev_metrics_curr_socclk_get(uint32_t dv_ind, GPUMetricCurrSocClk_t* current_socclk_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
 
-  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricVcnActivity);
-  amd::smi::GPUMetricCurrVClkTbl_t tmp_current_vclk_value;
-  *current_vclk_value = tmp_current_vclk_value;
-  auto status_code(rsmi_status_t::RSMI_STATUS_SUCCESS);
+  assert(current_socclk_value != nullptr);
+  if (current_socclk_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricCurrSocClock);
+  amd::smi::GPUMetricCurrSocClkTbl_t tmp_curr_socclk_tbl{};
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, tmp_curr_socclk_tbl);
+  if (status_code == rsmi_status_t::RSMI_STATUS_SUCCESS) {
+    const auto max_num_elems =
+      static_cast<uint16_t>(std::end(*current_socclk_value) - std::begin(*current_socclk_value));
+    std::copy_n(std::begin(tmp_curr_socclk_tbl), max_num_elems, *current_socclk_value);
+  }
   ostrstream << __PRETTY_FUNCTION__
              << " | ======= end ======= "
              << " | End Result "
              << " | Device #:  " << dv_ind
              << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Metric Size: " << tmp_curr_socclk_tbl.size()
              << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
   LOG_INFO(ostrstream);
+
   return status_code;
   CATCH
 }
 
 rsmi_status_t
-rsmi_dev_curr_vdlk0_get(uint32_t dv_ind, amd::smi::GPUMetricCurrDClkTbl_t* current_dclk_value)
+rsmi_dev_metrics_curr_vclk0_get(uint32_t dv_ind, GPUMetricCurrVClk0_t* current_vclk_value)
 {
   TRY
   std::ostringstream ostrstream;
   ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ostrstream);
 
-  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricVcnActivity);
-  amd::smi::GPUMetricCurrDClkTbl_t tmp_current_dclk_value;
-  *current_dclk_value = tmp_current_dclk_value;
-  auto status_code(rsmi_status_t::RSMI_STATUS_SUCCESS);
+  assert(current_vclk_value != nullptr);
+  if (current_vclk_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricCurrVClock0);
+  amd::smi::GPUMetricCurrVClkTbl_t tmp_curr_vclk0_tbl{};
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, tmp_curr_vclk0_tbl);
+  if (status_code == rsmi_status_t::RSMI_STATUS_SUCCESS) {
+    const auto max_num_elems =
+      static_cast<uint16_t>(std::end(*current_vclk_value) - std::begin(*current_vclk_value));
+    std::copy_n(std::begin(tmp_curr_vclk0_tbl), max_num_elems, *current_vclk_value);
+  }
+  ostrstream << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | End Result "
+             << " | Device #:  " << dv_ind
+             << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Metric Size: " << tmp_curr_vclk0_tbl.size()
+             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+  LOG_INFO(ostrstream);
+
+  return status_code;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_metrics_curr_vclk1_get(uint32_t dv_ind, uint16_t* current_vclk_value)
+{
+  TRY
+  std::ostringstream ostrstream;
+  ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ostrstream);
+
+  assert(current_vclk_value != nullptr);
+  if (current_vclk_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricCurrVClock1);
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *current_vclk_value);
   ostrstream << __PRETTY_FUNCTION__
              << " | ======= end ======= "
              << " | End Result "
@@ -6392,10 +6910,428 @@ rsmi_dev_curr_vdlk0_get(uint32_t dv_ind, amd::smi::GPUMetricCurrDClkTbl_t* curre
              << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
              << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
   LOG_INFO(ostrstream);
+
   return status_code;
   CATCH
 }
 
+rsmi_status_t
+rsmi_dev_metrics_curr_dclk0_get(uint32_t dv_ind, GPUMetricCurrDClk0_t* current_dclk_value)
+{
+  TRY
+  std::ostringstream ostrstream;
+  ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ostrstream);
+
+  assert(current_dclk_value != nullptr);
+  if (current_dclk_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricCurrDClock0);
+  amd::smi::GPUMetricCurrDClkTbl_t tmp_curr_dclk0_tbl;
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, tmp_curr_dclk0_tbl);
+  if (status_code == rsmi_status_t::RSMI_STATUS_SUCCESS) {
+    const auto max_num_elems =
+      static_cast<uint16_t>(std::end(*current_dclk_value) - std::begin(*current_dclk_value));
+    std::copy_n(std::begin(tmp_curr_dclk0_tbl), max_num_elems, *current_dclk_value);
+  }
+  ostrstream << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | End Result "
+             << " | Device #:  " << dv_ind
+             << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Metric Size: " << tmp_curr_dclk0_tbl.size()
+             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+  LOG_INFO(ostrstream);
+
+  return status_code;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_metrics_curr_dclk1_get(uint32_t dv_ind, uint16_t* current_dclk_value)
+{
+  TRY
+  std::ostringstream ostrstream;
+  ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ostrstream);
+
+  assert(current_dclk_value != nullptr);
+  if (current_dclk_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricCurrDClock1);
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *current_dclk_value);
+  ostrstream << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | End Result "
+             << " | Device #:  " << dv_ind
+             << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+  LOG_INFO(ostrstream);
+
+  return status_code;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_metrics_avg_gfx_clock_frequency_get(uint32_t dv_ind, uint16_t* clock_frequency_value)
+{
+  TRY
+  std::ostringstream ostrstream;
+  ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ostrstream);
+
+  assert(clock_frequency_value != nullptr);
+  if (clock_frequency_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricAvgGfxClockFrequency);
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *clock_frequency_value);
+  ostrstream << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | End Result "
+             << " | Device #:  " << dv_ind
+             << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+  LOG_INFO(ostrstream);
+
+  return status_code;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_metrics_avg_soc_clock_frequency_get(uint32_t dv_ind, uint16_t* clock_frequency_value)
+{
+  TRY
+  std::ostringstream ostrstream;
+  ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ostrstream);
+
+  assert(clock_frequency_value != nullptr);
+  if (clock_frequency_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricAvgSocClockFrequency);
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *clock_frequency_value);
+  ostrstream << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | End Result "
+             << " | Device #:  " << dv_ind
+             << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+  LOG_INFO(ostrstream);
+
+  return status_code;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_metrics_avg_uclock_frequency_get(uint32_t dv_ind, uint16_t* clock_frequency_value)
+{
+  TRY
+  std::ostringstream ostrstream;
+  ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ostrstream);
+
+  assert(clock_frequency_value != nullptr);
+  if (clock_frequency_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricAvgUClockFrequency);
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *clock_frequency_value);
+  ostrstream << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | End Result "
+             << " | Device #:  " << dv_ind
+             << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+  LOG_INFO(ostrstream);
+
+  return status_code;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_metrics_avg_vclock0_frequency_get(uint32_t dv_ind, uint16_t* clock_frequency_value)
+{
+  TRY
+  std::ostringstream ostrstream;
+  ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ostrstream);
+
+  assert(clock_frequency_value != nullptr);
+  if (clock_frequency_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricAvgVClock0Frequency);
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *clock_frequency_value);
+  ostrstream << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | End Result "
+             << " | Device #:  " << dv_ind
+             << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+  LOG_INFO(ostrstream);
+
+  return status_code;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_metrics_avg_dclock0_frequency_get(uint32_t dv_ind, uint16_t* clock_frequency_value)
+{
+  TRY
+  std::ostringstream ostrstream;
+  ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ostrstream);
+
+  assert(clock_frequency_value != nullptr);
+  if (clock_frequency_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricAvgDClock0Frequency);
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *clock_frequency_value);
+  ostrstream << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | End Result "
+             << " | Device #:  " << dv_ind
+             << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+  LOG_INFO(ostrstream);
+
+  return status_code;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_metrics_avg_vclock1_frequency_get(uint32_t dv_ind, uint16_t* clock_frequency_value)
+{
+  TRY
+  std::ostringstream ostrstream;
+  ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ostrstream);
+
+  assert(clock_frequency_value != nullptr);
+  if (clock_frequency_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricAvgVClock1Frequency);
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *clock_frequency_value);
+  ostrstream << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | End Result "
+             << " | Device #:  " << dv_ind
+             << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+  LOG_INFO(ostrstream);
+
+  return status_code;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_metrics_avg_dclock1_frequency_get(uint32_t dv_ind, uint16_t* clock_frequency_value)
+{
+  TRY
+  std::ostringstream ostrstream;
+  ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ostrstream);
+
+  assert(clock_frequency_value != nullptr);
+  if (clock_frequency_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricAvgDClock1Frequency);
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *clock_frequency_value);
+  ostrstream << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | End Result "
+             << " | Device #:  " << dv_ind
+             << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+  LOG_INFO(ostrstream);
+
+  return status_code;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_metrics_volt_soc_get(uint32_t dv_ind, uint16_t* voltage_value)
+{
+  TRY
+  std::ostringstream ostrstream;
+  ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ostrstream);
+
+  assert(voltage_value != nullptr);
+  if (voltage_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricVoltageSoc);
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *voltage_value);
+  ostrstream << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | End Result "
+             << " | Device #:  " << dv_ind
+             << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+  LOG_INFO(ostrstream);
+
+  return status_code;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_metrics_volt_gfx_get(uint32_t dv_ind, uint16_t* voltage_value)
+{
+  TRY
+  std::ostringstream ostrstream;
+  ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ostrstream);
+
+  assert(voltage_value != nullptr);
+  if (voltage_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricVoltageGfx);
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *voltage_value);
+  ostrstream << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | End Result "
+             << " | Device #:  " << dv_ind
+             << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+  LOG_INFO(ostrstream);
+
+  return status_code;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_metrics_volt_mem_get(uint32_t dv_ind, uint16_t* voltage_value)
+{
+  TRY
+  std::ostringstream ostrstream;
+  ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ostrstream);
+
+  assert(voltage_value != nullptr);
+  if (voltage_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricVoltageMem);
+  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, *voltage_value);
+  ostrstream << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | End Result "
+             << " | Device #:  " << dv_ind
+             << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
+             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+  LOG_INFO(ostrstream);
+
+  return status_code;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_metrics_header_info_get(uint32_t dv_ind, metrics_table_header_t* header_value)
+{
+  TRY
+  std::ostringstream ostrstream;
+  ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ostrstream);
+
+  assert(header_value != nullptr);
+  if (header_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  auto status_code = rsmi_dev_gpu_metrics_header_info_get(dv_ind, *header_value);
+  ostrstream << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | End Result "
+             << " | Device #:  " << dv_ind
+             << " | Format Revision: " << header_value->format_revision
+             << " | Content Revision: " << header_value->content_revision
+             << " | Header Size: " << header_value->structure_size
+             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+  LOG_INFO(ostrstream);
+
+  return status_code;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_metrics_xcd_counter_get(uint32_t dv_ind, uint16_t* xcd_counter_value)
+{
+  TRY
+  std::ostringstream ostrstream;
+  ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ostrstream);
+
+  assert(xcd_counter_value != nullptr);
+  if (xcd_counter_value == nullptr) {
+    return rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+  }
+
+  auto xcd_counter = uint16_t(0);
+  GPUMetricCurrGfxClk_t curr_gfxclk_table{};
+  auto status_code = rsmi_dev_metrics_curr_gfxclk_get(dv_ind, &curr_gfxclk_table);
+  if (status_code == rsmi_status_t::RSMI_STATUS_SUCCESS) {
+    for (const auto& gfxclk : curr_gfxclk_table) {
+      if ((gfxclk != 0) && (gfxclk != UINT16_MAX)) {
+        xcd_counter++;
+      }
+    }
+  }
+
+  *xcd_counter_value = xcd_counter;
+  ostrstream << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | End Result "
+             << " | Device #:  " << dv_ind
+             << " | XCDs counter: " << xcd_counter
+             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+  LOG_INFO(ostrstream);
+
+  return status_code;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_metrics_log_get(uint32_t dv_ind)
+{
+  TRY
+  std::ostringstream ostrstream;
+  ostrstream << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ostrstream);
+
+  GET_DEV_FROM_INDX
+  auto status_code = dev->dev_log_gpu_metrics(ostrstream);
+  ostrstream << __PRETTY_FUNCTION__
+             << " | ======= end ======= "
+             << " | End Result "
+             << " | Device #:  " << dv_ind
+             << " | Metric Type: " << "All GPU Metrics..."
+             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+  LOG_INFO(ostrstream);
+
+  return status_code;
+  CATCH
+}
 //
 // End of: new GPU Metrics related work.
 //

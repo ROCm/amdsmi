@@ -505,12 +505,16 @@ class AMDSMICommands():
                     ras_info = amdsmi_interface.amdsmi_get_gpu_ras_feature_info(args.gpu)
                     for key, value in ras_info.items():
                         if isinstance(value, int):
-                            if value == 65535 or value == 0:
+                            if value == 65535:
                                 logging.debug(f"Failed to get ras {key} for gpu {gpu_id}")
                                 ras_info[key] = "N/A"
                                 continue
-                        if self.logger.is_human_readable_format():
-                            ras_info[key] = f"{value}"
+                        if key != "eeprom_version":
+                            if value:
+                                ras_info[key] = "ENABLED"
+                            else:
+                                ras_info[key] = "DISABLED"
+
                     ras_dict.update(ras_info)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     logging.debug("Failed to get ras info for gpu %s | %s", gpu_id, e.get_error_info())
@@ -524,13 +528,13 @@ class AMDSMICommands():
         if 'partition' in current_platform_args:
             if args.partition:
                 try:
-                    compute_partition = amdsmi_interface.amdsmi_dev_compute_partition_get(args.gpu)
+                    compute_partition = amdsmi_interface.amdsmi_get_gpu_compute_partition(args.gpu)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     compute_partition = "N/A"
                     logging.debug("Failed to get compute partition info for gpu %s | %s", gpu_id, e.get_error_info())
 
                 try:
-                    memory_partition = amdsmi_interface.amdsmi_dev_memory_partition_get(args.gpu)
+                    memory_partition = amdsmi_interface.amdsmi_get_gpu_memory_partition(args.gpu)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     memory_partition = "N/A"
                     logging.debug("Failed to get memory partition info for gpu %s | %s", gpu_id, e.get_error_info())
@@ -981,12 +985,13 @@ class AMDSMICommands():
                               'current_soc_voltage': "N/A",
                               'current_mem_voltage': "N/A",
                               'power_limit': "N/A",
-                              'power_management': "N/A"}
+                              'power_management': "N/A",
+                              'throttle_status': "N/A"}
 
                 try:
                     power_info = amdsmi_interface.amdsmi_get_power_info(args.gpu)
                     for key, value in power_info.items():
-                        if value == 0xFFFFFFFF:
+                        if value == 0xFFFF:
                             power_info[key] = "N/A"
                         elif self.logger.is_human_readable_format():
                             if "voltage" in key:
@@ -994,7 +999,11 @@ class AMDSMICommands():
                             elif "power" in key:
                                 power_info[key] = f"{value} W"
 
-                    power_dict['current_power'] = power_info['average_socket_power']
+                    power_dict['current_power'] = power_info['current_socket_power']
+
+                    if power_dict['current_power'] == "N/A":
+                        power_dict['current_power'] = power_info['average_socket_power']
+
                     power_dict['current_gfx_voltage'] = power_info['gfx_voltage']
                     power_dict['current_soc_voltage'] = power_info['soc_voltage']
                     power_dict['current_mem_voltage'] = power_info['mem_voltage']
@@ -1011,6 +1020,16 @@ class AMDSMICommands():
                         power_dict['power_management'] = "DISABLED"
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     logging.debug("Failed to get power management status for gpu %s | %s", gpu_id, e.get_error_info())
+
+                try:
+                    throttle_status = amdsmi_interface.amdsmi_get_gpu_metrics_throttle_status(args.gpu)
+                    if throttle_status:
+                        power_dict['throttle_status'] = "THROTTLED"
+                    else:
+                        power_dict['throttle_status'] = "UNTHROTTLED"
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    logging.debug("Failed to get throttle status for gpu %s | %s", gpu_id, e.get_error_info())
+
 
                 values_dict['power'] = power_dict
         if "clock" in current_platform_args:
@@ -1060,8 +1079,12 @@ class AMDSMICommands():
                             logging.debug("Failed to get %s clock info for gpu %s | %s", clock_name, gpu_id, e.get_error_info())
 
                 try:
-                    # is_clk_locked = amdsmi_interface.amdsmi_is_clk_locked(args.gpu, amdsmi_interface.AmdSmiClkType.GFX)
-                    is_clk_locked = "N/A"
+                    is_clk_locked = amdsmi_interface.amdsmi_get_gpu_metrics_gfxclk_lock_status(args.gpu)
+                    if self.logger.is_human_readable_format():
+                        if is_clk_locked:
+                            is_clk_locked = "LOCKED"
+                        else:
+                            is_clk_locked = "UNLOCKED"
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     is_clk_locked = "N/A"
                     logging.debug("Failed to get gfx clock lock status info for gpu %s | %s", gpu_id, e.get_error_info())
@@ -1114,7 +1137,7 @@ class AMDSMICommands():
                 if self.logger.is_human_readable_format():
                     unit = '\N{DEGREE SIGN}C'
                     for temperature_key, temperature_value in temperatures.items():
-                        if 'AMD_SMI_STATUS' not in str(temperature_value):
+                        if 'N/A' not in str(temperature_value):
                             temperatures[temperature_key] = f"{temperature_value} {unit}"
 
                 values_dict['temperature'] = temperatures
@@ -1123,12 +1146,26 @@ class AMDSMICommands():
                 ecc_count = {}
                 try:
                     ecc_count = amdsmi_interface.amdsmi_get_gpu_total_ecc_count(args.gpu)
-                    ecc_count['correctable'] = ecc_count.pop('correctable_count')
-                    ecc_count['uncorrectable'] = ecc_count.pop('uncorrectable_count')
+                    ecc_count['total_correctable'] = ecc_count.pop('correctable_count')
+                    ecc_count['total_uncorrectable'] = ecc_count.pop('uncorrectable_count')
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    ecc_count['correctable'] = "N/A"
-                    ecc_count['uncorrectable'] = "N/A"
-                    logging.debug("Failed to get ecc count for gpu %s | %s", gpu_id, e.get_error_info())
+                    ecc_count['total_correctable'] = "N/A"
+                    ecc_count['total_uncorrectable'] = "N/A"
+                    ecc_count['cache_correctable'] = "N/A"
+                    ecc_count['cache_uncorrectable'] = "N/A"
+                    logging.debug("Failed to get total ecc count for gpu %s | %s", gpu_id, e.get_error_info())
+
+                if ecc_count['total_correctable'] != "N/A":
+                    # Get the UMC error count for getting total cache correctable errors
+                    umc_block = amdsmi_interface.AmdSmiGpuBlock['UMC']
+                    try:
+                        umc_count = amdsmi_interface.amdsmi_get_gpu_ecc_count(args.gpu, umc_block)
+                        ecc_count['cache_correctable'] = ecc_count['total_correctable'] - umc_count['correctable_count']
+                        ecc_count['cache_uncorrectable'] = ecc_count['total_uncorrectable'] - umc_count['uncorrectable_count']
+                    except amdsmi_exception.AmdSmiLibraryException as e:
+                        ecc_count['cache_correctable'] = "N/A"
+                        ecc_count['cache_uncorrectable'] = "N/A"
+                        logging.debug("Failed to get cache ecc count for gpu %s at block %s | %s", gpu_id, umc_block, e.get_error_info())
 
                 values_dict['ecc'] = ecc_count
         if "pcie" in current_platform_args:
@@ -1162,23 +1199,28 @@ class AMDSMICommands():
                     logging.debug("Failed to get pcie link status for gpu %s | %s", gpu_id, e.get_error_info())
 
                 try:
-                    pci_replay_counter = amdsmi_interface.amdsmi_get_gpu_pci_replay_counter(args.gpu)
+                    pci_replay_counter = amdsmi_interface.amdsmi_get_gpu_metrics_pcie_replay_count_acc(args.gpu)
                     pcie_dict['replay_count'] = pci_replay_counter
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     logging.debug("Failed to get pci replay counter for gpu %s | %s", gpu_id, e.get_error_info())
+                    logging.debug("Falling back to sysfs pci replay counter for gpu %s | %s", gpu_id, e.get_error_info())
+                    try:
+                        pci_replay_counter = amdsmi_interface.amdsmi_get_gpu_pci_replay_counter(args.gpu)
+                        pcie_dict['replay_count'] = pci_replay_counter
+                    except amdsmi_exception.AmdSmiLibraryException as err:
+                        pcie_dict['replay_count'] = "N/A"
+                        logging.debug("Failed to get sysfs fallback pci replay counter for gpu %s | %s", gpu_id, err.get_error_info())
 
                 try:
-                    # l0_to_recovery_counter = amdsmi_interface.amdsmi_get_gpu_pci_l0_to_recovery_counter(args.gpu)
-                    # pcie_dict['l0_to_recovery_count'] = l0_to_recovery_counter
-                    pcie_dict['l0_to_recovery_count'] = "N/A"
+                    l0_to_recovery_counter = amdsmi_interface.amdsmi_get_gpu_metrics_pcie_l0_recov_count_acc(args.gpu)
+                    pcie_dict['l0_to_recovery_count'] = l0_to_recovery_counter
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     pcie_dict['l0_to_recovery_count'] = "N/A"
                     logging.debug("Failed to get pcie l0 to recovery counter for gpu %s | %s", gpu_id, e.get_error_info())
 
                 try:
-                    # pci_replay_rollover_counter = amdsmi_interface.amdsmi_get_gpu_pci_replay_rollover_counter(args.gpu)
-                    # pcie_dict['replay_roll_over_count'] = pci_replay_rollover_counter
-                    pcie_dict['replay_roll_over_count'] = "N/A"
+                    pci_replay_rollover_counter = amdsmi_interface.amdsmi_get_gpu_metrics_pcie_replay_rover_count_acc(args.gpu)
+                    pcie_dict['replay_rollover_count'] = pci_replay_rollover_counter
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     pcie_dict['replay_roll_over_count'] = "N/A"
                     logging.debug("Failed to get pcie replay rollover counter for gpu %s | %s", gpu_id, e.get_error_info())
@@ -1702,7 +1744,10 @@ class AMDSMICommands():
 
                     try:
                         dest_gpu_link_status = amdsmi_interface.amdsmi_is_P2P_accessible(src_gpu, dest_gpu)
-                        src_gpu_links[dest_gpu_key] = bool(dest_gpu_link_status)
+                        if dest_gpu_link_status:
+                            src_gpu_links[dest_gpu_key] = "ENABLED"
+                        else:
+                            src_gpu_links[dest_gpu_key] = "DISABLED"
                     except amdsmi_exception.AmdSmiLibraryException as e:
                         src_gpu_links[dest_gpu_key] = "N/A"
                         logging.debug("Failed to get link status for %s to %s | %s",
@@ -1943,7 +1988,7 @@ class AMDSMICommands():
         if args.compute_partition:
             compute_partition = amdsmi_interface.AmdSmiComputePartitionType[args.compute_partition]
             try:
-                amdsmi_interface.amdsmi_dev_compute_partition_set(args.gpu, compute_partition)
+                amdsmi_interface.amdsmi_set_gpu_compute_partition(args.gpu, compute_partition)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
@@ -1952,7 +1997,7 @@ class AMDSMICommands():
         if args.memory_partition:
             memory_partition = amdsmi_interface.AmdSmiMemoryPartitionType[args.memory_partition]
             try:
-                amdsmi_interface.amdsmi_dev_memory_partition_set(args.gpu, memory_partition)
+                amdsmi_interface.amdsmi_set_gpu_memory_partition(args.gpu, memory_partition)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
@@ -2165,7 +2210,7 @@ class AMDSMICommands():
             self.logger.store_output(args.gpu, 'reset_perf_determinism', result)
         if args.compute_partition:
             try:
-                amdsmi_interface.amdsmi_dev_compute_partition_reset(args.gpu)
+                amdsmi_interface.amdsmi_reset_gpu_compute_partition(args.gpu)
                 result = 'Successfully reset compute partition'
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
@@ -2175,7 +2220,7 @@ class AMDSMICommands():
             self.logger.store_output(args.gpu, 'reset_compute_partition', result)
         if args.memory_partition:
             try:
-                amdsmi_interface.amdsmi_dev_memory_partition_reset(args.gpu)
+                amdsmi_interface.amdsmi_reset_gpu_memory_partition(args.gpu)
                 result = 'Successfully reset memory partition'
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:

@@ -12,8 +12,7 @@ do_configureLogrotate() {
   chmod -R a+rw "${logPath}"
   chmod a+rw "${logFile}"
 
-  command -v logrotate &>/dev/null
-  if [ $? -ne 0 ]; then
+  if ! command -v logrotate &>/dev/null; then
     echo "[WARNING] Detected logrotate is not installed."\
     "$packageName logs (when turned on) will not rotate properly."
     return
@@ -105,7 +104,6 @@ do_ldconfig() {
 }
 
 do_install_amdsmi_python_lib() {
-  echo "Installing AMD-SMI python library (amdsmi)..."
   # get python version
   local python3_minor_version
   python3_minor_version=$(python3 -c 'import sys;print(sys.version_info.minor)')
@@ -123,8 +121,11 @@ do_install_amdsmi_python_lib() {
     return
   fi
 
-  local PREVIOUS_PIP_ROOT_ACTION="$PIP_ROOT_USER_ACTION"
+  local PREVIOUS_PIP_ROOT_USER_ACTION="$PIP_ROOT_USER_ACTION"
   export PIP_ROOT_USER_ACTION=ignore
+  # python3.11 requires --break-system-packages
+  local PREVIOUS_PIP_BREAK_SYSTEM_PACKAGES="$PIP_BREAK_SYSTEM_PACKAGES"
+  export PIP_BREAK_SYSTEM_PACKAGES=1
 
   # Remove old python library
   local pip_list_output
@@ -140,21 +141,21 @@ do_install_amdsmi_python_lib() {
   local python_lib_path=@CPACK_PACKAGING_INSTALL_PREFIX@/@SHARE_INSTALL_PREFIX@
   python3 -m pip install "$python_lib_path" --quiet --disable-pip-version-check
 
-  unset PIP_ROOT_USER_ACTION
-  export PIP_ROOT_USER_ACTION="$PREVIOUS_PIP_ROOT_ACTION"
+  export PIP_ROOT_USER_ACTION="$PREVIOUS_PIP_ROOT_USER_ACTION"
+  export PIP_BREAK_SYSTEM_PACKAGES="$PREVIOUS_PIP_BREAK_SYSTEM_PACKAGES"
 
-  pip_list_output=$(python3 -m pip list --disable-pip-version-check)
-  # check pip list output for argcomplete
-  if [[ $pip_list_output == *"argcomplete"* ]]; then
-    activate-global-python-argcomplete3
-    # Newer versions of argcomplete do not have the 3 at the end
-    if [ $? -ne 0 ]; then
-      echo "[WARNING] Could not find activate-global-python-argcomplete3. "\
-        "Trying newer activate-global-python-argcomplete..."
-      activate-global-python-argcomplete
+  # only try to activate argcomplete if such command exists
+  if command -v activate-global-python-argcomplete &>/dev/null; then
+    activate-global-python-argcomplete
+  else
+    # try older argcomplete3 version
+    if command -v activate-global-python-argcomplete3 &>/dev/null; then
+      activate-global-python-argcomplete3
+    else
+      echo "[WARNING] Could not find argcomplete or argcomplete3. "\
+        "Argument completion will not work..."
     fi
   fi
-  echo "Installed AMD-SMI python library (amdsmi)..."
 }
 
 # post install or upgrade, $i is 1 or 2 -> do these actions
