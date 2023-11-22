@@ -395,7 +395,7 @@ static const std::map<const char *, dev_depends_t> kDevFuncDependsMap = {
     // Functions with only mandatory dependencies
   {"rsmi_dev_vram_vendor_get",           {{kDevVramVendorFName}, {}}},
   {"rsmi_dev_id_get",                    {{kDevDevIDFName}, {}}},
-  {"rsmi_dev_xgmi_physical_id_get",      {{kDevXGMIPhysicalIDFName}, {}}},
+  {"rsmi_dev_oam_id_get",                {{kDevXGMIPhysicalIDFName}, {}}},
   {"rsmi_dev_revision_get",              {{kDevDevRevIDFName}, {}}},
   {"rsmi_dev_vendor_id_get",             {{kDevVendorIDFName}, {}}},
   {"rsmi_dev_name_get",                  {{kDevVendorIDFName,

@@ -151,8 +151,7 @@ int main() {
             printf("\tVendorID: 0x%x\n", asic_info.vendor_id);
             printf("\tRevisionID: 0x%x\n", asic_info.rev_id);
             printf("\tAsic serial: 0x%s\n", asic_info.asic_serial);
-            printf("\tXGMI physical id: 0x%x\n\n",
-                            asic_info.xgmi_physical_id);
+            printf("\tOAM id: 0x%x\n\n", asic_info.oam_id);
 
             // Get VBIOS info
             amdsmi_vbios_info_t vbios_info = {};
