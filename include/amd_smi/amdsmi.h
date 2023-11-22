@@ -196,6 +196,9 @@ typedef enum {
     AMDSMI_NO_DRV = 51,  //!< No Energy and HSMP driver present
     AMDSMI_FILE_NOT_FOUND = 52, //!< file or directory not found
     AMDSMI_ARG_PTR_NULL = 53,   //!< Parsed argument is invalid
+    AMDSMI_STATUS_AMDGPU_RESTART_ERR = 54, //!< AMDGPU restart failed
+    AMDSMI_STATUS_SETTING_UNAVAILABLE = 55, //!< Setting is not available
+
     // General errors
     AMDSMI_STATUS_MAP_ERROR = 0xFFFFFFFE,  //!< The internal library error did not map to a status code
     AMDSMI_STATUS_UNKNOWN_ERROR = 0xFFFFFFFF,  //!< An unknown error occurred
@@ -522,6 +525,7 @@ typedef struct {
 } amdsmi_board_info_t;
 
 typedef struct {
+  uint32_t current_socket_power;
   uint32_t average_socket_power;
   uint32_t gfx_voltage;   // GFX voltage measurement in mV
   uint32_t soc_voltage;  // SOC voltage measurement in mV
@@ -1123,95 +1127,208 @@ typedef struct {
  */
 typedef struct {
   // TODO(amd) Doxygen documents
-  /// @cond Ignore in docs.
+  // Note: This should match: AMDGpuMetricsHeader_v1_t
+  /// \cond Ignore in docs.
   uint16_t      structure_size;
   uint8_t       format_revision;
   uint8_t       content_revision;
-  /// @endcond
+  /// \endcond
 } amd_metrics_table_header_t;
 
 /**
  * @brief The following structure holds the gpu metrics values for a device.
  */
-// Below is the assumed version of gpu_metric data on the device. If the device
-// is using this version, we can read data directly into amdsmi_gpu_metrics_t.
-// If the device is using an older format, a conversion of formats will be
-// required.
-// DGPU targets have a format version of 1. APU targets have a format version of
-// 2. Currently, only version 1 (DGPU) gpu_metrics is supported.
-#define AMDSMI_GPU_METRICS_API_FORMAT_VER 1
-// The content version increments when gpu_metrics is extended with new and/or
-// existing field sizes are changed.
-#define AMDSMI_GPU_METRICS_API_CONTENT_VER_1 1
-#define AMDSMI_GPU_METRICS_API_CONTENT_VER_2 2
-#define AMDSMI_GPU_METRICS_API_CONTENT_VER_3 3
 
-// This should match NUM_HBM_INSTANCES
-#define AMDSMI_NUM_HBM_INSTANCES 4
-
-// Unit conversion factor for HBM temperatures
+/**
+ * @brief Unit conversion factor for HBM temperatures
+ */
 #define CENTRIGRADE_TO_MILLI_CENTIGRADE 1000
 
+/**
+ * @brief This should match NUM_HBM_INSTANCES
+ */
+#define AMDSMI_NUM_HBM_INSTANCES 4
+
+/**
+ * @brief This should match MAX_NUM_VCN
+ */
+#define AMDSMI_MAX_NUM_VCN 4
+
+/**
+ * @brief This should match MAX_NUM_CLKS
+ */
+#define AMDSMI_MAX_NUM_CLKS 4
+
+/**
+ * @brief This should match MAX_NUM_XGMI_LINKS
+ */
+#define AMDSMI_MAX_NUM_XGMI_LINKS 8
+
+/**
+ * @brief This should match MAX_NUM_GFX_CLKS
+ */
+#define AMDSMI_MAX_NUM_GFX_CLKS 8
+
+
 typedef struct {
-// TODO(amd) Doxygen documents
-  /// @cond Ignore in docs.
+  // TODO(amd) Doxygen documents
+  // Note:  This structure is extended to fit the needs of different GPU metric
+  //        versions when exposing data through the structure.
+  //        Depending on the version, some data members will hold data, and
+  //        some will not. A good example is the set of 'current clocks':
+  //          - current_gfxclk, current_socclk, current_vclk0, current_dclk0
+  //        These are single-valued data members, up to version 1.3.
+  //        For version 1.4 and up these are multi-valued data members (arrays)
+  //        and their counterparts;
+  //          - current_gfxclks[], current_socclks[], current_vclk0s[],
+  //            current_dclk0s[]
+  //        will hold the data
+  /// \cond Ignore in docs.
   amd_metrics_table_header_t common_header;
 
-/* Temperature */
-  uint16_t      temperature_edge;
-  uint16_t      temperature_hotspot;
-  uint16_t      temperature_mem;
-  uint16_t      temperature_vrgfx;
-  uint16_t      temperature_vrsoc;
-  uint16_t      temperature_vrmem;
+  /*
+   * v1.0 Base
+   */
+  // Temperature
+  uint16_t temperature_edge;
+  uint16_t temperature_hotspot;
+  uint16_t temperature_mem;
+  uint16_t temperature_vrgfx;
+  uint16_t temperature_vrsoc;
+  uint16_t temperature_vrmem;
 
-/* Utilization */
-  uint16_t      average_gfx_activity;
-  uint16_t      average_umc_activity;  // memory controller
-  uint16_t      average_mm_activity;   // UVD or VCN
+  // Utilization
+  uint16_t average_gfx_activity;
+  uint16_t average_umc_activity;    // memory controller
+  uint16_t average_mm_activity;     // UVD or VCN
 
-/* Power/Energy */
-  uint16_t      average_socket_power;
-  uint64_t      energy_accumulator;      // v1 mod. (32->64)
+  // Power/Energy
+  uint16_t average_socket_power;
+  uint64_t energy_accumulator;      // v1 mod. (32->64)
 
-/* Driver attached timestamp (in ns) */
-  uint64_t      system_clock_counter;   // v1 mod. (moved from top of struct)
+  // Driver attached timestamp (in ns)
+  uint64_t system_clock_counter;    // v1 mod. (moved from top of struct)
 
-/* Average clocks */
-  uint16_t      average_gfxclk_frequency;
-  uint16_t      average_socclk_frequency;
-  uint16_t      average_uclk_frequency;
-  uint16_t      average_vclk0_frequency;
-  uint16_t      average_dclk0_frequency;
-  uint16_t      average_vclk1_frequency;
-  uint16_t      average_dclk1_frequency;
+  // Average clocks
+  uint16_t average_gfxclk_frequency;
+  uint16_t average_socclk_frequency;
+  uint16_t average_uclk_frequency;
+  uint16_t average_vclk0_frequency;
+  uint16_t average_dclk0_frequency;
+  uint16_t average_vclk1_frequency;
+  uint16_t average_dclk1_frequency;
 
-/* Current clocks */
-  uint16_t      current_gfxclk;
-  uint16_t      current_socclk;
-  uint16_t      current_uclk;
-  uint16_t      current_vclk0;
-  uint16_t      current_dclk0;
-  uint16_t      current_vclk1;
-  uint16_t      current_dclk1;
+  // Current clocks
+  uint16_t current_gfxclk;
+  uint16_t current_socclk;
+  uint16_t current_uclk;
+  uint16_t current_vclk0;
+  uint16_t current_dclk0;
+  uint16_t current_vclk1;
+  uint16_t current_dclk1;
 
-/* Throttle status */
-  uint32_t      throttle_status;
+  // Throttle status
+  uint32_t throttle_status;
 
-/* Fans */
-  uint16_t      current_fan_speed;
+  // Fans
+  uint16_t current_fan_speed;
 
-/* Link width/speed */
-  uint16_t       pcie_link_width;  // v1 mod.(8->16)
-  uint16_t       pcie_link_speed;  // in 0.1 GT/s; v1 mod. (8->16)
+  // Link width/speed
+  uint16_t pcie_link_width;         // v1 mod.(8->16)
+  uint16_t pcie_link_speed;         // in 0.1 GT/s; v1 mod. (8->16)
 
-  uint16_t       padding;          // new in v1
 
-  uint32_t       gfx_activity_acc;   // new in v1
-  uint32_t       mem_activity_acc;     // new in v1
-  uint16_t       temperature_hbm[AMDSMI_NUM_HBM_INSTANCES];  // new in v1
-  /// @endcond
+  /*
+   * v1.1 additions
+   */
+  uint32_t gfx_activity_acc;        // new in v1
+  uint32_t mem_activity_acc;        // new in v1
+  uint16_t temperature_hbm[AMDSMI_NUM_HBM_INSTANCES];  // new in v1
+
+
+  /*
+   * v1.2 additions
+   */
+	// PMFW attached timestamp (10ns resolution)
+  uint64_t firmware_timestamp;
+
+
+  /*
+   * v1.3 additions
+   */
+  // Voltage (mV)
+  uint16_t voltage_soc;
+  uint16_t voltage_gfx;
+  uint16_t voltage_mem;
+
+  // Throttle status
+  uint64_t indep_throttle_status;
+
+
+  /*
+   * v1.4 additions
+   */
+  // Power (Watts)
+  uint16_t current_socket_power;
+
+  // Utilization (%)
+  uint16_t vcn_activity[AMDSMI_MAX_NUM_VCN]; // VCN instances activity percent (encode/decode)
+
+  // Clock Lock Status. Each bit corresponds to clock instance
+  uint32_t gfxclk_lock_status;
+
+	// XGMI bus width and bitrate (in Gbps)
+  uint16_t xgmi_link_width;
+  uint16_t xgmi_link_speed;
+
+  // PCIE accumulated bandwidth (GB/sec)
+  uint64_t pcie_bandwidth_acc;
+
+	// PCIE instantaneous bandwidth (GB/sec)
+  uint64_t pcie_bandwidth_inst;
+
+  // PCIE L0 to recovery state transition accumulated count
+  uint64_t pcie_l0_to_recov_count_acc;
+
+  // PCIE replay accumulated count
+  uint64_t pcie_replay_count_acc;
+
+  // PCIE replay rollover accumulated count
+  uint64_t pcie_replay_rover_count_acc;
+
+  // XGMI accumulated data transfer size(KiloBytes)
+  uint64_t xgmi_read_data_acc[AMDSMI_MAX_NUM_XGMI_LINKS];
+  uint64_t xgmi_write_data_acc[AMDSMI_MAX_NUM_XGMI_LINKS];
+
+  // Current clock frequencies
+  uint16_t current_gfxclks[AMDSMI_MAX_NUM_GFX_CLKS];
+  uint16_t current_socclks[AMDSMI_MAX_NUM_CLKS];
+  uint16_t current_vclk0s[AMDSMI_MAX_NUM_CLKS];
+  uint16_t current_dclk0s[AMDSMI_MAX_NUM_CLKS];
+  /// \endcond
 } amdsmi_gpu_metrics_t;
+
+
+#define  MAX_AMDSMI_NAME_LENGTH 64
+
+/**
+ * @brief This structure holds the name value pairs
+ */
+typedef struct {
+    char name[MAX_AMDSMI_NAME_LENGTH];     //!< Name
+    uint64_t value;   //!< Use uint64_t to make it universal
+} amdsmi_name_value_t;
+
+/**
+ * @brief This register type for register table
+ */
+typedef enum {
+  AMDSMI_REG_XGMI,
+  AMDSMI_REG_WAFL,
+  AMDSMI_REG_PCIE,
+  AMDSMI_REG_USR,
+  AMDSMI_REG_USR1,
+} amdsmi_reg_type_t;
 
 /**
  * @brief This structure holds ras feature
@@ -2586,6 +2703,77 @@ amdsmi_status_t amdsmi_get_gpu_metrics_info(amdsmi_processor_handle processor_ha
                                             amdsmi_gpu_metrics_t *pgpu_metrics);
 
 /**
+ *  @brief Get the pm metrics table with provided device index.
+ *
+ *  @details Given a device handle @p processor_handle, @p pm_metrics pointer,
+ *  and @p num_of_metrics pointer,
+ *  this function will write the pm metrics name value pair
+ *  to the array at @p pm_metrics and the number of metrics retreived to @p num_of_metrics
+ *  Note: the library allocated memory for pm_metrics, and user must call
+ *  free(pm_metrics) to free it after use.
+ *
+ *  @param[in] processor_handle a processor handle
+ *
+ *  @param[inout] pm_metrics A pointerto an array to hold multiple PM metrics. On successs,
+ *  the library will allocate memory of pm_metrics and write metrics to this array.
+ *  The caller must free this memory after usage to avoid memory leak.
+ *
+ *  @param[inout] num_of_metrics a pointer to uint32_t to which the number of
+ *  metrics is allocated for pm_metrics array as input, and the number of metrics retreived
+ *  as output. If this parameter is NULL, this function will return
+ *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
+ *  provided arguments.
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
+ *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
+ *  support this function with the given arguments
+ *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *
+ */
+amdsmi_status_t amdsmi_get_gpu_pm_metrics_info(
+                      amdsmi_processor_handle processor_handle,
+                      amdsmi_name_value_t** pm_metrics,
+                      uint32_t *num_of_metrics);
+
+/**
+ *  @brief Get the register metrics table with provided device index and register type.
+ *
+ *  @details Given a device handle @p processor_handle, @p reg_type, @p reg_metrics pointer,
+ *  and @p num_of_metrics pointer,
+ *  this function will write the register metrics name value pair
+ *  to the array at @p reg_metrics and the number of metrics retreived to @p num_of_metrics
+ *  Note: the library allocated memory for reg_metrics, and user must call
+ *  free(reg_metrics) to free it after use.
+ *
+ *  @param[in] processor_handle a processor handle
+ *
+ *  @param[in] reg_type The register type
+ *
+ *  @param[inout] reg_metrics A pointerto an array to hold multiple register metrics. On successs,
+ *  the library will allocate memory of reg_metrics and write metrics to this array.
+ *  The caller must free this memory after usage to avoid memory leak.
+ *
+ *  @param[inout] num_of_metrics a pointer to uint32_t to which the number of
+ *  metrics is allocated for reg_metrics array as input, and the number of metrics retreived
+ *  as output. If this parameter is NULL, this function will return
+ *  ::AMDSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
+ *  provided arguments.
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
+ *  @retval ::AMDSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
+ *  support this function with the given arguments
+ *  @retval ::AMDSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *
+ */
+amdsmi_status_t amdsmi_get_gpu_reg_table_info(
+                      amdsmi_processor_handle processor_handle,
+                      amdsmi_reg_type_t reg_type,
+                      amdsmi_name_value_t** reg_metrics,
+                      uint32_t *num_of_metrics);
+
+/**
  *  @brief This function sets the clock range information. It is not supported on virtual
  *  machine guest
  *
@@ -3464,13 +3652,13 @@ amdsmi_is_P2P_accessible(amdsmi_processor_handle processor_handle_src,
  *  @brief Retrieves the current compute partitioning for a desired device
  *
  *  @details
- *  Given a device index @p dv_ind and a string @p compute_partition ,
+ *  Given a processor handle @p processor_handle and a string @p compute_partition ,
  *  and uint32 @p len , this function will attempt to obtain the device's
  *  current compute partition setting string. Upon successful retreival,
  *  the obtained device's compute partition settings string shall be stored in
  *  the passed @p compute_partition char string variable.
  *
- *  @param[in] dv_ind a device index
+ *  @param[in] processor_handle Device which to query
  *
  *  @param[inout] compute_partition a pointer to a char string variable,
  *  which the device's current compute partition will be written to.
@@ -3489,17 +3677,17 @@ amdsmi_is_P2P_accessible(amdsmi_processor_handle processor_handle_src,
  *
  */
 amdsmi_status_t
-amdsmi_dev_compute_partition_get(amdsmi_processor_handle processor_handle,
+amdsmi_get_gpu_compute_partition(amdsmi_processor_handle processor_handle,
                                   char *compute_partition, uint32_t len);
 
 /**
  *  @brief Modifies a selected device's compute partition setting.
  *
- *  @details Given a device index @p dv_ind, a type of compute partition
+ *  @details Given a processor handle @p processor_handle, a type of compute partition
  *  @p compute_partition, this function will attempt to update the selected
  *  device's compute partition setting.
  *
- *  @param[in] dv_ind a device index
+ *  @param[in] processor_handle Device which to query
  *
  *  @param[in] compute_partition using enum ::amdsmi_compute_partition_type_t,
  *  define what the selected device's compute partition setting should be
@@ -3515,17 +3703,17 @@ amdsmi_dev_compute_partition_get(amdsmi_processor_handle processor_handle,
  *
  */
 amdsmi_status_t
-amdsmi_dev_compute_partition_set(amdsmi_processor_handle processor_handle,
+amdsmi_set_gpu_compute_partition(amdsmi_processor_handle processor_handle,
                                   amdsmi_compute_partition_type_t compute_partition);
 
 /**
  *  @brief Reverts a selected device's compute partition setting back to its
  *  boot state.
  *
- *  @details Given a device index @p dv_ind , this function will attempt to
+ *  @details Given a processor handle @p processor_handle, this function will attempt to
  *  revert its compute partition setting back to its boot state.
  *
- *  @param[in] dv_ind a device index
+ *  @param[in] processor_handle Device which to query
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_PERMISSION function requires root access
@@ -3533,7 +3721,7 @@ amdsmi_dev_compute_partition_set(amdsmi_processor_handle processor_handle,
  *  support this function
  *
  */
-amdsmi_status_t amdsmi_dev_compute_partition_reset(amdsmi_processor_handle processor_handle);
+amdsmi_status_t amdsmi_reset_gpu_compute_partition(amdsmi_processor_handle processor_handle);
 
 /** @} */  // end of compute_partition
 
@@ -3548,13 +3736,13 @@ amdsmi_status_t amdsmi_dev_compute_partition_reset(amdsmi_processor_handle proce
  *  @brief Retrieves the current memory partition for a desired device
  *
  *  @details
- *  Given a device index @p dv_ind and a string @p memory_partition ,
+ *  Given a processor handle @p processor_handle and a string @p memory_partition ,
  *  and uint32 @p len , this function will attempt to obtain the device's
  *  memory partition string. Upon successful retreival, the obtained device's
  *  memory partition string shall be stored in the passed @p memory_partition
  *  char string variable.
  *
- *  @param[in] dv_ind a device index
+ *  @param[in] processor_handle Device which to query
  *
  *  @param[inout] memory_partition a pointer to a char string variable,
  *  which the device's memory partition will be written to.
@@ -3573,17 +3761,17 @@ amdsmi_status_t amdsmi_dev_compute_partition_reset(amdsmi_processor_handle proce
  *
  */
 amdsmi_status_t
-amdsmi_dev_memory_partition_get(amdsmi_processor_handle processor_handle,
+amdsmi_get_gpu_memory_partition(amdsmi_processor_handle processor_handle,
                                   char *memory_partition, uint32_t len);
 
 /**
  *  @brief Modifies a selected device's current memory partition setting.
  *
- *  @details Given a device index @p dv_ind and a type of memory partition
+ *  @details Given a processor handle @p processor_handle and a type of memory partition
  *  @p memory_partition, this function will attempt to update the selected
  *  device's memory partition setting.
  *
- *  @param[in] dv_ind a device index
+ *  @param[in] processor_handle Device which to query
  *
  *  @param[in] memory_partition using enum ::amdsmi_memory_partition_type_t,
  *  define what the selected device's current mode setting should be updated to.
@@ -3598,17 +3786,17 @@ amdsmi_dev_memory_partition_get(amdsmi_processor_handle processor_handle,
  *
  */
 amdsmi_status_t
-amdsmi_dev_memory_partition_set(amdsmi_processor_handle processor_handle,
+amdsmi_set_gpu_memory_partition(amdsmi_processor_handle processor_handle,
                                   amdsmi_memory_partition_type_t memory_partition);
 
 /**
  *  @brief Reverts a selected device's memory partition setting back to its
  *  boot state.
  *
- *  @details Given a device index @p dv_ind , this function will attempt to
+ *  @details Given a processor handle @p processor_handle, this function will attempt to
  *  revert its current memory partition setting back to its boot state.
  *
- *  @param[in] dv_ind a device index
+ *  @param[in] processor_handle Device which to query
  *
  *  @retval ::AMDSMI_STATUS_SUCCESS call was successful
  *  @retval ::AMDSMI_STATUS_PERMISSION function requires root access
@@ -3618,7 +3806,7 @@ amdsmi_dev_memory_partition_set(amdsmi_processor_handle processor_handle,
  *  the amdgpu driver
  *
  */
-amdsmi_status_t amdsmi_dev_memory_partition_reset(amdsmi_processor_handle processor_handle);
+amdsmi_status_t amdsmi_reset_gpu_memory_partition(amdsmi_processor_handle processor_handle);
 
 /** @} */  // end of memory_partition
 
@@ -4050,6 +4238,1057 @@ amdsmi_status_t
 amdsmi_get_gpu_total_ecc_count(amdsmi_processor_handle processor_handle, amdsmi_error_count_t *ec);
 
 /** @} End eccinfo */
+
+
+/*****************************************************************************/
+/** @defgroup metricfunctions GPU Metric Functions
+ *  These functions are used to get granular information about all counters
+ *  available in GPU Metrics.
+ *  @{
+ */
+
+/**
+ * Metric multi-valued counter types
+ */
+typedef uint16_t gpu_metric_temp_hbm_t[AMDSMI_NUM_HBM_INSTANCES];
+typedef uint16_t gpu_metric_vcn_activity_t[AMDSMI_MAX_NUM_VCN];
+typedef uint64_t gpu_metric_xgmi_read_data_acc_t[AMDSMI_MAX_NUM_XGMI_LINKS];
+typedef uint64_t gpu_metric_xgmi_write_data_acc_t[AMDSMI_MAX_NUM_XGMI_LINKS];
+typedef uint16_t gpu_metric_curr_gfxclk_t[AMDSMI_MAX_NUM_GFX_CLKS];
+typedef uint16_t gpu_metric_curr_socclk_t[AMDSMI_MAX_NUM_CLKS];
+typedef uint16_t gpu_metric_curr_vclk0_t[AMDSMI_MAX_NUM_CLKS];
+typedef uint16_t gpu_metric_curr_dclk0_t[AMDSMI_MAX_NUM_CLKS];
+
+
+/******
+ * Metric single-valued counter types
+ */
+
+/**
+ *  @brief Get the 'temp_hotspot' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'temp_hotspot' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] hotspot_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_temp_hotspot(amdsmi_processor_handle processor_handle, uint16_t* hotspot_value);
+
+/**
+ *  @brief Get the 'temp_mem' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'temp_mem' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] mem_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_temp_mem(amdsmi_processor_handle processor_handle, uint16_t* mem_value);
+
+/**
+ *  @brief Get the 'temp_vrsoc' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'temp_vrsoc' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] vrsoc_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_temp_vrsoc(amdsmi_processor_handle processor_handle, uint16_t* vrsoc_value);
+
+/**
+ *  @brief Get the 'curr_socket_power' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'socket_power' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] socket_power_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_curr_socket_power(amdsmi_processor_handle processor_handle, uint16_t* socket_power_value);
+
+/**
+ *  @brief Get the 'avg_gfx_activity' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'gfx_activity' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] gfx_activity_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_avg_gfx_activity(amdsmi_processor_handle processor_handle, uint16_t* gfx_activity_value);
+
+/**
+ *  @brief Get the 'avg_umc_activity' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'umc_activity' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] umc_activity_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_avg_umc_activity(amdsmi_processor_handle processor_handle, uint16_t* umc_activity_value);
+
+/**
+ *  @brief Get the 'energy_acc' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint64_t in which
+ *  the 'energy_acc' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] energy_acc_value a pointer to uint64_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_energy_acc(amdsmi_processor_handle processor_handle, uint64_t* energy_acc_value);
+
+/**
+ *  @brief Get the 'system_clock_counter' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint64_t in which
+ *  the 'system_clock_counter' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] system_clock_counter_value a pointer to uint64_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_system_clock_counter(amdsmi_processor_handle processor_handle, uint64_t* system_clock_counter_value);
+
+/**
+ *  @brief Get the 'firmware_timestamp' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint64_t in which
+ *  the 'firmware_timestamp' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] firmware_timestamp_value a pointer to uint64_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_firmware_timestamp(amdsmi_processor_handle processor_handle, uint64_t* firmware_timestamp_value);
+
+/**
+ *  @brief Get the 'throttle_status' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint32_t in which
+ *  the 'throttle_status' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] throttle_status_value a pointer to uint32_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_throttle_status(amdsmi_processor_handle processor_handle, uint32_t* throttle_status_value);
+
+/**
+ *  @brief Get the 'pcie_link_width' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'pcie_link_width' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] pcie_link_width_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_pcie_link_width(amdsmi_processor_handle processor_handle, uint16_t* pcie_link_width_value);
+
+/**
+ *  @brief Get the 'pcie_link_speed' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'pcie_link_speed' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] pcie_link_speed_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_pcie_link_speed(amdsmi_processor_handle processor_handle, uint16_t* pcie_link_speed_value);
+
+/**
+ *  @brief Get the 'xgmi_link_width' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'xgmi_link_width' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] xgmi_link_width_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_xgmi_link_width(amdsmi_processor_handle processor_handle, uint16_t* xgmi_link_width_value);
+
+/**
+ *  @brief Get the 'xgmi_link_speed' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'xgmi_link_speed' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] xgmi_link_speed_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_xgmi_link_speed(amdsmi_processor_handle processor_handle, uint16_t* xgmi_link_speed_value);
+
+/**
+ *  @brief Get the 'gfxclk_lock_status' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint32_t in which
+ *  the 'gfxclk_lock_status' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] gfxclk_lock_status_value a pointer to uint32_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_gfxclk_lock_status(amdsmi_processor_handle processor_handle, uint32_t* gfxclk_lock_status_value);
+
+/**
+ *  @brief Get the 'gfx_activity_acc' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint32_t in which
+ *  the 'gfx_activity_acc' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] gfx_activity_acc_value a pointer to uint32_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_gfx_activity_acc(amdsmi_processor_handle processor_handle, uint32_t* gfx_activity_acc_value);
+
+/**
+ *  @brief Get the 'mem_activity_acc' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint32_t in which
+ *  the 'mem_activity_acc' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] mem_activity_acc_value a pointer to uint32_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_mem_activity_acc(amdsmi_processor_handle processor_handle, uint32_t* mem_activity_acc_value);
+
+/**
+ *  @brief Get the 'pcie_bandwidth_acc' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint64_t in which
+ *  the 'pcie_bandwidth_acc' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] pcie_bandwidth_acc_value a pointer to uint64_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_pcie_bandwidth_acc(amdsmi_processor_handle processor_handle, uint64_t* pcie_bandwidth_acc_value);
+
+/**
+ *  @brief Get the 'pcie_bandwidth_inst' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint64_t in which
+ *  the 'pcie_bandwidth_inst' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] pcie_bandwidth_inst_value a pointer to uint64_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_pcie_bandwidth_inst(amdsmi_processor_handle processor_handle, uint64_t* pcie_bandwidth_inst_value);
+
+/**
+ *  @brief Get the 'pcie_l0_recov_count_acc' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint64_t in which
+ *  the 'pcie_l0_recov_count_acc' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] pcie_count_acc_value a pointer to uint64_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_pcie_l0_recov_count_acc(amdsmi_processor_handle processor_handle, uint64_t* pcie_count_acc_value);
+
+/**
+ *  @brief Get the 'pcie_replay_count_acc' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint64_t in which
+ *  the 'pcie_replay_count_acc' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] pcie_count_acc_value a pointer to uint64_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_pcie_replay_count_acc(amdsmi_processor_handle processor_handle, uint64_t* pcie_count_acc_value);
+
+/**
+ *  @brief Get the 'pcie_replay_rover_count_acc' (Rollover count) from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint64_t in which
+ *  the 'pcie_replay_rover_count_acc' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] pcie_count_acc_value a pointer to uint64_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_pcie_replay_rover_count_acc(amdsmi_processor_handle processor_handle, uint64_t* pcie_count_acc_value);
+
+/**
+ *  @brief Get the 'curr_uclk' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'curr_uclk' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] uclk_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_curr_uclk(amdsmi_processor_handle processor_handle, uint16_t* uclk_value);
+
+
+/******
+ * Metric multi-valued counter types
+ */
+
+/**
+ *  @brief Get the 'temp_hbm' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'temp_hbm' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] temp_hbm_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *      - This is a multi-valued counter holding a 4 (AMDSMI_NUM_HBM_INSTANCES)
+ *        element array (gpu_metric_temp_hbm_t)
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_temp_hbm(amdsmi_processor_handle processor_handle, gpu_metric_temp_hbm_t* temp_hbm_value);
+
+/**
+ *  @brief Get the 'vcn_activity' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'vcn_activity' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] vcn_activity_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *      - This is a multi-valued counter holding a 4 (AMDSMI_MAX_NUM_VCN)
+ *        element array (gpu_metric_vcn_activity_t)
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_vcn_activity(amdsmi_processor_handle processor_handle, gpu_metric_vcn_activity_t* vcn_activity_value);
+
+/**
+ *  @brief Get the 'xgmi_read_data' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint64_t in which
+ *  the 'xgmi_read_data' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] xgmi_read_data_acc_value a pointer to uint64_t to which the device gpu
+ *  metric unit will be stored
+ *      - This is a multi-valued counter holding an 8 (AMDSMI_MAX_NUM_XGMI_LINKS)
+ *        element array (gpu_metric_xgmi_read_data_acc_t)
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_xgmi_read_data(amdsmi_processor_handle processor_handle, gpu_metric_xgmi_read_data_acc_t* xgmi_read_data_acc_value);
+
+/**
+ *  @brief Get the 'xgmi_write_data' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint64_t in which
+ *  the 'xgmi_write_data' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] xgmi_write_data_acc_value a pointer to uint64_t to which the device gpu
+ *  metric unit will be stored
+ *      - This is a multi-valued counter holding an 8 (AMDSMI_MAX_NUM_XGMI_LINKS)
+ *        element array (gpu_metric_xgmi_write_data_acc_t)
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_xgmi_write_data(amdsmi_processor_handle processor_handle, gpu_metric_xgmi_write_data_acc_t* xgmi_write_data_acc_value);
+
+/**
+ *  @brief Get the 'curr_gfxclk' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint64_t in which
+ *  the 'curr_gfxclk' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] current_gfxclk_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *      - This is a multi-valued counter holding an 8 (AMDSMI_MAX_NUM_GFX_CLKS)
+ *        element array (gpu_metric_curr_gfxclk_t)
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_curr_gfxclk(amdsmi_processor_handle processor_handle, gpu_metric_curr_gfxclk_t* current_gfxclk_value);
+
+/**
+ *  @brief Get the 'curr_socclk' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'curr_socclk' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] current_socclk_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *      - This is a multi-valued counter holding a 4 (AMDSMI_MAX_NUM_CLKS)
+ *        element array (gpu_metric_curr_socclk_t)
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_curr_socclk(amdsmi_processor_handle processor_handle, gpu_metric_curr_socclk_t* current_socclk_value);
+
+/**
+ *  @brief Get the 'curr_vclk0' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'curr_vclk0' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] current_vclk_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *      - This is a multi-valued counter holding a 4 (AMDSMI_MAX_NUM_CLKS)
+ *        element array (gpu_metric_curr_vclk0_t)
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_curr_vclk0(amdsmi_processor_handle processor_handle, gpu_metric_curr_vclk0_t* current_vclk_value);
+
+/**
+ *  @brief Get the 'curr_dclk0' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'curr_dclk0' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] current_dclk_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *      - This is a multi-valued counter holding a 4 (AMDSMI_MAX_NUM_CLKS)
+ *        element array (gpu_metric_curr_dclk0_t)
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_curr_dclk0(amdsmi_processor_handle processor_handle, gpu_metric_curr_dclk0_t* current_dclk_value);
+
+/**
+ *  @brief Get the 'temp_edge' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'temp_edge' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] edge_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_temp_edge(amdsmi_processor_handle processor_handle, uint16_t* edge_value);
+
+/**
+ *  @brief Get the 'temp_vrgfx' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'temp_vrgfx' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] vrgfx_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_temp_vrgfx(amdsmi_processor_handle processor_handle, uint16_t* vrgfx_value);
+
+/**
+ *  @brief Get the 'temp_vrmem' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'temp_vrmem' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] vrmem_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_temp_vrmem(amdsmi_processor_handle processor_handle, uint16_t* vrmem_value);
+
+/**
+ *  @brief Get the 'avg_mm_activity' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'avg_mm_activity' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] mm_activity_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_avg_mm_activity(amdsmi_processor_handle processor_handle, uint16_t* mm_activity_value);
+
+/**
+ *  @brief Get the 'curr_vclk1' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'curr_vclk1' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] current_vclk_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_curr_vclk1(amdsmi_processor_handle processor_handle, uint16_t* current_vclk_value);
+
+/**
+ *  @brief Get the 'curr_dclk1' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'curr_dclk1' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] current_dclk_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_curr_dclk1(amdsmi_processor_handle processor_handle, uint16_t* current_dclk_value);
+
+/**
+ *  @brief Get the 'indep_throttle_status' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint64_t in which
+ *  the 'indep_throttle_status' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] throttle_status_value a pointer to uint64_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_indep_throttle_status(amdsmi_processor_handle processor_handle, uint64_t* throttle_status_value);
+
+/**
+ *  @brief Get the 'avg_socket_power' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'avg_socket_power' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] socket_power_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_avg_socket_power(amdsmi_processor_handle processor_handle, uint16_t* socket_power_value);
+
+/**
+ *  @brief Get the 'curr_fan_speed' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'curr_fan_speed' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] fan_speed_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_curr_fan_speed(amdsmi_processor_handle processor_handle, uint16_t* fan_speed_value);
+
+/**
+ *  @brief Get the 'avg_gfx_clock_frequency' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'avg_gfx_clock_frequency' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] clock_frequency_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_avg_gfx_clock_frequency(amdsmi_processor_handle processor_handle, uint16_t* clock_frequency_value);
+
+/**
+ *  @brief Get the 'avg_soc_clock_frequency' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'avg_soc_clock_frequency' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] clock_frequency_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_avg_soc_clock_frequency(amdsmi_processor_handle processor_handle, uint16_t* clock_frequency_value);
+
+/**
+ *  @brief Get the 'avg_uclock_frequency' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'avg_uclock_frequency' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] clock_frequency_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_avg_uclock_frequency(amdsmi_processor_handle processor_handle, uint16_t* clock_frequency_value);
+
+/**
+ *  @brief Get the 'avg_vclock0_frequency' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'avg_vclock0_frequency' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] clock_frequency_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_avg_vclock0_frequency(amdsmi_processor_handle processor_handle, uint16_t* clock_frequency_value);
+
+/**
+ *  @brief Get the 'avg_dclock0_frequency' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'avg_dclock0_frequency' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] clock_frequency_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_avg_dclock0_frequency(amdsmi_processor_handle processor_handle, uint16_t* clock_frequency_value);
+
+/**
+ *  @brief Get the 'avg_vclock1_frequency' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'avg_vclock1_frequency' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] clock_frequency_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_avg_vclock1_frequency(amdsmi_processor_handle processor_handle, uint16_t* clock_frequency_value);
+
+/**
+ *  @brief Get the 'avg_dclock1_frequency' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'avg_dclock1_frequency' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] clock_frequency_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_avg_dclock1_frequency(amdsmi_processor_handle processor_handle, uint16_t* clock_frequency_value);
+
+/**
+ *  @brief Get the 'volt_soc' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'volt_soc' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] voltage_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_volt_soc(amdsmi_processor_handle processor_handle, uint16_t* voltage_value);
+
+/**
+ *  @brief Get the 'volt_gfx' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'volt_gfx' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] voltage_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_volt_gfx(amdsmi_processor_handle processor_handle, uint16_t* voltage_value);
+
+/**
+ *  @brief Get the 'volt_mem' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'volt_mem' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] voltage_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_volt_mem(amdsmi_processor_handle processor_handle, uint16_t* voltage_value);
+
+/**
+ *  @brief Get the 'metrics_header_info' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a amd_metrics_table_header_t in which
+ *  the 'metrics_header_info' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] header_value a pointer to amd_metrics_table_header_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_header_info(amdsmi_processor_handle processor_handle, amd_metrics_table_header_t* header_value);
+
+/**
+ *  @brief Get the 'xcd_counter' from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint16_t in which
+ *  the 'xcd_counter' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] xcd_counter_value a pointer to uint16_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_xcd_counter(amdsmi_processor_handle processor_handle, uint16_t* xcd_counter_value);
+
+/**
+ *  @brief Get the log from the GPU metrics associated with the device
+ *
+ *  @details Given a processor handle @p processor_handle it will log all the gpu metric info
+ *  related to the device. The 'logging' feature must be on.
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_log(amdsmi_processor_handle processor_handle);
+
+/** @} End metricfunctions */
+
 
 #ifdef ENABLE_ESMI_LIB
 /*---------------------------------------------------------------------------*/

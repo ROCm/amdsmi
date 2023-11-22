@@ -141,6 +141,7 @@ set(CMN_SRC_LIST
     "${ROCM_SRC_DIR}/rocm_smi_counters.cc"
     "${ROCM_SRC_DIR}/rocm_smi_device.cc"
     "${ROCM_SRC_DIR}/rocm_smi_gpu_metrics.cc"
+    "${ROCM_SRC_DIR}/rocm_smi_binary_parser.cc"
     "${ROCM_SRC_DIR}/rocm_smi_io_link.cc"
     "${ROCM_SRC_DIR}/rocm_smi_kfd.cc"
     "${ROCM_SRC_DIR}/rocm_smi_main.cc"
@@ -163,6 +164,7 @@ set(CMN_INC_LIST
     "${ROCM_INC_DIR}/rocm_smi_counters.h"
     "${ROCM_INC_DIR}/rocm_smi_device.h"
     "${ROCM_INC_DIR}/rocm_smi_gpu_metrics.h"
+    "${ROCM_INC_DIR}/rocm_smi_binary_parser.h"
     "${ROCM_INC_DIR}/rocm_smi_exception.h"
     "${ROCM_INC_DIR}/rocm_smi_io_link.h"
     "${ROCM_INC_DIR}/rocm_smi_kfd.h"
@@ -245,12 +247,12 @@ install(
 
 #Debian package specific variables
 set(CPACK_DEBIAN_PACKAGE_PROVIDES "amd-smi")
-set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "sudo, python3-argcomplete, libdrm-dev, python3-yaml")
+set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "python3-argcomplete, libdrm-dev, python3-yaml")
 set(CPACK_DEBIAN_ASAN_PACKAGE_RECOMMENDS ${CPACK_DEBIAN_PACKAGE_RECOMMENDS})
 set(CPACK_DEBIAN_DEV_PACKAGE_RECOMMENDS ${CPACK_DEBIAN_PACKAGE_RECOMMENDS})
 set(CPACK_DEBIAN_ASAN_PACKAGE_PROVIDES "${AMD_SMI_PACKAGE}-asan")
 set(CPACK_DEBIAN_DEV_PACKAGE_PROVIDES "${AMD_SMI_PACKAGE}")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "python3 (>= 3.6.8), python3-pip")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "sudo, python3 (>= 3.6.8), python3-pip")
 set(CPACK_DEBIAN_ASAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS})
 set(CPACK_DEBIAN_DEV_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS})
 
@@ -269,11 +271,12 @@ endif()
 set(CPACK_RPM_PACKAGE_PROVIDES "amd-smi")
 set(CPACK_RPM_DEV_PACKAGE_PROVIDES "${AMD_SMI_PACKAGE}")
 set(CPACK_RPM_ASAN_PACKAGE_PROVIDES "${AMD_SMI_PACKAGE}-asan")
+# NOTE: RPM SUGGESTS DO NOT WORK! https://bugzilla.redhat.com/show_bug.cgi?id=1811358
 set(CPACK_RPM_PACKAGE_SUGGESTS "python3-argcomplete")
 set(CPACK_RPM_DEV_PACKAGE_SUGGESTS ${CPACK_RPM_PACKAGE_SUGGESTS})
 set(CPACK_RPM_ASAN_PACKAGE_SUGGESTS ${CPACK_RPM_PACKAGE_SUGGESTS})
 # python version gated by rhel8 :(
-set(CPACK_RPM_PACKAGE_REQUIRES "python3 >= 3.6.8, python3-pip, python3-PyYAML")
+set(CPACK_RPM_PACKAGE_REQUIRES "sudo, python3 >= 3.6.8, python3-pip, python3-PyYAML")
 set(CPACK_RPM_DEV_PACKAGE_REQUIRES ${CPACK_RPM_PACKAGE_REQUIRES})
 set(CPACK_RPM_ASAN_PACKAGE_REQUIRES ${CPACK_RPM_PACKAGE_REQUIRES})
 
