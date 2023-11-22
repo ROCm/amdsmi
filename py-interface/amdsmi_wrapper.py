@@ -820,7 +820,7 @@ struct_amdsmi_asic_info_t._fields_ = [
     ('device_id', ctypes.c_uint64),
     ('rev_id', ctypes.c_uint32),
     ('asic_serial', ctypes.c_char * 32),
-    ('xgmi_physical_id', ctypes.c_uint16),
+    ('oam_id', ctypes.c_uint16),
     ('reserved', ctypes.c_uint16 * 37),
 ]
 

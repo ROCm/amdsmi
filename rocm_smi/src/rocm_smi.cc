@@ -941,7 +941,7 @@ rsmi_dev_id_get(uint32_t dv_ind, uint16_t *id) {
 }
 
 rsmi_status_t
-rsmi_dev_xgmi_physical_id_get(uint32_t dv_ind, uint16_t *id) {
+rsmi_dev_oam_id_get(uint32_t dv_ind, uint16_t *id) {
   std::ostringstream ss;
   rsmi_status_t ret;
   ss << __PRETTY_FUNCTION__ << "| ======= start =======";

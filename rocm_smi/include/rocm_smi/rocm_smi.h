@@ -1746,7 +1746,7 @@ rsmi_status_t rsmi_dev_unique_id_get(uint32_t dv_ind, uint64_t *id);
  *  @retval ::RSMI_STATUS_SUCCESS is returned upon successful call.
  *
  */
-rsmi_status_t rsmi_dev_xgmi_physical_id_get(uint32_t dv_ind, uint16_t *id);
+rsmi_status_t rsmi_dev_oam_id_get(uint32_t dv_ind, uint16_t *id);
 
 /** @} */  // end of IDQuer
 
