@@ -409,7 +409,7 @@ ASIC:
     DEVICE_ID: 0x73bf
     REV_ID: 0xc3
     ASIC_SERIAL: 0xffffffffffffffff
-    XGMI_PHYSICAL_ID: N/A
+    OAM_ID: N/A
 BUS:
     BDF: 0000:23:00.0
     MAX_PCIE_SPEED: 16 GT/s
