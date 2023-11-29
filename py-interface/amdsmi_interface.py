@@ -1243,7 +1243,7 @@ def amdsmi_get_gpu_asic_info(
         "device_id": asic_info.device_id,
         "rev_id": asic_info.rev_id,
         "asic_serial": asic_info.asic_serial.decode("utf-8"),
-        "xgmi_physical_id": asic_info.xgmi_physical_id
+        "oam_id": asic_info.oam_id
     }
 
 
