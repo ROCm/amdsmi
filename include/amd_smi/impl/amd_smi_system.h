@@ -99,7 +99,12 @@ class AMDSmiSystem {
 #endif
  private:
     AMDSmiSystem() : init_flag_(AMDSMI_INIT_AMD_GPUS) {}
-    amdsmi_status_t get_gpu_bdf_by_index(uint32_t index, std::string& bdf);
+
+    /* The GPU socket id is used to identify the socket, so that the XCDs
+    on the same physical device will be collected under the same socket.
+    The BD part of the BDF is used as GPU socket to represent a phyiscal device.
+    */
+    amdsmi_status_t get_gpu_socket_id(uint32_t index, std::string& socketid);
     amdsmi_status_t populate_amd_gpu_devices();
     uint64_t init_flag_;
     AMDSmiDrm drm_;
