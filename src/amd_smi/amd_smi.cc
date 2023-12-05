@@ -520,6 +520,8 @@ amdsmi_status_t amdsmi_get_gpu_cache_info(
     for (unsigned int i =0; i < rsmi_info.num_cache_types; i++) {
         info->cache[i].cache_size_kb = rsmi_info.cache[i].cache_size_kb;
         info->cache[i].cache_level = rsmi_info.cache[i].cache_level;
+        info->cache[i].max_num_cu_shared = rsmi_info.cache[i].max_num_cu_shared;
+        info->cache[i].num_cache_instance = rsmi_info.cache[i].num_cache_instance;
         // convert from sysfs type to CRAT type(HSA Cache Affinity type)
         info->cache[i].flags = 0;
         if (rsmi_info.cache[i].flags & HSA_CACHE_TYPE_DATA)
