@@ -773,6 +773,8 @@ struct_cache_._fields_ = [
     ('cache_size_kb', ctypes.c_uint32),
     ('cache_level', ctypes.c_uint32),
     ('flags', ctypes.c_uint32),
+    ('max_num_cu_shared', ctypes.c_uint32),
+    ('num_cache_instance', ctypes.c_uint32),
     ('reserved', ctypes.c_uint32 * 3),
 ]
 

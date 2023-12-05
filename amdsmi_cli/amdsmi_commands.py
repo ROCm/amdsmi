@@ -431,8 +431,8 @@ class AMDSMICommands():
                 static_dict['limit'] = limit_info
         if args.driver:
             driver_info = {"driver_name" : "N/A",
-                           "driver_version" : "N/A",
-                           "driver_date" : "N/A"}
+                           "driver_version" : "N/A"
+                           }
 
             try:
                 driver_info = amdsmi_interface.amdsmi_get_gpu_driver_info(args.gpu)
@@ -477,12 +477,11 @@ class AMDSMICommands():
                 cache_info = amdsmi_interface.amdsmi_get_gpu_cache_info(args.gpu)
                 for cache_key, cache_dict in cache_info.items():
                     for key, value in cache_dict.items():
-                        if key == 'cache_size' or key == 'cache_level':
+                        if key == 'cache_size' or key == 'cache_level' or \
+                            key == 'max_num_cu_shared' or key == 'num_cache_instance':
                             continue
                         if value:
                             cache_info[cache_key][key] = "ENABLED"
-                        else:
-                            cache_info[cache_key][key] = "DISABLED"
                 if self.logger.is_human_readable_format():
                     for _ , cache_values in cache_info.items():
                         cache_values['cache_size'] = f"{cache_values['cache_size']} KB"
