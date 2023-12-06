@@ -3244,7 +3244,7 @@ def amdsmi_get_gpu_metrics_temp_hotspot(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    hotspot_value = ctypes.c_int16()
+    hotspot_value = ctypes.c_uint16()
     _check_res(
         amdsmi_wrapper.amdsmi_get_gpu_metrics_temp_hotspot(
             processor_handle, ctypes.byref(hotspot_value)
@@ -3265,7 +3265,7 @@ def amdsmi_get_gpu_metrics_temp_mem(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    mem_value = ctypes.c_int16()
+    mem_value = ctypes.c_uint16()
     _check_res(
         amdsmi_wrapper.amdsmi_get_gpu_metrics_temp_mem(
             processor_handle, ctypes.byref(mem_value)
@@ -3286,7 +3286,7 @@ def amdsmi_get_gpu_metrics_temp_vrsoc(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    vrsoc_value = ctypes.c_int16()
+    vrsoc_value = ctypes.c_uint16()
     _check_res(
         amdsmi_wrapper.amdsmi_get_gpu_metrics_temp_vrsoc(
             processor_handle, ctypes.byref(vrsoc_value)
@@ -3754,7 +3754,7 @@ def amdsmi_get_gpu_metrics_vcn_activity(
         )
     )
 
-    return [vcn_activity.value for vcn_activity in vcn_activity_value]
+    return vcn_activity_value
 
 
 def amdsmi_get_gpu_metrics_xgmi_read_data(
@@ -3811,7 +3811,9 @@ def amdsmi_get_gpu_metrics_curr_gfxclk(
         )
     )
 
-    return [curr_gfxclk.value for curr_gfxclk in current_gfxclk_value]
+    print([curr_gfxclk for curr_gfxclk in current_gfxclk_value])
+
+    return [curr_gfxclk for curr_gfxclk in current_gfxclk_value]
 
 
 def amdsmi_get_gpu_metrics_curr_socclk(
@@ -3879,7 +3881,7 @@ def amdsmi_get_gpu_metrics_temp_edge(
         processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    edge_value = ctypes.c_int16()
+    edge_value = ctypes.c_uint16()
 
     _check_res(
         amdsmi_wrapper.amdsmi_get_gpu_metrics_temp_edge(
@@ -3901,7 +3903,7 @@ def amdsmi_get_gpu_metrics_temp_vrgfx(
         processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    vrgfx_value = ctypes.c_int16()
+    vrgfx_value = ctypes.c_uint16()
 
     _check_res(
         amdsmi_wrapper.amdsmi_get_gpu_metrics_temp_vrgfx(
@@ -3923,7 +3925,7 @@ def amdsmi_get_gpu_metrics_temp_vrmem(
         processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    vrmem_value = ctypes.c_int16()
+    vrmem_value = ctypes.c_uint16()
 
     _check_res(
         amdsmi_wrapper.amdsmi_get_gpu_metrics_temp_vrmem(
