@@ -894,6 +894,7 @@ amdsmi_clk_info_t = struct_amdsmi_clk_info_t
 class struct_amdsmi_engine_usage_t(Structure):
     pass
 
+
 struct_amdsmi_engine_usage_t._pack_ = 1 # source:False
 struct_amdsmi_engine_usage_t._fields_ = [
     ('gfx_activity', ctypes.c_uint32),
@@ -1514,6 +1515,11 @@ struct_amdsmi_gpu_metrics_t._fields_ = [
     ('current_socclks', ctypes.c_uint16 * 4),
     ('current_vclk0s', ctypes.c_uint16 * 4),
     ('current_dclk0s', ctypes.c_uint16 * 4),
+    ('mem_bandwidth_acc', ctypes.c_uint64),
+    ('mem_max_bandwidth', ctypes.c_uint32),
+    ('pcie_nak_sent_count_acc', ctypes.c_uint32),
+    ('pcie_nak_rcvd_count_acc', ctypes.c_uint32),
+    ('jpeg_activities', ctypes.c_uint16 * 32),
 ]
 
 amdsmi_gpu_metrics_t = struct_amdsmi_gpu_metrics_t

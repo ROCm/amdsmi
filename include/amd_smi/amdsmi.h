@@ -88,6 +88,55 @@ typedef enum {
 
 #define AMDSMI_GPU_UUID_SIZE 38
 
+/**
+ * @brief The following structure holds the gpu metrics values for a device.
+ */
+
+/**
+ * @brief Unit conversion factor for HBM temperatures
+ */
+#define CENTRIGRADE_TO_MILLI_CENTIGRADE 1000
+
+/**
+ * @brief This should match NUM_HBM_INSTANCES
+ */
+#define AMDSMI_NUM_HBM_INSTANCES 4
+
+/**
+ * @brief This should match MAX_NUM_VCN
+ */
+#define AMDSMI_MAX_NUM_VCN 4
+
+/**
+ * @brief This should match MAX_NUM_CLKS
+ */
+#define AMDSMI_MAX_NUM_CLKS 4
+
+/**
+ * @brief This should match MAX_NUM_XGMI_LINKS
+ */
+#define AMDSMI_MAX_NUM_XGMI_LINKS 8
+
+/**
+ * @brief This should match MAX_NUM_GFX_CLKS
+ */
+#define AMDSMI_MAX_NUM_GFX_CLKS 8
+
+/**
+ * @brief This should match AMDSMI_MAX_AID
+ */
+#define AMDSMI_MAX_AID 4
+
+/**
+ * @brief This should match AMDSMI_MAX_ENGINES
+ */
+#define AMDSMI_MAX_ENGINES 8
+
+/**
+ * @brief This should match AMDSMI_MAX_NUM_JPEG (8*4=32)
+ */
+#define AMDSMI_MAX_NUM_JPEG 32
+
 /* string format */
 #define AMDSMI_TIME_FORMAT "%02d:%02d:%02d.%03d"
 #define AMDSMI_DATE_FORMAT "%04d-%02d-%02d:%02d:%02d:%02d.%03d"
@@ -544,6 +593,12 @@ typedef struct {
   uint32_t reserved[4];
 } amdsmi_clk_info_t;
 
+/**
+ * amdsmi_engine_usage_t:
+ * This structure holds common
+ * GPU activity values seen in both BM or
+ * SRIOV
+ **/
 typedef struct {
   uint32_t gfx_activity;
   uint32_t umc_activity;
@@ -1137,41 +1192,6 @@ typedef struct {
   /// \endcond
 } amd_metrics_table_header_t;
 
-/**
- * @brief The following structure holds the gpu metrics values for a device.
- */
-
-/**
- * @brief Unit conversion factor for HBM temperatures
- */
-#define CENTRIGRADE_TO_MILLI_CENTIGRADE 1000
-
-/**
- * @brief This should match NUM_HBM_INSTANCES
- */
-#define AMDSMI_NUM_HBM_INSTANCES 4
-
-/**
- * @brief This should match MAX_NUM_VCN
- */
-#define AMDSMI_MAX_NUM_VCN 4
-
-/**
- * @brief This should match MAX_NUM_CLKS
- */
-#define AMDSMI_MAX_NUM_CLKS 4
-
-/**
- * @brief This should match MAX_NUM_XGMI_LINKS
- */
-#define AMDSMI_MAX_NUM_XGMI_LINKS 8
-
-/**
- * @brief This should match MAX_NUM_GFX_CLKS
- */
-#define AMDSMI_MAX_NUM_GFX_CLKS 8
-
-
 typedef struct {
   // TODO(amd) Doxygen documents
   // Note:  This structure is extended to fit the needs of different GPU metric
@@ -1191,7 +1211,7 @@ typedef struct {
   /*
    * v1.0 Base
    */
-  // Temperature
+  // Temperature (C)
   uint16_t temperature_edge;
   uint16_t temperature_hotspot;
   uint16_t temperature_mem;
@@ -1199,19 +1219,19 @@ typedef struct {
   uint16_t temperature_vrsoc;
   uint16_t temperature_vrmem;
 
-  // Utilization
+  // Utilization (%)
   uint16_t average_gfx_activity;
   uint16_t average_umc_activity;    // memory controller
   uint16_t average_mm_activity;     // UVD or VCN
 
-  // Power/Energy
+  // Power (W) /Energy (15.259uJ per 1ns)
   uint16_t average_socket_power;
   uint64_t energy_accumulator;      // v1 mod. (32->64)
 
   // Driver attached timestamp (in ns)
   uint64_t system_clock_counter;    // v1 mod. (moved from top of struct)
 
-  // Average clocks
+  // Average clocks (MHz)
   uint16_t average_gfxclk_frequency;
   uint16_t average_socclk_frequency;
   uint16_t average_uclk_frequency;
@@ -1220,7 +1240,7 @@ typedef struct {
   uint16_t average_vclk1_frequency;
   uint16_t average_dclk1_frequency;
 
-  // Current clocks
+  // Current clocks (MHz)
   uint16_t current_gfxclk;
   uint16_t current_socclk;
   uint16_t current_uclk;
@@ -1232,10 +1252,10 @@ typedef struct {
   // Throttle status
   uint32_t throttle_status;
 
-  // Fans
+  // Fans (RPM)
   uint16_t current_fan_speed;
 
-  // Link width/speed
+  // Link width (number of lanes) /speed (0.1 GT/s)
   uint16_t pcie_link_width;         // v1 mod.(8->16)
   uint16_t pcie_link_speed;         // in 0.1 GT/s; v1 mod. (8->16)
 
@@ -1274,19 +1294,19 @@ typedef struct {
   uint16_t current_socket_power;
 
   // Utilization (%)
-  uint16_t vcn_activity[AMDSMI_MAX_NUM_VCN]; // VCN instances activity percent (encode/decode)
+  uint16_t vcn_activity[AMDSMI_MAX_NUM_VCN];
 
   // Clock Lock Status. Each bit corresponds to clock instance
   uint32_t gfxclk_lock_status;
 
-	// XGMI bus width and bitrate (in Gbps)
+  // XGMI bus width and bitrate (in GB/s)
   uint16_t xgmi_link_width;
   uint16_t xgmi_link_speed;
 
-  // PCIE accumulated bandwidth (GB/sec)
+  // PCIe accumulated bandwidth (GB/sec)
   uint64_t pcie_bandwidth_acc;
 
-	// PCIE instantaneous bandwidth (GB/sec)
+  // PCIe instantaneous bandwidth (GB/sec)
   uint64_t pcie_bandwidth_inst;
 
   // PCIE L0 to recovery state transition accumulated count
@@ -1298,15 +1318,33 @@ typedef struct {
   // PCIE replay rollover accumulated count
   uint64_t pcie_replay_rover_count_acc;
 
-  // XGMI accumulated data transfer size(KiloBytes)
+  // XGMI accumulated data transfer size (KB)
   uint64_t xgmi_read_data_acc[AMDSMI_MAX_NUM_XGMI_LINKS];
   uint64_t xgmi_write_data_acc[AMDSMI_MAX_NUM_XGMI_LINKS];
 
-  // Current clock frequencies
+  // Current clock frequencies (MHz)
   uint16_t current_gfxclks[AMDSMI_MAX_NUM_GFX_CLKS];
   uint16_t current_socclks[AMDSMI_MAX_NUM_CLKS];
   uint16_t current_vclk0s[AMDSMI_MAX_NUM_CLKS];
   uint16_t current_dclk0s[AMDSMI_MAX_NUM_CLKS];
+
+   /*
+   * v1.5 additions
+   */
+  // Memory Bandwidth Usage Accumulated (GB/sec)
+  uint64_t mem_bandwidth_acc;
+
+  // Memory Bandwidth Maximum (GB/sec)
+  uint32_t mem_max_bandwidth;
+
+  // PCIE NAK sent accumulated count
+  uint32_t pcie_nak_sent_count_acc;
+
+  // PCIE NAK received accumulated count
+  uint32_t pcie_nak_rcvd_count_acc;
+
+  // JPEG activity % per AID
+  uint16_t jpeg_activity[AMDSMI_MAX_NUM_JPEG];
   /// \endcond
 } amdsmi_gpu_metrics_t;
 
