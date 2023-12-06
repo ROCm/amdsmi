@@ -24,6 +24,7 @@ import logging
 import sys
 import threading
 import time
+import json
 
 from _version import __version__
 from amdsmi_helpers import AMDSMIHelpers
@@ -941,7 +942,9 @@ class AMDSMICommands():
 
         # Put the metrics table in the debug logs
         try:
-            logging.debug("GPU Metrics table for %s | %s", gpu_id, amdsmi_interface.amdsmi_get_gpu_metrics_info(args.gpu))
+            gpu_metric_output = amdsmi_interface.amdsmi_get_gpu_metrics_info(args.gpu)
+            gpu_metric_str = json.dumps(gpu_metric_output, indent=4)
+            logging.debug("GPU Metrics table for %s | %s", gpu_id, gpu_metric_str)
         except amdsmi_exception.AmdSmiLibraryException as e:
             logging.debug("Unabled to load GPU Metrics table for %s | %s", gpu_id, e.err_info)
 
@@ -963,14 +966,30 @@ class AMDSMICommands():
                     engine_usage['gfx_usage'] = engine_usage.pop('gfx_activity')
                     engine_usage['mem_usage'] = engine_usage.pop('umc_activity')
                     engine_usage['mm_ip_usage'] = engine_usage.pop('mm_activity')
-
+                    engine_usage['vcn_activities'] = gpu_metric_output.pop('vcn_activity')
+                    engine_usage['jpeg_activities[AID0]'] = gpu_metric_output.pop('jpeg_activities[AID0]')
+                    engine_usage['jpeg_activities[AID1]'] = gpu_metric_output.pop('jpeg_activities[AID1]')
+                    engine_usage['jpeg_activities[AID2]'] = gpu_metric_output.pop('jpeg_activities[AID2]')
+                    engine_usage['jpeg_activities[AID3]'] = gpu_metric_output.pop('jpeg_activities[AID3]')
                     for key, value in engine_usage.items():
-                        if value == 65535:
+                        if not isinstance(value, list) and value > 100:
                             engine_usage[key] = "N/A"
+                        elif isinstance(value, list):
+                            engine_usage[key] =  ["N/A" if v > 100 else v for v in value]
 
                         if self.logger.is_human_readable_format():
-                            if engine_usage[key] != "N/A":
-                                unit = '%'
+                            unit = '%'
+                            if isinstance(value, list):
+                               engine_usage[key] =  [f"{v} {unit}" if str(v) != "N/A" else str(v) for v in engine_usage[key]]
+                               save_value = engine_usage[key]
+                               pretty_array = "["
+                               for i in range(len(save_value)):
+                                   if (i+1 != len(save_value)):
+                                       pretty_array += save_value[i] + ", "
+                                   else:
+                                       pretty_array += save_value[i] + "]"
+                               engine_usage[key] = pretty_array
+                            elif not isinstance(value, list) and engine_usage[key] != "N/A":
                                 engine_usage[key] = f"{value} {unit}"
 
                     values_dict['usage'] = engine_usage
@@ -1225,9 +1244,6 @@ class AMDSMICommands():
                     logging.debug("Failed to get pcie replay rollover counter for gpu %s | %s", gpu_id, e.get_error_info())
 
                 try:
-                    # nak_info = amdsmi_interface.amdsmi_get_gpu_pci_nak_info(args.gpu)
-                    # pcie_dict['nak_sent_count'] = nak_info['nak_sent_count']
-                    # pcie_dict['nak_received_count'] = nak_info['nak_received_count']
                     pcie_dict['nak_sent_count'] = "N/A"
                     pcie_dict['nak_received_count'] = "N/A"
                 except amdsmi_exception.AmdSmiLibraryException as e:

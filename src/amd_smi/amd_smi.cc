@@ -68,6 +68,7 @@
 #include "amd_smi/impl/amdgpu_drm.h"
 #include "amd_smi/impl/amd_smi_utils.h"
 #include "amd_smi/impl/amd_smi_processor.h"
+#include "rocm_smi/rocm_smi_logger.h"
 #ifdef ENABLE_ESMI_LIB
     #include "amd_smi/impl/amd_smi_cpu_socket.h"
     #include "amd_smi/impl/amd_smi_cpu_core.h"
@@ -1154,9 +1155,32 @@ amdsmi_status_t  amdsmi_get_gpu_metrics_info(
         amdsmi_gpu_metrics_t *pgpu_metrics) {
     AMDSMI_CHECK_INIT();
     // nullptr api supported
-
-    return rsmi_wrapper(rsmi_dev_gpu_metrics_info_get, processor_handle,
+    amdsmi_status_t ret =
+            rsmi_wrapper(rsmi_dev_gpu_metrics_info_get, processor_handle,
                     reinterpret_cast<rsmi_gpu_metrics_t*>(pgpu_metrics));
+    // WARNING: TEMPORARY - awaiting 1.5 update from amdgpu driver/firmware
+    // intended to be removed later
+    // START: REMOVE WHATS BELOW ME
+    uint8_t content_ver = pgpu_metrics->common_header.content_revision;
+    int8_t format_ver = pgpu_metrics->common_header.format_revision;
+    const uint8_t expected_format_ver = 1;
+    const uint8_t expected_content_ver = 4;
+    if (ret == AMDSMI_STATUS_SUCCESS &&
+        (format_ver == expected_format_ver &&
+         content_ver <= expected_content_ver)) {
+        std::ostringstream ss;
+        ss << __PRETTY_FUNCTION__ << " | SET JPEG_ACTIVITY to MAX_UINT16, "
+           << "detected content version: " << std::dec << +content_ver
+           << "; format version: " << std::dec << +format_ver
+           << "; awaiting 1.5 metrics remove once released";
+        LOG_ALWAYS(ss);
+        std::fill_n(&pgpu_metrics->jpeg_activity[0],
+                    (sizeof(pgpu_metrics->jpeg_activity) /
+                     sizeof(pgpu_metrics->jpeg_activity[0])),
+                     std::numeric_limits<uint16_t>::max());
+    }
+    // END: REMOVE WHATS ABOVE ME
+    return ret;
 }
 
 

@@ -2117,63 +2117,68 @@ Input parameters:
 
 Output: Dictionary with fields
 
-Field | Description
-`---|---
-`temperature_edge` | edge temperature value
-`temperature_hotspot` | hotspot temperature value
-`temperature_mem` | memory temperature value
-`temperature_vrgfx` | vrgfx temperature value
-`temperature_vrsoc` | vrsoc temperature value
-`temperature_vrmem` | vrmem temperature value
-`average_gfx_activity` | average gfx activity
-`average_umc_activity` | average umc activity
-`average_mm_activity` | average mm activity
-`average_socket_power` | average socket power
-`energy_accumulator` | energy accumulator value
-`system_clock_counter` | system clock counter
-`average_gfxclk_frequency` | average gfx clock frequency
-`average_socclk_frequency` | average soc clock frequency
-`average_uclk_frequency` | average uclk frequency
-`average_vclk0_frequency` | average vclk0 frequency
-`average_dclk0_frequency` | average dclk0 frequency
-`average_vclk1_frequency` | average vclk1 frequency
-`average_dclk1_frequency` | average dclk1 frequency
-`current_gfxclk` | current gfx clock
-`current_socclk` | current soc clock
-`current_uclk` | current uclk
-`current_vclk0` | current vclk0
-`current_dclk0` | current dclk0
-`current_vclk1` | current vclk1
-`current_dclk1` | current dclk1
-`throttle_status` | current throttle status
-`current_fan_speed` | current fan speed
-`pcie_link_width` | pcie link width
-`pcie_link_speed` | pcie link speed
+| Field | Description |Unit|
+|-------|-------------|----|
+`temperature_edge` | Edge temperature value | Celsius (C)
+`temperature_hotspot` | Hotspot (aka junction) temperature value | Celsius (C)
+`temperature_mem` | Memory temperature value | Celsius (C)
+`temperature_vrgfx` | vrgfx temperature value | Celsius (C)
+`temperature_vrsoc` | vrsoc temperature value | Celsius (C)
+`temperature_vrmem` | vrmem temperature value | Celsius (C)
+`average_gfx_activity` | Average gfx activity | %
+`average_umc_activity` | Average umc activity | %
+`average_mm_activity` | Average mm activity | %
+`average_socket_power` | Average socket power | W
+`energy_accumulator` | Energy accumulated with a 15.3 uJ resolution over 1ns | uJ 
+`system_clock_counter` | System clock counter | ns
+`average_gfxclk_frequency` | Average gfx clock frequency | MHz
+`average_socclk_frequency` | Average soc clock frequency | MHz
+`average_uclk_frequency` | Average uclk frequency | MHz
+`average_vclk0_frequency` | Average vclk0 frequency | MHz
+`average_dclk0_frequency` | Average dclk0 frequency | MHz
+`average_vclk1_frequency` | Average vclk1 frequency | MHz
+`average_dclk1_frequency` | Average dclk1 frequency | MHz
+`current_gfxclk` | Current gfx clock | MHz
+`current_socclk` | Current soc clock | MHz
+`current_uclk` | Current uclk | MHz
+`current_vclk0` | Current vclk0 | MHz
+`current_dclk0` | Current dclk0 | MHz
+`current_vclk1` | Current vclk1 | MHz
+`current_dclk1` | Current dclk1 | MHz
+`throttle_status` | Current throttle status | MHz
+`current_fan_speed` | Current fan speed | RPM
+`pcie_link_width` | PCIe link width (number of lanes) | lanes
+`pcie_link_speed` | PCIe link speed in 0.1 GT/s (Giga Transfers per second) | GT/s
 `padding` | padding
-`gfx_activity_acc` | gfx activity acc
-`mem_activity_acc` | mem activity acc
-`temperature_hbm` | list of hbm temperatures
-`firmware_timestamp` | timestamp from PMFW
-`voltage_soc` | soc voltage
-`voltage_gfx` | gfx voltage
-`voltage_mem` | mem voltage
-`indep_throttle_status` | asic independent throttle status
-`current_socket_power` | current socket power
-`vcn_activity` | list of encoding and decoding engine utilizations
-`gfxclk_lock_status` | gfx clock lock status
-`xgmi_link_width` | XGMI bus width
-`xgmi_link_speed` | XGMI bitrate (in Gbps)
-`pcie_bandwidth_acc` | PCIE accumulated bandwidth (GB/sec)
-`pcie_bandwidth_inst` | PCIE instantaneous bandwidth (GB/sec)
-`pcie_l0_to_recov_count_acc` | PCIE L0 to recovery state transition accumulated count
-`pcie_replay_count_acc` | PCIE replay accumulated count
-`pcie_replay_rover_count_acc` | PCIE replay rollover accumulated count
-`xgmi_read_data_acc` | XGMI accumulated read data transfer size(KiloBytes)
-`xgmi_write_data_acc` | XGMI accumulated write data transfer size(KiloBytes)
-`current_gfxclks` | list of current gfx clock frequencies
-`current_socclks` | list of current soc clock frequencies
-`current_vclk0s` | list of current v0 clock frequencies
-`current_dclk0s` | list of current d0 clock frequencies
+`gfx_activity_acc` | gfx activity accumulated | %
+`mem_activity_acc` | Memory activity accumulated | %
+`temperature_hbm` | list of hbm temperatures | Celsius (C)
+`firmware_timestamp` | timestamp from PMFW (10ns resolution) | ns
+`voltage_soc` | soc voltage | mV
+`voltage_gfx` | gfx voltage | mV
+`voltage_mem` | mem voltage | mV
+`indep_throttle_status` | ASIC independent throttle status (see drivers/gpu/drm/amd/pm/swsmu/inc/amdgpu_smu.h for bit flags) | 
+`current_socket_power` | Current socket power (also known as instant socket power) | W
+`vcn_activity` | List of VCN encode/decode engine utilization per AID | %
+`gfxclk_lock_status` | Clock lock status. Each bit corresponds to clock instance. |
+`xgmi_link_width` | XGMI bus width | lanes
+`xgmi_link_speed` | XGMI bitrate | GB/s
+`pcie_bandwidth_acc` | PCIe accumulated bandwidth | GB/s
+`pcie_bandwidth_inst` | PCIe instantaneous bandwidth | GB/s
+`pcie_l0_to_recov_count_acc` | PCIe L0 to recovery state transition accumulated count |
+`pcie_replay_count_acc` | PCIe replay accumulated count |
+`pcie_replay_rover_count_acc` | PCIe replay rollover accumulated count |
+`xgmi_read_data_acc` | XGMI accumulated read data transfer size (KiloBytes) | KB
+`xgmi_write_data_acc` | XGMI accumulated write data transfer size (KiloBytes) | KB
+`current_gfxclks` | List of current gfx clock frequencies | MHz
+`current_socclks` | List of current soc clock frequencies | MHz
+`current_vclk0s` | List of current v0 clock frequencies | MHz
+`current_dclk0s` | List of current d0 clock frequencies | MHz
+`mem_bandwidth_acc` | Memory bandwidth usage accumulated | GB/s
+`mem_max_bandwidth` | Maximum memory bandwidth usage accumulated  | GB/s
+`pcie_nak_sent_count_acc` | PCIe NAC sent count accumulated |
+`pcie_nak_rcvd_count_acc` | PCIe NAC received count accumulated |
+`jpeg_activitys[AID<X>]` | List of JPEG engine activity for each AID (X=0-3) | %
 
 Exceptions that can be thrown by `amdsmi_get_gpu_metrics_info` function:
 
