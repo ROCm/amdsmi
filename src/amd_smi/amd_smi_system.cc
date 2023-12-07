@@ -231,7 +231,7 @@ amdsmi_status_t AMDSmiSystem::populate_amd_gpu_devices() {
     for (uint32_t i=0; i < device_count; i++) {
         // GPU device uses the bdf as the socket id
         std::string socket_id;
-        amd_smi_status = get_gpu_bdf_by_index(i, socket_id);
+        amd_smi_status = get_gpu_socket_id(i, socket_id);
         if (amd_smi_status != AMDSMI_STATUS_SUCCESS) {
             return amd_smi_status;
         }
@@ -256,8 +256,8 @@ amdsmi_status_t AMDSmiSystem::populate_amd_gpu_devices() {
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t AMDSmiSystem::get_gpu_bdf_by_index(uint32_t index,
-            std::string& bdf) {
+amdsmi_status_t AMDSmiSystem::get_gpu_socket_id(uint32_t index,
+            std::string& socket_id) {
     uint64_t bdfid = 0;
     rsmi_status_t ret = rsmi_dev_pci_id_get(index, &bdfid);
     if (ret != RSMI_STATUS_SUCCESS) {
@@ -269,11 +269,13 @@ amdsmi_status_t AMDSmiSystem::get_gpu_bdf_by_index(uint32_t index,
     uint64_t device_id = (bdfid >> 3) & 0x1f;
     uint64_t function = bdfid & 0x7;
 
+    // The BD part of the BDF is used as the socket id as it
+    // represents a physical device.
     std::stringstream ss;
     ss << std::setfill('0') << std::uppercase << std::hex
         << std::setw(4) << domain << ":" << std::setw(2) << bus << ":"
-        << std::setw(2) << device_id << "." << std::setw(2) << function;
-    bdf = ss.str();
+        << std::setw(2) << device_id;
+    socket_id = ss.str();
     return AMDSMI_STATUS_SUCCESS;
 }
 
