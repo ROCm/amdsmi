@@ -32,8 +32,8 @@ from .amdsmi_interface import amdsmi_get_socket_info
 # ESMI Dependent Functions
 try:
     from .amdsmi_interface import amdsmi_get_cpusocket_handles
-    from .amdsmi_interface import amdsmi_get_cpusocket_info
     from .amdsmi_interface import amdsmi_get_cpucore_handles
+    from .amdsmi_interface import amdsmi_get_processor_info
     from .amdsmi_interface import amdsmi_get_cpu_hsmp_proto_ver
     from .amdsmi_interface import amdsmi_get_cpu_smu_fw_version
     from .amdsmi_interface import amdsmi_get_cpu_core_energy
@@ -60,6 +60,18 @@ try:
     from .amdsmi_interface import amdsmi_get_cpu_dimm_power_consumption
     from .amdsmi_interface import amdsmi_get_cpu_dimm_thermal_sensor
     from .amdsmi_interface import amdsmi_set_cpu_xgmi_width
+    from .amdsmi_interface import amdsmi_set_cpu_gmi3_link_width_range
+    from .amdsmi_interface import amdsmi_cpu_apb_enable
+    from .amdsmi_interface import amdsmi_cpu_apb_disable
+    from .amdsmi_interface import amdsmi_set_cpu_socket_lclk_dpm_level
+    from .amdsmi_interface import amdsmi_get_cpu_socket_lclk_dpm_level
+    from .amdsmi_interface import amdsmi_set_cpu_pcie_link_rate
+    from .amdsmi_interface import amdsmi_set_cpu_df_pstate_range
+    from .amdsmi_interface import amdsmi_get_cpu_current_io_bandwidth
+    from .amdsmi_interface import amdsmi_get_cpu_current_xgmi_bw
+    from .amdsmi_interface import amdsmi_get_metrics_table_version
+    from .amdsmi_interface import amdsmi_get_metrics_table
+    from .amdsmi_interface import amdsmi_first_online_core_on_cpu_socket
 except AttributeError:
     pass
 
