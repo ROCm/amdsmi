@@ -69,12 +69,11 @@
 #include "amd_smi/impl/amd_smi_utils.h"
 #include "amd_smi/impl/amd_smi_processor.h"
 #include "rocm_smi/rocm_smi_logger.h"
-#ifdef ENABLE_ESMI_LIB
-    #include "amd_smi/impl/amd_smi_cpu_socket.h"
-    #include "amd_smi/impl/amd_smi_cpu_core.h"
-#endif
 
 static bool initialized_lib = false;
+
+#define	SIZE	10
+char proc_id[SIZE] = "\0";
 
 #define AMDSMI_CHECK_INIT() do { \
 	if (!initialized_lib) { \
@@ -103,49 +102,6 @@ static amdsmi_status_t get_gpu_device_from_handle(amdsmi_processor_handle proces
     return AMDSMI_STATUS_NOT_SUPPORTED;
 }
 
-#ifdef ENABLE_ESMI_LIB
-static amdsmi_status_t get_cpu_socket_from_handle(amdsmi_cpusocket_handle socket_handle,
-            amd::smi::AMDSmiCpuSocket** cpusocket) {
-
-    AMDSMI_CHECK_INIT();
-
-    if (socket_handle == nullptr || cpusocket == nullptr)
-        return AMDSMI_STATUS_INVAL;
-
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = amd::smi::AMDSmiSystem::getInstance()
-                    .handle_to_cpusocket(socket_handle, &socket);
-    if (r != AMDSMI_STATUS_SUCCESS) return r;
-
-    if (socket->get_processor_type() == AMD_CPU) {
-        *cpusocket = static_cast<amd::smi::AMDSmiCpuSocket*>(socket_handle);
-        return AMDSMI_STATUS_SUCCESS;
-    }
-
-    return AMDSMI_STATUS_NOT_SUPPORTED;
-}
-
-static amdsmi_status_t get_cpu_core_from_handle(amdsmi_processor_handle processor_handle,
-            amd::smi::AMDSmiCpuCore** cpucore) {
-
-    AMDSMI_CHECK_INIT();
-    if (processor_handle == nullptr || cpucore == nullptr)
-        return AMDSMI_STATUS_INVAL;
-
-    amd::smi::AMDSmiProcessor* core = nullptr;
-    amdsmi_status_t r = amd::smi::AMDSmiSystem::getInstance()
-                    .handle_to_processor(processor_handle, &core);
-    if (r != AMDSMI_STATUS_SUCCESS) return r;
-
-    if (core->get_processor_type() == AMD_CPU_CORE) {
-        *cpucore = static_cast<amd::smi::AMDSmiCpuCore*>(processor_handle);
-        return AMDSMI_STATUS_SUCCESS;
-    }
-
-    return AMDSMI_STATUS_NOT_SUPPORTED;
-}
-#endif
-
 template <typename F, typename ...Args>
 amdsmi_status_t rsmi_wrapper(F && f,
     amdsmi_processor_handle processor_handle, Args &&... args) {
@@ -162,24 +118,6 @@ amdsmi_status_t rsmi_wrapper(F && f,
                     std::forward<Args>(args)...);
     return amd::smi::rsmi_to_amdsmi_status(rstatus);
 }
-
-#ifdef ENABLE_ESMI_LIB
-template <typename F, typename ...Args>
-amdsmi_status_t esmi_wrapper(F && f,
-    amdsmi_processor_handle processor_handle, Args &&... args) {
-
-    AMDSMI_CHECK_INIT();
-
-    amd::smi::AMDSmiCpuSocket* cpu_socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(processor_handle, &cpu_socket);
-    if (r != AMDSMI_STATUS_SUCCESS) return r;
-
-    uint32_t cpu_index = cpu_socket->get_cpu_id();
-    auto estatus = std::forward<F>(f)(cpu_index,
-                    std::forward<Args>(args)...);
-    return amd::smi::esmi_to_amdsmi_status(estatus);
-}
-#endif
 
 amdsmi_status_t
 amdsmi_init(uint64_t flags) {
@@ -232,37 +170,6 @@ amdsmi_status_code_to_string(amdsmi_status_t status, const char **status_string)
     return AMDSMI_STATUS_SUCCESS;
 }
 
-#ifdef ENABLE_ESMI_LIB
-amdsmi_status_t amdsmi_get_cpusocket_handles(uint32_t *socket_count,
-                amdsmi_cpusocket_handle* socket_handles) {
-
-    AMDSMI_CHECK_INIT();
-    if (socket_count == nullptr) {
-        return AMDSMI_STATUS_INVAL;
-    }
-
-    std::vector<amd::smi::AMDSmiCpuSocket*>& sockets
-            = amd::smi::AMDSmiSystem::getInstance().get_cpu_sockets();
-    uint32_t socket_size = static_cast<uint32_t>(sockets.size());
-
-    // Get the socket size
-    if (socket_handles == nullptr) {
-        *socket_count = socket_size;
-        return AMDSMI_STATUS_SUCCESS;
-    }
-
-    // If the socket_handles can hold all sockets, return all of them.
-    *socket_count = *socket_count >= socket_size ? socket_size : *socket_count;
-
-    // Copy the cpu socket handles
-    for (uint32_t i = 0; i < *socket_count; i++) {
-        socket_handles[i] = reinterpret_cast<amdsmi_cpusocket_handle>(sockets[i]);
-    }
-
-    return AMDSMI_STATUS_SUCCESS;
-}
-#endif
-
 amdsmi_status_t amdsmi_get_socket_handles(uint32_t *socket_count,
                 amdsmi_socket_handle* socket_handles) {
 
@@ -313,40 +220,23 @@ amdsmi_status_t amdsmi_get_socket_info(
 }
 
 #ifdef ENABLE_ESMI_LIB
-amdsmi_status_t amdsmi_get_cpusocket_info(
-                amdsmi_cpusocket_handle socket_handle,
-                uint32_t sock_id) {
+amdsmi_status_t amdsmi_get_processor_info(
+                amdsmi_processor_handle processor_handle,
+                size_t len, char *name) {
+    char proc_id[10];
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr) {
+    if (processor_handle == nullptr || name == nullptr) {
         return AMDSMI_STATUS_INVAL;
     }
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
+    amd::smi::AMDSmiProcessor* processor = nullptr;
     amdsmi_status_t r = amd::smi::AMDSmiSystem::getInstance()
-                    .handle_to_cpusocket(socket_handle, &socket);
+                    .handle_to_processor(processor_handle, &processor);
     if (r != AMDSMI_STATUS_SUCCESS) return r;
 
-    sock_id = socket->get_socket_id();
-
-    return AMDSMI_STATUS_SUCCESS;
-}
-
-amdsmi_status_t amdsmi_get_cpucore_info(
-                amdsmi_processor_handle core_handle,
-                uint32_t core_id) {
-    AMDSMI_CHECK_INIT();
-
-    if (core_handle == nullptr) {
-        return AMDSMI_STATUS_INVAL;
-    }
-
-    amd::smi::AMDSmiProcessor* core = nullptr;
-    amdsmi_status_t r = amd::smi::AMDSmiSystem::getInstance()
-                    .handle_to_processor(core_handle, &core);
-    if (r != AMDSMI_STATUS_SUCCESS) return r;
-
-    core_id = static_cast<amd::smi::AMDSmiCpuCore*>(core)->get_core_id();
+    sprintf(proc_id, "%d", processor->get_processor_index());
+    strncpy(name, proc_id, len);
 
     return AMDSMI_STATUS_SUCCESS;
 }
@@ -388,34 +278,63 @@ amdsmi_status_t amdsmi_get_processor_handles(amdsmi_socket_handle socket_handle,
 }
 
 #ifdef ENABLE_ESMI_LIB
-amdsmi_status_t amdsmi_get_cpucore_handles(amdsmi_cpusocket_handle socket_handle,
-                                    uint32_t* processor_count,
-                                    amdsmi_processor_handle* processor_handles) {
+amdsmi_status_t amdsmi_get_processor_count_from_handles(amdsmi_processor_handle* processor_handles,
+                                                        uint32_t* processor_count, uint32_t* nr_cpusockets,
+                                                        uint32_t* nr_cpucores, uint32_t* nr_gpus) {
+
     AMDSMI_CHECK_INIT();
 
+    uint32_t count_cpusockets = 0;
+    uint32_t count_cpucores = 0;
+    uint32_t count_gpus = 0;
+    processor_type_t processor_type;
+
+    if (processor_count == nullptr || processor_handles == nullptr) {
+        return AMDSMI_STATUS_INVAL;
+    }
+
+    for (uint32_t i = 0; i < *processor_count; i++) {
+        amdsmi_status_t r = amdsmi_get_processor_type(processor_handles[i],
+                                                      &processor_type);
+        if (r != AMDSMI_STATUS_SUCCESS) return r;
+
+        if(processor_type == AMD_CPU) {
+            count_cpusockets++;
+        } else if(processor_type == AMD_CPU_CORE) {
+            count_cpucores++;
+        } else if(processor_type == AMD_GPU) {
+            count_gpus++;
+        }
+    }
+    *nr_cpusockets = count_cpusockets;
+    *nr_cpucores = count_cpucores;
+    *nr_gpus = count_gpus;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_get_processor_handles_by_type(amdsmi_socket_handle socket_handle,
+                                                     processor_type_t processor_type,
+                                                     amdsmi_processor_handle* processor_handles,
+                                                     uint32_t* processor_count) {
+    AMDSMI_CHECK_INIT();
     if (processor_count == nullptr) {
         return AMDSMI_STATUS_INVAL;
     }
 
     // Get the socket object via socket handle.
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = amd::smi::AMDSmiSystem::getInstance()
-                    .handle_to_cpusocket(socket_handle, &socket);
+    amd::smi::AMDSmiSocket* socket = nullptr;
+    amdsmi_status_t r = amd::smi::AMDSmiSystem::getInstance().handle_to_socket(socket_handle, &socket);
     if (r != AMDSMI_STATUS_SUCCESS) return r;
-
-
-    std::vector<amd::smi::AMDSmiProcessor*>& processors = socket->get_processors();
+    std::vector<amd::smi::AMDSmiProcessor*>& processors = socket->get_processors(processor_type);
     uint32_t processor_size = static_cast<uint32_t>(processors.size());
-
     // Get the processor count only
     if (processor_handles == nullptr) {
         *processor_count = processor_size;
         return AMDSMI_STATUS_SUCCESS;
     }
-
     // If the processor_handles can hold all processors, return all of them.
     *processor_count = *processor_count >= processor_size ? processor_size : *processor_count;
-
     // Copy the processor handles
     for (uint32_t i = 0; i < *processor_count; i++) {
         processor_handles[i] = reinterpret_cast<amdsmi_processor_handle>(processors[i]);
@@ -423,8 +342,9 @@ amdsmi_status_t amdsmi_get_cpucore_handles(amdsmi_cpusocket_handle socket_handle
 
     return AMDSMI_STATUS_SUCCESS;
 }
-#endif
 
+
+#endif
 amdsmi_status_t amdsmi_get_processor_type(amdsmi_processor_handle processor_handle ,
               processor_type_t* processor_type) {
 
@@ -2640,7 +2560,7 @@ amdsmi_get_gpu_metrics_avg_soc_clock_frequency(amdsmi_processor_handle processor
 
     return rsmi_wrapper(rsmi_dev_metrics_avg_soc_clock_frequency_get, processor_handle,
                     clock_frequency_value);
-} 
+}
 
 amdsmi_status_t
 amdsmi_get_gpu_metrics_avg_uclock_frequency(amdsmi_processor_handle processor_handle,
@@ -2764,7 +2684,7 @@ amdsmi_get_gpu_metrics_log(amdsmi_processor_handle processor_handle)
 
 
 #ifdef ENABLE_ESMI_LIB
-amdsmi_status_t amdsmi_get_cpu_hsmp_proto_ver(amdsmi_cpusocket_handle socket_handle,
+amdsmi_status_t amdsmi_get_cpu_hsmp_proto_ver(amdsmi_processor_handle processor_handle,
                 uint32_t *proto_ver)
 {
     amdsmi_status_t status;
@@ -2772,13 +2692,8 @@ amdsmi_status_t amdsmi_get_cpu_hsmp_proto_ver(amdsmi_cpusocket_handle socket_han
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
-
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
-    if (r != AMDSMI_STATUS_SUCCESS)
-        return r;
 
     status = static_cast<amdsmi_status_t>(esmi_hsmp_proto_ver_get(&hsmp_proto_ver));
     *proto_ver = hsmp_proto_ver;
@@ -2789,27 +2704,22 @@ amdsmi_status_t amdsmi_get_cpu_hsmp_proto_ver(amdsmi_cpusocket_handle socket_han
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_cpu_smu_fw_version(amdsmi_cpusocket_handle socket_handle,
-                amdsmi_smu_fw_version_t *amdsmi_smu_fw)
+amdsmi_status_t amdsmi_get_cpu_smu_fw_version(amdsmi_processor_handle processor_handle,
+                                              amdsmi_smu_fw_version_t *amdsmi_smu_fw)
 {
     amdsmi_status_t status;
     struct smu_fw_version smu_fw;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
-
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
-    if (r != AMDSMI_STATUS_SUCCESS)
-        return r;
 
     status = static_cast<amdsmi_status_t>(esmi_smu_fw_version_get(&smu_fw));
 
     amdsmi_smu_fw->major = smu_fw.major;
-	amdsmi_smu_fw->minor = smu_fw.minor;
-	amdsmi_smu_fw->debug = smu_fw.debug;
+    amdsmi_smu_fw->minor = smu_fw.minor;
+    amdsmi_smu_fw->debug = smu_fw.debug;
 
     if (status != AMDSMI_STATUS_SUCCESS)
         return status;
@@ -2818,20 +2728,22 @@ amdsmi_status_t amdsmi_get_cpu_smu_fw_version(amdsmi_cpusocket_handle socket_han
 }
 
 amdsmi_status_t amdsmi_get_cpu_core_energy(amdsmi_processor_handle processor_handle,
-                uint32_t core_ind, uint64_t *penergy)
+                                           uint64_t *penergy)
 {
     amdsmi_status_t status;
     uint64_t core_input;
+    uint32_t core_ind;
 
     AMDSMI_CHECK_INIT();
 
     if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuCore* core = nullptr;
-    amdsmi_status_t r = get_cpu_core_from_handle(processor_handle, &core);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    core_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_core_energy_get(core_ind, &core_input));
     *penergy = core_input;
@@ -2843,21 +2755,23 @@ amdsmi_status_t amdsmi_get_cpu_core_energy(amdsmi_processor_handle processor_han
 
 }
 
-amdsmi_status_t amdsmi_get_cpu_socket_energy(amdsmi_cpusocket_handle socket_handle,
-        uint32_t sock_ind, uint64_t *penergy)
+amdsmi_status_t amdsmi_get_cpu_socket_energy(amdsmi_processor_handle processor_handle,
+                                             uint64_t *penergy)
 {
     amdsmi_status_t status;
     uint64_t pkg_input;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_socket_energy_get(sock_ind, &pkg_input));
     *penergy = pkg_input;
@@ -2868,21 +2782,23 @@ amdsmi_status_t amdsmi_get_cpu_socket_energy(amdsmi_cpusocket_handle socket_hand
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_cpu_prochot_status(amdsmi_cpusocket_handle socket_handle,
-        uint32_t sock_ind, uint32_t *prochot)
+amdsmi_status_t amdsmi_get_cpu_prochot_status(amdsmi_processor_handle processor_handle,
+                                              uint32_t *prochot)
 {
     amdsmi_status_t status;
     uint32_t phot;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_prochot_status_get(sock_ind, &phot));
     *prochot = phot;
@@ -2893,21 +2809,23 @@ amdsmi_status_t amdsmi_get_cpu_prochot_status(amdsmi_cpusocket_handle socket_han
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_cpu_fclk_mclk(amdsmi_cpusocket_handle socket_handle,
-        uint32_t sock_ind, uint32_t *fclk, uint32_t *mclk)
+amdsmi_status_t amdsmi_get_cpu_fclk_mclk(amdsmi_processor_handle processor_handle,
+                                         uint32_t *fclk, uint32_t *mclk)
 {
     amdsmi_status_t status;
     uint32_t f_clk, m_clk;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_fclk_mclk_get(sock_ind, &f_clk, &m_clk));
     *fclk = f_clk;
@@ -2919,21 +2837,23 @@ amdsmi_status_t amdsmi_get_cpu_fclk_mclk(amdsmi_cpusocket_handle socket_handle,
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_cpu_cclk_limit(amdsmi_cpusocket_handle socket_handle,
-        uint32_t sock_ind, uint32_t *cclk)
+amdsmi_status_t amdsmi_get_cpu_cclk_limit(amdsmi_processor_handle processor_handle,
+                                          uint32_t *cclk)
 {
     amdsmi_status_t status;
     uint32_t c_clk;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_cclk_limit_get(sock_ind, &c_clk));
     *cclk = c_clk;
@@ -2944,21 +2864,23 @@ amdsmi_status_t amdsmi_get_cpu_cclk_limit(amdsmi_cpusocket_handle socket_handle,
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_cpu_socket_current_active_freq_limit(amdsmi_cpusocket_handle socket_handle,
-        uint32_t sock_ind, uint16_t *freq, char **src_type)
+amdsmi_status_t amdsmi_get_cpu_socket_current_active_freq_limit(amdsmi_processor_handle processor_handle,
+                                                                uint16_t *freq, char **src_type)
 {
     amdsmi_status_t status;
     uint16_t limit;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_socket_current_active_freq_limit_get(sock_ind, &limit, src_type));
     *freq = limit;
@@ -2969,22 +2891,24 @@ amdsmi_status_t amdsmi_get_cpu_socket_current_active_freq_limit(amdsmi_cpusocket
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_cpu_socket_freq_range(amdsmi_cpusocket_handle socket_handle,
-        uint32_t sock_ind, uint16_t *fmax, uint16_t *fmin)
+amdsmi_status_t amdsmi_get_cpu_socket_freq_range(amdsmi_processor_handle processor_handle,
+                                                 uint16_t *fmax, uint16_t *fmin)
 {
     amdsmi_status_t status;
     uint16_t f_max;
     uint16_t f_min;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_socket_freq_range_get(sock_ind, &f_max, &f_min));
     *fmax = f_max;
@@ -2997,20 +2921,22 @@ amdsmi_status_t amdsmi_get_cpu_socket_freq_range(amdsmi_cpusocket_handle socket_
 }
 
 amdsmi_status_t amdsmi_get_cpu_core_current_freq_limit(amdsmi_processor_handle processor_handle,
-        uint32_t core_ind, uint32_t *freq)
+                                                       uint32_t *freq)
 {
     amdsmi_status_t status;
     uint32_t c_clk;
+    uint32_t core_ind;
 
     AMDSMI_CHECK_INIT();
 
     if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuCore* core = nullptr;
-    amdsmi_status_t r = get_cpu_core_from_handle(processor_handle, &core);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    core_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_current_freq_limit_core_get(core_ind, &c_clk));
     *freq = c_clk;
@@ -3022,21 +2948,23 @@ amdsmi_status_t amdsmi_get_cpu_core_current_freq_limit(amdsmi_processor_handle p
 
 }
 
-amdsmi_status_t amdsmi_get_cpu_socket_power(amdsmi_cpusocket_handle socket_handle,
-        uint32_t sock_ind, uint32_t *ppower)
+amdsmi_status_t amdsmi_get_cpu_socket_power(amdsmi_processor_handle processor_handle,
+                                            uint32_t *ppower)
 {
     amdsmi_status_t status;
     uint32_t avg_power;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_socket_power_get(sock_ind, &avg_power));
     *ppower = avg_power;
@@ -3047,21 +2975,23 @@ amdsmi_status_t amdsmi_get_cpu_socket_power(amdsmi_cpusocket_handle socket_handl
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_cpu_socket_power_cap(amdsmi_cpusocket_handle socket_handle,
-        uint32_t sock_ind, uint32_t *pcap)
+amdsmi_status_t amdsmi_get_cpu_socket_power_cap(amdsmi_processor_handle processor_handle,
+                                                uint32_t *pcap)
 {
     amdsmi_status_t status;
     uint32_t p_cap;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_socket_power_cap_get(sock_ind, &p_cap));
     *pcap = p_cap;
@@ -3072,21 +3002,23 @@ amdsmi_status_t amdsmi_get_cpu_socket_power_cap(amdsmi_cpusocket_handle socket_h
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_cpu_socket_power_cap_max(amdsmi_cpusocket_handle socket_handle,
-        uint32_t sock_ind, uint32_t *pmax)
+amdsmi_status_t amdsmi_get_cpu_socket_power_cap_max(amdsmi_processor_handle processor_handle,
+                                                    uint32_t *pmax)
 {
     amdsmi_status_t status;
     uint32_t p_max;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_socket_power_cap_max_get(sock_ind, &p_max));
     *pmax = p_max;
@@ -3097,21 +3029,23 @@ amdsmi_status_t amdsmi_get_cpu_socket_power_cap_max(amdsmi_cpusocket_handle sock
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_cpu_pwr_svi_telemetry_all_rails(amdsmi_cpusocket_handle socket_handle,
-        uint32_t sock_ind, uint32_t *power)
+amdsmi_status_t amdsmi_get_cpu_pwr_svi_telemetry_all_rails(amdsmi_processor_handle processor_handle,
+                                                           uint32_t *power)
 {
     amdsmi_status_t status;
     uint32_t pow;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_pwr_svi_telemetry_all_rails_get(sock_ind, &pow));
     *power = pow;
@@ -3122,20 +3056,22 @@ amdsmi_status_t amdsmi_get_cpu_pwr_svi_telemetry_all_rails(amdsmi_cpusocket_hand
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_set_cpu_socket_power_cap(amdsmi_cpusocket_handle socket_handle,
-        uint32_t sock_ind, uint32_t pcap)
+amdsmi_status_t amdsmi_set_cpu_socket_power_cap(amdsmi_processor_handle processor_handle,
+                                                uint32_t pcap)
 {
     amdsmi_status_t status;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_socket_power_cap_set(sock_ind, pcap));
 
@@ -3145,20 +3081,22 @@ amdsmi_status_t amdsmi_set_cpu_socket_power_cap(amdsmi_cpusocket_handle socket_h
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_set_cpu_pwr_efficiency_mode(amdsmi_cpusocket_handle socket_handle,
-        uint8_t sock_ind, uint8_t mode)
+amdsmi_status_t amdsmi_set_cpu_pwr_efficiency_mode(amdsmi_processor_handle processor_handle,
+                                                   uint8_t mode)
 {
     amdsmi_status_t status;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_pwr_efficiency_mode_set(sock_ind, mode));
 
@@ -3169,20 +3107,22 @@ amdsmi_status_t amdsmi_set_cpu_pwr_efficiency_mode(amdsmi_cpusocket_handle socke
 }
 
 amdsmi_status_t amdsmi_get_cpu_core_boostlimit(amdsmi_processor_handle processor_handle,
-        uint32_t core_ind, uint32_t *pboostlimit)
+                                               uint32_t *pboostlimit)
 {
     amdsmi_status_t status;
     uint32_t boostlimit;
+    uint32_t core_ind;
 
     AMDSMI_CHECK_INIT();
 
     if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuCore* core = nullptr;
-    amdsmi_status_t r = get_cpu_core_from_handle(processor_handle, &core);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    core_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_core_boostlimit_get(core_ind, &boostlimit));
     *pboostlimit = boostlimit;
@@ -3193,21 +3133,23 @@ amdsmi_status_t amdsmi_get_cpu_core_boostlimit(amdsmi_processor_handle processor
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_cpu_socket_c0_residency(amdsmi_cpusocket_handle socket_handle,
-        uint32_t sock_ind, uint32_t *pc0_residency)
+amdsmi_status_t amdsmi_get_cpu_socket_c0_residency(amdsmi_processor_handle processor_handle,
+                                                   uint32_t *pc0_residency)
 {
     amdsmi_status_t status;
     uint32_t res;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_socket_c0_residency_get(sock_ind, &res));
     *pc0_residency = res;
@@ -3219,19 +3161,21 @@ amdsmi_status_t amdsmi_get_cpu_socket_c0_residency(amdsmi_cpusocket_handle socke
 }
 
 amdsmi_status_t amdsmi_set_cpu_core_boostlimit(amdsmi_processor_handle processor_handle,
-        uint32_t core_ind, uint32_t boostlimit)
+                                               uint32_t boostlimit)
 {
     amdsmi_status_t status;
+    uint32_t core_ind;
 
     AMDSMI_CHECK_INIT();
 
     if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuCore* core = nullptr;
-    amdsmi_status_t r = get_cpu_core_from_handle(processor_handle, &core);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    core_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_core_boostlimit_set(core_ind, boostlimit));
 
@@ -3241,20 +3185,22 @@ amdsmi_status_t amdsmi_set_cpu_core_boostlimit(amdsmi_processor_handle processor
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_set_cpu_socket_boostlimit(amdsmi_cpusocket_handle socket_handle,
-        uint32_t sock_ind, uint32_t boostlimit)
+amdsmi_status_t amdsmi_set_cpu_socket_boostlimit(amdsmi_processor_handle processor_handle,
+                                                 uint32_t boostlimit)
 {
     amdsmi_status_t status;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_socket_boostlimit_set(sock_ind, boostlimit));
 
@@ -3264,21 +3210,16 @@ amdsmi_status_t amdsmi_set_cpu_socket_boostlimit(amdsmi_cpusocket_handle socket_
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_cpu_ddr_bw(amdsmi_cpusocket_handle socket_handle,
-        amdsmi_ddr_bw_metrics_t *ddr_bw)
+amdsmi_status_t amdsmi_get_cpu_ddr_bw(amdsmi_processor_handle processor_handle,
+                                      amdsmi_ddr_bw_metrics_t *ddr_bw)
 {
     amdsmi_status_t status;
     struct ddr_bw_metrics ddr;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
-
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
-    if (r != AMDSMI_STATUS_SUCCESS)
-        return r;
 
     status = static_cast<amdsmi_status_t>(esmi_ddr_bw_get(&ddr));
     if (status != AMDSMI_STATUS_SUCCESS)
@@ -3291,21 +3232,23 @@ amdsmi_status_t amdsmi_get_cpu_ddr_bw(amdsmi_cpusocket_handle socket_handle,
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_cpu_socket_temperature(amdsmi_cpusocket_handle socket_handle,
-        uint32_t sock_ind, uint32_t *ptmon)
+amdsmi_status_t amdsmi_get_cpu_socket_temperature(amdsmi_processor_handle processor_handle,
+                                                  uint32_t *ptmon)
 {
     amdsmi_status_t status;
     uint32_t tmon;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_socket_temperature_get(sock_ind, &tmon));
     if (status != AMDSMI_STATUS_SUCCESS)
@@ -3317,21 +3260,24 @@ amdsmi_status_t amdsmi_get_cpu_socket_temperature(amdsmi_cpusocket_handle socket
 }
 
 amdsmi_status_t amdsmi_get_cpu_dimm_temp_range_and_refresh_rate(
-                   amdsmi_cpusocket_handle socket_handle,
-                   uint8_t sock_ind, uint8_t dimm_addr, amdsmi_temp_range_refresh_rate_t *rate)
+                   amdsmi_processor_handle processor_handle,
+                   uint8_t dimm_addr, amdsmi_temp_range_refresh_rate_t *rate)
 {
     amdsmi_status_t status;
     struct temp_range_refresh_rate dimm_rate;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_dimm_temp_range_and_refresh_rate_get(
                                             sock_ind, dimm_addr, &dimm_rate));
@@ -3344,21 +3290,23 @@ amdsmi_status_t amdsmi_get_cpu_dimm_temp_range_and_refresh_rate(
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_cpu_dimm_power_consumption(amdsmi_cpusocket_handle socket_handle,
-                        uint8_t sock_ind, uint8_t dimm_addr, amdsmi_dimm_power_t *dimm_pow)
+amdsmi_status_t amdsmi_get_cpu_dimm_power_consumption(amdsmi_processor_handle processor_handle,
+                        uint8_t dimm_addr, amdsmi_dimm_power_t *dimm_pow)
 {
     amdsmi_status_t status;
     struct dimm_power d_power;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_dimm_power_consumption_get(sock_ind,
                                                               dimm_addr, &d_power));
@@ -3372,21 +3320,23 @@ amdsmi_status_t amdsmi_get_cpu_dimm_power_consumption(amdsmi_cpusocket_handle so
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_cpu_dimm_thermal_sensor(amdsmi_cpusocket_handle socket_handle,
-        uint8_t sock_ind, uint8_t dimm_addr, amdsmi_dimm_thermal_t *dimm_temp)
+amdsmi_status_t amdsmi_get_cpu_dimm_thermal_sensor(amdsmi_processor_handle processor_handle,
+        uint8_t dimm_addr, amdsmi_dimm_thermal_t *dimm_temp)
 {
     amdsmi_status_t status;
     struct dimm_thermal d_sensor;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_dimm_thermal_sensor_get(sock_ind,
                                                               dimm_addr, &d_sensor));
@@ -3400,20 +3350,15 @@ amdsmi_status_t amdsmi_get_cpu_dimm_thermal_sensor(amdsmi_cpusocket_handle socke
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_set_cpu_xgmi_width(amdsmi_cpusocket_handle socket_handle,
+amdsmi_status_t amdsmi_set_cpu_xgmi_width(amdsmi_processor_handle processor_handle,
         uint8_t min, uint8_t max)
 {
     amdsmi_status_t status;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
-
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
-    if (r != AMDSMI_STATUS_SUCCESS)
-        return r;
 
     status = static_cast<amdsmi_status_t>(esmi_xgmi_width_set(min, max));
     if (status != AMDSMI_STATUS_SUCCESS)
@@ -3422,20 +3367,22 @@ amdsmi_status_t amdsmi_set_cpu_xgmi_width(amdsmi_cpusocket_handle socket_handle,
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_set_cpu_gmi3_link_width_range(amdsmi_cpusocket_handle socket_handle,
-        uint8_t sock_ind, uint8_t min_link_width, uint8_t max_link_width)
+amdsmi_status_t amdsmi_set_cpu_gmi3_link_width_range(amdsmi_processor_handle processor_handle,
+        uint8_t min_link_width, uint8_t max_link_width)
 {
     amdsmi_status_t status;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_gmi3_link_width_range_set(sock_ind,
                                                         min_link_width, max_link_width));
@@ -3445,19 +3392,21 @@ amdsmi_status_t amdsmi_set_cpu_gmi3_link_width_range(amdsmi_cpusocket_handle soc
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_cpu_apb_enable(amdsmi_cpusocket_handle socket_handle, uint32_t sock_ind)
+amdsmi_status_t amdsmi_cpu_apb_enable(amdsmi_processor_handle processor_handle)
 {
     amdsmi_status_t status;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_apb_enable(sock_ind));
     if (status != AMDSMI_STATUS_SUCCESS)
@@ -3466,20 +3415,22 @@ amdsmi_status_t amdsmi_cpu_apb_enable(amdsmi_cpusocket_handle socket_handle, uin
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_cpu_apb_disable(amdsmi_cpusocket_handle socket_handle,
-        uint32_t sock_ind, uint8_t pstate)
+amdsmi_status_t amdsmi_cpu_apb_disable(amdsmi_processor_handle processor_handle,
+        uint8_t pstate)
 {
     amdsmi_status_t status;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_apb_disable(sock_ind, pstate));
     if (status != AMDSMI_STATUS_SUCCESS)
@@ -3488,20 +3439,22 @@ amdsmi_status_t amdsmi_cpu_apb_disable(amdsmi_cpusocket_handle socket_handle,
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_set_cpu_socket_lclk_dpm_level(amdsmi_cpusocket_handle socket_handle,
-        uint32_t sock_ind, uint8_t nbio_id, uint8_t min, uint8_t max)
+amdsmi_status_t amdsmi_set_cpu_socket_lclk_dpm_level(amdsmi_processor_handle processor_handle,
+        uint8_t nbio_id, uint8_t min, uint8_t max)
 {
     amdsmi_status_t status;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_socket_lclk_dpm_level_set(sock_ind, nbio_id, min, max));
     if (status != AMDSMI_STATUS_SUCCESS)
@@ -3510,21 +3463,23 @@ amdsmi_status_t amdsmi_set_cpu_socket_lclk_dpm_level(amdsmi_cpusocket_handle soc
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_cpu_socket_lclk_dpm_level(amdsmi_cpusocket_handle socket_handle,
-        uint8_t sock_ind, uint8_t nbio_id, amdsmi_dpm_level_t *nbio)
+amdsmi_status_t amdsmi_get_cpu_socket_lclk_dpm_level(amdsmi_processor_handle processor_handle,
+        uint8_t nbio_id, amdsmi_dpm_level_t *nbio)
 {
     amdsmi_status_t status;
     struct dpm_level nb;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_socket_lclk_dpm_level_get(sock_ind,
                                                                         nbio_id, &nb));
@@ -3537,20 +3492,22 @@ amdsmi_status_t amdsmi_get_cpu_socket_lclk_dpm_level(amdsmi_cpusocket_handle soc
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_set_cpu_pcie_link_rate(amdsmi_cpusocket_handle socket_handle,
-        uint8_t sock_ind, uint8_t rate_ctrl, uint8_t *prev_mode)
+amdsmi_status_t amdsmi_set_cpu_pcie_link_rate(amdsmi_processor_handle processor_handle,
+        uint8_t rate_ctrl, uint8_t *prev_mode)
 {
     amdsmi_status_t status;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_pcie_link_rate_set(sock_ind,
                                                                         rate_ctrl, prev_mode));
@@ -3560,20 +3517,22 @@ amdsmi_status_t amdsmi_set_cpu_pcie_link_rate(amdsmi_cpusocket_handle socket_han
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_set_cpu_df_pstate_range(amdsmi_cpusocket_handle socket_handle,
-        uint8_t sock_ind, uint8_t max_pstate, uint8_t min_pstate)
+amdsmi_status_t amdsmi_set_cpu_df_pstate_range(amdsmi_processor_handle processor_handle,
+        uint8_t max_pstate, uint8_t min_pstate)
 {
     amdsmi_status_t status;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_df_pstate_range_set(sock_ind,
                                                                         max_pstate, min_pstate));
@@ -3583,36 +3542,39 @@ amdsmi_status_t amdsmi_set_cpu_df_pstate_range(amdsmi_cpusocket_handle socket_ha
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_cpu_current_io_bandwidth(amdsmi_cpusocket_handle socket_handle,
-        uint8_t sock_ind, amdsmi_link_id_bw_type_t link, uint32_t *io_bw)
+amdsmi_status_t amdsmi_get_cpu_current_io_bandwidth(amdsmi_processor_handle processor_handle,
+        amdsmi_link_id_bw_type_t link, uint32_t *io_bw)
 {
     amdsmi_status_t status;
     uint32_t bw;
     struct link_id_bw_type io_link;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
+
+    io_link.link_name = link.link_name;
+    io_link.bw_type = static_cast<io_bw_encoding>(link.bw_type);
 
     status = static_cast<amdsmi_status_t>(esmi_current_io_bandwidth_get(sock_ind,
                                                         io_link, &bw));
     if (status != AMDSMI_STATUS_SUCCESS)
         return status;
 
-    link.link_name = io_link.link_name;
-    link.bw_type = static_cast<amdsmi_io_bw_encoding_t>(io_link.bw_type);
     *io_bw = bw;
 
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_cpu_current_xgmi_bw(amdsmi_cpusocket_handle socket_handle,
+amdsmi_status_t amdsmi_get_cpu_current_xgmi_bw(amdsmi_processor_handle processor_handle,
         amdsmi_link_id_bw_type_t link, uint32_t *xgmi_bw)
 {
     amdsmi_status_t status;
@@ -3621,26 +3583,22 @@ amdsmi_status_t amdsmi_get_cpu_current_xgmi_bw(amdsmi_cpusocket_handle socket_ha
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
-    if (r != AMDSMI_STATUS_SUCCESS)
-        return r;
+    io_link.link_name = link.link_name;
+    io_link.bw_type= static_cast<io_bw_encoding>(link.bw_type);
 
     status = static_cast<amdsmi_status_t>(esmi_current_xgmi_bw_get(io_link, &bw));
     if (status != AMDSMI_STATUS_SUCCESS)
         return status;
 
-    link.link_name = io_link.link_name;
-    link.bw_type= static_cast<amdsmi_io_bw_encoding_t>(io_link.bw_type);
     *xgmi_bw = bw;
 
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_metrics_table_version(amdsmi_cpusocket_handle socket_handle,
+amdsmi_status_t amdsmi_get_metrics_table_version(amdsmi_processor_handle processor_handle,
                 uint32_t *metrics_version)
 {
     amdsmi_status_t status;
@@ -3648,13 +3606,8 @@ amdsmi_status_t amdsmi_get_metrics_table_version(amdsmi_cpusocket_handle socket_
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
-
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
-    if (r != AMDSMI_STATUS_SUCCESS)
-        return r;
 
     status = static_cast<amdsmi_status_t>(esmi_metrics_table_version_get(&metrics_tbl_ver));
     *metrics_version = metrics_tbl_ver;
@@ -3665,21 +3618,23 @@ amdsmi_status_t amdsmi_get_metrics_table_version(amdsmi_cpusocket_handle socket_
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_metrics_table(amdsmi_cpusocket_handle socket_handle, uint8_t sock_ind,
+amdsmi_status_t amdsmi_get_metrics_table(amdsmi_processor_handle processor_handle,
                 struct hsmp_metric_table *metrics_table)
 {
     amdsmi_status_t status;
     struct hsmp_metric_table metrics_tbl;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_metrics_table_get(sock_ind, &metrics_tbl));
     *metrics_table = metrics_tbl;
@@ -3690,21 +3645,23 @@ amdsmi_status_t amdsmi_get_metrics_table(amdsmi_cpusocket_handle socket_handle, 
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_first_online_core_on_cpu_socket(amdsmi_cpusocket_handle socket_handle,
-        uint32_t sock_ind, uint32_t *pcore_ind)
+amdsmi_status_t amdsmi_first_online_core_on_cpu_socket(amdsmi_processor_handle processor_handle,
+        uint32_t *pcore_ind)
 {
     amdsmi_status_t status;
     uint32_t online_core;
+    uint8_t sock_ind;
 
     AMDSMI_CHECK_INIT();
 
-    if (socket_handle == nullptr)
+    if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    amd::smi::AMDSmiCpuSocket* socket = nullptr;
-    amdsmi_status_t r = get_cpu_socket_from_handle(socket_handle, &socket);
+    amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
+
+    sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_first_online_core_on_socket(sock_ind, &online_core));
     if (status != AMDSMI_STATUS_SUCCESS)

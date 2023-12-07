@@ -71,7 +71,8 @@ typedef enum {
   AMDSMI_INIT_AMD_CPUS = (1 << 0),
   AMDSMI_INIT_AMD_GPUS = (1 << 1),
   AMDSMI_INIT_NON_AMD_CPUS = (1 << 2),
-  AMDSMI_INIT_NON_AMD_GPUS = (1 << 3)
+  AMDSMI_INIT_NON_AMD_GPUS = (1 << 3),
+  AMDSMI_INIT_AMD_APUS = (AMDSMI_INIT_AMD_CPUS | AMDSMI_INIT_AMD_GPUS)
 } amdsmi_init_flags_t;
 
 /* Maximum size definitions AMDSMI */
@@ -1626,32 +1627,67 @@ amdsmi_status_t amdsmi_get_socket_info(
 
 #ifdef ENABLE_ESMI_LIB
 /**
- *  @brief Get information about the given cpu socket
+ *  @brief Get information about the given processor
  *
- *  @details This function retrieves cpu socket information. The @p socket_handle must
- *  be provided to retrieve the Socket ID.
+ *  @details This function retrieves processor information. The @p processor_handle must
+ *  be provided to retrieve the processor ID.
  *
- *  @param[in] socket_handle a socket handle
+ *  @param[in] processor_handle a processor handle
  *
- *  @param[out] sockid The id of the socket.
+ *  @param[out] name The id of the processor.
+ *
+ *  @param[in] len the length of the caller provided buffer @p name.
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpusocket_info(amdsmi_cpusocket_handle socket_handle, uint32_t sockid);
+amdsmi_status_t amdsmi_get_processor_info(
+                amdsmi_processor_handle processor_handle,
+                size_t len, char *name);
 
 /**
- *  @brief Get information about the given cpu core
+ *  @brief Get respective processor counts from the processor handles
  *
- *  @details This function retrieves cpu core information. The @p core_handle must
- *  be provided to retrieve the core ID.
+ *  @details This function retrieves respective processor counts information.
+ *  The @p processor_handle must be provided to retrieve the processor ID.
  *
- *  @param[in] core_handle a processor handle
+ *  @param[in] processor_handles A pointer to a block of memory to which the
+ *  ::amdsmi_processor_handle values will be written. This value may be NULL.
  *
- *  @param[out] coreid The id of the core.
+ *  @param[in] processor_count total processor count per socket
+ *
+ *  @param[out] nr_cpusockets Total number of cpu sockets
+ *
+ *  @param[out] nr_cpucores Total number of cpu cores
+ *
+ *  @param[out] nr_gpus Total number of gpu devices
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpucore_info(amdsmi_processor_handle core_handle, uint32_t coreid);
+amdsmi_status_t amdsmi_get_processor_count_from_handles(amdsmi_processor_handle* processor_handles,
+                                                        uint32_t* processor_count, uint32_t* nr_cpusockets,
+                                                        uint32_t* nr_cpucores, uint32_t* nr_gpus);
+
+/**
+ *  @brief Get processor list as per processor type
+ *
+ *  @details This function retrieves processor list as per the processor type
+ *  from the total processor handles list.
+ *  The @p list of processor_handles and processor type must be provided.
+ *
+ *  @param[in] socket_handle socket handle
+ *
+ *  @param[in] processor_type processor type
+ *
+ *  @param[out] processor_handles list of processor handles as per processor type
+ *
+ *  @param[out] processor_count processor count as per processor type selected
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_get_processor_handles_by_type(amdsmi_socket_handle socket_handle,
+                                                     processor_type_t processor_type,
+                                                     amdsmi_processor_handle* processor_handles,
+                                                     uint32_t* processor_count);
 #endif
 
 /**
@@ -5340,27 +5376,25 @@ amdsmi_get_gpu_metrics_log(amdsmi_processor_handle processor_handle);
  *  @brief Get the core energy for a given core.
  *
  *  @param[in]      processor_handle Cpu core which to query
- *  @param[in]		core_ind - cpu core index
  *
  *  @param[in,out]    penergy - Input buffer to return the core energy
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t amdsmi_get_cpu_core_energy(amdsmi_processor_handle processor_handle,
-		uint32_t core_ind, uint64_t *penergy);
+                                           uint64_t *penergy);
 
 /**
  *  @brief Get the socket energy for a given socket.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *
  *  @param[in,out]    penergy - Input buffer to return the socket energy
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpu_socket_energy(amdsmi_cpusocket_handle socket_handle,
-		uint32_t sock_ind, uint64_t *penergy);
+amdsmi_status_t amdsmi_get_cpu_socket_energy(amdsmi_processor_handle processor_handle,
+                                             uint64_t *penergy);
 
 /** @}  */
 
@@ -5372,43 +5406,41 @@ amdsmi_status_t amdsmi_get_cpu_socket_energy(amdsmi_cpusocket_handle socket_hand
 /**
  *  @brief Get SMU Firmware Version.
  *
- *  @param[in]      socket_handle Cpu socket which to query
+ *  @param[in]      processor_handle Cpu socket which to query
  *  @param[in,out]    amdsmi_smu_fw - Input buffer to return the firmware version
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpu_smu_fw_version(amdsmi_cpusocket_handle socket_handle,
-            amdsmi_smu_fw_version_t *amdsmi_smu_fw);
+amdsmi_status_t amdsmi_get_cpu_smu_fw_version(amdsmi_processor_handle processor_handle,
+                                              amdsmi_smu_fw_version_t *amdsmi_smu_fw);
 
 /**
  *  @brief Get HSMP protocol Version.
  *
- *  @param[in]      socket_handle Cpu socket which to query
+ *  @param[in]      processor_handle Cpu socket which to query
  *  @param[in,out]    proto_ver - Input buffer to return the protocol version
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpu_hsmp_proto_ver(amdsmi_cpusocket_handle socket_handle,
-            uint32_t *proto_ver);
+amdsmi_status_t amdsmi_get_cpu_hsmp_proto_ver(amdsmi_processor_handle processor_handle,
+                                              uint32_t *proto_ver);
 
 /**
  *  @brief Get normalized status of the processor's PROCHOT status.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *
  *  @param[in,out]    prochot - Input buffer to return the procohot status.
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpu_prochot_status(amdsmi_cpusocket_handle socket_handle,
-		uint32_t sock_ind, uint32_t *prochot);
+amdsmi_status_t amdsmi_get_cpu_prochot_status(amdsmi_processor_handle processor_handle,
+                                              uint32_t *prochot);
 
 /**
  *  @brief Get Data fabric clock and Memory clock in MHz.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *
  *  @param[in,out]    fclk - Input buffer to return fclk
  *
@@ -5416,27 +5448,25 @@ amdsmi_status_t amdsmi_get_cpu_prochot_status(amdsmi_cpusocket_handle socket_han
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpu_fclk_mclk(amdsmi_cpusocket_handle socket_handle,
-		uint32_t sock_ind, uint32_t *fclk, uint32_t *mclk);
+amdsmi_status_t amdsmi_get_cpu_fclk_mclk(amdsmi_processor_handle processor_handle,
+                                         uint32_t *fclk, uint32_t *mclk);
 
 /**
  *  @brief Get core clock in MHz.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *
  *  @param[in,out]    cclk - Input buffer to return core clock
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpu_cclk_limit(amdsmi_cpusocket_handle socket_handle,
-		uint32_t sock_ind, uint32_t *cclk);
+amdsmi_status_t amdsmi_get_cpu_cclk_limit(amdsmi_processor_handle processor_handle,
+                                          uint32_t *cclk);
 
 /**
  *  @brief Get current active frequency limit of the socket.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *
  *  @param[in,out]    freq - Input buffer to return frequency value in MHz
  *
@@ -5444,14 +5474,13 @@ amdsmi_status_t amdsmi_get_cpu_cclk_limit(amdsmi_cpusocket_handle socket_handle,
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpu_socket_current_active_freq_limit(amdsmi_cpusocket_handle socket_handle,
-		uint32_t sock_ind, uint16_t *freq, char **src_type);
+amdsmi_status_t amdsmi_get_cpu_socket_current_active_freq_limit(amdsmi_processor_handle processor_handle,
+                                                                uint16_t *freq, char **src_type);
 
 /**
  *  @brief Get socket frequency range.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *
  *  @param[in,out]    fmax - Input buffer to return maximum frequency
  *
@@ -5459,21 +5488,20 @@ amdsmi_status_t amdsmi_get_cpu_socket_current_active_freq_limit(amdsmi_cpusocket
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpu_socket_freq_range(amdsmi_cpusocket_handle socket_handle,
-		uint32_t sock_ind, uint16_t *fmax, uint16_t *fmin);
+amdsmi_status_t amdsmi_get_cpu_socket_freq_range(amdsmi_processor_handle processor_handle,
+                                                 uint16_t *fmax, uint16_t *fmin);
 
 /**
  *  @brief Get socket frequency limit of the core.
  *
  *  @param[in]      processor_handle Cpu core which to query
- *  @param[in]		core_ind - core index
  *
  *  @param[in,out]    freq - Input buffer to return frequency.
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t amdsmi_get_cpu_core_current_freq_limit(amdsmi_processor_handle processor_handle,
-		uint32_t core_ind, uint32_t *freq);
+                                                       uint32_t *freq);
 
 /** @} */
 
@@ -5485,80 +5513,74 @@ amdsmi_status_t amdsmi_get_cpu_core_current_freq_limit(amdsmi_processor_handle p
 /**
  *  @brief Get the socket power.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *
  *  @param[in,out]    ppower - Input buffer to return socket power
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpu_socket_power(amdsmi_cpusocket_handle socket_handle,
-		uint32_t sock_ind, uint32_t *ppower);
+amdsmi_status_t amdsmi_get_cpu_socket_power(amdsmi_processor_handle processor_handle,
+                                            uint32_t *ppower);
 
 /**
  *  @brief Get the socket power cap.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *
  *  @param[in,out]    pcap - Input buffer to return power cap.
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpu_socket_power_cap(amdsmi_cpusocket_handle socket_handle,
-		uint32_t sock_ind, uint32_t *pcap);
+amdsmi_status_t amdsmi_get_cpu_socket_power_cap(amdsmi_processor_handle processor_handle,
+                                                uint32_t *pcap);
 
 /**
  *  @brief Get the maximum power cap value for a given socket.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *
  *  @param[in,out]    pmax - Input buffer to return maximum power limit value
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpu_socket_power_cap_max(amdsmi_cpusocket_handle socket_handle,
-		uint32_t sock_ind, uint32_t *pmax);
+amdsmi_status_t amdsmi_get_cpu_socket_power_cap_max(amdsmi_processor_handle processor_handle,
+                                                    uint32_t *pmax);
 
 /**
  *  @brief Get the SVI based power telemetry for all rails.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *
  *  @param[in,out]    power - Input buffer to return svi based power value
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpu_pwr_svi_telemetry_all_rails(amdsmi_cpusocket_handle socket_handle,
-		uint32_t sock_ind, uint32_t *power);
+amdsmi_status_t amdsmi_get_cpu_pwr_svi_telemetry_all_rails(amdsmi_processor_handle processor_handle,
+                                                           uint32_t *power);
 
 /**
  *  @brief Set the power cap value for a given socket.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *
  *  @param[in]		power - Input power limit value
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_set_cpu_socket_power_cap(amdsmi_cpusocket_handle socket_handle,
-		uint32_t sock_ind, uint32_t pcap);
+amdsmi_status_t amdsmi_set_cpu_socket_power_cap(amdsmi_processor_handle processor_handle,
+                                                uint32_t pcap);
 
 /**
  *  @brief Set the power efficiency profile policy.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *
  *  @param[in]		mode - mode to be set
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_set_cpu_pwr_efficiency_mode(amdsmi_cpusocket_handle socket_handle,
-		uint8_t sock_ind, uint8_t mode);
+amdsmi_status_t amdsmi_set_cpu_pwr_efficiency_mode(amdsmi_processor_handle processor_handle,
+                                                   uint8_t mode);
 
 /** @} */
 
@@ -5571,53 +5593,49 @@ amdsmi_status_t amdsmi_set_cpu_pwr_efficiency_mode(amdsmi_cpusocket_handle socke
  *  @brief Get the core boost limit.
  *
  *  @param[in]      processor_handle Cpu core which to query
- *  @param[in]		core_ind - core index
  *
  *  @param[in,out]	pboostlimit - Input buffer to fill the boostlimit value
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t amdsmi_get_cpu_core_boostlimit(amdsmi_processor_handle processor_handle,
-		uint32_t core_ind, uint32_t *pboostlimit);
+                                               uint32_t *pboostlimit);
 
 /**
  *  @brief Get the socket c0 residency.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *
  *  @param[in,out]	pc0_residency - Input buffer to fill the c0 residency value
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpu_socket_c0_residency(amdsmi_cpusocket_handle socket_handle,
-		uint32_t sock_ind, uint32_t *pc0_residency);
+amdsmi_status_t amdsmi_get_cpu_socket_c0_residency(amdsmi_processor_handle processor_handle,
+                                                   uint32_t *pc0_residency);
 
 /**
  *  @brief Set the core boostlimit value.
  *
  *  @param[in]      processor_handle Cpu core which to query
- *  @param[in]		core_ind - core index
  *
  *  @param[in]		boostlimit - boostlimit value to be set
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t amdsmi_set_cpu_core_boostlimit(amdsmi_processor_handle processor_handle,
-		uint32_t core_ind, uint32_t boostlimit);
+                                               uint32_t boostlimit);
 
 /**
  *  @brief Set the socket boostlimit value.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *
  *  @param[in]		boostlimit - boostlimit value to be set
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_set_cpu_socket_boostlimit(amdsmi_cpusocket_handle socket_handle,
-		uint32_t sock_ind, uint32_t boostlimit);
+amdsmi_status_t amdsmi_set_cpu_socket_boostlimit(amdsmi_processor_handle processor_handle,
+                                                 uint32_t boostlimit);
 
 /** @} */
 
@@ -5629,13 +5647,13 @@ amdsmi_status_t amdsmi_set_cpu_socket_boostlimit(amdsmi_cpusocket_handle socket_
 /**
  *  @brief Get the DDR bandwidth data.
  *
- *  @param[in]      socket_handle Cpu socket which to query
+ *  @param[in]      processor_handle Cpu socket which to query
  *  @param[in,out]	ddr_bw - Input buffer to fill ddr bandwidth data
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpu_ddr_bw(amdsmi_cpusocket_handle socket_handle,
-        amdsmi_ddr_bw_metrics_t *ddr_bw);
+amdsmi_status_t amdsmi_get_cpu_ddr_bw(amdsmi_processor_handle processor_handle,
+                                      amdsmi_ddr_bw_metrics_t *ddr_bw);
 
 /** @} */
 
@@ -5647,15 +5665,14 @@ amdsmi_status_t amdsmi_get_cpu_ddr_bw(amdsmi_cpusocket_handle socket_handle,
 /**
  *  @brief Get socket temperature.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *
  *  @param[in,out]	ptmon - Input buffer to fill temperature value
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpu_socket_temperature(amdsmi_cpusocket_handle socket_handle,
-		uint32_t sock_ind, uint32_t *ptmon);
+amdsmi_status_t amdsmi_get_cpu_socket_temperature(amdsmi_processor_handle processor_handle,
+                                                  uint32_t *ptmon);
 
 /** @} */
 
@@ -5667,41 +5684,41 @@ amdsmi_status_t amdsmi_get_cpu_socket_temperature(amdsmi_cpusocket_handle socket
 /**
  *  @brief Get DIMM temperature range and refresh rate.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *  @param[in]		dimm_addr - DIMM address
  *  @param[in,out]	rate - Input buffer to fill temperature range and refresh rate value
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpu_dimm_temp_range_and_refresh_rate(amdsmi_cpusocket_handle socket_handle,
-		uint8_t sock_ind, uint8_t dimm_addr, amdsmi_temp_range_refresh_rate_t *rate);
+amdsmi_status_t amdsmi_get_cpu_dimm_temp_range_and_refresh_rate(amdsmi_processor_handle processor_handle,
+                                                                uint8_t dimm_addr,
+                                                                amdsmi_temp_range_refresh_rate_t *rate);
 
 /**
  *  @brief Get DIMM power consumption.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *  @param[in]		dimm_addr - DIMM address
  *  @param[in,out]	rate - Input buffer to fill power consumption value
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpu_dimm_power_consumption(amdsmi_cpusocket_handle socket_handle,
-		uint8_t sock_ind, uint8_t dimm_addr, amdsmi_dimm_power_t *dimm_pow);
+amdsmi_status_t amdsmi_get_cpu_dimm_power_consumption(amdsmi_processor_handle processor_handle,
+                                                      uint8_t dimm_addr,
+                                                      amdsmi_dimm_power_t *dimm_pow);
 
 /**
  *  @brief Get DIMM thermal sensor value.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *  @param[in]		dimm_addr - DIMM address
  *  @param[in,out]	dimm_temp - Input buffer to fill temperature value
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpu_dimm_thermal_sensor(amdsmi_cpusocket_handle socket_handle,
-		uint8_t sock_ind, uint8_t dimm_addr, amdsmi_dimm_thermal_t *dimm_temp);
+amdsmi_status_t amdsmi_get_cpu_dimm_thermal_sensor(amdsmi_processor_handle processor_handle,
+                                                   uint8_t dimm_addr,
+                                                   amdsmi_dimm_thermal_t *dimm_temp);
 
 /** @} */
 
@@ -5713,13 +5730,13 @@ amdsmi_status_t amdsmi_get_cpu_dimm_thermal_sensor(amdsmi_cpusocket_handle socke
 /**
  *  @brief Set xgmi width.
  *
- *  @param[in]      socket_handle Cpu socket which to query
+ *  @param[in]      processor_handle Cpu socket which to query
  *  @param[in]		min - Minimum xgmi width to be set
  *  @param[in]		max - maximum xgmi width to be set
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_set_cpu_xgmi_width(amdsmi_cpusocket_handle socket_handle,
-		uint8_t min, uint8_t max);
+amdsmi_status_t amdsmi_set_cpu_xgmi_width(amdsmi_processor_handle processor_handle,
+                                          uint8_t min, uint8_t max);
 
 /** @} */
 
@@ -5731,15 +5748,14 @@ amdsmi_status_t amdsmi_set_cpu_xgmi_width(amdsmi_cpusocket_handle socket_handle,
 /**
  *  @brief Set gmi3 link width range.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *  @param[in]		min_link_width - minimum link width to be set.
  *  @param[in]		max_link_width - maximum link width to be set.
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_set_cpu_gmi3_link_width_range(amdsmi_cpusocket_handle socket_handle,
-		uint8_t sock_ind, uint8_t min_link_width, uint8_t max_link_width);
+amdsmi_status_t amdsmi_set_cpu_gmi3_link_width_range(amdsmi_processor_handle processor_handle,
+                                                     uint8_t min_link_width, uint8_t max_link_width);
 
 /** @} */
 
@@ -5751,78 +5767,72 @@ amdsmi_status_t amdsmi_set_cpu_gmi3_link_width_range(amdsmi_cpusocket_handle soc
 /**
  *  @brief Enable APB.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_cpu_apb_enable(amdsmi_cpusocket_handle socket_handle, uint32_t sock_ind);
+amdsmi_status_t amdsmi_cpu_apb_enable(amdsmi_processor_handle processor_handle);
 
 /**
  *  @brief Disable APB.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *
  *  @param[in]		pstate - pstate value to be set
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_cpu_apb_disable(amdsmi_cpusocket_handle socket_handle,
-		uint32_t sock_ind, uint8_t pstate);
+amdsmi_status_t amdsmi_cpu_apb_disable(amdsmi_processor_handle processor_handle,
+                                       uint8_t pstate);
 
 /**
  *  @brief Set NBIO lclk dpm level value.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *  @param[in]		nbio_id - nbio index
  *  @param[in]		min - minimum value to be set
  *  @param[in]		max - maximum value to be set
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_set_cpu_socket_lclk_dpm_level(amdsmi_cpusocket_handle socket_handle,
-		uint32_t sock_ind, uint8_t nbio_id, uint8_t min, uint8_t max);
+amdsmi_status_t amdsmi_set_cpu_socket_lclk_dpm_level(amdsmi_processor_handle processor_handle,
+                                                     uint8_t nbio_id, uint8_t min, uint8_t max);
 
 /**
  *  @brief Get NBIO LCLK dpm level.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *  @param[in]		nbio_id - nbio index
  *  @param[in,out]	nbio - Input buffer to fill lclk dpm level
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpu_socket_lclk_dpm_level(amdsmi_cpusocket_handle socket_handle,
-		uint8_t sock_ind, uint8_t nbio_id, amdsmi_dpm_level_t *nbio);
+amdsmi_status_t amdsmi_get_cpu_socket_lclk_dpm_level(amdsmi_processor_handle processor_handle,
+                                                     uint8_t nbio_id, amdsmi_dpm_level_t *nbio);
 
 /**
  *  @brief Set pcie link rate.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *  @param[in]		rate_ctrl - rate control value to be set.
  *  @param[in,out]	prev_mode - Input buffer to fill previous rate control value.
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_set_cpu_pcie_link_rate(amdsmi_cpusocket_handle socket_handle,
-		uint8_t sock_ind, uint8_t rate_ctrl, uint8_t *prev_mode);
+amdsmi_status_t amdsmi_set_cpu_pcie_link_rate(amdsmi_processor_handle processor_handle,
+                                              uint8_t rate_ctrl, uint8_t *prev_mode);
 
 /**
  *  @brief Set df pstate range.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *  @param[in]		max_pstate - maximum pstate value to be set
  *  @param[in]		min_pstate - minimum pstate value to be set
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_set_cpu_df_pstate_range(amdsmi_cpusocket_handle socket_handle,
-		uint8_t sock_ind, uint8_t max_pstate, uint8_t min_pstate);
+amdsmi_status_t amdsmi_set_cpu_df_pstate_range(amdsmi_processor_handle processor_handle,
+                                               uint8_t max_pstate, uint8_t min_pstate);
 
 /** @} */
 
@@ -5834,27 +5844,26 @@ amdsmi_status_t amdsmi_set_cpu_df_pstate_range(amdsmi_cpusocket_handle socket_ha
 /**
  *  @brief Get current input output bandwidth.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *  @param[in]		link - link id and bw type to which io bandwidth to be obtained
  *  @param[in,out]	io_bw - Input buffer to fill bandwidth data
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpu_current_io_bandwidth(amdsmi_cpusocket_handle socket_handle,
-		uint8_t sock_ind, amdsmi_link_id_bw_type_t link, uint32_t *io_bw);
+amdsmi_status_t amdsmi_get_cpu_current_io_bandwidth(amdsmi_processor_handle processor_handle,
+                                                    amdsmi_link_id_bw_type_t link, uint32_t *io_bw);
 
 /**
  *  @brief Get current input output bandwidth.
  *
- *  @param[in]      socket_handle Cpu socket which to query
+ *  @param[in]      processor_handle Cpu socket which to query
  *  @param[in]		link - link id and bw type to which xgmi bandwidth to be obtained
  *  @param[in,out]	xgmi_bw - Input buffer to fill bandwidth data
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_cpu_current_xgmi_bw(amdsmi_cpusocket_handle socket_handle,
-        amdsmi_link_id_bw_type_t link, uint32_t *xgmi_bw);
+amdsmi_status_t amdsmi_get_cpu_current_xgmi_bw(amdsmi_processor_handle processor_handle,
+                                               amdsmi_link_id_bw_type_t link, uint32_t *xgmi_bw);
 
 /** @} */
 
@@ -5866,25 +5875,24 @@ amdsmi_status_t amdsmi_get_cpu_current_xgmi_bw(amdsmi_cpusocket_handle socket_ha
 /**
  *  @brief Get metrics table version
  *
- *  @param[in]      socket_handle Cpu socket which to query
+ *  @param[in]      processor_handle Cpu socket which to query
  *  @param[in,out]  metrics_version input buffer to return the metrics table version.
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_metrics_table_version(amdsmi_cpusocket_handle socket_handle,
-        uint32_t *metrics_version);
+amdsmi_status_t amdsmi_get_metrics_table_version(amdsmi_processor_handle processor_handle,
+                                                 uint32_t *metrics_version);
 
 /**
  *  @brief Get metrics table
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index
+ *  @param[in]      processor_handle Cpu socket which to query
  *  @param[in,out]  metrics_table input buffer to return the metrics table.
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_metrics_table(amdsmi_cpusocket_handle socket_handle, uint8_t sock_ind,
-         struct hsmp_metric_table *metrics_table);
+amdsmi_status_t amdsmi_get_metrics_table(amdsmi_processor_handle processor_handle,
+                                         struct hsmp_metric_table *metrics_table);
 
 /** @} */
 
@@ -5896,15 +5904,14 @@ amdsmi_status_t amdsmi_get_metrics_table(amdsmi_cpusocket_handle socket_handle, 
 /**
  *  @brief Get first online core on socket.
  *
- *  @param[in]      socket_handle Cpu socket which to query
- *  @param[in]		sock_ind - socket index.
+ *  @param[in]      processor_handle Cpu socket which to query
  *
- *  @param[in,out]	sockets - Input buffer to fill first online core on socket data
+ *  @param[in,out]	pcore_ind - Input buffer to fill first online core on socket data
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_first_online_core_on_cpu_socket(amdsmi_cpusocket_handle socket_handle,
-        uint32_t sock_ind, uint32_t *pcore_ind);
+amdsmi_status_t amdsmi_first_online_core_on_cpu_socket(amdsmi_processor_handle processor_handle,
+                                                       uint32_t *pcore_ind);
 
 /**
  *  @brief Get a description of provided AMDSMI error status for esmi errors.
