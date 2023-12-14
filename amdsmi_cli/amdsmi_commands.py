@@ -1728,14 +1728,21 @@ class AMDSMICommands():
         if not any([args.access, args.weight, args.hops, args.link_type, args.numa_bw]):
             args.access = args.weight = args.hops = args.link_type= args.numa_bw = True
 
+        # Clear the table header; TODO make this a function
+        self.logger.table_header = ''.rjust(12)
+
         # Populate the possible gpus
         topo_values = []
         for gpu in args.gpu:
             gpu_id = self.helpers.get_gpu_id_from_device_handle(gpu)
             topo_values.append({"gpu" : gpu_id})
+            gpu_bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(gpu)
+            self.logger.table_header += gpu_bdf.rjust(13)
 
         if args.access:
+            tabular_output = []
             for src_gpu_index, src_gpu in enumerate(args.gpu):
+                tabular_output_dict = {'gpu': amdsmi_interface.amdsmi_get_gpu_device_bdf(src_gpu)}
                 src_gpu_links = {}
                 for dest_gpu in args.gpu:
                     dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(dest_gpu)
@@ -1756,8 +1763,18 @@ class AMDSMICommands():
 
                 topo_values[src_gpu_index]['link_accessibility'] = src_gpu_links
 
+                tabular_output_dict.update(src_gpu_links)
+                tabular_output.append(tabular_output_dict)
+
+            if self.logger.is_human_readable_format():
+                self.logger.multiple_device_output = tabular_output
+                self.logger.table_title = "ACCESS TABLE"
+                self.logger.print_output(multiple_device_enabled=True, tabular=True)
+
         if args.weight:
+            tabular_output = []
             for src_gpu_index, src_gpu in enumerate(args.gpu):
+                tabular_output_dict = {'gpu': amdsmi_interface.amdsmi_get_gpu_device_bdf(src_gpu)}
                 src_gpu_weight = {}
                 for dest_gpu in args.gpu:
                     dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(dest_gpu)
@@ -1779,8 +1796,18 @@ class AMDSMICommands():
 
                 topo_values[src_gpu_index]['weight'] = src_gpu_weight
 
+                tabular_output_dict.update(src_gpu_weight)
+                tabular_output.append(tabular_output_dict)
+
+            if self.logger.is_human_readable_format():
+                self.logger.multiple_device_output = tabular_output
+                self.logger.table_title = "WEIGHT TABLE"
+                self.logger.print_output(multiple_device_enabled=True, tabular=True)
+
         if args.hops:
+            tabular_output = []
             for src_gpu_index, src_gpu in enumerate(args.gpu):
+                tabular_output_dict = {'gpu': amdsmi_interface.amdsmi_get_gpu_device_bdf(src_gpu)}
                 src_gpu_hops = {}
                 for dest_gpu in args.gpu:
                     dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(dest_gpu)
@@ -1802,8 +1829,18 @@ class AMDSMICommands():
 
                 topo_values[src_gpu_index]['hops'] = src_gpu_hops
 
+                tabular_output_dict.update(src_gpu_hops)
+                tabular_output.append(tabular_output_dict)
+
+            if self.logger.is_human_readable_format():
+                self.logger.multiple_device_output = tabular_output
+                self.logger.table_title = "HOPS TABLE"
+                self.logger.print_output(multiple_device_enabled=True, tabular=True)
+
         if args.link_type:
+            tabular_output = []
             for src_gpu_index, src_gpu in enumerate(args.gpu):
+                tabular_output_dict = {'gpu': amdsmi_interface.amdsmi_get_gpu_device_bdf(src_gpu)}
                 src_gpu_link_type = {}
                 for dest_gpu in args.gpu:
                     dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(dest_gpu)
@@ -1830,8 +1867,18 @@ class AMDSMICommands():
 
                 topo_values[src_gpu_index]['link_type'] = src_gpu_link_type
 
+                tabular_output_dict.update(src_gpu_link_type)
+                tabular_output.append(tabular_output_dict)
+
+            if self.logger.is_human_readable_format():
+                self.logger.multiple_device_output = tabular_output
+                self.logger.table_title = "LINK TYPE TABLE"
+                self.logger.print_output(multiple_device_enabled=True, tabular=True)
+
         if args.numa_bw:
+            tabular_output = []
             for src_gpu_index, src_gpu in enumerate(args.gpu):
+                tabular_output_dict = {'gpu': amdsmi_interface.amdsmi_get_gpu_device_bdf(src_gpu)}
                 src_gpu_link_type = {}
                 for dest_gpu in args.gpu:
                     dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(dest_gpu)
@@ -1867,6 +1914,14 @@ class AMDSMICommands():
 
                 topo_values[src_gpu_index]['numa_bandwidth'] = src_gpu_link_type
 
+                tabular_output_dict.update(src_gpu_link_type)
+                tabular_output.append(tabular_output_dict)
+
+            if self.logger.is_human_readable_format():
+                self.logger.multiple_device_output = tabular_output
+                self.logger.table_title = "NUMA BW TABLE"
+                self.logger.print_output(multiple_device_enabled=True, tabular=True)
+
         self.logger.multiple_device_output = topo_values
 
         if self.logger.is_csv_format():
@@ -1875,7 +1930,8 @@ class AMDSMICommands():
                 new_output.append(self.logger.flatten_dict(elem, topology_override=True))
             self.logger.multiple_device_output = new_output
 
-        self.logger.print_output(multiple_device_enabled=True)
+        if not self.logger.is_human_readable_format():
+            self.logger.print_output(multiple_device_enabled=True)
 
 
     def set_value(self, args, multiple_devices=False, gpu=None, fan=None, perf_level=None,
@@ -2375,9 +2431,9 @@ class AMDSMICommands():
         # Store timestamp for watch output
         if watching_output:
             self.logger.store_output(args.gpu, 'timestamp', int(time.time()))
-            self.logger.table_header += 'TIMESTAMP'.rjust(10)
+            self.logger.table_header += 'TIMESTAMP'.rjust(10) + '  '
 
-        self.logger.table_header += 'GPU'.rjust(3)
+        self.logger.table_header += 'GPU'
 
         if args.power_usage:
             try:
