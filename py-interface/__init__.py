@@ -194,6 +194,14 @@ from .amdsmi_interface import amdsmi_topo_get_link_type
 from .amdsmi_interface import amdsmi_is_P2P_accessible
 from .amdsmi_interface import amdsmi_get_xgmi_info
 
+# # Partition Functions
+from .amdsmi_interface import amdsmi_get_gpu_compute_partition
+from .amdsmi_interface import amdsmi_set_gpu_compute_partition
+from .amdsmi_interface import amdsmi_reset_gpu_compute_partition
+from .amdsmi_interface import amdsmi_get_gpu_memory_partition
+from .amdsmi_interface import amdsmi_set_gpu_memory_partition
+from .amdsmi_interface import amdsmi_reset_gpu_memory_partition
+
 # # Individual GPU Metrics Functions
 from .amdsmi_interface import amdsmi_get_gpu_metrics_temp_hotspot
 from .amdsmi_interface import amdsmi_get_gpu_metrics_temp_mem
@@ -263,6 +271,8 @@ from .amdsmi_interface import AmdSmiEvtNotificationType
 from .amdsmi_interface import AmdSmiTemperatureMetric
 from .amdsmi_interface import AmdSmiVoltageMetric
 from .amdsmi_interface import AmdSmiVoltageType
+from .amdsmi_interface import AmdSmiComputePartitionType
+from .amdsmi_interface import AmdSmiMemoryPartitionType
 from .amdsmi_interface import AmdSmiPowerProfilePresetMasks
 from .amdsmi_interface import AmdSmiGpuBlock
 from .amdsmi_interface import AmdSmiRasErrState
