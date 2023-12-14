@@ -39,7 +39,7 @@ class AMDSMILogger():
         self.format = format # csv, json, or human_readable
         self.destination = destination # stdout, path to a file (append)
         self.table_header = ""
-        self.added_table_header = False
+        self.table_title = ""
         self.helpers = AMDSMIHelpers()
 
 
@@ -106,20 +106,18 @@ class AMDSMILogger():
                 value = str(value)
                 if key == 'gpu':
                     table_values += value.rjust(3)
+                elif key == 'timestamp':
+                    table_values += value.rjust(10) + '  '
                 elif key == 'power_usage':
                     table_values += value.rjust(7)
-                elif key in ('gfx_clock', 'mem_clock', 'encoder_clock', 'decoder_clock'):
+                elif key in ('gfx_clock', 'mem_clock', 'encoder_clock', 'decoder_clock', 'vram_used'):
                     table_values += value.rjust(11)
-                elif key == 'throttle_status':
-                    table_values += value.rjust(13)
-                elif key == 'pcie_replay':
-                    table_values += value.rjust(13)
-                elif key  == 'vram_total':
+                elif key == 'vram_total' or 'ecc' in key:
                     table_values += value.rjust(12)
-                elif key == 'vram_used':
-                    table_values += value.rjust(11)
-                elif 'ecc' in key:
-                    table_values += value.rjust(12)
+                elif key in ('throttle_status', 'pcie_replay'):
+                    table_values += value.rjust(13)
+                elif 'gpu_' in key: # handle topology tables
+                    table_values += value.rjust(13)
                 else:
                     table_values += value.rjust(10)
             return table_values.rstrip()
@@ -391,9 +389,10 @@ class AMDSMILogger():
 
     def _print_human_readable_output(self, multiple_device_enabled=False, watching_output=False, tabular=False):
         human_readable_output = ''
-        if tabular and not self.added_table_header:
+        if tabular:
+            if self.table_title:
+                human_readable_output += self.table_title + ':\n'
             human_readable_output += self.table_header + '\n'
-            self.added_table_header = True
 
         if multiple_device_enabled:
             for output in self.multiple_device_output:
@@ -414,12 +413,14 @@ class AMDSMILogger():
                 with self.destination.open('w') as output_file:
                     human_readable_output = ''
                     if tabular:
+                        if self.table_title:
+                            human_readable_output += self.table_title + '\n'
                         human_readable_output += self.table_header + '\n'
                     for output in self.watch_output:
                         human_readable_output += self._convert_json_to_human_readable(output, tabular=tabular)
+                        if tabular:
+                            human_readable_output += '\n'
                     output_file.write(human_readable_output + '\n')
             else:
                 with self.destination.open('a') as output_file:
-                    if tabular:
-                        human_readable_output += self.table_header + '\n'
                     output_file.write(human_readable_output + '\n')
