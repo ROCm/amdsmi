@@ -129,7 +129,7 @@ do_install_amdsmi_python_lib() {
 
   # Remove old python library
   local pip_list_output
-  pip_list_output=$(python3 -m pip list --disable-pip-version-check)
+  pip_list_output=$(python3 -m pip list --format=columns --disable-pip-version-check)
   # check pip list output for amdsmi
   if [[ $pip_list_output == *"amdsmi"* ]]; then
     echo "Detected old AMD-SMI python library (amdsmi)..."
@@ -137,6 +137,18 @@ do_install_amdsmi_python_lib() {
     echo "Removed old AMD-SMI python library (amdsmi)..."
   fi
 
+  # upgrade pip if it's an ancient version
+  # otherwise the amdsmi install will fail
+  local pip_version
+  pip_version=$(python3 -m pip --version | grep -Eo '^[^\ ]+ ([0-9]+)' | grep -Eo '[0-9]+$')
+  if [[ "$pip_version" -lt 19 ]]; then
+      echo "Detected ancient pip version ($pip_version)... Upgrading..."
+      python3 -m pip install --upgrade pip --quiet --disable-pip-version-check
+  fi
+  unset pip_version
+
+  # install PyYAML dependency
+  python3 -m pip install 'PyYAML>=5.1' --quiet --disable-pip-version-check --ignore-installed
   # install python library at @CPACK_PACKAGING_INSTALL_PREFIX@/@SHARE_INSTALL_PREFIX@/amdsmi
   local python_lib_path=@CPACK_PACKAGING_INSTALL_PREFIX@/@SHARE_INSTALL_PREFIX@
   python3 -m pip install "$python_lib_path" --quiet --disable-pip-version-check
