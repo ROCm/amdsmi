@@ -431,8 +431,8 @@ class AMDSMICommands():
                 static_dict['limit'] = limit_info
         if args.driver:
             driver_info = {"driver_name" : "N/A",
-                           "driver_version" : "N/A",
-                           "driver_date" : "N/A"}
+                           "driver_version" : "N/A"
+                           }
 
             try:
                 driver_info = amdsmi_interface.amdsmi_get_gpu_driver_info(args.gpu)
@@ -477,12 +477,11 @@ class AMDSMICommands():
                 cache_info = amdsmi_interface.amdsmi_get_gpu_cache_info(args.gpu)
                 for cache_key, cache_dict in cache_info.items():
                     for key, value in cache_dict.items():
-                        if key == 'cache_size' or key == 'cache_level':
+                        if key == 'cache_size' or key == 'cache_level' or \
+                            key == 'max_num_cu_shared' or key == 'num_cache_instance':
                             continue
                         if value:
                             cache_info[cache_key][key] = "ENABLED"
-                        else:
-                            cache_info[cache_key][key] = "DISABLED"
                 if self.logger.is_human_readable_format():
                     for _ , cache_values in cache_info.items():
                         cache_values['cache_size'] = f"{cache_values['cache_size']} KB"
@@ -1729,14 +1728,21 @@ class AMDSMICommands():
         if not any([args.access, args.weight, args.hops, args.link_type, args.numa_bw]):
             args.access = args.weight = args.hops = args.link_type= args.numa_bw = True
 
+        # Clear the table header; TODO make this a function
+        self.logger.table_header = ''.rjust(12)
+
         # Populate the possible gpus
         topo_values = []
         for gpu in args.gpu:
             gpu_id = self.helpers.get_gpu_id_from_device_handle(gpu)
             topo_values.append({"gpu" : gpu_id})
+            gpu_bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(gpu)
+            self.logger.table_header += gpu_bdf.rjust(13)
 
         if args.access:
+            tabular_output = []
             for src_gpu_index, src_gpu in enumerate(args.gpu):
+                tabular_output_dict = {'gpu': amdsmi_interface.amdsmi_get_gpu_device_bdf(src_gpu)}
                 src_gpu_links = {}
                 for dest_gpu in args.gpu:
                     dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(dest_gpu)
@@ -1757,8 +1763,18 @@ class AMDSMICommands():
 
                 topo_values[src_gpu_index]['link_accessibility'] = src_gpu_links
 
+                tabular_output_dict.update(src_gpu_links)
+                tabular_output.append(tabular_output_dict)
+
+            if self.logger.is_human_readable_format():
+                self.logger.multiple_device_output = tabular_output
+                self.logger.table_title = "ACCESS TABLE"
+                self.logger.print_output(multiple_device_enabled=True, tabular=True)
+
         if args.weight:
+            tabular_output = []
             for src_gpu_index, src_gpu in enumerate(args.gpu):
+                tabular_output_dict = {'gpu': amdsmi_interface.amdsmi_get_gpu_device_bdf(src_gpu)}
                 src_gpu_weight = {}
                 for dest_gpu in args.gpu:
                     dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(dest_gpu)
@@ -1780,8 +1796,18 @@ class AMDSMICommands():
 
                 topo_values[src_gpu_index]['weight'] = src_gpu_weight
 
+                tabular_output_dict.update(src_gpu_weight)
+                tabular_output.append(tabular_output_dict)
+
+            if self.logger.is_human_readable_format():
+                self.logger.multiple_device_output = tabular_output
+                self.logger.table_title = "WEIGHT TABLE"
+                self.logger.print_output(multiple_device_enabled=True, tabular=True)
+
         if args.hops:
+            tabular_output = []
             for src_gpu_index, src_gpu in enumerate(args.gpu):
+                tabular_output_dict = {'gpu': amdsmi_interface.amdsmi_get_gpu_device_bdf(src_gpu)}
                 src_gpu_hops = {}
                 for dest_gpu in args.gpu:
                     dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(dest_gpu)
@@ -1803,8 +1829,18 @@ class AMDSMICommands():
 
                 topo_values[src_gpu_index]['hops'] = src_gpu_hops
 
+                tabular_output_dict.update(src_gpu_hops)
+                tabular_output.append(tabular_output_dict)
+
+            if self.logger.is_human_readable_format():
+                self.logger.multiple_device_output = tabular_output
+                self.logger.table_title = "HOPS TABLE"
+                self.logger.print_output(multiple_device_enabled=True, tabular=True)
+
         if args.link_type:
+            tabular_output = []
             for src_gpu_index, src_gpu in enumerate(args.gpu):
+                tabular_output_dict = {'gpu': amdsmi_interface.amdsmi_get_gpu_device_bdf(src_gpu)}
                 src_gpu_link_type = {}
                 for dest_gpu in args.gpu:
                     dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(dest_gpu)
@@ -1831,8 +1867,18 @@ class AMDSMICommands():
 
                 topo_values[src_gpu_index]['link_type'] = src_gpu_link_type
 
+                tabular_output_dict.update(src_gpu_link_type)
+                tabular_output.append(tabular_output_dict)
+
+            if self.logger.is_human_readable_format():
+                self.logger.multiple_device_output = tabular_output
+                self.logger.table_title = "LINK TYPE TABLE"
+                self.logger.print_output(multiple_device_enabled=True, tabular=True)
+
         if args.numa_bw:
+            tabular_output = []
             for src_gpu_index, src_gpu in enumerate(args.gpu):
+                tabular_output_dict = {'gpu': amdsmi_interface.amdsmi_get_gpu_device_bdf(src_gpu)}
                 src_gpu_link_type = {}
                 for dest_gpu in args.gpu:
                     dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(dest_gpu)
@@ -1868,6 +1914,14 @@ class AMDSMICommands():
 
                 topo_values[src_gpu_index]['numa_bandwidth'] = src_gpu_link_type
 
+                tabular_output_dict.update(src_gpu_link_type)
+                tabular_output.append(tabular_output_dict)
+
+            if self.logger.is_human_readable_format():
+                self.logger.multiple_device_output = tabular_output
+                self.logger.table_title = "NUMA BW TABLE"
+                self.logger.print_output(multiple_device_enabled=True, tabular=True)
+
         self.logger.multiple_device_output = topo_values
 
         if self.logger.is_csv_format():
@@ -1876,7 +1930,8 @@ class AMDSMICommands():
                 new_output.append(self.logger.flatten_dict(elem, topology_override=True))
             self.logger.multiple_device_output = new_output
 
-        self.logger.print_output(multiple_device_enabled=True)
+        if not self.logger.is_human_readable_format():
+            self.logger.print_output(multiple_device_enabled=True)
 
 
     def set_value(self, args, multiple_devices=False, gpu=None, fan=None, perf_level=None,
@@ -2252,6 +2307,355 @@ class AMDSMICommands():
             return # Skip printing when there are multiple devices
 
         self.logger.print_output()
+
+
+    def monitor(self, args, multiple_devices=False, watching_output=False, gpu=None,
+                  watch=None, watch_time=None, iterations=None, power_usage=None,
+                  temperature=None, gfx_util=None, mem_util=None, encoder=None, decoder=None,
+                  throttle_status=None, ecc=None, vram_usage=None, pcie=None):
+        """ Populate a table with each GPU as an index to rows of targeted data
+
+        Args:
+            args (Namespace): Namespace containing the parsed CLI args
+            multiple_devices (bool, optional): True if checking for multiple devices. Defaults to False.
+            gpu (device_handle, optional): device_handle for target device. Defaults to None.
+            watch (bool, optional): Value override for args.watch. Defaults to None.
+            watch_time (int, optional): Value override for args.watch_time. Defaults to None.
+            iterations (int, optional): Value override for args.iterations. Defaults to None.
+            power_usage (bool, optional): Value override for args.power_usage. Defaults to None.
+            temperature (bool, optional): Value override for args.temperature. Defaults to None.
+            gfx (bool, optional): Value override for args.gfx. Defaults to None.
+            mem (bool, optional): Value override for args.mem. Defaults to None.
+            encoder (bool, optional): Value override for args.encoder. Defaults to None.
+            decoder (bool, optional): Value override for args.decoder. Defaults to None.
+            throttle_status (bool, optional): Value override for args.throttle_status. Defaults to None.
+            ecc (bool, optional): Value override for args.ecc. Defaults to None.
+            vram_usage (bool, optional): Value override for args.vram_usage. Defaults to None.
+            pcie (bool, optional): Value override for args.pcie. Defaults to None.
+
+        Raises:
+            ValueError: Value error if no gpu value is provided
+            IndexError: Index error if gpu list is empty
+
+        Return:
+            Nothing
+        """
+        # Set args.* to passed in arguments
+        if gpu:
+            args.gpu = gpu
+        if watch:
+            args.watch = watch
+        if watch_time:
+            args.watch_time = watch_time
+        if iterations:
+            args.iterations = iterations
+
+        # monitor args
+        if power_usage:
+            args.power_usage = power_usage
+        if temperature:
+            args.temperature = temperature
+        if gfx_util:
+            args.gfx = gfx_util
+        if mem_util:
+            args.mem = mem_util
+        if encoder:
+            args.encoder = encoder
+        if decoder:
+            args.decoder = decoder
+        if throttle_status:
+            args.throttle_status = throttle_status
+        if ecc:
+            args.ecc = ecc
+        if vram_usage:
+            args.vram_usage = vram_usage
+        if pcie:
+            args.pcie = pcie
+
+        # Handle No GPU passed
+        if args.gpu == None:
+            args.gpu = self.device_handles
+
+        # If all arguments are False, the print all values
+        if not any([args.power_usage, args.temperature, args.gfx, args.mem,
+                    args.encoder, args.decoder, args.throttle_status, args.ecc,
+                    args.vram_usage, args.pcie]):
+            args.power_usage = args.temperature = args.gfx = args.mem = \
+                args.encoder = args.decoder = args.throttle_status = args.ecc = \
+                args.vram_usage = args.pcie = True
+
+        # Handle watch logic, will only enter this block once
+        if args.watch:
+            self.helpers.handle_watch(args=args, subcommand=self.monitor, logger=self.logger)
+            return
+
+        # Handle multiple GPUs
+        if isinstance(args.gpu, list):
+            if len(args.gpu) > 1:
+                # Deepcopy gpus as recursion will destroy the gpu list
+                stored_gpus = []
+                for gpu in args.gpu:
+                    stored_gpus.append(gpu)
+
+                # Store output from multiple devices
+                for device_handle in args.gpu:
+                    self.monitor(args, multiple_devices=True, watching_output=watching_output, gpu=device_handle)
+
+                # Reload original gpus
+                args.gpu = stored_gpus
+
+                # Print multiple device output
+                self.logger.print_output(multiple_device_enabled=True, watching_output=watching_output, tabular=True)
+
+                # Add output to total watch output and clear multiple device output
+                if watching_output:
+                    self.logger.store_watch_output(multiple_device_enabled=True)
+
+                    # Flush the watching output
+                    self.logger.print_output(multiple_device_enabled=True, watching_output=watching_output, tabular=True)
+
+                return
+            elif len(args.gpu) == 1:
+                args.gpu = args.gpu[0]
+            else:
+                raise IndexError("args.gpu should not be an empty list")
+
+        monitor_values = {}
+
+        # Get gpu_id for logging
+        gpu_id = self.helpers.get_gpu_id_from_device_handle(args.gpu)
+
+        # Clear the table header; TODO make this a function
+        self.logger.table_header = ''
+
+        # Store timestamp for watch output
+        if watching_output:
+            self.logger.store_output(args.gpu, 'timestamp', int(time.time()))
+            self.logger.table_header += 'TIMESTAMP'.rjust(10) + '  '
+
+        self.logger.table_header += 'GPU'
+
+        if args.power_usage:
+            try:
+                gpu_metrics_info = amdsmi_interface.amdsmi_get_gpu_metrics_info(args.gpu)
+                power_usage = gpu_metrics_info['current_socket_power']
+                if power_usage >= 0xFFFFFFFF:
+                    power_usage = gpu_metrics_info['average_socket_power']
+                    if power_usage >= 0xFFFFFFFF:
+                        power_usage = "N/A"
+                monitor_values['power_usage'] = power_usage
+                if self.logger.is_human_readable_format() and monitor_values['power_usage'] != "N/A":
+                    monitor_values['power_usage'] = f"{monitor_values['power_usage']} W"
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                monitor_values['power_usage'] = "N/A"
+                logging.debug("Failed to get power usage on gpu %s | %s", gpu_id, e.get_error_info())
+
+            self.logger.table_header += 'POWER'.rjust(7)
+        if args.temperature:
+            try:
+                temperature = amdsmi_interface.amdsmi_get_gpu_metrics_info(args.gpu)['temperature_hotspot']
+                monitor_values['hotspot_temperature'] = temperature
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                monitor_values['hotspot_temperature'] = "N/A"
+                logging.debug("Failed to get hotspot temperature on gpu %s | %s", gpu_id, e.get_error_info())
+
+            try:
+                temperature = amdsmi_interface.amdsmi_get_gpu_metrics_temp_mem(args.gpu)
+                monitor_values['memory_temperature'] = temperature
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                monitor_values['memory_temperature'] = "N/A"
+                logging.debug("Failed to get memory temperature on gpu %s | %s", gpu_id, e.get_error_info())
+
+            if self.logger.is_human_readable_format() and monitor_values['hotspot_temperature'] != "N/A":
+                monitor_values['hotspot_temperature'] = f"{monitor_values['hotspot_temperature']} \N{DEGREE SIGN}C"
+
+            if self.logger.is_human_readable_format() and monitor_values['memory_temperature'] != "N/A":
+                monitor_values['memory_temperature'] = f"{monitor_values['memory_temperature']} \N{DEGREE SIGN}C"
+
+            self.logger.table_header += 'GPU_TEMP'.rjust(10)
+            self.logger.table_header += 'MEM_TEMP'.rjust(10)
+        if args.gfx:
+            try:
+                gfx_util = amdsmi_interface.amdsmi_get_gpu_metrics_avg_gfx_activity(args.gpu)
+                monitor_values['gfx'] = gfx_util
+                if self.logger.is_human_readable_format():
+                    monitor_values['gfx'] = f"{monitor_values['gfx']} %"
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                monitor_values['gfx'] = "N/A"
+                logging.debug("Failed to get gfx utilization on gpu %s | %s", gpu_id, e.get_error_info())
+
+            self.logger.table_header += 'GFX_UTIL'.rjust(10)
+
+            try:
+                gfx_clock = amdsmi_interface.amdsmi_get_gpu_metrics_info(args.gpu)['current_gfxclk']
+                monitor_values['gfx_clock'] = gfx_clock
+                if self.logger.is_human_readable_format():
+                    monitor_values['gfx_clock'] = f"{monitor_values['gfx_clock']} MHz"
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                monitor_values['gfx_clock'] = "N/A"
+                logging.debug("Failed to get gfx clock on gpu %s | %s", gpu_id, e.get_error_info())
+
+            self.logger.table_header += 'GFX_CLOCK'.rjust(11)
+        if args.mem:
+            try:
+                mem_util = amdsmi_interface.amdsmi_get_gpu_metrics_avg_umc_activity(args.gpu)
+                monitor_values['mem'] = mem_util
+                if self.logger.is_human_readable_format():
+                    monitor_values['mem'] = f"{monitor_values['mem']} %"
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                monitor_values['mem'] = "N/A"
+                logging.debug("Failed to get mem utilization on gpu %s | %s", gpu_id, e.get_error_info())
+
+            self.logger.table_header += 'MEM_UTIL'.rjust(10)
+
+            try:
+                mem_clock = amdsmi_interface.amdsmi_get_gpu_metrics_info(args.gpu)['current_uclk']
+                monitor_values['mem_clock'] = mem_clock
+                if self.logger.is_human_readable_format():
+                    monitor_values['mem_clock'] = f"{monitor_values['mem_clock']} MHz"
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                monitor_values['mem_clock'] = "N/A"
+                logging.debug("Failed to get mem clock on gpu %s | %s", gpu_id, e.get_error_info())
+
+            self.logger.table_header += 'MEM_CLOCK'.rjust(11)
+        if args.encoder:
+            try:
+                # Get List of vcn activity values
+                encoder_util = amdsmi_interface.amdsmi_get_gpu_metrics_vcn_activity(args.gpu)
+                encoding_activity_avg = []
+                for value in encoder_util:
+                    if value < 150: # each encoder chiplet's value range should be a percent
+                        encoding_activity_avg.append(value)
+                # Averaging the possible encoding activity values
+                if encoding_activity_avg:
+                    encoding_activity_avg = sum(encoding_activity_avg) / len(encoding_activity_avg)
+                else:
+                    encoding_activity_avg = "N/A"
+                monitor_values['encoder'] = encoding_activity_avg
+                if self.logger.is_human_readable_format() and monitor_values['encoder'] != "N/A":
+                    monitor_values['encoder'] = f"{monitor_values['encoder']} %"
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                monitor_values['encoder'] = "N/A"
+                logging.debug("Failed to get encoder utilization on gpu %s | %s", gpu_id, e.get_error_info())
+
+            self.logger.table_header += 'ENC_UTIL'.rjust(10)
+
+            try:
+                encoder_clock = amdsmi_interface.amdsmi_get_gpu_metrics_info(args.gpu)['current_vclk0']
+                monitor_values['encoder_clock'] = encoder_clock
+                if self.logger.is_human_readable_format():
+                    monitor_values['encoder_clock'] = f"{monitor_values['encoder_clock']} MHz"
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                monitor_values['encoder_clock'] = "N/A"
+                logging.debug("Failed to get encoder clock on gpu %s | %s", gpu_id, e.get_error_info())
+
+            self.logger.table_header += 'ENC_CLOCK'.rjust(11)
+        if args.decoder:
+            try:
+                decoder_util = "N/A" # Not yet implemented
+                monitor_values['decoder'] = decoder_util
+                # if self.logger.is_human_readable_format():
+                #     monitor_values['decoder'] = f"{monitor_values['decoder']} %"
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                monitor_values['decoder'] = "N/A"
+                logging.debug("Failed to get decoder utilization on gpu %s | %s", gpu_id, e.get_error_info())
+
+            self.logger.table_header += 'DEC_UTIL'.rjust(10)
+
+            try:
+                decoder_clock = amdsmi_interface.amdsmi_get_gpu_metrics_info(args.gpu)['current_dclk0']
+                monitor_values['decoder_clock'] = decoder_clock
+                if self.logger.is_human_readable_format():
+                    monitor_values['decoder_clock'] = f"{monitor_values['decoder_clock']} MHz"
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                monitor_values['decoder_clock'] = "N/A"
+                logging.debug("Failed to get decoder clock on gpu %s | %s", gpu_id, e.get_error_info())
+
+            self.logger.table_header += 'DEC_CLOCK'.rjust(11)
+        if args.throttle_status:
+            try:
+                throttle_status = amdsmi_interface.amdsmi_get_gpu_metrics_throttle_status(args.gpu)
+                if throttle_status:
+                    throttle_status = "THROTTLED"
+                else:
+                    throttle_status = "UNTHROTTLED"
+                monitor_values['throttle_status'] = throttle_status
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                monitor_values['throttle_status'] = "N/A"
+                logging.debug("Failed to get throttle status on gpu %s | %s", gpu_id, e.get_error_info())
+
+            self.logger.table_header += 'THROTTLE'.rjust(13)
+        if args.ecc:
+            try:
+                ecc = amdsmi_interface.amdsmi_get_gpu_total_ecc_count(args.gpu)
+                monitor_values['single_bit_ecc'] = ecc['correctable_count']
+                monitor_values['double_bit_ecc'] = ecc['uncorrectable_count']
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                monitor_values['ecc'] = "N/A"
+                logging.debug("Failed to get ecc on gpu %s | %s", gpu_id, e.get_error_info())
+
+            self.logger.table_header += 'SINGLE_ECC'.rjust(12)
+            self.logger.table_header += 'DOUBLE_ECC'.rjust(12)
+
+            try:
+                pcie_replay = amdsmi_interface.amdsmi_get_gpu_pci_replay_counter(args.gpu)
+                monitor_values['pcie_replay'] = pcie_replay
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                monitor_values['pcie_replay'] = "N/A"
+                logging.debug("Failed to get pcie replay counter on gpu %s | %s", gpu_id, e.get_error_info())
+
+            self.logger.table_header += 'PCIE_REPLAY'.rjust(13)
+        if args.vram_usage:
+            try:
+                vram_usage = amdsmi_interface.amdsmi_get_gpu_vram_usage(args.gpu)
+                monitor_values['vram_used'] = vram_usage['vram_used']
+                monitor_values['vram_total'] = vram_usage['vram_total']
+                if self.logger.is_human_readable_format():
+                    monitor_values['vram_used'] = f"{monitor_values['vram_used']} MB"
+                    monitor_values['vram_total'] = f"{monitor_values['vram_total']} MB"
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                monitor_values['vram_used'] = "N/A"
+                monitor_values['vram_total'] = "N/A"
+                logging.debug("Failed to get vram memory usage on gpu %s | %s", gpu_id, e.get_error_info())
+
+            self.logger.table_header += 'VRAM_USED'.rjust(11)
+            self.logger.table_header += 'VRAM_TOTAL'.rjust(12)
+        if args.pcie:
+            try:
+                pcie_bw = amdsmi_interface.amdsmi_get_gpu_pci_throughput(args.gpu)
+                sent = pcie_bw['sent'] * pcie_bw['max_pkt_sz']
+                received = pcie_bw['received'] * pcie_bw['max_pkt_sz']
+
+                if self.logger.is_human_readable_format():
+                    if sent > 0:
+                        sent = sent // 1024 // 1024
+                    sent = f"{sent} MB/s"
+
+                    if received > 0:
+                        received = received // 1024 // 1024
+                    received = f"{received} MB/s"
+                    pcie_bw['max_pkt_sz'] = f"{pcie_bw['max_pkt_sz']} B"
+
+                monitor_values['pcie_tx'] = sent
+                monitor_values['pcie_rx'] = received
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                monitor_values['pcie_tx'] = "N/A"
+                monitor_values['pcie_rx'] = "N/A"
+                logging.debug("Failed to get pci throughput on gpu %s | %s", gpu_id, e.get_error_info())
+
+            self.logger.table_header += 'PCIE_TX'.rjust(10)
+            self.logger.table_header += 'PCIE_RX'.rjust(10)
+
+        self.logger.store_output(args.gpu, 'values', monitor_values)
+
+        if multiple_devices:
+            self.logger.store_multiple_device_output()
+            return # Skip printing when there are multiple devices
+
+        self.logger.print_output(watching_output=watching_output, tabular=True)
+
+        if watching_output: # End of single gpu add to watch_output
+            self.logger.store_watch_output(multiple_device_enabled=False)
 
 
     def rocm_smi(self, args):
