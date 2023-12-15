@@ -520,6 +520,8 @@ amdsmi_status_t amdsmi_get_gpu_cache_info(
     for (unsigned int i =0; i < rsmi_info.num_cache_types; i++) {
         info->cache[i].cache_size_kb = rsmi_info.cache[i].cache_size_kb;
         info->cache[i].cache_level = rsmi_info.cache[i].cache_level;
+        info->cache[i].max_num_cu_shared = rsmi_info.cache[i].max_num_cu_shared;
+        info->cache[i].num_cache_instance = rsmi_info.cache[i].num_cache_instance;
         // convert from sysfs type to CRAT type(HSA Cache Affinity type)
         info->cache[i].flags = 0;
         if (rsmi_info.cache[i].flags & HSA_CACHE_TYPE_DATA)
@@ -753,9 +755,9 @@ amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_i
                     info->vendor_name, AMDSMI_MAX_STRING_LENGTH);
 
     // default to 0xffff as not supported
-    info->xgmi_physical_id = std::numeric_limits<uint16_t>::max();
-    status =  rsmi_wrapper(rsmi_dev_xgmi_physical_id_get, processor_handle,
-                    &(info->xgmi_physical_id));
+    info->oam_id = std::numeric_limits<uint16_t>::max();
+    status =  rsmi_wrapper(rsmi_dev_oam_id_get, processor_handle,
+                    &(info->oam_id));
 
     return AMDSMI_STATUS_SUCCESS;
 }

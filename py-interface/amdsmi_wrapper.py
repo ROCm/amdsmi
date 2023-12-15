@@ -773,6 +773,8 @@ struct_cache_._fields_ = [
     ('cache_size_kb', ctypes.c_uint32),
     ('cache_level', ctypes.c_uint32),
     ('flags', ctypes.c_uint32),
+    ('max_num_cu_shared', ctypes.c_uint32),
+    ('num_cache_instance', ctypes.c_uint32),
     ('reserved', ctypes.c_uint32 * 3),
 ]
 
@@ -820,7 +822,7 @@ struct_amdsmi_asic_info_t._fields_ = [
     ('device_id', ctypes.c_uint64),
     ('rev_id', ctypes.c_uint32),
     ('asic_serial', ctypes.c_char * 32),
-    ('xgmi_physical_id', ctypes.c_uint16),
+    ('oam_id', ctypes.c_uint16),
     ('reserved', ctypes.c_uint16 * 37),
 ]
 

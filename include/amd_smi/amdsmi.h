@@ -475,6 +475,8 @@ typedef struct {
     uint32_t cache_size_kb; /* In KB */
     uint32_t cache_level;
     uint32_t flags;  // amdsmi_cache_flags_type_t which is a bitmask
+    uint32_t max_num_cu_shared;  /* Indicates how many Compute Units share this cache instance */
+    uint32_t num_cache_instance;  /* total number of instance of this cache type */
     uint32_t reserved[3];
   } cache[AMDSMI_MAX_CACHE_TYPES];
   uint32_t reserved[15];
@@ -498,7 +500,7 @@ typedef struct {
   uint64_t device_id;   //< The device id of a GPU
   uint32_t rev_id;
   char asic_serial[AMDSMI_NORMAL_STRING_LENGTH];
-  uint16_t xgmi_physical_id;   //< 0xFFFF if not supported
+  uint16_t oam_id;   //< 0xFFFF if not supported
   uint16_t reserved[37];
 } amdsmi_asic_info_t;
 

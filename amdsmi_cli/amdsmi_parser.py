@@ -66,7 +66,8 @@ class AMDSMIParser(argparse.ArgumentParser):
         argparse (ArgumentParser): argparse.ArgumentParser
     """
     def __init__(self, version, list, static, firmware, bad_pages, metric,
-                 process, profile, event, topology, set_value, reset, rocmsmi):
+                 process, profile, event, topology, set_value, reset, monitor,
+                 rocmsmi):
 
         # Helper variables
         self.helpers = AMDSMIHelpers()
@@ -105,6 +106,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         self._add_topology_parser(self.subparsers, topology)
         self._add_set_value_parser(self.subparsers, set_value)
         self._add_reset_parser(self.subparsers, reset)
+        self._add_monitor_parser(self.subparsers, monitor)
         self._add_rocm_smi_parser(self.subparsers, rocmsmi)
 
 
@@ -811,6 +813,54 @@ class AMDSMIParser(argparse.ArgumentParser):
         reset_parser.add_argument('-C', '--compute-partition', action='store_true', required=False, help=reset_compute_help)
         reset_parser.add_argument('-M', '--memory-partition', action='store_true', required=False, help=reset_memory_help)
         reset_parser.add_argument('-o', '--power-cap', action='store_true', required=False, help=reset_power_cap_help)
+
+
+    def _add_monitor_parser(self, subparsers, func):
+        if not(self.helpers.is_baremetal() and self.helpers.is_linux()):
+            # This subparser is only applicable to Baremetal Linux
+            return
+
+        # Subparser help text
+        monitor_help = "Monitor metrics for target devices"
+        monitor_subcommand_help = "Monitor a target device for the specified arguments.\
+                                  \nIf no arguments are provided, all arguments will be enabled.\
+                                  \nUse the watch arguments to run continuously"
+        monitor_optionals_title = "Monitor Arguments"
+
+        # Help text for Arguments only on Guest and BM platforms
+        power_usage_help = "Monitor power usage in Watts"
+        temperature_help = "Monitor temperature in Celsius"
+        gfx_util_help = "Monitor graphics utilization (%%) and clock (MHz)"
+        mem_util_help = "Monitor memory utilization (%%) and clock (MHz)"
+        encoder_util_help = "Monitor encoder utilization (%%) and clock (MHz)"
+        decoder_util_help = "Monitor decoder utilization (%%) and clock (MHz)"
+        throttle_help = "Monitor thermal throttle status"
+        ecc_help = "Monitor ECC single bit, ECC double bit, and PCIe replay error counts"
+        mem_usage_help = "Monitor memory usage in MB"
+        pcie_throughput_help = "Monitor PCIe Tx/Rx in MB/s"
+
+        # Create monitor subparser
+        monitor_parser = subparsers.add_parser('monitor', help=monitor_help, description=monitor_subcommand_help)
+        monitor_parser._optionals.title = monitor_optionals_title
+        monitor_parser.formatter_class=lambda prog: AMDSMISubparserHelpFormatter(prog)
+        monitor_parser.set_defaults(func=func)
+
+        # Add Universal Arguments
+        self._add_command_modifiers(monitor_parser)
+        self._add_device_arguments(monitor_parser, required=False)
+        self._add_watch_arguments(monitor_parser)
+
+        # Add monitor arguments
+        monitor_parser.add_argument('-p', '--power-usage', action='store_true', required=False, help=power_usage_help)
+        monitor_parser.add_argument('-t', '--temperature', action='store_true', required=False, help=temperature_help)
+        monitor_parser.add_argument('-u', '--gfx', action='store_true', required=False, help=gfx_util_help)
+        monitor_parser.add_argument('-m', '--mem', action='store_true', required=False, help=mem_util_help)
+        monitor_parser.add_argument('-n', '--encoder', action='store_true', required=False, help=encoder_util_help)
+        monitor_parser.add_argument('-d', '--decoder', action='store_true', required=False, help=decoder_util_help)
+        monitor_parser.add_argument('-s', '--throttle-status', action='store_true', required=False, help=throttle_help)
+        monitor_parser.add_argument('-e', '--ecc', action='store_true', required=False, help=ecc_help)
+        monitor_parser.add_argument('-v', '--vram-usage', action='store_true', required=False, help=mem_usage_help)
+        monitor_parser.add_argument('-r', '--pcie', action='store_true', required=False, help=pcie_throughput_help)
 
 
     def _add_rocm_smi_parser(self, subparsers, func):

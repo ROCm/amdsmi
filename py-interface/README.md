@@ -351,7 +351,7 @@ Field | Content
 `device_id` |  device id
 `rev_id` |  revision id
 `asic_serial` | asic serial
-`xgmi_physical_id` | xgmi physical id
+`oam_id` | oam id
 
 Exceptions that can be thrown by `amdsmi_get_gpu_asic_info` function:
 
@@ -375,7 +375,7 @@ try:
             print(hex(asic_info['device_id']))
             print(hex(asic_info['rev_id']))
             print(asic_info['asic_serial'])
-            print(asic_info['xgmi_physical_id'])
+            print(asic_info['oam_id'])
 except AmdSmiException as e:
     print(e)
 ```

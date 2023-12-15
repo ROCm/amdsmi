@@ -24,6 +24,7 @@ import csv
 import json
 import re
 import time
+from typing import Dict
 import yaml
 from enum import Enum
 
@@ -37,6 +38,8 @@ class AMDSMILogger():
         self.watch_output = []
         self.format = format # csv, json, or human_readable
         self.destination = destination # stdout, path to a file (append)
+        self.table_header = ""
+        self.table_title = ""
         self.helpers = AMDSMIHelpers()
 
 
@@ -95,7 +98,30 @@ class AMDSMILogger():
         return output_dict
 
 
-    def _convert_json_to_human_readable(self, json_object):
+    def _convert_json_to_human_readable(self, json_object: Dict[str, any], tabular=False):
+        # TODO make dynamic
+        if tabular:
+            table_values = ''
+            for key, value in json_object.items():
+                value = str(value)
+                if key == 'gpu':
+                    table_values += value.rjust(3)
+                elif key == 'timestamp':
+                    table_values += value.rjust(10) + '  '
+                elif key == 'power_usage':
+                    table_values += value.rjust(7)
+                elif key in ('gfx_clock', 'mem_clock', 'encoder_clock', 'decoder_clock', 'vram_used'):
+                    table_values += value.rjust(11)
+                elif key == 'vram_total' or 'ecc' in key:
+                    table_values += value.rjust(12)
+                elif key in ('throttle_status', 'pcie_replay'):
+                    table_values += value.rjust(13)
+                elif 'gpu_' in key: # handle topology tables
+                    table_values += value.rjust(13)
+                else:
+                    table_values += value.rjust(10)
+            return table_values.rstrip()
+
         # First Capitalize all keys in the json object
         capitalized_json = self._capitalize_keys(json_object)
         json_string = json.dumps(capitalized_json, indent=4)
@@ -266,7 +292,7 @@ class AMDSMILogger():
             self.output = {}
 
 
-    def print_output(self, multiple_device_enabled=False, watching_output=False):
+    def print_output(self, multiple_device_enabled=False, watching_output=False, tabular=False):
         """ Print current output acording to format and then destination
             params:
                 multiple_device_enabled (bool) - True if printing output from
@@ -280,10 +306,11 @@ class AMDSMILogger():
                                     watching_output=watching_output)
         elif self.is_csv_format():
             self._print_csv_output(multiple_device_enabled=multiple_device_enabled,
-                                    watching_output=watching_output)
+                                   watching_output=watching_output)
         elif self.is_human_readable_format():
             self._print_human_readable_output(multiple_device_enabled=multiple_device_enabled,
-                                                watching_output=watching_output)
+                                              watching_output=watching_output,
+                                              tabular=tabular)
 
 
     def _print_json_output(self, multiple_device_enabled=False, watching_output=False):
@@ -360,14 +387,19 @@ class AMDSMILogger():
                     writer.writerows(stored_csv_output)
 
 
-    def _print_human_readable_output(self, multiple_device_enabled=False, watching_output=False):
+    def _print_human_readable_output(self, multiple_device_enabled=False, watching_output=False, tabular=False):
+        human_readable_output = ''
+        if tabular:
+            if self.table_title:
+                human_readable_output += self.table_title + ':\n'
+            human_readable_output += self.table_header + '\n'
+
         if multiple_device_enabled:
-            human_readable_output = ''
             for output in self.multiple_device_output:
-                human_readable_output += self._convert_json_to_human_readable(output)
+                human_readable_output += self._convert_json_to_human_readable(output, tabular=tabular)
                 human_readable_output += '\n'
         else:
-            human_readable_output = self._convert_json_to_human_readable(self.output)
+            human_readable_output += self._convert_json_to_human_readable(self.output, tabular=tabular)
 
         if self.destination == 'stdout':
             try:
@@ -380,8 +412,14 @@ class AMDSMILogger():
             if watching_output:
                 with self.destination.open('w') as output_file:
                     human_readable_output = ''
+                    if tabular:
+                        if self.table_title:
+                            human_readable_output += self.table_title + '\n'
+                        human_readable_output += self.table_header + '\n'
                     for output in self.watch_output:
-                        human_readable_output +=  self._convert_json_to_human_readable(output)
+                        human_readable_output += self._convert_json_to_human_readable(output, tabular=tabular)
+                        if tabular:
+                            human_readable_output += '\n'
                     output_file.write(human_readable_output + '\n')
             else:
                 with self.destination.open('a') as output_file:

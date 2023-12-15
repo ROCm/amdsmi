@@ -876,6 +876,8 @@ typedef struct {
     so HSA_CACHE_TYPE_DATA|HSA_CACHE_TYPE_HSACU == 9
     */
     uint32_t flags;
+    uint32_t max_num_cu_shared;  /* Indicates how many Compute Units share this cache instance */
+    uint32_t num_cache_instance;  /* total number of instance of this cache type */
   } cache[RSMI_MAX_CACHE_TYPES];
 } rsmi_gpu_cache_info_t;
 /// \cond Ignore in docs.
@@ -1746,7 +1748,7 @@ rsmi_status_t rsmi_dev_unique_id_get(uint32_t dv_ind, uint64_t *id);
  *  @retval ::RSMI_STATUS_SUCCESS is returned upon successful call.
  *
  */
-rsmi_status_t rsmi_dev_xgmi_physical_id_get(uint32_t dv_ind, uint16_t *id);
+rsmi_status_t rsmi_dev_oam_id_get(uint32_t dv_ind, uint16_t *id);
 
 /** @} */  // end of IDQuer
 
