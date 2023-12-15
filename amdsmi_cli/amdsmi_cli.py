@@ -68,6 +68,7 @@ if __name__ == "__main__":
                                     amd_smi_commands.topology,
                                     amd_smi_commands.set_value,
                                     amd_smi_commands.reset,
+                                    amd_smi_commands.monitor,
                                     amd_smi_commands.rocm_smi)
     try:
         try:
