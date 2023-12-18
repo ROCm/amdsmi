@@ -726,12 +726,14 @@ class AMDSMICommands():
         if args.cpu == None:
             args.cpu = self.cpu_handles
 
-        if (len(self.cpu_handles) and (((not gpus) and (not cpus)) or cpus)):
+        if (len(self.cpu_handles) and ((((not gpus) and (not cpus)) or cpus)
+            and not gpu_options)):
             self.get_static_cpu(args, cpu)
         else:
             logging.info("No CPU devices present")
 
-        if (len(self.device_handles) and (((not gpus) and (not cpus)) or gpus)):
+        if (len(self.device_handles) and ((((not gpus) and (not cpus)) or gpus)
+            and not cpu_options)):
             self.logger.clear_multiple_devices_ouput()
             self.get_static_gpu(args, multiple_devices, gpu, asic,
                                 bus, vbios, limit, driver, ras,
