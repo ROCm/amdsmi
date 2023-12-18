@@ -741,7 +741,7 @@ def amdsmi_get_cpu_core_energy(
         )
     )
 
-    return penergy.value
+    return f"{penergy.value} J"
 
 def amdsmi_get_cpu_socket_energy(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle
@@ -758,7 +758,7 @@ def amdsmi_get_cpu_socket_energy(
         )
     )
 
-    return penergy.value
+    return f"{penergy.value} J"
 
 def amdsmi_get_cpu_prochot_status(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle
@@ -794,8 +794,8 @@ def amdsmi_get_cpu_fclk_mclk(
     )
 
     return {
-       "fclk": fclk.value,
-       "mclk": mclk.value
+       "fclk": f"{fclk.value} MHz",
+       "mclk": f"{mclk.value} MHz"
     }
 
 def amdsmi_get_cpu_cclk_limit(
@@ -813,7 +813,7 @@ def amdsmi_get_cpu_cclk_limit(
         )
     )
 
-    return cclk.value
+    return f"{cclk.value} MHz"
 
 def amdsmi_get_cpu_socket_current_active_freq_limit(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle
@@ -831,7 +831,7 @@ def amdsmi_get_cpu_socket_current_active_freq_limit(
         )
     )
 
-    return freq.value
+    return f"{freq.value} MHz"
 
 def amdsmi_get_cpu_socket_freq_range(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle
@@ -850,8 +850,8 @@ def amdsmi_get_cpu_socket_freq_range(
     )
 
     return {
-       "max_socket_freq": freq_max.value,
-       "min_socket_freq": freq_min.value
+       "max_socket_freq": f"{freq_max.value} MHz",
+       "min_socket_freq": f"{freq_min.value} MHz"
     }
 
 def amdsmi_get_cpu_core_current_freq_limit(
@@ -869,7 +869,7 @@ def amdsmi_get_cpu_core_current_freq_limit(
         )
     )
 
-    return freq.value
+    return f"{freq.value} MHz"
 
 def amdsmi_get_cpu_socket_power(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle
@@ -886,7 +886,7 @@ def amdsmi_get_cpu_socket_power(
         )
     )
 
-    return ppower.value
+    return f"{ppower.value} mW"
 
 def amdsmi_get_cpu_socket_power_cap(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle
@@ -903,7 +903,7 @@ def amdsmi_get_cpu_socket_power_cap(
         )
     )
 
-    return pcap.value
+    return f"{pcap.value} mW"
 
 def amdsmi_get_cpu_socket_power_cap_max(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle
@@ -920,7 +920,7 @@ def amdsmi_get_cpu_socket_power_cap_max(
         )
     )
 
-    return pmax.value
+    return f"{pmax.value} mW"
 
 def amdsmi_get_cpu_pwr_svi_telemetry_all_rails(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle
@@ -937,7 +937,7 @@ def amdsmi_get_cpu_pwr_svi_telemetry_all_rails(
         )
     )
 
-    return power.value
+    return f"{power.value} mW"
 
 def amdsmi_set_cpu_socket_power_cap(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, power_cap: int
@@ -987,7 +987,7 @@ def amdsmi_get_cpu_core_boostlimit(
         )
     )
 
-    return boostlimit.value
+    return f"{boostlimit.value} MHz"
 
 def amdsmi_get_cpu_socket_c0_residency(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle
@@ -1004,7 +1004,7 @@ def amdsmi_get_cpu_socket_c0_residency(
         )
     )
 
-    return c0_residency.value
+    return f"{c0_residency.value} %"
 
 def amdsmi_set_cpu_core_boostlimit(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, boostlimit: int
@@ -1049,9 +1049,9 @@ def amdsmi_get_cpu_ddr_bw(processor_handle: amdsmi_wrapper.amdsmi_processor_hand
     _check_res(amdsmi_wrapper.amdsmi_get_cpu_ddr_bw(processor_handle, ddr_bw))
 
     return {
-        "ddr_bw_max_bw": ddr_bw.max_bw,
-        "ddr_bw_utilized_bw": ddr_bw.utilized_bw,
-        "ddr_bw_utilized_pct": ddr_bw.utilized_pct
+        "ddr_bw_max_bw": f"{ddr_bw.max_bw} Gbps",
+        "ddr_bw_utilized_bw": f"{ddr_bw.utilized_bw} Gbps",
+        "ddr_bw_utilized_pct": f"{ddr_bw.utilized_pct} %"
     }
 
 def amdsmi_get_cpu_socket_temperature(
@@ -1070,7 +1070,7 @@ def amdsmi_get_cpu_socket_temperature(
         )
     )
 
-    return ptmon.value
+    return f"{ptmon.value} Degrees C"
 
 def amdsmi_get_cpu_dimm_temp_range_and_refresh_rate(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
@@ -1106,8 +1106,8 @@ def amdsmi_get_cpu_dimm_power_consumption(
     _check_res(amdsmi_wrapper.amdsmi_get_cpu_dimm_power_consumption(processor_handle, dimm))
 
     return {
-        "dimm_power_consumed": dimm.power,
-        "dimm_power_update_rate": dimm.update_rate,
+        "dimm_power_consumed": f"{dimm.power} mW",
+        "dimm_power_update_rate": f"{dimm.update_rate} ms",
         "dimm_dimm_addr": dimm.dimm_addr
     }
 
@@ -1127,9 +1127,9 @@ def amdsmi_get_cpu_dimm_thermal_sensor(
 
     return {
         "dimm_thermal_sensor_value": dimm_thermal.sensor,
-        "dimm_thermal_update_rate": dimm_thermal.update_rate,
+        "dimm_thermal_update_rate": f"{dimm_thermal.update_rate} ms",
         "dimm_thermal_dimm_addr": dimm_thermal.dimm_addr,
-        "dimm_thermal_temperature": dimm_thermal.temp
+        "dimm_thermal_temperature": f"{dimm_thermal.temp} Degrees C"
     }
 
 def amdsmi_set_cpu_xgmi_width(
@@ -1307,7 +1307,7 @@ def amdsmi_get_cpu_current_io_bandwidth(
             processor_handle, link, ctypes.byref(io_bw))
     )
 
-    return io_bw.value
+    return f"{io_bw.value} Mbps"
 
 def amdsmi_get_cpu_current_xgmi_bw(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
@@ -1329,7 +1329,7 @@ def amdsmi_get_cpu_current_xgmi_bw(
             processor_handle, link, ctypes.byref(xgmi_bw))
     )
 
-    return xgmi_bw.value
+    return f"{xgmi_bw.value} Mbps"
 
 def amdsmi_get_metrics_table_version(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle
