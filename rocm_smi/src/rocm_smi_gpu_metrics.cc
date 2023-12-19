@@ -836,29 +836,35 @@ rsmi_status_t init_max_public_gpu_matrics(AMGpuMetricsPublicLatest_t& rsmi_gpu_m
   rsmi_gpu_metrics.pcie_replay_count_acc = init_max_uint_types<decltype(rsmi_gpu_metrics.pcie_replay_count_acc)>();
   rsmi_gpu_metrics.pcie_replay_rover_count_acc = init_max_uint_types<decltype(rsmi_gpu_metrics.pcie_replay_rover_count_acc)>();
 
-  std::fill(std::begin(rsmi_gpu_metrics.xgmi_read_data_acc),
-            std::end(rsmi_gpu_metrics.xgmi_read_data_acc),
-            init_max_uint_types<std::uint64_t>());
+  std::fill_n(&rsmi_gpu_metrics.xgmi_read_data_acc[0],
+              (sizeof(rsmi_gpu_metrics.xgmi_read_data_acc) /
+               sizeof(rsmi_gpu_metrics.xgmi_read_data_acc[0])),
+              std::numeric_limits<uint64_t>::max());
 
-  std::fill(std::begin(rsmi_gpu_metrics.xgmi_write_data_acc),
-            std::end(rsmi_gpu_metrics.xgmi_write_data_acc),
-            init_max_uint_types<std::uint64_t>());
+  std::fill_n(&rsmi_gpu_metrics.xgmi_write_data_acc[0],
+              (sizeof(rsmi_gpu_metrics.xgmi_write_data_acc) /
+               sizeof(rsmi_gpu_metrics.xgmi_write_data_acc[0])),
+              std::numeric_limits<uint64_t>::max());
 
-  std::fill(std::begin(rsmi_gpu_metrics.current_gfxclks),
-            std::end(rsmi_gpu_metrics.current_gfxclks),
-            init_max_uint_types<std::uint16_t>());
+  std::fill_n(&rsmi_gpu_metrics.current_gfxclks[0],
+              (sizeof(rsmi_gpu_metrics.current_gfxclks) /
+               sizeof(rsmi_gpu_metrics.current_gfxclks[0])),
+              std::numeric_limits<uint16_t>::max());
 
-  std::fill(std::begin(rsmi_gpu_metrics.current_socclks),
-            std::end(rsmi_gpu_metrics.current_socclks),
-            init_max_uint_types<std::uint16_t>());
+  std::fill_n(&rsmi_gpu_metrics.current_socclks[0],
+              (sizeof(rsmi_gpu_metrics.current_socclks) /
+               sizeof(rsmi_gpu_metrics.current_socclks[0])),
+              std::numeric_limits<uint16_t>::max());
 
-  std::fill(std::begin(rsmi_gpu_metrics.current_vclk0s),
-            std::end(rsmi_gpu_metrics.current_vclk0s),
-            init_max_uint_types<std::uint16_t>());
+  std::fill_n(&rsmi_gpu_metrics.current_vclk0s[0],
+              (sizeof(rsmi_gpu_metrics.current_vclk0s) /
+               sizeof(rsmi_gpu_metrics.current_vclk0s[0])),
+              std::numeric_limits<uint16_t>::max());
 
-  std::fill(std::begin(rsmi_gpu_metrics.current_dclk0s),
-            std::end(rsmi_gpu_metrics.current_dclk0s),
-            init_max_uint_types<std::uint16_t>());
+  std::fill_n(&rsmi_gpu_metrics.current_dclk0s[0],
+              (sizeof(rsmi_gpu_metrics.current_dclk0s) /
+               sizeof(rsmi_gpu_metrics.current_dclk0s[0])),
+              std::numeric_limits<uint16_t>::max());
 
   ostrstream << __PRETTY_FUNCTION__
               << " | ======= end ======= "
@@ -1016,22 +1022,22 @@ AMGpuMetricsPublicLatestTupl_t GpuMetricsBase_v14_t::copy_internal_to_external_m
     // Note:  Backwards compatibility -> Handling extra/exception cases
     //        related to earlier versions (1.3)
     metrics_public_init.current_gfxclk = metrics_public_init.current_gfxclks[0];
-    metrics_public_init.average_gfxclk_frequency = metrics_public_init.current_gfxclks[0];
+    // metrics_public_init.average_gfxclk_frequency = metrics_public_init.current_gfxclks[0];
 
     metrics_public_init.current_socclk = metrics_public_init.current_socclks[0];
-    metrics_public_init.average_socclk_frequency = metrics_public_init.current_socclks[0];
+    // metrics_public_init.average_socclk_frequency = metrics_public_init.current_socclks[0];
 
     metrics_public_init.current_vclk0 = metrics_public_init.current_vclk0s[0];
-    metrics_public_init.average_vclk0_frequency = metrics_public_init.current_vclk0s[0];
+    // metrics_public_init.average_vclk0_frequency = metrics_public_init.current_vclk0s[0];
 
     metrics_public_init.current_vclk1 = metrics_public_init.current_vclk0s[1];
-    metrics_public_init.average_vclk1_frequency = metrics_public_init.current_vclk0s[1];
+    // metrics_public_init.average_vclk1_frequency = metrics_public_init.current_vclk0s[1];
 
     metrics_public_init.current_dclk0 = metrics_public_init.current_dclk0s[0];
-    metrics_public_init.average_dclk0_frequency = metrics_public_init.current_dclk0s[0];
+    // metrics_public_init.average_dclk0_frequency = metrics_public_init.current_dclk0s[0];
 
     metrics_public_init.current_dclk1 = metrics_public_init.current_dclk0s[1];
-    metrics_public_init.average_dclk1_frequency = metrics_public_init.current_dclk0s[1];
+    // metrics_public_init.average_dclk1_frequency = metrics_public_init.current_dclk0s[1];
 
     return metrics_public_init;
   }();
@@ -1407,7 +1413,7 @@ AMGpuMetricsPublicLatestTupl_t GpuMetricsBase_v13_t::copy_internal_to_external_m
     metrics_public_init.average_mm_activity = m_gpu_metrics_tbl.m_average_mm_activity;
 
     // Power/Energy
-    metrics_public_init.average_socket_power = m_gpu_metrics_tbl.m_average_socket_power;  // 1.3 and 1.4 have the same value
+    // metrics_public_init.average_socket_power = m_gpu_metrics_tbl.m_average_socket_power;  // 1.3 and 1.4 have the same value
     metrics_public_init.energy_accumulator = m_gpu_metrics_tbl.m_energy_accumulator;
 
     // Driver attached timestamp (in ns)
@@ -1424,9 +1430,13 @@ AMGpuMetricsPublicLatestTupl_t GpuMetricsBase_v13_t::copy_internal_to_external_m
 
     // Current clocks
     metrics_public_init.current_gfxclk = m_gpu_metrics_tbl.m_current_gfxclk;
+    metrics_public_init.current_gfxclks[0] = m_gpu_metrics_tbl.m_current_gfxclk;
     metrics_public_init.current_socclk = m_gpu_metrics_tbl.m_current_socclk;
+    metrics_public_init.current_socclks[0] = m_gpu_metrics_tbl.m_current_socclk;
     metrics_public_init.current_vclk0 = m_gpu_metrics_tbl.m_current_vclk0;
+    metrics_public_init.current_vclk0s[0] = m_gpu_metrics_tbl.m_current_vclk0;
     metrics_public_init.current_dclk0 = m_gpu_metrics_tbl.m_current_dclk0;
+    metrics_public_init.current_dclk0s[0] = m_gpu_metrics_tbl.m_current_dclk0;
     metrics_public_init.current_uclk = m_gpu_metrics_tbl.m_current_uclk;
     metrics_public_init.current_vclk1 = m_gpu_metrics_tbl.m_current_vclk1;
     metrics_public_init.current_dclk1 = m_gpu_metrics_tbl.m_current_dclk1;
@@ -1467,7 +1477,7 @@ AMGpuMetricsPublicLatestTupl_t GpuMetricsBase_v13_t::copy_internal_to_external_m
     //
     // Note:  Backwards compatibility -> Handling extra/exception cases
     //        related to earlier versions (1.2)
-    metrics_public_init.current_socket_power = metrics_public_init.average_socket_power;
+    // metrics_public_init.current_socket_power = metrics_public_init.average_socket_power;
 
     return metrics_public_init;
   }();
@@ -2798,6 +2808,14 @@ rsmi_dev_gpu_metrics_info_get(uint32_t dv_ind, rsmi_gpu_metrics_t* smu) {
   assert(smu != nullptr);
   if (smu == nullptr) {
     status_code = rsmi_status_t::RSMI_STATUS_INVALID_ARGS;
+    ostrstream << __PRETTY_FUNCTION__
+               << " | ======= end ======= "
+               << " | Fail "
+               << " | Device #: " << dv_ind
+               << " | Returning = "
+               << getRSMIStatusString(status_code)
+               << " |";
+    LOG_ERROR(ostrstream);
     return status_code;
   }
 

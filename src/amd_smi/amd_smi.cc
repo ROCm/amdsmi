@@ -116,7 +116,13 @@ amdsmi_status_t rsmi_wrapper(F && f,
     uint32_t gpu_index = gpu_device->get_gpu_id();
     auto rstatus = std::forward<F>(f)(gpu_index,
                     std::forward<Args>(args)...);
-    return amd::smi::rsmi_to_amdsmi_status(rstatus);
+    r = amd::smi::rsmi_to_amdsmi_status(rstatus);
+    std::ostringstream ss;
+    const char *status_string;
+    amdsmi_status_code_to_string(r, &status_string);
+    ss << __PRETTY_FUNCTION__ << " | returning status = " << status_string;
+    LOG_INFO(ss);
+    return r;
 }
 
 amdsmi_status_t
@@ -1098,7 +1104,21 @@ amdsmi_status_t  amdsmi_get_gpu_metrics_info(
                     (sizeof(pgpu_metrics->jpeg_activity) /
                      sizeof(pgpu_metrics->jpeg_activity[0])),
                      std::numeric_limits<uint16_t>::max());
+        pgpu_metrics->mem_bandwidth_acc =
+            static_cast<uint64_t>(std::numeric_limits<uint64_t>::max());
+        pgpu_metrics->mem_max_bandwidth =
+            static_cast<uint32_t>(std::numeric_limits<uint32_t>::max());
+        pgpu_metrics->pcie_nak_sent_count_acc =
+            static_cast<uint32_t>(std::numeric_limits<uint32_t>::max());
+        pgpu_metrics->pcie_nak_rcvd_count_acc =
+            static_cast<uint32_t>(std::numeric_limits<uint32_t>::max());
     }
+    std::ostringstream ss;
+    const char *status_string;
+    amdsmi_status_code_to_string(ret, &status_string);
+    ss << __PRETTY_FUNCTION__
+       << " | END, returning status = " << status_string;
+    LOG_TRACE(ss);
     // END: REMOVE WHATS ABOVE ME
     return ret;
 }

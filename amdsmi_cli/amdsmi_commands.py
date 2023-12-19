@@ -1173,7 +1173,7 @@ class AMDSMICommands():
                     power_dict['current_power'] = power_info['current_socket_power']
 
                     if power_dict['current_power'] == "N/A":
-                        power_dict['current_power'] = power_info['average_socket_power']
+                        power_dict['average_power'] = power_info['average_socket_power']
 
                     power_dict['current_gfx_voltage'] = power_info['gfx_voltage']
                     power_dict['current_soc_voltage'] = power_info['soc_voltage']
@@ -1365,7 +1365,9 @@ class AMDSMICommands():
 
                     if self.logger.is_human_readable_format():
                         unit = 'GT/s'
-                        pcie_link_status['current_speed'] = f"{pcie_link_status['pcie_speed']} {unit}"
+                        pcie_dict['current_lanes'] = f"{pcie_link_status['pcie_lanes']} lanes"
+                        pcie_dict['current_speed'] = f"{pcie_dict['current_speed']} GT/s"
+
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     logging.debug("Failed to get pcie link status for gpu %s | %s", gpu_id, e.get_error_info())
 
