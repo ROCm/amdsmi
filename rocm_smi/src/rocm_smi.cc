@@ -6800,23 +6800,26 @@ rsmi_dev_metrics_curr_gfxclk_get(uint32_t dv_ind, GPUMetricCurrGfxClk_t* current
   }
 
   const auto gpu_metric_unit(AMDGpuMetricsUnitType_t::kMetricCurrGfxClock);
-  amd::smi::GPUMetricCurrGfxClkTbl_t tmp_curr_gfxclk_tbl{};
-  auto status_code = rsmi_dev_gpu_metrics_info_query(dv_ind, gpu_metric_unit, tmp_curr_gfxclk_tbl);
-  if (status_code == rsmi_status_t::RSMI_STATUS_SUCCESS) {
-    const auto max_num_elems =
-      static_cast<uint16_t>(std::end(*current_gfxclk_value) - std::begin(*current_gfxclk_value));
-    std::copy_n(std::begin(tmp_curr_gfxclk_tbl), max_num_elems, *current_gfxclk_value);
+  rsmi_gpu_metrics_t gpu = {};
+  auto status = rsmi_dev_gpu_metrics_info_get(dv_ind, &gpu);
+  if (status == rsmi_status_t::RSMI_STATUS_SUCCESS) {
+    std::copy_n(std::begin(gpu.current_gfxclks),
+                static_cast<uint16_t>(
+                  sizeof(gpu.current_gfxclks)/sizeof(gpu.current_gfxclks[0])),
+                  *current_gfxclk_value);
   }
   ostrstream << __PRETTY_FUNCTION__
              << " | ======= end ======= "
              << " | End Result "
              << " | Device #:  " << dv_ind
              << " | Metric Type: " << static_cast<AMDGpuMetricTypeId_t>(gpu_metric_unit)
-             << " | Metric Size: " << tmp_curr_gfxclk_tbl.size()
-             << " | Returning = " << status_code << " " << getRSMIStatusString(status_code) << " |";
+             << " | Metric Size: " << static_cast<uint16_t>(
+                  sizeof(gpu.current_gfxclks)/sizeof(gpu.current_gfxclks[0]))
+             << " | Returning = " << status << " "
+             << getRSMIStatusString(status) << " |";
   LOG_INFO(ostrstream);
 
-  return status_code;
+  return status;
   CATCH
 }
 

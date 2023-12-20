@@ -116,6 +116,97 @@ class AMDSMIHelpers():
         return self._is_windows
 
 
+    def get_cpu_choices(self):
+        """Return dictionary of possible CPU choices and string of the output:
+            Dictionary will be in format: cpus[ID]: Device Handle)
+            String output will be in format:
+                "ID: 0 "
+        params:
+            None
+        return:
+            (dict, str) : (cpu_choices, cpu_choices_str)
+        """
+        cpu_choices = {}
+        cpu_choices_str = ""
+        #import pdb;pdb.set_trace()
+        try:
+            cpu_handles = []
+            # amdsmi_get_cpusocket_handles() returns the cpu socket handles stored for cpu_id
+            cpu_handles = amdsmi_interface.amdsmi_get_cpusocket_handles()
+        except amdsmi_interface.AmdSmiLibraryException as e:
+            if e.err_code in (amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NOT_INIT,
+                              amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_DRIVER_NOT_LOADED):
+                logging.info('Unable to get device choices, driver not initialized (amdhsmp not found in modules)')
+            else:
+                raise e
+        if len(cpu_handles) == 0:
+            logging.info('Unable to find any devices, check if driver is initialized (amdhsmp not found in modules)')
+        else:
+            # Handle spacing for the gpu_choices_str
+            max_padding = int(math.log10(len(cpu_handles))) + 1
+
+            for cpu_id, device_handle in enumerate(cpu_handles):
+                cpu_choices[str(cpu_id)] = {
+                        "Device Handle": device_handle
+                }
+                if cpu_id == 0:
+                    id_padding = max_padding
+                else:
+                    id_padding = max_padding - int(math.log10(cpu_id))
+                cpu_choices_str += f"ID: {cpu_id}\n"
+
+            # Add the all option to the gpu_choices
+            cpu_choices["all"] = "all"
+            cpu_choices_str += f"  all{' ' * max_padding}| Selects all devices\n"
+
+        return (cpu_choices, cpu_choices_str)
+
+    def get_core_choices(self):
+        """Return dictionary of possible Core choices and string of the output:
+            Dictionary will be in format: coress[ID]: Device Handle)
+            String output will be in format:
+                "ID: 0 "
+        params:
+            None
+        return:
+            (dict, str) : (core_choices, core_choices_str)
+        """
+        core_choices = {}
+        core_choices_str = ""
+
+        try:
+            core_handles = []
+            # amdsmi_get_cpucore_handles() returns the core handles stored for core_id
+            core_handles = amdsmi_interface.amdsmi_get_cpucore_handles()
+        except amdsmi_interface.AmdSmiLibraryException as e:
+            if e.err_code in (amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NOT_INIT,
+                              amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_DRIVER_NOT_LOADED):
+                logging.info('Unable to get device choices, driver not initialized (amdhsmp not found in modules)')
+            else:
+                raise e
+        if len(core_handles) == 0:
+            logging.info('Unable to find any devices, check if driver is initialized (amdhsmp not found in modules)')
+        else:
+            # Handle spacing for the gpu_choices_str
+            max_padding = int(math.log10(len(core_handles))) + 1
+
+            for core_id, device_handle in enumerate(core_handles):
+                core_choices[str(core_id)] = {
+                        "Device Handle": device_handle
+                }
+                if core_id == 0:
+                    id_padding = max_padding
+                else:
+                    id_padding = max_padding - int(math.log10(core_id))
+            core_choices_str += f"ID: 0 - {len(core_handles) - 1}\n"
+
+            # Add the all option to the core_choices
+            core_choices["all"] = "all"
+            core_choices_str += f"  all{' ' * max_padding}| Selects all devices\n"
+
+        return (core_choices, core_choices_str)
+
+
     def get_output_format(self):
         """Returns the output format read from sys.argv
         Returns:
@@ -142,6 +233,7 @@ class AMDSMIHelpers():
         """
         gpu_choices = {}
         gpu_choices_str = ""
+        device_handles = []
 
         try:
             # amdsmi_get_processor_handles returns the device_handles storted for gpu_id
@@ -149,36 +241,34 @@ class AMDSMIHelpers():
         except amdsmi_interface.AmdSmiLibraryException as e:
             if e.err_code in (amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NOT_INIT,
                               amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_DRIVER_NOT_LOADED):
-                logging.error('Unable to get device choices, driver not initialized (amdgpu not found in modules)')
-                sys.exit(-1)
+                logging.info('Unable to get device choices, driver not initialized (amdgpu not found in modules)')
             else:
                 raise e
 
         if len(device_handles) == 0:
-            logging.error('Unable to find any devices, check if driver is initialized (amdgpu not found in modules)')
-            sys.exit(-1)
+            logging.info('Unable to find any devices, check if driver is initialized (amdgpu not found in modules)')
+        else:
+            # Handle spacing for the gpu_choices_str
+            max_padding = int(math.log10(len(device_handles))) + 1
 
-        # Handle spacing for the gpu_choices_str
-        max_padding = int(math.log10(len(device_handles))) + 1
+            for gpu_id, device_handle in enumerate(device_handles):
+                bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(device_handle)
+                uuid = amdsmi_interface.amdsmi_get_gpu_device_uuid(device_handle)
+                gpu_choices[str(gpu_id)] = {
+                    "BDF": bdf,
+                    "UUID": uuid,
+                    "Device Handle": device_handle,
+                }
 
-        for gpu_id, device_handle in enumerate(device_handles):
-            bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(device_handle)
-            uuid = amdsmi_interface.amdsmi_get_gpu_device_uuid(device_handle)
-            gpu_choices[str(gpu_id)] = {
-                "BDF": bdf,
-                "UUID": uuid,
-                "Device Handle": device_handle,
-            }
+                if gpu_id == 0:
+                    id_padding = max_padding
+                else:
+                    id_padding = max_padding - int(math.log10(gpu_id))
+                gpu_choices_str += f"ID: {gpu_id}{' ' * id_padding}| BDF: {bdf} | UUID: {uuid}\n"
 
-            if gpu_id == 0:
-                id_padding = max_padding
-            else:
-                id_padding = max_padding - int(math.log10(gpu_id))
-            gpu_choices_str += f"ID: {gpu_id}{' ' * id_padding}| BDF: {bdf} | UUID: {uuid}\n"
-
-        # Add the all option to the gpu_choices
-        gpu_choices["all"] = "all"
-        gpu_choices_str += f"  all{' ' * max_padding}| Selects all devices\n"
+            # Add the all option to the gpu_choices
+            gpu_choices["all"] = "all"
+            gpu_choices_str += f"  all{' ' * max_padding}| Selects all devices\n"
 
         return (gpu_choices, gpu_choices_str)
 
@@ -234,11 +324,89 @@ class AMDSMIHelpers():
         return True, selected_device_handles
 
 
-    def handle_gpus(self, args, logger, subcommand):
+    def get_device_handles_from_cpu_selections(self, cpu_selections: List[str], cpu_choices=None):
+        """Convert provided cpu_selections to device_handles
+
+        Args:
+            cpu_selections (list[str]): Selected CPU ID(s):
+                    ex: ID:0
+            cpu_choices (dict{cpu_choices}): This is a dictionary of the possible cpu_choices
+        Returns:
+            (True, list[device_handles]): Returns a list of all the cpu_selections converted to
+                amdsmi device_handles
+            (False, str): Return False, and the first input that failed to be converted
+        """
+        if 'all' in cpu_selections:
+            return (True, amdsmi_interface.amdsmi_get_cpusocket_handles())
+
+        if isinstance(cpu_selections, str):
+            cpu_selections = [cpu_selections]
+
+        if cpu_choices is None:
+            cpu_choices = self.get_cpu_choices()[0]
+
+        selected_device_handles = []
+        for cpu_selection in cpu_selections:
+            valid_cpu_choice = False
+            for cpu_id, cpu_info in cpu_choices.items():
+                device_handle = cpu_info['Device Handle']
+
+                # Check if passed gpu is a gpu ID
+                if cpu_selection == cpu_id:
+                    selected_device_handles.append(device_handle)
+                    valid_cpu_choice = True
+                    break
+            if not valid_cpu_choice:
+                logging.debug(f"AMDSMIHelpers.get_device_handles_from_cpu_selections - Unable to convert {cpu_selection}")
+                return False, cpu_selection
+        return True, selected_device_handles
+
+
+    def get_device_handles_from_core_selections(self, core_selections: List[str], core_choices=None):
+        """Convert provided core_selections to device_handles
+
+        Args:
+            core_selections (list[str]): Selected CORE ID(s):
+                    ex: ID:0
+            core_choices (dict{core_choices}): This is a dictionary of the possible core_choices
+        Returns:
+            (True, list[device_handles]): Returns a list of all the core_selections converted to
+                amdsmi device_handles
+            (False, str): Return False, and the first input that failed to be converted
+        """
+        if 'all' in core_selections:
+            return (True, amdsmi_interface.amdsmi_get_cpucore_handles())
+
+        if isinstance(core_selections, str):
+            core_selections = [core_selections]
+
+        if core_choices is None:
+            core_choices = self.get_core_choices()[0]
+
+        selected_device_handles = []
+        for core_selection in core_selections:
+            valid_cpu_choice = False
+            for core_id, core_info in core_choices.items():
+                device_handle = core_info['Device Handle']
+
+                # Check if passed core is a core ID
+                if core_selection == core_id:
+                    selected_device_handles.append(device_handle)
+                    valid_core_choice = True
+                    break
+            if not valid_core_choice:
+                logging.debug(f"AMDSMIHelpers.get_device_handles_from_core_selections - Unable to convert {core_selection}")
+                return False, core_selection
+        return True, selected_device_handles
+
+
+    def handle_gpus(self, args,logger, subcommand):
         """This function will run execute the subcommands based on the number
             of gpus passed in via args.
         params:
             args - argparser args to pass to subcommand
+            current_platform_args (list) - GPU supported platform arguments
+            current_platform_values (list) - GPU supported values for the arguments
             logger (AMDSMILogger) - Logger to print out output
             subcommand (AMDSMICommands) - Function that can handle multiple gpus
 
@@ -260,9 +428,70 @@ class AMDSMIHelpers():
                 args.gpu = args.gpu[0]
                 return False, args.gpu
             else:
-                raise IndexError("args.gpu should not be an empty list")
+                logging.debug("args.gpu has an empty list")
         else:
             return False, args.gpu
+
+
+    def handle_cpus(self, args, logger, subcommand):
+        """This function will run execute the subcommands based on the number
+            of cpus passed in via args.
+        params:
+            args - argparser args to pass to subcommand
+            logger (AMDSMILogger) - Logger to print out output
+            subcommand (AMDSMICommands) - Function that can handle multiple gpus
+
+        return:
+            tuple(bool, device_handle) :
+                bool - True if executed subcommand for multiple devices
+                device_handle - Return the device_handle if the list of devices is a length of 1
+            (handled_multiple_gpus, device_handle)
+
+        """
+        if isinstance(args.cpu, list):
+            if len(args.cpu) > 1:
+                for device_handle in args.cpu:
+                    # Handle multiple_devices to print all output at once
+                    subcommand(args, multiple_devices=True, cpu=device_handle)
+                logger.print_output(multiple_device_enabled=True)
+                return True, args.cpu
+            elif len(args.cpu) == 1:
+                args.cpu = args.cpu[0]
+                return False, args.cpu
+            else:
+                logging.debug("args.cpu has empty list")
+        else:
+            return False, args.cpu
+
+    def handle_cores(self, args, logger, subcommand):
+        """This function will run execute the subcommands based on the number
+            of cores passed in via args.
+        params:
+            args - argparser args to pass to subcommand
+            logger (AMDSMILogger) - Logger to print out output
+            subcommand (AMDSMICommands) - Function that can handle multiple gpus
+
+        return:
+            tuple(bool, device_handle) :
+                bool - True if executed subcommand for multiple devices
+                device_handle - Return the device_handle if the list of devices is a length of 1
+            (handled_multiple_gpus, device_handle)
+
+        """
+        if isinstance(args.core, list):
+            if len(args.core) > 1:
+                for device_handle in args.core:
+                    # Handle multiple_devices to print all output at once
+                    subcommand(args, multiple_devices=True, core=device_handle)
+                logger.print_output(multiple_device_enabled=True)
+                return True, args.core
+            elif len(args.core) == 1:
+                args.core = args.core[0]
+                return False, args.core
+            else:
+                logging.debug("args.core has empty list")
+        else:
+            return False, args.core
 
 
     def handle_watch(self, args, subcommand, logger):
@@ -324,6 +553,31 @@ class AMDSMIHelpers():
         raise amdsmi_exception.AmdSmiParameterException(input_device_handle,
                                                         amdsmi_interface.amdsmi_wrapper.amdsmi_processor_handle,
                                                         "Unable to find gpu ID from device_handle")
+
+
+    def get_cpu_id_from_device_handle(self, input_device_handle):
+        """Get the cpu index from the device_handle.
+        amdsmi_interface.amdsmi_get_cpusocket_handles() returns the list of device_handles in order of cpu_index
+        """
+        device_handles = amdsmi_interface.amdsmi_get_cpusocket_handles()
+        for cpu_index, device_handle in enumerate(device_handles):
+            if input_device_handle.value == device_handle.value:
+                return cpu_index
+        raise amdsmi_exception.AmdSmiParameterException(input_device_handle,
+                                                        amdsmi_interface.amdsmi_wrapper.amdsmi_processor_handle,
+                                                        "Unable to find cpu ID from device_handle")
+
+    def get_core_id_from_device_handle(self, input_device_handle):
+        """Get the core index from the device_handle.
+        amdsmi_interface.amdsmi_get_cpusocket_handles() returns the list of device_handles in order of cpu_index
+        """
+        device_handles = amdsmi_interface.amdsmi_get_cpucore_handles()
+        for core_index, device_handle in enumerate(device_handles):
+            if input_device_handle.value == device_handle.value:
+                return core_index
+        raise amdsmi_exception.AmdSmiParameterException(input_device_handle,
+                                                        amdsmi_interface.amdsmi_wrapper.amdsmi_processor_handle,
+                                                        "Unable to find core ID from device_handle")
 
 
     def get_amd_gpu_bdfs(self):
