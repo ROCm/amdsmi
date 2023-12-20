@@ -72,6 +72,8 @@ class AMDSMIParser(argparse.ArgumentParser):
         # Helper variables
         self.helpers = AMDSMIHelpers()
         self.gpu_choices, self.gpu_choices_str = self.helpers.get_gpu_choices()
+        self.cpu_choices, self.cpu_choices_str = self.helpers.get_cpu_choices()
+        self.core_choices, self.core_choices_str = self.helpers.get_core_choices()
         self.vf_choices = ['3', '2', '1']
 
         version_string = f"Version: {__version__}"
@@ -233,6 +235,56 @@ class AMDSMIParser(argparse.ArgumentParser):
         return _GPUSelectAction
 
 
+    def _cpu_select(self, cpu_choices):
+        """ Custom argparse action to return the device handle(s) for the cpu(s) selected
+        This will set the destination (args.cpu) to a list of 1 or more device handles
+        If 1 or more device handles are not found then raise an ArgumentError for the first invalid cpu seen
+        """
+        amdsmi_helpers = self.helpers
+        class _CPUSelectAction(argparse.Action):
+            ouputformat=self.helpers.get_output_format()
+            # Checks the values
+            def __call__(self, parser, args, values, option_string=None):
+                if "all" in cpu_choices:
+                    del cpu_choices["all"]
+                status, selected_device_handles = amdsmi_helpers.get_device_handles_from_cpu_selections(cpu_selections=values,
+                                                                                                        cpu_choices=cpu_choices)
+                if status:
+                    setattr(args, self.dest, selected_device_handles)
+                else:
+                    if selected_device_handles == '':
+                        raise amdsmi_cli_exceptions.AmdSmiMissingParameterValueException("--cpu", _CPUSelectAction.ouputformat)
+                    else:
+                        raise amdsmi_cli_exceptions.AmdSmiDeviceNotFoundException(selected_device_handles,
+                                                                                  _CPUSelectAction.ouputformat)
+        return _CPUSelectAction
+
+
+    def _core_select(self, core_choices):
+        """ Custom argparse action to return the device handle(s) for the core(s) selected
+        This will set the destination (args.core) to a list of 1 or more device handles
+        If 1 or more device handles are not found then raise an ArgumentError for the first invalid core seen
+        """
+        amdsmi_helpers = self.helpers
+        class _CoreSelectAction(argparse.Action):
+            ouputformat=self.helpers.get_output_format()
+            # Checks the values
+            def __call__(self, parser, args, values, option_string=None):
+                if "all" in core_choices:
+                    del core_choices["all"]
+                status, selected_device_handles = amdsmi_helpers.get_device_handles_from_core_selections(core_selections=values,
+                                                                                                        core_choices=core_choices)
+                if status:
+                    setattr(args, self.dest, selected_device_handles)
+                else:
+                    if selected_device_handles == '':
+                        raise amdsmi_cli_exceptions.AmdSmiMissingParameterValueException("--core", _CoreSelectAction.ouputformat)
+                    else:
+                        raise amdsmi_cli_exceptions.AmdSmiDeviceNotFoundException(selected_device_handles,
+                                                                                  _CoreSelectAction.ouputformat)
+        return _CoreSelectAction
+
+
     def _add_command_modifiers(self, subcommand_parser):
         json_help = "Displays output in JSON format (human readable by default)."
         csv_help = "Displays output in CSV format (human readable by default)."
@@ -274,11 +326,18 @@ class AMDSMIParser(argparse.ArgumentParser):
         gpu_help = f"Select a GPU ID, BDF, or UUID from the possible choices:\n{self.gpu_choices_str}"
         vf_help = "Gets general information about the specified VF (timeslice, fb info, …).\
                     \nAvailable only on virtualization OSs"
+        cpu_help = f"Select a CPU ID from the possible choices:\n{self.cpu_choices_str}"
+        core_help = f"Select a Core ID from the possible choices:\n{self.core_choices_str}"
+
 
         # Mutually Exclusive Args within the subparser
         device_args = subcommand_parser.add_mutually_exclusive_group(required=required)
         device_args.add_argument('-g', '--gpu', action=self._gpu_select(self.gpu_choices),
                                     nargs='+', help=gpu_help)
+        device_args.add_argument('-U', '--cpu', action=self._cpu_select(self.cpu_choices),
+                                    nargs='+', help=cpu_help)
+        device_args.add_argument('-O', '--core', action=self._core_select(self.core_choices),
+                                    nargs='+', help=core_help)
 
         if self.helpers.is_hypervisor():
             device_args.add_argument('-v', '--vf', action='store', nargs='+',
@@ -345,11 +404,16 @@ class AMDSMIParser(argparse.ArgumentParser):
         fb_help = "Displays Frame Buffer information"
         num_vf_help = "Displays number of supported and enabled VFs"
 
+        # Options arguments help text for cpu
+        smu_help = "All SMU FW information"
+        interface_help = "Displays hsmp interface version"
+
         # Create static subparser
         static_parser = subparsers.add_parser('static', help=static_help, description=static_subcommand_help)
         static_parser._optionals.title = static_optionals_title
         static_parser.formatter_class=lambda prog: AMDSMISubparserHelpFormatter(prog)
         static_parser.set_defaults(func=func)
+        cpu_group = static_parser.add_argument_group("CPU Option<s>")
 
         # Add Universal Arguments
         self._add_command_modifiers(static_parser)
@@ -363,7 +427,8 @@ class AMDSMIParser(argparse.ArgumentParser):
         static_parser.add_argument('-v', '--vram', action='store_true', required=False, help=vram_help)
         static_parser.add_argument('-c', '--cache', action='store_true', required=False, help=cache_help)
         static_parser.add_argument('-B', '--board', action='store_true', required=False, help=board_help)
-
+        cpu_group.add_argument('-s', '--smu', action='store_true', required=False, help=smu_help)
+        cpu_group.add_argument('-i', '--interface_ver', action='store_true', required=False, help=interface_help)
         # Options to display on Hypervisors and Baremetal
         if self.helpers.is_hypervisor() or self.helpers.is_baremetal():
             static_parser.add_argument('-r', '--ras', action='store_true', required=False, help=ras_help)
@@ -475,11 +540,55 @@ class AMDSMIParser(argparse.ArgumentParser):
         fb_usage_help = "Displays total and used Frame Buffer usage information"
         xgmi_help = "Table of current XGMI metrics information"
 
+        # Help text for cpu options
+        cpu_power_metrics_help = "Cpu power metrics"
+        cpu_proc_help = "Displays prochot status"
+        cpu_freq_help = "Displays currentFclkMemclk frequencies and cclk frequency limit"
+        cpu_c0_res_help = "Displays C0 residency"
+        cpu_lclk_dpm_help = "Displays lclk dpm level range. Requires socket ID and nbio id as inputs"
+        cpu_pwr_svi_telemtry_rails_help = "Displays svi based telemetry for all rails"
+        cpu_io_bandwidth_help = "Displays current IO bandwidth for the selected CPU.\
+        \n input parameters are bandwidth type(1) and link ID encodings\
+        \n i.e. P2, P3, G0 - G7"
+        cpu_xgmi_bandwidth_help = "Displays current XGMI bandwidth for the selected CPU\
+        \n input parameters are bandwidth type(1,2,4) and link ID encodings\
+        \n i.e. P2, P3, G0 - G7"
+        cpu_enable_apb_help = "Enables the DF p-state performance boost algorithm"
+        cpu_disable_apb_help = "Disables the DF p-state performance boost alogorithm."
+        "Input parameter is DFPstate (0 -3 )"
+        set_cpu_pow_limit_help = "Set power limit for the given socket. Input parameter is \
+power limit value."
+        set_cpu_xgmi_link_width_help = "Set max and Min linkwidth. Input parameters are \
+min and max link width values"
+        set_cpu_lclk_dpm_level_help = "Sets the max and min dpm level on a given NBIO. Inpur parameters are \
+die_index, min dpm, max dpm."
+        core_boost_limit_help = "Get booslimit for the selected cores"
+        core_curr_active_freq_core_limit_help = "Get Current CCLK limit set per Core"
+        set_soc_boost_limit_help = "Sets the boost limit for the given socket. Input parameter is \
+socket limit value"
+        set_core_boost_limit_help = "Sets the boost limit for the given core. Input parameter is \
+core limit value"
+        cpu_metrics_ver_help = "Displays metrics table version"
+        cpu_metrics_table_help = "Displays metric table"
+        core_energy_help = "Displays core energy for the selected core"
+        socket_energy_help = "Displays socket energy for the selected socket"
+        set_cpu_pwr_eff_mode_help = "Sets the power efficency mode policy. Input parameter is mode."
+        cpu_ddr_bandwidth_help = "Displays per socket max ddr bw, current utilized bw and current utilized ddr bw in percentage"
+        cpu_temp_help = "Displays cpu socket temperature"
+        cpu_dimm_temp_range_rate_help = "Displays dimm temperature range and refresh rate"
+        cpu_dimm_pow_conumption_help = "Displays dimm power conumption"
+        cpu_dimm_thermal_sensor_help = "Displays dimm thermal sensor"
+        set_cpu_gmi3_link_width_help = "Sets max and min gmi3 link width range"
+        set_cpu_pcie_lnk_rate_help = "Sets pcie link rate"
+        set_cpu_df_pstate_range_help = "Sets max and min df-pstates"
+
         # Create metric subparser
         metric_parser = subparsers.add_parser('metric', help=metric_help, description=metric_subcommand_help)
         metric_parser._optionals.title = metric_optionals_title
         metric_parser.formatter_class=lambda prog: AMDSMISubparserHelpFormatter(prog)
         metric_parser.set_defaults(func=func)
+        cpu_group = metric_parser.add_argument_group("CPU Option<s>")
+        set_group = metric_parser.add_argument_group("Set Options<s>")
 
         # Add Universal Arguments
         self._add_command_modifiers(metric_parser)
@@ -519,6 +628,36 @@ class AMDSMIParser(argparse.ArgumentParser):
             metric_parser.add_argument('-f', '--fb_usage', action='store_true', required=False, help=fb_usage_help)
             metric_parser.add_argument('-m', '--xgmi', action='store_true', required=False, help=xgmi_help)
 
+        cpu_group.add_argument('--cpu_power_metrics', action='store_true', required=False, help=cpu_power_metrics_help)
+        cpu_group.add_argument('--cpu_prochot', action='store_true', required=False, help=cpu_proc_help)
+        cpu_group.add_argument('--cpu_freq_metrics', action='store_true', required=False, help=cpu_freq_help)
+        cpu_group.add_argument('--cpu_c0_res', action='store_true', required=False, help=cpu_c0_res_help)
+        cpu_group.add_argument('--cpu_lclk_dpm_level', action='append', required=False, type=int, nargs=1, metavar=("NBIOID"), help=cpu_lclk_dpm_help)
+        cpu_group.add_argument('--cpu_pwr_svi_telemtry_rails', action='store_true', required=False, help=cpu_pwr_svi_telemtry_rails_help)
+        cpu_group.add_argument('--cpu_io_bandwidth', action='append', required=False, nargs=2, metavar=("IO_BW","LINKID_NAME"), help=cpu_io_bandwidth_help)
+        cpu_group.add_argument('--cpu_xgmi_bandwidth', action='append', required=False, nargs=2, metavar=("XGMI_BW","LINKID_NAME"), help=cpu_xgmi_bandwidth_help)
+        cpu_group.add_argument('--cpu_enable_apb', action='store_true', required=False, help=cpu_enable_apb_help)
+        cpu_group.add_argument('--cpu_disable_apb', action='append', required=False, type=int, nargs=1, metavar=("DF_PSTATE"), help=cpu_disable_apb_help)
+        set_group.add_argument('--set_cpu_pow_limit', action='append', required=False, type=int, nargs=1, metavar=("POW_LIMIT"),help=set_cpu_pow_limit_help)
+        set_group.add_argument('--set_cpu_xgmi_link_width', action='append', required=False, type=int, nargs=2, metavar=("MIN_WIDTH", "MAX_WIDTH"), help=set_cpu_xgmi_link_width_help)
+        set_group.add_argument('--set_cpu_lclk_dpm_level', action='append', required=False, type=int, nargs=3, metavar=("NBIOID", "MIN_DPM", "MAX_DPM"),help=set_cpu_lclk_dpm_level_help)
+        cpu_group.add_argument('--core_boost_limit', action='store_true', required=False, help=core_boost_limit_help)
+        cpu_group.add_argument('--core_curr_active_freq_core_limit', action='store_true', required=False, help=core_curr_active_freq_core_limit_help)
+        set_group.add_argument('--set_soc_boost_limit', action='append', required=False, type=int, nargs=1, metavar=("BOOST_LIMIT"), help=set_soc_boost_limit_help)
+        set_group.add_argument('--set_core_boost_limit', action='append', required=False, type=int, nargs=1, metavar=("BOOST_LIMIT"), help=set_core_boost_limit_help)
+        cpu_group.add_argument('--cpu_metrics_ver', action='store_true', required=False, help=cpu_metrics_ver_help)
+        cpu_group.add_argument('--cpu_metrics_table', action='store_true', required=False, help=cpu_metrics_table_help)
+        cpu_group.add_argument('--core_energy', action='store_true', required=False, help=core_energy_help)
+        cpu_group.add_argument('--socket_energy', action='store_true', required=False, help=socket_energy_help)
+        set_group.add_argument('--set_cpu_pwr_eff_mode', action='append', required=False, type=int, nargs=1, metavar=("MODE"), help=set_cpu_pwr_eff_mode_help)
+        cpu_group.add_argument('--cpu_ddr_bandwidth', action='store_true', required=False, help=cpu_ddr_bandwidth_help)
+        cpu_group.add_argument('--cpu_temp', action='store_true', required=False, help=cpu_temp_help)
+        cpu_group.add_argument('--cpu_dimm_temp_range_rate', action='append', required=False, type=int, nargs=1, metavar=("DIMM_ADDR"), help=cpu_dimm_temp_range_rate_help)
+        cpu_group.add_argument('--cpu_dimm_pow_conumption', action='append', required=False, type=int, nargs=1, metavar=("DIMM_ADDR"), help=cpu_dimm_pow_conumption_help)
+        cpu_group.add_argument('--cpu_dimm_thermal_sensor', action='append', required=False, type=int, nargs=1, metavar=("DIMM_ADDR"), help=cpu_dimm_thermal_sensor_help)
+        set_group.add_argument('--set_cpu_gmi3_link_width', action='append', required=False, type=int, nargs=2, metavar=("MIN_LW", "MAX_LW"), help=set_cpu_gmi3_link_width_help)
+        set_group.add_argument('--set_cpu_pcie_lnk_rate', action='append', required=False, type=int, nargs=1, metavar=("LINK_RATE"), help=set_cpu_pcie_lnk_rate_help)
+        set_group.add_argument('--set_cpu_df_pstate_range', action='append', required=False, type=int, nargs=2, metavar=("MAX_PSTATE", "MIN_PSTATE"), help=set_cpu_df_pstate_range_help)
 
     def _add_process_parser(self, subparsers, func):
         if self.helpers.is_hypervisor():
