@@ -3642,7 +3642,7 @@ amdsmi_status_t amdsmi_get_metrics_table_version(amdsmi_processor_handle process
 }
 
 amdsmi_status_t amdsmi_get_metrics_table(amdsmi_processor_handle processor_handle,
-                struct hsmp_metric_table *metrics_table)
+                amdsmi_hsmp_metric_table_t *metrics_table)
 {
     amdsmi_status_t status;
     struct hsmp_metric_table metrics_tbl;
@@ -3660,10 +3660,10 @@ amdsmi_status_t amdsmi_get_metrics_table(amdsmi_processor_handle processor_handl
     sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_metrics_table_get(sock_ind, &metrics_tbl));
-    *metrics_table = metrics_tbl;
-
     if (status != AMDSMI_STATUS_SUCCESS)
         return status;
+
+    std::memcpy(metrics_table, &metrics_tbl, sizeof(amdsmi_hsmp_metric_table_t));
 
     return AMDSMI_STATUS_SUCCESS;
 }
