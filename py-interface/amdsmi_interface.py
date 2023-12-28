@@ -1356,7 +1356,7 @@ def amdsmi_get_metrics_table(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    mtbl = amdsmi_wrapper.struct_hsmp_metric_table()
+    mtbl = amdsmi_wrapper.amdsmi_hsmp_metric_table_t()
 
     _check_res(amdsmi_wrapper.amdsmi_get_metrics_table(processor_handle, mtbl))
 
@@ -1381,19 +1381,19 @@ def amdsmi_get_metrics_table(
         "mtbl_gfxclk_frequency_limit": mtbl.gfxclk_frequency_limit,
         "mtbl_fclk_frequency": mtbl.fclk_frequency,
         "mtbl_uclk_frequency": mtbl.uclk_frequency,
-        "mtbl_socclk_frequency": mtbl.socclk_frequency,
-        "mtbl_vclk_frequency": mtbl.vclk_frequency,
-        "mtbl_dclk_frequency": mtbl.dclk_frequency,
-        "mtbl_lclk_frequency": mtbl.lclk_frequency,
-        "mtbl_fclk_frequency_table": mtbl.fclk_frequency_table,
-        "mtbl_uclk_frequency_table": mtbl.uclk_frequency_table,
-        "mtbl_socclk_frequency_table": mtbl.socclk_frequency_table,
-        "mtbl_vclk_frequency_table": mtbl.vclk_frequency_table,
-        "mtbl_dclk_frequency_table": mtbl.dclk_frequency_table,
-        "mtbl_lclk_frequency_table": mtbl.lclk_frequency_table,
-        "mtbl_cclk_frequency_acc": mtbl.cclk_frequency_acc,
-        "mtbl_gfxclk_frequency_acc": mtbl.gfxclk_frequency_acc,
-        "mtbl_gfxclk_frequency": mtbl.gfxclk_frequency,
+        "mtbl_socclk_frequency": list(mtbl.socclk_frequency),
+        "mtbl_vclk_frequency": list(mtbl.vclk_frequency),
+        "mtbl_dclk_frequency": list(mtbl.dclk_frequency),
+        "mtbl_lclk_frequency": list(mtbl.lclk_frequency),
+        "mtbl_fclk_frequency_table": list(mtbl.fclk_frequency_table),
+        "mtbl_uclk_frequency_table": list(mtbl.uclk_frequency_table),
+        "mtbl_socclk_frequency_table": list(mtbl.socclk_frequency_table),
+        "mtbl_vclk_frequency_table": list(mtbl.vclk_frequency_table),
+        "mtbl_dclk_frequency_table": list(mtbl.dclk_frequency_table),
+        "mtbl_lclk_frequency_table": list(mtbl.lclk_frequency_table),
+        "mtbl_cclk_frequency_acc": list(mtbl.cclk_frequency_acc),
+        "mtbl_gfxclk_frequency_acc": list(mtbl.gfxclk_frequency_acc),
+        "mtbl_gfxclk_frequency": list(mtbl.gfxclk_frequency),
         "mtbl_max_cclk_frequency": mtbl.max_cclk_frequency,
         "mtbl_min_cclk_frequency": mtbl.min_cclk_frequency,
         "mtbl_max_gfxclk_frequency": mtbl.max_gfxclk_frequency,
@@ -1402,8 +1402,8 @@ def amdsmi_get_metrics_table(
         "mtbl_min_lclk_dpm_range": mtbl.min_lclk_dpm_range,
         "mtbl_xgmi_width": mtbl.xgmi_width,
         "mtbl_xgmi_bitrate": mtbl.xgmi_bitrate,
-        "mtbl_xgmi_read_bandwidth_acc": mtbl.xgmi_read_bandwidth_acc,
-        "mtbl_xgmi_write_bandwidth_acc": mtbl.xgmi_write_bandwidth_acc,
+        "mtbl_xgmi_read_bandwidth_acc": list(mtbl.xgmi_read_bandwidth_acc),
+        "mtbl_xgmi_write_bandwidth_acc": list(mtbl.xgmi_write_bandwidth_acc),
         "mtbl_socket_c0_residency": mtbl.socket_c0_residency,
         "mtbl_socket_gfx_busy": mtbl.socket_gfx_busy,
         "mtbl_dram_bandwidth_utilization": mtbl.dram_bandwidth_utilization,
@@ -1412,7 +1412,7 @@ def amdsmi_get_metrics_table(
         "mtbl_dram_bandwidth_acc": mtbl.dram_bandwidth_acc,
         "mtbl_max_dram_bandwidth": mtbl.max_dram_bandwidth,
         "mtbl_dram_bandwidth_utilization_acc": mtbl.dram_bandwidth_utilization_acc,
-        "mtbl_pcie_bandwidth_acc": mtbl.pcie_bandwidth_acc,
+        "mtbl_pcie_bandwidth_acc": list(mtbl.pcie_bandwidth_acc),
         "mtbl_prochot_residency_acc": mtbl.prochot_residency_acc,
         "mtbl_ppt_residency_acc": mtbl.ppt_residency_acc,
         "mtbl_socket_thm_residency_acc": mtbl.socket_thm_residency_acc,
