@@ -27,6 +27,8 @@ from collections.abc import Iterable
 
 from . import amdsmi_wrapper
 from .amdsmi_exception import *
+import sys
+import math
 
 MAX_NUM_PROCESSES = 1024
 
@@ -1348,6 +1350,33 @@ def amdsmi_get_metrics_table_version(
 
     return metric_tbl_version.value
 
+
+NO_OF_32BITS = (sys.getsizeof(ctypes.c_uint32) * 8)
+NO_OF_64BITS = (sys.getsizeof(ctypes.c_uint64) * 8)
+KILO = math.pow(10, 3)
+
+# Get 2's complement of 32 bit unsigned integer
+def check_msb_32(num):
+    msb = 1 << (NO_OF_32BITS - 1)
+
+    '''If msb = 1 , then take 2's complement of the number'''
+    if num & msb:
+        num = ~num + 1
+        return num
+    else:
+       return num
+
+# Get 2's complement of 64 bit unsigned integer
+def check_msb_64(num):
+    msb = 1 << (NO_OF_64BITS - 1)
+
+    '''If msb = 1 , then take 2's complement of the number'''
+    if num & msb:
+        num = ~num + 1
+        return num
+    else:
+        return num
+
 def amdsmi_get_metrics_table(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle
 ):
@@ -1358,61 +1387,70 @@ def amdsmi_get_metrics_table(
 
     mtbl = amdsmi_wrapper.amdsmi_hsmp_metric_table_t()
 
-    _check_res(amdsmi_wrapper.amdsmi_get_metrics_table(processor_handle, mtbl))
+    '''Encodings for the metric table defined for hsmp'''
+    fraction_q10 = 1 / math.pow(2, 10)
+    fraction_uq10 = fraction_q10
+    fraction_uq16 = 1 / math.pow(2, 16)
+
+    _check_res(
+            amdsmi_wrapper.amdsmi_get_metrics_table(
+                   processor_handle, mtbl
+            )
+    )
 
     return {
         "mtbl_accumulation_counter": mtbl.accumulation_counter,
-        "mtbl_max_socket_temperature": mtbl.max_socket_temperature,
-        "mtbl_max_vr_temperature": mtbl.max_vr_temperature,
-        "mtbl_max_hbm_temperature": mtbl.max_hbm_temperature,
-        "mtbl_max_socket_temperature_acc": mtbl.max_socket_temperature_acc,
-        "mtbl_max_vr_temperature_acc": mtbl.max_vr_temperature_acc,
-        "mtbl_max_hbm_temperature_acc": mtbl.max_hbm_temperature_acc,
-        "mtbl_socket_power_limit": mtbl.socket_power_limit,
-        "mtbl_max_socket_power_limit": mtbl.max_socket_power_limit,
-        "mtbl_socket_power": mtbl.socket_power,
+        "mtbl_max_socket_temperature": round(check_msb_32(mtbl.max_socket_temperature) * fraction_q10 ,3),
+        "mtbl_max_vr_temperature": round(check_msb_32(mtbl.max_vr_temperature) * fraction_q10 ,3),
+        "mtbl_max_hbm_temperature": round(check_msb_32(mtbl.max_hbm_temperature) * fraction_q10 ,3),
+        "mtbl_max_socket_temperature_acc": round(check_msb_64(mtbl.max_socket_temperature_acc) * fraction_q10 ,3) ,
+        "mtbl_max_vr_temperature_acc": round(check_msb_64(mtbl.max_vr_temperature_acc) * fraction_q10 ,3),
+        "mtbl_max_hbm_temperature_acc": round(check_msb_64(mtbl.max_hbm_temperature_acc) * fraction_q10 ,3),
+        "mtbl_socket_power_limit": round(mtbl.socket_power_limit * fraction_uq10 ,3),
+        "mtbl_max_socket_power_limit": round(mtbl.max_socket_power_limit * fraction_uq10 ,3),
+        "mtbl_socket_power": round(mtbl.socket_power * fraction_uq10 ,3),
         "mtbl_timestamp": mtbl.timestamp,
-        "mtbl_socket_energy_acc": mtbl.socket_energy_acc,
-        "mtbl_ccd_energy_acc": mtbl.ccd_energy_acc,
-        "mtbl_xcd_energy_acc": mtbl.xcd_energy_acc,
-        "mtbl_aid_energy_acc": mtbl.aid_energy_acc,
-        "mtbl_hbm_energy_acc": mtbl.hbm_energy_acc,
-        "mtbl_cclk_frequency_limit": mtbl.cclk_frequency_limit,
-        "mtbl_gfxclk_frequency_limit": mtbl.gfxclk_frequency_limit,
-        "mtbl_fclk_frequency": mtbl.fclk_frequency,
-        "mtbl_uclk_frequency": mtbl.uclk_frequency,
-        "mtbl_socclk_frequency": list(mtbl.socclk_frequency),
-        "mtbl_vclk_frequency": list(mtbl.vclk_frequency),
-        "mtbl_dclk_frequency": list(mtbl.dclk_frequency),
-        "mtbl_lclk_frequency": list(mtbl.lclk_frequency),
-        "mtbl_fclk_frequency_table": list(mtbl.fclk_frequency_table),
-        "mtbl_uclk_frequency_table": list(mtbl.uclk_frequency_table),
-        "mtbl_socclk_frequency_table": list(mtbl.socclk_frequency_table),
-        "mtbl_vclk_frequency_table": list(mtbl.vclk_frequency_table),
-        "mtbl_dclk_frequency_table": list(mtbl.dclk_frequency_table),
-        "mtbl_lclk_frequency_table": list(mtbl.lclk_frequency_table),
-        "mtbl_cclk_frequency_acc": list(mtbl.cclk_frequency_acc),
-        "mtbl_gfxclk_frequency_acc": list(mtbl.gfxclk_frequency_acc),
-        "mtbl_gfxclk_frequency": list(mtbl.gfxclk_frequency),
-        "mtbl_max_cclk_frequency": mtbl.max_cclk_frequency,
-        "mtbl_min_cclk_frequency": mtbl.min_cclk_frequency,
-        "mtbl_max_gfxclk_frequency": mtbl.max_gfxclk_frequency,
-        "mtbl_min_gfxclk_frequency": mtbl.min_gfxclk_frequency,
+        "mtbl_socket_energy_acc": round((mtbl.socket_energy_acc * fraction_uq16)/KILO ,3),
+        "mtbl_ccd_energy_acc": round((mtbl.ccd_energy_acc * fraction_uq16)/KILO ,3),
+        "mtbl_xcd_energy_acc": round((mtbl.xcd_energy_acc * fraction_uq16)/KILO ,3),
+        "mtbl_aid_energy_acc": round((mtbl.aid_energy_acc * fraction_uq16)/KILO ,3),
+        "mtbl_hbm_energy_acc": round((mtbl.hbm_energy_acc * fraction_uq16)/KILO ,3),
+        "mtbl_cclk_frequency_limit": round(mtbl.cclk_frequency_limit * fraction_uq10 ,3),
+        "mtbl_gfxclk_frequency_limit": round(mtbl.gfxclk_frequency_limit * fraction_uq10 ,3),
+        "mtbl_fclk_frequency": round(mtbl.fclk_frequency * fraction_uq10 ,3),
+        "mtbl_uclk_frequency": round(mtbl.uclk_frequency * fraction_uq10 ,3),
+        "mtbl_socclk_frequency": [round(x*fraction_uq10 ,3) for x in list(mtbl.socclk_frequency)],
+        "mtbl_vclk_frequency": [round(x*fraction_uq10 ,3) for x in list(mtbl.vclk_frequency)],
+        "mtbl_dclk_frequency": [round(x*fraction_uq10 ,3) for x in list(mtbl.dclk_frequency)],
+        "mtbl_lclk_frequency": [round(x*fraction_uq10 ,3) for x in list(mtbl.lclk_frequency)],
+        "mtbl_fclk_frequency_table": [round(x*fraction_uq10 ,3) for x in list(mtbl.fclk_frequency_table)],
+        "mtbl_uclk_frequency_table": [round(x*fraction_uq10 ,3) for x in list(mtbl.uclk_frequency_table)],
+        "mtbl_socclk_frequency_table": [round(x*fraction_uq10 ,3) for x in list(mtbl.socclk_frequency_table)],
+        "mtbl_vclk_frequency_table": [round(x*fraction_uq10 ,3) for x in list(mtbl.vclk_frequency_table)],
+        "mtbl_dclk_frequency_table": [round(x*fraction_uq10 ,3) for x in list(mtbl.dclk_frequency_table)],
+        "mtbl_lclk_frequency_table": [round(x*fraction_uq10 ,3) for x in list(mtbl.lclk_frequency_table)],
+        "mtbl_cclk_frequency_acc": [round(x*fraction_uq10 ,3) for x in list(mtbl.cclk_frequency_acc)],
+        "mtbl_gfxclk_frequency_acc": [round(x*fraction_uq10 ,3) for x in list(mtbl.gfxclk_frequency_acc)],
+        "mtbl_gfxclk_frequency": [round(x*fraction_uq10 ,3) for x in list(mtbl.gfxclk_frequency)],
+        "mtbl_max_cclk_frequency": round(mtbl.max_cclk_frequency * fraction_uq10 ,3),
+        "mtbl_min_cclk_frequency": round(mtbl.min_cclk_frequency * fraction_uq10 ,3),
+        "mtbl_max_gfxclk_frequency": round(mtbl.max_gfxclk_frequency * fraction_uq10 ,3),
+        "mtbl_min_gfxclk_frequency": round(mtbl.min_gfxclk_frequency * fraction_uq10 ,3),
         "mtbl_max_lclk_dpm_range": mtbl.max_lclk_dpm_range,
         "mtbl_min_lclk_dpm_range": mtbl.min_lclk_dpm_range,
-        "mtbl_xgmi_width": mtbl.xgmi_width,
-        "mtbl_xgmi_bitrate": mtbl.xgmi_bitrate,
-        "mtbl_xgmi_read_bandwidth_acc": list(mtbl.xgmi_read_bandwidth_acc),
-        "mtbl_xgmi_write_bandwidth_acc": list(mtbl.xgmi_write_bandwidth_acc),
-        "mtbl_socket_c0_residency": mtbl.socket_c0_residency,
-        "mtbl_socket_gfx_busy": mtbl.socket_gfx_busy,
-        "mtbl_dram_bandwidth_utilization": mtbl.dram_bandwidth_utilization,
-        "mtbl_socket_c0_residency_acc": mtbl.socket_c0_residency_acc,
-        "mtbl_socket_gfx_busy_acc": mtbl.socket_gfx_busy_acc,
-        "mtbl_dram_bandwidth_acc": mtbl.dram_bandwidth_acc,
-        "mtbl_max_dram_bandwidth": mtbl.max_dram_bandwidth,
-        "mtbl_dram_bandwidth_utilization_acc": mtbl.dram_bandwidth_utilization_acc,
-        "mtbl_pcie_bandwidth_acc": list(mtbl.pcie_bandwidth_acc),
+        "mtbl_xgmi_width": round(mtbl.xgmi_width * fraction_uq10 ,3),
+        "mtbl_xgmi_bitrate": round(mtbl.xgmi_bitrate * fraction_uq10 ,3),
+        "mtbl_xgmi_read_bandwidth_acc": [round(x*fraction_uq10 ,3) for x in list(mtbl.xgmi_read_bandwidth_acc)],
+        "mtbl_xgmi_write_bandwidth_acc": [round(x*fraction_uq10 ,3) for x in list(mtbl.xgmi_write_bandwidth_acc)],
+        "mtbl_socket_c0_residency": round(mtbl.socket_c0_residency * fraction_uq10 ,3),
+        "mtbl_socket_gfx_busy": round(mtbl.socket_gfx_busy * fraction_uq10 ,3),
+        "mtbl_dram_bandwidth_utilization": round(mtbl.dram_bandwidth_utilization * fraction_uq10 ,3),
+        "mtbl_socket_c0_residency_acc": round(mtbl.socket_c0_residency_acc * fraction_uq10 ,3),
+        "mtbl_socket_gfx_busy_acc": round(mtbl.socket_gfx_busy_acc * fraction_uq10 ,3),
+        "mtbl_dram_bandwidth_acc": round(mtbl.dram_bandwidth_acc * fraction_uq10 ,3),
+        "mtbl_max_dram_bandwidth": round(mtbl.max_dram_bandwidth * fraction_uq10 ,3),
+        "mtbl_dram_bandwidth_utilization_acc": round(mtbl.dram_bandwidth_utilization_acc * fraction_uq10 ,3),
+        "mtbl_pcie_bandwidth_acc": [round(x*fraction_uq10 ,3) for x in list(mtbl.pcie_bandwidth_acc)],
         "mtbl_prochot_residency_acc": mtbl.prochot_residency_acc,
         "mtbl_ppt_residency_acc": mtbl.ppt_residency_acc,
         "mtbl_socket_thm_residency_acc": mtbl.socket_thm_residency_acc,
