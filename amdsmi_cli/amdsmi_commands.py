@@ -1939,12 +1939,12 @@ class AMDSMICommands():
                 static_dict["metrics_table"]["response"] = "N/A"
                 # Note:- amdsmi_get_metrics_table has been disabled as there is fix needed in the library API and will be
                 # in next version
-                """try:
+                try:
                     metrics_table = amdsmi_interface.amdsmi_get_metrics_table(args.cpu)
                     static_dict["metrics_table"]["response"] = metrics_table
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     static_dict["metrics_table"]["response"] = "N/A"
-                    logging.debug("Failed to get metrics table for cpu %s | %s", cpu_id, e.get_error_info())"""
+                    logging.debug("Failed to get metrics table for cpu %s | %s", cpu_id, e.get_error_info())
 
             if (args.socket_energy):
                 static_dict["socket_energy"] = {}
