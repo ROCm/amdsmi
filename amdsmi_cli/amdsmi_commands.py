@@ -1722,7 +1722,7 @@ class AMDSMICommands():
                                   "socket_energy", "set_cpu_pwr_eff_mode", "cpu_ddr_bandwidth",
                                   "cpu_temp", "cpu_dimm_temp_range_rate", "cpu_dimm_pow_conumption",
                                   "cpu_dimm_thermal_sensor", "set_cpu_gmi3_link_width", "set_cpu_pcie_lnk_rate",
-                                  "set_cpu_df_pstate_range"]
+                                  "set_cpu_df_pstate_range", "cpu_enable_apb"]
         curr_platform_cpu_values = [args.cpu_power_metrics, args.cpu_prochot, args.cpu_freq_metrics,
                                     args.cpu_c0_res, args.cpu_lclk_dpm_level, args.cpu_pwr_svi_telemtry_rails,
                                     args.cpu_io_bandwidth, args.cpu_xgmi_bandwidth, args.cpu_disable_apb,
@@ -1731,7 +1731,7 @@ class AMDSMICommands():
                                     args.socket_energy, args.set_cpu_pwr_eff_mode, args.cpu_ddr_bandwidth,
                                     args.cpu_temp, args.cpu_dimm_temp_range_rate, args.cpu_dimm_pow_conumption,
                                     args.cpu_dimm_thermal_sensor, args.set_cpu_gmi3_link_width, args.set_cpu_pcie_lnk_rate,
-                                    args.set_cpu_df_pstate_range]
+                                    args.set_cpu_df_pstate_range, args.cpu_enable_apb]
 
 
         # Handle No CPU passed
@@ -1744,7 +1744,8 @@ class AMDSMICommands():
                               "set_cpu_pow_limit", "set_cpu_xgmi_link_width", "set_cpu_lclk_dpm_level",
                               "set_soc_boost_limit", "set_cpu_pwr_eff_mode", "cpu_dimm_temp_range_rate",
                               "cpu_dimm_temp_range_rate", "cpu_dimm_pow_conumption", "cpu_dimm_thermal_sensor",
-                              "set_cpu_gmi3_link_width", "set_cpu_pcie_lnk_rate", "set_cpu_df_pstate_range"):
+                              "set_cpu_gmi3_link_width", "set_cpu_pcie_lnk_rate", "set_cpu_df_pstate_range",
+                              "cpu_enable_apb"):
                     setattr(args, arg, True)
 
         if (len(self.cpu_handles)):
