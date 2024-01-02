@@ -1246,8 +1246,8 @@ def amdsmi_get_cpu_socket_lclk_dpm_level(
     _check_res(amdsmi_wrapper.amdsmi_get_cpu_socket_lclk_dpm_level(processor_handle, nbio_id, dpm_level))
 
     return {
-        "nbio_max_dpm_level": nbio.max_dpm_level,
-        "nbio_min_dpm_level": nbio.min_dpm_level
+        "nbio_max_dpm_level": dpm_level.max_dpm_level,
+        "nbio_min_dpm_level": dpm_level.min_dpm_level
     }
 
 def amdsmi_set_cpu_pcie_link_rate(
