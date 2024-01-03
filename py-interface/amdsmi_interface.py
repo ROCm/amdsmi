@@ -819,7 +819,7 @@ def amdsmi_get_cpu_cclk_limit(
 
 def amdsmi_get_cpu_socket_current_active_freq_limit(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle
-) -> int:
+):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
@@ -827,13 +827,17 @@ def amdsmi_get_cpu_socket_current_active_freq_limit(
 
     freq = ctypes.c_uint16()
     src_type = ctypes.pointer(ctypes.pointer(ctypes.c_char()))
+
     _check_res(
         amdsmi_wrapper.amdsmi_get_cpu_socket_current_active_freq_limit(
             processor_handle, ctypes.byref(freq), src_type
         )
     )
 
-    return f"{freq.value} MHz"
+    return {
+            "freq": f"{freq.value} MHz",
+            "freq_src": f"{amdsmi_wrapper.string_cast(src_type.contents)}"
+    }
 
 def amdsmi_get_cpu_socket_freq_range(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle
