@@ -1838,7 +1838,7 @@ class AMDSMICommands():
                                                                                     args.cpu_lclk_dpm_level[0][0])
                     static_dict["socket_dpm"]["dpml_level_range"] = dpm_val
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["socket_dpm"]["dpml_level_range"] = dpm_val
+                    static_dict["socket_dpm"]["dpml_level_range"] = "N/A"
                     logging.debug("Failed to get socket dpm level range for cpu %s | %s", cpu_id, e.get_error_info())
 
             if (args.cpu_pwr_svi_telemtry_rails):
@@ -1893,7 +1893,7 @@ class AMDSMICommands():
                     amdsmi_interface.amdsmi_set_cpu_socket_power_cap(args.cpu, args.set_cpu_pow_limit[0][0])
                     static_dict["set_pow_limit"]["Response"] = "Set Operation successful"
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["set_pow_limit"]["Response"] = "Set Operation successful"
+                    static_dict["set_pow_limit"]["Response"] = "N/A"
                     logging.debug("Failed to set power limit for cpu %s | %s", cpu_id, e.get_error_info())
 
             if (args.set_cpu_xgmi_link_width):

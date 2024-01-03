@@ -654,9 +654,12 @@ core limit value"
         set_group.add_argument('--set_cpu_pwr_eff_mode', action='append', required=False, type=int, nargs=1, metavar=("MODE"), help=set_cpu_pwr_eff_mode_help)
         cpu_group.add_argument('--cpu_ddr_bandwidth', action='store_true', required=False, help=cpu_ddr_bandwidth_help)
         cpu_group.add_argument('--cpu_temp', action='store_true', required=False, help=cpu_temp_help)
-        cpu_group.add_argument('--cpu_dimm_temp_range_rate', action='append', required=False, type=int, nargs=1, metavar=("DIMM_ADDR"), help=cpu_dimm_temp_range_rate_help)
-        cpu_group.add_argument('--cpu_dimm_pow_conumption', action='append', required=False, type=int, nargs=1, metavar=("DIMM_ADDR"), help=cpu_dimm_pow_conumption_help)
-        cpu_group.add_argument('--cpu_dimm_thermal_sensor', action='append', required=False, type=int, nargs=1, metavar=("DIMM_ADDR"), help=cpu_dimm_thermal_sensor_help)
+        cpu_group.add_argument('--cpu_dimm_temp_range_rate', action='append', required=False, type=lambda x: int(x, 0),
+                                nargs=1, metavar=("DIMM_ADDR"), help=cpu_dimm_temp_range_rate_help)
+        cpu_group.add_argument('--cpu_dimm_pow_conumption', action='append', required=False, type=lambda x: int(x, 0),
+                                nargs=1, metavar=("DIMM_ADDR"), help=cpu_dimm_pow_conumption_help)
+        cpu_group.add_argument('--cpu_dimm_thermal_sensor', action='append', required=False, type=lambda x: int(x, 0),
+                                nargs=1, metavar=("DIMM_ADDR"), help=cpu_dimm_thermal_sensor_help)
         set_group.add_argument('--set_cpu_gmi3_link_width', action='append', required=False, type=int, nargs=2, metavar=("MIN_LW", "MAX_LW"), help=set_cpu_gmi3_link_width_help)
         set_group.add_argument('--set_cpu_pcie_lnk_rate', action='append', required=False, type=int, nargs=1, metavar=("LINK_RATE"), help=set_cpu_pcie_lnk_rate_help)
         set_group.add_argument('--set_cpu_df_pstate_range', action='append', required=False, type=int, nargs=2, metavar=("MAX_PSTATE", "MIN_PSTATE"), help=set_cpu_df_pstate_range_help)

@@ -1088,9 +1088,12 @@ def amdsmi_get_cpu_dimm_temp_range_and_refresh_rate(
     if not isinstance(dimm_addr, int):
         raise AmdSmiParameterException(dimm_addr, int)
 
+    dimm_addr = ctypes.c_uint8(dimm_addr)
     dimm = amdsmi_wrapper.amdsmi_temp_range_refresh_rate_t()
 
-    _check_res(amdsmi_wrapper.amdsmi_get_cpu_dimm_temp_range_and_refresh_rate(processor_handle, dimm))
+    _check_res(amdsmi_wrapper.amdsmi_get_cpu_dimm_temp_range_and_refresh_rate(processor_handle,
+                                                                                dimm_addr,
+                                                                                ctypes.byref(dimm)))
 
     return {
         "dimm_temperature_range": dimm.range,
@@ -1107,9 +1110,12 @@ def amdsmi_get_cpu_dimm_power_consumption(
     if not isinstance(dimm_addr, int):
         raise AmdSmiParameterException(dimm_addr, int)
 
+    dimm_addr = ctypes.c_uint8(dimm_addr)
     dimm = amdsmi_wrapper.amdsmi_dimm_power_t()
 
-    _check_res(amdsmi_wrapper.amdsmi_get_cpu_dimm_power_consumption(processor_handle, dimm))
+    _check_res(amdsmi_wrapper.amdsmi_get_cpu_dimm_power_consumption(processor_handle,
+                                                                    dimm_addr,
+                                                                    ctypes.byref(dimm)))
 
     return {
         "dimm_power_consumed": f"{dimm.power} mW",
@@ -1127,9 +1133,12 @@ def amdsmi_get_cpu_dimm_thermal_sensor(
     if not isinstance(dimm_addr, int):
         raise AmdSmiParameterException(dimm_addr, int)
 
+    dimm_addr = ctypes.c_uint8(dimm_addr)
     dimm_thermal = amdsmi_wrapper.amdsmi_dimm_thermal_t()
 
-    _check_res(amdsmi_wrapper.amdsmi_get_cpu_dimm_thermal_sensor(processor_handle, dimm_thermal))
+    _check_res(amdsmi_wrapper.amdsmi_get_cpu_dimm_thermal_sensor(processor_handle,
+                                                                    dimm_addr,
+                                                                    ctypes.byref(dimm_thermal)))
 
     return {
         "dimm_thermal_sensor_value": dimm_thermal.sensor,
