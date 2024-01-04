@@ -743,7 +743,7 @@ def amdsmi_get_cpu_core_energy(
         )
     )
 
-    return f"{penergy.value} J"
+    return f"{float(penergy.value * pow(10, -6))} J"
 
 def amdsmi_get_cpu_socket_energy(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle
@@ -760,7 +760,7 @@ def amdsmi_get_cpu_socket_energy(
         )
     )
 
-    return f"{penergy.value} J"
+    return f"{float(penergy.value * pow(10, -6))} J"
 
 def amdsmi_get_cpu_prochot_status(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle
