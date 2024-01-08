@@ -1720,7 +1720,7 @@ amdsmi_dpm_level_t = struct_amdsmi_dpm_level_t
 class struct_amdsmi_hsmp_metric_table_t(Structure):
     pass
 
-struct_amdsmi_hsmp_metric_table_t._pack_ = 1 # source:False
+struct_amdsmi_hsmp_metric_table_t._pack_ = 1 # source:True
 struct_amdsmi_hsmp_metric_table_t._fields_ = [
     ('accumulation_counter', ctypes.c_uint32),
     ('max_socket_temperature', ctypes.c_uint32),
@@ -1732,7 +1732,6 @@ struct_amdsmi_hsmp_metric_table_t._fields_ = [
     ('socket_power_limit', ctypes.c_uint32),
     ('max_socket_power_limit', ctypes.c_uint32),
     ('socket_power', ctypes.c_uint32),
-    ('PADDING_0', ctypes.c_ubyte * 4),
     ('timestamp', ctypes.c_uint64),
     ('socket_energy_acc', ctypes.c_uint64),
     ('ccd_energy_acc', ctypes.c_uint64),
@@ -1768,12 +1767,10 @@ struct_amdsmi_hsmp_metric_table_t._fields_ = [
     ('socket_c0_residency', ctypes.c_uint32),
     ('socket_gfx_busy', ctypes.c_uint32),
     ('dram_bandwidth_utilization', ctypes.c_uint32),
-    ('PADDING_1', ctypes.c_ubyte * 4),
     ('socket_c0_residency_acc', ctypes.c_uint64),
     ('socket_gfx_busy_acc', ctypes.c_uint64),
     ('dram_bandwidth_acc', ctypes.c_uint64),
     ('max_dram_bandwidth', ctypes.c_uint32),
-    ('PADDING_2', ctypes.c_ubyte * 4),
     ('dram_bandwidth_utilization_acc', ctypes.c_uint64),
     ('pcie_bandwidth_acc', ctypes.c_uint64 * 4),
     ('prochot_residency_acc', ctypes.c_uint32),
