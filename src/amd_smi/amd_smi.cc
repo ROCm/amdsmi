@@ -3653,6 +3653,9 @@ amdsmi_status_t amdsmi_get_metrics_table(amdsmi_processor_handle processor_handl
     if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
+    if(sizeof(amdsmi_hsmp_metric_table_t) != sizeof(struct hsmp_metric_table))
+        return AMDSMI_STATUS_UNEXPECTED_SIZE;
+
     amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
