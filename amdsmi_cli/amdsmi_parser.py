@@ -575,7 +575,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         \n input parameters are bandwidth type(1,2,4) and link ID encodings\
         \n i.e. P2, P3, G0 - G7"
         cpu_enable_apb_help = "Enables the DF p-state performance boost algorithm"
-        cpu_disable_apb_help = "Disables the DF p-state performance boost alogorithm."
+        cpu_disable_apb_help = "Disables the DF p-state performance boost algorithm."
         "Input parameter is DFPstate (0 -3 )"
         set_cpu_pow_limit_help = "Set power limit for the given socket. Input parameter is \
 power limit value."
@@ -597,7 +597,7 @@ core limit value"
         cpu_ddr_bandwidth_help = "Displays per socket max ddr bw, current utilized bw and current utilized ddr bw in percentage"
         cpu_temp_help = "Displays cpu socket temperature"
         cpu_dimm_temp_range_rate_help = "Displays dimm temperature range and refresh rate"
-        cpu_dimm_pow_conumption_help = "Displays dimm power conumption"
+        cpu_dimm_pow_conumption_help = "Displays dimm power consumption"
         cpu_dimm_thermal_sensor_help = "Displays dimm thermal sensor"
         set_cpu_gmi3_link_width_help = "Sets max and min gmi3 link width range"
         set_cpu_pcie_lnk_rate_help = "Sets pcie link rate"
