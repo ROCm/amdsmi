@@ -58,11 +58,11 @@
     {                                                                          \
         if (RET != AMDSMI_STATUS_SUCCESS) {                                    \
             const char *err_str;                                               \
-            const char **status_str;                                           \
-            cout << "AMDSMI call returned " << RET << " at line "              \
-                      << __LINE__ << endl;                                     \
-            status_str = amdsmi_get_esmi_err_msg(RET, &err_str);               \
-            cout << *status_str << endl;                                       \
+            amdsmi_status_t status;                                            \
+            status = amdsmi_get_esmi_err_msg(RET, &err_str);                   \
+            std::cout << "AMDSMI call returned " << status << " at line "      \
+                      << __LINE__ << std::endl;                                \
+            std::cout << err_str << std::endl;                                 \
             return RET;                                                        \
         }                                                                      \
     }
@@ -130,14 +130,16 @@ int main(int argc, char **argv) {
 
     for (uint32_t index = 0; index < plist.size(); index++) {
       ret = amdsmi_get_cpu_hsmp_proto_ver(plist[index], &proto_ver);
-      CHK_AMDSMI_RET(ret)
+      if(ret != AMDSMI_STATUS_SUCCESS)
+          cout<<"Failed to get hsmp proto version"<<"["<<index<<"] , Err["<<ret<<"] "<< endl;
 
       cout<<"\n------------------------------------------";
       cout<<"\n| HSMP Proto Version  |  "<< proto_ver <<"\t\t |"<< endl;
       cout<<"------------------------------------------\n";
 
       ret = amdsmi_get_cpu_smu_fw_version(plist[index], &smu_fw);
-      CHK_AMDSMI_RET(ret)
+      if(ret != AMDSMI_STATUS_SUCCESS)
+          cout<<"Failed to get smu fw version"<<"["<<index<<"] , Err["<<ret<<"] "<< endl;
 
       cout<<"\n------------------------------------------";
       cout<<"\n| SMU FW Version  |  "
@@ -153,8 +155,11 @@ int main(int argc, char **argv) {
       cout<<setprecision(3)<<" CPU "<<index<<"\t|";
       cout<<"\n-------------------------------------------------";
       cout<<"\n| ProchotStatus:\t\t |";
+
       ret = amdsmi_get_cpu_prochot_status(plist[index], &prochot);
-      CHK_AMDSMI_RET(ret)
+      if(ret != AMDSMI_STATUS_SUCCESS)
+          cout<<"Failed to get prochot status"<<"["<<index<<"] , Err["<<ret<<"] "<< endl;
+
       if (!ret) {
           cout<<setprecision(7)<< (prochot ? "active" : "inactive")<<"\t|";
       } else {
@@ -174,8 +179,11 @@ int main(int argc, char **argv) {
       len = strlen(str);
       uint32_t fclk, mclk, cclk;
       err_bits = 0;
+
       ret = amdsmi_get_cpu_fclk_mclk(plist[index], &fclk, &mclk);
-      CHK_AMDSMI_RET(ret)
+      if(ret != AMDSMI_STATUS_SUCCESS)
+          cout<<"Failed to get cpu fclk mclk"<<"["<<index<<"] , Err["<<ret<<"] "<< endl;
+
       if (!ret) {
           cout<<setprecision(7)<<" "<<fclk<<"\t\t|";
           retVal = snprintf(str + len, SHOWLINESZ - len, " %d\t\t|", mclk);
@@ -197,7 +205,8 @@ int main(int argc, char **argv) {
       cout<<"\n| Power (Watts)\t\t\t | ";
 
       ret = amdsmi_get_cpu_socket_power(plist[index], &socket_power);
-      CHK_AMDSMI_RET(ret)
+      if(ret != AMDSMI_STATUS_SUCCESS)
+          cout<<"Failed to get cpu socket power"<<"["<<index<<"] , Err["<<ret<<"] "<< endl;
 
       if (!ret) {
           cout<<fixed<<setprecision(3)<<static_cast<double>(socket_power)/1000<<"\t|";
@@ -210,7 +219,8 @@ int main(int argc, char **argv) {
       cout<<"\n| PowerLimit (Watts)\t\t | ";
 
       ret = amdsmi_get_cpu_socket_power_cap(plist[index], &power_limit);
-      CHK_AMDSMI_RET(ret)
+      if(ret != AMDSMI_STATUS_SUCCESS)
+          cout<<"Failed to get cpu socket power cap"<<"["<<index<<"] , Err["<<ret<<"] "<< endl;
 
       if (!ret) {
           cout<<fixed<<setprecision(3)<<static_cast<double>(power_limit)/1000<<"\t|";
@@ -223,7 +233,8 @@ int main(int argc, char **argv) {
       cout<<"\n| PowerLimitMax (Watts)\t\t | ";
 
       ret = amdsmi_get_cpu_socket_power_cap_max(plist[index], &power_max);
-      CHK_AMDSMI_RET(ret)
+      if(ret != AMDSMI_STATUS_SUCCESS)
+          cout<<"Failed to get cpu socket power cap max"<<"["<<index<<"] , Err["<<ret<<"] "<< endl;
 
       if (!ret) {
           cout<<fixed<<setprecision(3)<<static_cast<double>(power_max)/1000<<"\t|";
@@ -237,15 +248,21 @@ int main(int argc, char **argv) {
       power_max = 0;
       cout<<"\nEnter the max power to be set:\n";
       cin>>input_power;
+
       ret = amdsmi_get_cpu_socket_power_cap_max(plist[index], &power_max);
-      CHK_AMDSMI_RET(ret)
+      if(ret != AMDSMI_STATUS_SUCCESS)
+          cout<<"Failed to get cpu socket power cap max"<<"["<<index<<"] , Err["<<ret<<"] "<< endl;
+
       if ((ret == AMDSMI_STATUS_SUCCESS) && (input_power > power_max)) {
           cout<<"Input power is more than max power limit,"
               " limiting to "<<static_cast<double>(power_max)/1000<<"Watts\n";
           input_power = power_max;
       }
+
       ret = amdsmi_set_cpu_socket_power_cap(plist[index], input_power);
-      CHK_AMDSMI_RET(ret)
+      if(ret != AMDSMI_STATUS_SUCCESS)
+          cout<<"Failed to set cpu socket power cap"<<"["<<index<<"] , Err["<<ret<<"] "<< endl;
+
       if (!ret) {
           cout<<"CPU ["<<index<<"] power_limit set to "
           <<fixed<<setprecision(3)<<static_cast<double>(input_power)/1000<<" Watts successfully\n";
@@ -253,8 +270,10 @@ int main(int argc, char **argv) {
 
       power_limit = 0;
       cout<<"\n| PowerLimit (Watts) \t\t | ";
+
       ret = amdsmi_get_cpu_socket_power_cap(plist[index], &power_limit);
-      CHK_AMDSMI_RET(ret)
+      if(ret != AMDSMI_STATUS_SUCCESS)
+          cout<<"Failed to get cpu socket power cap"<<"["<<index<<"] , Err["<<ret<<"] "<< endl;
 
       if (!ret) {
           cout<<fixed<<setprecision(3)<<static_cast<double>(power_limit)/1000<<"\t|";
@@ -270,11 +289,9 @@ int main(int argc, char **argv) {
 
       amdsmi_hsmp_metric_table_t mtbl = {};
       ret = amdsmi_get_metrics_table(plist[index], &mtbl);
-      CHK_AMDSMI_RET(ret)
 
       if (ret != AMDSMI_STATUS_SUCCESS) {
-          cout<<"Failed to get Metrics Table for CPU["<<index<<"], Err["<<ret<<"]:"
-            <<*amdsmi_get_esmi_err_msg(ret, &err_str1)<<endl;
+          cout<<"Failed to get Metrics Table for CPU["<<index<<"], Err["<<ret<<"]" << endl;
       } else {
           cout<<"\n| METRICS TABLE                 \t\t\t\t |\n";
 
