@@ -6006,9 +6006,9 @@ amdsmi_status_t amdsmi_first_online_core_on_cpu_socket(amdsmi_processor_handle p
  *  @param[in,out]    status_string - A pointer to a const char * which will be made
  *  to point to a description of the provided error code
  *
- *  @return const char** returned on success
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-const char** amdsmi_get_esmi_err_msg(amdsmi_status_t status, const char **status_string);
+amdsmi_status_t amdsmi_get_esmi_err_msg(amdsmi_status_t status, const char **status_string);
 #endif
 /** @} */
 #ifdef __cplusplus
