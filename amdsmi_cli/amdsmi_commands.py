@@ -30,6 +30,7 @@ from _version import __version__
 from amdsmi_helpers import AMDSMIHelpers
 from amdsmi_logger import AMDSMILogger
 from amdsmi_cli_exceptions import AmdSmiRequiredCommandException
+from rocm_version import get_rocm_version
 from amdsmi import amdsmi_interface
 from amdsmi import amdsmi_exception
 
@@ -93,16 +94,19 @@ class AMDSMICommands():
         try:
             amdsmi_lib_version = amdsmi_interface.amdsmi_get_lib_version()
             amdsmi_lib_version_str = f"{amdsmi_lib_version['year']}.{amdsmi_lib_version['major']}.{amdsmi_lib_version['minor']}.{amdsmi_lib_version['release']}"
+            rocm_version_str = get_rocm_version();
         except amdsmi_exception.AmdSmiLibraryException as e:
             amdsmi_lib_version_str = e.get_error_info()
 
         self.logger.output['tool'] = 'AMDSMI Tool'
         self.logger.output['version'] = f'{__version__}'
         self.logger.output['amdsmi_library_version'] = f'{amdsmi_lib_version_str}'
+        self.logger.output['rocm_version'] = f'{rocm_version_str}'
 
         if self.logger.is_human_readable_format():
             print(f'AMDSMI Tool: {__version__} | '\
-                    f'AMDSMI Library version: {amdsmi_lib_version_str}')
+                    f'AMDSMI Library version: {amdsmi_lib_version_str} | ' \
+                    f'ROCm version: {rocm_version_str}' )          
         elif self.logger.is_json_format() or self.logger.is_csv_format():
             self.logger.print_output()
 
