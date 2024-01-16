@@ -906,7 +906,6 @@ amdsmi_clk_info_t = struct_amdsmi_clk_info_t
 class struct_amdsmi_engine_usage_t(Structure):
     pass
 
-
 struct_amdsmi_engine_usage_t._pack_ = 1 # source:False
 struct_amdsmi_engine_usage_t._fields_ = [
     ('gfx_activity', ctypes.c_uint32),
@@ -920,6 +919,16 @@ amdsmi_process_handle_t = ctypes.c_uint32
 class struct_amdsmi_proc_info_t(Structure):
     pass
 
+class struct_engine_usage_(Structure):
+    pass
+
+struct_engine_usage_._pack_ = 1 # source:False
+struct_engine_usage_._fields_ = [
+    ('gfx', ctypes.c_uint64),
+    ('enc', ctypes.c_uint64),
+    ('reserved', ctypes.c_uint32 * 12),
+]
+
 class struct_memory_usage_(Structure):
     pass
 
@@ -929,16 +938,6 @@ struct_memory_usage_._fields_ = [
     ('cpu_mem', ctypes.c_uint64),
     ('vram_mem', ctypes.c_uint64),
     ('reserved', ctypes.c_uint32 * 10),
-]
-
-class struct_engine_usage_(Structure):
-    pass
-
-struct_engine_usage_._pack_ = 1 # source:False
-struct_engine_usage_._fields_ = [
-    ('gfx', ctypes.c_uint64),
-    ('enc', ctypes.c_uint64),
-    ('reserved', ctypes.c_uint32 * 12),
 ]
 
 struct_amdsmi_proc_info_t._pack_ = 1 # source:False
@@ -1527,11 +1526,12 @@ struct_amdsmi_gpu_metrics_t._fields_ = [
     ('current_socclks', ctypes.c_uint16 * 4),
     ('current_vclk0s', ctypes.c_uint16 * 4),
     ('current_dclk0s', ctypes.c_uint16 * 4),
+    ('jpeg_activity', ctypes.c_uint16 * 32),
     ('mem_bandwidth_acc', ctypes.c_uint64),
     ('mem_max_bandwidth', ctypes.c_uint32),
     ('pcie_nak_sent_count_acc', ctypes.c_uint32),
     ('pcie_nak_rcvd_count_acc', ctypes.c_uint32),
-    ('jpeg_activities', ctypes.c_uint16 * 32),
+    ('PADDING_4', ctypes.c_ubyte * 4),
 ]
 
 amdsmi_gpu_metrics_t = struct_amdsmi_gpu_metrics_t

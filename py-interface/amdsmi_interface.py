@@ -3242,10 +3242,7 @@ def amdsmi_get_gpu_metrics_info(
         "mem_max_bandwidth": gpu_metrics.mem_max_bandwidth,
         "pcie_nak_sent_count_acc": gpu_metrics.pcie_nak_sent_count_acc,
         "pcie_nak_rcvd_count_acc": gpu_metrics.pcie_nak_rcvd_count_acc,
-        "jpeg_activities[AID0]": list(gpu_metrics.jpeg_activities)[:8],
-        "jpeg_activities[AID1]": list(gpu_metrics.jpeg_activities)[8:16],
-        "jpeg_activities[AID2]": list(gpu_metrics.jpeg_activities)[16:24],
-        "jpeg_activities[AID3]": list(gpu_metrics.jpeg_activities)[24:32],
+        "jpeg_activity": list(gpu_metrics.jpeg_activity),
     }
 
 
