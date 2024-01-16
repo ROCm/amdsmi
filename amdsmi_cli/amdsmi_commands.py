@@ -1122,14 +1122,11 @@ class AMDSMICommands():
             if args.usage:
                 try:
                     engine_usage = amdsmi_interface.amdsmi_get_gpu_activity(args.gpu)
-                    engine_usage['gfx_usage'] = engine_usage.pop('gfx_activity')
-                    engine_usage['mem_usage'] = engine_usage.pop('umc_activity')
-                    engine_usage['mm_ip_usage'] = engine_usage.pop('mm_activity')
-                    engine_usage['vcn_activities'] = gpu_metric_output.pop('vcn_activity')
-                    engine_usage['jpeg_activities[AID0]'] = gpu_metric_output.pop('jpeg_activities[AID0]')
-                    engine_usage['jpeg_activities[AID1]'] = gpu_metric_output.pop('jpeg_activities[AID1]')
-                    engine_usage['jpeg_activities[AID2]'] = gpu_metric_output.pop('jpeg_activities[AID2]')
-                    engine_usage['jpeg_activities[AID3]'] = gpu_metric_output.pop('jpeg_activities[AID3]')
+                    engine_usage['gfx_activity'] = engine_usage.pop('gfx_activity')
+                    engine_usage['umc_activity'] = engine_usage.pop('umc_activity')
+                    engine_usage['mm_activity'] = engine_usage.pop('mm_activity')
+                    engine_usage['vcn_activity'] = gpu_metric_output.pop('vcn_activity')
+                    engine_usage['jpeg_activity'] = gpu_metric_output.pop('jpeg_activity')
                     for key, value in engine_usage.items():
                         if not isinstance(value, list) and value > 100:
                             engine_usage[key] = "N/A"
