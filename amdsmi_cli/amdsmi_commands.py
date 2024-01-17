@@ -559,16 +559,26 @@ class AMDSMICommands():
         if args.cache:
             try:
                 cache_info = amdsmi_interface.amdsmi_get_gpu_cache_info(args.gpu)
-                for cache_key, cache_dict in cache_info.items():
-                    for key, value in cache_dict.items():
-                        if key == 'cache_size' or key == 'cache_level' or \
-                            key == 'max_num_cu_shared' or key == 'num_cache_instance':
-                            continue
-                        if value:
-                            cache_info[cache_key][key] = "ENABLED"
+                logging.debug("Before dictionary modify | cache_info = " + str(cache_info))
+                for key, cache_values in cache_info.items():
+                    cache_properties = "N/A"
+                    if 'cache_flags' in list(cache_info[key].keys()):
+                        if isinstance(cache_values['cache_flags'], list):
+                            cache_properties = list(cache_values['cache_flags'])
+                            cache_values.pop('cache_flags') # remove cache_flags from output
+                    cache_info[key] = { # add properties to top of key's dictionary
+                                       'cache_properties': list(cache_properties),
+                                       **cache_info[key] # append remaining key's dictionary
+                                       }
+                logging.debug("After dictionary modify | cache_info = " + str(cache_info))
                 if self.logger.is_human_readable_format():
-                    for _ , cache_values in cache_info.items():
+                    for key, cache_values in cache_info.items():
                         cache_values['cache_size'] = f"{cache_values['cache_size']} KB"
+                        # take cache_properties out of list -> display as string, removing brackets
+                        update_cache_properties = str(cache_values['cache_properties'])
+                        update_cache_properties = update_cache_properties.replace("[","").replace("]", "")
+                        cache_values['cache_properties'] = update_cache_properties
+                logging.debug("After human_readable | cache_info = " + str(cache_info))
 
             except amdsmi_exception.AmdSmiLibraryException as e:
                 cache_info = "N/A"
