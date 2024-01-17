@@ -22,7 +22,7 @@
 import ctypes
 import re
 from typing import Union, Any, Dict, List, Tuple
-from enum import IntEnum
+from enum import IntEnum, Enum
 from collections.abc import Iterable
 
 from . import amdsmi_wrapper
@@ -357,6 +357,11 @@ class AmdSmiProcessorType(IntEnum):
     NON_AMD_GPU = amdsmi_wrapper.NON_AMD_GPU
     NON_AMD_CPU = amdsmi_wrapper.NON_AMD_CPU
 
+class AmdSmiCacheTypeNames(Enum):
+    DATA_CACHE = 2
+    INST_CACHE = 4
+    CPU_CACHE = 8
+    SIMD_CACHE = 16
 
 class AmdSmiEventReader:
     def __init__(
@@ -1626,15 +1631,26 @@ def amdsmi_get_gpu_cache_info(
         inst_cache = bool(cache_flags & amdsmi_wrapper.CACHE_FLAGS_INST_CACHE)
         cpu_cache = bool(cache_flags & amdsmi_wrapper.CACHE_FLAGS_CPU_CACHE)
         simd_cache = bool(cache_flags & amdsmi_wrapper.CACHE_FLAGS_SIMD_CACHE)
-        cache_info_dict[f"cache {cache_index}"] = {"cache_size": cache_size,
+        cache_flag_list = []
+        if (data_cache):
+            cache_flag_list.append(
+                AmdSmiCacheTypeNames(amdsmi_wrapper.CACHE_FLAGS_DATA_CACHE).name)
+        if (inst_cache):
+            cache_flag_list.append(
+                AmdSmiCacheTypeNames(amdsmi_wrapper.CACHE_FLAGS_INST_CACHE).name)
+        if (cpu_cache):
+            cache_flag_list.append(
+                AmdSmiCacheTypeNames(amdsmi_wrapper.CACHE_FLAGS_CPU_CACHE).name)
+        if (simd_cache):
+            cache_flag_list.append(
+                AmdSmiCacheTypeNames(amdsmi_wrapper.CACHE_FLAGS_SIMD_CACHE).name)
+        cache_info_dict[f"cache {cache_index}"] = {
+                                                   "cache_flags": cache_flag_list,
+                                                   "cache_size": cache_size,
                                                    "cache_level": cache_level,
                                                    "max_num_cu_shared": max_num_cu_shared,
-                                                  "num_cache_instance": num_cache_instance}
-        if (data_cache): cache_info_dict[f"cache {cache_index}"]["data_cache"] = data_cache
-        if (inst_cache): cache_info_dict[f"cache {cache_index}"]["inst_cache"] = inst_cache
-        if (cpu_cache): cache_info_dict[f"cache {cache_index}"]["cpu_cache"] = cpu_cache
-        if (simd_cache): cache_info_dict[f"cache {cache_index}"]["simd_cache"] = simd_cache
-
+                                                   "num_cache_instance": num_cache_instance
+                                                   }
 
     if cache_info_dict == {}:
         raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NO_DATA)
