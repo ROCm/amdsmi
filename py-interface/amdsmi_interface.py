@@ -21,8 +21,8 @@
 
 import ctypes
 import re
-from typing import Union, Any, Dict, List, Tuple
-from enum import IntEnum, Enum
+from typing import Union, Any, Dict, List
+from enum import IntEnum
 from collections.abc import Iterable
 
 from . import amdsmi_wrapper
@@ -348,7 +348,8 @@ class AmdSmiIoLinkType(IntEnum):
 class AmdSmiUtilizationCounterType(IntEnum):
     COARSE_GRAIN_GFX_ACTIVITY = amdsmi_wrapper.AMDSMI_COARSE_GRAIN_GFX_ACTIVITY
     COARSE_GRAIN_MEM_ACTIVITY = amdsmi_wrapper.AMDSMI_COARSE_GRAIN_MEM_ACTIVITY
-
+    UTILIZATION_COUNTER_FIRST = amdsmi_wrapper.AMDSMI_UTILIZATION_COUNTER_FIRST
+    UTILIZATION_COUNTER_LAST = amdsmi_wrapper.AMDSMI_UTILIZATION_COUNTER_LAST
 
 class AmdSmiProcessorType(IntEnum):
     UNKNOWN = amdsmi_wrapper.UNKNOWN
@@ -3071,16 +3072,15 @@ def amdsmi_get_gpu_volt_metric(
     return voltage.value
 
 
-
 def amdsmi_get_utilization_count(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
-    *counter_types: Tuple[AmdSmiUtilizationCounterType]
+    counter_types: List[AmdSmiUtilizationCounterType]
 ) -> List[Dict[str, Any]]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
-    if not len(counter_types):
+    if len(counter_types) == 0:
         raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_INVAL)
     counters = []
     for counter_type in counter_types:
@@ -3093,9 +3093,7 @@ def amdsmi_get_utilization_count(
 
     count = ctypes.c_uint32(len(counters))
     timestamp = ctypes.c_uint64()
-    util_counter_list = (amdsmi_wrapper.amdsmi_utilization_counter_t * len(counters))(
-        *counters
-    )
+    util_counter_list = (amdsmi_wrapper.amdsmi_utilization_counter_t * len(counters))(*counters)
 
     _check_res(
         amdsmi_wrapper.amdsmi_get_utilization_count(
@@ -3107,9 +3105,11 @@ def amdsmi_get_utilization_count(
 
     result = [{"timestamp": timestamp.value}]
     for idx in range(count.value):
-        counter_type = amdsmi_wrapper.AMDSMI_UTILIZATION_COUNTER_TYPE__enumvalues[
+        counter_type = amdsmi_wrapper.amdsmi_utilization_counter_type_t__enumvalues[
             util_counter_list[idx].type
         ]
+        if counter_type == "AMDSMI_UTILIZATION_COUNTER_FIRST":
+            counter_type = "AMDSMI_COARSE_GRAIN_GPU_ACTIVITY"
         if counter_type == "AMDSMI_UTILIZATION_COUNTER_LAST":
             counter_type = "AMDSMI_COARSE_GRAIN_MEM_ACTIVITY"
         result.append(
