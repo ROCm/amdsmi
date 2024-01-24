@@ -1556,7 +1556,7 @@ def amdsmi_get_gpu_asic_info(
         "market_name": asic_info.market_name.decode("utf-8"),
         "vendor_id": asic_info.vendor_id,
         "vendor_name": asic_info.vendor_name.decode("utf-8"),
-        "subvendor_id": asic_info.subvendor_id,
+        "subvendor_id": hex(asic_info.subvendor_id),
         "device_id": asic_info.device_id,
         "rev_id": asic_info.rev_id,
         "asic_serial": asic_info.asic_serial.decode("utf-8"),
