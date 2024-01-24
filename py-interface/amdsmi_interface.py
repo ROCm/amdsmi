@@ -359,10 +359,11 @@ class AmdSmiProcessorType(IntEnum):
     NON_AMD_CPU = amdsmi_wrapper.NON_AMD_CPU
 
 class AmdSmiCacheTypeNames(IntEnum):
-    DATA_CACHE = 2
-    INST_CACHE = 4
-    CPU_CACHE = 8
-    SIMD_CACHE = 16
+    ENABLED = amdsmi_wrapper.CACHE_FLAGS_ENABLED
+    DATA_CACHE = amdsmi_wrapper.CACHE_FLAGS_DATA_CACHE
+    INST_CACHE = amdsmi_wrapper.CACHE_FLAGS_INST_CACHE
+    CPU_CACHE = amdsmi_wrapper.CACHE_FLAGS_CPU_CACHE
+    SIMD_CACHE = amdsmi_wrapper.CACHE_FLAGS_SIMD_CACHE
 
 class AmdSmiEventReader:
     def __init__(
