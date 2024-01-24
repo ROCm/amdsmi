@@ -358,7 +358,7 @@ class AmdSmiProcessorType(IntEnum):
     NON_AMD_GPU = amdsmi_wrapper.NON_AMD_GPU
     NON_AMD_CPU = amdsmi_wrapper.NON_AMD_CPU
 
-class AmdSmiCacheTypeNames(Enum):
+class AmdSmiCacheTypeNames(IntEnum):
     DATA_CACHE = 2
     INST_CACHE = 4
     CPU_CACHE = 8
