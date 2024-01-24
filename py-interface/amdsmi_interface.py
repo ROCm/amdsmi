@@ -3250,7 +3250,7 @@ def amdsmi_get_gpu_metrics_info(
         )
     )
 
-    return {
+    gpu_metrics_output = {
         "temperature_edge": gpu_metrics.temperature_edge,
         "temperature_hotspot": gpu_metrics.temperature_hotspot,
         "temperature_mem": gpu_metrics.temperature_mem,
@@ -3311,6 +3311,92 @@ def amdsmi_get_gpu_metrics_info(
         "pcie_nak_rcvd_count_acc": gpu_metrics.pcie_nak_rcvd_count_acc,
         "jpeg_activity": list(gpu_metrics.jpeg_activity),
     }
+
+    # Validate support for each gpu_metric
+    uint_16_values = ['temperature_edge', 'temperature_hotspot', 'temperature_mem',
+                     'temperature_vrgfx', 'temperature_vrsoc', 'temperature_vrmem',
+                     'average_gfx_activity', 'average_umc_activity', 'average_mm_activity',
+                     'average_socket_power', 'average_gfxclk_frequency', 'average_socclk_frequency',
+                     'average_uclk_frequency', 'average_vclk0_frequency', 'average_dclk0_frequency',
+                     'average_vclk1_frequency', 'average_dclk1_frequency', 'current_gfxclk',
+                     'current_socclk', 'current_uclk', 'current_vclk0', 'current_dclk0',
+                     'current_vclk1', 'current_dclk1', 'current_fan_speed', 'pcie_link_width',
+                     'pcie_link_speed', 'voltage_soc', 'voltage_gfx', 'voltage_mem',
+                     'current_socket_power', 'xgmi_link_width', 'xgmi_link_speed']
+
+    for value in uint_16_values:
+        if gpu_metrics_output[value] == 0xFFFF:
+            gpu_metrics_output[value] = "N/A"
+
+    uint_32_values = ['gfx_activity_acc', 'mem_activity_acc', 'mem_max_bandwidth',
+                      'pcie_nak_sent_count_acc', 'pcie_nak_rcvd_count_acc']
+
+    for value in uint_32_values:
+        if gpu_metrics_output[value] == 0xFFFFFFFF:
+            gpu_metrics_output[value] = "N/A"
+
+    uint_64_values = ['energy_accumulator', 'system_clock_counter', 'firmware_timestamp',
+                      'pcie_bandwidth_acc', 'pcie_bandwidth_inst',
+                      'pcie_l0_to_recov_count_acc', 'pcie_replay_count_acc',
+                      'pcie_replay_rover_count_acc', 'mem_bandwidth_acc']
+
+    for value in uint_64_values:
+        if gpu_metrics_output[value] == 0xFFFFFFFFFFFFFFFF:
+            gpu_metrics_output[value] = "N/A"
+
+    # Custom validation for specific gpu_metrics
+    if gpu_metrics_output['throttle_status'] == 0xFFFFFFFF:
+        gpu_metrics_output['throttle_status'] = "N/A"
+    else:
+        gpu_metrics_output['throttle_status'] = bool(gpu_metrics_output['throttle_status'])
+
+    for idx, temp in enumerate(gpu_metrics_output['temperature_hbm']):
+        if temp == 0xFFFF:
+            gpu_metrics_output['temperature_hbm'][idx] = "N/A"
+
+    if gpu_metrics_output['indep_throttle_status'] == 0xFFFFFFFFFFFFFFFF:
+        gpu_metrics_output['indep_throttle_status'] = "N/A"
+    else:
+        gpu_metrics_output['indep_throttle_status'] = bool(gpu_metrics_output['indep_throttle_status'])
+
+    for idx, activity in enumerate(gpu_metrics_output['vcn_activity']):
+        if activity == 0xFFFF:
+            gpu_metrics_output['vcn_activity'][idx] = "N/A"
+
+    if gpu_metrics_output['gfxclk_lock_status'] == 0xFFFFFFFF:
+        gpu_metrics_output['gfxclk_lock_status'] = "N/A"
+    else:
+        gpu_metrics_output['gfxclk_lock_status'] = bool(gpu_metrics_output['gfxclk_lock_status'])
+
+    for idx, data in enumerate(gpu_metrics_output['xgmi_read_data_acc']):
+        if data == 0xFFFFFFFFFFFFFFFF:
+            gpu_metrics_output['xgmi_read_data_acc'][idx] = "N/A"
+
+    for idx, data in enumerate(gpu_metrics_output['xgmi_write_data_acc']):
+        if data == 0xFFFFFFFFFFFFFFFF:
+            gpu_metrics_output['xgmi_write_data_acc'][idx] = "N/A"
+
+    for idx, clk in enumerate(gpu_metrics_output['current_gfxclks']):
+        if clk == 0xFFFF:
+            gpu_metrics_output['current_gfxclks'][idx] = "N/A"
+
+    for idx, clk in enumerate(gpu_metrics_output['current_socclks']):
+        if clk == 0xFFFF:
+            gpu_metrics_output['current_socclks'][idx] = "N/A"
+
+    for idx, clk in enumerate(gpu_metrics_output['current_vclk0s']):
+        if clk == 0xFFFF:
+            gpu_metrics_output['current_vclk0s'][idx] = "N/A"
+
+    for idx, clk in enumerate(gpu_metrics_output['current_dclk0s']):
+        if clk == 0xFFFF:
+            gpu_metrics_output['current_dclk0s'][idx] = "N/A"
+
+    for idx, activity in enumerate(gpu_metrics_output['jpeg_activity']):
+        if activity == 0xFFFF:
+            gpu_metrics_output['jpeg_activity'][idx] = "N/A"
+
+    return gpu_metrics_output
 
 
 def amdsmi_get_gpu_od_volt_curve_regions(
