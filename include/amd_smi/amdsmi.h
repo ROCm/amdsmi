@@ -147,10 +147,10 @@ typedef enum {
  */
 
 //! Year should follow the IP driver package version: 22.40/23.10 and similar
-#define AMDSMI_LIB_VERSION_YEAR 23
+#define AMDSMI_LIB_VERSION_YEAR 24
 
 //! Major version should be changed for every header change (adding/deleting APIs, changing names, fields of structures, etc.)
-#define AMDSMI_LIB_VERSION_MAJOR 4
+#define AMDSMI_LIB_VERSION_MAJOR 1
 
 //! Minor version should be updated for each API change, but without changing headers
 #define AMDSMI_LIB_VERSION_MINOR 0
