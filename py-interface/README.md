@@ -5126,7 +5126,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5151,7 +5151,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5178,7 +5178,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5203,7 +5203,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5230,7 +5230,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5255,7 +5255,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5282,7 +5282,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5309,7 +5309,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpucore_handles()
     if len(processor_handles) == 0:
         print("No CPU cores on machine")
     else:
@@ -5334,7 +5334,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5359,7 +5359,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5384,7 +5384,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5409,7 +5409,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5434,7 +5434,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5458,7 +5458,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5482,7 +5482,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpucore_handles()
     if len(processor_handles) == 0:
         print("No CPU cores on machine")
     else:
@@ -5507,7 +5507,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5532,7 +5532,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpucore_handles()
     if len(processor_handles) == 0:
         print("No CPU cores on machine")
     else:
@@ -5556,7 +5556,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5580,7 +5580,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5607,7 +5607,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5632,7 +5632,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5658,7 +5658,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5685,7 +5685,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5713,7 +5713,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5737,7 +5737,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5761,7 +5761,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5785,7 +5785,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5809,7 +5809,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5833,7 +5833,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5859,7 +5859,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5883,7 +5883,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5907,7 +5907,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5932,7 +5932,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5957,7 +5957,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -5982,7 +5982,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
@@ -6013,7 +6013,7 @@ Example:
 
 ```python
 try:
-    processor_handles = amdsmi_get_processor_handles()
+    processor_handles = amdsmi_get_cpusocket_handles()
     if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
