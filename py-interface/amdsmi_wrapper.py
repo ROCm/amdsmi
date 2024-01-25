@@ -1620,11 +1620,8 @@ struct_amdsmi_gpu_metrics_t._fields_ = [
     ('current_vclk0s', ctypes.c_uint16 * 4),
     ('current_dclk0s', ctypes.c_uint16 * 4),
     ('jpeg_activity', ctypes.c_uint16 * 32),
-    ('mem_bandwidth_acc', ctypes.c_uint64),
-    ('mem_max_bandwidth', ctypes.c_uint32),
     ('pcie_nak_sent_count_acc', ctypes.c_uint32),
     ('pcie_nak_rcvd_count_acc', ctypes.c_uint32),
-    ('PADDING_4', ctypes.c_ubyte * 4),
 ]
 
 amdsmi_gpu_metrics_t = struct_amdsmi_gpu_metrics_t

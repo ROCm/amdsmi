@@ -1140,10 +1140,6 @@ amdsmi_status_t  amdsmi_get_gpu_metrics_info(
                     (sizeof(pgpu_metrics->jpeg_activity) /
                      sizeof(pgpu_metrics->jpeg_activity[0])),
                      std::numeric_limits<uint16_t>::max());
-        pgpu_metrics->mem_bandwidth_acc =
-            static_cast<uint64_t>(std::numeric_limits<uint64_t>::max());
-        pgpu_metrics->mem_max_bandwidth =
-            static_cast<uint32_t>(std::numeric_limits<uint32_t>::max());
         pgpu_metrics->pcie_nak_sent_count_acc =
             static_cast<uint32_t>(std::numeric_limits<uint32_t>::max());
         pgpu_metrics->pcie_nak_rcvd_count_acc =
