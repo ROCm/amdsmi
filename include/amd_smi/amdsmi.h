@@ -1385,12 +1385,6 @@ typedef struct {
   // JPEG activity % per AID
   uint16_t jpeg_activity[AMDSMI_MAX_NUM_JPEG];
 
-  // Memory Bandwidth Usage Accumulated (GB/sec)
-  uint64_t mem_bandwidth_acc;
-
-  // Memory Bandwidth Maximum (GB/sec)
-  uint32_t mem_max_bandwidth;
-
   // PCIE NAK sent accumulated count
   uint32_t pcie_nak_sent_count_acc;
 

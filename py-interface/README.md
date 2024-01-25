@@ -2136,8 +2136,6 @@ Output: Dictionary with fields
 `current_socclks` | List of current soc clock frequencies | MHz
 `current_vclk0s` | List of current v0 clock frequencies | MHz
 `current_dclk0s` | List of current d0 clock frequencies | MHz
-`mem_bandwidth_acc` | Memory bandwidth usage accumulated | GB/s
-`mem_max_bandwidth` | Maximum memory bandwidth usage accumulated  | GB/s
 `pcie_nak_sent_count_acc` | PCIe NAC sent count accumulated |
 `pcie_nak_rcvd_count_acc` | PCIe NAC received count accumulated |
 `jpeg_activity` | List of JPEG engine activity | %

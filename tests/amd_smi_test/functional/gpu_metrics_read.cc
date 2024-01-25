@@ -135,65 +135,77 @@ void TestGpuMetricsRead::Run(void) {
           << smu.firmware_timestamp << '\n';
           std::cout << "\n";
           std::cout << "TEMPERATURES (C):\n";
-          std::cout << std::dec << "temperature_edge="
-          << smu.temperature_edge << '\n';
-          std::cout << std::dec << "temperature_hotspot="
-          << smu.temperature_hotspot << '\n';
-          std::cout << std::dec << "temperature_mem="
-          << smu.temperature_mem << '\n';
-          std::cout << std::dec << "temperature_vrgfx="
-          << smu.temperature_vrgfx << '\n';
-          std::cout << std::dec << "temperature_vrsoc="
-          << smu.temperature_vrsoc << '\n';
-          std::cout << std::dec << "temperature_vrmem="
-          << smu.temperature_vrmem << '\n';
+          std::cout << std::dec << "temperature_edge= "
+          << static_cast<uint16_t>(smu.temperature_edge) << '\n';
+          std::cout << std::dec << "temperature_hotspot= "
+          << static_cast<uint16_t>(smu.temperature_hotspot) << '\n';
+          std::cout << std::dec << "temperature_mem= "
+          << static_cast<uint16_t>(smu.temperature_mem) << '\n';
+          std::cout << std::dec << "temperature_vrgfx= "
+          << static_cast<uint16_t>(smu.temperature_vrgfx) << '\n';
+          std::cout << std::dec << "temperature_vrsoc= "
+          << static_cast<uint16_t>(smu.temperature_vrsoc) << '\n';
+          std::cout << std::dec << "temperature_vrmem= "
+          << static_cast<uint16_t>(smu.temperature_vrmem) << '\n';
           for (int i = 0; i < AMDSMI_NUM_HBM_INSTANCES; ++i) {
-            std::cout << "temperature_hbm[" << i << "]=" << std::dec <<
-                                               smu.temperature_hbm[i] << '\n';
+            std::cout << "temperature_hbm[" << i << "]= " << std::dec
+            << static_cast<uint16_t>(smu.temperature_hbm[i]) << '\n';
           }
           std::cout << "\n";
           std::cout << "UTILIZATION (%):\n";
           std::cout << std::dec << "average_gfx_activity="
-          << smu.average_gfx_activity << '\n';
+          << static_cast<uint16_t>(smu.average_gfx_activity) << '\n';
           std::cout << std::dec << "average_umc_activity="
-          << smu.average_umc_activity << '\n';
+          << static_cast<uint16_t>(smu.average_umc_activity) << '\n';
           std::cout << std::dec << "average_mm_activity="
-          << smu.average_mm_activity << '\n';
-          std::cout << std::dec << "jpeg_activity= [";
+          << static_cast<uint16_t>(smu.average_mm_activity) << '\n';
+          std::cout << std::dec << "vcn_activity= [";
           uint16_t size = static_cast<uint16_t>(
+            sizeof(smu.vcn_activity)/sizeof(smu.vcn_activity[0]));
+          for (uint16_t i= 0; i < size; i++) {
+            if (i+1 < size) {
+              std::cout << std::dec << static_cast<uint16_t>(smu.vcn_activity[i]) << ", ";
+            } else {
+              std::cout << std::dec << static_cast<uint16_t>(smu.vcn_activity[i]);
+            }
+          }
+          std::cout << std::dec << "]\n";
+          std::cout << "\n";
+          std::cout << std::dec << "jpeg_activity= [";
+          size = static_cast<uint16_t>(
             sizeof(smu.jpeg_activity)/sizeof(smu.jpeg_activity[0]));
           for (uint16_t i= 0; i < size; i++) {
             if (i+1 < size) {
-              std::cout << std::dec << smu.jpeg_activity[i] << ", ";
+              std::cout << std::dec << static_cast<uint16_t>(smu.jpeg_activity[i]) << ", ";
             } else {
-              std::cout << std::dec << smu.jpeg_activity[i];
+              std::cout << std::dec << static_cast<uint16_t>(smu.jpeg_activity[i]);
             }
           }
           std::cout << std::dec << "]\n";
           std::cout << "\n";
           std::cout << "POWER (W)/ENERGY (15.259uJ per 1ns):\n";
           std::cout << std::dec << "average_socket_power="
-          << smu.average_socket_power << '\n';
+          << static_cast<uint16_t>(smu.average_socket_power) << '\n';
           std::cout << std::dec << "current_socket_power="
-          << smu.current_socket_power << '\n';
+          << static_cast<uint16_t>(smu.current_socket_power) << '\n';
           std::cout << std::dec << "energy_accumulator="
-          << smu.energy_accumulator << '\n';
+          << static_cast<uint16_t>(smu.energy_accumulator) << '\n';
           std::cout << "\n";
           std::cout << "AVG CLOCKS (MHz):\n";
           std::cout << std::dec << "average_gfxclk_frequency="
-          << smu.average_gfxclk_frequency << '\n';
+          << static_cast<uint16_t>(smu.average_gfxclk_frequency) << '\n';
           std::cout << std::dec << "average_gfxclk_frequency="
-          << smu.average_gfxclk_frequency << '\n';
+          << static_cast<uint16_t>(smu.average_gfxclk_frequency) << '\n';
           std::cout << std::dec << "average_uclk_frequency="
-          << smu.average_uclk_frequency << '\n';
+          << static_cast<uint16_t>(smu.average_uclk_frequency) << '\n';
           std::cout << std::dec << "average_vclk0_frequency="
-          << smu.average_vclk0_frequency << '\n';
+          << static_cast<uint16_t>(smu.average_vclk0_frequency) << '\n';
           std::cout << std::dec << "average_dclk0_frequency="
-          << smu.average_dclk0_frequency << '\n';
+          << static_cast<uint16_t>(smu.average_dclk0_frequency) << '\n';
           std::cout << std::dec << "average_vclk1_frequency="
-          << smu.average_vclk1_frequency << '\n';
+          << static_cast<uint16_t>(smu.average_vclk1_frequency) << '\n';
           std::cout << std::dec << "average_dclk1_frequency="
-          << smu.average_dclk1_frequency << '\n';
+          << static_cast<uint16_t>(smu.average_dclk1_frequency) << '\n';
           std::cout << "\n";
           std::cout << "CURRENT CLOCKS (MHz):\n";
           std::cout << std::dec << "current_gfxclk="
@@ -203,9 +215,9 @@ void TestGpuMetricsRead::Run(void) {
             sizeof(smu.current_gfxclks)/sizeof(smu.current_gfxclks[0]));
           for (uint16_t i= 0; i < size; i++) {
             if (i+1 < size) {
-              std::cout << std::dec << smu.current_gfxclks[i] << ", ";
+              std::cout << std::dec << static_cast<uint16_t>(smu.current_gfxclks[i]) << ", ";
             } else {
-              std::cout << std::dec << smu.current_gfxclks[i];
+              std::cout << std::dec << static_cast<uint16_t>(smu.current_gfxclks[i]);
             }
           }
           std::cout << std::dec << "]\n";
@@ -216,24 +228,24 @@ void TestGpuMetricsRead::Run(void) {
             sizeof(smu.current_socclks)/sizeof(smu.current_socclks[0]));
           for (uint16_t i= 0; i < size; i++) {
             if (i+1 < size) {
-              std::cout << std::dec << smu.current_socclks[i] << ", ";
+              std::cout << std::dec << static_cast<uint16_t>(smu.current_socclks[i]) << ", ";
             } else {
-              std::cout << std::dec << smu.current_socclks[i];
+              std::cout << std::dec << static_cast<uint16_t>(smu.current_socclks[i]);
             }
           }
           std::cout << std::dec << "]\n";
           std::cout << std::dec << "current_uclk="
-          << smu.current_uclk << '\n';
+          << static_cast<uint16_t>(smu.current_uclk) << '\n';
           std::cout << std::dec << "current_vclk0="
-          << smu.current_vclk0 << '\n';
+          << static_cast<uint16_t>(smu.current_vclk0) << '\n';
           std::cout << std::dec << "current_vclk0s= [";
           size = static_cast<uint16_t>(
             sizeof(smu.current_vclk0s)/sizeof(smu.current_vclk0s[0]));
           for (uint16_t i= 0; i < size; i++) {
             if (i+1 < size) {
-              std::cout << std::dec << smu.current_vclk0s[i] << ", ";
+              std::cout << std::dec << static_cast<uint16_t>(smu.current_vclk0s[i]) << ", ";
             } else {
-              std::cout << std::dec << smu.current_vclk0s[i];
+              std::cout << std::dec << static_cast<uint16_t>(smu.current_vclk0s[i]);
             }
           }
           std::cout << std::dec << "]\n";
@@ -244,24 +256,24 @@ void TestGpuMetricsRead::Run(void) {
             sizeof(smu.current_dclk0s)/sizeof(smu.current_dclk0s[0]));
           for (uint16_t i= 0; i < size; i++) {
             if (i+1 < size) {
-              std::cout << std::dec << smu.current_dclk0s[i] << ", ";
+              std::cout << std::dec << static_cast<uint16_t>(smu.current_dclk0s[i]) << ", ";
             } else {
-              std::cout << std::dec << smu.current_dclk0s[i];
+              std::cout << std::dec << static_cast<uint16_t>(smu.current_dclk0s[i]);
             }
           }
           std::cout << std::dec << "]\n";
           std::cout << std::dec << "current_vclk1="
-          << smu.current_vclk1 << '\n';
+          << static_cast<uint16_t>(smu.current_vclk1) << '\n';
           std::cout << std::dec << "current_dclk1="
-          << smu.current_dclk1 << '\n';
+          << static_cast<uint16_t>(smu.current_dclk1) << '\n';
           std::cout << "\n";
           std::cout << "TROTTLE STATUS:\n";
           std::cout << std::dec << "throttle_status="
-          << smu.throttle_status << '\n';
+          << static_cast<uint32_t>(smu.throttle_status) << '\n';
           std::cout << "\n";
           std::cout << "FAN SPEED:\n";
           std::cout << std::dec << "current_fan_speed="
-          << smu.current_fan_speed << '\n';
+          << static_cast<uint16_t>(smu.current_fan_speed) << '\n';
           std::cout << "\n";
           std::cout << "LINK WIDTH (number of lanes) /SPEED (0.1 GT/s):\n";
           std::cout << "pcie_link_width="
@@ -276,9 +288,9 @@ void TestGpuMetricsRead::Run(void) {
           std::cout << "\n";
           std::cout << "Utilization Accumulated(%):\n";
           std::cout << "gfx_activity_acc="
-          << std::dec << smu.gfx_activity_acc << '\n';
+          << std::dec << static_cast<uint32_t>(smu.gfx_activity_acc) << '\n';
           std::cout << "mem_activity_acc="
-          << std::dec << smu.mem_activity_acc  << '\n';
+          << std::dec << static_cast<uint32_t>(smu.mem_activity_acc)  << '\n';
 
           std::cout << "\n";
           std::cout << "XGMI ACCUMULATED DATA TRANSFER SIZE (KB):\n";
@@ -287,9 +299,9 @@ void TestGpuMetricsRead::Run(void) {
             sizeof(smu.xgmi_read_data_acc)/sizeof(smu.xgmi_read_data_acc[0]));
           for (uint16_t i= 0; i < size; i++) {
             if (i+1 < size) {
-              std::cout << std::dec << smu.xgmi_read_data_acc[i] << ", ";
+              std::cout << std::dec << static_cast<uint64_t>(smu.xgmi_read_data_acc[i]) << ", ";
             } else {
-              std::cout << std::dec << smu.xgmi_read_data_acc[i];
+              std::cout << std::dec << static_cast<uint64_t>(smu.xgmi_read_data_acc[i]);
             }
           }
           std::cout << std::dec << "]\n";
@@ -298,31 +310,62 @@ void TestGpuMetricsRead::Run(void) {
             sizeof(smu.xgmi_write_data_acc)/sizeof(smu.xgmi_write_data_acc[0]));
           for (uint16_t i= 0; i < size; i++) {
             if (i+1 < size) {
-              std::cout << std::dec << smu.xgmi_write_data_acc[i] << ", ";
+              std::cout << std::dec << static_cast<uint64_t>(smu.xgmi_write_data_acc[i]) << ", ";
             } else {
-              std::cout << std::dec << smu.xgmi_write_data_acc[i];
+              std::cout << std::dec << static_cast<uint64_t>(smu.xgmi_write_data_acc[i]);
             }
           }
           std::cout << std::dec << "]\n";
-          std::cout << "mem_bandwidth_acc=" << std::dec
-          << smu.mem_bandwidth_acc << "\n";
-          std::cout << "mem_max_bandwidth=" << std::dec
-          << smu.mem_max_bandwidth << "\n";
-          std::cout << "pcie_nak_sent_count_acc=" << std::dec
-          << smu.pcie_nak_sent_count_acc << "\n";
-          std::cout << "pcie_nak_rcvd_count_acc=" << std::dec
-          << smu.pcie_nak_rcvd_count_acc << "\n";
+
+          // Voltage (mV)
+          std::cout << "voltage_soc = "
+          << std::dec << static_cast<uint16_t>(smu.voltage_soc) << "\n";
+          std::cout << "voltage_soc = "
+          << std::dec << static_cast<uint16_t>(smu.voltage_gfx) << "\n";
+          std::cout << "voltage_mem = "
+          << std::dec << static_cast<uint16_t>(smu.voltage_mem) << "\n";
+
+          std::cout << "indep_throttle_status = "
+          << std::dec << static_cast<uint64_t>(smu.indep_throttle_status) << "\n";
+
+          // Clock Lock Status. Each bit corresponds to clock instance
+          std::cout << "gfxclk_lock_status (in hex) = "
+          << std::hex << static_cast<uint32_t>(smu.gfxclk_lock_status) << std::dec <<"\n";
+
+          // Bandwidth (GB/sec)
+          std::cout << "pcie_bandwidth_acc=" << std::dec
+          << static_cast<uint64_t>(smu.pcie_bandwidth_acc) << "\n";
+          std::cout << "pcie_bandwidth_inst=" << std::dec
+          << static_cast<uint64_t>(smu.pcie_bandwidth_inst) << "\n";
+
+          // Counts
+          std::cout << "pcie_l0_to_recov_count_acc= " << std::dec
+          << static_cast<uint64_t>(smu.pcie_l0_to_recov_count_acc) << "\n";
+          std::cout << "pcie_replay_count_acc= " << std::dec
+          << static_cast<uint64_t>(smu.pcie_replay_count_acc) << "\n";
+          std::cout << "pcie_replay_rover_count_acc= " << std::dec
+          << static_cast<uint64_t>(smu.pcie_replay_rover_count_acc) << "\n";
+          std::cout << "pcie_nak_rcvd_count_acc= " << std::dec
+          << static_cast<uint32_t>(smu.pcie_nak_rcvd_count_acc) << "\n";
+          std::cout << "pcie_replay_rover_count_acc= " << std::dec
+          << static_cast<uint64_t>(smu.pcie_replay_rover_count_acc) << "\n";
       }
     }
 
     // Verify api support checking functionality is working
     err =  amdsmi_get_gpu_metrics_info(processor_handles_[i], nullptr);
-    DISPLAY_AMDSMI_ERR(err);
+    if (err !=AMDSMI_STATUS_INVAL) {
+      DISPLAY_AMDSMI_ERR(err);
+    }
+    amdsmi_status_code_to_string(err, &status_string);
+    std::cout << "\t\t** amdsmi_get_gpu_metrics_info(nullptr check): " << status_string << "\n";
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
   }
 
+/**
+ * START OF INDIVIDUAL METRIC CALLS
+ */
 
-  
   auto val_ui16 = uint16_t(0);
   auto val_ui32 = uint32_t(0);
   auto val_ui64 = uint64_t(0);
