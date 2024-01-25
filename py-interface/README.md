@@ -598,7 +598,7 @@ Input parameters:
 
 * `processor_handle` device which to query
 
-Output: Dictionary with fields
+Output: Dictionary of activites to their respective usage percentage or 'N/A' if not supported
 
 Field | Description
 ---|---
