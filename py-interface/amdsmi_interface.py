@@ -1697,11 +1697,17 @@ def amdsmi_get_gpu_activity(
         )
     )
 
-    return {
+    activity_dict = {
         "gfx_activity": engine_usage.gfx_activity,
         "umc_activity": engine_usage.umc_activity,
         "mm_activity": engine_usage.mm_activity,
     }
+
+    for key, value in activity_dict.items():
+        if value == 0xFFFF:
+            activity_dict[key] = "N/A"
+
+    return activity_dict
 
 
 def amdsmi_get_clock_info(
