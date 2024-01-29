@@ -204,7 +204,7 @@ class AMDSMICommands():
                 try:
                     smu = amdsmi_interface.amdsmi_get_cpu_smu_fw_version(args.cpu)
                     static_dict["smu"] = {"FW_VERSION" : f"{ smu['smu_fw_major_ver_num']}"
-                                        f":{smu['smu_fw_minor_ver_num']}:{smu['smu_fw_debug_ver_num']}"}
+                                        f".{smu['smu_fw_minor_ver_num']}.{smu['smu_fw_debug_ver_num']}"}
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     static_dict["smu"] = "N/A"
                     logging.debug("Failed to get SMU FW for cpu %s | %s", cpu_id, e.get_error_info())
