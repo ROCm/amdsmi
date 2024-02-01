@@ -29,6 +29,7 @@ from . import amdsmi_wrapper
 from .amdsmi_exception import *
 import sys
 import math
+from time import localtime, asctime, time
 
 MAX_NUM_PROCESSES = 1024
 
@@ -1413,6 +1414,10 @@ def amdsmi_get_metrics_table(
             )
     )
 
+    rawtime = int(mtbl.timestamp)
+    rawtime = time()
+    timeinfo = localtime(rawtime)
+
     return {
         "mtbl_accumulation_counter": mtbl.accumulation_counter,
         "mtbl_max_socket_temperature": f"{round(check_msb_32(mtbl.max_socket_temperature) * fraction_q10 ,3)} °C",
@@ -1425,6 +1430,7 @@ def amdsmi_get_metrics_table(
         "mtbl_max_socket_power_limit": f"{round(mtbl.max_socket_power_limit * fraction_uq10 ,3)} W",
         "mtbl_socket_power": f"{round(mtbl.socket_power * fraction_uq10 ,3)} W",
         "mtbl_timestamp_raw": mtbl.timestamp,
+        "mtbl_timestamp_readable": f"{asctime(timeinfo)}",
         "mtbl_socket_energy_acc": f"{round((mtbl.socket_energy_acc * fraction_uq16)/KILO ,3)} kJ",
         "mtbl_ccd_energy_acc": f"{round((mtbl.ccd_energy_acc * fraction_uq16)/KILO ,3)} kJ",
         "mtbl_xcd_energy_acc": f"{round((mtbl.xcd_energy_acc * fraction_uq16)/KILO ,3)} kJ",
