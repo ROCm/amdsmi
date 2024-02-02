@@ -2294,6 +2294,12 @@ amdsmi_get_metrics_table.argtypes = [amdsmi_processor_handle, ctypes.POINTER(str
 amdsmi_first_online_core_on_cpu_socket = _libraries['libamd_smi.so'].amdsmi_first_online_core_on_cpu_socket
 amdsmi_first_online_core_on_cpu_socket.restype = amdsmi_status_t
 amdsmi_first_online_core_on_cpu_socket.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32)]
+amdsmi_get_cpu_family = _libraries['libamd_smi.so'].amdsmi_get_cpu_family
+amdsmi_get_cpu_family.restype = amdsmi_status_t
+amdsmi_get_cpu_family.argtypes = [ctypes.POINTER(ctypes.c_uint32)]
+amdsmi_get_cpu_model = _libraries['libamd_smi.so'].amdsmi_get_cpu_model
+amdsmi_get_cpu_model.restype = amdsmi_status_t
+amdsmi_get_cpu_model.argtypes = [ctypes.POINTER(ctypes.c_uint32)]
 amdsmi_get_esmi_err_msg = _libraries['libamd_smi.so'].amdsmi_get_esmi_err_msg
 amdsmi_get_esmi_err_msg.restype = amdsmi_status_t
 amdsmi_get_esmi_err_msg.argtypes = [amdsmi_status_t, ctypes.POINTER(ctypes.POINTER(ctypes.c_char))]
@@ -2490,8 +2496,9 @@ __all__ = \
     'amdsmi_get_cpu_current_xgmi_bw', 'amdsmi_get_cpu_ddr_bw',
     'amdsmi_get_cpu_dimm_power_consumption',
     'amdsmi_get_cpu_dimm_temp_range_and_refresh_rate',
-    'amdsmi_get_cpu_dimm_thermal_sensor', 'amdsmi_get_cpu_fclk_mclk',
-    'amdsmi_get_cpu_hsmp_proto_ver', 'amdsmi_get_cpu_prochot_status',
+    'amdsmi_get_cpu_dimm_thermal_sensor', 'amdsmi_get_cpu_family',
+    'amdsmi_get_cpu_fclk_mclk', 'amdsmi_get_cpu_hsmp_proto_ver',
+    'amdsmi_get_cpu_model', 'amdsmi_get_cpu_prochot_status',
     'amdsmi_get_cpu_pwr_svi_telemetry_all_rails',
     'amdsmi_get_cpu_smu_fw_version',
     'amdsmi_get_cpu_socket_c0_residency',

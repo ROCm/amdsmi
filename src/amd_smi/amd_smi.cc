@@ -3081,6 +3081,38 @@ amdsmi_status_t amdsmi_first_online_core_on_cpu_socket(amdsmi_processor_handle p
     return AMDSMI_STATUS_SUCCESS;
 }
 
+amdsmi_status_t amdsmi_get_cpu_family(uint32_t *cpu_family)
+{
+    amdsmi_status_t status;
+    uint32_t family;
+
+    AMDSMI_CHECK_INIT();
+
+    status = amd::smi::AMDSmiSystem::getInstance().get_cpu_family(&family);
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return amdsmi_errno_to_esmi_status(status);
+
+    *cpu_family = family;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_get_cpu_model(uint32_t *cpu_model)
+{
+    amdsmi_status_t status;
+    uint32_t model;
+
+    AMDSMI_CHECK_INIT();
+
+    status = amd::smi::AMDSmiSystem::getInstance().get_cpu_model(&model);
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return amdsmi_errno_to_esmi_status(status);
+
+    *cpu_model = model;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
 amdsmi_status_t amdsmi_get_esmi_err_msg(amdsmi_status_t status, const char **status_string)
 {
     for (auto& iter : amd::smi::esmi_status_map) {

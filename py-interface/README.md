@@ -6038,3 +6038,43 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
+
+### amdsmi_get_cpu_family
+
+Description: Get cpu family.
+
+Output: cpu family
+
+Exceptions that can be thrown by `amdsmi_get_cpu_family` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+     cpu_family = amdsmi_get_cpu_family()
+     print(cpu_family)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpu_model
+
+Description: Get cpu model.
+
+Output: cpu model
+
+Exceptions that can be thrown by `amdsmi_get_cpu_model` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+     cpu_model = amdsmi_get_cpu_model()
+     print(cpu_model)
+except AmdSmiException as e:
+    print(e)
+```
