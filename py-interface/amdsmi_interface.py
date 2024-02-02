@@ -1496,6 +1496,20 @@ def amdsmi_first_online_core_on_cpu_socket(
 
     return pcore_ind.value
 
+def amdsmi_get_cpu_family():
+    family = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpu_family(ctypes.byref(family))
+    )
+    return family.value
+
+def amdsmi_get_cpu_model():
+    model = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpu_model(ctypes.byref(model))
+    )
+    return model.value
+
 def amdsmi_init(flag=AmdSmiInitFlags.INIT_AMD_GPUS):
     if not isinstance(flag, AmdSmiInitFlags):
         raise AmdSmiParameterException(flag, AmdSmiInitFlags)

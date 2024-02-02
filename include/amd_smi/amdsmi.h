@@ -4964,6 +4964,24 @@ amdsmi_status_t amdsmi_first_online_core_on_cpu_socket(amdsmi_processor_handle p
                                                        uint32_t *pcore_ind);
 
 /**
+ *  @brief Get CPU family.
+ *
+ *  @param[in,out]	cpu_family - Input buffer to return the cpu family
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_get_cpu_family(uint32_t *cpu_family);
+
+/**
+ *  @brief Get CPU model.
+ *
+ *  @param[in,out]	cpu_model - Input buffer to return the cpu model
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_get_cpu_model(uint32_t *cpu_model);
+
+/**
  *  @brief Get a description of provided AMDSMI error status for esmi errors.
  *
  *  @details Set the provided pointer to a const char *, @p status_string, to
