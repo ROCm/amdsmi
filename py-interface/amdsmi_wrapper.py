@@ -813,20 +813,20 @@ struct_amdsmi_vbios_info_t._fields_ = [
 
 amdsmi_vbios_info_t = struct_amdsmi_vbios_info_t
 
-# values for enumeration 'amdsmi_cache_flags_type_t'
-amdsmi_cache_flags_type_t__enumvalues = {
-    1: 'CACHE_FLAGS_ENABLED',
-    2: 'CACHE_FLAGS_DATA_CACHE',
-    4: 'CACHE_FLAGS_INST_CACHE',
-    8: 'CACHE_FLAGS_CPU_CACHE',
-    16: 'CACHE_FLAGS_SIMD_CACHE',
+# values for enumeration 'amdsmi_cache_properties_type_t'
+amdsmi_cache_properties_type_t__enumvalues = {
+    1: 'CACHE_PROPERTIES_ENABLED',
+    2: 'CACHE_PROPERTIES_DATA_CACHE',
+    4: 'CACHE_PROPERTIES_INST_CACHE',
+    8: 'CACHE_PROPERTIES_CPU_CACHE',
+    16: 'CACHE_PROPERTIES_SIMD_CACHE',
 }
-CACHE_FLAGS_ENABLED = 1
-CACHE_FLAGS_DATA_CACHE = 2
-CACHE_FLAGS_INST_CACHE = 4
-CACHE_FLAGS_CPU_CACHE = 8
-CACHE_FLAGS_SIMD_CACHE = 16
-amdsmi_cache_flags_type_t = ctypes.c_uint32 # enum
+CACHE_PROPERTIES_ENABLED = 1
+CACHE_PROPERTIES_DATA_CACHE = 2
+CACHE_PROPERTIES_INST_CACHE = 4
+CACHE_PROPERTIES_CPU_CACHE = 8
+CACHE_PROPERTIES_SIMD_CACHE = 16
+amdsmi_cache_properties_type_t = ctypes.c_uint32 # enum
 class struct_amdsmi_gpu_cache_info_t(Structure):
     pass
 
@@ -835,9 +835,9 @@ class struct_cache_(Structure):
 
 struct_cache_._pack_ = 1 # source:False
 struct_cache_._fields_ = [
-    ('cache_size_kb', ctypes.c_uint32),
+    ('cache_size', ctypes.c_uint32),
     ('cache_level', ctypes.c_uint32),
-    ('flags', ctypes.c_uint32),
+    ('properties', ctypes.c_uint32),
     ('max_num_cu_shared', ctypes.c_uint32),
     ('num_cache_instance', ctypes.c_uint32),
     ('reserved', ctypes.c_uint32 * 3),
@@ -2415,9 +2415,9 @@ __all__ = \
     'AMDSMI_VRAM_VENDOR__WINBOND', 'AMDSMI_XGMI_STATUS_ERROR',
     'AMDSMI_XGMI_STATUS_MULTIPLE_ERRORS',
     'AMDSMI_XGMI_STATUS_NO_ERRORS', 'AMD_APU', 'AMD_CPU',
-    'AMD_CPU_CORE', 'AMD_GPU', 'CACHE_FLAGS_CPU_CACHE',
-    'CACHE_FLAGS_DATA_CACHE', 'CACHE_FLAGS_ENABLED',
-    'CACHE_FLAGS_INST_CACHE', 'CACHE_FLAGS_SIMD_CACHE',
+    'AMD_CPU_CORE', 'AMD_GPU', 'CACHE_PROPERTIES_CPU_CACHE',
+    'CACHE_PROPERTIES_DATA_CACHE', 'CACHE_PROPERTIES_ENABLED',
+    'CACHE_PROPERTIES_INST_CACHE', 'CACHE_PROPERTIES_SIMD_CACHE',
     'CLK_TYPE_DCEF', 'CLK_TYPE_DCLK0', 'CLK_TYPE_DCLK1',
     'CLK_TYPE_DF', 'CLK_TYPE_FIRST', 'CLK_TYPE_GFX', 'CLK_TYPE_MEM',
     'CLK_TYPE_PCIE', 'CLK_TYPE_SOC', 'CLK_TYPE_SYS', 'CLK_TYPE_VCLK0',
@@ -2465,7 +2465,7 @@ __all__ = \
     'VRAM_TYPE_GDDR6', 'VRAM_TYPE_HBM', 'VRAM_TYPE_UNKNOWN',
     'VRAM_TYPE__MAX', 'WR_BW0', 'amd_metrics_table_header_t',
     'amdsmi_asic_info_t', 'amdsmi_bdf_t', 'amdsmi_bit_field_t',
-    'amdsmi_board_info_t', 'amdsmi_cache_flags_type_t',
+    'amdsmi_board_info_t', 'amdsmi_cache_properties_type_t',
     'amdsmi_card_form_factor_t', 'amdsmi_clk_info_t',
     'amdsmi_clk_type_t', 'amdsmi_compute_partition_type_t',
     'amdsmi_container_types_t', 'amdsmi_counter_command_t',
