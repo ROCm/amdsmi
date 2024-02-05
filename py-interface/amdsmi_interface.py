@@ -1619,30 +1619,32 @@ def amdsmi_get_gpu_cache_info(
 
     cache_info_dict = {}
     for cache_index in range(cache_info.num_cache_types):
+        # Put cache_properties at the start of the dictionary for readability
         cache_dict = {
             "cache_properties": [],
-            "cache_size": cache_info.cache[cache_index].cache_size_kb,
+            "cache_size": cache_info.cache[cache_index].cache_size,
             "cache_level": cache_info.cache[cache_index].cache_level,
             "max_num_cu_shared": cache_info.cache[cache_index].max_num_cu_shared,
             "num_cache_instance": cache_info.cache[cache_index].num_cache_instance
         }
 
-        cache_flags = cache_info.cache[cache_index].flags
-        data_cache = cache_flags & amdsmi_wrapper.CACHE_FLAGS_DATA_CACHE
-        inst_cache = cache_flags & amdsmi_wrapper.CACHE_FLAGS_INST_CACHE
-        cpu_cache = cache_flags & amdsmi_wrapper.CACHE_FLAGS_CPU_CACHE
-        simd_cache = cache_flags & amdsmi_wrapper.CACHE_FLAGS_SIMD_CACHE
+        # Check against cache properties bitmask
+        cache_properties = cache_info.cache[cache_index].properties
+        data_cache = cache_properties & amdsmi_wrapper.CACHE_PROPERTIES_DATA_CACHE
+        inst_cache = cache_properties & amdsmi_wrapper.CACHE_PROPERTIES_INST_CACHE
+        cpu_cache = cache_properties & amdsmi_wrapper.CACHE_PROPERTIES_CPU_CACHE
+        simd_cache = cache_properties & amdsmi_wrapper.CACHE_PROPERTIES_SIMD_CACHE
 
-        cache_flags_status = [data_cache, inst_cache, cpu_cache, simd_cache]
-        cache_flag_list = []
-        for cache_flag in cache_flags_status:
-            if cache_flag:
-                flag_name = amdsmi_wrapper.amdsmi_cache_flags_type_t__enumvalues[cache_flag]
-                flag_name = flag_name.replace("CACHE_FLAGS_", "")
-                cache_flag_list.append(flag_name)
+        cache_properties_status = [data_cache, inst_cache, cpu_cache, simd_cache]
+        cache_property_list = []
+        for cache_property in cache_properties_status:
+            if cache_property:
+                property_name = amdsmi_wrapper.amdsmi_cache_properties_type_t__enumvalues[cache_property]
+                property_name = property_name.replace("CACHE_PROPERTIES_", "")
+                cache_property_list.append(property_name)
 
-        cache_dict["cache_properties"] = cache_flag_list
-        cache_info_dict[f"cache {cache_index}"] = cache_dict
+        cache_dict["cache_properties"] = cache_property_list
+        cache_info_dict[f"cache_{cache_index}"] = cache_dict
 
     if not cache_info_dict:
         raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NO_DATA)
