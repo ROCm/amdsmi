@@ -1527,7 +1527,7 @@ typedef struct {
 } amdsmi_dpm_level_t;
 
 /**
- * @brief Metrics table (supported only with hsmp proto version 6).
+ * @brief HSMP Metrics table (supported only with hsmp proto version 6).
  */
 typedef struct __attribute__((__packed__)){
     uint32_t accumulation_counter;
@@ -1606,7 +1606,7 @@ typedef struct __attribute__((__packed__)){
 
     /* New items at the end to maintain driver compatibility */
     uint32_t gfxclk_frequency[8];
-} amdsmi_hsmp_metric_table_t;
+} amdsmi_hsmp_metrics_table_t;
 
 #endif
 
@@ -5219,35 +5219,35 @@ amdsmi_status_t amdsmi_get_cpu_current_xgmi_bw(amdsmi_processor_handle processor
 /** @} */
 
 /*---------------------------------------------------------------------------*/
-/**  @defgroup MetQuer Metrics Table                                         */
+/**  @defgroup MetQuer HSMP Metrics Table                                         */
 /*---------------------------------------------------------------------------*/
 /** @{  */
 
 /**
- *  @brief Get metrics table version
+ *  @brief Get HSMP metrics table version
  *
  *  @platform{cpu_bm}
  *
  *  @param[in]      processor_handle Cpu socket which to query
- *  @param[in,out]  metrics_version input buffer to return the metrics table version.
+ *  @param[in,out]  metrics_version input buffer to return the HSMP metrics table version.
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_metrics_table_version(amdsmi_processor_handle processor_handle,
+amdsmi_status_t amdsmi_get_hsmp_metrics_table_version(amdsmi_processor_handle processor_handle,
                                                  uint32_t *metrics_version);
 
 /**
- *  @brief Get metrics table
+ *  @brief Get HSMP metrics table
  *
  *  @platform{cpu_bm}
  *
  *  @param[in]      processor_handle Cpu socket which to query
- *  @param[in,out]  metrics_table input buffer to return the metrics table.
+ *  @param[in,out]  metrics_table input buffer to return the HSMP metrics table.
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_metrics_table(amdsmi_processor_handle processor_handle,
-                                         amdsmi_hsmp_metric_table_t *metrics_table);
+amdsmi_status_t amdsmi_get_hsmp_metrics_table(amdsmi_processor_handle processor_handle,
+                                         amdsmi_hsmp_metrics_table_t *metrics_table);
 
 /** @} */
 

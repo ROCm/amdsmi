@@ -1780,11 +1780,11 @@ struct_amdsmi_dpm_level_t._fields_ = [
 ]
 
 amdsmi_dpm_level_t = struct_amdsmi_dpm_level_t
-class struct_amdsmi_hsmp_metric_table_t(Structure):
+class struct_amdsmi_hsmp_metrics_table_t(Structure):
     pass
 
-struct_amdsmi_hsmp_metric_table_t._pack_ = 1 # source:True
-struct_amdsmi_hsmp_metric_table_t._fields_ = [
+struct_amdsmi_hsmp_metrics_table_t._pack_ = 1 # source:True
+struct_amdsmi_hsmp_metrics_table_t._fields_ = [
     ('accumulation_counter', ctypes.c_uint32),
     ('max_socket_temperature', ctypes.c_uint32),
     ('max_vr_temperature', ctypes.c_uint32),
@@ -1845,7 +1845,7 @@ struct_amdsmi_hsmp_metric_table_t._fields_ = [
     ('gfxclk_frequency', ctypes.c_uint32 * 8),
 ]
 
-amdsmi_hsmp_metric_table_t = struct_amdsmi_hsmp_metric_table_t
+amdsmi_hsmp_metrics_table_t = struct_amdsmi_hsmp_metrics_table_t
 uint64_t = ctypes.c_uint64
 amdsmi_init = _libraries['libamd_smi.so'].amdsmi_init
 amdsmi_init.restype = amdsmi_status_t
@@ -2285,12 +2285,12 @@ amdsmi_get_cpu_current_io_bandwidth.argtypes = [amdsmi_processor_handle, amdsmi_
 amdsmi_get_cpu_current_xgmi_bw = _libraries['libamd_smi.so'].amdsmi_get_cpu_current_xgmi_bw
 amdsmi_get_cpu_current_xgmi_bw.restype = amdsmi_status_t
 amdsmi_get_cpu_current_xgmi_bw.argtypes = [amdsmi_processor_handle, amdsmi_link_id_bw_type_t, ctypes.POINTER(ctypes.c_uint32)]
-amdsmi_get_metrics_table_version = _libraries['libamd_smi.so'].amdsmi_get_metrics_table_version
-amdsmi_get_metrics_table_version.restype = amdsmi_status_t
-amdsmi_get_metrics_table_version.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32)]
-amdsmi_get_metrics_table = _libraries['libamd_smi.so'].amdsmi_get_metrics_table
-amdsmi_get_metrics_table.restype = amdsmi_status_t
-amdsmi_get_metrics_table.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_hsmp_metric_table_t)]
+amdsmi_get_hsmp_metrics_table_version = _libraries['libamd_smi.so'].amdsmi_get_hsmp_metrics_table_version
+amdsmi_get_hsmp_metrics_table_version.restype = amdsmi_status_t
+amdsmi_get_hsmp_metrics_table_version.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32)]
+amdsmi_get_hsmp_metrics_table = _libraries['libamd_smi.so'].amdsmi_get_hsmp_metrics_table
+amdsmi_get_hsmp_metrics_table.restype = amdsmi_status_t
+amdsmi_get_hsmp_metrics_table.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_hsmp_metrics_table_t)]
 amdsmi_first_online_core_on_cpu_socket = _libraries['libamd_smi.so'].amdsmi_first_online_core_on_cpu_socket
 amdsmi_first_online_core_on_cpu_socket.restype = amdsmi_status_t
 amdsmi_first_online_core_on_cpu_socket.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32)]
@@ -2544,9 +2544,9 @@ __all__ = \
     'amdsmi_get_gpu_total_ecc_count', 'amdsmi_get_gpu_vbios_info',
     'amdsmi_get_gpu_vendor_name', 'amdsmi_get_gpu_volt_metric',
     'amdsmi_get_gpu_vram_info', 'amdsmi_get_gpu_vram_usage',
-    'amdsmi_get_gpu_vram_vendor', 'amdsmi_get_lib_version',
-    'amdsmi_get_link_metrics', 'amdsmi_get_metrics_table',
-    'amdsmi_get_metrics_table_version',
+    'amdsmi_get_gpu_vram_vendor', 'amdsmi_get_hsmp_metrics_table',
+    'amdsmi_get_hsmp_metrics_table_version', 'amdsmi_get_lib_version',
+    'amdsmi_get_link_metrics',
     'amdsmi_get_minmax_bandwidth_between_processors',
     'amdsmi_get_pcie_info', 'amdsmi_get_power_cap_info',
     'amdsmi_get_power_info',
@@ -2562,7 +2562,7 @@ __all__ = \
     'amdsmi_gpu_counter_group_supported', 'amdsmi_gpu_create_counter',
     'amdsmi_gpu_destroy_counter', 'amdsmi_gpu_metrics_t',
     'amdsmi_gpu_read_counter', 'amdsmi_gpu_xgmi_error_status',
-    'amdsmi_hsmp_metric_table_t', 'amdsmi_init',
+    'amdsmi_hsmp_metrics_table_t', 'amdsmi_init',
     'amdsmi_init_flags_t', 'amdsmi_init_gpu_event_notification',
     'amdsmi_io_bw_encoding_t', 'amdsmi_io_link_type_t',
     'amdsmi_is_P2P_accessible',
@@ -2623,7 +2623,7 @@ __all__ = \
     'struct_amdsmi_freq_volt_region_t', 'struct_amdsmi_frequencies_t',
     'struct_amdsmi_frequency_range_t', 'struct_amdsmi_fw_info_t',
     'struct_amdsmi_gpu_cache_info_t', 'struct_amdsmi_gpu_metrics_t',
-    'struct_amdsmi_hsmp_metric_table_t',
+    'struct_amdsmi_hsmp_metrics_table_t',
     'struct_amdsmi_link_id_bw_type_t', 'struct_amdsmi_link_metrics_t',
     'struct_amdsmi_name_value_t', 'struct_amdsmi_od_vddc_point_t',
     'struct_amdsmi_od_volt_curve_t',

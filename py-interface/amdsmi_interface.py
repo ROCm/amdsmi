@@ -1349,7 +1349,7 @@ def amdsmi_get_cpu_current_xgmi_bw(
 
     return f"{xgmi_bw.value} Mbps"
 
-def amdsmi_get_metrics_table_version(
+def amdsmi_get_hsmp_metrics_table_version(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle
 ):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -1360,7 +1360,7 @@ def amdsmi_get_metrics_table_version(
     metric_tbl_version = ctypes.c_uint32()
 
     _check_res(
-        amdsmi_wrapper.amdsmi_get_metrics_table_version(
+        amdsmi_wrapper.amdsmi_get_hsmp_metrics_table_version(
             processor_handle, ctypes.byref(metric_tbl_version))
     )
 
@@ -1393,7 +1393,7 @@ def check_msb_64(num):
     else:
         return num
 
-def amdsmi_get_metrics_table(
+def amdsmi_get_hsmp_metrics_table(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle
 ):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -1401,7 +1401,7 @@ def amdsmi_get_metrics_table(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    mtbl = amdsmi_wrapper.amdsmi_hsmp_metric_table_t()
+    mtbl = amdsmi_wrapper.amdsmi_hsmp_metrics_table_t()
 
     '''Encodings for the metric table defined for hsmp'''
     fraction_q10 = 1 / math.pow(2, 10)
@@ -1409,7 +1409,7 @@ def amdsmi_get_metrics_table(
     fraction_uq16 = 1 / math.pow(2, 16)
 
     _check_res(
-            amdsmi_wrapper.amdsmi_get_metrics_table(
+            amdsmi_wrapper.amdsmi_get_hsmp_metrics_table(
                    processor_handle, mtbl
             )
     )

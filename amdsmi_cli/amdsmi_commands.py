@@ -1951,7 +1951,7 @@ class AMDSMICommands():
             if (args.cpu_metrics_ver):
                 static_dict["metric_version"] = {}
                 try:
-                    version = amdsmi_interface.amdsmi_get_metrics_table_version(args.cpu)
+                    version = amdsmi_interface.amdsmi_get_hsmp_metrics_table_version(args.cpu)
                     static_dict["metric_version"]["version"] = version
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     static_dict["metric_version"]["version"] = "N/A"
@@ -1972,7 +1972,7 @@ class AMDSMICommands():
                     static_dict["metrics_table"]["cpu_model"] = "N/A"
                     logging.debug("Failed to get cpu model | %s", e.get_error_info())
                 try:
-                    metrics_table = amdsmi_interface.amdsmi_get_metrics_table(args.cpu)
+                    metrics_table = amdsmi_interface.amdsmi_get_hsmp_metrics_table(args.cpu)
                     static_dict["metrics_table"]["response"] = metrics_table
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     static_dict["metrics_table"]["response"] = "N/A"
