@@ -3004,7 +3004,7 @@ amdsmi_status_t amdsmi_get_cpu_current_xgmi_bw(amdsmi_processor_handle processor
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_metrics_table_version(amdsmi_processor_handle processor_handle,
+amdsmi_status_t amdsmi_get_hsmp_metrics_table_version(amdsmi_processor_handle processor_handle,
                 uint32_t *metrics_version)
 {
     amdsmi_status_t status;
@@ -3024,8 +3024,8 @@ amdsmi_status_t amdsmi_get_metrics_table_version(amdsmi_processor_handle process
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t amdsmi_get_metrics_table(amdsmi_processor_handle processor_handle,
-                amdsmi_hsmp_metric_table_t *metrics_table)
+amdsmi_status_t amdsmi_get_hsmp_metrics_table(amdsmi_processor_handle processor_handle,
+                amdsmi_hsmp_metrics_table_t *metrics_table)
 {
     amdsmi_status_t status;
     struct hsmp_metric_table metrics_tbl;
@@ -3036,7 +3036,7 @@ amdsmi_status_t amdsmi_get_metrics_table(amdsmi_processor_handle processor_handl
     if (processor_handle == nullptr)
         return AMDSMI_STATUS_INVAL;
 
-    if(sizeof(amdsmi_hsmp_metric_table_t) != sizeof(struct hsmp_metric_table))
+    if(sizeof(amdsmi_hsmp_metrics_table_t) != sizeof(struct hsmp_metric_table))
         return AMDSMI_STATUS_UNEXPECTED_SIZE;
 
     amdsmi_status_t r = amdsmi_get_processor_info(processor_handle, SIZE, proc_id);
@@ -3049,7 +3049,7 @@ amdsmi_status_t amdsmi_get_metrics_table(amdsmi_processor_handle processor_handl
     if (status != AMDSMI_STATUS_SUCCESS)
         return amdsmi_errno_to_esmi_status(status);
 
-    std::memcpy(metrics_table, &metrics_tbl, sizeof(amdsmi_hsmp_metric_table_t));
+    std::memcpy(metrics_table, &metrics_tbl, sizeof(amdsmi_hsmp_metrics_table_t));
 
     return AMDSMI_STATUS_SUCCESS;
 }

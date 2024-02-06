@@ -5958,13 +5958,13 @@ except AmdSmiException as e:
     print(e)
 ```
 
-### amdsmi_get_metrics_table_version
+### amdsmi_get_hsmp_metrics_table_version
 
-Description: Get metrics table version.
+Description: Get HSMP metrics table version.
 
-Output: amdsmi metrics table version
+Output: amdsmi HSMP metrics table version
 
-Exceptions that can be thrown by `amdsmi_get_metrics_table_version` function:
+Exceptions that can be thrown by `amdsmi_get_hsmp_metrics_table_version` function:
 
 * `AmdSmiLibraryException`
 
@@ -5977,19 +5977,19 @@ try:
         print("No CPU sockets on machine")
     else:
         for processor in processor_handles:
-            met_ver = amdsmi_get_metrics_table_version(processor)
+            met_ver = amdsmi_get_hsmp_metrics_table_version(processor)
             print(met_ver)
 except AmdSmiException as e:
     print(e)
 ```
 
-### amdsmi_get_metrics_table
+### amdsmi_get_hsmp_metrics_table
 
-Description: Get metrics table
+Description: Get HSMP metrics table
 
-Output: metric table data
+Output: HSMP metric table data
 
-Exceptions that can be thrown by `amdsmi_get_metrics_table` function:
+Exceptions that can be thrown by `amdsmi_get_hsmp_metrics_table` function:
 
 * `AmdSmiLibraryException`
 
@@ -6002,7 +6002,7 @@ try:
         print("No CPU sockets on machine")
     else:
         for processor in processor_handles:
-            mtbl = amdsmi_get_metrics_table(processor)
+            mtbl = amdsmi_get_hsmp_metrics_table(processor)
             print(mtbl['accumulation_counter'])
             print(mtbl['max_socket_temperature'])
             print(mtbl['max_vr_temperature'])
