@@ -1562,22 +1562,49 @@ def amdsmi_get_gpu_asic_info(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    asic_info = amdsmi_wrapper.amdsmi_asic_info_t()
+    asic_info_struct = amdsmi_wrapper.amdsmi_asic_info_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_gpu_asic_info(
-            processor_handle, ctypes.byref(asic_info))
+            processor_handle, ctypes.byref(asic_info_struct))
     )
 
-    return {
-        "market_name": asic_info.market_name.decode("utf-8"),
-        "vendor_id": asic_info.vendor_id,
-        "vendor_name": asic_info.vendor_name.decode("utf-8"),
-        "subvendor_id": asic_info.subvendor_id if asic_info.subvendor_id == '' else hex(asic_info.subvendor_id),
-        "device_id": asic_info.device_id,
-        "rev_id": asic_info.rev_id,
-        "asic_serial": asic_info.asic_serial.decode("utf-8"),
-        "oam_id": asic_info.oam_id
+    asic_info = {
+        "market_name": asic_info_struct.market_name.decode("utf-8"),
+        "vendor_id": asic_info_struct.vendor_id,
+        "vendor_name": asic_info_struct.vendor_name.decode("utf-8"),
+        "subvendor_id": asic_info_struct.subvendor_id,
+        "device_id": asic_info_struct.device_id,
+        "rev_id": asic_info_struct.rev_id,
+        "asic_serial": asic_info_struct.asic_serial.decode("utf-8"),
+        "oam_id": asic_info_struct.oam_id
     }
+
+    string_values = ["market_name", "vendor_name"]
+    for value in string_values:
+        if not asic_info[value]:
+            asic_info[value] = "N/A"
+
+    hex_values = ["vendor_id", "subvendor_id", "device_id", "rev_id"]
+    for value in hex_values:
+        if asic_info[value]:
+            asic_info[value] = hex(asic_info[value])
+        else:
+            asic_info[value] = "N/A"
+
+    # Ensure hex output for asic_serial
+    if asic_info["asic_serial"]:
+        asic_info["asic_serial"] = str.format("0x{:016X}", int(asic_info["asic_serial"], base=16))
+    else:
+        asic_info["asic_serial"] = "N/A"
+
+    # Check for max value as a sign for not applicable
+    if asic_info["oam_id"] == 0xFFFF: # uint 16 max
+        asic_info["oam_id"] = "N/A"
+
+    # Remove commas from vendor name for clean output
+    asic_info["vendor_name"] = asic_info["vendor_name"].replace(',', '')
+
+    return asic_info
 
 
 def amdsmi_get_power_cap_info(
