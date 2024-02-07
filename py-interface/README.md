@@ -465,32 +465,33 @@ except AmdSmiException as e:
 
 ### amdsmi_get_gpu_cache_info
 
-Description: Returns dictionary of cache information for the given GPU.
+Description: Returns a list of dictionaries containing cache information for the given GPU.
 
 Input parameters:
 
 * `processor_handle` device which to query
 
-Output: Dictionary of Dictionaries containing cache information
-Schema: { cache_index:
-            {
-            cache_properties:
-                {
-                    "type": "array",
-                    "items": {
-                         "type": "string"
-                    }
-                },
-            cache_size: {"type" : "number"},
-            cache_level: {"type" : "number"},
-            max_num_cu_shared: {"type" : "number"},
-            num_cache_instance: {"type" : "number"}
-            }
-        }
+Output: List of Dictionaries containing cache information following the schema below:
+Schema:
+
+```JSON
+{
+    cache: {"type" : "number"},
+    cache_properties:  
+        {
+            "type" : "array",
+            "items" : {"type" : "string"}
+        },
+    cache_size: {"type" : "number"},
+    cache_level: {"type" : "number"},
+    max_num_cu_shared: {"type" : "number"},
+    num_cache_instance: {"type" : "number"}
+}
+```
 
 Field | Description
 ---|---
-`cache_index` | cache index is a string of format "cache_#" up to 10 caches will be available
+`cache` | cache index from 0-9
 `cache_properties` | list of up to 4 cache property type strings. Ex. data ("DATA_CACHE"), instruction ("INST_CACHE"), CPU ("CPU_CACHE"), or SIMD ("SIMD_CACHE").
 `cache_size` | size of cache in KB
 `cache_level` | level of cache

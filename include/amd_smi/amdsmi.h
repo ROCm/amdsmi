@@ -541,19 +541,19 @@ typedef struct {
  * @brief cache properties
  */
 typedef enum {
-  CACHE_PROPERTIES_ENABLED = 0x00000001,
-  CACHE_PROPERTIES_DATA_CACHE = 0x00000002,
-  CACHE_PROPERTIES_INST_CACHE = 0x00000004,
-  CACHE_PROPERTIES_CPU_CACHE = 0x00000008,
-  CACHE_PROPERTIES_SIMD_CACHE = 0x00000010,
+  AMDSMI_CACHE_PROPERTIES_ENABLED = 0x00000001,
+  AMDSMI_CACHE_PROPERTIES_DATA_CACHE = 0x00000002,
+  AMDSMI_CACHE_PROPERTIES_INST_CACHE = 0x00000004,
+  AMDSMI_CACHE_PROPERTIES_CPU_CACHE = 0x00000008,
+  AMDSMI_CACHE_PROPERTIES_SIMD_CACHE = 0x00000010,
 } amdsmi_cache_properties_type_t;
 
 typedef struct {
   uint32_t num_cache_types;
   struct cache_ {
+    uint32_t cache_properties;  // amdsmi_cache_properties_type_t which is a bitmask
     uint32_t cache_size; /* In KB */
     uint32_t cache_level;
-    uint32_t properties;  // amdsmi_cache_properties_type_t which is a bitmask
     uint32_t max_num_cu_shared;  /* Indicates how many Compute Units share this cache instance */
     uint32_t num_cache_instance;  /* total number of instance of this cache type */
     uint32_t reserved[3];
