@@ -1652,51 +1652,52 @@ def amdsmi_get_gpu_vram_info(
 
 def amdsmi_get_gpu_cache_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
-) -> Dict[str, Dict[str, Any]]:
+) -> List[Dict[str, Any]]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    cache_info = amdsmi_wrapper.amdsmi_gpu_cache_info_t()
+    cache_info_struct = amdsmi_wrapper.amdsmi_gpu_cache_info_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_gpu_cache_info(
-            processor_handle, ctypes.byref(cache_info))
+            processor_handle, ctypes.byref(cache_info_struct))
     )
 
-    cache_info_dict = {}
-    for cache_index in range(cache_info.num_cache_types):
+    cache_info_list = []
+    for cache_index in range(cache_info_struct.num_cache_types):
         # Put cache_properties at the start of the dictionary for readability
         cache_dict = {
-            "cache_properties": [],
-            "cache_size": cache_info.cache[cache_index].cache_size,
-            "cache_level": cache_info.cache[cache_index].cache_level,
-            "max_num_cu_shared": cache_info.cache[cache_index].max_num_cu_shared,
-            "num_cache_instance": cache_info.cache[cache_index].num_cache_instance
+            "cache": cache_index,
+            "cache_properties": [], # This will be a list of strings
+            "cache_size": cache_info_struct.cache[cache_index].cache_size,
+            "cache_level": cache_info_struct.cache[cache_index].cache_level,
+            "max_num_cu_shared": cache_info_struct.cache[cache_index].max_num_cu_shared,
+            "num_cache_instance": cache_info_struct.cache[cache_index].num_cache_instance
         }
 
         # Check against cache properties bitmask
-        cache_properties = cache_info.cache[cache_index].properties
-        data_cache = cache_properties & amdsmi_wrapper.CACHE_PROPERTIES_DATA_CACHE
-        inst_cache = cache_properties & amdsmi_wrapper.CACHE_PROPERTIES_INST_CACHE
-        cpu_cache = cache_properties & amdsmi_wrapper.CACHE_PROPERTIES_CPU_CACHE
-        simd_cache = cache_properties & amdsmi_wrapper.CACHE_PROPERTIES_SIMD_CACHE
+        cache_properties = cache_info_struct.cache[cache_index].cache_properties
+        data_cache = cache_properties & amdsmi_wrapper.AMDSMI_CACHE_PROPERTIES_DATA_CACHE
+        inst_cache = cache_properties & amdsmi_wrapper.AMDSMI_CACHE_PROPERTIES_INST_CACHE
+        cpu_cache = cache_properties & amdsmi_wrapper.AMDSMI_CACHE_PROPERTIES_CPU_CACHE
+        simd_cache = cache_properties & amdsmi_wrapper.AMDSMI_CACHE_PROPERTIES_SIMD_CACHE
 
         cache_properties_status = [data_cache, inst_cache, cpu_cache, simd_cache]
         cache_property_list = []
         for cache_property in cache_properties_status:
             if cache_property:
                 property_name = amdsmi_wrapper.amdsmi_cache_properties_type_t__enumvalues[cache_property]
-                property_name = property_name.replace("CACHE_PROPERTIES_", "")
+                property_name = property_name.replace("AMDSMI_CACHE_PROPERTIES_", "")
                 cache_property_list.append(property_name)
 
         cache_dict["cache_properties"] = cache_property_list
-        cache_info_dict[f"cache_{cache_index}"] = cache_dict
+        cache_info_list.append(cache_dict)
 
-    if not cache_info_dict:
+    if not cache_info_list:
         raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_NO_DATA)
 
-    return cache_info_dict
+    return cache_info_list
 
 
 def amdsmi_get_gpu_vbios_info(

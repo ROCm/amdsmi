@@ -323,7 +323,7 @@ int main() {
                 printf("\tCache Level: %d, Cache Size: %d KB, Cache type: 0x%x\n",
                     cache_info.cache[i].cache_level,
                     cache_info.cache[i].cache_size,
-                    cache_info.cache[i].properties);
+                    cache_info.cache[i].cache_properties);
                 printf("\tMax number CU shared: %d, Number of instances: %d\n",
                     cache_info.cache[i].max_num_cu_shared,
                     cache_info.cache[i].num_cache_instance);
