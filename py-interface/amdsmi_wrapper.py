@@ -746,19 +746,6 @@ amdsmi_card_form_factor_t = ctypes.c_uint32 # enum
 class struct_amdsmi_pcie_info_t(Structure):
     pass
 
-class struct_pcie_static_(Structure):
-    pass
-
-struct_pcie_static_._pack_ = 1 # source:False
-struct_pcie_static_._fields_ = [
-    ('max_pcie_lanes', ctypes.c_uint16),
-    ('PADDING_0', ctypes.c_ubyte * 2),
-    ('max_pcie_speed', ctypes.c_uint32),
-    ('pcie_interface_version', ctypes.c_uint32),
-    ('slot_type', amdsmi_card_form_factor_t),
-    ('reserved', ctypes.c_uint64 * 10),
-]
-
 class struct_pcie_metric_(Structure):
     pass
 
@@ -775,6 +762,19 @@ struct_pcie_metric_._fields_ = [
     ('pcie_nak_sent_count', ctypes.c_uint64),
     ('pcie_nak_received_count', ctypes.c_uint64),
     ('reserved', ctypes.c_uint64 * 13),
+]
+
+class struct_pcie_static_(Structure):
+    pass
+
+struct_pcie_static_._pack_ = 1 # source:False
+struct_pcie_static_._fields_ = [
+    ('max_pcie_lanes', ctypes.c_uint16),
+    ('PADDING_0', ctypes.c_ubyte * 2),
+    ('max_pcie_speed', ctypes.c_uint32),
+    ('pcie_interface_version', ctypes.c_uint32),
+    ('slot_type', amdsmi_card_form_factor_t),
+    ('reserved', ctypes.c_uint64 * 10),
 ]
 
 struct_amdsmi_pcie_info_t._pack_ = 1 # source:False
@@ -1993,6 +1993,9 @@ amdsmi_reset_gpu.argtypes = [amdsmi_processor_handle]
 amdsmi_get_gpu_od_volt_info = _libraries['libamd_smi.so'].amdsmi_get_gpu_od_volt_info
 amdsmi_get_gpu_od_volt_info.restype = amdsmi_status_t
 amdsmi_get_gpu_od_volt_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_od_volt_freq_data_t)]
+amdsmi_get_gpu_metrics_header_info = _libraries['libamd_smi.so'].amdsmi_get_gpu_metrics_header_info
+amdsmi_get_gpu_metrics_header_info.restype = amdsmi_status_t
+amdsmi_get_gpu_metrics_header_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amd_metrics_table_header_t)]
 amdsmi_get_gpu_metrics_info = _libraries['libamd_smi.so'].amdsmi_get_gpu_metrics_info
 amdsmi_get_gpu_metrics_info.restype = amdsmi_status_t
 amdsmi_get_gpu_metrics_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_gpu_metrics_t)]
@@ -2527,6 +2530,7 @@ __all__ = \
     'amdsmi_get_gpu_id', 'amdsmi_get_gpu_memory_partition',
     'amdsmi_get_gpu_memory_reserved_pages',
     'amdsmi_get_gpu_memory_total', 'amdsmi_get_gpu_memory_usage',
+    'amdsmi_get_gpu_metrics_header_info',
     'amdsmi_get_gpu_metrics_info',
     'amdsmi_get_gpu_od_volt_curve_regions',
     'amdsmi_get_gpu_od_volt_info', 'amdsmi_get_gpu_overdrive_level',
