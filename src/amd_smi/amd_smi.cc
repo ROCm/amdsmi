@@ -1108,6 +1108,17 @@ amdsmi_status_t  amdsmi_get_gpu_ecc_status(amdsmi_processor_handle processor_han
                     reinterpret_cast<rsmi_ras_err_state_t*>(state));
 }
 
+amdsmi_status_t
+amdsmi_get_gpu_metrics_header_info(amdsmi_processor_handle processor_handle,
+                amd_metrics_table_header_t *header_value)
+{
+    AMDSMI_CHECK_INIT();
+    // nullptr api supported
+
+    return rsmi_wrapper(rsmi_dev_metrics_header_info_get, processor_handle,
+                    reinterpret_cast<metrics_table_header_t*>(header_value));
+}
+
 amdsmi_status_t  amdsmi_get_gpu_metrics_info(
         amdsmi_processor_handle processor_handle,
         amdsmi_gpu_metrics_t *pgpu_metrics) {

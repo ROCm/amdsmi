@@ -1619,7 +1619,7 @@ typedef struct __attribute__((__packed__)){
 /**
  *  @brief Initialize the AMD SMI library
  *
- *  @platform{gpu_bm_linux}  @platform{host} @platform{cpu_bm}  @platform{guest_1vf}  
+ *  @platform{gpu_bm_linux}  @platform{host} @platform{cpu_bm}  @platform{guest_1vf}
  *  @platform{guest_mvf} @platform{guest_windows}
  *
  *  @details This function initializes the library and the internal data structures,
@@ -1642,7 +1642,7 @@ amdsmi_status_t amdsmi_init(uint64_t init_flags);
 /**
  *  @brief Shutdown the AMD SMI library
  *
- *  @platform{gpu_bm_linux}  @platform{host} @platform{cpu_bm}  @platform{guest_1vf}  
+ *  @platform{gpu_bm_linux}  @platform{host} @platform{cpu_bm}  @platform{guest_1vf}
  *  @platform{guest_mvf} @platform{guest_windows}
  *
  *  @details This function shuts down the library and internal data structures and
@@ -1663,7 +1663,7 @@ amdsmi_status_t amdsmi_shut_down(void);
 /**
  *  @brief Get the list of socket handles in the system.
  *
- *  @platform{gpu_bm_linux}  @platform{host} @platform{cpu_bm}  @platform{guest_1vf}  
+ *  @platform{gpu_bm_linux}  @platform{host} @platform{cpu_bm}  @platform{guest_1vf}
  *  @platform{guest_mvf} @platform{guest_windows}
  *
  *  @details Depends on what flag is passed to ::amdsmi_init.  AMDSMI_INIT_AMD_GPUS
@@ -1726,7 +1726,7 @@ amdsmi_status_t amdsmi_get_cpusocket_handles(uint32_t *socket_count,
 /**
  *  @brief Get information about the given socket
  *
- *  @platform{gpu_bm_linux}  @platform{host}  @platform{guest_1vf}  
+ *  @platform{gpu_bm_linux}  @platform{host}  @platform{guest_1vf}
  *  @platform{guest_mvf} @platform{guest_windows}
  *
  *  @details This function retrieves socket information. The @p socket_handle must
@@ -1818,7 +1818,7 @@ amdsmi_status_t amdsmi_get_processor_handles_by_type(amdsmi_socket_handle socket
 /**
  *  @brief Get the list of the processor handles associated to a socket.
  *
- *  @platform{gpu_bm_linux}  @platform{host} @platform{guest_1vf}  
+ *  @platform{gpu_bm_linux}  @platform{host} @platform{guest_1vf}
  *  @platform{guest_mvf} @platform{guest_windows}
  *
  *  @details This function retrieves the processor handles of a socket. The
@@ -1886,7 +1886,7 @@ amdsmi_status_t amdsmi_get_cpucore_handles(amdsmi_cpusocket_handle socket_handle
 /**
  *  @brief Get the processor type of the processor_handle
  *
- *  @platform{gpu_bm_linux}  @platform{host} @platform{cpu_bm}  @platform{guest_1vf}  
+ *  @platform{gpu_bm_linux}  @platform{host} @platform{cpu_bm}  @platform{guest_1vf}
  *  @platform{guest_mvf} @platform{guest_windows}
  *
  *  @details This function retrieves the processor type. A processor_handle must be provided
@@ -1906,7 +1906,7 @@ amdsmi_status_t amdsmi_get_processor_type(amdsmi_processor_handle processor_hand
 /**
  *  @brief Get processor handle with the matching bdf.
  *
- *  @platform{gpu_bm_linux}  @platform{host} @platform{guest_1vf}  
+ *  @platform{gpu_bm_linux}  @platform{host} @platform{guest_1vf}
  *  @platform{guest_mvf} @platform{guest_windows}
  *
  *  @details Given bdf info @p bdf, this function will get
@@ -2462,7 +2462,7 @@ amdsmi_get_gpu_bad_page_info(amdsmi_processor_handle processor_handle, uint32_t 
  *  @brief Returns RAS features info.
  *
  *  @platform{gpu_bm_linux}  @platform{host}
- *  
+ *
  *  @param[in] processor_handle Device handle which to query
  *
  *  @param[out] ras_feature RAS features that are currently enabled and supported on
@@ -2635,7 +2635,7 @@ amdsmi_status_t amdsmi_get_gpu_fan_speed_max(amdsmi_processor_handle processor_h
  *  specified temperature sensor on the specified device. It is not supported on
  *  virtual machine guest
  *
- *  @platform{gpu_bm_linux} @platform{host} 
+ *  @platform{gpu_bm_linux} @platform{host}
  *
  *  @details Given a processor handle @p processor_handle, a sensor type @p sensor_type, a
  *  ::amdsmi_temperature_metric_t @p metric and a pointer to an int64_t @p
@@ -2666,7 +2666,7 @@ amdsmi_status_t amdsmi_get_temp_metric(amdsmi_processor_handle processor_handle,
 /**
  *  @brief Returns gpu cache info.
  *
- *  @platform{gpu_bm_linux}  @platform{host} 
+ *  @platform{gpu_bm_linux}  @platform{host}
  *
  *  @param[in] processor_handle PF of a processor for which to query
  *
@@ -2934,6 +2934,27 @@ amdsmi_status_t amdsmi_reset_gpu(amdsmi_processor_handle processor_handle);
  */
 amdsmi_status_t amdsmi_get_gpu_od_volt_info(amdsmi_processor_handle processor_handle,
                                                amdsmi_od_volt_freq_data_t *odv);
+
+/**
+ *  @brief Get the 'metrics_header_info' from the GPU metrics associated with the device
+ *
+ *  @platform{gpu_bm_linux}  @platform{guest_1vf}
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a amd_metrics_table_header_t in which
+ *  the 'metrics_header_info' will stored
+ *
+ *  @param[in] processor_handle Device which to query
+ *
+ *  @param[inout] header_value a pointer to amd_metrics_table_header_t to which the device gpu
+ *  metric unit will be stored
+ *
+ *  @retval ::AMDSMI_STATUS_SUCCESS is returned upon successful call.
+ *          ::AMDSMI_STATUS_NOT_SUPPORTED is returned in case the metric unit
+ *            does not exist for the given device
+ *
+ */
+amdsmi_status_t
+amdsmi_get_gpu_metrics_header_info(amdsmi_processor_handle processor_handle, amd_metrics_table_header_t* header_value);
 
 /**
  *  @brief This function retrieves the gpu metrics information. It is not supported
@@ -4375,7 +4396,7 @@ amdsmi_status_t amdsmi_get_gpu_vram_info(
 /**
  *  @brief          Returns the board part number and board information for the requested device
  *
- *   @platform{gpu_bm_linux}  @platform{host} @platform{guest_1vf}  @platform{guest_mvf} 
+ *   @platform{gpu_bm_linux}  @platform{host} @platform{guest_1vf}  @platform{guest_mvf}
  *
  *  @param[in]      processor_handle Device which to query
  *
