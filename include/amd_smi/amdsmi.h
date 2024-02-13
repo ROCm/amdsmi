@@ -4669,10 +4669,10 @@ amdsmi_get_gpu_total_ecc_count(amdsmi_processor_handle processor_handle, amdsmi_
 
 
 #ifdef ENABLE_ESMI_LIB
-/*---------------------------------------------------------------------------*/
-/**  @defgroup energyinfo     Energy information (RAPL MSR)                  */
-/*---------------------------------------------------------------------------*/
-/** @{  */
+/*****************************************************************************/
+/**  @defgroup energyinfo     Energy information (RAPL MSR)
+ *  @{
+ */
 
 /**
  *  @brief Get the core energy for a given core.
@@ -4702,12 +4702,12 @@ amdsmi_status_t amdsmi_get_cpu_core_energy(amdsmi_processor_handle processor_han
 amdsmi_status_t amdsmi_get_cpu_socket_energy(amdsmi_processor_handle processor_handle,
                                              uint64_t *penergy);
 
-/** @}  */
+/** @} End energyinfo */
 
-/*---------------------------------------------------------------------------*/
-/**  @defgroup systemstatistics     HSMP system statistics                   */
-/*---------------------------------------------------------------------------*/
-/** @{  */
+/*****************************************************************************/
+/**  @defgroup systemstatistics     HSMP system statistics
+ *  @{
+ */
 
 /**
  *  @brief Get SMU Firmware Version.
@@ -4825,12 +4825,12 @@ amdsmi_status_t amdsmi_get_cpu_socket_freq_range(amdsmi_processor_handle process
 amdsmi_status_t amdsmi_get_cpu_core_current_freq_limit(amdsmi_processor_handle processor_handle,
                                                        uint32_t *freq);
 
-/** @} */
+/** @} systemstatistics */
 
-/*---------------------------------------------------------------------------*/
-/**  @defgroup powercont    Power Control                                    */
-/*---------------------------------------------------------------------------*/
-/** @{  */
+/*****************************************************************************/
+/**  @defgroup powercont    Power Control
+ *  @{
+ */
 
 /**
  *  @brief Get the socket power.
@@ -4916,12 +4916,12 @@ amdsmi_status_t amdsmi_set_cpu_socket_power_cap(amdsmi_processor_handle processo
 amdsmi_status_t amdsmi_set_cpu_pwr_efficiency_mode(amdsmi_processor_handle processor_handle,
                                                    uint8_t mode);
 
-/** @} */
+/** @} powercont */
 
-/*---------------------------------------------------------------------------*/
-/**  @defgroup   perfcont   Performance (Boost limit) Control                */
-/*---------------------------------------------------------------------------*/
-/** @{  */
+/*****************************************************************************/
+/**  @defgroup perfcont   Performance (Boost limit) Control
+ *  @{
+ */
 
 /**
  *  @brief Get the core boost limit.
@@ -4979,12 +4979,12 @@ amdsmi_status_t amdsmi_set_cpu_core_boostlimit(amdsmi_processor_handle processor
 amdsmi_status_t amdsmi_set_cpu_socket_boostlimit(amdsmi_processor_handle processor_handle,
                                                  uint32_t boostlimit);
 
-/** @} */
+/** @} perfcont */
 
-/*---------------------------------------------------------------------------*/
-/**  @defgroup   ddrquer    DDR bandwidth monitor                            */
-/*---------------------------------------------------------------------------*/
-/** @{  */
+/*****************************************************************************/
+/**  @defgroup ddrquer    DDR bandwidth monitor
+ *  @{
+ */
 
 /**
  *  @brief Get the DDR bandwidth data.
@@ -4999,12 +4999,12 @@ amdsmi_status_t amdsmi_set_cpu_socket_boostlimit(amdsmi_processor_handle process
 amdsmi_status_t amdsmi_get_cpu_ddr_bw(amdsmi_processor_handle processor_handle,
                                       amdsmi_ddr_bw_metrics_t *ddr_bw);
 
-/** @} */
+/** @} ddrquer */
 
-/*---------------------------------------------------------------------------*/
-/**  @defgroup  tempquer   Temperature Query                                 */
-/*---------------------------------------------------------------------------*/
-/** @{  */
+/*****************************************************************************/
+/**  @defgroup  tempquer   Temperature Query
+ *  @{
+ */
 
 /**
  *  @brief Get socket temperature.
@@ -5020,12 +5020,12 @@ amdsmi_status_t amdsmi_get_cpu_ddr_bw(amdsmi_processor_handle processor_handle,
 amdsmi_status_t amdsmi_get_cpu_socket_temperature(amdsmi_processor_handle processor_handle,
                                                   uint32_t *ptmon);
 
-/** @} */
+/** @} tempquer */
 
-/*---------------------------------------------------------------------------*/
-/**  @defgroup  dimmstatistics   Dimm statistics                             */
-/*---------------------------------------------------------------------------*/
-/** @{  */
+/*****************************************************************************/
+/**  @defgroup  dimmstatistics   Dimm statistics
+ *  @{
+ */
 
 /**
  *  @brief Get DIMM temperature range and refresh rate.
@@ -5072,12 +5072,12 @@ amdsmi_status_t amdsmi_get_cpu_dimm_thermal_sensor(amdsmi_processor_handle proce
                                                    uint8_t dimm_addr,
                                                    amdsmi_dimm_thermal_t *dimm_temp);
 
-/** @} */
+/** @} dimmstatistics */
 
-/*---------------------------------------------------------------------------*/
-/**  @defgroup xgmibwcont     xGMI bandwidth control                                 */
-/*---------------------------------------------------------------------------*/
-/** @{  */
+/*****************************************************************************/
+/**  @defgroup xgmibwcont     xGMI bandwidth control
+ *  @{
+ */
 
 /**
  *  @brief Set xgmi width.
@@ -5092,12 +5092,12 @@ amdsmi_status_t amdsmi_get_cpu_dimm_thermal_sensor(amdsmi_processor_handle proce
 amdsmi_status_t amdsmi_set_cpu_xgmi_width(amdsmi_processor_handle processor_handle,
                                           uint8_t min, uint8_t max);
 
-/** @} */
+/** @} xgmibwcont */
 
-/*---------------------------------------------------------------------------*/
-/**  @defgroup gmi3widthcont     GMI3 width control                          */
-/*---------------------------------------------------------------------------*/
-/** @{  */
+/*****************************************************************************/
+/**  @defgroup gmi3widthcont     GMI3 width control
+ *  @{
+ */
 
 /**
  *  @brief Set gmi3 link width range.
@@ -5113,12 +5113,12 @@ amdsmi_status_t amdsmi_set_cpu_xgmi_width(amdsmi_processor_handle processor_hand
 amdsmi_status_t amdsmi_set_cpu_gmi3_link_width_range(amdsmi_processor_handle processor_handle,
                                                      uint8_t min_link_width, uint8_t max_link_width);
 
-/** @} */
+/** @} gmi3widthcont */
 
-/*---------------------------------------------------------------------------*/
-/**  @defgroup pstatecnt     Pstate selection                                 */
-/*---------------------------------------------------------------------------*/
-/** @{  */
+/*****************************************************************************/
+/**  @defgroup pstatecnt     Pstate selection
+ *  @{
+ */
 
 /**
  *  @brief Enable APB.
@@ -5202,12 +5202,12 @@ amdsmi_status_t amdsmi_set_cpu_pcie_link_rate(amdsmi_processor_handle processor_
 amdsmi_status_t amdsmi_set_cpu_df_pstate_range(amdsmi_processor_handle processor_handle,
                                                uint8_t max_pstate, uint8_t min_pstate);
 
-/** @} */
+/** @} pstatecnt */
 
-/*---------------------------------------------------------------------------*/
-/**  @defgroup bwquer     Bandwidth monitor                                    */
-/*---------------------------------------------------------------------------*/
-/** @{  */
+/*****************************************************************************/
+/**  @defgroup bwquer     Bandwidth monitor
+ *  @{
+ */
 
 /**
  *  @brief Get current input output bandwidth.
@@ -5237,12 +5237,12 @@ amdsmi_status_t amdsmi_get_cpu_current_io_bandwidth(amdsmi_processor_handle proc
 amdsmi_status_t amdsmi_get_cpu_current_xgmi_bw(amdsmi_processor_handle processor_handle,
                                                amdsmi_link_id_bw_type_t link, uint32_t *xgmi_bw);
 
-/** @} */
+/** @} bwquer */
 
-/*---------------------------------------------------------------------------*/
-/**  @defgroup MetQuer HSMP Metrics Table                                         */
-/*---------------------------------------------------------------------------*/
-/** @{  */
+/*****************************************************************************/
+/**  @defgroup MetQuer HSMP Metrics Table
+ *  @{
+ */
 
 /**
  *  @brief Get HSMP metrics table version
@@ -5270,12 +5270,12 @@ amdsmi_status_t amdsmi_get_hsmp_metrics_table_version(amdsmi_processor_handle pr
 amdsmi_status_t amdsmi_get_hsmp_metrics_table(amdsmi_processor_handle processor_handle,
                                          amdsmi_hsmp_metrics_table_t *metrics_table);
 
-/** @} */
+/** @} MetQuer */
 
-/*---------------------------------------------------------------------------*/
-/**  @defgroup auxiquer     Auxillary functions                              */
-/*---------------------------------------------------------------------------*/
-/** @{  */
+/*****************************************************************************/
+/**  @defgroup auxiquer     Auxillary functions
+ *  @{
+ */
 
 /**
  *  @brief Get first online core on socket.
@@ -5326,7 +5326,7 @@ amdsmi_status_t amdsmi_get_cpu_model(uint32_t *cpu_model);
  */
 amdsmi_status_t amdsmi_get_esmi_err_msg(amdsmi_status_t status, const char **status_string);
 #endif
-/** @} */
+/** @} auxiquer */
 #ifdef __cplusplus
 }
 #endif  // __cplusplus
