@@ -751,9 +751,9 @@ class struct_pcie_metric_(Structure):
 
 struct_pcie_metric_._pack_ = 1 # source:False
 struct_pcie_metric_._fields_ = [
-    ('pcie_speed', ctypes.c_uint32),
-    ('pcie_lanes', ctypes.c_uint16),
+    ('pcie_width', ctypes.c_uint16),
     ('PADDING_0', ctypes.c_ubyte * 2),
+    ('pcie_speed', ctypes.c_uint32),
     ('pcie_bandwidth', ctypes.c_uint32),
     ('PADDING_1', ctypes.c_ubyte * 4),
     ('pcie_replay_count', ctypes.c_uint64),
@@ -769,7 +769,7 @@ class struct_pcie_static_(Structure):
 
 struct_pcie_static_._pack_ = 1 # source:False
 struct_pcie_static_._fields_ = [
-    ('max_pcie_lanes', ctypes.c_uint16),
+    ('max_pcie_width', ctypes.c_uint16),
     ('PADDING_0', ctypes.c_ubyte * 2),
     ('max_pcie_speed', ctypes.c_uint32),
     ('pcie_interface_version', ctypes.c_uint32),

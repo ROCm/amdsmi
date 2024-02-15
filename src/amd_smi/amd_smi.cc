@@ -1964,7 +1964,7 @@ amdsmi_status_t amdsmi_get_pcie_info(amdsmi_processor_handle processor_handle, a
         printf("Failed to open file: %s \n", path_max_link_width.c_str());
         return AMDSMI_STATUS_API_FAILED;
     }
-    info->pcie_static.max_pcie_lanes = (uint16_t)pcie_width;
+    info->pcie_static.max_pcie_width = (uint16_t)pcie_width;
 
     std::string path_max_link_speed = "/sys/class/drm/" +
         gpu_device->get_gpu_path() + "/device/max_link_speed";
@@ -2028,7 +2028,7 @@ amdsmi_status_t amdsmi_get_pcie_info(amdsmi_processor_handle processor_handle, a
     if (status != AMDSMI_STATUS_SUCCESS)
         return status;
 
-    info->pcie_metric.pcie_lanes = metric_info.pcie_link_width;
+    info->pcie_metric.pcie_width = metric_info.pcie_link_width;
     // gpu metrics is inconsistent with pcie_speed values, if 0-6 then it needs to be translated
     if (metric_info.pcie_link_speed <= 6) {
         status = smi_amdgpu_get_pcie_speed_from_pcie_type(metric_info.pcie_link_speed, &info->pcie_metric.pcie_speed); // mapping to MT/s
