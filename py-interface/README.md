@@ -791,7 +791,7 @@ Output: Dictionary with fields
 
 Field | Description
 ---|---
-`pcie_lanes`| pcie lanes in use
+`pcie_width`| pcie lanes in use
 `pcie_speed`| current pcie speed
 `pcie_interface_version`| current pcie generation
 
@@ -811,7 +811,7 @@ try:
     else:
         for device in devices:
             pcie_link_status = amdsmi_get_pcie_info(device)
-            print(pcie_link_status["pcie_lanes"])
+            print(pcie_link_status["pcie_width"])
             print(pcie_link_status["pcie_speed"])
             print(pcie_link_status["pcie_interface_version"])
 except AmdSmiException as e:

@@ -353,7 +353,10 @@ class AMDSMICommands():
 
             try:
                 link_caps = amdsmi_interface.amdsmi_get_pcie_info(args.gpu)
-                bus_info.update(link_caps)
+                bus_info['max_pcie_speed'] = link_caps['pcie_static']['max_pcie_speed']
+                bus_info['pcie_slot_type'] = link_caps['pcie_static']['slot_type']
+                bus_info['pcie_interface_version'] = link_caps['pcie_static']['pcie_interface_version']
+
                 if bus_info['max_pcie_speed'] % 1000 != 0:
                     pcie_speed_GTs_value = round(bus_info['max_pcie_speed'] / 1000, 1)
                 else:
@@ -1396,17 +1399,17 @@ class AMDSMICommands():
                 try:
                     pcie_link_status = amdsmi_interface.amdsmi_get_pcie_info(args.gpu)
 
-                    if pcie_link_status['pcie_speed'] % 1000 != 0:
-                        pcie_speed_GTs_value = round(pcie_link_status['pcie_speed'] / 1000, 1)
+                    if pcie_link_status['pcie_metric']['pcie_speed'] % 1000 != 0:
+                        pcie_speed_GTs_value = round(pcie_link_status['pcie_metric']['pcie_speed'] / 1000, 1)
                     else:
-                        pcie_speed_GTs_value = round(pcie_link_status['pcie_speed'] / 1000)
+                        pcie_speed_GTs_value = round(pcie_link_status['pcie_metric']['pcie_speed'] / 1000)
 
                     pcie_dict['current_speed'] = pcie_speed_GTs_value
-                    pcie_dict['current_lanes'] = pcie_link_status['pcie_lanes']
+                    pcie_dict['current_lanes'] = pcie_link_status['pcie_metric']['pcie_width']
 
                     if self.logger.is_human_readable_format():
                         unit = 'GT/s'
-                        pcie_dict['current_lanes'] = f"{pcie_link_status['pcie_lanes']} lanes"
+                        pcie_dict['current_lanes'] = f"{pcie_link_status['pcie_metric']['pcie_width']} lanes"
                         pcie_dict['current_speed'] = f"{pcie_dict['current_speed']} GT/s"
 
                 except amdsmi_exception.AmdSmiLibraryException as e:

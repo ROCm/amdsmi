@@ -2134,13 +2134,24 @@ def amdsmi_get_pcie_info(
         )
     )
 
-    return {"pcie_speed": pcie_info.pcie_metric.pcie_speed,
-            "pcie_lanes": pcie_info.pcie_metric.pcie_lanes,
-            "pcie_interface_version": pcie_info.pcie_static.pcie_interface_version,
+    return {
+        "pcie_static": {
+            "max_pcie_width": pcie_info.pcie_static.max_pcie_width,
             "max_pcie_speed": pcie_info.pcie_static.max_pcie_speed,
-            "max_pcie_lanes": pcie_info.pcie_static.max_pcie_lanes,
             "pcie_interface_version": pcie_info.pcie_static.pcie_interface_version,
-            "pcie_slot_type": pcie_info.pcie_static.slot_type}
+            "slot_type": pcie_info.pcie_static.slot_type,
+            },
+        "pcie_metric": {
+            "pcie_width": pcie_info.pcie_metric.pcie_width,
+            "pcie_speed": pcie_info.pcie_metric.pcie_speed,
+            "pcie_bandwidth": pcie_info.pcie_metric.pcie_bandwidth,
+            "pcie_replay_count": pcie_info.pcie_metric.pcie_replay_count,
+            "pcie_l0_to_recovery_count": pcie_info.pcie_metric.pcie_l0_to_recovery_count,
+            "pcie_replay_roll_over_count": pcie_info.pcie_metric.pcie_replay_roll_over_count,
+            "pcie_nak_sent_count": pcie_info.pcie_metric.pcie_nak_sent_count,
+            "pcie_nak_received_count": pcie_info.pcie_metric.pcie_nak_received_count,
+        }
+    }
 
 
 def amdsmi_get_processor_handle_from_bdf(bdf):

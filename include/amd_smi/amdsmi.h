@@ -500,15 +500,15 @@ typedef enum {
 
 typedef struct {
   struct pcie_static_ {
-    uint16_t max_pcie_lanes;              //!< maximum number of PCIe lanes
+    uint16_t max_pcie_width;              //!< maximum number of PCIe lanes
     uint32_t max_pcie_speed;              //!< maximum PCIe speed
     uint32_t pcie_interface_version;      //!< PCIe interface version
     amdsmi_card_form_factor_t slot_type;  //!< card form factor
     uint64_t reserved[10];
   } pcie_static;
   struct pcie_metric_ {
+    uint16_t pcie_width;                  //!< current PCIe width
     uint32_t pcie_speed;                  //!< current PCIe speed in MT/s
-    uint16_t pcie_lanes;                  //!< current PCIe width
     uint32_t pcie_bandwidth;              //!< current PCIe bandwidth Mb/s
     uint64_t pcie_replay_count;           //!< total number of the replays issued on the PCIe link
     uint64_t pcie_l0_to_recovery_count;   //!< total number of times the PCIe link transitioned from L0 to the recovery state
