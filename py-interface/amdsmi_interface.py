@@ -1574,7 +1574,7 @@ def amdsmi_get_gpu_asic_info(
         "vendor_name": asic_info_struct.vendor_name.decode("utf-8"),
         "subvendor_id": asic_info_struct.subvendor_id,
         "device_id": asic_info_struct.device_id,
-        "rev_id": asic_info_struct.rev_id,
+        "rev_id": hex(asic_info_struct.rev_id),
         "asic_serial": asic_info_struct.asic_serial.decode("utf-8"),
         "oam_id": asic_info_struct.oam_id
     }
@@ -1584,16 +1584,18 @@ def amdsmi_get_gpu_asic_info(
         if not asic_info[value]:
             asic_info[value] = "N/A"
 
-    hex_values = ["vendor_id", "subvendor_id", "device_id", "rev_id"]
+    hex_values = ["vendor_id", "subvendor_id", "device_id"]
     for value in hex_values:
         if asic_info[value]:
             asic_info[value] = hex(asic_info[value])
         else:
             asic_info[value] = "N/A"
 
-    # Ensure hex output for asic_serial
+    # Convert asic serial (hex string) to hex output format
     if asic_info["asic_serial"]:
-        asic_info["asic_serial"] = str.format("0x{:016X}", int(asic_info["asic_serial"], base=16))
+        asic_serial_string = asic_info["asic_serial"]
+        asic_serial_hex = int(asic_serial_string, base=16)
+        asic_info["asic_serial"] = str.format("0x{:016X}", asic_serial_hex)
     else:
         asic_info["asic_serial"] = "N/A"
 
