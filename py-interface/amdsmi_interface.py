@@ -828,8 +828,9 @@ def amdsmi_get_cpu_socket_current_active_freq_limit(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
+    amdsmi_wrapper.amdsmi_get_cpu_socket_current_active_freq_limit.argtypes = [amdsmi_wrapper.amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint16), ctypes.POINTER(ctypes.c_char_p * len(amdsmi_wrapper.amdsmi_hsmp_freqlimit_src_names))]
     freq = ctypes.c_uint16()
-    src_type = ctypes.pointer(ctypes.pointer(ctypes.c_char()))
+    src_type = (ctypes.c_char_p * len(amdsmi_wrapper.amdsmi_hsmp_freqlimit_src_names))()
 
     _check_res(
         amdsmi_wrapper.amdsmi_get_cpu_socket_current_active_freq_limit(
@@ -837,9 +838,14 @@ def amdsmi_get_cpu_socket_current_active_freq_limit(
         )
     )
 
+    freq_src = []
+    for names in src_type:
+        if names is not None:
+            freq_src.append(names.decode('utf-8'))
+
     return {
             "freq": f"{freq.value} MHz",
-            "freq_src": f"{amdsmi_wrapper.string_cast(src_type.contents)}"
+            "freq_src": f"{freq_src}"
     }
 
 def amdsmi_get_cpu_socket_freq_range(
