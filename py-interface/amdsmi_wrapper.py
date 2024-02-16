@@ -1846,6 +1846,7 @@ struct_amdsmi_hsmp_metrics_table_t._fields_ = [
 ]
 
 amdsmi_hsmp_metrics_table_t = struct_amdsmi_hsmp_metrics_table_t
+amdsmi_hsmp_freqlimit_src_names = ['cHTC-Active', 'PROCHOT', 'TDC limit', 'PPT Limit', 'OPN Max', 'Reliability Limit', 'APML Agent', 'HSMP Agent'] # Variable ctypes.POINTER(ctypes.c_char) * 8
 uint64_t = ctypes.c_uint64
 amdsmi_init = _libraries['libamd_smi.so'].amdsmi_init
 amdsmi_init.restype = amdsmi_status_t
@@ -2618,14 +2619,14 @@ __all__ = \
     'amdsmi_voltage_type_t', 'amdsmi_vram_info_t',
     'amdsmi_vram_type_t', 'amdsmi_vram_usage_t',
     'amdsmi_vram_vendor_type_t', 'amdsmi_xgmi_info_t',
-    'amdsmi_xgmi_status_t', 'processor_type_t', 'size_t',
-    'struct__links', 'struct_amd_metrics_table_header_t',
-    'struct_amdsmi_asic_info_t', 'struct_amdsmi_board_info_t',
-    'struct_amdsmi_clk_info_t', 'struct_amdsmi_counter_value_t',
-    'struct_amdsmi_ddr_bw_metrics_t', 'struct_amdsmi_dimm_power_t',
-    'struct_amdsmi_dimm_thermal_t', 'struct_amdsmi_dpm_level_t',
-    'struct_amdsmi_driver_info_t', 'struct_amdsmi_engine_usage_t',
-    'struct_amdsmi_error_count_t',
+    'amdsmi_xgmi_status_t', 'amdsmi_hsmp_freqlimit_src_names',
+    'processor_type_t', 'size_t', 'struct__links',
+    'struct_amd_metrics_table_header_t', 'struct_amdsmi_asic_info_t',
+    'struct_amdsmi_board_info_t', 'struct_amdsmi_clk_info_t',
+    'struct_amdsmi_counter_value_t', 'struct_amdsmi_ddr_bw_metrics_t',
+    'struct_amdsmi_dimm_power_t', 'struct_amdsmi_dimm_thermal_t',
+    'struct_amdsmi_dpm_level_t', 'struct_amdsmi_driver_info_t',
+    'struct_amdsmi_engine_usage_t', 'struct_amdsmi_error_count_t',
     'struct_amdsmi_evt_notification_data_t',
     'struct_amdsmi_freq_volt_region_t', 'struct_amdsmi_frequencies_t',
     'struct_amdsmi_frequency_range_t', 'struct_amdsmi_fw_info_t',

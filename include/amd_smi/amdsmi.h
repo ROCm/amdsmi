@@ -1608,6 +1608,19 @@ typedef struct __attribute__((__packed__)){
     uint32_t gfxclk_frequency[8];
 } amdsmi_hsmp_metrics_table_t;
 
+/**
+ * @brief hsmp frequency limit source names
+ */
+static char* const amdsmi_hsmp_freqlimit_src_names[] = {
+        "cHTC-Active",
+        "PROCHOT",
+        "TDC limit",
+        "PPT Limit",
+        "OPN Max",
+        "Reliability Limit",
+        "APML Agent",
+        "HSMP Agent"
+};
 #endif
 
 /*****************************************************************************/
