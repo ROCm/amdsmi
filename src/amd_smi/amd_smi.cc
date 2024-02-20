@@ -448,13 +448,13 @@ amdsmi_status_t amdsmi_get_gpu_cache_info(
         // convert from sysfs type to CRAT type(HSA Cache Affinity type)
         info->cache[i].cache_properties = 0;
         if (rsmi_info.cache[i].flags & HSA_CACHE_TYPE_DATA)
-            info->cache[i].cache_properties |= AMDSMI_CACHE_PROPERTIES_DATA_CACHE;
+            info->cache[i].cache_properties |= AMDSMI_CACHE_PROPERTY_DATA_CACHE;
         if (rsmi_info.cache[i].flags & HSA_CACHE_TYPE_INSTRUCTION)
-            info->cache[i].cache_properties |= AMDSMI_CACHE_PROPERTIES_INST_CACHE;
+            info->cache[i].cache_properties |= AMDSMI_CACHE_PROPERTY_INST_CACHE;
         if (rsmi_info.cache[i].flags & HSA_CACHE_TYPE_CPU)
-            info->cache[i].cache_properties |= AMDSMI_CACHE_PROPERTIES_CPU_CACHE;
+            info->cache[i].cache_properties |= AMDSMI_CACHE_PROPERTY_CPU_CACHE;
         if (rsmi_info.cache[i].flags & HSA_CACHE_TYPE_HSACU)
-            info->cache[i].cache_properties |= AMDSMI_CACHE_PROPERTIES_SIMD_CACHE;
+            info->cache[i].cache_properties |= AMDSMI_CACHE_PROPERTY_SIMD_CACHE;
 
         info->cache[i].cache_size = rsmi_info.cache[i].cache_size_kb;
         info->cache[i].cache_level = rsmi_info.cache[i].cache_level;

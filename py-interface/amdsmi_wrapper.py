@@ -813,20 +813,20 @@ struct_amdsmi_vbios_info_t._fields_ = [
 
 amdsmi_vbios_info_t = struct_amdsmi_vbios_info_t
 
-# values for enumeration 'amdsmi_cache_properties_type_t'
-amdsmi_cache_properties_type_t__enumvalues = {
-    1: 'AMDSMI_CACHE_PROPERTIES_ENABLED',
-    2: 'AMDSMI_CACHE_PROPERTIES_DATA_CACHE',
-    4: 'AMDSMI_CACHE_PROPERTIES_INST_CACHE',
-    8: 'AMDSMI_CACHE_PROPERTIES_CPU_CACHE',
-    16: 'AMDSMI_CACHE_PROPERTIES_SIMD_CACHE',
+# values for enumeration 'amdsmi_cache_property_type_t'
+amdsmi_cache_property_type_t__enumvalues = {
+    1: 'AMDSMI_CACHE_PROPERTY_ENABLED',
+    2: 'AMDSMI_CACHE_PROPERTY_DATA_CACHE',
+    4: 'AMDSMI_CACHE_PROPERTY_INST_CACHE',
+    8: 'AMDSMI_CACHE_PROPERTY_CPU_CACHE',
+    16: 'AMDSMI_CACHE_PROPERTY_SIMD_CACHE',
 }
-AMDSMI_CACHE_PROPERTIES_ENABLED = 1
-AMDSMI_CACHE_PROPERTIES_DATA_CACHE = 2
-AMDSMI_CACHE_PROPERTIES_INST_CACHE = 4
-AMDSMI_CACHE_PROPERTIES_CPU_CACHE = 8
-AMDSMI_CACHE_PROPERTIES_SIMD_CACHE = 16
-amdsmi_cache_properties_type_t = ctypes.c_uint32 # enum
+AMDSMI_CACHE_PROPERTY_ENABLED = 1
+AMDSMI_CACHE_PROPERTY_DATA_CACHE = 2
+AMDSMI_CACHE_PROPERTY_INST_CACHE = 4
+AMDSMI_CACHE_PROPERTY_CPU_CACHE = 8
+AMDSMI_CACHE_PROPERTY_SIMD_CACHE = 16
+amdsmi_cache_property_type_t = ctypes.c_uint32 # enum
 class struct_amdsmi_gpu_cache_info_t(Structure):
     pass
 
@@ -2308,14 +2308,14 @@ amdsmi_get_esmi_err_msg.restype = amdsmi_status_t
 amdsmi_get_esmi_err_msg.argtypes = [amdsmi_status_t, ctypes.POINTER(ctypes.POINTER(ctypes.c_char))]
 __all__ = \
     ['AGG_BW0', 'AMDSMI_ARG_PTR_NULL', 'AMDSMI_AVERAGE_POWER',
-    'AMDSMI_CACHE_PROPERTIES_CPU_CACHE',
-    'AMDSMI_CACHE_PROPERTIES_DATA_CACHE',
-    'AMDSMI_CACHE_PROPERTIES_ENABLED',
-    'AMDSMI_CACHE_PROPERTIES_INST_CACHE',
-    'AMDSMI_CACHE_PROPERTIES_SIMD_CACHE',
-    'AMDSMI_CARD_FORM_FACTOR_OAM', 'AMDSMI_CARD_FORM_FACTOR_PCIE',
-    'AMDSMI_CARD_FORM_FACTOR_UNKNOWN', 'AMDSMI_CNTR_CMD_START',
-    'AMDSMI_CNTR_CMD_STOP', 'AMDSMI_COARSE_GRAIN_GFX_ACTIVITY',
+    'AMDSMI_CACHE_PROPERTY_CPU_CACHE',
+    'AMDSMI_CACHE_PROPERTY_DATA_CACHE',
+    'AMDSMI_CACHE_PROPERTY_ENABLED',
+    'AMDSMI_CACHE_PROPERTY_INST_CACHE',
+    'AMDSMI_CACHE_PROPERTY_SIMD_CACHE', 'AMDSMI_CARD_FORM_FACTOR_OAM',
+    'AMDSMI_CARD_FORM_FACTOR_PCIE', 'AMDSMI_CARD_FORM_FACTOR_UNKNOWN',
+    'AMDSMI_CNTR_CMD_START', 'AMDSMI_CNTR_CMD_STOP',
+    'AMDSMI_COARSE_GRAIN_GFX_ACTIVITY',
     'AMDSMI_COARSE_GRAIN_MEM_ACTIVITY', 'AMDSMI_CURRENT_POWER',
     'AMDSMI_DEV_PERF_LEVEL_AUTO', 'AMDSMI_DEV_PERF_LEVEL_DETERMINISM',
     'AMDSMI_DEV_PERF_LEVEL_FIRST', 'AMDSMI_DEV_PERF_LEVEL_HIGH',
@@ -2477,7 +2477,7 @@ __all__ = \
     'VRAM_TYPE_GDDR6', 'VRAM_TYPE_HBM', 'VRAM_TYPE_UNKNOWN',
     'VRAM_TYPE__MAX', 'WR_BW0', 'amd_metrics_table_header_t',
     'amdsmi_asic_info_t', 'amdsmi_bdf_t', 'amdsmi_bit_field_t',
-    'amdsmi_board_info_t', 'amdsmi_cache_properties_type_t',
+    'amdsmi_board_info_t', 'amdsmi_cache_property_type_t',
     'amdsmi_card_form_factor_t', 'amdsmi_clk_info_t',
     'amdsmi_clk_type_t', 'amdsmi_compute_partition_type_t',
     'amdsmi_container_types_t', 'amdsmi_counter_command_t',

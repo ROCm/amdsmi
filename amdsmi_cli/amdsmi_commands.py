@@ -550,11 +550,17 @@ class AMDSMICommands():
             static_dict['vram'] = vram_info
         if args.cache:
             try:
-                cach_info_list = amdsmi_interface.amdsmi_get_gpu_cache_info(args.gpu)
-                logging.debug(f"cache_info dictionary = {cach_info_list}")
+                cache_info_list = amdsmi_interface.amdsmi_get_gpu_cache_info(args.gpu)['cache']
+                logging.debug(f"cache_info dictionary = {cache_info_list}")
+
+                for index, cache_info in enumerate(cache_info_list):
+                    new_cache_info = {"cache" : index}
+                    new_cache_info.update(cache_info)
+                    cache_info_list[index] = new_cache_info
+
                 if self.logger.is_human_readable_format():
                     cache_info_dict_format = {}
-                    for cache_dict in cach_info_list:
+                    for cache_dict in cache_info_list:
                         cache_index = "cache_" + str(cache_dict["cache"])
                         cache_info_dict_format[cache_index] = cache_dict
 
@@ -567,15 +573,15 @@ class AMDSMICommands():
                         # take cache_properties out of list -> display as string, removing brackets
                         cache_info_dict_format[cache_index]["cache_properties"] = ", ".join(cache_info_dict_format[cache_index]["cache_properties"])
 
-                    cach_info_list = cache_info_dict_format
+                    cache_info_list = cache_info_dict_format
 
-                logging.debug(f"After human_readable | cache_info = {cach_info_list}")
+                logging.debug(f"After human_readable | cache_info = {cache_info_list}")
 
             except amdsmi_exception.AmdSmiLibraryException as e:
-                cach_info_list = "N/A"
+                cache_info_list = "N/A"
                 logging.debug("Failed to get cache info for gpu %s | %s", gpu_id, e.get_error_info())
 
-            static_dict['cache_info'] = cach_info_list
+            static_dict['cache_info'] = cache_info_list
         if 'ras' in current_platform_args:
             if args.ras:
                 ras_dict = {"eeprom_version": "N/A",

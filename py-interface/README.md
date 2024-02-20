@@ -476,8 +476,7 @@ Schema:
 
 ```JSON
 {
-    cache: {"type" : "number"},
-    cache_properties:  
+    cache_properties:
         {
             "type" : "array",
             "items" : {"type" : "string"}
@@ -491,7 +490,6 @@ Schema:
 
 Field | Description
 ---|---
-`cache` | cache index from 0-9
 `cache_properties` | list of up to 4 cache property type strings. Ex. data ("DATA_CACHE"), instruction ("INST_CACHE"), CPU ("CPU_CACHE"), or SIMD ("SIMD_CACHE").
 `cache_size` | size of cache in KB
 `cache_level` | level of cache
@@ -515,13 +513,11 @@ try:
         for device in devices:
             cache_info = amdsmi_get_gpu_cache_info(device)
             for cache_index, cache_values in cache_info.items():
-                print(cache_index)
+                print(cache_values['cache_properties'])
                 print(cache_values['cache_size'])
                 print(cache_values['cache_level'])
-                print(cache_values['data_cache'])
-                print(cache_values['instruction_cache'])
-                print(cache_values['cpu_cache'])
-                print(cache_values['simd_cache'])
+                print(cache_values['max_num_cu_shared'])
+                print(cache_values['num_cache_instance'])
 except AmdSmiException as e:
     print(e)
 ```
