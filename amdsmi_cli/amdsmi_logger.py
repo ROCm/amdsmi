@@ -126,6 +126,18 @@ class AMDSMILogger():
 
         # First Capitalize all keys in the json object
         capitalized_json = self._capitalize_keys(json_object)
+
+        # Increase tabbing for device arguments by pulling them out of the main dictionary and assiging them to an empty string
+        tabbed_dictionary = {}
+        for key, value in capitalized_json.items():
+            if key not in ["GPU", "CPU", "CORE"]:
+                tabbed_dictionary[key] = value
+
+        for key, value in tabbed_dictionary.items():
+            del capitalized_json[key]
+
+        capitalized_json["AMDSMI_SPACING_REMOVAL"] = tabbed_dictionary
+
         json_string = json.dumps(capitalized_json, indent=4)
         yaml_data = yaml.safe_load(json_string)
         yaml_output = yaml.dump(yaml_data, sort_keys=False, allow_unicode=True)
