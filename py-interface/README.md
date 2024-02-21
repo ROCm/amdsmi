@@ -73,7 +73,7 @@ except AmdSmiException as e:
 
 ### amdsmi_init
 
-Description: Initialize amdsmi lib and connect to driver
+Description: Dynamically initialize amdsmi with amd_hsmp and amdgpu drivers
 
 Input parameters: `None`
 
@@ -87,7 +87,12 @@ Example:
 
 ```python
 try:
-    amdsmi_init()
+    init_flag = amdsmi_init()
+    # Print out integer bitmask of initialized drivers
+    # 1 is for amd_hsmp
+    # 2 is for amdgpu
+    # 3 is for amd_hsmp and amdgpu
+    print(init_flag)
     # continue with amdsmi
 except AmdSmiException as e:
     print("Init failed")

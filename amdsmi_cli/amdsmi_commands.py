@@ -46,43 +46,54 @@ class AMDSMICommands():
         self.device_handles = []
         self.cpu_handles = []
         self.core_handles = []
-        try:
-            self.device_handles = amdsmi_interface.amdsmi_get_processor_handles()
-        except amdsmi_exception.AmdSmiLibraryException as e:
-            if e.err_code in (amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NOT_INIT,
-                              amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_DRIVER_NOT_LOADED):
-                logging.error('Unable to get devices, driver not initialized (amdgpu not found in modules)')
-            else:
-                raise e
-
-        if len(self.device_handles) == 0:
-            logging.info('Unable to detect any devices, check if driver is initialized (amdgpu not found in modules)')
-
-        # Fetch CPU handles
-        try:
-            self.cpu_handles = amdsmi_interface.amdsmi_get_cpusocket_handles()
-        except amdsmi_exception.AmdSmiLibraryException as e:
-            if e.err_code in (amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NOT_INIT,
-                              amdsmi_interface.amdsmi_wrapper.AMDSMI_NO_DRV):
-
-                logging.info('Unable to get CPU devices, hsmp driver not loaded')
-            else:
-                raise e
-
-        # core handles
-        try:
-            self.core_handles = amdsmi_interface.amdsmi_get_cpucore_handles()
-        except amdsmi_exception.AmdSmiLibraryException as e:
-            if e.err_code in (amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NOT_INIT,
-                              amdsmi_interface.amdsmi_wrapper.AMDSMI_NO_DRV):
-                logging.info('Unable to get CORE devices, hsmp driver not loaded')
-            else:
-                raise e
-
-        if (len(self.device_handles) == 0 and len(self.cpu_handles) == 0 and len(self.core_handles) == 0):
-            logging.error('Unable to detect any devices, check if amdgpu and hsmp drivers are initialized')
-            sys.exit(-1)
         self.stop = ''
+
+        amdsmi_init_flag = self.helpers.get_amdsmi_init_flag()
+        logging.debug(f"AMDSMI Init Flag: {amdsmi_init_flag}")
+        exit_flag = False
+
+        if self.helpers.is_amdgpu_initialized():
+            try:
+                self.device_handles = amdsmi_interface.amdsmi_get_processor_handles()
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                if e.err_code in (amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NOT_INIT,
+                                amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_DRIVER_NOT_LOADED):
+                    logging.error('Unable to get devices, driver not initialized (amdgpu not found in modules)')
+                else:
+                    raise e
+
+            if len(self.device_handles) == 0:
+                # No GPU's found post amdgpu driver initialization
+                logging.error('Unable to detect any GPU devices, check amdgpu version and module status')
+                exit_flag = True
+
+        if self.helpers.is_amd_hsmp_initialized():
+            try:
+                self.cpu_handles = amdsmi_interface.amdsmi_get_cpusocket_handles()
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                if e.err_code in (amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NOT_INIT,
+                                amdsmi_interface.amdsmi_wrapper.AMDSMI_NO_DRV):
+                    logging.info('Unable to get CPU devices, amd_hsmp driver not loaded')
+                else:
+                    raise e
+
+            # core handles
+            try:
+                self.core_handles = amdsmi_interface.amdsmi_get_cpucore_handles()
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                if e.err_code in (amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NOT_INIT,
+                                amdsmi_interface.amdsmi_wrapper.AMDSMI_NO_DRV):
+                    logging.info('Unable to get CORE devices, amd_hsmp driver not loaded')
+                else:
+                    raise e
+
+            if len(self.cpu_handles) == 0 and len(self.core_handles) == 0:
+                # No CPU's found post amd_hsmp driver initialization
+                logging.error('Unable to detect any CPU devices, check amd_hsmp version and module status')
+                exit_flag = True
+
+        if exit_flag:
+            sys.exit(-1)
 
 
     def version(self, args):
@@ -164,7 +175,7 @@ class AMDSMICommands():
         self.logger.print_output()
 
 
-    def get_static_cpu(self, args, multiple_devices=False, cpu=None):
+    def static_cpu(self, args, multiple_devices=False, cpu=None, interface_ver=None):
         """Get Static information for target cpu
 
         Args:
@@ -176,57 +187,61 @@ class AMDSMICommands():
             None: Print output via AMDSMILogger to destination
         """
 
-        if (cpu):
+        if cpu:
             args.cpu = cpu
+        if interface_ver:
+            args.interface_ver = interface_ver
 
-        #store cpu args that are applicable to the current platform
+        # Store cpu args that are applicable to the current platform
         curr_platform_cpu_args = ["smu", "interface_ver"]
         curr_platform_cpu_values = [args.smu, args.interface_ver]
 
-        if (not any(curr_platform_cpu_values)):
+        # If no cpu options are passed, return all available args
+        if not any(curr_platform_cpu_values):
             for arg in curr_platform_cpu_args:
                 setattr(args, arg, True)
 
-        if (len(self.cpu_handles)):
-            handled_multiple_cpus, device_handle = self.helpers.handle_cpus(args,
-                                                                            self.logger,
-                                                                            self.get_static_cpu)
-            if handled_multiple_cpus:
-                return # This function is recursive
-            args.cpu = device_handle
-            # get cpu id for logging
-            cpu_id = self.helpers.get_cpu_id_from_device_handle(args.cpu)
-            logging.debug(f"Static Arg information for CPU {cpu_id} on {self.helpers.os_info()}")
+        # Handle multiple CPUs
+        handled_multiple_cpus, device_handle = self.helpers.handle_cpus(args,
+                                                                        self.logger,
+                                                                        self.static_cpu)
+        if handled_multiple_cpus:
+            return # This function is recursive
+        args.cpu = device_handle
 
-            static_dict = {}
+        # Get cpu id for logging
+        cpu_id = self.helpers.get_cpu_id_from_device_handle(args.cpu)
+        logging.debug(f"Static Arg information for CPU {cpu_id} on {self.helpers.os_info()}")
 
-            if (args.smu):
-                try:
-                    smu = amdsmi_interface.amdsmi_get_cpu_smu_fw_version(args.cpu)
-                    static_dict["smu"] = {"FW_VERSION" : f"{ smu['smu_fw_major_ver_num']}"
-                                        f".{smu['smu_fw_minor_ver_num']}.{smu['smu_fw_debug_ver_num']}"}
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["smu"] = "N/A"
-                    logging.debug("Failed to get SMU FW for cpu %s | %s", cpu_id, e.get_error_info())
+        static_dict = {}
 
-            if (args.interface_ver):
-                static_dict["interface_version"] = {}
-                try:
-                    intf_ver = amdsmi_interface.amdsmi_get_cpu_hsmp_proto_ver(args.cpu)
-                    static_dict["interface_version"]["proto version"] = intf_ver
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["interface_version"]["proto version"] = "N/A"
-                    logging.debug("Failed to get proto version for cpu %s | %s", cpu_id, e.get_error_info())
+        if args.smu:
+            try:
+                smu = amdsmi_interface.amdsmi_get_cpu_smu_fw_version(args.cpu)
+                static_dict["smu"] = {"FW_VERSION" : f"{smu['smu_fw_major_ver_num']}."
+                                      f"{smu['smu_fw_minor_ver_num']}.{smu['smu_fw_debug_ver_num']}"}
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["smu"] = "N/A"
+                logging.debug("Failed to get SMU FW for cpu %s | %s", cpu_id, e.get_error_info())
 
-            multiple_devices_csv_override = False
-            self.logger.store_cpu_output(args.cpu, 'values', static_dict)
-            if multiple_devices:
-                self.logger.store_multiple_device_output()
-                return # Skip printing when there are multiple devices
-            self.logger.print_output(multiple_device_enabled=multiple_devices_csv_override)
+        if args.interface_ver:
+            static_dict["interface_version"] = {}
+            try:
+                intf_ver = amdsmi_interface.amdsmi_get_cpu_hsmp_proto_ver(args.cpu)
+                static_dict["interface_version"]["proto version"] = intf_ver
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["interface_version"]["proto version"] = "N/A"
+                logging.debug("Failed to get proto version for cpu %s | %s", cpu_id, e.get_error_info())
+
+        multiple_devices_csv_override = False
+        self.logger.store_cpu_output(args.cpu, 'values', static_dict)
+        if multiple_devices:
+            self.logger.store_multiple_device_output()
+            return # Skip printing when there are multiple devices
+        self.logger.print_output(multiple_device_enabled=multiple_devices_csv_override)
 
 
-    def get_static_gpu(self, args, multiple_devices=False, gpu=None, asic=None, bus=None, vbios=None,
+    def static_gpu(self, args, multiple_devices=False, gpu=None, asic=None, bus=None, vbios=None,
                         limit=None, driver=None, ras=None, board=None, numa=None, vram=None,
                         cache=None, partition=None, dfc_ucode=None, fb_info=None, num_vf=None):
         """Get Static information for target gpu
@@ -303,11 +318,11 @@ class AMDSMICommands():
             current_platform_args += ["dfc_ucode", "fb_info", "num_vf"]
             current_platform_values += [args.dfc_ucode, args.fb_info, args.num_vf]
 
-        if (not any(current_platform_values)):
+        if not any(current_platform_values):
             for arg in current_platform_args:
                 setattr(args, arg, True)
 
-        handled_multiple_gpus, device_handle = self.helpers.handle_gpus(args, self.logger, self.get_static_gpu)
+        handled_multiple_gpus, device_handle = self.helpers.handle_gpus(args, self.logger, self.static_gpu)
         if handled_multiple_gpus:
             return # This function is recursive
         args.gpu = device_handle
@@ -318,8 +333,8 @@ class AMDSMICommands():
         logging.debug(f"Applicable Args: {current_platform_args}")
         logging.debug(f"Arg Values:      {current_platform_values}")
 
+        # Populate static dictionary for each enabled argument
         static_dict = {}
-
         if args.asic:
             try:
                 asic_info = amdsmi_interface.amdsmi_get_gpu_asic_info(args.gpu)
@@ -651,8 +666,8 @@ class AMDSMICommands():
                 static_dict['numa'] = {'node' : numa_node_number,
                                         'affinity' : numa_affinity}
 
-        multiple_devices_csv_override = False
         # Convert and store output by pid for csv format
+        multiple_devices_csv_override = False
         if self.logger.is_csv_format():
             # expand if ras blocks are populated
             if self.helpers.is_linux() and self.helpers.is_baremetal() and args.ras:
@@ -715,55 +730,66 @@ class AMDSMICommands():
         Returns:
             None: Print output via AMDSMILogger to destination
         """
-        # Set args.* to passed in arguments
-        if gpu:
-            args.gpu = gpu
+        # Mutually exclusive arguments
         if cpu:
             args.cpu = cpu
-        if interface_ver:
-            args.interface_ver = interface_ver
+        if gpu:
+            args.gpu = gpu
 
-        gpus = args.gpu
-        cpus = args.cpu
+        # Check if a CPU argument has been set
+        cpu_args_enabled = False
+        cpu_attributes = ["smu", "interface_ver"]
+        for attr in cpu_attributes:
+            if hasattr(args, attr):
+                cpu_args_enabled |= bool(getattr(args, attr))
 
-        gpu_options = any([args.gpu, args.asic, args.bus, args.vbios, args.driver, args.vram, args.cache, args.board])
-        cpu_options = any([args.smu, args.interface_ver])
+        # Check if a GPU argument has been set
+        gpu_args_enabled = False
+        gpu_attributes = ["asic", "bus", "vbios", "limit", "driver", "ras",
+                          "board", "numa", "vram", "cache", "partition",
+                          "dfc_ucode", "fb_info", "num_vf"]
+        for attr in gpu_attributes:
+            if hasattr(args, attr):
+                gpu_args_enabled |= bool(getattr(args, attr))
 
-        # Handle No GPU passed
-        if args.gpu == None:
-            args.gpu = self.device_handles
+        # Handle CPU and GPU intialization cases
+        if self.helpers.is_amd_hsmp_initialized() and self.helpers.is_amdgpu_initialized():
+            # Print out all CPU and all GPU static info only if no device was specified.
+            # If a GPU or CPU argument is provided only print out the specified device.
+            if args.cpu == None and args.gpu == None:
+                if not cpu_args_enabled and not gpu_args_enabled:
+                    args.cpu = self.cpu_handles
+                    args.gpu = self.device_handles
 
-        # Handle No CPU passed
-        if args.cpu == None:
-            args.cpu = self.cpu_handles
+            # Handle cases where the user has only specified an argument and no specific device
+            if args.gpu == None and gpu_args_enabled:
+                args.gpu = self.device_handles
+            if args.cpu == None and cpu_args_enabled:
+                args.cpu = self.cpu_handles
 
-        if (len(self.cpu_handles) and ((((not gpus) and (not cpus)) or cpus)
-            and not gpu_options)):
-            self.get_static_cpu(args, cpu)
-        else:
-            logging.info("No CPU devices present")
+            if args.cpu:
+                self.static_cpu(args, multiple_devices, cpu, interface_ver)
+            if args.gpu:
+                self.logger.output = {}
+                self.logger.clear_multiple_devices_ouput()
+                self.static_gpu(args, multiple_devices, gpu, asic,
+                                    bus, vbios, limit, driver, ras,
+                                    board, numa, vram, cache, partition,
+                                    dfc_ucode, fb_info, num_vf)
+        elif self.helpers.is_amd_hsmp_initialized(): # Only CPU is initialized
+            if args.cpu == None:
+                args.cpu = self.cpu_handles
 
-        if (cpu_options and (len(self.cpu_handles) == 0)):
-            logging.error("No CPU devices present")
-            sys.exit(-1)
+            self.static_cpu(args, multiple_devices, cpu, interface_ver)
+        elif self.helpers.is_amdgpu_initialized(): # Only GPU is initialized
+            if args.gpu == None:
+                args.gpu = self.device_handles
 
-        if (len(self.device_handles) and ((((not gpus) and (not cpus)) or gpus)
-            and not cpu_options)):
             self.logger.clear_multiple_devices_ouput()
-            self.get_static_gpu(args, multiple_devices, gpu, asic,
+            self.static_gpu(args, multiple_devices, gpu, asic,
                                 bus, vbios, limit, driver, ras,
                                 board, numa, vram, cache, partition,
                                 dfc_ucode, fb_info, num_vf)
-        else:
-            logging.info("No GPU devices present")
-
-        if (gpu_options and (len(self.device_handles) == 0)):
-            logging.error("No GPU devices present")
-            sys.exit(-1)
-
-        if (len(self.cpu_handles) == 0 and len(self.device_handles) == 0):
-            logging.error("No CPU and GPU devices present")
-            sys.exit(-1)
 
 
     def firmware(self, args, multiple_devices=False, gpu=None, fw_list=True):
@@ -972,7 +998,7 @@ class AMDSMICommands():
         Args:
             args (Namespace): Namespace containing the parsed CLI args
             multiple_devices (bool, optional): True if checking for multiple devices. Defaults to False.
-            watching_output (bool, optional): True if watch option has been set. Defaults to False.
+            watching_output (bool, optional): True if watch argument has been set. Defaults to False.
             gpu (device_handle, optional): device_handle for target device. Defaults to None.
             usage (bool, optional): Value override for args.usage. Defaults to None.
             watch (Positive int, optional): Value override for args.watch. Defaults to None.
@@ -1077,7 +1103,7 @@ class AMDSMICommands():
 
         # Handle watch logic, will only enter this block once
         if args.watch:
-            self.helpers.handle_watch(args=args, subcommand=self.metric, logger=self.logger)
+            self.helpers.handle_watch(args=args, subcommand=self.metric_gpu, logger=self.logger)
             return
 
         # Handle multiple GPUs
@@ -1125,6 +1151,7 @@ class AMDSMICommands():
         logging.debug(f"Metric Arg information for GPU {gpu_id} on {self.helpers.os_info()}")
         logging.debug(f"Args:   {current_platform_args}")
         logging.debug(f"Values: {current_platform_values}")
+
         # Set the platform applicable args to True if no args are set
         if not any(current_platform_values):
             for arg in current_platform_args:
@@ -1653,14 +1680,12 @@ class AMDSMICommands():
             self.logger.store_watch_output(multiple_device_enabled=False)
 
 
-    def metric_cpu(self, args, multiple_devices=False, cpu=None, power_metrics=None, prochot=None,
-                   freq_metrics=None, c0_res=None, lclk_dpm_level=None,pwr_svi_telemtry_rails=None,
-                   io_bandwidth=None, xgmi_bandwidth=None, enable_apb=None, disable_apb=None,
-                   set_pow_limit=None, set_xgmi_link_width=None, set_lclk_dpm_level=None,
-                   set_soc_boost_limit=None, metrics_ver=None, metrics_table=None, socket_energy=None,
-                   set_pwr_eff_mode=None, ddr_bandwidth=None, cpu_temp=None, dimm_temp_range_rate=None,
-                   dimm_pow_conumption=None, dimm_thermal_sensor=None, set_gmi3_link_width=None,
-                   set_pcie_lnk_rate=None, set_df_pstate_range=None):
+    def metric_cpu(self, args, multiple_devices=False, cpu=None, cpu_power_metrics=None, cpu_prochot=None,
+                   cpu_freq_metrics=None, cpu_c0_res=None, cpu_lclk_dpm_level=None,
+                   cpu_pwr_svi_telemtry_rails=None, cpu_io_bandwidth=None, cpu_xgmi_bandwidth=None,
+                   cpu_metrics_ver=None, cpu_metrics_table=None, cpu_socket_energy=None,
+                   cpu_ddr_bandwidth=None, cpu_temp=None, cpu_dimm_temp_range_rate=None,
+                   cpu_dimm_pow_consumption=None, cpu_dimm_thermal_sensor=None):
         """Get Metric information for target cpu
 
         Args:
@@ -1668,531 +1693,364 @@ class AMDSMICommands():
             multiple_devices (bool, optional): True if checking for multiple devices. Defaults to False.
             cpu (cpu_handle, optional): device_handle for target device. Defaults to None.
             cpu_power_metrics (bool, optional): Value override for args.cpu_power_metrics. Defaults to None
-            prochot (bool, optional): Value override for args.prochot. Defaults to None.
-            freq_metrics (bool, optional): Value override for args.freq_metrics. Defaults to None.
-            c0_res (bool, optional): Value override for args.c0_res. Defaults to None
-            lclk_dpm_level (list, optional): Value override for args.lclk_dpm_level. Defaults to None
-            pwr_svi_telemtry_rails (list, optional): value override for args.pwr_svi_telemtry_rails. Defaults to None
-            io_bandwidth (list, optional): value override for args.io_bandwidth. Defaults to None
-            xgmi_bandwidth (list, optional): value override for args.xgmi_bandwidth. Defaults to None
-            enable_apb (bool, optional): Value override for args.enable_apb. Defaults to None
-            disable_apb (bool, optional): Value override for args.disable_apb. Defaults to None
-            set_pow_limit (int, optional): Value override for args.cpu_set_pow_limit. Defaults to None
-            set_xgmi_link_width (list, optional): Value override for args.set_cpu_xgmi_link_width. Defaults to None
-            set_lclk_dpm_level (list, optional): Value override for args.set_cpu_lclk_dpm_level. Defaults to None
-            set_soc_boost_limit (list, optional): Value override for args.set_soc_boost_limit. Defaults to None
-            metrics_ver (bool, optional): Value override for args.cpu_metrics_ver. Defaults to None
-            metrics_table (bool, optional): Value override for args.cpu_metrics_table. Defaults to None
-            socket_energy (bool, optional): Value override for args.socket_energy. Defaults to None
-            set_pwr_eff_mode (list, optional): Value override for args.set_cpu_pwr_eff_mode. Defaults to None
-            ddr_bandwidth (bool, optional): Value override for args.ddr_bandwidth. Defaults to None
+            cpu_prochot (bool, optional): Value override for args.cpu_prochot. Defaults to None.
+            cpu_freq_metrics (bool, optional): Value override for args.cpu_freq_metrics. Defaults to None.
+            cpu_c0_res (bool, optional): Value override for args.cpu_c0_res. Defaults to None
+            cpu_lclk_dpm_level (list, optional): Value override for args.cpu_lclk_dpm_level. Defaults to None
+            cpu_pwr_svi_telemtry_rails (list, optional): value override for args.cpu_pwr_svi_telemtry_rails. Defaults to None
+            cpu_io_bandwidth (list, optional): value override for args.cpu_io_bandwidth. Defaults to None
+            cpu_xgmi_bandwidth (list, optional): value override for args.cpu_xgmi_bandwidth. Defaults to None
+            cpu_metrics_ver (bool, optional): Value override for args.cpu_metrics_ver. Defaults to None
+            cpu_metrics_table (bool, optional): Value override for args.cpu_metrics_table. Defaults to None
+            cpu_socket_energy (bool, optional): Value override for args.cpu_socket_energy. Defaults to None
+            cpu_ddr_bandwidth (bool, optional): Value override for args.cpu_ddr_bandwidth. Defaults to None
             cpu_temp (bool, optional): Value override for args.cpu_temp. Defaults to None
-            dimm_temp_range_rate (list, optional): Dimm address.Value override for args.cpu_dimm_temp_range_rate. Defaults to None
-            dimm_pow_conumption (list, optional): Dimm address. Value override for args.cpu_dimm_pow_conumption. Defaults to None
-            dimm_thermal_sensor (list, optional): Dimm address. Value override for args.cpu_dimm_thermal_sensor. Defaults to None
-            set_gmi3_link_width (list, optional): Min and Max link wdiths.Value override for args.set_cpu_gmi3_link_width. Defaults to None
-            set_pcie_lnk_rate (list, optional): Link rate.Value override for args.set_cpu_pcie_lnk_rate. Defaults to None
-            set_df_pstate_range (list, optional): Max and Min pstates.Value override for args.set_cpu_df_pstate_range. Defaults to None
+            cpu_dimm_temp_range_rate (list, optional): Dimm address. Value override for args.cpu_dimm_temp_range_rate. Defaults to None
+            cpu_dimm_pow_consumption (list, optional): Dimm address. Value override for args.cpu_dimm_pow_consumption. Defaults to None
+            cpu_dimm_thermal_sensor (list, optional): Dimm address. Value override for args.cpu_dimm_thermal_sensor. Defaults to None
+
         Returns:
             None: Print output via AMDSMILogger to destination
         """
 
-        if (cpu):
+        if cpu:
             args.cpu = cpu
-        if (power_metrics):
-            args.cpu_power_metrics = power_metrics
-        if (prochot):
-            args.cpu_prochot = prochot
-        if (freq_metrics):
-            args.cpu_freq_metrics = freq_metrics
-        if (c0_res):
-            args.cpu_c0_res = c0_res
-        if (lclk_dpm_level):
-            args.cpu_lclk_dpm_level = lclk_dpm_level
-        if (pwr_svi_telemtry_rails):
-            args.cpu_pwr_svi_telemtry_rails = pwr_svi_telemtry_rails
-        if (io_bandwidth):
-            args.cpu_io_bandwidth = io_bandwidth
-        if (xgmi_bandwidth):
-            args.cpu_xgmi_bandwidth = xgmi_bandwidth
-        if (enable_apb):
-            args.cpu_enable_apb = enable_apb
-        if (disable_apb):
-            args.cpu_disable_apb = disable_apb
-        if (set_pow_limit):
-            args.set_cpu_pow_limit = set_pow_limit
-        if (set_xgmi_link_width):
-            args.set_xgmi_link_width = set_xgmi_link_width
-        if (set_lclk_dpm_level):
-            args.set_lclk_dpm_level = set_lclk_dpm_level
-        if (set_soc_boost_limit):
-            args.set_soc_boost_limit = set_soc_boost_limit
-        if (metrics_ver):
-            args.cpu_metrics_ver = metrics_ver
-        if (metrics_table):
-            args.cpu_metrics_table = metrics_table
-        if (socket_energy):
-            args.socket_energy = socket_energy
-        if (set_pwr_eff_mode):
-            args.set_cpu_pwr_eff_mode = set_pwr_eff_mode
-        if (ddr_bandwidth):
-            args.set_cpu_pwr_eff_mode = ddr_bandwidth
-        if (cpu_temp):
+        if cpu_power_metrics:
+            args.cpu_power_metrics = cpu_power_metrics
+        if cpu_prochot:
+            args.cpu_prochot = cpu_prochot
+        if cpu_freq_metrics:
+            args.cpu_freq_metrics = cpu_freq_metrics
+        if cpu_c0_res:
+            args.cpu_c0_res = cpu_c0_res
+        if cpu_lclk_dpm_level:
+            args.cpu_lclk_dpm_level = cpu_lclk_dpm_level
+        if cpu_pwr_svi_telemtry_rails:
+            args.cpu_pwr_svi_telemtry_rails = cpu_pwr_svi_telemtry_rails
+        if cpu_io_bandwidth:
+            args.cpu_io_bandwidth = cpu_io_bandwidth
+        if cpu_xgmi_bandwidth:
+            args.cpu_xgmi_bandwidth = cpu_xgmi_bandwidth
+        if cpu_metrics_ver:
+            args.cpu_metrics_ver = cpu_metrics_ver
+        if cpu_metrics_table:
+            args.cpu_metrics_table = cpu_metrics_table
+        if cpu_socket_energy:
+            args.cpu_socket_energy = cpu_socket_energy
+        if cpu_ddr_bandwidth:
+            args.cpu_ddr_bandwidth = cpu_ddr_bandwidth
+        if cpu_temp:
             args.cpu_temp = cpu_temp
-        if (dimm_temp_range_rate):
-            args.cpu_dimm_temp_range_rate = dimm_temp_range_rate
-        if (dimm_pow_conumption):
-            args.cpu_dimm_pow_conumption = dimm_pow_conumption
-        if (dimm_thermal_sensor):
-            args.cpu_dimm_thermal_sensor = dimm_thermal_sensor
-        if (set_gmi3_link_width):
-            args.set_cpu_gmi3_link_width = set_gmi3_link_width
-        if (set_pcie_lnk_rate):
-            args.set_cpu_pcie_lnk_rate = set_pcie_lnk_rate
-        if (set_df_pstate_range):
-            args.set_cpu_df_pstate_range = set_df_pstate_range
-
+        if cpu_dimm_temp_range_rate:
+            args.cpu_dimm_temp_range_rate = cpu_dimm_temp_range_rate
+        if cpu_dimm_pow_consumption:
+            args.cpu_dimm_pow_consumption = cpu_dimm_pow_consumption
+        if cpu_dimm_thermal_sensor:
+            args.cpu_dimm_thermal_sensor = cpu_dimm_thermal_sensor
 
         #store cpu args that are applicable to the current platform
         curr_platform_cpu_args = ["cpu_power_metrics", "cpu_prochot", "cpu_freq_metrics",
                                   "cpu_c0_res", "cpu_lclk_dpm_level", "cpu_pwr_svi_telemtry_rails",
-                                  "cpu_io_bandwidth", "cpu_xgmi_bandwidth", "cpu_disable_apb",
-                                  "set_cpu_pow_limit","set_cpu_xgmi_link_width", "set_cpu_lclk_dpm_level",
-                                  "set_soc_boost_limit", "cpu_metrics_ver", "cpu_metrics_table",
-                                  "socket_energy", "set_cpu_pwr_eff_mode", "cpu_ddr_bandwidth",
-                                  "cpu_temp", "cpu_dimm_temp_range_rate", "cpu_dimm_pow_conumption",
-                                  "cpu_dimm_thermal_sensor", "set_cpu_gmi3_link_width", "set_cpu_pcie_lnk_rate",
-                                  "set_cpu_df_pstate_range", "cpu_enable_apb"]
+                                  "cpu_io_bandwidth", "cpu_xgmi_bandwidth", "cpu_metrics_ver",
+                                  "cpu_metrics_table", "cpu_socket_energy", "cpu_ddr_bandwidth",
+                                  "cpu_temp", "cpu_dimm_temp_range_rate", "cpu_dimm_pow_consumption",
+                                  "cpu_dimm_thermal_sensor"]
         curr_platform_cpu_values = [args.cpu_power_metrics, args.cpu_prochot, args.cpu_freq_metrics,
                                     args.cpu_c0_res, args.cpu_lclk_dpm_level, args.cpu_pwr_svi_telemtry_rails,
-                                    args.cpu_io_bandwidth, args.cpu_xgmi_bandwidth, args.cpu_disable_apb,
-                                    args.set_cpu_pow_limit, args.set_cpu_xgmi_link_width, args.set_cpu_lclk_dpm_level,
-                                    args.set_soc_boost_limit, args.cpu_metrics_ver, args.cpu_metrics_table,
-                                    args.socket_energy, args.set_cpu_pwr_eff_mode, args.cpu_ddr_bandwidth,
-                                    args.cpu_temp, args.cpu_dimm_temp_range_rate, args.cpu_dimm_pow_conumption,
-                                    args.cpu_dimm_thermal_sensor, args.set_cpu_gmi3_link_width, args.set_cpu_pcie_lnk_rate,
-                                    args.set_cpu_df_pstate_range, args.cpu_enable_apb]
+                                    args.cpu_io_bandwidth, args.cpu_xgmi_bandwidth, args.cpu_metrics_ver,
+                                    args.cpu_metrics_table, args.cpu_socket_energy, args.cpu_ddr_bandwidth,
+                                    args.cpu_temp, args.cpu_dimm_temp_range_rate, args.cpu_dimm_pow_consumption,
+                                    args.cpu_dimm_thermal_sensor]
 
-
-        # Handle No CPU passed
+        # Handle No CPU passed (fall back as this should be defined in metric())
         if args.cpu == None:
             args.cpu = self.cpu_handles
 
-        if (not any(curr_platform_cpu_values)):
+        if not any(curr_platform_cpu_values):
             for arg in curr_platform_cpu_args:
-                if arg not in("cpu_lclk_dpm_level", "cpu_io_bandwidth", "cpu_xgmi_bandwidth", "cpu_disable_apb",
-                              "set_cpu_pow_limit", "set_cpu_xgmi_link_width", "set_cpu_lclk_dpm_level",
-                              "set_soc_boost_limit", "set_cpu_pwr_eff_mode", "cpu_dimm_temp_range_rate",
-                              "cpu_dimm_temp_range_rate", "cpu_dimm_pow_conumption", "cpu_dimm_thermal_sensor",
-                              "set_cpu_gmi3_link_width", "set_cpu_pcie_lnk_rate", "set_cpu_df_pstate_range",
-                              "cpu_enable_apb"):
+                if arg not in("cpu_lclk_dpm_level", "cpu_io_bandwidth", "cpu_xgmi_bandwidth",
+                              "cpu_dimm_temp_range_rate", "cpu_dimm_pow_consumption", "cpu_dimm_thermal_sensor"):
                     setattr(args, arg, True)
 
-        if (len(self.cpu_handles)):
-            handled_multiple_cpus, device_handle = self.helpers.handle_cpus(args,
-                                                                            self.logger,
-                                                                            self.metric_cpu)
-            if handled_multiple_cpus:
-                return # This function is recursive
-            args.cpu = device_handle
-            # get cpu id for logging
-            cpu_id = self.helpers.get_cpu_id_from_device_handle(args.cpu)
-            logging.debug(f"Metric Arg information for CPU {cpu_id} on {self.helpers.os_info()}")
+        handled_multiple_cpus, device_handle = self.helpers.handle_cpus(args,
+                                                                        self.logger,
+                                                                        self.metric_cpu)
+        if handled_multiple_cpus:
+            return # This function is recursive
+        args.cpu = device_handle
+        # get cpu id for logging
+        cpu_id = self.helpers.get_cpu_id_from_device_handle(args.cpu)
+        logging.debug(f"Metric Arg information for CPU {cpu_id} on {self.helpers.os_info()}")
 
-            static_dict = {}
-            if (args.cpu_power_metrics):
-                static_dict["power_metrics"] = {}
-                try:
-                   soc_pow = amdsmi_interface.amdsmi_get_cpu_socket_power(args.cpu)
-                   static_dict["power_metrics"]["socket power"] = soc_pow
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["power_metrics"]["socket power"] = "N/A"
-                    logging.debug("Failed to get socket power for cpu %s | %s", cpu_id, e.get_error_info())
+        static_dict = {}
+        if args.cpu_power_metrics:
+            static_dict["power_metrics"] = {}
+            try:
+                soc_pow = amdsmi_interface.amdsmi_get_cpu_socket_power(args.cpu)
+                static_dict["power_metrics"]["socket power"] = soc_pow
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["power_metrics"]["socket power"] = "N/A"
+                logging.debug("Failed to get socket power for cpu %s | %s", cpu_id, e.get_error_info())
 
-                try:
-                    soc_pow_limit = amdsmi_interface.amdsmi_get_cpu_socket_power_cap(args.cpu)
-                    static_dict["power_metrics"]["socket power limit"] = soc_pow_limit
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["power_metrics"]["socket power limit"] = "N/A"
-                    logging.debug("Failed to get socket power limit for cpu %s | %s", cpu_id, e.get_error_info())
+            try:
+                soc_pwr_limit = amdsmi_interface.amdsmi_get_cpu_socket_power_cap(args.cpu)
+                static_dict["power_metrics"]["socket power limit"] = soc_pwr_limit
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["power_metrics"]["socket power limit"] = "N/A"
+                logging.debug("Failed to get socket power limit for cpu %s | %s", cpu_id, e.get_error_info())
 
-                try:
-                    soc_max_pow_limit = amdsmi_interface.amdsmi_get_cpu_socket_power_cap_max(args.cpu)
-                    static_dict["power_metrics"]["socket max power limit"] = soc_max_pow_limit
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["power_metrics"]["socket max power limit"] = "N/A"
-                    logging.debug("Failed to get max socket power limit for cpu %s | %s", cpu_id, e.get_error_info())
+            try:
+                soc_max_pwr_limit = amdsmi_interface.amdsmi_get_cpu_socket_power_cap_max(args.cpu)
+                static_dict["power_metrics"]["socket max power limit"] = soc_max_pwr_limit
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["power_metrics"]["socket max power limit"] = "N/A"
+                logging.debug("Failed to get max socket power limit for cpu %s | %s", cpu_id, e.get_error_info())
+        if args.cpu_prochot:
+            static_dict["prochot"] = {}
+            try:
+                proc_status = amdsmi_interface.amdsmi_get_cpu_prochot_status(args.cpu)
+                static_dict["prochot"]["prochot_status"] = proc_status
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["prochot"]["prochot_status"] = "N/A"
+                logging.debug("Failed to get prochot status for cpu %s | %s", cpu_id, e.get_error_info())
+        if args.cpu_freq_metrics:
+            static_dict["freq_metrics"] = {}
+            try:
+                fclk_mclk = amdsmi_interface.amdsmi_get_cpu_fclk_mclk(args.cpu)
+                static_dict["freq_metrics"]["fclkmemclk"] = fclk_mclk
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["freq_metrics"]["fclkmemclk"] = "N/A"
+                logging.debug("Failed to get current fclkmemclk freq for cpu %s | %s", cpu_id, e.get_error_info())
 
-            if (args.cpu_prochot):
-                static_dict["prochot"] = {}
-                try:
-                    proc_status = amdsmi_interface.amdsmi_get_cpu_prochot_status(args.cpu)
-                    static_dict["prochot"]["prochot_status"] = proc_status
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["prochot"]["prochot_status"] = "N/A"
-                    logging.debug("Failed to get prochot status for cpu %s | %s", cpu_id, e.get_error_info())
+            try:
+                cclk_freq = amdsmi_interface.amdsmi_get_cpu_cclk_limit(args.cpu)
+                static_dict["freq_metrics"]["cclkfreqlimit"] = cclk_freq
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["freq_metrics"]["cclkfreqlimit"] = "N/A"
+                logging.debug("Failed to get current cclk freq for cpu %s | %s", cpu_id, e.get_error_info())
 
-            if (args.cpu_freq_metrics):
-                static_dict["freq_metrics"] = {}
-                try:
-                    fclk_mclk = amdsmi_interface.amdsmi_get_cpu_fclk_mclk(args.cpu)
-                    static_dict["freq_metrics"]["fclkmemclk"] = fclk_mclk
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["freq_metrics"]["fclkmemclk"] = "N/A"
-                    logging.debug("Failed to get current fclkmemclk freq for cpu %s | %s", cpu_id, e.get_error_info())
+            try:
+                soc_cur_freq_limit = amdsmi_interface.amdsmi_get_cpu_socket_current_active_freq_limit(args.cpu)
+                static_dict["freq_metrics"]["soc_current_active_freq_limit"] = soc_cur_freq_limit
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["freq_metrics"]["soc_current_active_freq_limit"] = "N/A"
+                logging.debug("Failed to get socket current freq limit for cpu %s | %s", cpu_id, e.get_error_info())
 
-                try:
-                    cclk_freq = amdsmi_interface.amdsmi_get_cpu_cclk_limit(args.cpu)
-                    static_dict["freq_metrics"]["cclkfreqlimit"] = cclk_freq
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["freq_metrics"]["cclkfreqlimit"] = "N/A"
-                    logging.debug("Failed to get current cclk freq for cpu %s | %s", cpu_id, e.get_error_info())
+            try:
+                soc_freq_range = amdsmi_interface.amdsmi_get_cpu_socket_freq_range(args.cpu)
+                static_dict["freq_metrics"]["soc_freq_range"] = soc_freq_range
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["freq_metrics"]["soc_freq_range"] = "N/A"
+                logging.debug("Failed to get socket freq range for cpu %s | %s", cpu_id, e.get_error_info())
+        if args.cpu_c0_res:
+            static_dict["c0_residency"] = {}
+            try:
+                residency = amdsmi_interface.amdsmi_get_cpu_socket_c0_residency(args.cpu)
+                static_dict["c0_residency"]["residency"] = residency
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["c0_residency"]["residency"] = "N/A"
+                logging.debug("Failed to get C0 residency for cpu %s | %s", cpu_id, e.get_error_info())
+        if args.cpu_lclk_dpm_level:
+            static_dict["socket_dpm"] = {}
+            try:
+                dpm_val = amdsmi_interface.amdsmi_get_cpu_socket_lclk_dpm_level(args.cpu,
+                                                                                args.cpu_lclk_dpm_level[0][0])
+                static_dict["socket_dpm"]["dpml_level_range"] = dpm_val
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["socket_dpm"]["dpml_level_range"] = "N/A"
+                logging.debug("Failed to get socket dpm level range for cpu %s | %s", cpu_id, e.get_error_info())
+        if args.cpu_pwr_svi_telemtry_rails:
+            static_dict["svi_telemetry_all_rails"] = {}
+            try:
+                power = amdsmi_interface.amdsmi_get_cpu_pwr_svi_telemetry_all_rails(args.cpu)
+                static_dict["svi_telemetry_all_rails"]["power"] = power
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["c0_residency"]["residency"] = "N/A"
+                logging.debug("Failed to get svi telemetry all rails for cpu %s | %s", cpu_id, e.get_error_info())
+        if args.cpu_io_bandwidth:
+            static_dict["io_bandwidth"] = {}
+            try:
+                bandwidth = amdsmi_interface.amdsmi_get_cpu_current_io_bandwidth(args.cpu,
+                                                                                    int(args.cpu_io_bandwidth[0][0]),
+                                                                                    args.cpu_io_bandwidth[0][1])
+                static_dict["io_bandwidth"]["band_width"] = bandwidth
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["io_bandwidth"]["band_width"] = "N/A"
+                logging.debug("Failed to get io bandwidth for cpu %s | %s", cpu_id, e.get_error_info())
+        if args.cpu_xgmi_bandwidth:
+            static_dict["xgmi_bandwidth"] = {}
+            try:
+                bandwidth = amdsmi_interface.amdsmi_get_cpu_current_xgmi_bw(args.cpu,
+                                                                            int(args.cpu_xgmi_bandwidth[0][0]),
+                                                                            args.cpu_xgmi_bandwidth[0][1])
+                static_dict["xgmi_bandwidth"]["band_width"] = bandwidth
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["xgmi_bandwidth"]["band_width"] = "N/A"
+                logging.debug("Failed to get xgmi bandwidth for cpu %s | %s", cpu_id, e.get_error_info())
+        if args.cpu_metrics_ver:
+            static_dict["metric_version"] = {}
+            try:
+                version = amdsmi_interface.amdsmi_get_hsmp_metrics_table_version(args.cpu)
+                static_dict["metric_version"]["version"] = version
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["metric_version"]["version"] = "N/A"
+                logging.debug("Failed to get metrics table version for cpu %s | %s", cpu_id, e.get_error_info())
+        if args.cpu_metrics_table:
+            static_dict["metrics_table"] = {}
+            try:
+                cpu_fam = amdsmi_interface.amdsmi_get_cpu_family()
+                static_dict["metrics_table"]["cpu_family"] = cpu_fam
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["metrics_table"]["cpu_family"] = "N/A"
+                logging.debug("Failed to get cpu family | %s", e.get_error_info())
+            try:
+                cpu_mod = amdsmi_interface.amdsmi_get_cpu_model()
+                static_dict["metrics_table"]["cpu_model"] = cpu_mod
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["metrics_table"]["cpu_model"] = "N/A"
+                logging.debug("Failed to get cpu model | %s", e.get_error_info())
+            try:
+                cpu_metrics_table = amdsmi_interface.amdsmi_get_hsmp_metrics_table(args.cpu)
+                static_dict["metrics_table"]["response"] = cpu_metrics_table
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["metrics_table"]["response"] = "N/A"
+                logging.debug("Failed to get metrics table for cpu %s | %s", cpu_id, e.get_error_info())
+        if args.cpu_socket_energy:
+            static_dict["socket_energy"] = {}
+            try:
+                energy = amdsmi_interface.amdsmi_get_cpu_socket_energy(args.cpu)
+                static_dict["socket_energy"]["response"] = energy
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["socket_energy"]["response"] = "N/A"
+                logging.debug("Failed to get socket energy for cpu %s | %s", cpu_id, e.get_error_info())
+        if args.cpu_ddr_bandwidth:
+            static_dict["ddr_bandwidth"] = {}
+            try:
+                resp = amdsmi_interface.amdsmi_get_cpu_ddr_bw(args.cpu)
+                static_dict["ddr_bandwidth"]["response"] = resp
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["ddr_bandwidth"]["response"] = "N/A"
+                logging.debug("Failed to get ddr bandwdith for cpu %s | %s", cpu_id, e.get_error_info())
+        if args.cpu_temp:
+            static_dict["cpu_temp"] = {}
+            try:
+                resp = amdsmi_interface.amdsmi_get_cpu_socket_temperature(args.cpu)
+                static_dict["cpu_temp"]["response"] = resp
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["cpu_temp"]["response"] = "N/A"
+                logging.debug("Failed to get cpu temperature for cpu %s | %s", cpu_id, e.get_error_info())
+        if args.cpu_dimm_temp_range_rate:
+            static_dict["dimm_temp_range_rate"] = {}
+            try:
+                resp = amdsmi_interface.amdsmi_get_cpu_dimm_temp_range_and_refresh_rate(args.cpu, args.cpu_dimm_temp_range_rate[0][0])
+                static_dict["dimm_temp_range_rate"]["response"] = resp
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["dimm_temp_range_rate"]["response"] = "N/A"
+                logging.debug("Failed to get dimm temperature range and refresh rate for cpu %s | %s", cpu_id, e.get_error_info())
+        if args.cpu_dimm_pow_consumption:
+            static_dict["dimm_pow_consumption"] = {}
+            try:
+                resp = amdsmi_interface.amdsmi_get_cpu_dimm_power_consumption(args.cpu, args.cpu_dimm_pow_consumption[0][0])
+                static_dict["dimm_pow_consumption"]["response"] = resp
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["dimm_pow_consumption"]["response"] = "N/A"
+                logging.debug("Failed to get dimm temperature range and refresh rate for cpu %s | %s", cpu_id, e.get_error_info())
+        if args.cpu_dimm_thermal_sensor:
+            static_dict["dimm_thermal_sensor"] = {}
+            try:
+                resp = amdsmi_interface.amdsmi_get_cpu_dimm_thermal_sensor(args.cpu, args.cpu_dimm_thermal_sensor[0][0])
+                static_dict["dimm_thermal_sensor"]["response"] = resp
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["dimm_thermal_sensor"]["response"] = "N/A"
+                logging.debug("Failed to get dimm temperature range and refresh rate for cpu %s | %s", cpu_id, e.get_error_info())
 
-                try:
-                    soc_cur_freq_limit = amdsmi_interface.amdsmi_get_cpu_socket_current_active_freq_limit(args.cpu)
-                    static_dict["freq_metrics"]["soc_current_active_freq_limit"] = soc_cur_freq_limit
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["freq_metrics"]["soc_current_active_freq_limit"] = "N/A"
-                    logging.debug("Failed to get socket current freq limit for cpu %s | %s", cpu_id, e.get_error_info())
-
-                try:
-                    soc_freq_range = amdsmi_interface.amdsmi_get_cpu_socket_freq_range(args.cpu)
-                    static_dict["freq_metrics"]["soc_freq_range"] = soc_freq_range
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["freq_metrics"]["soc_freq_range"] = "N/A"
-                    logging.debug("Failed to get socket freq range for cpu %s | %s", cpu_id, e.get_error_info())
-
-            if (args.cpu_c0_res):
-                static_dict["c0_residency"] = {}
-                try:
-                    residency = amdsmi_interface.amdsmi_get_cpu_socket_c0_residency(args.cpu)
-                    static_dict["c0_residency"]["residency"] = residency
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["c0_residency"]["residency"] = "N/A"
-                    logging.debug("Failed to get C0 residency for cpu %s | %s", cpu_id, e.get_error_info())
-
-            if (args.cpu_lclk_dpm_level):
-                static_dict["socket_dpm"] = {}
-                try:
-                    dpm_val = amdsmi_interface.amdsmi_get_cpu_socket_lclk_dpm_level(args.cpu,
-                                                                                    args.cpu_lclk_dpm_level[0][0])
-                    static_dict["socket_dpm"]["dpml_level_range"] = dpm_val
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["socket_dpm"]["dpml_level_range"] = "N/A"
-                    logging.debug("Failed to get socket dpm level range for cpu %s | %s", cpu_id, e.get_error_info())
-
-            if (args.cpu_pwr_svi_telemtry_rails):
-                static_dict["svi_telemetry_all_rails"] = {}
-                try:
-                    power = amdsmi_interface.amdsmi_get_cpu_pwr_svi_telemetry_all_rails(args.cpu)
-                    static_dict["svi_telemetry_all_rails"]["power"] = power
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["c0_residency"]["residency"] = "N/A"
-                    logging.debug("Failed to get svi telemetry all rails for cpu %s | %s", cpu_id, e.get_error_info())
-            if (args.cpu_io_bandwidth):
-                static_dict["io_bandwidth"] = {}
-                try:
-                    bandwidth = amdsmi_interface.amdsmi_get_cpu_current_io_bandwidth(args.cpu,
-                                                                                     int(args.cpu_io_bandwidth[0][0]),
-                                                                                     args.cpu_io_bandwidth[0][1])
-                    static_dict["io_bandwidth"]["band_width"] = bandwidth
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["io_bandwidth"]["band_width"] = "N/A"
-                    logging.debug("Failed to get io bandwidth for cpu %s | %s", cpu_id, e.get_error_info())
-            if (args.cpu_xgmi_bandwidth):
-                static_dict["xgmi_bandwidth"] = {}
-                try:
-                    bandwidth = amdsmi_interface.amdsmi_get_cpu_current_xgmi_bw(args.cpu,
-                                                                                int(args.cpu_xgmi_bandwidth[0][0]),
-                                                                                args.cpu_xgmi_bandwidth[0][1])
-                    static_dict["xgmi_bandwidth"]["band_width"] = bandwidth
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["xgmi_bandwidth"]["band_width"] = "N/A"
-                    logging.debug("Failed to get xgmi bandwidth for cpu %s | %s", cpu_id, e.get_error_info())
-            if (args.cpu_enable_apb):
-                static_dict["apbenable"] = {}
-                try:
-                    amdsmi_interface.amdsmi_cpu_apb_enable(args.cpu)
-                    static_dict["apbenable"]["state"] = "Enabled DF - Pstate performance boost algorithm"
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["apbenable"]["state"] = "N/A"
-                    logging.debug("Failed to enable APB for cpu %s | %s", cpu_id, e.get_error_info())
-
-            if (args.cpu_disable_apb):
-                static_dict["apbdisable"] = {}
-                try:
-                    amdsmi_interface.amdsmi_cpu_apb_disable(args.cpu, args.cpu_disable_apb[0][0])
-                    static_dict["apbdisable"]["state"] = "Disabled DF - Pstate performance boost algorithm"
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["apbdisable"]["state"] = "N/A"
-                    logging.debug("Failed to enable APB for cpu %s | %s", cpu_id, e.get_error_info())
-
-            if (args.set_cpu_pow_limit):
-                static_dict["set_pow_limit"] = {}
-                try:
-                    amdsmi_interface.amdsmi_set_cpu_socket_power_cap(args.cpu, args.set_cpu_pow_limit[0][0])
-                    static_dict["set_pow_limit"]["Response"] = "Set Operation successful"
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["set_pow_limit"]["Response"] = "N/A"
-                    logging.debug("Failed to set power limit for cpu %s | %s", cpu_id, e.get_error_info())
-
-            if (args.set_cpu_xgmi_link_width):
-                static_dict["set_xgmi_link_width"] = {}
-                try:
-                    amdsmi_interface.amdsmi_set_cpu_xgmi_width(args.cpu, args.set_cpu_xgmi_link_width[0][0],
-                                                               args.set_cpu_xgmi_link_width[0][1])
-                    static_dict["set_xgmi_link_width"]["Response"] = "Set Operation successful"
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["set_xgmi_link_width"]["Response"] = "N/A"
-                    logging.debug("Failed to set xgmi link width for cpu %s | %s", cpu_id, e.get_error_info())
-
-            if (args.set_cpu_lclk_dpm_level):
-                static_dict["set_lclk_dpm_level"] = {}
-                try:
-                    amdsmi_interface.amdsmi_set_cpu_socket_lclk_dpm_level(args.cpu, args.set_cpu_lclk_dpm_level[0][0],
-                                                                          args.set_cpu_lclk_dpm_level[0][1],
-                                                                          args.set_cpu_lclk_dpm_level[0][2])
-                    static_dict["set_lclk_dpm_level"]["Response"] = "Set Operation successful"
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["set_lclk_dpm_level"]["Response"] = "N/A"
-                    logging.debug("Failed to set lclk dpm level for cpu %s | %s", cpu_id, e.get_error_info())
-            if (args.set_soc_boost_limit):
-                static_dict["set_soc_boost_limit"] = {}
-                try:
-                    amdsmi_interface.amdsmi_set_cpu_socket_boostlimit(args.cpu, args.set_soc_boost_limit[0][0])
-                    static_dict["set_soc_boost_limit"]["Response"] = "Set Operation successful"
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["set_soc_boost_limit"]["Response"] = "N/A"
-                    logging.debug("Failed to set socket boost limit for cpu %s | %s", cpu_id, e.get_error_info())
-
-            if (args.cpu_metrics_ver):
-                static_dict["metric_version"] = {}
-                try:
-                    version = amdsmi_interface.amdsmi_get_hsmp_metrics_table_version(args.cpu)
-                    static_dict["metric_version"]["version"] = version
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["metric_version"]["version"] = "N/A"
-                    logging.debug("Failed to get metrics table version for cpu %s | %s", cpu_id, e.get_error_info())
-
-            if (args.cpu_metrics_table):
-                static_dict["metrics_table"] = {}
-                try:
-                    cpu_fam = amdsmi_interface.amdsmi_get_cpu_family()
-                    static_dict["metrics_table"]["cpu_family"] = cpu_fam
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["metrics_table"]["cpu_family"] = "N/A"
-                    logging.debug("Failed to get cpu family | %s", e.get_error_info())
-                try:
-                    cpu_mod = amdsmi_interface.amdsmi_get_cpu_model()
-                    static_dict["metrics_table"]["cpu_model"] = cpu_mod
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["metrics_table"]["cpu_model"] = "N/A"
-                    logging.debug("Failed to get cpu model | %s", e.get_error_info())
-                try:
-                    metrics_table = amdsmi_interface.amdsmi_get_hsmp_metrics_table(args.cpu)
-                    static_dict["metrics_table"]["response"] = metrics_table
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["metrics_table"]["response"] = "N/A"
-                    logging.debug("Failed to get metrics table for cpu %s | %s", cpu_id, e.get_error_info())
-
-            if (args.socket_energy):
-                static_dict["socket_energy"] = {}
-                try:
-                    energy = amdsmi_interface.amdsmi_get_cpu_socket_energy(args.cpu)
-                    static_dict["socket_energy"]["response"] = energy
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["socket_energy"]["response"] = "N/A"
-                    logging.debug("Failed to get socket energy for cpu %s | %s", cpu_id, e.get_error_info())
-
-            if(args.set_cpu_pwr_eff_mode):
-                static_dict["set_pwr_eff_mode"] = {}
-                try:
-                    amdsmi_interface.amdsmi_set_cpu_pwr_efficiency_mode(args.cpu, args.set_cpu_pwr_eff_mode[0][0])
-                    static_dict["set_pwr_eff_mode"]["Response"] = "Set Operation successful"
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["set_pwr_eff_mode"]["Response"] = "N/A"
-                    logging.debug("Failed to set power efficiency mode for cpu %s | %s", cpu_id, e.get_error_info())
-
-            if (args.cpu_ddr_bandwidth):
-                static_dict["ddr_bandwidth"] = {}
-                try:
-                    resp = amdsmi_interface.amdsmi_get_cpu_ddr_bw(args.cpu)
-                    static_dict["ddr_bandwidth"]["response"] = resp
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["ddr_bandwidth"]["response"] = "N/A"
-                    logging.debug("Failed to get ddr bandwdith for cpu %s | %s", cpu_id, e.get_error_info())
-
-            if (args.cpu_temp):
-                static_dict["cpu_temp"] = {}
-                try:
-                    resp = amdsmi_interface.amdsmi_get_cpu_socket_temperature(args.cpu)
-                    static_dict["cpu_temp"]["response"] = resp
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["cpu_temp"]["response"] = "N/A"
-                    logging.debug("Failed to get cpu temperature for cpu %s | %s", cpu_id, e.get_error_info())
-
-            if (args.cpu_dimm_temp_range_rate):
-                static_dict["dimm_temp_range_rate"] = {}
-                try:
-                    resp = amdsmi_interface.amdsmi_get_cpu_dimm_temp_range_and_refresh_rate(args.cpu, args.cpu_dimm_temp_range_rate[0][0])
-                    static_dict["dimm_temp_range_rate"]["response"] = resp
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["dimm_temp_range_rate"]["response"] = "N/A"
-                    logging.debug("Failed to get dimm temperature range and refresh rate for cpu %s | %s", cpu_id, e.get_error_info())
-
-            if (args.cpu_dimm_pow_conumption):
-                static_dict["dimm_pow_conumption"] = {}
-                try:
-                    resp = amdsmi_interface.amdsmi_get_cpu_dimm_power_consumption(args.cpu, args.cpu_dimm_pow_conumption[0][0])
-                    static_dict["dimm_pow_conumption"]["response"] = resp
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["dimm_pow_conumption"]["response"] = "N/A"
-                    logging.debug("Failed to get dimm temperature range and refresh rate for cpu %s | %s", cpu_id, e.get_error_info())
-
-            if (args.cpu_dimm_thermal_sensor):
-                static_dict["dimm_thermal_sensor"] = {}
-                try:
-                    resp = amdsmi_interface.amdsmi_get_cpu_dimm_thermal_sensor(args.cpu, args.cpu_dimm_thermal_sensor[0][0])
-                    static_dict["dimm_thermal_sensor"]["response"] = resp
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["dimm_thermal_sensor"]["response"] = "N/A"
-                    logging.debug("Failed to get dimm temperature range and refresh rate for cpu %s | %s", cpu_id, e.get_error_info())
-
-            if (args.set_cpu_gmi3_link_width):
-                static_dict["set_gmi3_link_width"] = {}
-                try:
-                    amdsmi_interface.amdsmi_set_cpu_gmi3_link_width_range(args.cpu, args.set_cpu_gmi3_link_width[0][0],
-                    args.set_cpu_gmi3_link_width[0][1])
-                    static_dict["set_gmi3_link_width"]["response"] = "Set Operation successful"
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["set_gmi3_link_width"]["response"] = "N/A"
-                    logging.debug("Failed to set gmi3 link width for cpu %s | %s", cpu_id, e.get_error_info())
-
-            if (args.set_cpu_pcie_lnk_rate):
-                static_dict["set_pcie_lnk_rate"] = {}
-                try:
-                    resp = amdsmi_interface.amdsmi_set_cpu_pcie_link_rate(args.cpu, args.set_cpu_pcie_lnk_rate[0][0])
-                    static_dict["set_pcie_lnk_rate"]["prev_mode"] = resp
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["set_pcie_lnk_rate"]["prev_mode"] = "N/A"
-                    logging.debug("Failed to set pcie link rate for cpu %s | %s", cpu_id, e.get_error_info())
-
-            if (args.set_cpu_df_pstate_range):
-                static_dict["set_df_pstate_range"] = {}
-                try:
-                    amdsmi_interface.amdsmi_set_cpu_df_pstate_range(args.cpu, args.set_cpu_df_pstate_range[0][0],
-                    args.set_cpu_df_pstate_range[0][1])
-                    static_dict["set_df_pstate_range"]["response"] = "Set Operation successful"
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["set_df_pstate_range"]["response"] = "N/A"
-                    logging.debug("Failed to set df pstate range for cpu %s | %s", cpu_id, e.get_error_info())
-
-            multiple_devices_csv_override = False
-            self.logger.store_cpu_output(args.cpu, 'values', static_dict)
-            if multiple_devices:
-                self.logger.store_multiple_device_output()
-                return # Skip printing when there are multiple devices
-            self.logger.print_output(multiple_device_enabled=multiple_devices_csv_override)
+        multiple_devices_csv_override = False
+        self.logger.store_cpu_output(args.cpu, 'values', static_dict)
+        if multiple_devices:
+            self.logger.store_multiple_device_output()
+            return # Skip printing when there are multiple devices
+        self.logger.print_output(multiple_device_enabled=multiple_devices_csv_override)
 
 
-    def metric_core(self, args, multiple_devices=False, core=None, boost_limit=None,
-                    curr_active_freq_core_limit=None, set_core_boost_limit=None, core_energy=None):
+    def metric_core(self, args, multiple_devices=False, core=None, core_boost_limit=None,
+                    core_curr_active_freq_core_limit=None, core_energy=None):
         """Get Static information for target core
 
         Args:
             args (Namespace): Namespace containing the parsed CLI args
             multiple_devices (bool, optional): True if checking for multiple devices. Defaults to False.
-            core (device_handle, optional): device_handle for target device. Defaults to None.
-            boost_limit (bool, optional): Value override for args.boostlimit. Defaults to None
-            curr_active_freq_core_limit (bool, optional): Value override for args.boostlimit. Defaults to None
-            set_core_boost_limit(list, optional): boost limit value.Value override for args.set_core_boost_limit. Defaults to None
+            core (device_handle, optional): device_handle for target core. Defaults to None.
+            core_boost_limit (bool, optional): Value override for args.core_boost_limit. Defaults to None
+            core_curr_active_freq_core_limit (bool, optional): Value override for args.core_curr_active_freq_core_limit. Defaults to None
             core_energy (bool, optional): Value override for args.core_energy. Defaults to None
         Returns:
             None: Print output via AMDSMILogger to destination
         """
         if core:
             args.core = core
-        if boost_limit:
-            args.core_boost_limit = boost_limit
-        if curr_active_freq_core_limit:
-            args.core_curr_active_freq_core_limit = curr_active_freq_core_limit
-        if set_core_boost_limit:
-            args.set_core_boost_limit = boost_limit
+        if core_boost_limit:
+            args.core_boost_limit = core_boost_limit
+        if core_curr_active_freq_core_limit:
+            args.core_curr_active_freq_core_limit = core_curr_active_freq_core_limit
         if core_energy:
             args.core_energy = core_energy
 
         #store core args that are applicable to the current platform
-        curr_platform_core_args = ["core_boost_limit", "core_curr_active_freq_core_limit",
-                                    "set_core_boost_limit","core_energy"]
-        curr_platform_core_values = [args.core_boost_limit, args.core_curr_active_freq_core_limit,
-                                     args.set_core_boost_limit, args.core_energy]
+        curr_platform_core_args = ["core_boost_limit", "core_curr_active_freq_core_limit", "core_energy"]
+        curr_platform_core_values = [args.core_boost_limit, args.core_curr_active_freq_core_limit, args.core_energy]
 
-        # Handle No core passed
+        # Handle No cores passed
         if args.core == None:
             args.core = self.core_handles
 
-        if (not any(curr_platform_core_values)):
+        if not any(curr_platform_core_values):
             for arg in curr_platform_core_args:
-                if arg not in (["set_core_boost_limit"]):
-                    setattr(args, arg, True)
+                setattr(args, arg, True)
 
-        if (len(self.core_handles)):
-            handled_multiple_cores, device_handle = self.helpers.handle_cores(args,
-                                                                            self.logger,
-                                                                            self.metric_core)
-            if handled_multiple_cores:
-                return # This function is recursive
-            args.core = device_handle
-            # get core id for logging
-            core_id = self.helpers.get_core_id_from_device_handle(args.core)
-            logging.debug(f"Static Arg information for Core {core_id} on {self.helpers.os_info()}")
+        handled_multiple_cores, device_handle = self.helpers.handle_cores(args,
+                                                                        self.logger,
+                                                                        self.metric_core)
+        if handled_multiple_cores:
+            return # This function is recursive
+        args.core = device_handle
+        # get core id for logging
+        core_id = self.helpers.get_core_id_from_device_handle(args.core)
+        logging.debug(f"Static Arg information for Core {core_id} on {self.helpers.os_info()}")
 
-            static_dict = {}
-            if (args.core_boost_limit):
-                static_dict["boost_limit"] ={}
+        static_dict = {}
+        if args.core_boost_limit:
+            static_dict["boost_limit"] ={}
 
-                try:
-                    boost_limit = amdsmi_interface.amdsmi_get_cpu_core_boostlimit(args.core)
-                    static_dict["boost_limit"]["value"] = boost_limit
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["boost_limit"]["value"] = "N/A"
-                    logging.debug("Failed to get core boost limit for core %s | %s", core_id, e.get_error_info())
-            if (args.core_curr_active_freq_core_limit):
-                static_dict["curr_active_freq_core_limit"] = {}
+            try:
+                core_boost_limit = amdsmi_interface.amdsmi_get_cpu_core_boostlimit(args.core)
+                static_dict["boost_limit"]["value"] = core_boost_limit
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["boost_limit"]["value"] = "N/A"
+                logging.debug("Failed to get core boost limit for core %s | %s", core_id, e.get_error_info())
+        if args.core_curr_active_freq_core_limit:
+            static_dict["curr_active_freq_core_limit"] = {}
 
-                try:
-                    freq = amdsmi_interface.amdsmi_get_cpu_core_current_freq_limit(args.core)
-                    static_dict["curr_active_freq_core_limit"]["value"] = freq
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["curr_active_freq_core_limit"]["value"] = "N/A"
-                    logging.debug("Failed to get current active frequency core for core %s | %s", core_id, e.get_error_info())
+            try:
+                freq = amdsmi_interface.amdsmi_get_cpu_core_current_freq_limit(args.core)
+                static_dict["curr_active_freq_core_limit"]["value"] = freq
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["curr_active_freq_core_limit"]["value"] = "N/A"
+                logging.debug("Failed to get current active frequency core for core %s | %s", core_id, e.get_error_info())
+        if args.core_energy:
+            static_dict["core_energy"] ={}
+            try:
+                energy = amdsmi_interface.amdsmi_get_cpu_core_energy(args.core)
+                static_dict["core_energy"]["value"] = energy
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["core_energy"]["value"] = "N/A"
+                logging.debug("Failed to get core energy for core %s | %s", core_id, e.get_error_info())
 
-            if (args.set_core_boost_limit):
-                static_dict["set_core_boost_limit"] = {}
-                try:
-                    amdsmi_interface.amdsmi_set_cpu_core_boostlimit(args.core, args.set_core_boost_limit[0][0])
-                    static_dict["set_core_boost_limit"]["Response"] = "Set Operation successful"
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["set_core_boost_limit"]["Response"] = "N/A"
-                    logging.debug("Failed to set core boost limit for cpu %s | %s", core_id, e.get_error_info())
-
-
-            if (args.core_energy):
-                static_dict["core_energy"] ={}
-                try:
-                    energy = amdsmi_interface.amdsmi_get_cpu_core_energy(args.core)
-                    static_dict["core_energy"]["value"] = energy
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    static_dict["core_energy"]["value"] = "N/A"
-                    logging.debug("Failed to get core energy for core %s | %s", core_id, e.get_error_info())
-
-
-            multiple_devices_csv_override = False
-            self.logger.store_core_output(args.core, 'values', static_dict)
-            if multiple_devices:
-                self.logger.store_multiple_device_output()
-                return # Skip printing when there are multiple devices
-            self.logger.print_output(multiple_device_enabled=multiple_devices_csv_override)
+        multiple_devices_csv_override = False
+        self.logger.store_core_output(args.core, 'values', static_dict)
+        if multiple_devices:
+            self.logger.store_multiple_device_output()
+            return # Skip printing when there are multiple devices
+        self.logger.print_output(multiple_device_enabled=multiple_devices_csv_override)
 
 
     def metric(self, args, multiple_devices=False, watching_output=False, gpu=None,
@@ -2200,22 +2058,21 @@ class AMDSMICommands():
                 clock=None, temperature=None, ecc=None, ecc_block=None, pcie=None,
                 fan=None, voltage_curve=None, overdrive=None, perf_level=None,
                 xgmi_err=None, energy=None, mem_usage=None, schedule=None,
-                guard=None, guest_data=None, fb_usage=None, xgmi=None,cpu=None,
-                cpu_power_metrics=None, prochot=None, freq_metrics=None, c0_res=None,
-                lclk_dpm_level=None,pwr_svi_telemtry_rails=None, io_bandwidth=None,
-                xgmi_bandwidth=None, enable_apb=None, disable_apb=None,set_pow_limit=None,
-                set_xgmi_link_width=None, set_lclk_dpm_level=None, set_soc_boost_limit=None,
-                metrics_ver=None, metrics_table=None, socket_energy=None,set_pwr_eff_mode=None,
-                ddr_bandwidth=None, cpu_temp=None, dimm_temp_range_rate=None,dimm_pow_conumption=None,
-                dimm_thermal_sensor=None, set_gmi3_link_width=None, set_pcie_lnk_rate=None,
-                set_df_pstate_range=None, core=None, boost_limit=None,
-                curr_active_freq_core_limit=None, set_core_boost_limit=None, core_energy=None):
+                guard=None, guest_data=None, fb_usage=None, xgmi=None,
+                cpu=None, cpu_power_metrics=None, cpu_prochot=None, cpu_freq_metrics=None,
+                cpu_c0_res=None, cpu_lclk_dpm_level=None, cpu_pwr_svi_telemtry_rails=None,
+                cpu_io_bandwidth=None, cpu_xgmi_bandwidth=None, cpu_metrics_ver=None,
+                cpu_metrics_table=None, cpu_socket_energy=None, cpu_ddr_bandwidth=None,
+                cpu_temp=None, cpu_dimm_temp_range_rate=None, cpu_dimm_pow_consumption=None,
+                cpu_dimm_thermal_sensor=None,
+                core=None, core_boost_limit=None, core_curr_active_freq_core_limit=None,
+                core_energy=None):
         """Get Metric information for target gpu
 
         Args:
             args (Namespace): Namespace containing the parsed CLI args
             multiple_devices (bool, optional): True if checking for multiple devices. Defaults to False.
-            watching_output (bool, optional): True if watch option has been set. Defaults to False.
+            watching_output (bool, optional): True if watch argument has been set. Defaults to False.
             gpu (device_handle, optional): device_handle for target device. Defaults to None.
             usage (bool, optional): Value override for args.usage. Defaults to None.
             watch (Positive int, optional): Value override for args.watch. Defaults to None.
@@ -2239,38 +2096,29 @@ class AMDSMICommands():
             guest_data (bool, optional): Value override for args.guest_data. Defaults to None.
             fb_usage (bool, optional): Value override for args.fb_usage. Defaults to None.
             xgmi (bool, optional): Value override for args.xgmi. Defaults to None.
-            cpu (device_handle, optional): cpu index. Defaults to None
-            cpu_power_metrics (bool, optional): Value override for args.cpu_power_metrics. Defaults to None
-            prochot (bool, optional): Value override for args.prochot. Defaults to None.
-            freq_metrics (bool, optional): Value override for args.freq_metrics. Defaults to None.
-            c0_res (bool, optional): Value override for args.c0_res. Defaults to None
-            lclk_dpm_level (list, optional): Value override for args.lclk_dpm_level. Defaults to None
-            pwr_svi_telemtry_rails (list, optional): value override for args.pwr_svi_telemtry_rails. Defaults to None
-            io_bandwidth (list, optional): value override for args.io_bandwidth. Defaults to None
-            xgmi_bandwidth (list, optional): value override for args.xgmi_bandwidth. Defaults to None
-            enable_apb (bool, optional): Value override for args.enable_apb. Defaults to None
-            disable_apb (bool, optional): Value override for args.disable_apb. Defaults to None
-            set_pow_limit (int, optional): Value override for args.cpu_set_pow_limit. Defaults to None
-            set_xgmi_link_width (list, optional): Value override for args.set_cpu_xgmi_link_width. Defaults to None
-            set_lclk_dpm_level (list, optional): Value override for args.set_cpu_lclk_dpm_level. Defaults to None
-            set_soc_boost_limit (list, optional): Value override for args.set_soc_boost_limit. Defaults to None
-            metrics_ver (bool, optional): Value override for args.cpu_metrics_ver. Defaults to None
-            metrics_table (bool, optional): Value override for args.cpu_metrics_table. Defaults to None
-            socket_energy (bool, optional): Value override for args.socket_energy. Defaults to None
-            set_pwr_eff_mode (list, optional): Value override for args.set_cpu_pwr_eff_mode. Defaults to None
-            ddr_bandwidth (bool, optional): Value override for args.ddr_bandwidth. Defaults to None
-            cpu_temp (bool, optional): Value override for args.cpu_temp. Defaults to None
-            dimm_temp_range_rate (list, optional): Dimm address.Value override for args.cpu_dimm_temp_range_rate. Defaults to None
-            dimm_pow_conumption (list, optional): Dimm address. Value override for args.cpu_dimm_pow_conumption. Defaults to None
-            dimm_thermal_sensor (list, optional): Dimm address. Value override for args.cpu_dimm_thermal_sensor. Defaults to None
-            set_gmi3_link_width (list, optional): Min and Max link wdiths.Value override for args.set_cpu_gmi3_link_width. Defaults to None
-            set_pcie_lnk_rate (list, optional): Link rate.Value override for args.set_cpu_pcie_lnk_rate. Defaults to None
-            set_df_pstate_range (list, optional): Max and Min pstates.Value override for args.set_cpu_df_pstate_range. Defaults to None
-            core (int, optional): core index. Value override for args.core.Defaults to None
-            boost_limit (bool, optional): Value override for args.boostlimit. Defaults to None
-            curr_active_freq_core_limit (bool, optional): Value override for args.boostlimit. Defaults to None
-            set_core_boost_limit(list, optional): boost limit value.Value override for args.set_core_boost_limit. Defaults to None
 
+            cpu (cpu_handle, optional): device_handle for target device. Defaults to None.
+            cpu_power_metrics (bool, optional): Value override for args.cpu_power_metrics. Defaults to None
+            cpu_prochot (bool, optional): Value override for args.cpu_prochot. Defaults to None.
+            cpu_freq_metrics (bool, optional): Value override for args.cpu_freq_metrics. Defaults to None.
+            cpu_c0_res (bool, optional): Value override for args.cpu_c0_res. Defaults to None
+            cpu_lclk_dpm_level (list, optional): Value override for args.cpu_lclk_dpm_level. Defaults to None
+            cpu_pwr_svi_telemtry_rails (list, optional): value override for args.cpu_pwr_svi_telemtry_rails. Defaults to None
+            cpu_io_bandwidth (list, optional): value override for args.cpu_io_bandwidth. Defaults to None
+            cpu_xgmi_bandwidth (list, optional): value override for args.cpu_xgmi_bandwidth. Defaults to None
+            cpu_metrics_ver (bool, optional): Value override for args.cpu_metrics_ver. Defaults to None
+            cpu_metrics_table (bool, optional): Value override for args.cpu_metrics_table. Defaults to None
+            cpu_socket_energy (bool, optional): Value override for args.cpu_socket_energy. Defaults to None
+            cpu_ddr_bandwidth (bool, optional): Value override for args.cpu_ddr_bandwidth. Defaults to None
+            cpu_temp (bool, optional): Value override for args.cpu_temp. Defaults to None
+            cpu_dimm_temp_range_rate (list, optional): Dimm address. Value override for args.cpu_dimm_temp_range_rate. Defaults to None
+            cpu_dimm_pow_consumption (list, optional): Dimm address. Value override for args.cpu_dimm_pow_consumption. Defaults to None
+            cpu_dimm_thermal_sensor (list, optional): Dimm address. Value override for args.cpu_dimm_thermal_sensor. Defaults to None
+
+            core (device_handle, optional): device_handle for target core. Defaults to None.
+            core_boost_limit (bool, optional): Value override for args.core_boost_limit. Defaults to None
+            core_curr_active_freq_core_limit (bool, optional): Value override for args.core_curr_active_freq_core_limit. Defaults to None
+            core_energy (bool, optional): Value override for args.core_energy. Defaults to None
 
         Raises:
             IndexError: Index error if gpu list is empty
@@ -2278,119 +2126,123 @@ class AMDSMICommands():
         Returns:
             None: Print output via AMDSMILogger to destination
         """
-        gpus = args.gpu
-        cpus= args.cpu
-        cores = args.core
+        # TODO Move watch logic into here and make it driver agnostic or enable it for CPU arguments
 
-        # GPU Options check against each attribute
-        gpu_options = False
-        if hasattr(args, 'gpu'):
-            gpu_options |= bool(args.gpu)
-        if hasattr(args, 'usage'):
-            gpu_options |= bool(args.usage)
-        if hasattr(args, 'watch'):
-            gpu_options |= bool(args.watch)
-        if hasattr(args, 'watch_time'):
-            gpu_options |= bool(args.watch_time)
-        if hasattr(args, 'iterations'):
-            gpu_options |= bool(args.iterations)
-        if hasattr(args, 'power'):
-            gpu_options |= bool(args.power)
-        if hasattr(args, 'clock'):
-            gpu_options |= bool(args.clock)
-        if hasattr(args, 'temperature'):
-            gpu_options |= bool(args.temperature)
-        if hasattr(args, 'ecc'):
-            gpu_options |= bool(args.ecc)
-        if hasattr(args, 'ecc_block'):
-            gpu_options |= bool(args.ecc_block)
-        if hasattr(args, 'pcie'):
-            gpu_options |= bool(args.pcie)
-        if hasattr(args, 'fan'):
-            gpu_options |= bool(args.fan)
-        if hasattr(args, 'voltage_curve'):
-            gpu_options |= bool(args.voltage_curve)
-        if hasattr(args, 'overdrive'):
-            gpu_options |= bool(args.overdrive)
-        if hasattr(args, 'perf_level'):
-            gpu_options |= bool(args.perf_level)
-        if hasattr(args, 'xgmi_err'):
-            gpu_options |= bool(args.xgmi_err)
-        if hasattr(args, 'energy'):
-            gpu_options |= bool(args.energy)
-        if hasattr(args, 'mem_usage'):
-            gpu_options |= bool(args.mem_usage)
-        if hasattr(args, 'schedule'):
-            gpu_options |= bool(args.schedule)
-        if hasattr(args, 'guard'):
-            gpu_options |= bool(args.guard)
-        if hasattr(args, 'guest_data'):
-            gpu_options |= bool(args.guest_data)
-        if hasattr(args, 'fb_usage'):
-            gpu_options |= bool(args.fb_usage)
-        if hasattr(args, 'xgmi'):
-            gpu_options |= bool(args.xgmi)
+        # Mutually exculsive args
+        if gpu:
+            args.gpu = gpu
+        if cpu:
+            args.cpu = cpu
+        if core:
+            args.core = core
 
-        cpu_options = any([args.cpu, args.cpu_power_metrics, args.cpu_prochot,
-                           args.cpu_freq_metrics, args.cpu_c0_res, args.cpu_lclk_dpm_level,
-                           args.cpu_pwr_svi_telemtry_rails, args.cpu_io_bandwidth, args.cpu_xgmi_bandwidth,
-                           args.cpu_enable_apb, args.cpu_disable_apb, args.set_cpu_pow_limit,
-                           args.set_cpu_xgmi_link_width, args.set_cpu_lclk_dpm_level,
-                           args.set_soc_boost_limit,args.cpu_metrics_ver, args.cpu_metrics_table,
-                           args.socket_energy, args.set_cpu_pwr_eff_mode,args.cpu_ddr_bandwidth,
-                           args.cpu_temp, args.cpu_dimm_temp_range_rate, args.cpu_dimm_pow_conumption,
-                           args.cpu_dimm_thermal_sensor, args.set_cpu_gmi3_link_width,
-                           args.set_cpu_pcie_lnk_rate, args.set_cpu_df_pstate_range])
+        # Check if a GPU argument has been set
+        gpu_args_enabled = False
+        gpu_attributes = ["usage", "watch", "watch_time", "iterations", "power", "clock",
+                          "temperature", "ecc", "ecc_block", "pcie", "fan", "voltage_curve",
+                          "overdrive", "perf_level", "xgmi_err", "energy", "mem_usage", "schedule",
+                          "guard", "guest_data", "fb_usage", "xgmi"]
+        for attr in gpu_attributes:
+            if hasattr(args, attr):
+                gpu_args_enabled |= bool(getattr(args, attr))
 
-        core_options = any([args.core_boost_limit, args.core_curr_active_freq_core_limit,
-                            args.set_core_boost_limit, args.core_energy])
+        # Check if a CPU argument has been set
+        cpu_args_enabled = False
+        cpu_attributes = ["cpu_power_metrics", "cpu_prochot", "cpu_freq_metrics", "cpu_c0_res",
+                          "cpu_lclk_dpm_level", "cpu_pwr_svi_telemtry_rails", "cpu_io_bandwidth",
+                          "cpu_xgmi_bandwidth", "cpu_metrics_ver", "cpu_metrics_table",
+                          "cpu_socket_energy", "cpu_ddr_bandwidth", "cpu_temp", "cpu_dimm_temp_range_rate",
+                          "cpu_dimm_pow_consumption", "cpu_dimm_thermal_sensor"]
+        for attr in cpu_attributes:
+            if hasattr(args, attr):
+                cpu_args_enabled |= bool(getattr(args, attr))
 
-        if gpu_options and len(self.device_handles) == 0:
-            logging.error("No GPU devices present")
-            sys.exit(-1)
+        # Check if a Core argument has been set
+        core_args_enabled = False
+        core_attributes = ["core_boost_limit", "core_curr_active_freq_core_limit", "core_energy"]
+        for attr in core_attributes:
+            if hasattr(args, attr):
+                core_args_enabled |= bool(getattr(args, attr))
 
+        logging.debug("gpu_args_enabled: %s, cpu_args_enabled: %s, core_args_enabled: %s",
+                        gpu_args_enabled, cpu_args_enabled, core_args_enabled)
+        logging.debug("args.gpu: %s, args.cpu: %s, args.core: %s", args.gpu, args.cpu, args.core)
 
-        if ((len(self.device_handles) and ((((not gpus) and (not cpus) and (not cores)) or gpus)
-            and not cpu_options and not core_options))):
-            self.metric_gpu(args, multiple_devices, watching_output, gpu,
-                            usage, watch, watch_time, iterations, power,
-                            clock, temperature, ecc, ecc_block, pcie,
-                            fan, voltage_curve, overdrive, perf_level,
-                            xgmi_err, energy, mem_usage, schedule,
-                            guard, guest_data, fb_usage, xgmi)
+        # Handle CPU and GPU driver intialization cases
+        if self.helpers.is_amd_hsmp_initialized() and self.helpers.is_amdgpu_initialized():
+            # If a GPU or CPU argument is provided only print out the specified device.
+            if args.cpu == None and args.gpu == None and args.core == None:
+                # If no args are set, print out all CPU, GPU, and Core metrics info
+                if not gpu_args_enabled and not cpu_args_enabled and not core_args_enabled:
+                    args.cpu = self.cpu_handles
+                    args.gpu = self.device_handles
+                    args.core = self.core_handles
 
+            # Handle cases where the user has only specified an argument and no specific device
+            if args.gpu == None and gpu_args_enabled:
+                args.gpu = self.device_handles
+            if args.cpu == None and cpu_args_enabled:
+                args.cpu = self.cpu_handles
+            if args.core == None and core_args_enabled:
+                args.core = self.core_handles
 
-        if ((len(self.cpu_handles) and ((((not gpus) and (not cpus) and (not cores)) or cpus)
-            and not gpu_options and not core_options))):
-            self.logger.clear_multiple_devices_ouput()
-            self.metric_cpu(args, multiple_devices, cpu, cpu_power_metrics, prochot,
-                            freq_metrics, c0_res, lclk_dpm_level, pwr_svi_telemtry_rails,
-                            io_bandwidth, xgmi_bandwidth, enable_apb, disable_apb,
-                            set_pow_limit,set_xgmi_link_width, set_lclk_dpm_level,
-                            set_soc_boost_limit, metrics_ver, metrics_table, socket_energy,
-                            set_pwr_eff_mode,ddr_bandwidth, cpu_temp, dimm_temp_range_rate,
-                            dimm_pow_conumption,dimm_thermal_sensor, set_gmi3_link_width,
-                            set_pcie_lnk_rate, set_df_pstate_range)
-
-        if (cpu_options and (len(self.cpu_handles) == 0)):
-            logging.error("No CPU devices present")
-            sys.exit(-1)
-
-        if ((len(self.core_handles) and ((((not gpus) and (not cpus) and (not cores)) or cores)
-            and not gpu_options and not cpu_options))):
+            # Print out CPU first
+            if args.cpu:
+                self.metric_cpu(args, multiple_devices, cpu, cpu_power_metrics, cpu_prochot,
+                                cpu_freq_metrics, cpu_c0_res, cpu_lclk_dpm_level,
+                                cpu_pwr_svi_telemtry_rails, cpu_io_bandwidth, cpu_xgmi_bandwidth,
+                                cpu_metrics_ver, cpu_metrics_table, cpu_socket_energy,
+                                cpu_ddr_bandwidth, cpu_temp, cpu_dimm_temp_range_rate,
+                                cpu_dimm_pow_consumption, cpu_dimm_thermal_sensor)
+            if args.core:
+                self.logger.output = {}
                 self.logger.clear_multiple_devices_ouput()
-                self.metric_core(args, multiple_devices, core, boost_limit,
-                                 curr_active_freq_core_limit, set_core_boost_limit,
-                                 core_energy)
+                self.metric_core(args, multiple_devices, core, core_boost_limit,
+                                     core_curr_active_freq_core_limit, core_energy)
+            if args.gpu:
+                self.logger.output = {}
+                self.logger.clear_multiple_devices_ouput()
+                self.metric_gpu(args, multiple_devices, watching_output, gpu,
+                                usage, watch, watch_time, iterations, power,
+                                clock, temperature, ecc, ecc_block, pcie,
+                                fan, voltage_curve, overdrive, perf_level,
+                                xgmi_err, energy, mem_usage, schedule,
+                                guard, guest_data, fb_usage, xgmi)
+        elif self.helpers.is_amd_hsmp_initialized(): # Only CPU is initialized
+            if args.cpu == None and args.core == None:
+                # If no args are set, print out all CPU and Core metrics info
+                if not cpu_args_enabled and not core_args_enabled:
+                    args.cpu = self.cpu_handles
+                    args.core = self.core_handles
 
-        if (core_options and (len(self.cpu_handles) == 0)):
-            logging.error("No Core devices present")
-            sys.exit(-1)
+            if args.cpu == None and cpu_args_enabled:
+                args.cpu = self.cpu_handles
+            if args.core == None and core_args_enabled:
+                args.core = self.core_handles
 
-        if (len(self.cpu_handles) == 0 and len(self.device_handles) == 0 and
-            len(self.core_handles) == 0):
-            logging.error("No CPU and GPU devices present")
-            sys.exit(-1)
+            if args.cpu:
+                self.metric_cpu(args, multiple_devices, cpu, cpu_power_metrics, cpu_prochot,
+                                cpu_freq_metrics, cpu_c0_res, cpu_lclk_dpm_level,
+                                cpu_pwr_svi_telemtry_rails, cpu_io_bandwidth, cpu_xgmi_bandwidth,
+                                cpu_metrics_ver, cpu_metrics_table, cpu_socket_energy,
+                                cpu_ddr_bandwidth, cpu_temp, cpu_dimm_temp_range_rate,
+                                cpu_dimm_pow_consumption, cpu_dimm_thermal_sensor)
+            if args.core:
+                self.logger.output = {}
+                self.logger.clear_multiple_devices_ouput()
+                self.metric_core(args, multiple_devices, core, core_boost_limit,
+                                     core_curr_active_freq_core_limit, core_energy)
+        elif self.helpers.is_amdgpu_initialized(): # Only GPU is initialized
+            if args.gpu == None:
+                args.gpu = self.device_handles
+
+            self.logger.clear_multiple_devices_ouput()
+            self.metric_gpu(args, multiple_devices, watching_output, gpu,
+                                usage, watch, watch_time, iterations, power,
+                                clock, temperature, ecc, ecc_block, pcie,
+                                fan, voltage_curve, overdrive, perf_level,
+                                xgmi_err, energy, mem_usage, schedule)
+
 
     def process(self, args, multiple_devices=False, watching_output=False,
                 gpu=None, general=None, engine=None, pid=None, name=None,
@@ -2400,7 +2252,7 @@ class AMDSMICommands():
         Args:
             args (Namespace): Namespace containing the parsed CLI args
             multiple_devices (bool, optional): True if checking for multiple devices. Defaults to False.
-            watching_output (bool, optional): True if watch option has been set. Defaults to False.
+            watching_output (bool, optional): True if watch argument has been set. Defaults to False.
             gpu (device_handle, optional): device_handle for target device. Defaults to None.
             general (bool, optional): Value override for args.general. Defaults to None.
             engine (bool, optional): Value override for args.engine. Defaults to None.
@@ -2862,7 +2714,246 @@ class AMDSMICommands():
             self.logger.print_output(multiple_device_enabled=True)
 
 
-    def set_value(self, args, multiple_devices=False, gpu=None, fan=None, perf_level=None,
+    def set_core(self, args, multiple_devices=False, core=None, core_boost_limit=None):
+        """Issue set commands to target core(s)
+
+        Args:
+            args (Namespace): Namespace containing the parsed CLI args
+            multiple_devices (bool, optional): True if checking for multiple devices. Defaults to False.
+            core (device_handle, optional): device_handle for target device. Defaults to None.
+            core_boost_limit (list, optional): Value override for args.core_boost_limit. Defaults to None. Defaults to None.
+
+        Raises:
+            ValueError: Value error if no core value is provided
+            IndexError: Index error if core list is empty
+
+        Return:
+            Nothing
+        """
+        if core:
+            args.core = core
+        if core_boost_limit:
+            args.core_boost_limit = core_boost_limit
+
+        if args.core == None:
+            raise ValueError('No Core provided, specific Core targets(S) are needed')
+
+        # Handle multiple cores
+        handled_multiple_cores, device_handle = self.helpers.handle_cores(args, self.logger, self.set_core)
+        if handled_multiple_cores:
+            return # This function is recursive
+
+        # Error if no subcommand args are passed
+        if not any([args.core_boost_limit]):
+            command = " ".join(sys.argv[1:])
+            raise AmdSmiRequiredCommandException(command, self.logger.format)
+
+        args.core = device_handle
+        # build core string for errors
+        try:
+            core_id = self.helpers.get_core_id_from_device_handle(args.core)
+        except IndexError:
+            core_id = f'ID Unavailable for {args.core}'
+
+        static_dict = {}
+        if args.core_boost_limit:
+            static_dict["set_core_boost_limit"] = {}
+            try:
+                amdsmi_interface.amdsmi_set_cpu_core_boostlimit(args.core, args.core_boost_limit[0][0])
+                static_dict["set_core_boost_limit"]["Response"] = "Set Operation successful"
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["set_core_boost_limit"]["Response"] = f"Error occured for Core {core_id} - {e.get_error_info()}"
+                logging.debug("Failed to set core boost limit for cpu %s | %s", core_id, e.get_error_info())
+
+        multiple_devices_csv_override = False
+        self.logger.store_core_output(args.core, 'values', static_dict)
+        if multiple_devices:
+            self.logger.store_multiple_device_output()
+            return # Skip printing when there are multiple devices
+        self.logger.print_output(multiple_device_enabled=multiple_devices_csv_override)
+
+
+    def set_cpu(self, args, multiple_devices=False, cpu=None, cpu_pwr_limit=None,
+                cpu_xgmi_link_width=None, cpu_lclk_dpm_level=None, cpu_pwr_eff_mode=None,
+                cpu_gmi3_link_width=None, cpu_pcie_link_rate=None, cpu_df_pstate_range=None,
+                cpu_enable_apb=None, cpu_disable_apb=None, soc_boost_limit=None):
+        """Issue set commands to target cpu(s)
+
+        Args:
+            args (Namespace): Namespace containing the parsed CLI args
+            multiple_devices (bool, optional): True if checking for multiple devices. Defaults to False.
+            cpu (cpu_handle, optional): device_handle for target device. Defaults to None.
+            cpu_pwr_limit (int, optional): Value override for args.cpu_pwr_limit. Defaults to None.
+            cpu_xgmi_link_width (List[int], optional): Value override for args.cpu_xgmi_link_width. Defaults to None.
+            cpu_lclk_dpm_level (List[int], optional): Value override for args.cpu_lclk_dpm_level. Defaults to None.
+            cpu_pwr_eff_mode (int, optional): Value override for args.cpu_pwr_eff_mode. Defaults to None.
+            cpu_gmi3_link_width (List[int], optional): Value override for args.cpu_gmi3_link_width. Defaults to None.
+            cpu_pcie_link_rate (int, optional): Value override for args.cpu_pcie_link_rate. Defaults to None.
+            cpu_df_pstate_range (List[int], optional): Value override for args.cpu_df_pstate_range. Defaults to None.
+            cpu_enable_apb (bool, optional): Value override for args.cpu_enable_apb. Defaults to None.
+            cpu_disable_apb (int, optional): Value override for args.cpu_disable_apb. Defaults to None.
+            soc_boost_limit (int, optional): Value override for args.soc_boost_limit. Defaults to None.
+
+        Raises:
+            ValueError: Value error if no cpu value is provided
+            IndexError: Index error if cpu list is empty
+
+        Return:
+            Nothing
+        """
+        if cpu:
+            args.cpu = cpu
+        if cpu_pwr_limit:
+            args.cpu_pwr_limit = cpu_pwr_limit
+        if cpu_xgmi_link_width:
+            args.cpu_xgmi_link_width = cpu_xgmi_link_width
+        if cpu_lclk_dpm_level:
+            args.cpu_lclk_dpm_level = cpu_lclk_dpm_level
+        if cpu_pwr_eff_mode:
+            args.cpu_pwr_eff_mode = cpu_pwr_eff_mode
+        if cpu_gmi3_link_width:
+            args.cpu_gmi3_link_width = cpu_gmi3_link_width
+        if cpu_pcie_link_rate:
+            args.cpu_pcie_link_rate = cpu_pcie_link_rate
+        if cpu_df_pstate_range:
+            args.cpu_df_pstate_range = cpu_df_pstate_range
+        if cpu_enable_apb:
+            args.cpu_enable_apb = cpu_enable_apb
+        if cpu_disable_apb:
+            args.cpu_disable_apb = cpu_disable_apb
+        if soc_boost_limit:
+            args.soc_boost_limit = soc_boost_limit
+
+        if args.cpu == None:
+            raise ValueError('No CPU provided, specific CPU targets(S) are needed')
+
+        #Handle multiple CPU's
+        handled_multiple_cpus, device_handle = self.helpers.handle_cpus(args, self.logger, self.set_cpu)
+        if handled_multiple_cpus:
+            return # This function is recursive
+
+        args.cpu = device_handle
+        #Error if no subcommand args are passed
+        if not any([args.cpu_pwr_limit, args.cpu_xgmi_link_width, args.cpu_lclk_dpm_level,
+                    args.cpu_pwr_eff_mode, args.cpu_gmi3_link_width, args.cpu_pcie_link_rate,
+                    args.cpu_df_pstate_range, args.cpu_enable_apb, args.cpu_disable_apb,
+                    args.soc_boost_limit]):
+            command = " ".join(sys.argv[1:])
+            raise AmdSmiRequiredCommandException(command, self.logger.format)
+
+        # Build CPU string for errors
+        try:
+            cpu_id = self.helpers.get_cpu_id_from_device_handle(args.cpu)
+        except IndexError:
+            cpu_id = f'ID Unavailable for {args.cpu}'
+
+        static_dict = {}
+
+        if args.cpu_pwr_limit:
+            static_dict["set_pwr_limit"] = {}
+            try:
+                amdsmi_interface.amdsmi_set_cpu_socket_power_cap(args.cpu, args.cpu_pwr_limit[0][0])
+                static_dict["set_pwr_limit"]["Response"] = "Set Operation successful"
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["set_pwr_limit"]["Response"] = f"Error occured for CPU {cpu_id} - {e.get_error_info()}"
+                logging.debug("Failed to set power limit for cpu %s | %s", cpu_id, e.get_error_info())
+
+        if args.cpu_xgmi_link_width:
+            static_dict["set_xgmi_link_width"] = {}
+            try:
+                amdsmi_interface.amdsmi_set_cpu_xgmi_width(args.cpu, args.cpu_xgmi_link_width[0][0],
+                                                           args.cpu_xgmi_link_width[0][1])
+                static_dict["set_xgmi_link_width"]["Response"] = "Set Operation successful"
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["set_xgmi_link_width"]["Response"] = f"Error occured for CPU {cpu_id} - {e.get_error_info()}"
+                logging.debug("Failed to set xgmi link width for cpu %s | %s", cpu_id, e.get_error_info())
+
+        if args.cpu_lclk_dpm_level:
+            static_dict["set_lclk_dpm_level"] = {}
+            try:
+                amdsmi_interface.amdsmi_set_cpu_socket_lclk_dpm_level(args.cpu, args.cpu_lclk_dpm_level[0][0],
+                                                                      args.cpu_lclk_dpm_level[0][1],
+                                                                      args.cpu_lclk_dpm_level[0][2])
+                static_dict["set_lclk_dpm_level"]["Response"] = "Set Operation successful"
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["set_lclk_dpm_level"]["Response"] = f"Error occured for CPU {cpu_id} - {e.get_error_info()}"
+                logging.debug("Failed to set lclk dpm level for cpu %s | %s", cpu_id, e.get_error_info())
+
+        if args.cpu_pwr_eff_mode:
+            static_dict["set_pwr_eff_mode"] = {}
+            try:
+                amdsmi_interface.amdsmi_set_cpu_pwr_efficiency_mode(args.cpu, args.cpu_pwr_eff_mode[0][0])
+                static_dict["set_pwr_eff_mode"]["Response"] = "Set Operation successful"
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["set_pwr_eff_mode"]["Response"] = f"Error occured for CPU {cpu_id} - {e.get_error_info()}"
+                logging.debug("Failed to set power efficiency mode for cpu %s | %s", cpu_id, e.get_error_info())
+
+        if args.cpu_gmi3_link_width:
+            static_dict["set_gmi3_link_width"] = {}
+            try:
+                amdsmi_interface.amdsmi_set_cpu_gmi3_link_width_range(args.cpu, args.cpu_gmi3_link_width[0][0],
+                args.cpu_gmi3_link_width[0][1])
+                static_dict["set_gmi3_link_width"]["response"] = "Set Operation successful"
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["set_gmi3_link_width"]["response"] = f"Error occured for CPU {cpu_id} - {e.get_error_info()}"
+                logging.debug("Failed to set gmi3 link width for cpu %s | %s", cpu_id, e.get_error_info())
+
+        if args.cpu_pcie_link_rate:
+            static_dict["set_pcie_link_rate"] = {}
+            try:
+                resp = amdsmi_interface.amdsmi_set_cpu_pcie_link_rate(args.cpu, args.cpu_pcie_link_rate[0][0])
+                static_dict["set_pcie_link_rate"]["prev_mode"] = resp
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["set_pcie_link_rate"]["prev_mode"] = f"Error occured for CPU {cpu_id} - {e.get_error_info()}"
+                logging.debug("Failed to set pcie link rate for cpu %s | %s", cpu_id, e.get_error_info())
+
+        if args.cpu_df_pstate_range:
+            static_dict["set_df_pstate_range"] = {}
+            try:
+                amdsmi_interface.amdsmi_set_cpu_df_pstate_range(args.cpu, args.cpu_df_pstate_range[0][0],
+                args.cpu_df_pstate_range[0][1])
+                static_dict["set_df_pstate_range"]["response"] = "Set Operation successful"
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["set_df_pstate_range"]["response"] = f"Error occured for CPU {cpu_id} - {e.get_error_info()}"
+                logging.debug("Failed to set df pstate range for cpu %s | %s", cpu_id, e.get_error_info())
+
+        if args.cpu_enable_apb:
+            static_dict["apbenable"] = {}
+            try:
+                amdsmi_interface.amdsmi_cpu_apb_enable(args.cpu)
+                static_dict["apbenable"]["state"] = "Enabled DF - Pstate performance boost algorithm"
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["apbenable"]["state"] = "N/A"
+                logging.debug("Failed to enable APB for cpu %s | %s", cpu_id, e.get_error_info())
+
+        if args.cpu_disable_apb:
+            static_dict["apbdisable"] = {}
+            try:
+                amdsmi_interface.amdsmi_cpu_apb_disable(args.cpu, args.cpu_disable_apb[0][0])
+                static_dict["apbdisable"]["state"] = "Disabled DF - Pstate performance boost algorithm"
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                static_dict["apbdisable"]["state"] = "N/A"
+                logging.debug("Failed to enable APB for cpu %s | %s", cpu_id, e.get_error_info())
+
+        if args.soc_boost_limit:
+            static_dict["set_soc_boost_limit"] = {}
+            try:
+                amdsmi_interface.amdsmi_set_cpu_socket_boostlimit(args.cpu, args.soc_boost_limit[0][0])
+                static_dict["set_soc_boost_limit"]["Response"] = "Set Operation successful"
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                #static_dict["set_soc_boost_limit"]["Response"] = "N/A"
+                static_dict["set_soc_boost_limit"]["Response"] = f"Error occured for CPU {cpu_id} - {e.get_error_info()}"
+                logging.debug("Failed to set socket boost limit for cpu %s | %s", cpu_id, e.get_error_info())
+
+        multiple_devices_csv_override = False
+        self.logger.store_cpu_output(args.cpu, 'values', static_dict)
+        if multiple_devices:
+            self.logger.store_multiple_device_output()
+            return # Skip printing when there are multiple devices
+        self.logger.print_output(multiple_device_enabled=multiple_devices_csv_override)
+
+
+    def set_gpu(self, args, multiple_devices=False, gpu=None, fan=None, perf_level=None,
                   profile=None, perf_determinism=None, compute_partition=None,
                   memory_partition=None, power_cap=None):
         """Issue reset commands to target gpu(s)
@@ -2909,7 +3000,7 @@ class AMDSMICommands():
             raise ValueError('No GPU provided, specific GPU target(s) are needed')
 
         # Handle multiple GPUs
-        handled_multiple_gpus, device_handle = self.helpers.handle_gpus(args, self.logger, self.set_value)
+        handled_multiple_gpus, device_handle = self.helpers.handle_gpus(args, self.logger, self.set_gpu)
         if handled_multiple_gpus:
             return # This function is recursive
 
@@ -3017,6 +3108,132 @@ class AMDSMICommands():
             return # Skip printing when there are multiple devices
 
         self.logger.print_output()
+
+
+    def set_value(self, args, multiple_devices=False, gpu=None, fan=None, perf_level=None,
+                  profile=None, perf_determinism=None, compute_partition=None,
+                  memory_partition=None, power_cap=None,
+                  cpu=None, cpu_pwr_limit=None, cpu_xgmi_link_width=None, cpu_lclk_dpm_level=None,
+                  cpu_pwr_eff_mode=None, cpu_gmi3_link_width=None, cpu_pcie_link_rate=None,
+                  cpu_df_pstate_range=None, cpu_enable_apb=None, cpu_disable_apb=None,
+                  soc_boost_limit=None, core=None, core_boost_limit=None):
+        """Issue reset commands to target gpu(s)
+
+        Args:
+            args (Namespace): Namespace containing the parsed CLI args
+            multiple_devices (bool, optional): True if checking for multiple devices. Defaults to False.
+            gpu (device_handle, optional): device_handle for target device. Defaults to None.
+            fan (int, optional): Value override for args.fan. Defaults to None.
+            perf_level (amdsmi_interface.AmdSmiDevPerfLevel, optional): Value override for args.perf_level. Defaults to None.
+            profile (bool, optional): Value override for args.profile. Defaults to None.
+            perf_determinism (int, optional): Value override for args.perf_determinism. Defaults to None.
+            compute_partition (amdsmi_interface.AmdSmiComputePartitionType, optional): Value override for args.compute_partition. Defaults to None.
+            memory_partition (amdsmi_interface.AmdSmiMemoryPartitionType, optional): Value override for args.memory_partition. Defaults to None.
+            power_cap (int, optional): Value override for args.power_cap. Defaults to None.
+
+            cpu (cpu_handle, optional): device_handle for target device. Defaults to None.
+            cpu_pwr_limit (int, optional): Value override for args.cpu_pwr_limit. Defaults to None.
+            cpu_xgmi_link_width (List[int], optional): Value override for args.cpu_xgmi_link_width. Defaults to None.
+            cpu_lclk_dpm_level (List[int], optional): Value override for args.cpu_lclk_dpm_level. Defaults to None.
+            cpu_pwr_eff_mode (int, optional): Value override for args.cpu_pwr_eff_mode. Defaults to None.
+            cpu_gmi3_link_width (List[int], optional): Value override for args.cpu_gmi3_link_width. Defaults to None.
+            cpu_pcie_link_rate (int, optional): Value override for args.cpu_pcie_link_rate. Defaults to None.
+            cpu_df_pstate_range (List[int], optional): Value override for args.cpu_df_pstate_range. Defaults to None.
+            cpu_enable_apb (bool, optional): Value override for args.cpu_enable_apb. Defaults to None.
+            cpu_disable_apb (int, optional): Value override for args.cpu_disable_apb. Defaults to None.
+            soc_boost_limit (int, optional): Value override for args.soc_boost_limit. Defaults to None.
+
+            core (device_handle, optional): device_handle for target core. Defaults to None.
+            core_boost_limit (int, optional): Value override for args.core_boost_limit. Defaults to None
+
+        Raises:
+            ValueError: Value error if no gpu value is provided
+            IndexError: Index error if gpu list is empty
+
+        Return:
+            Nothing
+        """
+        # Mutually exculsive args
+        if gpu:
+            args.gpu = gpu
+        if cpu:
+            args.cpu = cpu
+        if core:
+            args.core = core
+
+        # Check if a GPU argument has been set
+        gpu_args_enabled = False
+        gpu_attributes = ["fan", "perf_level", "profile", "perf_determinism", "compute_partition",
+                          "memory_partition", "power_cap"]
+        for attr in gpu_attributes:
+            if hasattr(args, attr):
+                gpu_args_enabled |= bool(getattr(args, attr))
+
+        # Check if a CPU argument has been set
+        cpu_args_enabled = False
+        cpu_attributes = ["cpu_pwr_limit", "cpu_xgmi_link_width", "cpu_lclk_dpm_level", "cpu_pwr_eff_mode",
+                          "cpu_gmi3_link_width", "cpu_pcie_link_rate", "cpu_df_pstate_range",
+                          "cpu_enable_apb", "cpu_disable_apb", "soc_boost_limit"]
+        for attr in cpu_attributes:
+            if hasattr(args, attr):
+                cpu_args_enabled |= bool(getattr(args, attr))
+
+        # Check if a Core argument has been set
+        core_args_enabled = False
+        core_attributes = ["core_boost_limit"]
+        for attr in core_attributes:
+            if hasattr(args, attr):
+                core_args_enabled |= bool(getattr(args, attr))
+
+        # Only allow one device's arguments to be set at a time
+        if gpu_args_enabled == cpu_args_enabled == core_args_enabled == False:
+            raise ValueError('No GPU, CPU, or CORE arguments provided, specific target(s) are needed')
+        elif gpu_args_enabled == cpu_args_enabled == core_args_enabled == True:
+            raise ValueError('Cannot set GPU, CPU, and CORE arguments at the same time')
+        elif not (gpu_args_enabled ^ cpu_args_enabled ^ core_args_enabled):
+            raise ValueError('Cannot set GPU, CPU, or CORE arguments at the same time')
+
+        # Handle CPU and GPU intialization cases
+        if self.helpers.is_amd_hsmp_initialized() and self.helpers.is_amdgpu_initialized():
+            # Print out all CPU and all GPU static info only if no device was specified.
+            # If a GPU or CPU argument is provided only print out the specified device.
+            if args.cpu == None and args.gpu == None and args.core == None:
+                raise ValueError('No GPU, CPU, or CORE provided, specific target(s) are needed')
+
+            if args.cpu:
+                self.set_cpu(args, multiple_devices, cpu, cpu_pwr_limit,
+                                cpu_xgmi_link_width, cpu_lclk_dpm_level, cpu_pwr_eff_mode,
+                                cpu_gmi3_link_width, cpu_pcie_link_rate, cpu_df_pstate_range,
+                                cpu_enable_apb, cpu_disable_apb, soc_boost_limit)
+            if args.core:
+                self.logger.output = {}
+                self.logger.clear_multiple_devices_ouput()
+                self.set_core(args, multiple_devices, core, core_boost_limit)
+            if args.gpu:
+                self.logger.output = {}
+                self.logger.clear_multiple_devices_ouput()
+                self.set_gpu(args, multiple_devices, gpu, fan, perf_level,
+                                profile, perf_determinism, compute_partition,
+                                memory_partition, power_cap)
+        elif self.helpers.is_amd_hsmp_initialized(): # Only CPU is initialized
+            if args.cpu == None and args.core == None:
+                raise ValueError('No CPU or CORE provided, specific target(s) are needed')
+            if args.cpu:
+                self.set_cpu(args, multiple_devices, cpu, cpu_pwr_limit,
+                                cpu_xgmi_link_width, cpu_lclk_dpm_level, cpu_pwr_eff_mode,
+                                cpu_gmi3_link_width, cpu_pcie_link_rate, cpu_df_pstate_range,
+                                cpu_enable_apb, cpu_disable_apb, soc_boost_limit)
+            if args.core:
+                self.logger.output = {}
+                self.logger.clear_multiple_devices_ouput()
+                self.set_core(args, multiple_devices, core, core_boost_limit)
+        elif self.helpers.is_amdgpu_initialized(): # Only GPU is initialized
+            if args.gpu == None:
+                raise ValueError('No GPU provided, specific GPU target(s) are needed')
+            self.logger.clear_multiple_devices_ouput()
+            self.set_gpu(args, multiple_devices, gpu, fan, perf_level,
+                            profile, perf_determinism, compute_partition,
+                            memory_partition, power_cap)
 
 
     def reset(self, args, multiple_devices=False, gpu=None, gpureset=None,

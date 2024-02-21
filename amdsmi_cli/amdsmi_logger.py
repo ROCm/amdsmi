@@ -25,8 +25,8 @@ import json
 import re
 import time
 from typing import Dict
-import yaml
 from enum import Enum
+import yaml
 
 from amdsmi_helpers import AMDSMIHelpers
 import amdsmi_cli_exceptions
@@ -254,6 +254,7 @@ class AMDSMILogger():
         """
         core_id = self.helpers.get_core_id_from_device_handle(device_handle)
         self._store_core_output_amdsmi(core_id=core_id, argument=argument, data=data)
+
 
     def _store_core_output_amdsmi(self, core_id, argument, data):
         if argument == 'timestamp': # Make sure timestamp is the first element in the output
