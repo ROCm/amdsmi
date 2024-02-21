@@ -67,12 +67,12 @@ extern "C" {
  * Initialization flags may be OR'd together and passed to ::amdsmi_init().
  */
 typedef enum {
-  AMDSMI_INIT_ALL_PROCESSORS = 0x0,           // Default option
+  AMDSMI_INIT_ALL_PROCESSORS = 0xFFFFFFFF,  //!< Initialize all processors
   AMDSMI_INIT_AMD_CPUS = (1 << 0),
   AMDSMI_INIT_AMD_GPUS = (1 << 1),
   AMDSMI_INIT_NON_AMD_CPUS = (1 << 2),
   AMDSMI_INIT_NON_AMD_GPUS = (1 << 3),
-  AMDSMI_INIT_AMD_APUS = (AMDSMI_INIT_AMD_CPUS | AMDSMI_INIT_AMD_GPUS)
+  AMDSMI_INIT_AMD_APUS = (AMDSMI_INIT_AMD_CPUS | AMDSMI_INIT_AMD_GPUS) // Default option
 } amdsmi_init_flags_t;
 
 /* Maximum size definitions AMDSMI */

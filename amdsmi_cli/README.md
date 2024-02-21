@@ -183,7 +183,7 @@ Static Arguments:
   -l, --limit                 All limit metric values (i.e. power and thermal limits)
   -u, --numa                  All numa node information
 
-CPU Option<s>:
+CPU Arguments:
   -s, --smu                   All SMU FW information
   -i, --interface_ver         Displays hsmp interface version
 
@@ -276,7 +276,7 @@ usage: amd-smi metric [-h] [--json | --csv] [--file FILE] [--loglevel LEVEL]
                       [--cpu_lclk_dpm_level NBIOID] [--cpu_pwr_svi_telemtry_rails]
                       [--cpu_io_bandwidth IO_BW LINKID_NAME]
                       [--cpu_xgmi_bandwidth XGMI_BW LINKID_NAME] [--cpu_enable_apb]
-                      [--cpu_disable_apb DF_PSTATE] [--set_cpu_pow_limit POW_LIMIT]
+                      [--cpu_disable_apb DF_PSTATE] [--set_cpu_pwr_limit PWR_LIMIT]
                       [--set_cpu_xgmi_link_width MIN_WIDTH MAX_WIDTH]
                       [--set_cpu_lclk_dpm_level NBIOID MIN_DPM MAX_DPM]
                       [--core_boost_limit] [--core_curr_active_freq_core_limit]
@@ -285,10 +285,10 @@ usage: amd-smi metric [-h] [--json | --csv] [--file FILE] [--loglevel LEVEL]
                       [--cpu_metrics_table] [--core_energy] [--socket_energy]
                       [--set_cpu_pwr_eff_mode MODE] [--cpu_ddr_bandwidth] [--cpu_temp]
                       [--cpu_dimm_temp_range_rate DIMM_ADDR]
-                      [--cpu_dimm_pow_conumption DIMM_ADDR]
+                      [--cpu_dimm_pow_consumption DIMM_ADDR]
                       [--cpu_dimm_thermal_sensor DIMM_ADDR]
                       [--set_cpu_gmi3_link_width MIN_LW MAX_LW]
-                      [--set_cpu_pcie_lnk_rate LINK_RATE]
+                      [--set_cpu_pcie_link_rate LINK_RATE]
                       [--set_cpu_df_pstate_range MAX_PSTATE MIN_PSTATE]
 
 If no GPU is specified, returns metric information for all GPUs on the system.
@@ -329,7 +329,7 @@ Metric arguments:
   -x, --xgmi-err                                   XGMI error information since last read
   -E, --energy                                     Amount of energy consumed
 
-CPU Option<s>:
+CPU Arguments:
   --cpu_power_metrics                              Cpu power metrics
   --cpu_prochot                                    Displays prochot status
   --cpu_freq_metrics                               Displays currentFclkMemclk frequencies and cclk frequency limit
@@ -353,18 +353,18 @@ CPU Option<s>:
   --cpu_ddr_bandwidth                              Displays per socket max ddr bw, current utilized bw and current utilized ddr bw in percentage
   --cpu_temp                                       Displays cpu socket temperature
   --cpu_dimm_temp_range_rate DIMM_ADDR             Displays dimm temperature range and refresh rate
-  --cpu_dimm_pow_conumption DIMM_ADDR              Displays dimm power consumption
+  --cpu_dimm_pow_consumption DIMM_ADDR              Displays dimm power consumption
   --cpu_dimm_thermal_sensor DIMM_ADDR              Displays dimm thermal sensor
 
 Set Options<s>:
-  --set_cpu_pow_limit POW_LIMIT                    Set power limit for the given socket. Input parameter is power limit value.
+  --set_cpu_pwr_limit PWR_LIMIT                    Set power limit for the given socket. Input parameter is power limit value.
   --set_cpu_xgmi_link_width MIN_WIDTH MAX_WIDTH    Set max and Min linkwidth. Input parameters are min and max link width values
   --set_cpu_lclk_dpm_level NBIOID MIN_DPM MAX_DPM  Sets the max and min dpm level on a given NBIO. Inpur parameters are die_index, min dpm, max dpm.
   --set_soc_boost_limit BOOST_LIMIT                Sets the boost limit for the given socket. Input parameter is socket limit value
   --set_core_boost_limit BOOST_LIMIT               Sets the boost limit for the given core. Input parameter is core limit value
   --set_cpu_pwr_eff_mode MODE                      Sets the power efficency mode policy. Input parameter is mode.
   --set_cpu_gmi3_link_width MIN_LW MAX_LW          Sets max and min gmi3 link width range
-  --set_cpu_pcie_lnk_rate LINK_RATE                Sets pcie link rate
+  --set_cpu_pcie_link_rate LINK_RATE                Sets pcie link rate
   --set_cpu_df_pstate_range MAX_PSTATE MIN_PSTATE  Sets max and min df-pstates
 
 Command Modifiers:
