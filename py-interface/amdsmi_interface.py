@@ -1291,6 +1291,8 @@ def amdsmi_set_cpu_pcie_link_rate(
             processor_handle, rate_ctrl, ctypes.byref(prev_mode))
     )
 
+    return f"{prev_mode.value}"
+
 def amdsmi_set_cpu_df_pstate_range(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     max_pstate: int, min_pstate: int
