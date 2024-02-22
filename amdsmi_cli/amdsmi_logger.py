@@ -401,7 +401,7 @@ class AMDSMILogger():
         if multiple_device_enabled:
             json_output = self.multiple_device_output
         else:
-            json_output = self.output
+            json_output = [self.output]
 
         if self.destination == 'stdout':
             if json_output:
