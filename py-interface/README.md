@@ -989,8 +989,8 @@ Field | Description
 `model_number` | Board serial number
 `product_serial` | Product serial
 `fru_id` | FRU ID
-`manufacturer_name` | Manufacturer name
 `product_name` | Product name
+`manufacturer_name` | Manufacturer name
 
 Exceptions that can be thrown by `amdsmi_get_gpu_board_info` function:
 
@@ -1007,8 +1007,8 @@ try:
     print(board_info["model_number"])
     print(board_info["product_serial"])
     print(board_info["fru_id"])
-    print(board_info["manufacturer_name"])
     print(board_info["product_name"])
+    print(board_info["manufacturer_name"])
 except AmdSmiException as e:
     print(e)
 ```

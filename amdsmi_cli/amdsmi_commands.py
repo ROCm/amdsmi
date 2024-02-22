@@ -399,8 +399,8 @@ class AMDSMICommands():
             static_dict['board'] = {"model_number": "N/A",
                                     "product_serial": "N/A",
                                     "fru_id": "N/A",
-                                    "manufacturer_name": "N/A",
-                                    "product_name": "N/A"}
+                                    "product_name": "N/A",
+                                    "manufacturer_name": "N/A"}
             try:
                 board_info = amdsmi_interface.amdsmi_get_gpu_board_info(args.gpu)
                 for key, value in board_info.items():
@@ -524,17 +524,21 @@ class AMDSMICommands():
                 limit_info['shutdown_vram_temperature'] = shutdown_temp_vram_limit
                 static_dict['limit'] = limit_info
         if args.driver:
-            driver_info = {"driver_name" : "N/A",
-                           "driver_version" : "N/A"
-                           }
+            driver_info_dict = {"name" : "N/A",
+                                "version" : "N/A"}
 
             try:
                 driver_info = amdsmi_interface.amdsmi_get_gpu_driver_info(args.gpu)
+                driver_info_dict["name"] = driver_info["driver_name"]
+                driver_info_dict["version"] = driver_info["driver_version"]
             except amdsmi_exception.AmdSmiLibraryException as e:
                 logging.debug("Failed to get driver info for gpu %s | %s", gpu_id, e.get_error_info())
 
-            static_dict['driver'] = driver_info
+            static_dict['driver'] = driver_info_dict
         if args.vram:
+            vram_info_dict = {"type" : "N/A",
+                              "vendor" : "N/A",
+                              "size" : "N/A"}
             try:
                 vram_info = amdsmi_interface.amdsmi_get_gpu_vram_info(args.gpu)
 
@@ -556,16 +560,24 @@ class AMDSMICommands():
                     # Remove amdsmi enum prefix
                     vram_vendor = vram_vendor.replace('AMDSMI_VRAM_VENDOR__', '')
 
-                vram_info['vram_type'] = vram_type
-                vram_info['vram_vendor'] = vram_vendor
+                # Assign cleaned values to vram_info_dict
+                vram_info_dict['type'] = vram_type
+                vram_info_dict['vendor'] = vram_vendor
+
+                # Populate vram size with unit
+                vram_info_dict['size'] = vram_info['vram_size_mb']
+                vram_size_unit = "MB"
                 if self.logger.is_human_readable_format():
-                    vram_info['vram_size_mb'] = f"{vram_info['vram_size_mb']} MB"
+                    vram_info_dict['size'] = f"{vram_info['vram_size_mb']} {vram_size_unit}"
+
+                if self.logger.is_json_format():
+                    vram_info_dict['size'] = {"value" : vram_info['vram_size_mb'],
+                                              "unit" : vram_size_unit}
 
             except amdsmi_exception.AmdSmiLibraryException as e:
-                vram_info = "N/A"
                 logging.debug("Failed to get vram info for gpu %s | %s", gpu_id, e.get_error_info())
 
-            static_dict['vram'] = vram_info
+            static_dict['vram'] = vram_info_dict
         if args.cache:
             try:
                 cache_info_list = amdsmi_interface.amdsmi_get_gpu_cache_info(args.gpu)['cache']
@@ -628,7 +640,11 @@ class AMDSMICommands():
                     logging.debug("Failed to get ras info for gpu %s | %s", gpu_id, e.get_error_info())
 
                 try:
-                    ras_dict["ecc_block_state"] = amdsmi_interface.amdsmi_get_gpu_ras_block_features_enabled(args.gpu)
+                    ras_states = amdsmi_interface.amdsmi_get_gpu_ras_block_features_enabled(args.gpu)
+                    ecc_block_state_dict = {}
+                    for state in ras_states:
+                        ecc_block_state_dict[state["block"]] = state["status"]
+                    ras_dict["ecc_block_state"] = ecc_block_state_dict
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     logging.debug("Failed to get ras block features for gpu %s | %s", gpu_id, e.get_error_info())
 
