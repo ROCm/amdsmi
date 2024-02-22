@@ -2630,7 +2630,11 @@ class AMDSMICommands():
         if args.access:
             tabular_output = []
             for src_gpu_index, src_gpu in enumerate(args.gpu):
-                tabular_output_dict = {'gpu': amdsmi_interface.amdsmi_get_gpu_device_bdf(src_gpu)}
+                gpu_bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(src_gpu)
+                if self.logger.is_human_readable_format():
+                    tabular_output_dict = {'gpu' : f"{gpu_bdf} "}
+                else:
+                    tabular_output_dict = {'gpu' : gpu_bdf}
                 src_gpu_links = {}
                 for dest_gpu in args.gpu:
                     dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(dest_gpu)
@@ -2662,7 +2666,11 @@ class AMDSMICommands():
         if args.weight:
             tabular_output = []
             for src_gpu_index, src_gpu in enumerate(args.gpu):
-                tabular_output_dict = {'gpu': amdsmi_interface.amdsmi_get_gpu_device_bdf(src_gpu)}
+                gpu_bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(src_gpu)
+                if self.logger.is_human_readable_format():
+                    tabular_output_dict = {'gpu' : f"{gpu_bdf} "}
+                else:
+                    tabular_output_dict = {'gpu' : gpu_bdf}
                 src_gpu_weight = {}
                 for dest_gpu in args.gpu:
                     dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(dest_gpu)
@@ -2695,7 +2703,11 @@ class AMDSMICommands():
         if args.hops:
             tabular_output = []
             for src_gpu_index, src_gpu in enumerate(args.gpu):
-                tabular_output_dict = {'gpu': amdsmi_interface.amdsmi_get_gpu_device_bdf(src_gpu)}
+                gpu_bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(src_gpu)
+                if self.logger.is_human_readable_format():
+                    tabular_output_dict = {'gpu' : f"{gpu_bdf} "}
+                else:
+                    tabular_output_dict = {'gpu' : gpu_bdf}
                 src_gpu_hops = {}
                 for dest_gpu in args.gpu:
                     dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(dest_gpu)
@@ -2728,7 +2740,11 @@ class AMDSMICommands():
         if args.link_type:
             tabular_output = []
             for src_gpu_index, src_gpu in enumerate(args.gpu):
-                tabular_output_dict = {'gpu': amdsmi_interface.amdsmi_get_gpu_device_bdf(src_gpu)}
+                gpu_bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(src_gpu)
+                if self.logger.is_human_readable_format():
+                    tabular_output_dict = {'gpu' : f"{gpu_bdf} "}
+                else:
+                    tabular_output_dict = {'gpu' : gpu_bdf}
                 src_gpu_link_type = {}
                 for dest_gpu in args.gpu:
                     dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(dest_gpu)
@@ -2766,7 +2782,11 @@ class AMDSMICommands():
         if args.numa_bw:
             tabular_output = []
             for src_gpu_index, src_gpu in enumerate(args.gpu):
-                tabular_output_dict = {'gpu': amdsmi_interface.amdsmi_get_gpu_device_bdf(src_gpu)}
+                gpu_bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(src_gpu)
+                if self.logger.is_human_readable_format():
+                    tabular_output_dict = {'gpu' : f"{gpu_bdf} "}
+                else:
+                    tabular_output_dict = {'gpu' : gpu_bdf}
                 src_gpu_link_type = {}
                 for dest_gpu in args.gpu:
                     dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(dest_gpu)

@@ -118,8 +118,8 @@ class AMDSMILogger():
                     table_values += value.rjust(12)
                 elif key in ('throttle_status', 'pcie_replay'):
                     table_values += value.rjust(13)
-                elif 'gpu_' in key: # handle topology tables
-                    table_values += value.rjust(13)
+                elif 'gpu_' in key: # This is just for handling topology tables
+                    table_values += value.ljust(13)
                 else:
                     table_values += value.rjust(10)
             return table_values.rstrip()
