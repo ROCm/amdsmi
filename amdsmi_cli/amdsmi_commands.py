@@ -483,25 +483,52 @@ class AMDSMICommands():
                     shutdown_temp_vram_limit = "N/A"
                     logging.debug("Failed to get vram temperature shutdown metrics for gpu %s | %s", gpu_id, e.get_error_info())
 
+                # Assign units
+                power_unit = 'W'
+                temp_unit_human_readable = '\N{DEGREE SIGN}C'
+                temp_unit_json = 'C'
                 if self.logger.is_human_readable_format():
-                    pcie_speed_unit = 'W'
                     if not power_limit_error:
-                        max_power_limit = f"{max_power_limit} {pcie_speed_unit}"
-                        socket_power_limit = f"{socket_power_limit} {pcie_speed_unit}"
+                        max_power_limit = f"{max_power_limit} {power_unit}"
+                        socket_power_limit = f"{socket_power_limit} {power_unit}"
 
-                    pcie_speed_unit = '\N{DEGREE SIGN}C'
                     if not slowdown_temp_edge_limit_error:
-                        slowdown_temp_edge_limit = f"{slowdown_temp_edge_limit} {pcie_speed_unit}"
+                        slowdown_temp_edge_limit = f"{slowdown_temp_edge_limit} {temp_unit_human_readable}"
                     if not slowdown_temp_hotspot_limit_error:
-                        slowdown_temp_hotspot_limit = f"{slowdown_temp_hotspot_limit} {pcie_speed_unit}"
+                        slowdown_temp_hotspot_limit = f"{slowdown_temp_hotspot_limit} {temp_unit_human_readable}"
                     if not slowdown_temp_vram_limit_error:
-                        slowdown_temp_vram_limit = f"{slowdown_temp_vram_limit} {pcie_speed_unit}"
+                        slowdown_temp_vram_limit = f"{slowdown_temp_vram_limit} {temp_unit_human_readable}"
                     if not shutdown_temp_edge_limit_error:
-                        shutdown_temp_edge_limit = f"{shutdown_temp_edge_limit} {pcie_speed_unit}"
+                        shutdown_temp_edge_limit = f"{shutdown_temp_edge_limit} {temp_unit_human_readable}"
                     if not shutdown_temp_hotspot_limit_error:
-                        shutdown_temp_hotspot_limit = f"{shutdown_temp_hotspot_limit} {pcie_speed_unit}"
+                        shutdown_temp_hotspot_limit = f"{shutdown_temp_hotspot_limit} {temp_unit_human_readable}"
                     if not shutdown_temp_vram_limit_error:
-                        shutdown_temp_vram_limit = f"{shutdown_temp_vram_limit} {pcie_speed_unit}"
+                        shutdown_temp_vram_limit = f"{shutdown_temp_vram_limit} {temp_unit_human_readable}"
+                if self.logger.is_json_format():
+                    if not power_limit_error:
+                        max_power_limit = {"value" : max_power_limit,
+                                           "unit" : power_unit}
+                        socket_power_limit = {"value" : socket_power_limit,
+                                              "unit" : power_unit}
+
+                    if not slowdown_temp_edge_limit_error:
+                        slowdown_temp_edge_limit = {"value" : slowdown_temp_edge_limit,
+                                                    "unit" : temp_unit_json}
+                    if not slowdown_temp_hotspot_limit_error:
+                        slowdown_temp_hotspot_limit = {"value" : slowdown_temp_hotspot_limit,
+                                                       "unit" : temp_unit_json}
+                    if not slowdown_temp_vram_limit_error:
+                        slowdown_temp_vram_limit = {"value" : slowdown_temp_vram_limit,
+                                                    "unit" : temp_unit_json}
+                    if not shutdown_temp_edge_limit_error:
+                        shutdown_temp_edge_limit = {"value" : shutdown_temp_edge_limit,
+                                                    "unit" : temp_unit_json}
+                    if not shutdown_temp_hotspot_limit_error:
+                        shutdown_temp_hotspot_limit = {"value" : shutdown_temp_hotspot_limit,
+                                                       "unit" : temp_unit_json}
+                    if not shutdown_temp_vram_limit_error:
+                        shutdown_temp_vram_limit = {"value" : shutdown_temp_vram_limit,
+                                                    "unit" : temp_unit_json}
 
                 limit_info = {}
                 # Power limits
@@ -668,6 +695,7 @@ class AMDSMICommands():
                     new_cache_info.update(cache_info)
                     cache_info_list[index] = new_cache_info
 
+                cache_size_unit = "KB"
                 if self.logger.is_human_readable_format():
                     cache_info_dict_format = {}
                     for cache_dict in cache_info_list:
@@ -678,15 +706,19 @@ class AMDSMICommands():
                         cache_info_dict_format[cache_index].pop("cache")
 
                         # Add cache_size unit
-                        cache_info_dict_format[cache_index]["cache_size"] = f"{cache_info_dict_format[cache_index]['cache_size']} KB"
+                        cache_size = f"{cache_info_dict_format[cache_index]['cache_size']} {cache_size_unit}"
+                        cache_info_dict_format[cache_index]["cache_size"] = cache_size
 
                         # take cache_properties out of list -> display as string, removing brackets
                         cache_info_dict_format[cache_index]["cache_properties"] = ", ".join(cache_info_dict_format[cache_index]["cache_properties"])
 
                     cache_info_list = cache_info_dict_format
 
-                logging.debug(f"After human_readable | cache_info = {cache_info_list}")
-
+                # Add cache_size_unit to json output
+                if self.logger.is_json_format():
+                    for cache_dict in cache_info_list:
+                        cache_dict["cache_size"] = {"value" : cache_dict["cache_size"],
+                                                    "unit" : cache_size_unit}
             except amdsmi_exception.AmdSmiLibraryException as e:
                 cache_info_list = "N/A"
                 logging.debug("Failed to get cache info for gpu %s | %s", gpu_id, e.get_error_info())
@@ -1198,18 +1230,25 @@ class AMDSMICommands():
                     engine_usage['jpeg_activity'] = gpu_metric_info.pop('jpeg_activity')
 
                     for key, value in engine_usage.items():
+                        activity_unit = '%'
                         if self.logger.is_human_readable_format():
-                            unit = '%'
                             if isinstance(value, list):
                                 for index, activity in enumerate(value):
                                     if activity != "N/A":
-                                        engine_usage[key][index] = f"{activity} {unit}"
-
+                                        engine_usage[key][index] = f"{activity} {activity_unit}"
                                 # Convert list to a string for human readable format
                                 engine_usage[key] = '[' + ", ".join(engine_usage[key]) + ']'
-
                             elif value != "N/A":
-                                engine_usage[key] = f"{value} {unit}"
+                                engine_usage[key] = f"{value} {activity_unit}"
+                        if self.logger.is_json_format():
+                            if isinstance(value, list):
+                                for index, activity in enumerate(value):
+                                    if activity != "N/A":
+                                        engine_usage[key][index] = {"value" : activity,
+                                                                    "unit" : activity_unit}
+                            elif value != "N/A":
+                                engine_usage[key] = {"value" : value,
+                                                     "unit" : activity_unit}
 
                     values_dict['usage'] = engine_usage
                 except amdsmi_exception.AmdSmiLibraryException as e:
@@ -1225,15 +1264,24 @@ class AMDSMICommands():
                               'throttle_status': "N/A"}
 
                 try:
+                    voltage_unit = "mV"
+                    power_unit = "W"
                     power_info = amdsmi_interface.amdsmi_get_power_info(args.gpu)
                     for key, value in power_info.items():
                         if value == 0xFFFF:
                             power_info[key] = "N/A"
                         elif self.logger.is_human_readable_format():
                             if "voltage" in key:
-                                power_info[key] = f"{value} mV"
+                                power_info[key] = f"{value} {voltage_unit}"
                             elif "power" in key:
-                                power_info[key] = f"{value} W"
+                                power_info[key] = f"{value} {power_unit}"
+                        elif self.logger.is_json_format():
+                            if "voltage" in key:
+                                power_info[key] = {"value" : value,
+                                                  "unit" : voltage_unit}
+                            elif "power" in key:
+                                power_info[key] = {"value" : value,
+                                                  "unit" : power_unit}
 
                     power_dict['socket_power'] = power_info['current_socket_power']
 
@@ -1296,11 +1344,14 @@ class AMDSMICommands():
                         if clock_info['sleep_clk'] == 0xFFFFFFFF:
                             clock_info['sleep_clk'] = "N/A"
 
-                        if self.logger.is_human_readable_format():
-                            unit = 'MHz'
-                            for key, value in clock_info.items():
-                                if isinstance(value, int):
-                                    clock_info[key] = f"{value} {unit}"
+                        clock_freq_unit = 'MHz'
+                        for key, value in clock_info.items():
+                            if isinstance(value, int):
+                                if self.logger.is_human_readable_format():
+                                    clock_info[key] = f"{value} {clock_freq_unit}"
+                                if self.logger.is_json_format():
+                                    clock_info[key] = {"value" : value,
+                                                       "unit" : clock_freq_unit}
 
                         clocks[clock_name] = clock_info
                     except amdsmi_exception.AmdSmiLibraryException as e:
@@ -1375,11 +1426,15 @@ class AMDSMICommands():
                                 'hotspot': temperature_hotspot_current,
                                 'mem': temperature_vram_current}
 
-                if self.logger.is_human_readable_format():
-                    unit = '\N{DEGREE SIGN}C'
-                    for temperature_key, temperature_value in temperatures.items():
-                        if 'N/A' not in str(temperature_value):
-                            temperatures[temperature_key] = f"{temperature_value} {unit}"
+                temp_unit_human_readable = '\N{DEGREE SIGN}C'
+                temp_unit_json = 'C'
+                for temperature_key, temperature_value in temperatures.items():
+                    if 'N/A' not in str(temperature_value):
+                        if self.logger.is_human_readable_format():
+                            temperatures[temperature_key] = f"{temperature_value} {temp_unit_human_readable}"
+                        if self.logger.is_json_format():
+                            temperatures[temperature_key] = {"value" : temperature_value,
+                                                            "unit" : temp_unit_json}
 
                 values_dict['temperature'] = temperatures
         if "pcie" in current_platform_args:
@@ -1406,10 +1461,12 @@ class AMDSMICommands():
                     pcie_dict['width'] = pcie_link_status['pcie_metric']['pcie_width']
                     pcie_dict['speed'] = pcie_speed_GTs_value
 
+                    pcie_speed_unit = 'GT/s'
                     if self.logger.is_human_readable_format():
-                        unit = 'GT/s'
-                        pcie_dict['width'] = f"{pcie_link_status['pcie_metric']['pcie_width']} lanes"
-                        pcie_dict['speed'] = f"{pcie_dict['speed']} GT/s"
+                        pcie_dict['speed'] = f"{pcie_dict['speed']} {pcie_speed_unit}"
+                    if self.logger.is_json_format():
+                        pcie_dict['speed'] = {"value" : pcie_dict['speed'],
+                                              "unit" : pcie_speed_unit}
 
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     logging.debug("Failed to get pcie link status for gpu %s | %s", gpu_id, e.get_error_info())
@@ -1458,15 +1515,24 @@ class AMDSMICommands():
                     sent = pcie_bw['sent'] * pcie_bw['max_pkt_sz']
                     received = pcie_bw['received'] * pcie_bw['max_pkt_sz']
 
-                    if self.logger.is_human_readable_format():
-                        if sent > 0:
-                            sent = sent // 1024 // 1024
-                        sent = f"{sent} MB/s"
+                    bw_unit = "MB/s"
+                    packet_size_unit = "B"
+                    if sent > 0:
+                        sent = sent // 1024 // 1024
+                    if received > 0:
+                        received = received // 1024 // 1024
 
-                        if received > 0:
-                            received = received // 1024 // 1024
-                        received = f"{received} MB/s"
-                        pcie_bw['max_pkt_sz'] = f"{pcie_bw['max_pkt_sz']} B"
+                    if self.logger.is_human_readable_format():
+                        sent = f"{sent} {bw_unit}"
+                        received = f"{received} {bw_unit}"
+                        pcie_bw['max_pkt_sz'] = f"{pcie_bw['max_pkt_sz']} {packet_size_unit}"
+                    if self.logger.is_json_format():
+                        sent = {"value" : sent,
+                                "unit" : bw_unit}
+                        received = {"value" : received,
+                                    "unit" : bw_unit}
+                        pcie_bw['max_pkt_sz'] = {"value" : pcie_bw['max_pkt_sz'],
+                                                 "unit" : packet_size_unit}
 
                     pcie_dict['current_bandwidth_sent'] = sent
                     pcie_dict['current_bandwidth_received'] = received
@@ -1544,9 +1610,12 @@ class AMDSMICommands():
                     fan_usage = "N/A"
                     if fan_max > 0 and fan_dict["speed"] != "N/A":
                         fan_usage = round((float(fan_speed) / float(fan_max)) * 100, 2)
+                        fan_usage_unit = '%'
                         if self.logger.is_human_readable_format():
-                            unit = '%'
-                            fan_usage = f"{fan_usage} {unit}"
+                            fan_usage = f"{fan_usage} {fan_usage_unit}"
+                        if self.logger.is_json_format():
+                            fan_usage = {"value" : fan_usage,
+                                         "unit" : fan_usage_unit}
                     fan_dict["max"] = fan_max
                     fan_dict["usage"] = fan_usage
                 except amdsmi_exception.AmdSmiLibraryException as e:
@@ -1584,9 +1653,12 @@ class AMDSMICommands():
                 try:
                     overdrive_level = amdsmi_interface.amdsmi_get_gpu_overdrive_level(args.gpu)
 
+                    od_unit = '%'
                     if self.logger.is_human_readable_format():
-                        unit = '%'
-                        overdrive_level = f"{overdrive_level} {unit}"
+                        overdrive_level = f"{overdrive_level} {od_unit}"
+                    if self.logger.is_json_format():
+                        overdrive_level = {"value" : overdrive_level,
+                                           "unit" : od_unit}
 
                     values_dict['overdrive'] = overdrive_level
                 except amdsmi_exception.AmdSmiLibraryException as e:
@@ -1617,9 +1689,12 @@ class AMDSMICommands():
                     energy /= 1000000
                     energy = round(energy, 3)
 
+                    energy_unit = 'J'
                     if self.logger.is_human_readable_format():
-                        unit = 'J'
-                        energy = f"{energy} {unit}"
+                        energy = f"{energy} {energy_unit}"
+                    if self.logger.is_json_format():
+                        energy = {"value" : energy,
+                                  "unit" : energy_unit}
 
                     values_dict['energy'] = {"total_energy_consumption" : energy}
                 except amdsmi_interface.AmdSmiLibraryException as e:
@@ -1627,7 +1702,6 @@ class AMDSMICommands():
                     logging.debug("Failed to get energy usage for gpu %s | %s", args.gpu, e.get_error_info())
         if "mem_usage" in current_platform_args:
             if args.mem_usage:
-                unit = 'MB'
                 memory_usage = {'total_vram': "N/A",
                                 'used_vram': "N/A",
                                 'free_vram': "N/A",
@@ -1687,10 +1761,14 @@ class AMDSMICommands():
                 if memory_usage['total_gtt'] != "N/A" and memory_usage['used_gtt'] != "N/A":
                     memory_usage['free_gtt'] = memory_usage['total_gtt'] - memory_usage['used_gtt']
 
-                if self.logger.is_human_readable_format():
-                    for key, value in memory_usage.items():
-                        if value != "N/A":
-                            memory_usage[key] = f"{value} {unit}"
+                memory_unit = 'MB'
+                for key, value in memory_usage.items():
+                    if value != "N/A":
+                        if self.logger.is_human_readable_format():
+                            memory_usage[key] = f"{value} {memory_unit}"
+                        if self.logger.is_json_format():
+                            memory_usage[key] = {"value" : value,
+                                                "unit" : memory_unit}
 
                 values_dict['mem_usage'] = memory_usage
 
@@ -3619,9 +3697,13 @@ class AMDSMICommands():
                 else: # Fallback to average_socket_power for older gpu_metrics versions
                     monitor_values['power_usage'] = gpu_metrics_info['average_socket_power']
 
+                power_unit = 'W'
                 if self.logger.is_human_readable_format() and monitor_values['power_usage'] != "N/A":
-                    unit = 'W'
-                    monitor_values['power_usage'] = f"{monitor_values['power_usage']} {unit}"
+                    monitor_values['power_usage'] = f"{monitor_values['power_usage']} {power_unit}"
+                if self.logger.is_json_format() and monitor_values['power_usage'] != "N/A":
+                    monitor_values['power_usage'] = {"value" : monitor_values['power_usage'],
+                                                     "unit" : power_unit}
+
             except amdsmi_exception.AmdSmiLibraryException as e:
                 monitor_values['power_usage'] = "N/A"
                 logging.debug("Failed to get power usage on gpu %s | %s", gpu_id, e.get_error_info())
@@ -3642,11 +3724,20 @@ class AMDSMICommands():
                 monitor_values['memory_temperature'] = "N/A"
                 logging.debug("Failed to get memory temperature on gpu %s | %s", gpu_id, e.get_error_info())
 
-            if self.logger.is_human_readable_format() and monitor_values['hotspot_temperature'] != "N/A":
-                monitor_values['hotspot_temperature'] = f"{monitor_values['hotspot_temperature']} \N{DEGREE SIGN}C"
-
-            if self.logger.is_human_readable_format() and monitor_values['memory_temperature'] != "N/A":
-                monitor_values['memory_temperature'] = f"{monitor_values['memory_temperature']} \N{DEGREE SIGN}C"
+            temp_unit_human_readable = '\N{DEGREE SIGN}C'
+            temp_unit_json = 'C'
+            if monitor_values['hotspot_temperature'] != "N/A":
+                if self.logger.is_human_readable_format():
+                    monitor_values['hotspot_temperature'] = f"{monitor_values['hotspot_temperature']} {temp_unit_human_readable}"
+                if self.logger.is_json_format():
+                    monitor_values['hotspot_temperature'] = {"value" : monitor_values['hotspot_temperature'],
+                                                            "unit" : temp_unit_json}
+            if monitor_values['memory_temperature'] != "N/A":
+                if self.logger.is_human_readable_format():
+                    monitor_values['memory_temperature'] = f"{monitor_values['memory_temperature']} {temp_unit_human_readable}"
+                if self.logger.is_json_format():
+                    monitor_values['memory_temperature'] = {"value" : monitor_values['memory_temperature'],
+                                                            "unit" : temp_unit_json}
 
             self.logger.table_header += 'GPU_TEMP'.rjust(10)
             self.logger.table_header += 'MEM_TEMP'.rjust(10)
@@ -3654,8 +3745,13 @@ class AMDSMICommands():
             try:
                 gfx_util = amdsmi_interface.amdsmi_get_gpu_metrics_info(args.gpu)['average_gfx_activity']
                 monitor_values['gfx'] = gfx_util
-                if self.logger.is_human_readable_format() and gfx_util != "N/A":
-                    monitor_values['gfx'] = f"{monitor_values['gfx']} %"
+                activity_unit = '%'
+                if gfx_util != "N/A":
+                    if self.logger.is_human_readable_format():
+                        monitor_values['gfx'] = f"{monitor_values['gfx']} {activity_unit}"
+                    if self.logger.is_json_format():
+                        monitor_values['gfx'] = {"value" : monitor_values['gfx'],
+                                                 "unit" : activity_unit}
             except amdsmi_exception.AmdSmiLibraryException as e:
                 monitor_values['gfx'] = "N/A"
                 logging.debug("Failed to get gfx utilization on gpu %s | %s", gpu_id, e.get_error_info())
@@ -3665,8 +3761,14 @@ class AMDSMICommands():
             try:
                 gfx_clock = amdsmi_interface.amdsmi_get_gpu_metrics_info(args.gpu)['current_gfxclk']
                 monitor_values['gfx_clock'] = gfx_clock
-                if self.logger.is_human_readable_format() and gfx_clock != "N/A":
-                    monitor_values['gfx_clock'] = f"{monitor_values['gfx_clock']} MHz"
+                freq_unit = 'MHz'
+                if gfx_clock != "N/A":
+                    if self.logger.is_human_readable_format():
+                        monitor_values['gfx_clock'] = f"{monitor_values['gfx_clock']} {freq_unit}"
+                    if self.logger.is_json_format():
+                        monitor_values['gfx_clock'] = {"value" : monitor_values['gfx_clock'],
+                                                       "unit" : freq_unit}
+
             except amdsmi_exception.AmdSmiLibraryException as e:
                 monitor_values['gfx_clock'] = "N/A"
                 logging.debug("Failed to get gfx clock on gpu %s | %s", gpu_id, e.get_error_info())
@@ -3676,8 +3778,13 @@ class AMDSMICommands():
             try:
                 mem_util = amdsmi_interface.amdsmi_get_gpu_metrics_info(args.gpu)['average_umc_activity']
                 monitor_values['mem'] = mem_util
-                if self.logger.is_human_readable_format() and mem_util != "N/A":
-                    monitor_values['mem'] = f"{monitor_values['mem']} %"
+                activity_unit = '%'
+                if mem_util != "N/A":
+                    if self.logger.is_human_readable_format():
+                        monitor_values['mem'] = f"{monitor_values['mem']} {activity_unit}"
+                    if self.logger.is_json_format():
+                        monitor_values['mem'] = {"value" : monitor_values['mem'],
+                                                 "unit" : activity_unit}
             except amdsmi_exception.AmdSmiLibraryException as e:
                 monitor_values['mem'] = "N/A"
                 logging.debug("Failed to get mem utilization on gpu %s | %s", gpu_id, e.get_error_info())
@@ -3687,8 +3794,13 @@ class AMDSMICommands():
             try:
                 mem_clock = amdsmi_interface.amdsmi_get_gpu_metrics_info(args.gpu)['current_uclk']
                 monitor_values['mem_clock'] = mem_clock
-                if self.logger.is_human_readable_format() and mem_clock != "N/A":
-                    monitor_values['mem_clock'] = f"{monitor_values['mem_clock']} MHz"
+                freq_unit = 'MHz'
+                if mem_clock != "N/A":
+                    if self.logger.is_human_readable_format():
+                        monitor_values['mem_clock'] = f"{monitor_values['mem_clock']} {freq_unit}"
+                    if self.logger.is_json_format():
+                        monitor_values['mem_clock'] = {"value" : monitor_values['mem_clock'],
+                                                       "unit" : freq_unit}
             except amdsmi_exception.AmdSmiLibraryException as e:
                 monitor_values['mem_clock'] = "N/A"
                 logging.debug("Failed to get mem clock on gpu %s | %s", gpu_id, e.get_error_info())
@@ -3710,8 +3822,14 @@ class AMDSMICommands():
                     encoding_activity_avg = "N/A"
 
                 monitor_values['encoder'] = encoding_activity_avg
-                if self.logger.is_human_readable_format() and monitor_values['encoder'] != "N/A":
-                    monitor_values['encoder'] = f"{monitor_values['encoder']} %"
+
+                activity_unit = '%'
+                if monitor_values['encoder'] != "N/A":
+                    if self.logger.is_human_readable_format():
+                        monitor_values['encoder'] = f"{monitor_values['encoder']} {activity_unit}"
+                    if self.logger.is_json_format():
+                        monitor_values['encoder'] = {"value" : monitor_values['encoder'],
+                                                    "unit" : activity_unit}
             except amdsmi_exception.AmdSmiLibraryException as e:
                 monitor_values['encoder'] = "N/A"
                 logging.debug("Failed to get encoder utilization on gpu %s | %s", gpu_id, e.get_error_info())
@@ -3721,8 +3839,13 @@ class AMDSMICommands():
             try:
                 encoder_clock = amdsmi_interface.amdsmi_get_gpu_metrics_info(args.gpu)['current_vclk0']
                 monitor_values['encoder_clock'] = encoder_clock
-                if self.logger.is_human_readable_format() and encoder_clock != "N/A":
-                    monitor_values['encoder_clock'] = f"{monitor_values['encoder_clock']} MHz"
+                freq_unit = 'MHz'
+                if encoder_clock != "N/A":
+                    if self.logger.is_human_readable_format():
+                        monitor_values['encoder_clock'] = f"{monitor_values['encoder_clock']} {freq_unit}"
+                    if self.logger.is_json_format():
+                        monitor_values['encoder_clock'] = {"value" : monitor_values['encoder_clock'],
+                                                           "unit" : freq_unit}
             except amdsmi_exception.AmdSmiLibraryException as e:
                 monitor_values['encoder_clock'] = "N/A"
                 logging.debug("Failed to get encoder clock on gpu %s | %s", gpu_id, e.get_error_info())
@@ -3743,8 +3866,14 @@ class AMDSMICommands():
             try:
                 decoder_clock = amdsmi_interface.amdsmi_get_gpu_metrics_info(args.gpu)['current_dclk0']
                 monitor_values['decoder_clock'] = decoder_clock
-                if self.logger.is_human_readable_format():
-                    monitor_values['decoder_clock'] = f"{monitor_values['decoder_clock']} MHz"
+
+                freq_unit = 'MHz'
+                if decoder_clock != "N/A":
+                    if self.logger.is_human_readable_format():
+                        monitor_values['decoder_clock'] = f"{monitor_values['decoder_clock']} {freq_unit}"
+                    if self.logger.is_json_format():
+                        monitor_values['decoder_clock'] = {"value" : monitor_values['decoder_clock'],
+                                                           "unit" : freq_unit}
             except amdsmi_exception.AmdSmiLibraryException as e:
                 monitor_values['decoder_clock'] = "N/A"
                 logging.debug("Failed to get decoder clock on gpu %s | %s", gpu_id, e.get_error_info())
@@ -3789,9 +3918,15 @@ class AMDSMICommands():
                 vram_usage = amdsmi_interface.amdsmi_get_gpu_vram_usage(args.gpu)
                 monitor_values['vram_used'] = vram_usage['vram_used']
                 monitor_values['vram_total'] = vram_usage['vram_total']
+                vram_usage_unit = "MB"
                 if self.logger.is_human_readable_format():
-                    monitor_values['vram_used'] = f"{monitor_values['vram_used']} MB"
-                    monitor_values['vram_total'] = f"{monitor_values['vram_total']} MB"
+                    monitor_values['vram_used'] = f"{monitor_values['vram_used']} {vram_usage_unit}"
+                    monitor_values['vram_total'] = f"{monitor_values['vram_total']} {vram_usage_unit}"
+                if self.logger.is_json_format():
+                    monitor_values['vram_used'] = {"value" : monitor_values['vram_used'],
+                                                   "unit" : vram_usage_unit}
+                    monitor_values['vram_total'] = {"value" : monitor_values['vram_total'],
+                                                    "unit" : vram_usage_unit}
             except amdsmi_exception.AmdSmiLibraryException as e:
                 monitor_values['vram_used'] = "N/A"
                 monitor_values['vram_total'] = "N/A"
@@ -3805,15 +3940,24 @@ class AMDSMICommands():
                 sent = pcie_bw['sent'] * pcie_bw['max_pkt_sz']
                 received = pcie_bw['received'] * pcie_bw['max_pkt_sz']
 
-                if self.logger.is_human_readable_format():
-                    if sent > 0:
-                        sent = sent // 1024 // 1024
-                    sent = f"{sent} MB/s"
+                bw_unit = "MB/s"
+                packet_size_unit = "B"
+                if sent > 0:
+                    sent = sent // 1024 // 1024
+                if received > 0:
+                    received = received // 1024 // 1024
 
-                    if received > 0:
-                        received = received // 1024 // 1024
-                    received = f"{received} MB/s"
-                    pcie_bw['max_pkt_sz'] = f"{pcie_bw['max_pkt_sz']} B"
+                if self.logger.is_human_readable_format():
+                    sent = f"{sent} {bw_unit}"
+                    received = f"{received} {bw_unit}"
+                    pcie_bw['max_pkt_sz'] = f"{pcie_bw['max_pkt_sz']} {packet_size_unit}"
+                if self.logger.is_json_format():
+                    sent = {"value" : sent,
+                            "unit" : bw_unit}
+                    received = {"value" : received,
+                                "unit" : bw_unit}
+                    pcie_bw['max_pkt_sz'] = {"value" : pcie_bw['max_pkt_sz'],
+                                                "unit" : packet_size_unit}
 
                 monitor_values['pcie_tx'] = sent
                 monitor_values['pcie_rx'] = received
