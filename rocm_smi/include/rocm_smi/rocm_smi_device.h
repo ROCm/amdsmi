@@ -173,6 +173,7 @@ enum DevInfoTypes {
   kDevNumaNode,
   kDevGpuMetrics,
   kDevPmMetrics,
+  kDevDPMPolicy,
   kDevRegMetrics,
   kDevGpuReset,
   kDevAvailableComputePartition,

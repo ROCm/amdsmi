@@ -632,7 +632,6 @@ class AMDSMIHelpers():
             compute_partitions_str.remove('INVALID')
         return compute_partitions_str
 
-
     def get_memory_partition_types(self):
         memory_partitions_str = [partition.name for partition in amdsmi_interface.AmdSmiMemoryPartitionType]
         if 'UNKNOWN' in memory_partitions_str:

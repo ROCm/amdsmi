@@ -136,6 +136,7 @@ static const char *kDevAvailableComputePartitionFName =
                   "available_compute_partition";
 static const char *kDevComputePartitionFName = "current_compute_partition";
 static const char *kDevMemoryPartitionFName = "current_memory_partition";
+static const char* kDevDPMPolicyFName = "pm_policy";  // The PM policy for pstat and XGMI
 
 // Firmware version files
 static const char *kDevFwVersionAsdFName = "fw_version/asd_fw_version";
@@ -315,6 +316,7 @@ static const std::map<DevInfoTypes, const char *> kDevAttribNameMap = {
     {kDevNumaNode, kDevNumaNodeFName},
     {kDevGpuMetrics, kDevGpuMetricsFName},
     {kDevPmMetrics, kDevPmMetricsFName},
+    {kDevDPMPolicy, kDevDPMPolicyFName},
     {kDevRegMetrics, kDevRegMetricsFName},
     {kDevGpuReset, kDevGpuResetFName},
     {kDevAvailableComputePartition, kDevAvailableComputePartitionFName},
@@ -472,6 +474,7 @@ Device::devInfoTypesStrings = {
   {kDevComputePartition, "kDevComputePartition"},
   {kDevMemoryPartition, "kDevMemoryPartition"},
   {kDevPCieVendorID, "kDevPCieVendorID"},
+  {kDevDPMPolicy, "kDevDPMPolicy"},
 };
 
 static const std::map<const char *, dev_depends_t> kDevFuncDependsMap = {
@@ -533,6 +536,8 @@ static const std::map<const char *, dev_depends_t> kDevFuncDependsMap = {
   {"rsmi_topo_numa_affinity_get",        {{kDevNumaNodeFName}, {}}},
   {"rsmi_dev_gpu_metrics_info_get",      {{kDevGpuMetricsFName}, {}}},
   {"rsmi_dev_pm_metrics_info_get",       {{kDevPmMetricsFName}, {}}},
+  {"rsmi_dev_dpm_policy_get",           {{kDevDPMPolicyFName}, {}}},
+  {"rsmi_dev_dpm_policy_set",           {{kDevDPMPolicyFName}, {}}},
   {"rsmi_dev_reg_table_info_get",        {{kDevRegMetricsFName}, {}}},
   {"rsmi_dev_gpu_reset",                 {{kDevGpuResetFName}, {}}},
   {"rsmi_dev_compute_partition_get",     {{kDevComputePartitionFName}, {}}},
@@ -938,6 +943,7 @@ int Device::writeDevInfo(DevInfoTypes type, std::string val) {
     case kDevPCIEClk:
     case kDevPowerODVoltage:
     case kDevSOCClk:
+    case kDevDPMPolicy:
       return writeDevInfoStr(type, val);
     case kDevComputePartition:
     case kDevMemoryPartition:
@@ -1219,6 +1225,7 @@ int Device::readDevInfo(DevInfoTypes type, std::vector<std::string> *val) {
     case kDevErrCntHDP:
     case kDevErrCntXGMIWAFL:
     case kDevMemPageBad:
+    case kDevDPMPolicy:
       return readDevInfoMultiLineStr(type, val);
       break;
 
