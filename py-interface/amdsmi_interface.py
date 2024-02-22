@@ -1851,8 +1851,8 @@ def amdsmi_get_gpu_board_info(
         "model_number": board_info.model_number.decode("utf-8").strip(),
         "product_serial": board_info.product_serial.decode("utf-8").strip(),
         "fru_id": board_info.fru_id.decode("utf-8").strip(),
-        "manufacturer_name" : board_info.manufacturer_name.decode("utf-8").strip(),
-        "product_name": board_info.product_name.decode("utf-8").strip()
+        "product_name": board_info.product_name.decode("utf-8").strip(),
+        "manufacturer_name": board_info.manufacturer_name.decode("utf-8").strip()
     }
 
 
@@ -2002,8 +2002,6 @@ def amdsmi_get_gpu_driver_info(
     length = ctypes.c_int()
     length.value = _AMDSMI_MAX_DRIVER_VERSION_LENGTH
 
-    version = ctypes.create_string_buffer(_AMDSMI_MAX_DRIVER_VERSION_LENGTH)
-
     info = amdsmi_wrapper.amdsmi_driver_info_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_gpu_driver_info(
@@ -2013,7 +2011,8 @@ def amdsmi_get_gpu_driver_info(
 
     return {
         "driver_name": info.driver_name.decode("utf-8"),
-        "driver_version": info.driver_version.decode("utf-8")
+        "driver_version": info.driver_version.decode("utf-8"),
+        "driver_date": info.driver_date.decode("utf-8")
     }
 
 
@@ -2110,13 +2109,13 @@ def amdsmi_get_gpu_vram_usage(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    vram_info = amdsmi_wrapper.amdsmi_vram_usage_t()
+    vram_usage = amdsmi_wrapper.amdsmi_vram_usage_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_gpu_vram_usage(
-            processor_handle, ctypes.byref(vram_info))
+            processor_handle, ctypes.byref(vram_usage))
     )
 
-    return {"vram_total": vram_info.vram_total, "vram_used": vram_info.vram_used}
+    return {"vram_total": vram_usage.vram_total, "vram_used": vram_usage.vram_used}
 
 
 def amdsmi_get_pcie_info(
