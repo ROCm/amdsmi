@@ -2915,6 +2915,7 @@ amdsmi_status_t amdsmi_set_cpu_pcie_link_rate(amdsmi_processor_handle processor_
 {
     amdsmi_status_t status;
     uint8_t sock_ind;
+    uint8_t p_mode;
 
     AMDSMI_CHECK_INIT();
 
@@ -2928,9 +2929,11 @@ amdsmi_status_t amdsmi_set_cpu_pcie_link_rate(amdsmi_processor_handle processor_
     sock_ind = (uint8_t)std::stoi(proc_id, NULL, 0);
 
     status = static_cast<amdsmi_status_t>(esmi_pcie_link_rate_set(sock_ind,
-                                                                        rate_ctrl, prev_mode));
+                                                                        rate_ctrl, &p_mode));
     if (status != AMDSMI_STATUS_SUCCESS)
         return amdsmi_errno_to_esmi_status(status);
+
+    *prev_mode = p_mode;
 
     return AMDSMI_STATUS_SUCCESS;
 }
