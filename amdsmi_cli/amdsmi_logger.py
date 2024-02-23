@@ -118,8 +118,25 @@ class AMDSMILogger():
                     table_values += value.rjust(12)
                 elif key in ('throttle_status', 'pcie_replay'):
                     table_values += value.rjust(13)
-                elif 'gpu_' in key: # This is just for handling topology tables
+                # Only for handling topology tables
+                elif 'gpu_' in key:
                     table_values += value.ljust(13)
+                # Only for handling xgmi tables
+                elif key == "gpu#":
+                    table_values += value.ljust(7)
+                elif key == "bdf":
+                    table_values += value.ljust(13)
+                elif "bdf_" in key:
+                    table_values += value.ljust(13)
+                elif key == "bit_rate":
+                    table_values += value.ljust(9)
+                elif key == "max_bandwidth":
+                    table_values += value.ljust(14)
+                elif key == "link_type":
+                    table_values += value.ljust(10)
+                elif key == "RW":
+                    table_values += " " + value.ljust(52)
+                # Default spacing
                 else:
                     table_values += value.rjust(10)
             return table_values.rstrip()

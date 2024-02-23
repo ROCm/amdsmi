@@ -1515,7 +1515,7 @@ class AMDSMICommands():
                     sent = pcie_bw['sent'] * pcie_bw['max_pkt_sz']
                     received = pcie_bw['received'] * pcie_bw['max_pkt_sz']
 
-                    bw_unit = "MB/s"
+                    bw_unit = "Mb/s"
                     packet_size_unit = "B"
                     if sent > 0:
                         sent = sent // 1024 // 1024
@@ -3960,7 +3960,7 @@ class AMDSMICommands():
                 sent = pcie_bw['sent'] * pcie_bw['max_pkt_sz']
                 received = pcie_bw['received'] * pcie_bw['max_pkt_sz']
 
-                bw_unit = "MB/s"
+                bw_unit = "Mb/s"
                 packet_size_unit = "B"
                 if sent > 0:
                     sent = sent // 1024 // 1024
@@ -4003,6 +4003,211 @@ class AMDSMICommands():
 
     def rocm_smi(self, args):
         print("Placeholder for rocm-smi legacy commands")
+
+
+    def xgmi(self, args, multiple_devices=False, gpu=None, metric=None):
+        """ Get topology information for target gpus
+            params:
+                args - argparser args to pass to subcommand
+                multiple_devices (bool) - True if checking for multiple devices
+                gpu (device_handle) - device_handle for target device
+                metric (bool) - Value override for args.metric
+
+            return:
+                Nothing
+        """
+        # Not supported with partitions
+
+        # Set args.* to passed in arguments
+        if gpu:
+            args.gpu = gpu
+        if metric:
+            args.metric = metric
+
+        # Handle No GPU passed
+        if args.gpu == None:
+            args.gpu = self.device_handles
+
+        if not isinstance(args.gpu, list):
+            args.gpu = [args.gpu]
+
+        # Handle all args being false
+        if not any([args.metric]):
+            args.metric = True
+
+        # Clear the table header
+        self.logger.table_header = ''.rjust(7)
+
+        # Populate the possible gpus and their bdfs
+        xgmi_values = []
+        for gpu in args.gpu:
+            logging.debug("check1 device_handle: %s", gpu)
+            gpu_id = self.helpers.get_gpu_id_from_device_handle(gpu)
+            gpu_bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(gpu)
+            xgmi_values.append({"gpu" : gpu_id,
+                                "bdf" : gpu_bdf})
+            # Populate header with just bdfs
+            self.logger.table_header += gpu_bdf.rjust(13)
+
+        if args.metric:
+            # prepend link metrics header to the table header
+            link_metrics_header = "       " + "bdf".ljust(13) + \
+                  "bit_rate".ljust(9) + "max_bandwidth".ljust(14) + \
+                  "link_type".ljust(10)
+            self.logger.table_header = link_metrics_header + self.logger.table_header.strip()
+
+            # Populate dictionary according to format
+            for xgmi_dict in xgmi_values:
+                src_gpu_id = xgmi_dict['gpu']
+                src_gpu_bdf = xgmi_dict['bdf']
+                src_gpu = amdsmi_interface.amdsmi_get_processor_handle_from_bdf(src_gpu_bdf) #TODO VERIFY this is correct
+                logging.debug("check2 device_handle: %s", src_gpu)
+                # This should be the same order as the check1
+
+                xgmi_dict['link_metrics'] = {
+                    "bit_rate" : "N/A",
+                    "max_bandwidth" : "N/A",
+                    "link_type" : "N/A",
+                    "links" : []
+                }
+
+                try:
+                    pcie_info = amdsmi_interface.amdsmi_get_pcie_info(src_gpu)['pcie_static']
+                    if pcie_info['max_pcie_speed'] % 1000 != 0:
+                        pcie_speed_GTs_value = round(pcie_info['max_pcie_speed'] / 1000, 1)
+                    else:
+                        pcie_speed_GTs_value = round(pcie_info['max_pcie_speed'] / 1000)
+
+                    bitrate = pcie_speed_GTs_value
+                    max_bandwidth = bitrate * pcie_info['max_pcie_width']
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    logging.debug("Failed to get bitrate and bandwidth for GPU %s | %s", src_gpu_id,
+                                    e.get_error_info())
+
+                # Populate bitrate and max_bandwidth with units logic
+                bw_unit = 'Gb/s'
+                if self.logger.is_human_readable_format():
+                    xgmi_dict['link_metrics']['bit_rate'] = f"{bitrate} {bw_unit}"
+                    xgmi_dict['link_metrics']['max_bandwidth'] = f"{max_bandwidth} {bw_unit}"
+                elif self.logger.is_json_format():
+                    xgmi_dict['link_metrics']['bit_rate'] = {"value" : bitrate,
+                                                             "unit" : bw_unit}
+                    xgmi_dict['link_metrics']['max_bandwidth'] = {"value" : max_bandwidth,
+                                                                  "unit" : bw_unit}
+                elif self.logger.is_csv_format():
+                    xgmi_dict['link_metrics']['bit_rate'] = bitrate
+                    xgmi_dict['link_metrics']['max_bandwidth'] = max_bandwidth
+
+                # Populate link metrics
+                for dest_gpu in args.gpu:
+                    dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(dest_gpu)
+                    dest_gpu_bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(dest_gpu)
+                    dest_link_dict = {
+                        "gpu" : dest_gpu_id,
+                        "bdf" : dest_gpu_bdf,
+                        "read" : "N/A",
+                        "write" : "N/A"
+                    }
+
+                    # Don't make a call to check link status for the same gpu
+                    if dest_gpu_bdf == src_gpu_bdf:
+                        dest_link_dict['read'] = "N/A"
+                        dest_link_dict['write'] = "N/A"
+                        xgmi_dict['link_metrics']['links'].append(dest_link_dict)
+                        continue
+
+                    try:
+                        # Get the read write relative to the source gpu
+                        metrics_info = amdsmi_interface.amdsmi_get_gpu_metrics_info(src_gpu)
+                        read = metrics_info['xgmi_read_data_acc'][dest_gpu_id]
+                        write = metrics_info['xgmi_write_data_acc'][dest_gpu_id]
+                    except amdsmi_exception.AmdSmiLibraryException as e:
+                        logging.debug("Failed to get read data for %s to %s | %s",
+                                        self.helpers.get_gpu_id_from_device_handle(src_gpu),
+                                        self.helpers.get_gpu_id_from_device_handle(dest_gpu),
+                                        e.get_error_info())
+
+                    data_unit = 'KB'
+                    if self.logger.is_human_readable_format():
+                        dest_link_dict['read'] = f"{read} {data_unit}"
+                        dest_link_dict['write'] = f"{write} {data_unit}"
+                    elif self.logger.is_json_format():
+                        dest_link_dict['read'] = {"value" : read,
+                                                 "unit" : data_unit}
+                        dest_link_dict['write'] = {"value" : write,
+                                                  "unit" : data_unit}
+                    elif self.logger.is_csv_format():
+                        dest_link_dict['read'] = read
+                        dest_link_dict['write'] = write
+
+                    try:
+                        link_type = amdsmi_interface.amdsmi_topo_get_link_type(src_gpu, dest_gpu)['type']
+                        if xgmi_dict['link_metrics']['link_type'] != "XGMI" and isinstance(link_type, int):
+                            if link_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_UNDEFINED:
+                                xgmi_dict['link_metrics']['link_type'] = "UNKNOWN"
+                            elif link_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_PCIEXPRESS:
+                                xgmi_dict['link_metrics']['link_type'] = "PCIE"
+                            elif link_type == amdsmi_interface.amdsmi_wrapper.AMDSMI_IOLINK_TYPE_XGMI:
+                                xgmi_dict['link_metrics']['link_type'] = "XGMI"
+                    except amdsmi_exception.AmdSmiLibraryException as e:
+                        logging.debug("Failed to get link type for %s to %s | %s",
+                                        self.helpers.get_gpu_id_from_device_handle(src_gpu),
+                                        self.helpers.get_gpu_id_from_device_handle(dest_gpu),
+                                        e.get_error_info())
+
+                    xgmi_dict['link_metrics']['links'].append(dest_link_dict)
+
+            # Handle printing for tabular format
+            if self.logger.is_human_readable_format():
+                # Populate tabular output
+                tabular_output = []
+                for xgmi_dict in xgmi_values:
+                    tabular_output_dict = {}
+
+                    # Create GPU row and add to tabular_output
+                    for key, value in xgmi_dict.items():
+                        if key == "gpu":
+                            tabular_output_dict["gpu#"] = f"GPU{value}"
+                        if key == "bdf":
+                            tabular_output_dict["bdf"] = value
+                        if key == "link_metrics":
+                            for link_key, link_value in value.items():
+                                if link_key == "bit_rate":
+                                    tabular_output_dict["bit_rate"] = link_value
+                                if link_key == "max_bandwidth":
+                                    tabular_output_dict["max_bandwidth"] = link_value
+                                if link_key == "link_type":
+                                    tabular_output_dict["link_type"] = link_value
+                    tabular_output.append(tabular_output_dict)
+
+                    # Create Read and Write rows and add to tabular_output
+                    read_output_dict = {"RW" : "Read"}
+                    write_output_dict = {"RW" : "Write"}
+                    for key, value in xgmi_dict.items():
+                        if key == "link_metrics":
+                            for link_key, link_value in value.items():
+                                if link_key == "links":
+                                    for link in link_value:
+                                        read_output_dict[f"bdf_{link['gpu']}"] = link["read"]
+                                        write_output_dict[f"bdf_{link['gpu']}"] = link["write"]
+                    tabular_output.append(read_output_dict)
+                    tabular_output.append(write_output_dict)
+
+                # Print out the tabular output
+                self.logger.multiple_device_output = tabular_output
+                self.logger.table_title = "LINK METRIC TABLE"
+                self.logger.print_output(multiple_device_enabled=True, tabular=True)
+
+        self.logger.multiple_device_output = xgmi_values
+
+        if self.logger.is_csv_format(): # @TODO Test topology override needed
+            new_output = []
+            for elem in self.logger.multiple_device_output:
+                new_output.append(self.logger.flatten_dict(elem, topology_override=True))
+            self.logger.multiple_device_output = new_output
+
+        if not self.logger.is_human_readable_format():
+            self.logger.print_output(multiple_device_enabled=True)
 
 
     def _event_thread(self, commands, i):

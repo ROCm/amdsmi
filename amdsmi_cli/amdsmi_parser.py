@@ -68,7 +68,7 @@ class AMDSMIParser(argparse.ArgumentParser):
     """
     def __init__(self, version, list, static, firmware, bad_pages, metric,
                  process, profile, event, topology, set_value, reset, monitor,
-                 rocmsmi):
+                 rocmsmi, xgmi):
 
         # Helper variables
         self.helpers = AMDSMIHelpers()
@@ -126,6 +126,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         self._add_reset_parser(self.subparsers, reset)
         self._add_monitor_parser(self.subparsers, monitor)
         self._add_rocm_smi_parser(self.subparsers, rocmsmi)
+        self._add_xgmi_parser(self.subparsers, xgmi)
 
 
     def _not_negative_int(self, int_value):
@@ -1163,6 +1164,34 @@ class AMDSMIParser(argparse.ArgumentParser):
         rocm_smi_parser.add_argument('-p', '--showproductname', action='store_true', required=False, help=showproductname_help)
         rocm_smi_parser.add_argument('-v', '--showclkvolt', action='store_true', required=False, help=showclkvolt_help)
         rocm_smi_parser.add_argument('-f', '--showclkfrq', action='store_true', required=False, help=showclkfrq_help)
+
+
+    def _add_xgmi_parser(self, subparsers, func):
+        if not self.helpers.is_amdgpu_initialized():
+            # The xgmi subcommand is only applicable to systems with amdgpu initialized
+            return
+
+        # Subparser help text
+        xgmi_help = "Displays xgmi information of the devices"
+        xgmi_subcommand_help = "If no GPU is specified, returns information for all GPUs on the system.\
+                                \nIf no xgmi argument is provided all xgmi information will be displayed."
+        xgmi_optionals_title = "XGMI arguments"
+
+        # Help text for Arguments only on Guest and BM platforms
+        metrics_help = "Metric XGMI information"
+
+        # Create xgmi subparser
+        xgmi_parser = subparsers.add_parser('xgmi', help=xgmi_help, description=xgmi_subcommand_help)
+        xgmi_parser._optionals.title = xgmi_optionals_title
+        xgmi_parser.formatter_class=lambda prog: AMDSMISubparserHelpFormatter(prog)
+        xgmi_parser.set_defaults(func=func)
+
+        # Add Universal Arguments
+        self._add_command_modifiers(xgmi_parser)
+        self._add_device_arguments(xgmi_parser, required=False)
+
+        # Optional Args
+        xgmi_parser.add_argument('-m', '--metric', action='store_true', required=False, help=metrics_help)
 
 
     def error(self, message):
