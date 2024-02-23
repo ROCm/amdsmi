@@ -387,9 +387,10 @@ class AMDSMIParser(argparse.ArgumentParser):
             device_args.add_argument('-U', '--cpu', type=self._validate_cpu_core,
                                         action=self._cpu_select(self.cpu_choices),
                                         nargs='+', help=cpu_help)
-            device_args.add_argument('-O', '--core', type=self._validate_cpu_core,
-                                        action=self._core_select(self.core_choices),
-                                        nargs='+', help=core_help)
+            if subcommand_parser._optionals.title != "Static Arguments":
+                device_args.add_argument('-O', '--core', type=self._validate_cpu_core,
+                                            action=self._core_select(self.core_choices),
+                                            nargs='+', help=core_help)
 
         if self.helpers.is_hypervisor():
             device_args.add_argument('-v', '--vf', action='store', nargs='+',
