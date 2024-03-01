@@ -161,12 +161,13 @@ class AMDSMICommands():
         except amdsmi_exception.AmdSmiLibraryException as e:
             uuid = e.get_error_info()
 
-        # Store values based on format
-        if self.logger.is_human_readable_format():
-            self.logger.store_output(args.gpu, 'AMDSMI_SPACING_REMOVAL', {'gpu_bdf':bdf, 'gpu_uuid':uuid})
-        else:
+        # CSV format is intentionally aligned with Host
+        if self.logger.is_csv_format():
             self.logger.store_output(args.gpu, 'gpu_bdf', bdf)
             self.logger.store_output(args.gpu, 'gpu_uuid', uuid)
+        else:
+            self.logger.store_output(args.gpu, 'bdf', bdf)
+            self.logger.store_output(args.gpu, 'uuid', uuid)
 
         if multiple_devices:
             self.logger.store_multiple_device_output()
