@@ -1124,14 +1124,14 @@ class AMDSMICommands():
                 args.temperature = temperature
             if ecc:
                 args.ecc = ecc
-            if pcie:
-                args.pcie = pcie
-            current_platform_args += ["usage", "power", "clock", "temperature", "ecc", "pcie"]
-            current_platform_values += [args.usage, args.power, args.clock, args.temperature, args.ecc, args.pcie]
-
-        if self.helpers.is_baremetal() and self.helpers.is_linux():
             if ecc_blocks:
                 args.ecc_blocks = ecc_blocks
+            if pcie:
+                args.pcie = pcie
+            current_platform_args += ["usage", "power", "clock", "temperature", "ecc", "ecc_blocks", "pcie"]
+            current_platform_values += [args.usage, args.power, args.clock, args.temperature, args.ecc, args.ecc_blocks, args.pcie]
+
+        if self.helpers.is_baremetal() and self.helpers.is_linux():
             if fan:
                 args.fan = fan
             if voltage_curve:
@@ -1144,8 +1144,8 @@ class AMDSMICommands():
                 args.xgmi_err = xgmi_err
             if energy:
                 args.energy = energy
-            current_platform_args += ["ecc_blocks", "fan", "voltage_curve", "overdrive", "perf_level", "xgmi_err", "energy"]
-            current_platform_values += [args.ecc_blocks, args.fan, args.voltage_curve, args.overdrive, args.perf_level, args.xgmi_err, args.energy]
+            current_platform_args += ["fan", "voltage_curve", "overdrive", "perf_level", "xgmi_err", "energy"]
+            current_platform_values += [args.fan, args.voltage_curve, args.overdrive, args.perf_level, args.xgmi_err, args.energy]
 
         if self.helpers.is_hypervisor():
             if schedule:

@@ -759,10 +759,10 @@ class AMDSMIParser(argparse.ArgumentParser):
                 metric_parser.add_argument('-t', '--temperature', action='store_true', required=False, help=temperature_help)
                 metric_parser.add_argument('-P', '--pcie', action='store_true', required=False, help=pcie_help)
                 metric_parser.add_argument('-e', '--ecc', action='store_true', required=False, help=ecc_help)
+                metric_parser.add_argument('-k', '--ecc-blocks', action='store_true', required=False, help=ecc_blocks_help)
 
             # Optional Args for Linux Baremetal Systems
             if self.helpers.is_baremetal() and self.helpers.is_linux():
-                metric_parser.add_argument('-k', '--ecc-blocks', action='store_true', required=False, help=ecc_blocks_help)
                 metric_parser.add_argument('-f', '--fan', action='store_true', required=False, help=fan_help)
                 metric_parser.add_argument('-C', '--voltage-curve', action='store_true', required=False, help=vc_help)
                 metric_parser.add_argument('-o', '--overdrive', action='store_true', required=False, help=overdrive_help)
