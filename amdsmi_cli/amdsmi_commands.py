@@ -344,7 +344,13 @@ class AMDSMICommands():
                 static_dict['asic'] = "N/A"
                 logging.debug("Failed to get asic info for gpu %s | %s", gpu_id, e.get_error_info())
         if args.bus:
-            bus_info = {}
+            bus_info = {
+                'bdf': "N/A",
+                'max_pcie_width': "N/A",
+                'max_pcie_speed': "N/A",
+                'pcie_interface_version': "N/A",
+                'slot_type': "N/A"
+            }
 
             try:
                 bus_info['bdf'] = amdsmi_interface.amdsmi_get_gpu_device_bdf(args.gpu)
@@ -356,7 +362,6 @@ class AMDSMICommands():
                 link_caps = amdsmi_interface.amdsmi_get_pcie_info(args.gpu)
                 bus_info['max_pcie_width'] = link_caps['pcie_static']['max_pcie_width']
                 bus_info['max_pcie_speed'] = link_caps['pcie_static']['max_pcie_speed']
-                bus_info['pcie_slot_type'] = link_caps['pcie_static']['slot_type']
                 bus_info['pcie_interface_version'] = link_caps['pcie_static']['pcie_interface_version']
 
                 if bus_info['max_pcie_speed'] % 1000 != 0:
@@ -366,15 +371,13 @@ class AMDSMICommands():
 
                 bus_info['max_pcie_speed'] = pcie_speed_GTs_value
 
-                slot_type = bus_info.pop('pcie_slot_type')
+                slot_type = link_caps['pcie_static']['slot_type']
                 if isinstance(slot_type, int):
                     slot_types = amdsmi_interface.amdsmi_wrapper.amdsmi_card_form_factor_t__enumvalues
                     if slot_type in slot_types:
                         bus_info['slot_type'] = slot_types[slot_type].replace("AMDSMI_CARD_FORM_FACTOR_", "")
                     else:
                         bus_info['slot_type'] = "Unknown"
-                else:
-                    bus_info['slot_type'] = "N/A"
 
                 if bus_info['pcie_interface_version'] > 0:
                     bus_info['pcie_interface_version'] = f"Gen {bus_info['pcie_interface_version']}"
@@ -389,7 +392,6 @@ class AMDSMICommands():
                                                   "unit" : pcie_speed_unit}
 
             except amdsmi_exception.AmdSmiLibraryException as e:
-                bus_info = "N/A"
                 logging.debug("Failed to get bus info for gpu %s | %s", gpu_id, e.get_error_info())
 
             static_dict['bus'] = bus_info
