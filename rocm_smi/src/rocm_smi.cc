@@ -82,7 +82,7 @@ using amd::smi::monitorTypesToString;
 using amd::smi::getRSMIStatusString;
 using amd::smi::AMDGpuMetricsUnitType_t;
 using amd::smi::AMDGpuMetricTypeId_t;
-auto &devInfoTypesStrings = amd::smi::RocmSMI::devInfoTypesStrings;
+auto &devInfoTypesStrings = amd::smi::Device::devInfoTypesStrings;
 
 static const uint32_t kMaxOverdriveLevel = 20;
 static const float kEnergyCounterResolution = 15.3F;
@@ -2027,7 +2027,7 @@ enum eNameStrType {
   NAME_STR_SUBSYS
 };
 
-std::map<std::string, rsmi_compute_partition_type_t>
+static const std::map<std::string, rsmi_compute_partition_type_t>
 mapStringToRSMIComputePartitionTypes {
   {"CPX", RSMI_COMPUTE_PARTITION_CPX},
   {"SPX", RSMI_COMPUTE_PARTITION_SPX},
@@ -2036,7 +2036,7 @@ mapStringToRSMIComputePartitionTypes {
   {"QPX", RSMI_COMPUTE_PARTITION_QPX}
 };
 
-std::map<rsmi_compute_partition_type_t, std::string>
+static const std::map<rsmi_compute_partition_type_t, std::string>
 mapRSMIToStringComputePartitionTypes {
   {RSMI_COMPUTE_PARTITION_INVALID, "UNKNOWN"},
   {RSMI_COMPUTE_PARTITION_CPX, "CPX"},
@@ -2046,7 +2046,7 @@ mapRSMIToStringComputePartitionTypes {
   {RSMI_COMPUTE_PARTITION_QPX, "QPX"}
 };
 
-std::map<rsmi_memory_partition_type_t, std::string>
+static const std::map<rsmi_memory_partition_type_t, std::string>
 mapRSMIToStringMemoryPartitionTypes {
   {RSMI_MEMORY_PARTITION_UNKNOWN, "UNKNOWN"},
   {RSMI_MEMORY_PARTITION_NPS1, "NPS1"},
@@ -2055,7 +2055,7 @@ mapRSMIToStringMemoryPartitionTypes {
   {RSMI_MEMORY_PARTITION_NPS8, "NPS8"}
 };
 
-std::map<std::string, rsmi_memory_partition_type_t>
+static const std::map<std::string, rsmi_memory_partition_type_t>
 mapStringToMemoryPartitionTypes {
   {"NPS1", RSMI_MEMORY_PARTITION_NPS1},
   {"NPS2", RSMI_MEMORY_PARTITION_NPS2},
