@@ -503,6 +503,7 @@ std::vector<std::string> getListOfAppTmpFiles() {
       continue;
     }
   }
+  closedir(dir);
   return tmpFiles;
 }
 
