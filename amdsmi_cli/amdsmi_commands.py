@@ -3672,13 +3672,14 @@ class AMDSMICommands():
         if args.gpu == None:
             args.gpu = self.device_handles
 
-        # If all arguments are False, the print all values
+        # If all arguments are False, the print major values
         if not any([args.power_usage, args.temperature, args.gfx, args.mem,
                     args.encoder, args.decoder, args.throttle_status, args.ecc,
                     args.vram_usage, args.pcie]):
             args.power_usage = args.temperature = args.gfx = args.mem = \
-                args.encoder = args.decoder = args.throttle_status = args.ecc = \
-                args.vram_usage = args.pcie = True
+                args.vram_usage = True
+            args.encoder = args.decoder = args.throttle_status = args.ecc \
+                    = args.pcie = False
 
         # Handle watch logic, will only enter this block once
         if args.watch:
