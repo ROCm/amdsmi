@@ -3325,17 +3325,12 @@ class AMDSMICommands():
         cpu_args_enabled = False
         cpu_attributes = ["cpu_pwr_limit", "cpu_xgmi_link_width", "cpu_lclk_dpm_level", "cpu_pwr_eff_mode",
                           "cpu_gmi3_link_width", "cpu_pcie_link_rate", "cpu_df_pstate_range",
-                          "cpu_disable_apb", "soc_boost_limit"]
+                          "cpu_enable_apb", "cpu_disable_apb", "soc_boost_limit"]
         for attr in cpu_attributes:
             if hasattr(args, attr):
                 if getattr(args, attr) is not None:
                     cpu_args_enabled = True
                     break
-
-        # Check if CPU set argument with store_true has been passed
-        if hasattr(args, "cpu_enable_apb"):
-            if getattr(args, attr):
-                cpu_args_enabled = True
 
         # Check if a Core argument has been set
         core_args_enabled = False
