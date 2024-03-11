@@ -617,8 +617,11 @@ class AMDSMIHelpers():
         """
         # Get card vendor id
         asic_info = amdsmi_interface.amdsmi_get_gpu_asic_info(device_handle)
-        return asic_info['vendor_id'] == AMD_VENDOR_ID
-
+        try:
+            vendor_value = int(asic_info['vendor_id'], 16)
+            return vendor_value == AMD_VENDOR_ID
+        except:
+            return False
 
     def get_perf_levels(self):
         perf_levels_str = [clock.name for clock in amdsmi_interface.AmdSmiDevPerfLevel]
