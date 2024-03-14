@@ -138,6 +138,11 @@ do_install_amdsmi_python_lib() {
     echo "Removed old AMD-SMI python library (amdsmi)..."
   fi
 
+  # static builds don't include python lib
+  if [ "@BUILD_SHARED_LIBS@" != "ON" ]; then
+    return
+  fi
+
   # upgrade pip if it's an ancient version
   # otherwise the amdsmi install will fail
   local pip_version
