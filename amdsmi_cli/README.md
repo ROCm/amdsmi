@@ -280,7 +280,7 @@ usage: amd-smi metric [-h] [-g GPU [GPU ...] | -U CPU [CPU ...] | -O CORE [CORE 
                       [--core-curr-active-freq-core-limit] [--core-energy]
                       [--json | --csv] [--file FILE] [--loglevel LEVEL]
 
-If no GPU is specified, returns metric information for all GPUs on the system.                                
+If no GPU is specified, returns metric information for all GPUs on the system.
 If no metric argument is provided all metric information will be displayed.
 
 Metric arguments:
@@ -325,16 +325,16 @@ CPU Arguments:
   --cpu-c0-res                              Displays C0 residency
   --cpu-lclk-dpm-level NBIOID               Displays lclk dpm level range. Requires socket ID and NBOID as inputs
   --cpu-pwr-svi-telemtry-rails              Displays svi based telemetry for all rails
-  --cpu-io-bandwidth IO_BW LINKID_NAME      Displays current IO bandwidth for the selected CPU.        
-                                             input parameters are bandwidth type(1) and link ID encodings        
+  --cpu-io-bandwidth IO_BW LINKID_NAME      Displays current IO bandwidth for the selected CPU.
+                                             input parameters are bandwidth type(1) and link ID encodings
                                              i.e. P2, P3, G0 - G7
-  --cpu-xgmi-bandwidth XGMI_BW LINKID_NAME  Displays current XGMI bandwidth for the selected CPU        
-                                             input parameters are bandwidth type(1,2,4) and link ID encodings        
+  --cpu-xgmi-bandwidth XGMI_BW LINKID_NAME  Displays current XGMI bandwidth for the selected CPU
+                                             input parameters are bandwidth type(1,2,4) and link ID encodings
                                              i.e. P2, P3, G0 - G7
   --cpu-metrics-ver                         Displays metrics table version
   --cpu-metrics-table                       Displays metric table
   --cpu-socket-energy                       Displays socket energy for the selected CPU socket
-  --cpu-ddr-bandwidth                       Displays per socket max ddr bw, current utilized bw,        
+  --cpu-ddr-bandwidth                       Displays per socket max ddr bw, current utilized bw,
                                              and current utilized ddr bw in percentage
   --cpu-temp                                Displays cpu socket temperature
   --cpu-dimm-temp-range-rate DIMM_ADDR      Displays dimm temperature range and refresh rate
@@ -437,7 +437,7 @@ usage: amd-smi topology [-h] [--json | --csv] [--file FILE] [--loglevel LEVEL]
                         [-g GPU [GPU ...] | -U CPU [CPU ...] | -O CORE [CORE ...]] [-a]
                         [-w] [-o] [-t] [-b]
 
-If no GPU is specified, returns information for all GPUs on the system.                                
+If no GPU is specified, returns information for all GPUs on the system.
 If no topology argument is provided all topology information will be displayed.
 
 Topology arguments:
@@ -483,7 +483,7 @@ usage: amd-smi set [-h] (-g GPU [GPU ...] | -U CPU [CPU ...] | -O CORE [CORE ...
                    [--core-boost-limit BOOST_LIMIT] [--json | --csv] [--file FILE]
                    [--loglevel LEVEL]
 
-A GPU must be specified to set a configuration.                                    
+A GPU must be specified to set a configuration.
 A set argument must be provided; Multiple set arguments are accepted
 
 Set Arguments:
@@ -513,11 +513,12 @@ Set Arguments:
                                                 NPS1, NPS2, NPS4, NPS8
   -o, --power-cap WATTS                        Set power capacity limit
   -p, --dpm-policy POLICY_ID                   Set the GPU DPM policy using policy id
+  -x, --xgmi-plpd POLICY_ID                    Set the GPU XGMI per-link power down policy using policy id
 
 CPU Arguments:
   --cpu-pwr-limit PWR_LIMIT                    Set power limit for the given socket. Input parameter is power limit value.
   --cpu-xgmi-link-width MIN_WIDTH MAX_WIDTH    Set max and Min linkwidth. Input parameters are min and max link width values
-  --cpu-lclk-dpm-level NBIOID MIN_DPM MAX_DPM  Sets the max and min dpm level on a given NBIO.        
+  --cpu-lclk-dpm-level NBIOID MIN_DPM MAX_DPM  Sets the max and min dpm level on a given NBIO.
                                                 Input parameters are die_index, min dpm, max dpm.
   --cpu-pwr-eff-mode MODE                      Sets the power efficency mode policy. Input parameter is mode.
   --cpu-gmi3-link-width MIN_LW MAX_LW          Sets max and min gmi3 link width range
@@ -675,7 +676,7 @@ GPU: 0
     PARTITION:
         COMPUTE_PARTITION: SPX
         MEMORY_PARTITION: NPS1
-    POLICY:
+    DPM_POLICY:
         NUM_SUPPORTED: 4
         CURRENT_ID: 1
         POLICIES:
@@ -687,6 +688,16 @@ GPU: 0
             POLICY_DESCRIPTION: soc_pstate_1
             POLICY_ID: 3
             POLICY_DESCRIPTION: soc_pstate_2
+    XGMI_PLPD:
+        NUM_SUPPORTED: 3
+        CURRENT_ID: 1
+        PLPDS:
+            POLICY_ID: 0
+            POLICY_DESCRIPTION: plpd_disallow
+            POLICY_ID: 1
+            POLICY_DESCRIPTION: plpd_default
+            POLICY_ID: 2
+            POLICY_DESCRIPTION: plpd_optimized
     NUMA:
         NODE: 0
         AFFINITY: 0
@@ -783,7 +794,7 @@ GPU: 1
     PARTITION:
         COMPUTE_PARTITION: SPX
         MEMORY_PARTITION: NPS1
-    POLICY:
+    DPM_POLICY:
         NUM_SUPPORTED: 4
         CURRENT_ID: 1
         POLICIES:
@@ -795,6 +806,16 @@ GPU: 1
             POLICY_DESCRIPTION: soc_pstate_1
             POLICY_ID: 3
             POLICY_DESCRIPTION: soc_pstate_2
+    XGMI_PLPD:
+        NUM_SUPPORTED: 3
+        CURRENT_ID: 1
+        PLPDS:
+            POLICY_ID: 0
+            POLICY_DESCRIPTION: plpd_disallow
+            POLICY_ID: 1
+            POLICY_DESCRIPTION: plpd_default
+            POLICY_ID: 2
+            POLICY_DESCRIPTION: plpd_optimized
     NUMA:
         NODE: 1
         AFFINITY: 1
@@ -891,7 +912,7 @@ GPU: 2
     PARTITION:
         COMPUTE_PARTITION: SPX
         MEMORY_PARTITION: NPS1
-    POLICY:
+    DPM_POLICY:
         NUM_SUPPORTED: 4
         CURRENT_ID: 1
         POLICIES:
@@ -903,6 +924,16 @@ GPU: 2
             POLICY_DESCRIPTION: soc_pstate_1
             POLICY_ID: 3
             POLICY_DESCRIPTION: soc_pstate_2
+    XGMI_PLPD:
+        NUM_SUPPORTED: 3
+        CURRENT_ID: 1
+        PLPDS:
+            POLICY_ID: 0
+            POLICY_DESCRIPTION: plpd_disallow
+            POLICY_ID: 1
+            POLICY_DESCRIPTION: plpd_default
+            POLICY_ID: 2
+            POLICY_DESCRIPTION: plpd_optimized
     NUMA:
         NODE: 2
         AFFINITY: 2
@@ -999,7 +1030,7 @@ GPU: 3
     PARTITION:
         COMPUTE_PARTITION: SPX
         MEMORY_PARTITION: NPS1
-    POLICY:
+    DPM_POLICY:
         NUM_SUPPORTED: 4
         CURRENT_ID: 1
         POLICIES:
@@ -1011,6 +1042,16 @@ GPU: 3
             POLICY_DESCRIPTION: soc_pstate_1
             POLICY_ID: 3
             POLICY_DESCRIPTION: soc_pstate_2
+    XGMI_PLPD:
+        NUM_SUPPORTED: 3
+        CURRENT_ID: 1
+        PLPDS:
+            POLICY_ID: 0
+            POLICY_DESCRIPTION: plpd_disallow
+            POLICY_ID: 1
+            POLICY_DESCRIPTION: plpd_default
+            POLICY_ID: 2
+            POLICY_DESCRIPTION: plpd_optimized
     NUMA:
         NODE: 3
         AFFINITY: 3

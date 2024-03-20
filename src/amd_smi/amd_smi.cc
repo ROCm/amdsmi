@@ -1369,6 +1369,22 @@ amdsmi_status_t amdsmi_get_dpm_policy(amdsmi_processor_handle processor_handle,
                     reinterpret_cast<rsmi_dpm_policy_t*>(policy));
 }
 
+amdsmi_status_t amdsmi_set_xgmi_plpd(amdsmi_processor_handle processor_handle,
+                         uint32_t policy) {
+    AMDSMI_CHECK_INIT();
+
+    return rsmi_wrapper(rsmi_dev_xgmi_plpd_set, processor_handle,
+                    policy);
+}
+
+amdsmi_status_t amdsmi_get_xgmi_plpd(amdsmi_processor_handle processor_handle,
+                         amdsmi_dpm_policy_t* policy) {
+    AMDSMI_CHECK_INIT();
+
+    return rsmi_wrapper(rsmi_dev_xgmi_plpd_get, processor_handle,
+                    reinterpret_cast<rsmi_dpm_policy_t*>(policy));
+}
+
 amdsmi_status_t
 amdsmi_get_gpu_memory_reserved_pages(amdsmi_processor_handle processor_handle,
                                     uint32_t *num_pages,
