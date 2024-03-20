@@ -909,8 +909,8 @@ Field | Description
 `name` | Name of process
 `pid` | Process ID
 `mem` | Process memory usage
-`engine_usage`| <table><thead><tr> <th> Subfield </th> <th> Description</th> </tr></thead><tbody><tr><td>`gfx`</td><td>GFX engine usage in ns</td></tr><tr><td>`enc`</td><td>Encode engine usage in ns</td></tr></tbody></table>
-`memory_usage`| <table><thead><tr> <th> Subfield </th> <th> Description</th> </tr></thead><tbody><tr><td>`gtt_mem`</td><td>GTT memory usage</td></tr><tr><td>`cpu_mem`</td><td>CPU memory usage</td></tr><tr><td>`vram_mem`</td><td>VRAM memory usage</td></tr> </tbody></table>
+`engine_usage` | <table><thead><tr> <th> Subfield </th> <th> Description</th> </tr></thead><tbody><tr><td>`gfx`</td><td>GFX engine usage in ns</td></tr><tr><td>`enc`</td><td>Encode engine usage in ns</td></tr></tbody></table>
+`memory_usage` | <table><thead><tr> <th> Subfield </th> <th> Description</th> </tr></thead><tbody><tr><td>`gtt_mem`</td><td>GTT memory usage</td></tr><tr><td>`cpu_mem`</td><td>CPU memory usage</td></tr><tr><td>`vram_mem`</td><td>VRAM memory usage</td></tr> </tbody></table>
 
 Exceptions that can be thrown by `amdsmi_get_gpu_process_info` function:
 
@@ -2608,6 +2608,74 @@ try:
         for device in devices:
             freq_bitmask = 0
              amdsmi_set_clk_freq(device, AmdSmiClkType.GFX, freq_bitmask)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_set_xgmi_plpd
+
+Description: Set the xgmi per-link power down policy parameter for the processor
+
+Input parameters:
+
+* `processor_handle` handle for the given device
+* `policy_id` the xgmi plpd id to set.
+
+Output: None
+
+Exceptions that can be thrown by `amdsmi_set_xgmi_plpd` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            amdsmi_set_xgmi_plpd(device, 0)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_xgmi_plpd
+
+Description: Get the xgmi per-link power down policy parameter for the processor
+
+Input parameters:
+
+* `processor_handle` handle for the given device
+
+Output: Dict containing information about xgmi per-link power down policy
+
+Field | Description
+---|---
+`num_supported` | The number of supported policies
+`current_id` | The current policy index
+`plpds` | List of policies.
+
+Exceptions that can be thrown by `amdsmi_get_xgmi_plpd` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            xgmi_plpd =  amdsmi_get_xgmi_plpd(device)
+            print(xgmi_plpd)
 except AmdSmiException as e:
     print(e)
 ```
