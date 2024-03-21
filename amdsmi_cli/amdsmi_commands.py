@@ -2511,6 +2511,8 @@ class AMDSMICommands():
         if args.pid:
             process_pids = []
             for process_info in filtered_process_values:
+                if process_info['process_info'] == "N/A":
+                    continue
                 pid = str(process_info['process_info']['pid'])
                 if str(args.pid) == pid:
                     process_pids.append(process_info)
@@ -2520,36 +2522,45 @@ class AMDSMICommands():
         if args.name:
             process_names = []
             for process_info in filtered_process_values:
+                if process_info['process_info'] == "N/A":
+                    continue
                 process_name = str(process_info['process_info']['name']).lower()
                 if str(args.name).lower() == process_name:
                     process_names.append(process_info)
             filtered_process_values = process_names
 
+        logging.debug(f"Process Info for GPU {gpu_id} | {filtered_process_values}")
+
         multiple_devices_csv_override = False
         # Convert and store output by pid for csv format
         if self.logger.is_csv_format():
-            for process_info in filtered_process_values:
-                for key, value in process_info['process_info'].items():
-                    multiple_devices_csv_override = True
+            # Check for empty list first
+            if filtered_process_values == []:
+                self.logger.store_output(args.gpu, 'process_info', 'No running processes detected')
+            else:
+                for process_info in filtered_process_values:
+                    if process_info['process_info'] == "N/A":
+                        self.logger.store_output(args.gpu, 'process_info', 'No running processes detected')
+                    else:
+                        for key, value in process_info['process_info'].items():
+                            multiple_devices_csv_override = True
+                            if watching_output:
+                                self.logger.store_output(args.gpu, 'timestamp', int(time.time()))
+                            self.logger.store_output(args.gpu, key, value)
 
-                    if watching_output:
-                        self.logger.store_output(args.gpu, 'timestamp', int(time.time()))
-                    self.logger.store_output(args.gpu, key, value)
-
-                self.logger.store_multiple_device_output()
+                    self.logger.store_multiple_device_output()
         else:
-            # Remove brackets if there is only one value
-            if len(filtered_process_values) == 1:
-                filtered_process_values = filtered_process_values[0]
-
             if watching_output:
                 self.logger.store_output(args.gpu, 'timestamp', int(time.time()))
 
             # Store values in logger.output
             if filtered_process_values == []:
-                self.logger.store_output(args.gpu, 'values', {'process_info': 'Not Found'})
+                self.logger.store_output(args.gpu, 'process_info', 'No running processes detected')
             else:
-                self.logger.store_output(args.gpu, 'values', filtered_process_values)
+                for process_info in filtered_process_values:
+                    if process_info['process_info'] == "N/A":
+                        process_info['process_info'] = 'No running processes detected'
+                    self.logger.store_output(args.gpu, 'process_info', process_info['process_info'])
 
         if multiple_devices:
             self.logger.store_multiple_device_output()
