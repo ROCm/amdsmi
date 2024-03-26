@@ -1651,6 +1651,12 @@ amdsmi_get_clock_info(amdsmi_processor_handle processor_handle, amdsmi_clk_type_
     case CLK_TYPE_VCLK1:
         info->cur_clk = metrics.current_vclk1;
         break;
+    case CLK_TYPE_DCLK0:
+        info->cur_clk = metrics.current_dclk0;
+      break;
+    case CLK_TYPE_DCLK1:
+        info->cur_clk = metrics.current_dclk1;
+        break;
     default:
         return AMDSMI_STATUS_INVAL;
     }

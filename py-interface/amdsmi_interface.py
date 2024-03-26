@@ -3519,7 +3519,7 @@ def amdsmi_get_gpu_metrics_info(
         if gpu_metrics_output[metric] == 0xFFFF:
             gpu_metrics_output[metric] = "N/A"
 
-    uint_32_metrics = ['gfx_activity_acc','mem_activity_acc', 'pcie_nak_sent_count_acc', 'pcie_nak_rcvd_count_acc']
+    uint_32_metrics = ['gfx_activity_acc','mem_activity_acc', 'pcie_nak_sent_count_acc', 'pcie_nak_rcvd_count_acc', 'gfxclk_lock_status']
     for metric in uint_32_metrics:
         if gpu_metrics_output[metric] == 0xFFFFFFFF:
             gpu_metrics_output[metric] = "N/A"
@@ -3533,7 +3533,7 @@ def amdsmi_get_gpu_metrics_info(
             gpu_metrics_output[metric] = "N/A"
 
     # Custom validation for metrics in a bool format
-    uint_32_bool_metrics = ['throttle_status', 'gfxclk_lock_status']
+    uint_32_bool_metrics = ['throttle_status']
     for metric in uint_32_bool_metrics:
         if gpu_metrics_output[metric] == 0xFFFFFFFF:
             gpu_metrics_output[metric] = "N/A"
