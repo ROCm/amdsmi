@@ -73,9 +73,9 @@ except AmdSmiException as e:
 
 ### amdsmi_init
 
-Description: Dynamically initialize amdsmi with amd_hsmp and amdgpu drivers
+Description: Initialize amdsmi with AmdSmiInitFlags
 
-Input parameters: `None`
+Input parameters: AmdSmiInitFlags
 
 Output: `None`
 
@@ -83,19 +83,37 @@ Exceptions that can be thrown by `amdsmi_init` function:
 
 * `AmdSmiLibraryException`
 
-Example:
+Initialize GPUs only example:
 
 ```python
 try:
+    # by default we initalize with AmdSmiInitFlags.INIT_AMD_GPUS
     init_flag = amdsmi_init()
-    # Print out integer bitmask of initialized drivers
-    # 1 is for amd_hsmp
-    # 2 is for amdgpu
-    # 3 is for amd_hsmp and amdgpu
-    print(init_flag)
     # continue with amdsmi
 except AmdSmiException as e:
-    print("Init failed")
+    print("Init GPUs failed")
+    print(e)
+```
+
+Initialize CPUs only example:
+
+```python
+try:
+    init_flag = amdsmi_init(AmdSmiInitFlags.INIT_AMD_CPUS)
+    # continue with amdsmi
+except AmdSmiException as e:
+    print("Init CPUs failed")
+    print(e)
+```
+
+Initialize both GPUs and CPUs example:
+
+```python
+try:
+    init_flag = amdsmi_init(AmdSmiInitFlags.INIT_AMD_APUS)
+    # continue with amdsmi
+except AmdSmiException as e:
+    print("Init both GPUs & CPUs failed")
     print(e)
 ```
 
