@@ -1,6 +1,6 @@
 # Change Log for AMD SMI Library
 
-Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/](https://rocm.docs.amd.com/projects/amdsmi/en/latest/).  
+Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/](https://rocm.docs.amd.com/projects/amdsmi/en/latest/).
 
 ***All information listed below is for reference and subject to change.***
 
@@ -8,6 +8,7 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/](
 
 ### Changed
 
+- **Updated metrics --clocks**
 Output for `amd-smi metric --clock` is updated to reflect each engine and bug fixes for the clock lock status and deep sleep status.
 
 ``` shell
@@ -118,11 +119,35 @@ GPU: 0
             DEEP_SLEEP: ENABLED
 ```
 
+- **Added deferred ecc counts**
+Added deferred error correctable counts to `amd-smi metric --ecc --ecc-blocks`
+
+```shell
+$ amd-smi metric --ecc --ecc-blocks
+GPU: 0
+    ECC:
+        TOTAL_CORRECTABLE_COUNT: 0
+        TOTAL_UNCORRECTABLE_COUNT: 0
+        TOTAL_DEFERRED_COUNT: 0
+        CACHE_CORRECTABLE_COUNT: 0
+        CACHE_UNCORRECTABLE_COUNT: 0
+    ECC_BLOCKS:
+        UMC:
+            CORRECTABLE_COUNT: 0
+            UNCORRECTABLE_COUNT: 0
+            DEFERRED_COUNT: 0
+        SDMA:
+            CORRECTABLE_COUNT: 0
+            UNCORRECTABLE_COUNT: 0
+            DEFERRED_COUNT: 0
+        ...
+```
+
 ## amd_smi_lib for ROCm 6.1.0
 
 ### Added
 
-- **Added Monitor Command**  
+- **Added Monitor Command**
 Provides users the ability to customize GPU metrics to capture, collect, and observe. Output is provided in a table view. This aligns closer to ROCm SMI `rocm-smi` (no argument), additionally allows uers to customize what data is helpful for their use-case.
 
 ```shell
@@ -182,10 +207,10 @@ GPU  POWER  GPU_TEMP  MEM_TEMP  GFX_UTIL  GFX_CLOCK  MEM_UTIL  MEM_CLOCK  VRAM_U
   7  175 W     34 °C     32 °C       0 %    113 MHz       0 %    900 MHz     283 MB   196300 MB
 ```
 
-- **Integrated ESMI Tool**  
-Users can get CPU metrics and telemetry through our API and CLI tools. This information can be seen in `amd-smi static` and `amd-smi metric` commands. Only available for limited target processors. As of ROCm 6.0.2, this is listed as:  
-  - AMD Zen3 based CPU Family 19h Models 0h-Fh and 30h-3Fh  
-  - AMD Zen4 based CPU Family 19h Models 10h-1Fh and A0-AFh  
+- **Integrated ESMI Tool**
+Users can get CPU metrics and telemetry through our API and CLI tools. This information can be seen in `amd-smi static` and `amd-smi metric` commands. Only available for limited target processors. As of ROCm 6.0.2, this is listed as:
+  - AMD Zen3 based CPU Family 19h Models 0h-Fh and 30h-3Fh
+  - AMD Zen4 based CPU Family 19h Models 10h-1Fh and A0-AFh
 
   See a few examples listed below.
 
@@ -332,7 +357,7 @@ CPU: 0
         RESPONSE: N/A
 ```
 
-- **Added support for new metrics: VCN, JPEG engines, and PCIe errors**  
+- **Added support for new metrics: VCN, JPEG engines, and PCIe errors**
 Using the AMD SMI tool, users can retreive VCN, JPEG engines, and PCIe errors by calling `amd-smi metric -P` or `amd-smi metric --usage`. Depending on device support, `VCN_ACTIVITY` will update for MI3x ASICs (with 4 separate VCN engine activities) for older asics `MM_ACTIVITY` with UVD/VCN engine activity (average of all engines). `JPEG_ACTIVITY` is a new field for MI3x ASICs, where device can support up to 32 JPEG engine activities. See our documentation for more in-depth understanding of these new fields.
 
 ```shell
@@ -376,7 +401,7 @@ $ amd-smi version
 AMDSMI Tool: 23.4.2+505b858 | AMDSMI Library version: 24.2.0.0 | ROCm version: 6.1.0
 ```
 
-- **Added XGMI table**  
+- **Added XGMI table**
 Displays XGMI information for AMD GPU devices in a table format. Only available on supported ASICs (eg. MI300). Here users can view read/write data XGMI or PCIe accumulated data transfer size (in KiloBytes).
 
 ```shell
@@ -513,10 +538,10 @@ NUMA BW TABLE:
 
 ### Fixed
 
-- **Fix for Navi3X/Navi2X/MI100 `amdsmi_get_gpu_pci_bandwidth()` in frequencies_read tests**  
+- **Fix for Navi3X/Navi2X/MI100 `amdsmi_get_gpu_pci_bandwidth()` in frequencies_read tests**
 Devices which do not report (eg. Navi3X/Navi2X/MI100) we have added checks to confirm these devices return AMDSMI_STATUS_NOT_SUPPORTED. Otherwise, tests now display a return string.
-- **Fix for devices which have an older pyyaml installed**  
-Platforms which are identified as having an older pyyaml version or pip, we no manually update both pip and pyyaml as needed. This corrects issues identified below. Fix impacts the following CLI commands:  
+- **Fix for devices which have an older pyyaml installed**
+Platforms which are identified as having an older pyyaml version or pip, we no manually update both pip and pyyaml as needed. This corrects issues identified below. Fix impacts the following CLI commands:
   - `amd-smi list`
   - `amd-smi static`
   - `amd-smi firmware`
@@ -538,18 +563,18 @@ AMD SMI now uses same mutex handler for devices as rocm-smi. This helps avoid cr
 
 ### Added
 
-- **Integrated the E-SMI (EPYC-SMI) library**  
+- **Integrated the E-SMI (EPYC-SMI) library**
 You can now query CPU-related information directly through AMD SMI. Metrics include power, energy, performance, and other system details.
 
-- **Added support for gfx942 metrics**  
+- **Added support for gfx942 metrics**
 You can now query MI300 device metrics to get real-time information. Metrics include power, temperature, energy, and performance.
 
-- **Compute and memory partition support**  
+- **Compute and memory partition support**
 Users can now view, set, and reset partitions. The topology display can provide a more in-depth look at the device's current configuration.
 
 ### Changed
 
-- **GPU index sorting made consistent with other tools**  
+- **GPU index sorting made consistent with other tools**
 To ensure alignment with other ROCm software tools, GPU index sorting is optimized to use Bus:Device.Function (BDF) rather than the card number.
 - **Topology output is now aligned with GPU BDF table**
 Earlier versions of the topology output were difficult to read since each GPU was displayed linearly.
@@ -561,7 +586,7 @@ Now the information is displayed as a table by each GPU's BDF, which closer rese
 
 ### Fixed
 
-- **Fix for driver not initialized**  
+- **Fix for driver not initialized**
 If driver module is not loaded, user retrieve error reponse indicating amdgpu module is not loaded.
 
 ### Known Issues

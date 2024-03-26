@@ -1500,7 +1500,7 @@ class AMDSMICommands():
 
                 # VCLK & DCLK min and max clocks
                 try:
-                    vclk0_clock_info_dict = amdsmi_interface.amdsmi_get_clock_info(args.gpu, 
+                    vclk0_clock_info_dict = amdsmi_interface.amdsmi_get_clock_info(args.gpu,
                                                                                    amdsmi_interface.AmdSmiClkType.VCLK0)
 
                     dclk0_clock_info_dict = amdsmi_interface.amdsmi_get_clock_info(args.gpu,
@@ -1668,6 +1668,7 @@ class AMDSMICommands():
                     ecc_count = amdsmi_interface.amdsmi_get_gpu_total_ecc_count(args.gpu)
                     ecc_count['total_correctable_count'] = ecc_count.pop('correctable_count')
                     ecc_count['total_uncorrectable_count'] = ecc_count.pop('uncorrectable_count')
+                    ecc_count['total_deferred_count'] = ecc_count.pop('deferred_count')
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     ecc_count['total_correctable_count'] = "N/A"
                     ecc_count['total_uncorrectable_count'] = "N/A"
@@ -1691,7 +1692,7 @@ class AMDSMICommands():
         if "ecc_blocks" in current_platform_args:
             if args.ecc_blocks:
                 ecc_dict = {}
-                uncountable_blocks = ["ATHUB", "DF", "SMN", "SEM", "MP0", "MP1", "FUSE"]
+                uncountable_blocks = ["ATHUB", "DF", "SMN", "SEM", "FUSE"]
                 try:
                     ras_states = amdsmi_interface.amdsmi_get_gpu_ras_block_features_enabled(args.gpu)
                     for state in ras_states:
@@ -1702,10 +1703,12 @@ class AMDSMICommands():
                                 try:
                                     ecc_count = amdsmi_interface.amdsmi_get_gpu_ecc_count(args.gpu, gpu_block)
                                     ecc_dict[state['block']] = {'correctable_count' : ecc_count['correctable_count'],
-                                                                'uncorrectable_count' : ecc_count['uncorrectable_count']}
+                                                                'uncorrectable_count' : ecc_count['uncorrectable_count'],
+                                                                'deferred_count' : ecc_count['deferred_count']}
                                 except amdsmi_exception.AmdSmiLibraryException as e:
                                     ecc_dict[state['block']] = {'correctable_count' : "N/A",
-                                                                'uncorrectable_count' : "N/A"}
+                                                                'uncorrectable_count' : "N/A",
+                                                                'deferred_count' : "N/A"}
                                     logging.debug("Failed to get ecc count for gpu %s at block %s | %s", gpu_id, gpu_block, e.get_error_info())
 
                     values_dict['ecc_blocks'] = ecc_dict

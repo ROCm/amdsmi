@@ -1821,16 +1821,17 @@ def amdsmi_get_gpu_total_ecc_count(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    error_count = amdsmi_wrapper.amdsmi_error_count_t()
+    ec = amdsmi_wrapper.amdsmi_error_count_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_gpu_total_ecc_count(
-            processor_handle, ctypes.byref(error_count)
+            processor_handle, ctypes.byref(ec)
         )
     )
 
     return {
-        "correctable_count": error_count.correctable_count,
-        "uncorrectable_count": error_count.uncorrectable_count,
+        "correctable_count": ec.correctable_count,
+        "uncorrectable_count": ec.uncorrectable_count,
+        "deferred_count": ec.deferred_count,
     }
 
 
@@ -3655,6 +3656,7 @@ def amdsmi_get_gpu_ecc_count(
     return {
         "correctable_count": ec.correctable_count,
         "uncorrectable_count": ec.uncorrectable_count,
+        "deferred_count": ec.deferred_count,
     }
 
 
