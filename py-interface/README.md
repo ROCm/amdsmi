@@ -967,6 +967,7 @@ Field | Description
 ---|---
 `correctable_count` | Correctable ECC error count
 `uncorrectable_count` | Uncorrectable ECC error count
+`deferred_count` | Deferred ECC error count
 
 Exceptions that can be thrown by `amdsmi_get_gpu_total_ecc_count` function:
 
@@ -2747,6 +2748,7 @@ Field | Description
 ---|---
 `correctable_count` | Count of correctable errors
 `uncorrectable_count` | Count of uncorrectable errors
+`deferred_count` | Count of deferred errors
 
 Exceptions that can be thrown by `amdsmi_get_gpu_ecc_count` function:
 
