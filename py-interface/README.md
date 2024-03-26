@@ -2155,7 +2155,7 @@ Output: Dictionary with fields
 `indep_throttle_status` | ASIC independent throttle status (see drivers/gpu/drm/amd/pm/swsmu/inc/amdgpu_smu.h for bit flags) |
 `current_socket_power` | Current socket power (also known as instant socket power) | W
 `vcn_activity` | List of VCN encode/decode engine utilization per AID | %
-`gfxclk_lock_status` | Clock lock status. Each bit corresponds to clock instance. |
+`gfxclk_lock_status` | Clock lock status. Bits 0:7 correspond to each gfx clock engine instance. Bits 0:5 for APU/AID devices |
 `xgmi_link_width` | XGMI bus width | lanes
 `xgmi_link_speed` | XGMI bitrate | GB/s
 `pcie_bandwidth_acc` | PCIe accumulated bandwidth | GB/s
