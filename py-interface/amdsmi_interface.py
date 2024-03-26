@@ -2038,7 +2038,7 @@ def amdsmi_get_power_info(
         )
     )
 
-    return {
+    power_info_dict = {
         "current_socket_power": power_measure.current_socket_power,
         "average_socket_power": power_measure.average_socket_power,
         "gfx_voltage": power_measure.gfx_voltage,
@@ -2046,6 +2046,12 @@ def amdsmi_get_power_info(
         "mem_voltage": power_measure.mem_voltage,
         "power_limit" : power_measure.power_limit,
     }
+
+    for key, value in power_info_dict.items():
+        if value == 0xFFFF:
+            power_info_dict[key] = "N/A"
+
+    return power_info_dict
 
 
 def amdsmi_is_gpu_power_management_enabled(
