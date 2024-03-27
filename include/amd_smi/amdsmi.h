@@ -495,6 +495,7 @@ typedef union {
 typedef enum {
   AMDSMI_CARD_FORM_FACTOR_PCIE,
   AMDSMI_CARD_FORM_FACTOR_OAM,
+  AMDSMI_CARD_FORM_FACTOR_CEM,
   AMDSMI_CARD_FORM_FACTOR_UNKNOWN
 } amdsmi_card_form_factor_t;
 
