@@ -2050,11 +2050,14 @@ amdsmi_status_t amdsmi_get_pcie_info(amdsmi_processor_handle processor_handle, a
             processor_handle, &slot_type);
     if (status == AMDSMI_STATUS_SUCCESS) {
         switch (slot_type) {
+            case RSMI_PCIE_SLOT_PCIE:
+                info->pcie_static.slot_type = AMDSMI_CARD_FORM_FACTOR_PCIE;
+                break;
             case RSMI_PCIE_SLOT_OAM:
                 info->pcie_static.slot_type = AMDSMI_CARD_FORM_FACTOR_OAM;
                 break;
-            case RSMI_PCIE_SLOT_PCIE:
-                info->pcie_static.slot_type = AMDSMI_CARD_FORM_FACTOR_PCIE;
+            case RSMI_PCIE_SLOT_CEM:
+                info->pcie_static.slot_type = AMDSMI_CARD_FORM_FACTOR_CEM;
                 break;
             default:
                 info->pcie_static.slot_type = AMDSMI_CARD_FORM_FACTOR_UNKNOWN;
