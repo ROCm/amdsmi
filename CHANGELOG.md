@@ -4,6 +4,76 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/](
 
 ***All information listed below is for reference and subject to change.***
 
+## amd_smi_lib for ROCm 6.2 (Unreleased)
+
+### Added
+
+- **Added `MIN_POWER` to output of `amd-smi static --limit`**  
+This change was to help users to identify what range they can change the power cap of the GPU to. We added this to simplify why a device supports (or does not support) power capping (also known as overdrive). See `amd-smi set -g all --power-cap <value in W>` or `amd-smi reset -g all --power-cap`. 
+```shell
+$ amd-smi static --limit 
+GPU: 0
+    LIMIT:
+        MAX_POWER: 203 W
+        MIN_POWER: 0 W
+        SOCKET_POWER: 203 W
+        SLOWDOWN_EDGE_TEMPERATURE: 100 °C
+        SLOWDOWN_HOTSPOT_TEMPERATURE: 110 °C
+        SLOWDOWN_VRAM_TEMPERATURE: 100 °C
+        SHUTDOWN_EDGE_TEMPERATURE: 105 °C
+        SHUTDOWN_HOTSPOT_TEMPERATURE: 115 °C
+        SHUTDOWN_VRAM_TEMPERATURE: 105 °C
+
+GPU: 1
+    LIMIT:
+        MAX_POWER: 213 W
+        MIN_POWER: 213 W
+        SOCKET_POWER: 213 W
+        SLOWDOWN_EDGE_TEMPERATURE: 109 °C
+        SLOWDOWN_HOTSPOT_TEMPERATURE: 110 °C
+        SLOWDOWN_VRAM_TEMPERATURE: 100 °C
+        SHUTDOWN_EDGE_TEMPERATURE: 114 °C
+        SHUTDOWN_HOTSPOT_TEMPERATURE: 115 °C
+        SHUTDOWN_VRAM_TEMPERATURE: 105 °C
+```
+
+### Changed
+
+- **`amdsmi_get_power_cap_info` now returns values in uW instead of W**  
+`amdsmi_get_power_cap_info` will return in uW as originally reflected by driver. Previously `amdsmi_get_power_cap_info` returned W values, this conflicts with our sets and modifies values retrieved from driver. We decided to keep the values returned from driver untouched (in original units, uW). Then in CLI we will convert to watts (as previously done - no changes here). Additionally, driver made updates to min power cap displayed for devices when overdrive is disabled which prompted for this change (in this case min_power_cap and max_power_cap are the same).
+
+### Optimizations
+
+- N/A
+
+### Fixed
+- **Fixed `amd-smi metric --power` now provides power output for Navi2x/Navi3x/MI1x**  
+These systems use an older version of gpu_metrics in amdgpu. This fix only updates what CLI outputs.
+No change in any of our APIs.
+```shell
+$ amd-smi metric --power
+GPU: 0
+    POWER:
+        SOCKET_POWER: 11 W
+        GFX_VOLTAGE: 768 mV
+        SOC_VOLTAGE: 925 mV
+        MEM_VOLTAGE: 1250 mV
+        POWER_MANAGEMENT: ENABLED
+        THROTTLE_STATUS: UNTHROTTLED
+
+GPU: 1
+    POWER:
+        SOCKET_POWER: 17 W
+        GFX_VOLTAGE: 781 mV
+        SOC_VOLTAGE: 806 mV
+        MEM_VOLTAGE: 1250 mV
+        POWER_MANAGEMENT: ENABLED
+        THROTTLE_STATUS: UNTHROTTLED
+```
+- **Fixed `amdsmitstReadWrite.TestPowerCapReadWrite` test for Navi3X, Navi2X, MI100**  
+Updates required `amdsmi_get_power_cap_info` to return in uW as originally reflected by driver. Previously `amdsmi_get_power_cap_info` returned W values, this conflicts with our sets and modifies values retrieved from driver. We decided to keep the values returned from driver untouched (in original units, uW). Then in CLI we will convert to watts (as previously done - no changes here). Additionally, driver made updates to min power cap displayed for devices when overdrive is disabled which prompted for this change (in this case min_power_cap and max_power_cap are the same).
+
+
 ## amd_smi_lib for ROCm 6.1.2
 
 ### Added

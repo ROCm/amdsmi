@@ -522,11 +522,11 @@ typedef struct {
 } amdsmi_pcie_info_t;
 
 typedef struct {
-  uint64_t power_cap;
-  uint64_t default_power_cap;
-  uint64_t dpm_cap;
-  uint64_t min_power_cap;
-  uint64_t max_power_cap;
+  uint64_t power_cap;           //!< current power cap (uW)
+  uint64_t default_power_cap;   //!< default power cap (uW)
+  uint64_t dpm_cap;             //!< dpm power cap (MHz)
+  uint64_t min_power_cap;       //!< minimum power cap (uW)
+  uint64_t max_power_cap;       //!< maximum power cap (uW)
   uint64_t reserved[3];
 } amdsmi_power_cap_info_t;
 
@@ -4615,7 +4615,8 @@ amdsmi_get_gpu_board_info(amdsmi_processor_handle processor_handle, amdsmi_board
 
 /**
  *  @brief          Returns the power caps as currently configured in the
- *                  system. It is not supported on virtual machine guest
+ *                  system. Power in units of uW.
+ *                  It is not supported on virtual machine guest
  *
  *  @platform{gpu_bm_linux}  @platform{host}
  *

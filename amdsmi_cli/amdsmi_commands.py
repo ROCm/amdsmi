@@ -414,7 +414,11 @@ class AMDSMICommands():
                     power_limit_error = False
                     power_cap_info = amdsmi_interface.amdsmi_get_power_cap_info(args.gpu)
                     max_power_limit = power_cap_info['max_power_cap']
+                    max_power_limit = AMDSMIHelpers.convert_SI_unit(max_power_limit, AMDSMIHelpers.SI_Unit.MICRO)
+                    min_power_limit = power_cap_info['min_power_cap']
+                    min_power_limit = AMDSMIHelpers.convert_SI_unit(min_power_limit, AMDSMIHelpers.SI_Unit.MICRO)
                     socket_power_limit = power_cap_info['power_cap']
+                    socket_power_limit = AMDSMIHelpers.convert_SI_unit(socket_power_limit, AMDSMIHelpers.SI_Unit.MICRO)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     power_limit_error = True
                     max_power_limit = "N/A"
@@ -492,11 +496,18 @@ class AMDSMICommands():
                 power_unit = 'W'
                 temp_unit_human_readable = '\N{DEGREE SIGN}C'
                 temp_unit_json = 'C'
-                if self.logger.is_human_readable_format():
-                    if not power_limit_error:
-                        max_power_limit = f"{max_power_limit} {power_unit}"
-                        socket_power_limit = f"{socket_power_limit} {power_unit}"
+                if not power_limit_error:
+                    max_power_limit = self.helpers.unit_format(self.logger,
+                                                               max_power_limit,
+                                                               power_unit)
+                    min_power_limit = self.helpers.unit_format(self.logger,
+                                                               min_power_limit,
+                                                               power_unit)
+                    socket_power_limit = self.helpers.unit_format(self.logger,
+                                                                  socket_power_limit,
+                                                                  power_unit)
 
+                if self.logger.is_human_readable_format():
                     if not slowdown_temp_edge_limit_error:
                         slowdown_temp_edge_limit = f"{slowdown_temp_edge_limit} {temp_unit_human_readable}"
                     if not slowdown_temp_hotspot_limit_error:
@@ -509,13 +520,8 @@ class AMDSMICommands():
                         shutdown_temp_hotspot_limit = f"{shutdown_temp_hotspot_limit} {temp_unit_human_readable}"
                     if not shutdown_temp_vram_limit_error:
                         shutdown_temp_vram_limit = f"{shutdown_temp_vram_limit} {temp_unit_human_readable}"
-                if self.logger.is_json_format():
-                    if not power_limit_error:
-                        max_power_limit = {"value" : max_power_limit,
-                                           "unit" : power_unit}
-                        socket_power_limit = {"value" : socket_power_limit,
-                                              "unit" : power_unit}
 
+                if self.logger.is_json_format():
                     if not slowdown_temp_edge_limit_error:
                         slowdown_temp_edge_limit = {"value" : slowdown_temp_edge_limit,
                                                     "unit" : temp_unit_json}
@@ -538,6 +544,7 @@ class AMDSMICommands():
                 limit_info = {}
                 # Power limits
                 limit_info['max_power'] = max_power_limit
+                limit_info['min_power'] = min_power_limit
                 limit_info['socket_power'] = socket_power_limit
 
                 # Shutdown limits
@@ -1326,24 +1333,19 @@ class AMDSMICommands():
                     for key, value in power_info.items():
                         if value == 0xFFFF:
                             power_info[key] = "N/A"
-                        elif self.logger.is_human_readable_format():
-                            if "voltage" in key:
-                                power_info[key] = f"{value} {voltage_unit}"
-                            elif "power" in key:
-                                power_info[key] = f"{value} {power_unit}"
-                        elif self.logger.is_json_format():
-                            if "voltage" in key:
-                                power_info[key] = {"value" : value,
-                                                  "unit" : voltage_unit}
-                            elif "power" in key:
-                                power_info[key] = {"value" : value,
-                                                  "unit" : power_unit}
-
-                    power_dict['socket_power'] = power_info['current_socket_power']
-
-                    if power_dict['socket_power'] == "N/A":
-                        # For older gpu's when current power doesn't populate we use the average socket power instead
-                        power_dict['socket_power'] = power_info['average_socket_power']
+                        elif "voltage" in key:
+                            power_info[key] = self.helpers.unit_format(self.logger,
+                                                                       value,
+                                                                       voltage_unit)
+                        elif "power" in key:
+                            if ((key == "current_socket_power" or key == "average_socket_power")
+                                and value != "N/A"):
+                                power_dict['socket_power'] = self.helpers.unit_format(self.logger,
+                                                                       value,
+                                                                       power_unit)
+                            power_info[key] = self.helpers.unit_format(self.logger,
+                                                                       value,
+                                                                       power_unit)
 
                     power_dict['gfx_voltage'] = power_info['gfx_voltage']
                     power_dict['soc_voltage'] = power_info['soc_voltage']
@@ -3478,8 +3480,11 @@ class AMDSMICommands():
                 power_cap_info = amdsmi_interface.amdsmi_get_power_cap_info(args.gpu)
                 logging.debug(f"Power cap info for gpu {gpu_id} | {power_cap_info}")
                 min_power_cap = power_cap_info["min_power_cap"]
+                min_power_cap = AMDSMIHelpers.convert_SI_unit(min_power_cap, AMDSMIHelpers.SI_Unit.MICRO)
                 max_power_cap = power_cap_info["max_power_cap"]
+                max_power_cap = AMDSMIHelpers.convert_SI_unit(max_power_cap, AMDSMIHelpers.SI_Unit.MICRO)
                 current_power_cap = power_cap_info["power_cap"]
+                current_power_cap = AMDSMIHelpers.convert_SI_unit(current_power_cap, AMDSMIHelpers.SI_Unit.MICRO)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 raise ValueError(f"Unable to get power cap info from {gpu_string}") from e
 
@@ -3487,7 +3492,9 @@ class AMDSMICommands():
                 self.logger.store_output(args.gpu, 'powercap', f"Power cap is already set to {args.power_cap}")
             elif args.power_cap >= min_power_cap and args.power_cap <= max_power_cap:
                 try:
-                    amdsmi_interface.amdsmi_set_power_cap(args.gpu, 0, args.power_cap * 1000000)
+                    new_power_cap = AMDSMIHelpers.convert_SI_unit(args.power_cap, AMDSMIHelpers.SI_Unit.BASE,
+                                                                  AMDSMIHelpers.SI_Unit.MICRO)
+                    amdsmi_interface.amdsmi_set_power_cap(args.gpu, 0, new_power_cap)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
                         raise PermissionError('Command requires elevation') from e
@@ -3882,20 +3889,26 @@ class AMDSMICommands():
             try:
                 power_cap_info = amdsmi_interface.amdsmi_get_power_cap_info(args.gpu)
                 logging.debug(f"Power cap info for gpu {gpu_id} | {power_cap_info}")
-                default_power_cap = power_cap_info["default_power_cap"]
+                default_power_cap_in_w = power_cap_info["default_power_cap"]
+                default_power_cap_in_w = AMDSMIHelpers.convert_SI_unit(default_power_cap_in_w, AMDSMIHelpers.SI_Unit.MICRO)
+                current_power_cap_in_w = power_cap_info["power_cap"]
+                current_power_cap_in_w = AMDSMIHelpers.convert_SI_unit(current_power_cap_in_w, AMDSMIHelpers.SI_Unit.MICRO)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 raise ValueError(f"Unable to get power cap info from {gpu_id}") from e
 
-            if args.power_cap == default_power_cap:
-                self.logger.store_output(args.gpu, 'powercap', f"Power cap is already set to {default_power_cap}")
+            if current_power_cap_in_w == default_power_cap_in_w:
+                self.logger.store_output(args.gpu, 'powercap', f"Power cap is already set to {default_power_cap_in_w}")
             else:
                 try:
-                    amdsmi_interface.amdsmi_set_power_cap(args.gpu, 0, default_power_cap * 1000000)
+                    default_power_cap_in_uw = AMDSMIHelpers.convert_SI_unit(default_power_cap_in_w,
+                                                                            AMDSMIHelpers.SI_Unit.BASE,
+                                                                            AMDSMIHelpers.SI_Unit.MICRO)
+                    amdsmi_interface.amdsmi_set_power_cap(args.gpu, 0, default_power_cap_in_uw)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
                         raise PermissionError('Command requires elevation') from e
-                    raise ValueError(f"Unable to reset power cap to {default_power_cap} on GPU {gpu_id}") from e
-                self.logger.store_output(args.gpu, 'powercap', f"Successfully set power cap to {default_power_cap}")
+                    raise ValueError(f"Unable to reset power cap to {default_power_cap_in_w} on GPU {gpu_id}") from e
+                self.logger.store_output(args.gpu, 'powercap', f"Successfully set power cap to {default_power_cap_in_w}")
 
         if multiple_devices:
             self.logger.store_multiple_device_output()

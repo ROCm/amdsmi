@@ -414,13 +414,13 @@ Input parameters:
 
 Output: Dictionary with fields
 
-Field | Description
----|---
-`power_cap` |  power capability
-`dpm_cap` |  dynamic power management capability
-`default_power_cap` |  default power capability
-`min_power_cap` | min power capability
-`max_power_cap` | max power capability
+Field | Description | Units
+---|---|---
+`power_cap` |  power capability | uW
+`dpm_cap` |  dynamic power management capability | MHz
+`default_power_cap` |  default power capability | uW
+`min_power_cap` | min power capability | uW
+`max_power_cap` | max power capability | uW
 
 Exceptions that can be thrown by `amdsmi_get_power_cap_info` function:
 
