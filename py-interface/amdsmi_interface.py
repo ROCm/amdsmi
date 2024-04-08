@@ -2734,6 +2734,7 @@ def amdsmi_set_clk_freq(
         )
     )
 
+
 def amdsmi_set_dpm_policy(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     policy_id: int,
@@ -2748,6 +2749,7 @@ def amdsmi_set_dpm_policy(
         )
     )
 
+
 def amdsmi_set_xgmi_plpd(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     policy_id: int,
@@ -2761,6 +2763,37 @@ def amdsmi_set_xgmi_plpd(
             processor_handle, policy_id
         )
     )
+
+
+def amdsmi_set_gpu_process_isolation(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    pisolate: int,
+):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+    _check_res(
+        amdsmi_wrapper.amdsmi_set_gpu_process_isolation(
+            processor_handle, pisolate
+        )
+    )
+
+
+def amdsmi_set_gpu_clear_sram_data(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    sclean: int,
+):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+    _check_res(
+        amdsmi_wrapper.amdsmi_set_gpu_clear_sram_data(
+            processor_handle, sclean
+        )
+    )
+
 
 def amdsmi_set_gpu_overdrive_level(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, overdrive_value: int
@@ -2792,6 +2825,7 @@ def amdsmi_get_gpu_bdf_id(processor_handle: amdsmi_wrapper.amdsmi_processor_hand
     )
 
     return bdfid.value
+
 
 def amdsmi_set_gpu_pci_bandwidth(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, bitmask: int
@@ -3089,7 +3123,6 @@ def amdsmi_set_gpu_od_volt_info(
     )
 
 
-
 def amdsmi_get_gpu_fan_rpms(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_idx: int
 ) -> int:
@@ -3320,6 +3353,7 @@ def amdsmi_get_clk_freq(
         "frequency": list(freq.frequency)[: freq.num_supported - 1],
     }
 
+
 def amdsmi_get_dpm_policy(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
@@ -3351,6 +3385,7 @@ def amdsmi_get_dpm_policy(
         "policies": polices,
     }
 
+
 def amdsmi_get_xgmi_plpd(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
@@ -3381,6 +3416,25 @@ def amdsmi_get_xgmi_plpd(
         "current_id": current_id,
         "plpds": polices,
     }
+
+
+def amdsmi_get_gpu_process_isolation(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    pisolate = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_process_isolation(
+            processor_handle, ctypes.byref(pisolate)
+        )
+    )
+
+    return pisolate.value
+
 
 def amdsmi_get_gpu_od_volt_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,

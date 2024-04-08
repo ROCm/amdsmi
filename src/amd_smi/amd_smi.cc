@@ -1385,6 +1385,30 @@ amdsmi_status_t amdsmi_get_xgmi_plpd(amdsmi_processor_handle processor_handle,
                     reinterpret_cast<rsmi_dpm_policy_t*>(policy));
 }
 
+amdsmi_status_t amdsmi_get_gpu_process_isolation(amdsmi_processor_handle processor_handle,
+                             uint32_t* pisolate) {
+    AMDSMI_CHECK_INIT();
+
+    return rsmi_wrapper(rsmi_dev_process_isolation_get, processor_handle,
+                    pisolate);
+}
+
+amdsmi_status_t amdsmi_set_gpu_process_isolation(amdsmi_processor_handle processor_handle,
+                             uint32_t pisolate) {
+    AMDSMI_CHECK_INIT();
+
+    return rsmi_wrapper(rsmi_dev_process_isolation_set, processor_handle,
+                   pisolate);
+}
+
+amdsmi_status_t amdsmi_set_gpu_clear_sram_data(amdsmi_processor_handle processor_handle,
+                  uint32_t sclean) {
+    AMDSMI_CHECK_INIT();
+
+    return rsmi_wrapper(rsmi_dev_gpu_clear_sram_data, processor_handle,
+                    sclean);
+}
+
 amdsmi_status_t
 amdsmi_get_gpu_memory_reserved_pages(amdsmi_processor_handle processor_handle,
                                     uint32_t *num_pages,

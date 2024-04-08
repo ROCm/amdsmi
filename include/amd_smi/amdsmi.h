@@ -3455,6 +3455,68 @@ amdsmi_status_t amdsmi_get_xgmi_plpd(amdsmi_processor_handle processor_handle,
 amdsmi_status_t amdsmi_set_xgmi_plpd(amdsmi_processor_handle processor_handle,
                              uint32_t plpd_id);
 
+
+/**
+ * @brief Get the status of the Process Isolation
+ *
+ * @platform{gpu_bm_linux} @platform{guest_1vf}
+ *
+ * @details Given a processor handle @p processor_handle, this function will write
+ * current process isolation status to @p pisolate. The 0 is the process isolation
+ * disabled, and the 1 is the process isolation enabled.
+ *
+ *  @param[in] processor_handle a processor handle
+ *
+ *  @param[in, out] pisolate the process isolation status.
+ *  If this parameter is nullptr, this function will return
+ *  ::AMDSMI_STATUS_INVAL
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_get_gpu_process_isolation(amdsmi_processor_handle processor_handle,
+                             uint32_t* pisolate);
+
+/**
+ * @brief Enable/disable the system Process Isolation
+ *
+ * @platform{gpu_bm_linux} @platform{guest_1vf}
+ *
+ * @details Given a processor handle @p processor_handle and a process isolation @p pisolate,
+ * flag, this function will set the Process Isolation for this processor. The 0 is the process
+ * isolation disabled, and the 1 is the process isolation enabled.
+ *
+ *  @note This function requires root access
+ *
+ *  @param[in] processor_handle a processor handle
+ *
+ *  @param[in] pisolate the process isolation status to set.
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_set_gpu_process_isolation(amdsmi_processor_handle processor_handle,
+                             uint32_t pisolate);
+
+/**
+ * @brief Clear the GPU SRAM data
+ *
+ * @platform{gpu_bm_linux} @platform{guest_1vf}
+ *
+ * @details Given a processor handle @p processor_handle, and a sclean flag @p sclean,
+ * this function will clear the SRAM data of this processor. This can be called between 
+ * user logins to prevent information leak.
+ *
+ *  @note This function requires root access
+ *
+ *  @param[in] processor_handle a processor handle
+ *
+ *  @param[in] sclean the clean flag. Only 1 will take effect and other number
+ *  are reserved for future usage.
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_set_gpu_clear_sram_data(amdsmi_processor_handle processor_handle,
+                  uint32_t sclean);
+
 /** @} End PerfCont */
 
 /*****************************************************************************/

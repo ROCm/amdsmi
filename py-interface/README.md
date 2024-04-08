@@ -1963,6 +1963,98 @@ except AmdSmiException as e:
     print(e)
 ```
 
+### amdsmi_get_gpu_process_isolation
+
+Description: Get the status of the Process Isolation
+
+Input parameters:
+
+* `processor_handle` handle for the given device
+
+Output: integer corresponding to isolation_status; 0 - disabled, 1 - enabled
+
+Exceptions that can be thrown by `amdsmi_get_gpu_process_isolation` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            isolate = amdsmi_get_gpu_process_isolation(device)
+            print("Process Isolation Status: ", isolate)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_set_gpu_process_isolation
+Description: Enable/disable the system Process Isolation for the given device handle.
+
+Input parameters:
+
+* `processor_handle` handle for the given device
+* `pisolate` the process isolation status to set. 0 is the process isolation disabled, and 1 is the process isolation enabled.
+
+Output: None
+
+Exceptions that can be thrown by `amdsmi_set_gpu_process_isolation` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            amdsmi_set_gpu_process_isolation(device, 1)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_set_gpu_clear_sram_data
+Description: Clear the SRAM data of the given device. This can be called between user logins to prevent information leak.
+
+Input parameters:
+
+* `processor_handle` handle for the given device
+* `sclean` the clean flag. Only 1 will take effect and other number are reserved for future usage.
+
+Output: None
+
+Exceptions that can be thrown by `amdsmi_set_gpu_clear_sram_data` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            amdsmi_set_gpu_clear_sram_data(device, 1)
+except AmdSmiException as e:
+    print(e)
+```
+
+
 ### amdsmi_get_gpu_overdrive_level
 
 Description: Get the overdrive percent associated with the device with provided
@@ -2598,6 +2690,75 @@ try:
         for device in devices:
             freq_bitmask = 0
              amdsmi_set_clk_freq(device, AmdSmiClkType.GFX, freq_bitmask)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_dpm_policy
+
+Description: Get dpm policy information.
+
+Input parameters:
+
+* `processor_handle` handle for the given device
+* `policy_id` the policy id to set.
+
+Output: Dictionary with fields
+
+Field | Description
+---|---
+`num_supported` | total number of supported policies
+`current_id` | current policy id
+`policies` | list of dictionaries containing possible policies
+
+Exceptions that can be thrown by `amdsmi_get_dpm_policy` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            dpm_policies = amdsmi_get_dpm_policy(device)
+            print(dpm_policies)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_set_dpm_policy
+
+Description: Set the dpm policy to corresponding policy_id. Typically following: 0(default),1,2,3
+
+Input parameters:
+
+* `processor_handle` handle for the given device
+* `policy_id` the policy id to set.
+
+Output: None
+
+Exceptions that can be thrown by `amdsmi_set_dpm_policy` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            amdsmi_set_dpm_policy(device, 0)
 except AmdSmiException as e:
     print(e)
 ```
