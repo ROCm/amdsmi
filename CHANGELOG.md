@@ -12,6 +12,9 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/](
 
 ### Changed
 
+- **Removed `amdsmi_get_gpu_process_info` from python library**
+amdsmi_get_gpu_process_info was removed from the C library in an earlier build, but the API was still in the python interface
+
 - **Updated metrics --clocks**
 Output for `amd-smi metric --clock` is updated to reflect each engine and bug fixes for the clock lock status and deep sleep status.
 
