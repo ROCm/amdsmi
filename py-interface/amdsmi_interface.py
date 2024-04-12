@@ -300,6 +300,11 @@ class AmdSmiGpuBlock(IntEnum):
     MP0 = amdsmi_wrapper.AMDSMI_GPU_BLOCK_MP0
     MP1 = amdsmi_wrapper.AMDSMI_GPU_BLOCK_MP1
     FUSE = amdsmi_wrapper.AMDSMI_GPU_BLOCK_FUSE
+    MCA = amdsmi_wrapper.AMDSMI_GPU_BLOCK_MCA
+    VCN = amdsmi_wrapper.AMDSMI_GPU_BLOCK_VCN
+    JPEG = amdsmi_wrapper.AMDSMI_GPU_BLOCK_JPEG
+    IH = amdsmi_wrapper.AMDSMI_GPU_BLOCK_IH
+    MPIO = amdsmi_wrapper.AMDSMI_GPU_BLOCK_MPIO
     RESERVED = amdsmi_wrapper.AMDSMI_GPU_BLOCK_RESERVED
 
 
@@ -1906,7 +1911,7 @@ def amdsmi_get_gpu_ras_block_features_enabled(
         if gpu_block.name == "RESERVED" or gpu_block.name == "INVALID":
             continue
         if gpu_block.name == "LAST":
-            gpu_block.name = "FUSE"
+            gpu_block.name = "MPIO"
         _check_res(
             amdsmi_wrapper.amdsmi_get_gpu_ras_block_features_enabled(
                 processor_handle,
@@ -1959,6 +1964,7 @@ def amdsmi_get_gpu_process_list(
                 "vram_mem": process_list[index].memory_usage.vram_mem,
             },
         })
+        print(result)
     return result
 
 

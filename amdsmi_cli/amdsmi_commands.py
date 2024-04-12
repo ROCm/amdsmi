@@ -1692,14 +1692,15 @@ class AMDSMICommands():
         if "ecc_blocks" in current_platform_args:
             if args.ecc_blocks:
                 ecc_dict = {}
-                uncountable_blocks = ["ATHUB", "DF", "SMN", "SEM", "FUSE"]
+                sysfs_blocks = ["UMC", "SDMA", "GFX", "MMHUB", "PCIE_BIF", "HDP", "XGMI_WAFL"]
                 try:
                     ras_states = amdsmi_interface.amdsmi_get_gpu_ras_block_features_enabled(args.gpu)
                     for state in ras_states:
+                        # Only add enabled blocks that are also in sysfs
                         if state['status'] == amdsmi_interface.AmdSmiRasErrState.ENABLED.name:
                             gpu_block = amdsmi_interface.AmdSmiGpuBlock[state['block']]
                             # if the blocks are uncountable do not add them at all.
-                            if gpu_block.name not in uncountable_blocks:
+                            if gpu_block.name in sysfs_blocks:
                                 try:
                                     ecc_count = amdsmi_interface.amdsmi_get_gpu_ecc_count(args.gpu, gpu_block)
                                     ecc_dict[state['block']] = {'correctable_count' : ecc_count['correctable_count'],
