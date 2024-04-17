@@ -60,10 +60,14 @@ GPU   PCIE_BW
 
 ### Changes
 
+- **Updated `amdsmi_get_gpu_board_info()` now has larger structure sizes for `amdsmi_board_info_t`**.  
+Updated sizes that work for retreiving relavant board information across AMD's
+ASIC products. This requires users to update any ABIs using this structure.
+
 - **`amdsmi_get_power_cap_info` now returns values in uW instead of W**.
 `amdsmi_get_power_cap_info` will return in uW as originally reflected by driver. Previously `amdsmi_get_power_cap_info` returned W values, this conflicts with our sets and modifies values retrieved from driver. We decided to keep the values returned from driver untouched (in original units, uW). Then in CLI we will convert to watts (as previously done - no changes here). Additionally, driver made updates to min power cap displayed for devices when overdrive is disabled which prompted for this change (in this case min_power_cap and max_power_cap are the same).
 
-- **Updated Python Library return types for amdsmi_get_gpu_memory_reserved_pages & amdsmi_get_gpu_bad_page_info**.
+- **Updated Python Library return types for amdsmi_get_gpu_memory_reserved_pages & amdsmi_get_gpu_bad_page_info**.  
 Previously calls were returning "No bad pages found." if no pages were found, now it only returns the list type and can be empty.
 
 - **Updated `amd-smi metric --ecc-blocks` output**.
@@ -107,6 +111,12 @@ GPU: 0
 amdsmi_get_gpu_process_info was removed from the C library in an earlier build, but the API was still in the Python interface.
 
 ### Fixes
+
+- **`amdsmi_get_gpu_board_info()` no longer returns junk char strings**.
+Previously if there was a partial failure to retrieve character strings, we would return
+garbage output to users using the API. This fix intends to populate as many values as possible.
+Then any failure(s) found along the way, `\0` is provided to `amdsmi_board_info_t`
+structures data members which cannot be populated. Ensuring empty char string values.
 
 - **Fixed `amd-smi metric --power` now provides power output for Navi2x/Navi3x/MI1x**.
 These systems use an older version of gpu_metrics in amdgpu. This fix only updates what CLI outputs.
