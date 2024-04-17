@@ -539,6 +539,21 @@ def _make_amdsmi_bdf_from_list(bdf):
     amdsmi_bdf.fields.domain_number = bdf[0]
     return amdsmi_bdf
 
+def _padHexValue(value, length):
+    """ Pad a hexadecimal value with a given length of zeros
+
+    :param value: A hexadecimal value to be padded with zeros
+    :param length: Number of zeros to pad the hexadecimal value
+    :param return original string string or
+        padded hex of confirmed hex output (using length provided)
+    """
+    # Ensure value entered meets the minimum length and is hexadecimal
+    if len(value) > 2 and length > 1 and value[:2].lower() == '0x' \
+        and all(c in '0123456789abcdefABCDEF' for c in value[2:]):
+        # Pad with zeros after '0x' prefix
+        return '0x' + value[2:].zfill(length)
+    return value
+
 
 def amdsmi_get_socket_handles() -> List[amdsmi_wrapper.amdsmi_socket_handle]:
     """
@@ -1585,12 +1600,12 @@ def amdsmi_get_gpu_asic_info(
     )
 
     asic_info = {
-        "market_name": asic_info_struct.market_name.decode("utf-8"),
+        "market_name": _padHexValue(asic_info_struct.market_name.decode("utf-8"), 4),
         "vendor_id": asic_info_struct.vendor_id,
         "vendor_name": asic_info_struct.vendor_name.decode("utf-8"),
         "subvendor_id": asic_info_struct.subvendor_id,
         "device_id": asic_info_struct.device_id,
-        "rev_id": hex(asic_info_struct.rev_id),
+        "rev_id": _padHexValue(hex(asic_info_struct.rev_id), 2),
         "asic_serial": asic_info_struct.asic_serial.decode("utf-8"),
         "oam_id": asic_info_struct.oam_id
     }
@@ -1863,17 +1878,16 @@ def amdsmi_get_gpu_board_info(
     )
 
     board_info_dict = {
-        "model_number": board_info.model_number.decode("utf-8").strip(),
+        "model_number": _padHexValue(board_info.model_number.decode("utf-8").strip(), 4),
         "product_serial": board_info.product_serial.decode("utf-8").strip(),
         "fru_id": board_info.fru_id.decode("utf-8").strip(),
-        "product_name": board_info.product_name.decode("utf-8").strip(),
+        "product_name": _padHexValue(board_info.product_name.decode("utf-8").strip(), 4),
         "manufacturer_name": board_info.manufacturer_name.decode("utf-8").strip()
     }
 
     for key, value in board_info_dict.items():
         if value == "":
             board_info_dict[key] = "N/A"
-
     return board_info_dict
 
 

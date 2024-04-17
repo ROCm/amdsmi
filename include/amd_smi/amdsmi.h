@@ -83,7 +83,7 @@ typedef enum {
 #define AMDSMI_MAX_DEVICES            32
 #define AMDSMI_MAX_NAME               32
 #define AMDSMI_MAX_DRIVER_VERSION_LENGTH 80
-#define AMDSMI_PRODUCT_NAME_LENGTH 128
+#define AMDSMI_256_LENGTH 256
 #define AMDSMI_MAX_CONTAINER_TYPE    2
 #define AMDSMI_MAX_CACHE_TYPES 10
 #define AMDSMI_MAX_NUM_XGMI_PHYSICAL_LINK 64
@@ -573,7 +573,7 @@ typedef struct {
 } amdsmi_fw_info_t;
 
 typedef struct {
-  char  market_name[AMDSMI_MAX_STRING_LENGTH];
+  char  market_name[AMDSMI_256_LENGTH];
   uint32_t vendor_id;   //< Use 32 bit to be compatible with other platform.
   char vendor_name[AMDSMI_MAX_STRING_LENGTH];
   uint32_t subvendor_id;   //< The subsystem vendor id
@@ -619,11 +619,11 @@ typedef struct {
 } amdsmi_driver_info_t;
 
 typedef struct {
-  char  model_number[AMDSMI_NORMAL_STRING_LENGTH];
+  char  model_number[AMDSMI_256_LENGTH];
   char  product_serial[AMDSMI_NORMAL_STRING_LENGTH];
   char  fru_id[AMDSMI_NORMAL_STRING_LENGTH];
-  char  product_name[AMDSMI_PRODUCT_NAME_LENGTH];
-  char  manufacturer_name[AMDSMI_NORMAL_STRING_LENGTH];
+  char  product_name[AMDSMI_256_LENGTH];
+  char  manufacturer_name[AMDSMI_MAX_STRING_LENGTH];
   uint32_t reserved[32];
 } amdsmi_board_info_t;
 
