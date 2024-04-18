@@ -3621,7 +3621,6 @@ class AMDSMICommands():
                 if getattr(args, attr) is not None:
                     gpu_args_enabled = True
                     break
-
         # Check if a CPU argument has been set
         cpu_args_enabled = False
         cpu_attributes = ["cpu_pwr_limit", "cpu_xgmi_link_width", "cpu_lclk_dpm_level", "cpu_pwr_eff_mode",
@@ -3629,7 +3628,7 @@ class AMDSMICommands():
                           "cpu_enable_apb", "cpu_disable_apb", "soc_boost_limit"]
         for attr in cpu_attributes:
             if hasattr(args, attr):
-                if getattr(args, attr) is not None:
+                if getattr(args, attr) not in [None, False]:
                     cpu_args_enabled = True
                     break
 
