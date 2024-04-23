@@ -1964,7 +1964,7 @@ def amdsmi_get_gpu_process_list(
                 "vram_mem": process_list[index].memory_usage.vram_mem,
             },
         })
-        print(result)
+
     return result
 
 

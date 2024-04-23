@@ -88,7 +88,7 @@ Initialize GPUs only example:
 ```python
 try:
     # by default we initalize with AmdSmiInitFlags.INIT_AMD_GPUS
-    init_flag = amdsmi_init()
+    ret = amdsmi_init()
     # continue with amdsmi
 except AmdSmiException as e:
     print("Init GPUs failed")
@@ -99,7 +99,7 @@ Initialize CPUs only example:
 
 ```python
 try:
-    init_flag = amdsmi_init(AmdSmiInitFlags.INIT_AMD_CPUS)
+    ret = amdsmi_init(AmdSmiInitFlags.INIT_AMD_CPUS)
     # continue with amdsmi
 except AmdSmiException as e:
     print("Init CPUs failed")
@@ -110,7 +110,7 @@ Initialize both GPUs and CPUs example:
 
 ```python
 try:
-    init_flag = amdsmi_init(AmdSmiInitFlags.INIT_AMD_APUS)
+    ret = amdsmi_init(AmdSmiInitFlags.INIT_AMD_APUS)
     # continue with amdsmi
 except AmdSmiException as e:
     print("Init both GPUs & CPUs failed")
