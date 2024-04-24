@@ -365,6 +365,7 @@ class AmdSmiProcessorType(IntEnum):
     NON_AMD_GPU = amdsmi_wrapper.NON_AMD_GPU
     NON_AMD_CPU = amdsmi_wrapper.NON_AMD_CPU
 
+
 class AmdSmiEventReader:
     def __init__(
         self, processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
