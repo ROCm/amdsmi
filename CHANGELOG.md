@@ -12,6 +12,15 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/](
 
 ### Changed
 
+- **Updated `amd-smi monitor --pcie` output**  
+The source for pcie bandwidth monitor output was a legacy file we no longer support and was causing delays within the monitor command. The output is no longer using TX/RX but instantaneous bandwidth from gpu_metrics instead; updated output:
+
+```shell
+$ amd-smi monitor --pcie
+GPU   PCIE_BW
+  0   26 Mb/s
+```
+
 - **Updated `amd-smi metric --ecc-blocks` output**  
 The ecc blocks arguement was outputing blocks without counters available, updated the filtering show blocks that counters are available for:
 
