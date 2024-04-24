@@ -461,7 +461,7 @@ Field | Description
 ---|---
 `vram_type` |  vram type
 `vram_vendor` |  vram vendor
-`vram_size_mb` |  vram size in mb
+`vram_size` |  vram size in mb
 
 Exceptions that can be thrown by `amdsmi_get_gpu_vram_info` function:
 
@@ -481,7 +481,7 @@ try:
             vram_info = amdsmi_get_gpu_vram_info(device)
             print(vram_info['vram_type'])
             print(vram_info['vram_vendor'])
-            print(vram_info['vram_size_mb'])
+            print(vram_info['vram_size'])
 except AmdSmiException as e:
     print(e)
 ```
@@ -769,9 +769,11 @@ Output: Dictionary with fields
 
 Field | Description
 ---|---
-`cur_clk` | Current clock for given clock type
-`max_clk` | Maximum clock for given clock type
+`clk` | Current clock for given clock type
 `min_clk` | Minimum clock for given clock type
+`max_clk` | Maximum clock for given clock type
+`clk_locked` | flag only supported on GFX clock domain
+`clk_deep_sleep` | clock deep sleep mode flag
 
 Exceptions that can be thrown by `amdsmi_get_clock_info` function:
 
@@ -789,9 +791,11 @@ try:
     else:
         for device in devices:
             clock_measure = amdsmi_get_clock_info(device, AmdSmiClkType.GFX)
-            print(clock_measure['cur_clk'])
+            print(clock_measure['clk'])
             print(clock_measure['min_clk'])
             print(clock_measure['max_clk'])
+            print(clock_measure['clk_locked'])
+            print(clock_measure['clk_deep_sleep'])
 except AmdSmiException as e:
     print(e)
 ```
