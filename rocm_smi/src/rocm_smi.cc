@@ -59,6 +59,7 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <map>
 #include <sstream>
 #include <vector>
@@ -1987,65 +1988,45 @@ rsmi_status_t rsmi_dev_process_isolation_get(uint32_t dv_ind,
   int partition_id = dev->get_partition_id();
 
   DEVICE_MUTEX
-  std::vector<std::string> val_vec;
-  rsmi_status_t ret = GetDevValueVec(amd::smi::kDevProcessIsolation, dv_ind, &val_vec);
+
+  std::string str_val;
+  rsmi_status_t ret = get_dev_value_line(amd::smi::kDevProcessIsolation, dv_ind, &str_val);
   if (ret == RSMI_STATUS_FILE_ERROR) {
     ss << __PRETTY_FUNCTION__ << " | ======= end ======="
-       << ", GetDevValueVec() ret was RSMI_STATUS_FILE_ERROR "
+       << ", get_dev_value_str() ret was RSMI_STATUS_FILE_ERROR "
        << "-> reporting RSMI_STATUS_NOT_SUPPORTED";
     LOG_ERROR(ss);
     return RSMI_STATUS_NOT_SUPPORTED;
   }
   if (ret != RSMI_STATUS_SUCCESS) {
     ss << __PRETTY_FUNCTION__ << " | ======= end ======="
-       << ", GetDevValueVec() ret was not RSMI_STATUS_SUCCESS"
+       << ", get_dev_value_str() ret was not RSMI_STATUS_SUCCESS"
        << " -> reporting " << amd::smi::getRSMIStatusString(ret);
     LOG_ERROR(ss);
     return ret;
   }
 
   /*
-    For TPX system where partition0 is enabled, but partition1 and partition2 are disabled,
-    it will be in this format:
-    0 1
-    1 0
-    2 0
+  for 4 partition: enforce isolation is enabled on partition 2 and 
+  disabled on partitions 0, 1, 3.
+  $ cat /sys/class/drm/cardX/device/enforce_isolation
+   0 0 1 0
   */
-
-  for (uint32_t i = 0; i < val_vec.size(); ++i) {
-      // Get tokens: <integer> <integer>
-      auto current_line = amd::smi::trim(val_vec[i]);
-      std::vector<std::string> tokens;
-      std::istringstream f(current_line);
-      std::string s;
-      while (getline(f, s, ' ')) {
-          tokens.push_back(s);
-      }
-      int cur_part_id = 0;
-      if (tokens.size() == 2) {
-        if (amd::smi::stringToInteger(tokens[0], cur_part_id)) {
-          if (cur_part_id == partition_id) {
-            int isolate_status = 0;
-            if (amd::smi::stringToInteger(tokens[1], isolate_status)) {
-              *pisolate = isolate_status;
-              return RSMI_STATUS_SUCCESS;
-            } else {
-              ss << __PRETTY_FUNCTION__ << " | ======= end ======="
-              << ", the sysfs line " << current_line
-              << "should be in <integer> <integer> format";
+  std::stringstream iss(str_val);
+  int number;
+  std::vector<int> partition_status;
+  while ( iss >> number )
+    partition_status.push_back(number);
+  if (partition_status.size() <= partition_id) {
+    ss << __PRETTY_FUNCTION__ << " | ======= end ======="
+              << ", the sysfs line " << str_val
+              << " does not have the partition_id "
+              << partition_id;
               LOG_ERROR(ss);
               return RSMI_STATUS_UNEXPECTED_DATA;
-            }
-          }
-        }
-      }  // end tokens.size()
-  }  // end for
-
-  ss << __PRETTY_FUNCTION__ << " | ======= end ======="
-              << ", cannot find the partition_id " << partition_id
-              <<" from sysfs";
-  LOG_ERROR(ss);
-  return RSMI_STATUS_NOT_FOUND;
+  }
+  *pisolate = partition_status[partition_id];
+  return RSMI_STATUS_SUCCESS;
 }
 
 rsmi_status_t rsmi_dev_process_isolation_set(uint32_t dv_ind,
@@ -2060,12 +2041,55 @@ rsmi_status_t rsmi_dev_process_isolation_set(uint32_t dv_ind,
   DEVICE_MUTEX
   GET_DEV_FROM_INDX
 
-  // the enforce_isolation sysfs is in this format <partition_id, enable_flag>
-  // The smi will always pass partition_id. For SPX, the partition_id will be 0.
+  // To set the values,need to specify the setting for all of the partitions
+  // For two partition
+  // echo "1 0"  | sudo tee  /sys/class/drm/cardX/device/enforce_isolation
   int partition_id = dev->get_partition_id();
-  std::string value = std::to_string(partition_id) + " "+ std::to_string(pisolate);
-  int ret = dev->writeDevInfo(amd::smi::kDevProcessIsolation , value);
-  return amd::smi::ErrnoToRsmiStatus(ret);
+  std::string str_val;
+  rsmi_status_t ret = get_dev_value_line(amd::smi::kDevProcessIsolation, dv_ind, &str_val);
+  if (ret == RSMI_STATUS_FILE_ERROR) {
+    ss << __PRETTY_FUNCTION__ << " | ======= end ======="
+       << ", get_dev_value_str() ret was RSMI_STATUS_FILE_ERROR "
+       << "-> reporting RSMI_STATUS_NOT_SUPPORTED";
+    LOG_ERROR(ss);
+    return RSMI_STATUS_NOT_SUPPORTED;
+  }
+  if (ret != RSMI_STATUS_SUCCESS) {
+    ss << __PRETTY_FUNCTION__ << " | ======= end ======="
+       << ", get_dev_value_str() ret was not RSMI_STATUS_SUCCESS"
+       << " -> reporting " << amd::smi::getRSMIStatusString(ret);
+    LOG_ERROR(ss);
+    return ret;
+  }
+
+  // craft the string need to be writeen.
+  // (1) parse the read enforce_isolation data into a vector
+  std::stringstream iss(str_val);
+  int number;
+  std::vector<int> partition_status;
+  while ( iss >> number ) {
+    partition_status.push_back(number);
+  }
+
+  // (2) Validate the data
+  if (partition_status.size() <= partition_id) {
+    ss << __PRETTY_FUNCTION__ << " | ======= end ======="
+              << ", the sysfs line " << str_val
+              << " does not have the partition_id "
+              << partition_id;
+    LOG_ERROR(ss);
+    return RSMI_STATUS_UNEXPECTED_DATA;
+  }
+
+  // (3) Create the complete list with the update
+  partition_status[partition_id] = pisolate;
+  std::stringstream result;
+  std::copy(partition_status.begin(), partition_status.end(),
+        std::ostream_iterator<int>(result, " "));
+
+  std::string value = result.str().c_str();
+  int write_ret = dev->writeDevInfo(amd::smi::kDevProcessIsolation , value);
+  return amd::smi::ErrnoToRsmiStatus(write_ret);
 
   CATCH
 }
