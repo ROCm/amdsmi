@@ -4285,38 +4285,14 @@ class AMDSMICommands():
             self.logger.table_header += 'VRAM_TOTAL'.rjust(12)
         if args.pcie:
             try:
-                pcie_bw = amdsmi_interface.amdsmi_get_gpu_pci_throughput(args.gpu)
-                sent = pcie_bw['sent'] * pcie_bw['max_pkt_sz']
-                received = pcie_bw['received'] * pcie_bw['max_pkt_sz']
-
-                bw_unit = "Mb/s"
-                packet_size_unit = "B"
-                if sent > 0:
-                    sent = sent // 1024 // 1024
-                if received > 0:
-                    received = received // 1024 // 1024
-
-                if self.logger.is_human_readable_format():
-                    sent = f"{sent} {bw_unit}"
-                    received = f"{received} {bw_unit}"
-                    pcie_bw['max_pkt_sz'] = f"{pcie_bw['max_pkt_sz']} {packet_size_unit}"
-                if self.logger.is_json_format():
-                    sent = {"value" : sent,
-                            "unit" : bw_unit}
-                    received = {"value" : received,
-                                "unit" : bw_unit}
-                    pcie_bw['max_pkt_sz'] = {"value" : pcie_bw['max_pkt_sz'],
-                                                "unit" : packet_size_unit}
-
-                monitor_values['pcie_tx'] = sent
-                monitor_values['pcie_rx'] = received
+                pcie_info = amdsmi_interface.amdsmi_get_pcie_info(args.gpu)['pcie_metric']
+                pcie_bw_unit = 'Mb/s'
+                monitor_values['pcie_bw'] = self.helpers.unit_format(self.logger, pcie_info['pcie_bandwidth'], pcie_bw_unit)
             except amdsmi_exception.AmdSmiLibraryException as e:
-                monitor_values['pcie_tx'] = "N/A"
-                monitor_values['pcie_rx'] = "N/A"
-                logging.debug("Failed to get pci throughput on gpu %s | %s", gpu_id, e.get_error_info())
+                monitor_values['pcie_bw'] = "N/A"
+                logging.debug("Failed to get pci bandwidth on gpu %s | %s", gpu_id, e.get_error_info())
 
-            self.logger.table_header += 'PCIE_TX'.rjust(10)
-            self.logger.table_header += 'PCIE_RX'.rjust(10)
+            self.logger.table_header += 'PCIE_BW'.rjust(10)
 
         self.logger.store_output(args.gpu, 'values', monitor_values)
 
