@@ -171,8 +171,8 @@ typedef enum {
 } amdsmi_mm_ip_t;
 
 typedef enum {
-  CONTAINER_LXC,
-  CONTAINER_DOCKER,
+  AMDSMI_CONTAINER_LXC,
+  AMDSMI_CONTAINER_DOCKER,
 } amdsmi_container_types_t;
 
 //! opaque handler point to underlying implementation
@@ -184,18 +184,18 @@ typedef void *amdsmi_cpusocket_handle;
 
 /**
  * @brief Processor types detectable by AMD SMI
- * AMD_CPU      - CPU Socket is a physical component that holds the CPU.
- * AMD_CPU_CORE - CPU Cores are number of individual processing units within the CPU.
- * AMD_APU      - Combination of AMD_CPU and integrated GPU on single die
+ * AMDSMI_PROCESSOR_TYPE_AMD_CPU      - CPU Socket is a physical component that holds the CPU.
+ * AMDSMI_PROCESSOR_TYPE_AMD_CPU_CORE - CPU Cores are number of individual processing units within the CPU.
+ * AMDSMI_PROCESSOR_TYPE_AMD_APU      - Combination of AMDSMI_PROCESSOR_TYPE_AMD_CPU and integrated GPU on single die
  */
 typedef enum {
-  UNKNOWN = 0,
-  AMD_GPU,
-  AMD_CPU,
-  NON_AMD_GPU,
-  NON_AMD_CPU,
-  AMD_CPU_CORE,
-  AMD_APU
+  AMDSMI_PROCESSOR_TYPE_UNKNOWN = 0,
+  AMDSMI_PROCESSOR_TYPE_AMD_GPU,
+  AMDSMI_PROCESSOR_TYPE_AMD_CPU,
+  AMDSMI_PROCESSOR_TYPE_NON_AMD_GPU,
+  AMDSMI_PROCESSOR_TYPE_NON_AMD_CPU,
+  AMDSMI_PROCESSOR_TYPE_AMD_CPU_CORE,
+  AMDSMI_PROCESSOR_TYPE_AMD_APU
 } processor_type_t;
 
 /**
@@ -256,23 +256,23 @@ typedef enum {
 } amdsmi_status_t;
 
 /**
- * Clock types
+ * @brief Clock types
  */
 typedef enum {
-    CLK_TYPE_SYS = 0x0,   //!< System clock
-    CLK_TYPE_FIRST = CLK_TYPE_SYS,
-    CLK_TYPE_GFX = CLK_TYPE_SYS,
-    CLK_TYPE_DF,  //!< Data Fabric clock (for ASICs
-                    //!< running on a separate clock)
-    CLK_TYPE_DCEF,   //!< Display Controller Engine clock
-    CLK_TYPE_SOC,
-    CLK_TYPE_MEM,
-    CLK_TYPE_PCIE,
-    CLK_TYPE_VCLK0,
-    CLK_TYPE_VCLK1,
-    CLK_TYPE_DCLK0,
-    CLK_TYPE_DCLK1,
-    CLK_TYPE__MAX = CLK_TYPE_DCLK1
+  AMDSMI_CLK_TYPE_SYS = 0x0,   //!< System clock
+  AMDSMI_CLK_TYPE_FIRST = AMDSMI_CLK_TYPE_SYS,
+  AMDSMI_CLK_TYPE_GFX = AMDSMI_CLK_TYPE_SYS,
+  AMDSMI_CLK_TYPE_DF,    //!< Data Fabric clock (for ASICs
+        //!< running on a separate clock)
+  AMDSMI_CLK_TYPE_DCEF,  //!< Display Controller Engine clock
+  AMDSMI_CLK_TYPE_SOC,
+  AMDSMI_CLK_TYPE_MEM,
+  AMDSMI_CLK_TYPE_PCIE,
+  AMDSMI_CLK_TYPE_VCLK0,
+  AMDSMI_CLK_TYPE_VCLK1,
+  AMDSMI_CLK_TYPE_DCLK0,
+  AMDSMI_CLK_TYPE_DCLK1,
+  AMDSMI_CLK_TYPE__MAX = AMDSMI_CLK_TYPE_DCLK1
 } amdsmi_clk_type_t;
 
 /**
@@ -280,16 +280,16 @@ typedef enum {
  * various compute partitioning settings.
  */
 typedef enum {
-  COMPUTE_PARTITION_INVALID = 0,
-  COMPUTE_PARTITION_CPX, //!< Core mode (CPX)- Per-chip XCC with
+  AMDSMI_COMPUTE_PARTITION_INVALID = 0,
+  AMDSMI_COMPUTE_PARTITION_CPX, //!< Core mode (CPX)- Per-chip XCC with
                          //!< shared memory
-  COMPUTE_PARTITION_SPX, //!< Single GPU mode (SPX)- All XCCs work
+  AMDSMI_COMPUTE_PARTITION_SPX, //!< Single GPU mode (SPX)- All XCCs work
                          //!< together with shared memory
-  COMPUTE_PARTITION_DPX, //!< Dual GPU mode (DPX)- Half XCCs work
+  AMDSMI_COMPUTE_PARTITION_DPX, //!< Dual GPU mode (DPX)- Half XCCs work
                          //!< together with shared memory
-  COMPUTE_PARTITION_TPX, //!< Triple GPU mode (TPX)- One-third XCCs
+  AMDSMI_COMPUTE_PARTITION_TPX, //!< Triple GPU mode (TPX)- One-third XCCs
                          //!< work together with shared memory
-  COMPUTE_PARTITION_QPX  //!< Quad GPU mode (QPX)- Quarter XCCs
+  AMDSMI_COMPUTE_PARTITION_QPX  //!< Quad GPU mode (QPX)- Quarter XCCs
                          //!< work together with shared memory
 } amdsmi_compute_partition_type_t;
 
@@ -298,16 +298,16 @@ typedef enum {
  * memory partition types.
  */
 typedef enum {
-  MEMORY_PARTITION_UNKNOWN = 0,
-  MEMORY_PARTITION_NPS1,  //!< NPS1 - All CCD & XCD data is interleaved
+  AMDSMI_MEMORY_PARTITION_UNKNOWN = 0,
+  AMDSMI_MEMORY_PARTITION_NPS1,  //!< NPS1 - All CCD & XCD data is interleaved
                           //!< accross all 8 HBM stacks (all stacks/1).
-  MEMORY_PARTITION_NPS2,  //!< NPS2 - 2 sets of CCDs or 4 XCD interleaved
+  AMDSMI_MEMORY_PARTITION_NPS2,  //!< NPS2 - 2 sets of CCDs or 4 XCD interleaved
                           //!< accross the 4 HBM stacks per AID pair
                           //!< (8 stacks/2).
-  MEMORY_PARTITION_NPS4,  //!< NPS4 - Each XCD data is interleaved accross
+  AMDSMI_MEMORY_PARTITION_NPS4,  //!< NPS4 - Each XCD data is interleaved accross
                           //!< accross 2 (or single) HBM stacks
                           //!< (8 stacks/8 or 8 stacks/4).
-  MEMORY_PARTITION_NPS8,  //!< NPS8 - Each XCD uses a single HBM stack
+  AMDSMI_MEMORY_PARTITION_NPS8,  //!< NPS8 - Each XCD uses a single HBM stack
                           //!< (8 stacks/8). Or each XCD uses a single
                           //!< HBM stack & CCDs share 2 non-interleaved
                           //!< HBM stacks on its AID
@@ -319,17 +319,17 @@ typedef enum {
  * temperature reading should be obtained.
  */
 typedef enum {
-    TEMPERATURE_TYPE_EDGE,
-    TEMPERATURE_TYPE_FIRST = TEMPERATURE_TYPE_EDGE,
-    TEMPERATURE_TYPE_HOTSPOT,
-    TEMPERATURE_TYPE_JUNCTION = TEMPERATURE_TYPE_HOTSPOT,
-    TEMPERATURE_TYPE_VRAM,
-    TEMPERATURE_TYPE_HBM_0,
-    TEMPERATURE_TYPE_HBM_1,
-    TEMPERATURE_TYPE_HBM_2,
-    TEMPERATURE_TYPE_HBM_3,
-    TEMPERATURE_TYPE_PLX,
-    TEMPERATURE_TYPE__MAX = TEMPERATURE_TYPE_PLX
+  AMDSMI_TEMPERATURE_TYPE_EDGE,
+  AMDSMI_TEMPERATURE_TYPE_FIRST = AMDSMI_TEMPERATURE_TYPE_EDGE,
+  AMDSMI_TEMPERATURE_TYPE_HOTSPOT,
+  AMDSMI_TEMPERATURE_TYPE_JUNCTION = AMDSMI_TEMPERATURE_TYPE_HOTSPOT,
+  AMDSMI_TEMPERATURE_TYPE_VRAM,
+  AMDSMI_TEMPERATURE_TYPE_HBM_0,
+  AMDSMI_TEMPERATURE_TYPE_HBM_1,
+  AMDSMI_TEMPERATURE_TYPE_HBM_2,
+  AMDSMI_TEMPERATURE_TYPE_HBM_3,
+  AMDSMI_TEMPERATURE_TYPE_PLX,
+  AMDSMI_TEMPERATURE_TYPE__MAX = AMDSMI_TEMPERATURE_TYPE_PLX
 } amdsmi_temperature_type_t;
 
 /**
@@ -337,101 +337,101 @@ typedef enum {
  * blocks.
  */
 typedef enum {
-    FW_ID_SMU = 1,
-    FW_ID_FIRST = FW_ID_SMU,
-    FW_ID_CP_CE,
-    FW_ID_CP_PFP,
-    FW_ID_CP_ME,
-    FW_ID_CP_MEC_JT1,
-    FW_ID_CP_MEC_JT2,
-    FW_ID_CP_MEC1,
-    FW_ID_CP_MEC2,
-    FW_ID_RLC,
-    FW_ID_SDMA0,
-    FW_ID_SDMA1,
-    FW_ID_SDMA2,
-    FW_ID_SDMA3,
-    FW_ID_SDMA4,
-    FW_ID_SDMA5,
-    FW_ID_SDMA6,
-    FW_ID_SDMA7,
-    FW_ID_VCN,
-    FW_ID_UVD,
-    FW_ID_VCE,
-    FW_ID_ISP,
-    FW_ID_DMCU_ERAM, /*eRAM*/
-    FW_ID_DMCU_ISR,  /*ISR*/
-    FW_ID_RLC_RESTORE_LIST_GPM_MEM,
-    FW_ID_RLC_RESTORE_LIST_SRM_MEM,
-    FW_ID_RLC_RESTORE_LIST_CNTL,
-    FW_ID_RLC_V,
-    FW_ID_MMSCH,
-    FW_ID_PSP_SYSDRV,
-    FW_ID_PSP_SOSDRV,
-    FW_ID_PSP_TOC,
-    FW_ID_PSP_KEYDB,
-    FW_ID_DFC,
-    FW_ID_PSP_SPL,
-    FW_ID_DRV_CAP,
-    FW_ID_MC,
-    FW_ID_PSP_BL,
-    FW_ID_CP_PM4,
-    FW_ID_RLC_P,
-    FW_ID_SEC_POLICY_STAGE2,
-    FW_ID_REG_ACCESS_WHITELIST,
-    FW_ID_IMU_DRAM,
-    FW_ID_IMU_IRAM,
-    FW_ID_SDMA_TH0,
-    FW_ID_SDMA_TH1,
-    FW_ID_CP_MES,
-    FW_ID_MES_KIQ,
-    FW_ID_MES_STACK,
-    FW_ID_MES_THREAD1,
-    FW_ID_MES_THREAD1_STACK,
-    FW_ID_RLX6,
-    FW_ID_RLX6_DRAM_BOOT,
-    FW_ID_RS64_ME,
-    FW_ID_RS64_ME_P0_DATA,
-    FW_ID_RS64_ME_P1_DATA,
-    FW_ID_RS64_PFP,
-    FW_ID_RS64_PFP_P0_DATA,
-    FW_ID_RS64_PFP_P1_DATA,
-    FW_ID_RS64_MEC,
-    FW_ID_RS64_MEC_P0_DATA,
-    FW_ID_RS64_MEC_P1_DATA,
-    FW_ID_RS64_MEC_P2_DATA,
-    FW_ID_RS64_MEC_P3_DATA,
-    FW_ID_PPTABLE,
-    FW_ID_PSP_SOC,
-    FW_ID_PSP_DBG,
-    FW_ID_PSP_INTF,
-    FW_ID_RLX6_CORE1,
-    FW_ID_RLX6_DRAM_BOOT_CORE1,
-    FW_ID_RLCV_LX7,
-    FW_ID_RLC_SAVE_RESTORE_LIST,
-    FW_ID_ASD,
-    FW_ID_TA_RAS,
-    FW_ID_TA_XGMI,
-    FW_ID_RLC_SRLG,
-    FW_ID_RLC_SRLS,
-    FW_ID_PM,
-    FW_ID_DMCU,
-    FW_ID__MAX
+  AMDSMI_FW_ID_SMU = 1,
+  AMDSMI_FW_ID_FIRST = AMDSMI_FW_ID_SMU,
+  AMDSMI_FW_ID_CP_CE,
+  AMDSMI_FW_ID_CP_PFP,
+  AMDSMI_FW_ID_CP_ME,
+  AMDSMI_FW_ID_CP_MEC_JT1,
+  AMDSMI_FW_ID_CP_MEC_JT2,
+  AMDSMI_FW_ID_CP_MEC1,
+  AMDSMI_FW_ID_CP_MEC2,
+  AMDSMI_FW_ID_RLC,
+  AMDSMI_FW_ID_SDMA0,
+  AMDSMI_FW_ID_SDMA1,
+  AMDSMI_FW_ID_SDMA2,
+  AMDSMI_FW_ID_SDMA3,
+  AMDSMI_FW_ID_SDMA4,
+  AMDSMI_FW_ID_SDMA5,
+  AMDSMI_FW_ID_SDMA6,
+  AMDSMI_FW_ID_SDMA7,
+  AMDSMI_FW_ID_VCN,
+  AMDSMI_FW_ID_UVD,
+  AMDSMI_FW_ID_VCE,
+  AMDSMI_FW_ID_ISP,
+  AMDSMI_FW_ID_DMCU_ERAM, /*eRAM*/
+  AMDSMI_FW_ID_DMCU_ISR,  /*ISR*/
+  AMDSMI_FW_ID_RLC_RESTORE_LIST_GPM_MEM,
+  AMDSMI_FW_ID_RLC_RESTORE_LIST_SRM_MEM,
+  AMDSMI_FW_ID_RLC_RESTORE_LIST_CNTL,
+  AMDSMI_FW_ID_RLC_V,
+  AMDSMI_FW_ID_MMSCH,
+  AMDSMI_FW_ID_PSP_SYSDRV,
+  AMDSMI_FW_ID_PSP_SOSDRV,
+  AMDSMI_FW_ID_PSP_TOC,
+  AMDSMI_FW_ID_PSP_KEYDB,
+  AMDSMI_FW_ID_DFC,
+  AMDSMI_FW_ID_PSP_SPL,
+  AMDSMI_FW_ID_DRV_CAP,
+  AMDSMI_FW_ID_MC,
+  AMDSMI_FW_ID_PSP_BL,
+  AMDSMI_FW_ID_CP_PM4,
+  AMDSMI_FW_ID_RLC_P,
+  AMDSMI_FW_ID_SEC_POLICY_STAGE2,
+  AMDSMI_FW_ID_REG_ACCESS_WHITELIST,
+  AMDSMI_FW_ID_IMU_DRAM,
+  AMDSMI_FW_ID_IMU_IRAM,
+  AMDSMI_FW_ID_SDMA_TH0,
+  AMDSMI_FW_ID_SDMA_TH1,
+  AMDSMI_FW_ID_CP_MES,
+  AMDSMI_FW_ID_MES_KIQ,
+  AMDSMI_FW_ID_MES_STACK,
+  AMDSMI_FW_ID_MES_THREAD1,
+  AMDSMI_FW_ID_MES_THREAD1_STACK,
+  AMDSMI_FW_ID_RLX6,
+  AMDSMI_FW_ID_RLX6_DRAM_BOOT,
+  AMDSMI_FW_ID_RS64_ME,
+  AMDSMI_FW_ID_RS64_ME_P0_DATA,
+  AMDSMI_FW_ID_RS64_ME_P1_DATA,
+  AMDSMI_FW_ID_RS64_PFP,
+  AMDSMI_FW_ID_RS64_PFP_P0_DATA,
+  AMDSMI_FW_ID_RS64_PFP_P1_DATA,
+  AMDSMI_FW_ID_RS64_MEC,
+  AMDSMI_FW_ID_RS64_MEC_P0_DATA,
+  AMDSMI_FW_ID_RS64_MEC_P1_DATA,
+  AMDSMI_FW_ID_RS64_MEC_P2_DATA,
+  AMDSMI_FW_ID_RS64_MEC_P3_DATA,
+  AMDSMI_FW_ID_PPTABLE,
+  AMDSMI_FW_ID_PSP_SOC,
+  AMDSMI_FW_ID_PSP_DBG,
+  AMDSMI_FW_ID_PSP_INTF,
+  AMDSMI_FW_ID_RLX6_CORE1,
+  AMDSMI_FW_ID_RLX6_DRAM_BOOT_CORE1,
+  AMDSMI_FW_ID_RLCV_LX7,
+  AMDSMI_FW_ID_RLC_SAVE_RESTORE_LIST,
+  AMDSMI_FW_ID_ASD,
+  AMDSMI_FW_ID_TA_RAS,
+  AMDSMI_FW_ID_TA_XGMI,
+  AMDSMI_FW_ID_RLC_SRLG,
+  AMDSMI_FW_ID_RLC_SRLS,
+  AMDSMI_FW_ID_PM,
+  AMDSMI_FW_ID_DMCU,
+  AMDSMI_FW_ID__MAX
 } amdsmi_fw_block_t;
 
 
 typedef enum {
-  VRAM_TYPE_UNKNOWN = 0,
-  VRAM_TYPE_GDDR1 = 1,
-  VRAM_TYPE_DDR2 = 2,
-  VRAM_TYPE_GDDR3 = 3,
-  VRAM_TYPE_GDDR4 = 4,
-  VRAM_TYPE_GDDR5 = 5,
-  VRAM_TYPE_HBM = 6,
-  VRAM_TYPE_DDR3 = 7,
-  VRAM_TYPE_DDR4 = 8,
-  VRAM_TYPE_GDDR6 = 9,
-  VRAM_TYPE__MAX = VRAM_TYPE_GDDR6
+  AMDSMI_VRAM_TYPE_UNKNOWN = 0,
+  AMDSMI_VRAM_TYPE_GDDR1 = 1,
+  AMDSMI_VRAM_TYPE_DDR2 = 2,
+  AMDSMI_VRAM_TYPE_GDDR3 = 3,
+  AMDSMI_VRAM_TYPE_GDDR4 = 4,
+  AMDSMI_VRAM_TYPE_GDDR5 = 5,
+  AMDSMI_VRAM_TYPE_HBM = 6,
+  AMDSMI_VRAM_TYPE_DDR3 = 7,
+  AMDSMI_VRAM_TYPE_DDR4 = 8,
+  AMDSMI_VRAM_TYPE_GDDR6 = 9,
+  AMDSMI_VRAM_TYPE__MAX = AMDSMI_VRAM_TYPE_GDDR6
 } amdsmi_vram_type_t;
 
 typedef enum {
@@ -483,12 +483,12 @@ typedef struct {
 } amdsmi_frequency_range_t;
 
 typedef union {
-  struct fields_ {
+  struct {
     uint64_t function_number : 3;
     uint64_t device_number : 5;
     uint64_t bus_number : 8;
     uint64_t domain_number : 48;
-  } fields;
+  };
   uint64_t as_uint;
 } amdsmi_bdf_t;
 
@@ -568,7 +568,7 @@ typedef struct {
     amdsmi_fw_block_t fw_id;
     uint64_t fw_version;
     uint64_t reserved[2];
-  } fw_info_list[FW_ID__MAX];
+  } fw_info_list[AMDSMI_FW_ID__MAX];
   uint32_t reserved[7];
 } amdsmi_fw_info_t;
 
@@ -608,7 +608,8 @@ typedef struct {
 typedef struct {
   amdsmi_vram_type_t vram_type;
   amdsmi_vram_vendor_type_t vram_vendor;
-  uint64_t vram_size_mb;
+  uint64_t vram_size;
+  uint64_t reserved[6];
 } amdsmi_vram_info_t;
 
 
@@ -638,10 +639,11 @@ typedef struct {
 } amdsmi_power_info_t;
 
 typedef struct {
-  uint32_t cur_clk;
+  uint32_t clk;
   uint32_t min_clk;
   uint32_t max_clk;
-  uint32_t sleep_clk;
+  uint8_t clk_locked;
+  uint8_t clk_deep_sleep;
   uint32_t reserved[4];
 } amdsmi_clk_info_t;
 

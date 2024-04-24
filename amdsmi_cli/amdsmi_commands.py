@@ -691,7 +691,7 @@ class AMDSMICommands():
 
                 # Get vram type string
                 vram_type_enum = vram_info['vram_type']
-                if vram_type_enum == amdsmi_interface.amdsmi_wrapper.VRAM_TYPE_GDDR6:
+                if vram_type_enum == amdsmi_interface.amdsmi_wrapper.AMDSMI_VRAM_TYPE_GDDR6:
                     vram_type = "GDDR6"
                 else:
                     vram_type = amdsmi_interface.amdsmi_wrapper.amdsmi_vram_type_t__enumvalues[vram_type_enum]
@@ -712,13 +712,13 @@ class AMDSMICommands():
                 vram_info_dict['vendor'] = vram_vendor
 
                 # Populate vram size with unit
-                vram_info_dict['size'] = vram_info['vram_size_mb']
+                vram_info_dict['size'] = vram_info['vram_size']
                 vram_size_unit = "MB"
                 if self.logger.is_human_readable_format():
-                    vram_info_dict['size'] = f"{vram_info['vram_size_mb']} {vram_size_unit}"
+                    vram_info_dict['size'] = f"{vram_info['vram_size']} {vram_size_unit}"
 
                 if self.logger.is_json_format():
-                    vram_info_dict['size'] = {"value" : vram_info['vram_size_mb'],
+                    vram_info_dict['size'] = {"value" : vram_info['vram_size'],
                                               "unit" : vram_size_unit}
 
             except amdsmi_exception.AmdSmiLibraryException as e:
