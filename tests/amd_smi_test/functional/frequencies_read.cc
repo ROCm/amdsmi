@@ -181,8 +181,16 @@ void TestFrequenciesRead::Run(void) {
           std::cout << b.transfer_rate.num_supported << std::endl;
           print_frequencies(&b.transfer_rate, b.lanes);
           // Verify api support checking functionality is working
+          // NOTE:  We expect AMDSMI_STATUS_NOT_SUPPORTED, if rsmi_pcie_bandwidth_t* is NULL
           err = amdsmi_get_gpu_pci_bandwidth(processor_handles_[i], nullptr);
-          ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
+          if (err != amdsmi_status_t::AMDSMI_STATUS_NOT_SUPPORTED) {
+              ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
+          }
+          else {
+              auto status_string("");
+              amdsmi_status_code_to_string(err, &status_string);
+              std::cout << "\t\t** amdsmi_get_gpu_pci_bandwidth(): " << status_string << "\n";
+          }
         }
       }
     }

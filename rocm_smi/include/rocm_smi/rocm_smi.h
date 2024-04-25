@@ -80,6 +80,7 @@ extern "C" {
 //! The number of points that make up a voltage-frequency curve definition
 #define RSMI_NUM_VOLTAGE_CURVE_POINTS 3
 
+
 /**
  * @brief Error codes retured by rocm_smi_lib functions
  */
@@ -191,6 +192,39 @@ typedef enum {
 
   RSMI_DEV_PERF_LEVEL_UNKNOWN = 0x100   //!< Unknown performance level
 } rsmi_dev_perf_level_t;
+
+
+#define RSMI_MAX_NUM_PM_POLICIES 32
+#define RSMI_MAX_POLICY_NAME 32
+/**
+ * @brief The dpm policy.
+ */
+typedef struct {
+  uint32_t policy_id;
+  char policy_description[RSMI_MAX_POLICY_NAME];
+} rsmi_dpm_policy_entry_t;
+
+/**
+ * @brief This structure holds information about dpm policies.
+ */
+typedef struct {
+    /**
+     * The number of supported policies
+     */
+    uint32_t num_supported;
+
+    /**
+     * The current policy index
+     */
+    uint32_t current;
+
+    /**
+     * List of policies.
+     * Only the first num_supported policies are valid.
+     */
+    rsmi_dpm_policy_entry_t policies[RSMI_MAX_NUM_PM_POLICIES];
+} rsmi_dpm_policy_t;
+
 /// \cond Ignore in docs.
 typedef rsmi_dev_perf_level_t rsmi_dev_perf_level;
 /// \endcond
@@ -353,7 +387,7 @@ typedef struct {
  * Clock types
  */
 typedef enum {
-  RSMI_CLK_TYPE_SYS  = 0x0,           //!< System clock
+  RSMI_CLK_TYPE_SYS = 0x0,            //!< System clock
   RSMI_CLK_TYPE_FIRST = RSMI_CLK_TYPE_SYS,
   RSMI_CLK_TYPE_DF,                   //!< Data Fabric clock (for ASICs
                                       //!< running on a separate clock)
@@ -970,6 +1004,9 @@ struct metrics_table_header_t {
   uint8_t       content_revision;
   /// \endcond
 };
+/// \cond Ignore in docs.
+typedef struct metrics_table_header_t metrics_table_header_t;
+/// \endcond
 
 /**
  * @brief The following structure holds the gpu metrics values for a device.
@@ -986,9 +1023,14 @@ struct metrics_table_header_t {
 #define RSMI_NUM_HBM_INSTANCES 4
 
 /**
- * @brief This should match kRSMI_MAX_NUM_VCN
+ * @brief This should match kRSMI_MAX_NUM_VCNS
  */
-#define RSMI_MAX_NUM_VCN 4
+#define RSMI_MAX_NUM_VCNS 4
+
+/**
+ * @brief This should match kRSMI_MAX_JPEG_ENGINES
+ */
+#define RSMI_MAX_NUM_JPEG_ENGS 32
 
 /**
  * @brief This should match kRSMI_MAX_NUM_CLKS
@@ -1109,7 +1151,7 @@ typedef struct {
   uint16_t current_socket_power;
 
   // Utilization (%)
-  uint16_t vcn_activity[RSMI_MAX_NUM_VCN]; // VCN instances activity percent (encode/decode)
+  uint16_t vcn_activity[RSMI_MAX_NUM_VCNS]; // VCN instances activity percent (encode/decode)
 
   // Clock Lock Status. Each bit corresponds to clock instance
   uint32_t gfxclk_lock_status;
@@ -1143,6 +1185,19 @@ typedef struct {
   uint16_t current_vclk0s[RSMI_MAX_NUM_CLKS];
   uint16_t current_dclk0s[RSMI_MAX_NUM_CLKS];
 
+  /*
+   * v1.5 additions
+   */
+  // JPEG activity percent (encode/decode)
+  uint16_t jpeg_activity[RSMI_MAX_NUM_JPEG_ENGS];
+
+  // PCIE NAK sent accumulated count
+  uint32_t pcie_nak_sent_count_acc;
+
+  // PCIE NAK received accumulated count
+  uint32_t pcie_nak_rcvd_count_acc;
+
+
   /// \endcond
 } rsmi_gpu_metrics_t;
 
@@ -1172,8 +1227,10 @@ typedef enum {
  * @brief This structure holds error counts.
  */
 typedef struct {
-    uint64_t correctable_err;            //!< Accumulated correctable errors
-    uint64_t uncorrectable_err;          //!< Accumulated uncorrectable errors
+  uint64_t correctable_err;   //!< Accumulated correctable errors
+  uint64_t uncorrectable_err;  //!< Accumulated uncorrectable errors
+  uint64_t deferred_err;  //!< Accumulated deferred errors
+  uint64_t reserved[5];
 } rsmi_error_count_t;
 
 /**
@@ -1358,7 +1415,7 @@ rsmi_status_t rsmi_dev_revision_get(uint32_t dv_ind, uint16_t *revision);
  *  @retval ::RSMI_STATUS_INVALID_ARGS the provided arguments are not valid
  *
  */
-rsmi_status_t rsmi_dev_sku_get(uint32_t dv_ind, uint16_t *sku);
+rsmi_status_t rsmi_dev_sku_get(uint32_t dv_ind, char *sku);
 
 /**
  *  @brief Get the device vendor id associated with the device with provided
@@ -1732,7 +1789,6 @@ rsmi_status_t rsmi_dev_subsystem_vendor_id_get(uint32_t dv_ind, uint16_t *id);
  *  @retval ::RSMI_STATUS_INVALID_ARGS the provided arguments are not valid
  */
 rsmi_status_t rsmi_dev_unique_id_get(uint32_t dv_ind, uint64_t *id);
-
 
 /**
  *  @brief Get the XGMI physical id associated with the device
@@ -3272,6 +3328,42 @@ rsmi_status_t rsmi_dev_overdrive_level_set_v1(uint32_t dv_ind, uint32_t od);
 rsmi_status_t rsmi_dev_gpu_clk_freq_set(uint32_t dv_ind,
                              rsmi_clk_type_t clk_type, uint64_t freq_bitmask);
 
+/**
+ * @brief Get the dpm policy for a device
+ *
+ * @details Given a device index @p dv_ind,  this function will write
+ * current dpm policy settings to @p policy. All the devices at the same socket
+ * will have the same policy.
+ *
+ *  @param[in] dv_ind a device index
+ *
+ *  @param[in, out] policy the dpm policy for this device.
+ *  If this parameter is nullptr, this function will return
+ *  ::RSMI_STATUS_INVAL
+ *
+ *  @return ::RSMI_STATUS_SUCCESS is returned upon successful call, non-zero on fail
+ */
+rsmi_status_t rsmi_dev_dpm_policy_get(uint32_t dv_ind,
+                             rsmi_dpm_policy_t* policy);
+
+/**
+ * @brief Set the dpm policy for a device
+ *
+ * @details Given a device index @p dv_ind and a dpm policy @p policy_id,
+ * this function will set the DPM policy for this device. All the devices at
+ * the same socket will be set to the same policy.
+ *
+ *  @note This function requires root access
+ *
+ *  @param[in] processor_handle a processor handle
+ *
+ *  @param[in] policy_id the dpm policy will be modified
+ *
+ *  @return ::RSMI_STATUS_SUCCESS is returned upon successful call, non-zero on fail
+ */
+rsmi_status_t rsmi_dev_dpm_policy_set(uint32_t dv_ind,
+                             uint32_t policy_id);
+
 /** @} */  // end of PerfCont
 
 /*****************************************************************************/
@@ -4097,7 +4189,7 @@ rsmi_is_P2P_accessible(uint32_t dv_ind_src, uint32_t dv_ind_dst,
 /** @} */  // end of HWTopo
 
 /*****************************************************************************/
-/** @defgroup compute_partition Compute Partition Functions
+/** @defgroup ComputePartition Compute Partition Functions
  *  These functions are used to configure and query the device's
  *  compute parition setting.
  *  @{
@@ -4182,10 +4274,10 @@ rsmi_dev_compute_partition_set(uint32_t dv_ind,
  */
 rsmi_status_t rsmi_dev_compute_partition_reset(uint32_t dv_ind);
 
-/** @} */  // end of compute_partition
+/** @} */  // end of ComputePartition
 
 /*****************************************************************************/
-/** @defgroup memory_partition Memory Partition Functions
+/** @defgroup memory_partition The Memory Partition Functions
  *  These functions are used to query and set the device's current memory
  *  partition.
  *  @{
@@ -4627,7 +4719,8 @@ rsmi_status_t rsmi_event_notification_stop(uint32_t dv_ind);
  * Metric multi-valued counter types
  */
 typedef uint16_t GPUMetricTempHbm_t[RSMI_NUM_HBM_INSTANCES];
-typedef uint16_t GPUMetricVcnActivity_t[RSMI_MAX_NUM_VCN];
+typedef uint16_t GPUMetricVcnActivity_t[RSMI_MAX_NUM_VCNS];
+typedef uint16_t GPUMetricJpegActivity_t[RSMI_MAX_NUM_JPEG_ENGS];
 typedef uint64_t GPUMetricXgmiReadDataAcc_t[RSMI_MAX_NUM_XGMI_LINKS];
 typedef uint64_t GPUMetricXgmiWriteDataAcc_t[RSMI_MAX_NUM_XGMI_LINKS];
 typedef uint16_t GPUMetricCurrGfxClk_t[RSMI_MAX_NUM_GFX_CLKS];
@@ -5113,7 +5206,7 @@ rsmi_dev_metrics_temp_hbm_get(uint32_t dv_ind, GPUMetricTempHbm_t* temp_hbm_valu
  *
  *  @param[inout] vcn_activity_value a pointer to uint16_t to which the device gpu
  *  metric unit will be stored
- *      - This is a multi-valued counter holding a 4 (RSMI_MAX_NUM_VCN)
+ *      - This is a multi-valued counter holding a 4 (RSMI_MAX_NUM_VCNS)
  *        element array (GPUMetricVcnActivity_t)
  *
  *  @retval ::RSMI_STATUS_SUCCESS is returned upon successful call.

@@ -19,6 +19,9 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
+# Library Version is the tool/amdsmi_interface version
+from ._version import __version__
+
 # Library Initialization
 from .amdsmi_interface import amdsmi_init
 from .amdsmi_interface import amdsmi_shut_down
@@ -32,8 +35,8 @@ from .amdsmi_interface import amdsmi_get_socket_info
 # ESMI Dependent Functions
 try:
     from .amdsmi_interface import amdsmi_get_cpusocket_handles
-    from .amdsmi_interface import amdsmi_get_cpusocket_info
     from .amdsmi_interface import amdsmi_get_cpucore_handles
+    from .amdsmi_interface import amdsmi_get_processor_info
     from .amdsmi_interface import amdsmi_get_cpu_hsmp_proto_ver
     from .amdsmi_interface import amdsmi_get_cpu_smu_fw_version
     from .amdsmi_interface import amdsmi_get_cpu_core_energy
@@ -60,6 +63,20 @@ try:
     from .amdsmi_interface import amdsmi_get_cpu_dimm_power_consumption
     from .amdsmi_interface import amdsmi_get_cpu_dimm_thermal_sensor
     from .amdsmi_interface import amdsmi_set_cpu_xgmi_width
+    from .amdsmi_interface import amdsmi_set_cpu_gmi3_link_width_range
+    from .amdsmi_interface import amdsmi_cpu_apb_enable
+    from .amdsmi_interface import amdsmi_cpu_apb_disable
+    from .amdsmi_interface import amdsmi_set_cpu_socket_lclk_dpm_level
+    from .amdsmi_interface import amdsmi_get_cpu_socket_lclk_dpm_level
+    from .amdsmi_interface import amdsmi_set_cpu_pcie_link_rate
+    from .amdsmi_interface import amdsmi_set_cpu_df_pstate_range
+    from .amdsmi_interface import amdsmi_get_cpu_current_io_bandwidth
+    from .amdsmi_interface import amdsmi_get_cpu_current_xgmi_bw
+    from .amdsmi_interface import amdsmi_get_hsmp_metrics_table_version
+    from .amdsmi_interface import amdsmi_get_hsmp_metrics_table
+    from .amdsmi_interface import amdsmi_first_online_core_on_cpu_socket
+    from .amdsmi_interface import amdsmi_get_cpu_family
+    from .amdsmi_interface import amdsmi_get_cpu_model
 except AttributeError:
     pass
 
@@ -86,8 +103,7 @@ from .amdsmi_interface import amdsmi_get_gpu_vram_usage
 from .amdsmi_interface import amdsmi_get_power_info
 from .amdsmi_interface import amdsmi_get_clock_info
 
-from .amdsmi_interface import amdsmi_get_pcie_link_status
-from .amdsmi_interface import amdsmi_get_pcie_link_caps
+from .amdsmi_interface import amdsmi_get_pcie_info
 from .amdsmi_interface import amdsmi_get_gpu_bad_page_info
 
 # # Process Information
@@ -203,56 +219,6 @@ from .amdsmi_interface import amdsmi_set_gpu_memory_partition
 from .amdsmi_interface import amdsmi_reset_gpu_memory_partition
 
 # # Individual GPU Metrics Functions
-from .amdsmi_interface import amdsmi_get_gpu_metrics_temp_hotspot
-from .amdsmi_interface import amdsmi_get_gpu_metrics_temp_mem
-from .amdsmi_interface import amdsmi_get_gpu_metrics_temp_vrsoc
-from .amdsmi_interface import amdsmi_get_gpu_metrics_curr_socket_power
-from .amdsmi_interface import amdsmi_get_gpu_metrics_avg_gfx_activity
-from .amdsmi_interface import amdsmi_get_gpu_metrics_avg_umc_activity
-from .amdsmi_interface import amdsmi_get_gpu_metrics_energy_acc
-from .amdsmi_interface import amdsmi_get_gpu_metrics_system_clock_counter
-from .amdsmi_interface import amdsmi_get_gpu_metrics_firmware_timestamp
-from .amdsmi_interface import amdsmi_get_gpu_metrics_throttle_status
-from .amdsmi_interface import amdsmi_get_gpu_metrics_pcie_link_width
-from .amdsmi_interface import amdsmi_get_gpu_metrics_pcie_link_speed
-from .amdsmi_interface import amdsmi_get_gpu_metrics_xgmi_link_width
-from .amdsmi_interface import amdsmi_get_gpu_metrics_xgmi_link_speed
-from .amdsmi_interface import amdsmi_get_gpu_metrics_gfxclk_lock_status
-from .amdsmi_interface import amdsmi_get_gpu_metrics_gfx_activity_acc
-from .amdsmi_interface import amdsmi_get_gpu_metrics_mem_activity_acc
-from .amdsmi_interface import amdsmi_get_gpu_metrics_pcie_bandwidth_acc
-from .amdsmi_interface import amdsmi_get_gpu_metrics_pcie_bandwidth_inst
-from .amdsmi_interface import amdsmi_get_gpu_metrics_pcie_l0_recov_count_acc
-from .amdsmi_interface import amdsmi_get_gpu_metrics_pcie_replay_count_acc
-from .amdsmi_interface import amdsmi_get_gpu_metrics_pcie_replay_rover_count_acc
-from .amdsmi_interface import amdsmi_get_gpu_metrics_curr_uclk
-from .amdsmi_interface import amdsmi_get_gpu_metrics_temp_hbm
-from .amdsmi_interface import amdsmi_get_gpu_metrics_vcn_activity
-from .amdsmi_interface import amdsmi_get_gpu_metrics_xgmi_read_data
-from .amdsmi_interface import amdsmi_get_gpu_metrics_xgmi_write_data
-from .amdsmi_interface import amdsmi_get_gpu_metrics_curr_gfxclk
-from .amdsmi_interface import amdsmi_get_gpu_metrics_curr_socclk
-from .amdsmi_interface import amdsmi_get_gpu_metrics_curr_vclk0
-from .amdsmi_interface import amdsmi_get_gpu_metrics_curr_dclk0
-from .amdsmi_interface import amdsmi_get_gpu_metrics_temp_edge
-from .amdsmi_interface import amdsmi_get_gpu_metrics_temp_vrgfx
-from .amdsmi_interface import amdsmi_get_gpu_metrics_temp_vrmem
-from .amdsmi_interface import amdsmi_get_gpu_metrics_avg_mm_activity
-from .amdsmi_interface import amdsmi_get_gpu_metrics_curr_vclk1
-from .amdsmi_interface import amdsmi_get_gpu_metrics_curr_dclk1
-from .amdsmi_interface import amdsmi_get_gpu_metrics_indep_throttle_status
-from .amdsmi_interface import amdsmi_get_gpu_metrics_avg_socket_power
-from .amdsmi_interface import amdsmi_get_gpu_metrics_curr_fan_speed
-from .amdsmi_interface import amdsmi_get_gpu_metrics_avg_gfx_clock_frequency
-from .amdsmi_interface import amdsmi_get_gpu_metrics_avg_soc_clock_frequency
-from .amdsmi_interface import amdsmi_get_gpu_metrics_avg_uclock_frequency
-from .amdsmi_interface import amdsmi_get_gpu_metrics_avg_vclock0_frequency
-from .amdsmi_interface import amdsmi_get_gpu_metrics_avg_dclock0_frequency
-from .amdsmi_interface import amdsmi_get_gpu_metrics_avg_vclock1_frequency
-from .amdsmi_interface import amdsmi_get_gpu_metrics_avg_dclock1_frequency
-from .amdsmi_interface import amdsmi_get_gpu_metrics_volt_soc
-from .amdsmi_interface import amdsmi_get_gpu_metrics_volt_gfx
-from .amdsmi_interface import amdsmi_get_gpu_metrics_volt_mem
 from .amdsmi_interface import amdsmi_get_gpu_metrics_header_info
 
 # # Enums

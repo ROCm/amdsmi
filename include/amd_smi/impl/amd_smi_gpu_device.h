@@ -48,6 +48,7 @@
 #include "amd_smi/impl/amd_smi_processor.h"
 #include "amd_smi/impl/amd_smi_drm.h"
 #include "shared_mutex.h"  // NOLINT
+#include "rocm_smi/rocm_smi_logger.h"
 
 namespace amd {
 namespace smi {
@@ -62,7 +63,6 @@ class AMDSmiGPUDevice: public AMDSmiProcessor {
                 if (check_if_drm_is_supported()) this->get_drm_data();
             }
     ~AMDSmiGPUDevice() {
-        if (check_if_drm_is_supported()) shared_mutex_close(mutex_);
     }
 
     amdsmi_status_t get_drm_data();
@@ -90,7 +90,6 @@ class AMDSmiGPUDevice: public AMDSmiProcessor {
     amdsmi_bdf_t bdf_;
     uint32_t vendor_id_;
     AMDSmiDrm& drm_;
-    shared_mutex_t mutex_;
 };
 
 

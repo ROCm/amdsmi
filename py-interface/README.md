@@ -73,7 +73,7 @@ except AmdSmiException as e:
 
 ### amdsmi_init
 
-Description: Initialize amdsmi lib and connect to driver
+Description: Dynamically initialize amdsmi with amd_hsmp and amdgpu drivers
 
 Input parameters: `None`
 
@@ -87,7 +87,12 @@ Example:
 
 ```python
 try:
-    amdsmi_init()
+    init_flag = amdsmi_init()
+    # Print out integer bitmask of initialized drivers
+    # 1 is for amd_hsmp
+    # 2 is for amdgpu
+    # 3 is for amd_hsmp and amdgpu
+    print(init_flag)
     # continue with amdsmi
 except AmdSmiException as e:
     print("Init failed")
@@ -465,23 +470,36 @@ except AmdSmiException as e:
 
 ### amdsmi_get_gpu_cache_info
 
-Description: Returns dictionary of cache information for the given GPU.
+Description: Returns a list of dictionaries containing cache information for the given GPU.
 
 Input parameters:
 
 * `processor_handle` device which to query
 
-Output: Dictionary of Dictionaries containing cache information
+Output: List of Dictionaries containing cache information following the schema below:
+Schema:
+
+```JSON
+{
+    cache_properties:
+        {
+            "type" : "array",
+            "items" : {"type" : "string"}
+        },
+    cache_size: {"type" : "number"},
+    cache_level: {"type" : "number"},
+    max_num_cu_shared: {"type" : "number"},
+    num_cache_instance: {"type" : "number"}
+}
+```
 
 Field | Description
 ---|---
-`cache #` |  upt 10 caches will be available
+`cache_properties` | list of up to 4 cache property type strings. Ex. data ("DATA_CACHE"), instruction ("INST_CACHE"), CPU ("CPU_CACHE"), or SIMD ("SIMD_CACHE").
 `cache_size` | size of cache in KB
 `cache_level` | level of cache
-`data_cache` | True if data cache is enabled, false otherwise
-`instruction_cache` | True if instruction cache is enabled, false otherwise
-`cpu_cache` | True if cpu cache is enabled, false otherwise
-`simd_cache` | True if simd cache is enabled, false otherwise
+`max_num_cu_shared` |  max number of compute units shared
+`num_cache_instance` | number of cache instances
 
 Exceptions that can be thrown by `amdsmi_get_gpu_cache_info` function:
 
@@ -500,13 +518,11 @@ try:
         for device in devices:
             cache_info = amdsmi_get_gpu_cache_info(device)
             for cache_index, cache_values in cache_info.items():
-                print(cache_index)
+                print(cache_values['cache_properties'])
                 print(cache_values['cache_size'])
                 print(cache_values['cache_level'])
-                print(cache_values['data_cache'])
-                print(cache_values['instruction_cache'])
-                print(cache_values['cpu_cache'])
-                print(cache_values['simd_cache'])
+                print(cache_values['max_num_cu_shared'])
+                print(cache_values['num_cache_instance'])
 except AmdSmiException as e:
     print(e)
 ```
@@ -599,7 +615,7 @@ Input parameters:
 
 * `processor_handle` device which to query
 
-Output: Dictionary with fields
+Output: Dictionary of activites to their respective usage percentage or 'N/A' if not supported
 
 Field | Description
 ---|---
@@ -762,7 +778,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-### amdsmi_get_pcie_link_status
+### amdsmi_get_pcie_info
 
 Description: Returns the pcie link status for the given GPU.
 It is not supported on virtual machine guest
@@ -775,11 +791,11 @@ Output: Dictionary with fields
 
 Field | Description
 ---|---
-`pcie_lanes`| pcie lanes in use
+`pcie_width`| pcie lanes in use
 `pcie_speed`| current pcie speed
 `pcie_interface_version`| current pcie generation
 
-Exceptions that can be thrown by `amdsmi_get_pcie_link_status` function:
+Exceptions that can be thrown by `amdsmi_get_pcie_info` function:
 
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
@@ -794,47 +810,10 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            pcie_link_status = amdsmi_get_pcie_link_status(device)
-            print(pcie_link_status["pcie_lanes"])
+            pcie_link_status = amdsmi_get_pcie_info(device)
+            print(pcie_link_status["pcie_width"])
             print(pcie_link_status["pcie_speed"])
             print(pcie_link_status["pcie_interface_version"])
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_pcie_link_caps
-
-Description:  Returns the max pcie link capabilities for the given GPU
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: Dictionary with fields
-
-Field | Description
----|---
-`pcie_lanes` | Number of PCIe lanes
-`pcie_speed` | PCIe speed in MT/s
-
-Exceptions that can be thrown by `amdsmi_get_pcie_link_caps` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on machine")
-    else:
-        for device in devices:
-            pcie_caps = amdsmi_get_pcie_link_caps(device)
-            print(pcie_caps['pcie_lanes'])
-            print(pcie_caps['pcie_speed'])
 except AmdSmiException as e:
     print(e)
 ```
@@ -1010,8 +989,8 @@ Field | Description
 `model_number` | Board serial number
 `product_serial` | Product serial
 `fru_id` | FRU ID
-`manufacturer_name` | Manufacturer name
 `product_name` | Product name
+`manufacturer_name` | Manufacturer name
 
 Exceptions that can be thrown by `amdsmi_get_gpu_board_info` function:
 
@@ -1028,8 +1007,8 @@ try:
     print(board_info["model_number"])
     print(board_info["product_serial"])
     print(board_info["fru_id"])
-    print(board_info["manufacturer_name"])
     print(board_info["product_name"])
+    print(board_info["manufacturer_name"])
 except AmdSmiException as e:
     print(e)
 ```
@@ -1118,7 +1097,7 @@ Can be used with `with` statement for automatic cleanup.
 
 Methods:
 
-### Constructor
+#### Constructor
 
 Description: Allocates a new event reader notifier to monitor different types of events for the given GPU
 
@@ -1134,7 +1113,7 @@ Event Type | Description
 `GPU_PRE_RESET`   | gpu pre reset
 `GPU_POST_RESET` | gpu post reset
 
-### read
+#### read
 
 Description: Reads events on the given device. When event is caught, device handle, message and event type are returned. Reading events stops when timestamp passes without event reading.
 
@@ -1143,7 +1122,7 @@ Input parameters:
 * `timestamp` number of milliseconds to wait for an event to occur. If event does not happen monitoring is finished
 * `num_elem` number of events. This is optional parameter. Default value is 10.
 
-### stop
+#### stop
 
 Description: Any resources used by event notification for the the given device will be freed with this function. This can be used explicitly or
 automatically using `with` statement, like in the examples below. This should be called either manually or automatically for every created AmdSmiEventReader object.
@@ -2117,63 +2096,66 @@ Input parameters:
 
 Output: Dictionary with fields
 
-Field | Description
-`---|---
-`temperature_edge` | edge temperature value
-`temperature_hotspot` | hotspot temperature value
-`temperature_mem` | memory temperature value
-`temperature_vrgfx` | vrgfx temperature value
-`temperature_vrsoc` | vrsoc temperature value
-`temperature_vrmem` | vrmem temperature value
-`average_gfx_activity` | average gfx activity
-`average_umc_activity` | average umc activity
-`average_mm_activity` | average mm activity
-`average_socket_power` | average socket power
-`energy_accumulator` | energy accumulator value
-`system_clock_counter` | system clock counter
-`average_gfxclk_frequency` | average gfx clock frequency
-`average_socclk_frequency` | average soc clock frequency
-`average_uclk_frequency` | average uclk frequency
-`average_vclk0_frequency` | average vclk0 frequency
-`average_dclk0_frequency` | average dclk0 frequency
-`average_vclk1_frequency` | average vclk1 frequency
-`average_dclk1_frequency` | average dclk1 frequency
-`current_gfxclk` | current gfx clock
-`current_socclk` | current soc clock
-`current_uclk` | current uclk
-`current_vclk0` | current vclk0
-`current_dclk0` | current dclk0
-`current_vclk1` | current vclk1
-`current_dclk1` | current dclk1
-`throttle_status` | current throttle status
-`current_fan_speed` | current fan speed
-`pcie_link_width` | pcie link width
-`pcie_link_speed` | pcie link speed
+| Field | Description |Unit|
+|-------|-------------|----|
+`temperature_edge` | Edge temperature value | Celsius (C)
+`temperature_hotspot` | Hotspot (aka junction) temperature value | Celsius (C)
+`temperature_mem` | Memory temperature value | Celsius (C)
+`temperature_vrgfx` | vrgfx temperature value | Celsius (C)
+`temperature_vrsoc` | vrsoc temperature value | Celsius (C)
+`temperature_vrmem` | vrmem temperature value | Celsius (C)
+`average_gfx_activity` | Average gfx activity | %
+`average_umc_activity` | Average umc (Universal Memory Controller) activity | %
+`average_mm_activity` | Average mm (multimedia) engine activity | %
+`average_socket_power` | Average socket power | W
+`energy_accumulator` | Energy accumulated with a 15.3 uJ resolution over 1ns | uJ
+`system_clock_counter` | System clock counter | ns
+`average_gfxclk_frequency` | Average gfx clock frequency | MHz
+`average_socclk_frequency` | Average soc clock frequency | MHz
+`average_uclk_frequency` | Average uclk frequency | MHz
+`average_vclk0_frequency` | Average vclk0 frequency | MHz
+`average_dclk0_frequency` | Average dclk0 frequency | MHz
+`average_vclk1_frequency` | Average vclk1 frequency | MHz
+`average_dclk1_frequency` | Average dclk1 frequency | MHz
+`current_gfxclk` | Current gfx clock | MHz
+`current_socclk` | Current soc clock | MHz
+`current_uclk` | Current uclk | MHz
+`current_vclk0` | Current vclk0 | MHz
+`current_dclk0` | Current dclk0 | MHz
+`current_vclk1` | Current vclk1 | MHz
+`current_dclk1` | Current dclk1 | MHz
+`throttle_status` | Current throttle status | MHz
+`current_fan_speed` | Current fan speed | RPM
+`pcie_link_width` | PCIe link width (number of lanes) | lanes
+`pcie_link_speed` | PCIe link speed in 0.1 GT/s (Giga Transfers per second) | GT/s
 `padding` | padding
-`gfx_activity_acc` | gfx activity acc
-`mem_activity_acc` | mem activity acc
-`temperature_hbm` | list of hbm temperatures
-`firmware_timestamp` | timestamp from PMFW
-`voltage_soc` | soc voltage
-`voltage_gfx` | gfx voltage
-`voltage_mem` | mem voltage
-`indep_throttle_status` | asic independent throttle status
-`current_socket_power` | current socket power
-`vcn_activity` | list of encoding and decoding engine utilizations
-`gfxclk_lock_status` | gfx clock lock status
-`xgmi_link_width` | XGMI bus width
-`xgmi_link_speed` | XGMI bitrate (in Gbps)
-`pcie_bandwidth_acc` | PCIE accumulated bandwidth (GB/sec)
-`pcie_bandwidth_inst` | PCIE instantaneous bandwidth (GB/sec)
-`pcie_l0_to_recov_count_acc` | PCIE L0 to recovery state transition accumulated count
-`pcie_replay_count_acc` | PCIE replay accumulated count
-`pcie_replay_rover_count_acc` | PCIE replay rollover accumulated count
-`xgmi_read_data_acc` | XGMI accumulated read data transfer size(KiloBytes)
-`xgmi_write_data_acc` | XGMI accumulated write data transfer size(KiloBytes)
-`current_gfxclks` | list of current gfx clock frequencies
-`current_socclks` | list of current soc clock frequencies
-`current_vclk0s` | list of current v0 clock frequencies
-`current_dclk0s` | list of current d0 clock frequencies
+`gfx_activity_acc` | gfx activity accumulated | %
+`mem_activity_acc` | Memory activity accumulated | %
+`temperature_hbm` | list of hbm temperatures | Celsius (C)
+`firmware_timestamp` | timestamp from PMFW (10ns resolution) | ns
+`voltage_soc` | soc voltage | mV
+`voltage_gfx` | gfx voltage | mV
+`voltage_mem` | mem voltage | mV
+`indep_throttle_status` | ASIC independent throttle status (see drivers/gpu/drm/amd/pm/swsmu/inc/amdgpu_smu.h for bit flags) |
+`current_socket_power` | Current socket power (also known as instant socket power) | W
+`vcn_activity` | List of VCN encode/decode engine utilization per AID | %
+`gfxclk_lock_status` | Clock lock status. Each bit corresponds to clock instance. |
+`xgmi_link_width` | XGMI bus width | lanes
+`xgmi_link_speed` | XGMI bitrate | GB/s
+`pcie_bandwidth_acc` | PCIe accumulated bandwidth | GB/s
+`pcie_bandwidth_inst` | PCIe instantaneous bandwidth | GB/s
+`pcie_l0_to_recov_count_acc` | PCIe L0 to recovery state transition accumulated count |
+`pcie_replay_count_acc` | PCIe replay accumulated count |
+`pcie_replay_rover_count_acc` | PCIe replay rollover accumulated count |
+`xgmi_read_data_acc` | XGMI accumulated read data transfer size (KiloBytes) | KB
+`xgmi_write_data_acc` | XGMI accumulated write data transfer size (KiloBytes) | KB
+`current_gfxclks` | List of current gfx clock frequencies | MHz
+`current_socclks` | List of current soc clock frequencies | MHz
+`current_vclk0s` | List of current v0 clock frequencies | MHz
+`current_dclk0s` | List of current d0 clock frequencies | MHz
+`pcie_nak_sent_count_acc` | PCIe NAC sent count accumulated |
+`pcie_nak_rcvd_count_acc` | PCIe NAC received count accumulated |
+`jpeg_activity` | List of JPEG engine activity | %
 
 Exceptions that can be thrown by `amdsmi_get_gpu_metrics_info` function:
 
@@ -3533,1652 +3515,19 @@ except AmdSmiException as e:
     print(e)
 ```
 
-## GPU Metrics APIs
-
-### amdsmi_get_gpu_metrics_temp_hotspot
-
-Description: Get the hotspot temperature in degrees Celsius
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: hotspot temperature in degrees Celsius
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_temp_hotspot` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            hotspot_temp = amdsmi_get_gpu_metrics_temp_hotspot(device)
-            print(hotspot_temp)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_temp_mem
-
-Description: Get the memory temperature in degrees Celsius
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: memory temperature in degrees Celsius
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_temp_mem` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            mem_temp = amdsmi_get_gpu_metrics_temp_mem(device)
-            print(mem_temp)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_temp_vrsoc
-
-Description: Get the VRSOC temperature in degrees Celsius
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: VRSOC temperature in degrees Celsius
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_temp_vrsoc` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            vrsoc_temp = amdsmi_get_gpu_metrics_temp_vrsoc(device)
-            print(vrsoc_temp)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_curr_socket_power
-
-Description: Get the current socket power in Watts
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: current socket power in Watts
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_curr_socket_power` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            curr_socket_power = amdsmi_get_gpu_metrics_curr_socket_power(device)
-            print(curr_socket_power)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_avg_gfx_activity
-
-Description: Get the average GFX activity in percent
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: average GFX activity in percent
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_avg_gfx_activity` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            avg_gfx_activity = amdsmi_get_gpu_metrics_avg_gfx_activity(device)
-            print(avg_gfx_activity)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_avg_umc_activity
-
-Description: Get the average UMC activity in percent
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: average UMC activity in percent
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_avg_umc_activity` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            avg_umc_activity = amdsmi_get_gpu_metrics_avg_umc_activity(device)
-            print(avg_umc_activity)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_avg_energy_acc
-
-Description: Get the average energy accumulator in millijoules (check unit)
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: average energy accumulator in millijoules (check unit)
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_avg_energy_acc` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            avg_energy_acc = amdsmi_get_gpu_metrics_avg_energy_acc(device)
-            print(avg_energy_acc)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_system_clock_counter
-
-Description: Get the system clock counter
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: system clock counter
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_system_clock_counter` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-             system_clock_counter = amdsmi_get_gpu_metrics_system_clock_counter(device)
-             print(system_clock_counter)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_firmware_timestamp
-
-Description: Get the firmware timestamp
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: firmware timestamp
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_firmware_timestamp` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-
-            firmware_timestamp = amdsmi_get_gpu_metrics_firmware_timestamp(device)
-            print(firmware_timestamp)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_throttle_status
-
-Description: Get the throttle status
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: True if throttled, False if it's not throttled
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_throttle_status` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            throttle_status = amdsmi_get_gpu_metrics_throttle_status(device)
-            print(throttle_status)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_pcie_link_width
-
-Description: Get the pcie link width
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: pcie link width
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_pcie_link_width` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            pcie_link_width = amdsmi_get_gpu_metrics_pcie_link_width(device)
-            print(pcie_link_width)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_pcie_link_speed
-
-Description: Get the pcie link speed
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: pcie link speed
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_pcie_link_speed` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            pcie_link_speed = amdsmi_get_gpu_metrics_pcie_link_speed(device)
-            print(pcie_link_speed)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_xgmi_link_width
-
-Description: Get the xgmi link width
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: xgmi link width
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_xgmi_link_width` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            xgmi_link_width = amdsmi_get_gpu_metrics_xgmi_link_width(device)
-            print(xgmi_link_width)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_xgmi_link_speed
-
-Description: Get the xgmi link speed
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: xgmi link speed
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_xgmi_link_speed` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            xgmi_link_speed = amdsmi_get_gpu_metrics_xgmi_link_speed(device)
-            print(xgmi_link_speed)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_gfxclk_lock_status
-
-Description: Get the lock status of the gfx clock
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: True if gfx clock is locked, False if it's not locked, raise if not supported
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_gfxclk_lock_status` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            lock_status = amdsmi_get_gpu_metrics_gfxclk_lock_status(device)
-            print(lock_status)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_gfx_activity_acc
-
-Description: Get accumulated gfx activity
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: accumulated gfx activity
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_gfx_activity_acc` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            gfx_activity_acc = amdsmi_get_gpu_metrics_gfx_activity_acc(device)
-            print(gfx_activity_acc)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_mem_activity_acc
-
-Description: Get accumulated memory activity
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: accumulated mem activity
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_mem_activity_acc` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            mem_activity_acc = amdsmi_get_gpu_metrics_mem_activity_acc(device)
-            print(mem_activity_acc)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_pcie_bandwidth_acc
-
-Description: Get accumulated pcie bandwidth activity
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: accumulated pcie bandwidth activity
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_pcie_bandwidth_acc` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            pcie_bandwidth_acc = amdsmi_get_gpu_metrics_pcie_bandwidth_acc(device)
-            print(pcie_bandwidth_acc)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_pcie_bandwidth_inst
-
-Description: Get instantaneous pcie bandwidth activity
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: instantaneous pcie bandwidth activity
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_pcie_bandwidth_inst` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            pcie_bandwidth_inst = amdsmi_get_gpu_metrics_pcie_bandwidth_inst(device)
-            print(pcie_bandwidth_inst)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_pcie_l0_recov_count
-
-Description: Get count of pcie l0 recovery count errors
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: number of l0 recovery count errors
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_pcie_l0_recov_count` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            pcie_l0_recov_count = amdsmi_get_gpu_metrics_pcie_l0_recov_count(device)
-            print(pcie_l0_recov_count)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_pcie_replay_count_acc
-
-Description: Get accumulated pcie replay counts
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: accumulated pcie replay counts
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_pcie_replay_count_acc` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            pcie_replay_count_acc = amdsmi_get_gpu_metrics_pcie_replay_count_acc(device)
-            print(pcie_replay_count_acc)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_pcie_replay_rover_count_acc
-
-Description: Get accumulated pcie replay rollover counts
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: accumulated pcie replay rollover counts
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_pcie_replay_rover_count_acc` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            pcie_replay_rover_count_acc = amdsmi_get_gpu_metrics_pcie_replay_rover_count_acc(device)
-            print(pcie_replay_rover_count_acc)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_curr_uclk
-
-Description: Get the current u clock frequency
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: Current u clock frequency
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_curr_uclk` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            curr_uclk = amdsmi_get_gpu_metrics_curr_uclk(device)
-            print(curr_uclk)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_temp_hbm
-
-Description: Get the HBM temperatures in degrees Celsius
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: list of HBM temperatures in degrees Celsius
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_temp_hbm` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            hbm_temp = amdsmi_get_gpu_metrics_temp_hbm(device)
-            print(hbm_temp)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_vcn_activity
-
-Description: Get the activity for each vcn encoding engine
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: list of vcn activities
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_vcn_activity` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            vcn_activity = amdsmi_get_gpu_metrics_vcn_activity(device)
-            print(vcn_activity)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_xgmi_read_data
-
-Description: Get the accumulated read xgmi data for each xgmi link
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: list of accumulated read xgmi data
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_xgmi_read_data` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            xgmi_read_data = amdsmi_get_gpu_metrics_xgmi_read_data(device)
-            print(xgmi_read_data)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_xgmi_write_data
-
-Description: Get the accumulated written xgmi data for each xgmi link
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: list of accumulated written xgmi data
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_xgmi_write_data` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            xgmi_write_data = amdsmi_get_gpu_metrics_xgmi_write_data(device)
-            print(xgmi_write_data)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_curr_gfxclk
-
-Description: Get the current gfx clock frequency
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: Current gfx clock frequency
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_curr_gfxclk` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            curr_gfxclk = amdsmi_get_gpu_metrics_curr_gfxclk(device)
-            print(curr_gfxclk)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_curr_socclk
-
-Description: Get the current soc clock frequency
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: Current soc clock frequency
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_curr_socclk` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            curr_socclk = amdsmi_get_gpu_metrics_curr_socclk(device)
-            print(curr_socclk)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_curr_vclk0
-
-Description: Get the current v0 clock frequency
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: Current v0 clock frequency
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_curr_vclk0` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            curr_vclk0 = amdsmi_get_gpu_metrics_curr_vclk0(device)
-            print(curr_vclk0)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_curr_dclk0
-
-Description: Get the current d0 clock frequency
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: Current d0 clock frequency
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_curr_dclk0` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            curr_dclk0 = amdsmi_get_gpu_metrics_curr_dclk0(device)
-            print(curr_dclk0)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_temp_edge
-
-Description: Get the edge temperature in degrees Celsius
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: edge temperature in degrees Celsius
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_temp_edge` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            edge_temp = amdsmi_get_gpu_metrics_temp_edge(device)
-            print(edge_temp)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_temp_vr_gfx
-
-Description: Get the VR GFX temperature in degrees Celsius
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: VR GFX temperature in degrees Celsius
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_temp_vr_gfx` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            vr_gfx_temp = amdsmi_get_gpu_metrics_temp_vr_gfx(device)
-            print(vr_gfx_temp)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_temp_vr_mem
-
-Description: Get the VR MEM temperature in degrees Celsius
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: VR MEM temperature in degrees Celsius
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_temp_vr_mem` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            vr_mem_temp = amdsmi_get_gpu_metrics_temp_vr_mem(device)
-            print(vr_mem_temp)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_avg_mm_activity
-
-Description: Get the average MM activity in percent
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: average MM activity in percent
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_avg_mm_activity` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            avg_mm_activity = amdsmi_get_gpu_metrics_avg_mm_activity(device)
-            print(avg_mm_activity)
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_metrics_curr_vclk1
-
-Description: Get the current v1 clock frequency
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: Current v1 clock frequency
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_curr_vclk1` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            curr_vclk1 = amdsmi_get_gpu_metrics_curr_vclk1(device)
-            print(curr_vclk1)
-except AmdSmiException as e:
-     print(e)
-```
-
-### amdsmi_get_gpu_metrics_curr_dclk1
-
-Description: Get the current d1 clock frequency
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: Current d1 clock frequency
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_curr_dclk1` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            curr_dclk1 = amdsmi_get_gpu_metrics_curr_dclk1(device)
-            print(curr_dclk1)
-except AmdSmiException as e:
-     print(e)
-```
-
-### amdsmi_get_gpu_metrics_indep_throttle_status
-
-Description: Get the independent throttle status
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: True if throttled, False if it's not throttled
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_indep_throttle_status` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            throttle_status = amdsmi_get_gpu_metrics_indep_throttle_status(device)
-            print(throttle_status)
-except AmdSmiException as e:
-     print(e)
-```
-
-### amdsmi_get_gpu_metrics_avg_socket_power
-
-Description: Get the average socket power in Watts
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: average socket power in Watts
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_avg_socket_power` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            avg_socket_power = amdsmi_get_gpu_metrics_avg_socket_power(device)
-            print(avg_socket_power)
-except AmdSmiException as e:
-     print(e)
-```
-
-### amdsmi_get_gpu_metrics_curr_fan_speed
-
-Description: Get the current fan speed in percent
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: current fan speed in percent
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_curr_fan_speed` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            curr_fan_speed = amdsmi_get_gpu_metrics_curr_fan_speed(device)
-            print(curr_fan_speed)
-except AmdSmiException as e:
-     print(e)
-```
-
-### amdsmi_get_gpu_metrics_avg_gfx_clock_frequency
-
-Description: Get the average gfx clock frequency in MHz
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: average gfx clock frequency in MHz
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_avg_gfx_clock_frequency` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            avg_gfx_clock_frequency = amdsmi_get_gpu_metrics_avg_gfx_clock_frequency(device)
-            print(avg_gfx_clock_frequency)
-except AmdSmiException as e:
-     print(e)
-```
-
-### amdsmi_get_gpu_metrics_avg_soc_clock_frequency
-
-Description: Get the average soc clock frequency in MHz
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: average soc clock frequency in MHz
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_avg_soc_clock_frequency` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            avg_soc_clock_frequency = amdsmi_get_gpu_metrics_avg_soc_clock_frequency(device)
-            print(avg_soc_clock_frequency)
-except AmdSmiException as e:
-     print(e)
-```
-
-### amdsmi_get_gpu_metrics_avg_uclock_frequency
-
-Description: Get the average u clock frequency in MHz
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: average u clock frequency in MHz
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_avg_uclock_frequency` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            avg_uclock_frequency = amdsmi_get_gpu_metrics_avg_uclock_frequency(device)
-            print(avg_uclock_frequency)
-except AmdSmiException as e:
-     print(e)
-```
-
-### amdsmi_get_gpu_metrics_avg_vclock0_frequency
-
-Description: Get the average v0 clock frequency in MHz
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: average v0 clock frequency in MHz
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_avg_vclock0_frequency` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            avg_vclock0_frequency = amdsmi_get_gpu_metrics_avg_vclock0_frequency(device)
-            print(avg_vclock0_frequency)
-except AmdSmiException as e:
-     print(e)
-```
-
-### amdsmi_get_gpu_metrics_avg_dclock0_frequency
-
-Description: Get the average d0 clock frequency in MHz
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: average d0 clock frequency in MHz
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_avg_dclock0_frequency` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            avg_dclock0_frequency = amdsmi_get_gpu_metrics_avg_dclock0_frequency(device)
-            print(avg_dclock0_frequency)
-except AmdSmiException as e:
-     print(e)
-```
-
-### amdsmi_get_gpu_metrics_avg_vclock1_frequency
-
-Description: Get the average v1 clock frequency in MHz
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: average v1 clock frequency in MHz
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_avg_vclock1_frequency` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            avg_vclock1_frequency = amdsmi_get_gpu_metrics_avg_vclock1_frequency(device)
-            print(avg_vclock1_frequency)
-except AmdSmiException as e:
-     print(e)
-```
-
-### amdsmi_get_gpu_metrics_avg_dclock1_frequency
-
-Description: Get the average d1 clock frequency in MHz
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: average d1 clock frequency in MHz
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_avg_dclock1_frequency` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            avg_dclock1_frequency = amdsmi_get_gpu_metrics_avg_dclock1_frequency(device)
-            print(avg_dclock1_frequency)
-except AmdSmiException as e:
-     print(e)
-```
-
-### amdsmi_get_gpu_metrics_volt_soc
-
-Description: Get the soc voltage in millivolts
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: soc voltage in millivolts
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_volt_soc` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            volt_soc = amdsmi_get_gpu_metrics_volt_soc(device)
-            print(volt_soc)
-except AmdSmiException as e:
-     print(e)
-```
-
-### amdsmi_get_gpu_metrics_volt_gfx
-
-Description: Get the gfx voltage in millivolts
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: gfx voltage in millivolts
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_volt_gfx` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            volt_gfx = amdsmi_get_gpu_metrics_volt_gfx(device)
-            print(volt_gfx)
-except AmdSmiException as e:
-     print(e)
-```
-
-### amdsmi_get_gpu_metrics_volt_mem
-
-Description: Get the mem voltage in millivolts
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: mem voltage in millivolts
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_volt_mem` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            volt_mem = amdsmi_get_gpu_metrics_volt_mem(device)
-            print(volt_mem)
-except AmdSmiException as e:
-     print(e)
-```
-
-### amdsmi_get_gpu_metrics_header_info
-
-Description: Get the gpu metrics structure header info
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: dictionary of gpu metrics header information
-
-Exceptions that can be thrown by `amdsmi_get_gpu_metrics_header_info` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on the machine")
-    else:
-        for device in devices:
-            header_info = amdsmi_get_gpu_metrics_header_info(device)
-            print(header_info)
-except AmdSmiException as e:
-     print(e)
-```
-
 ## CPU APIs
 
-### amdsmi_get_cpusocket_handles
-
-**Note: CURRENTLY HARDCODED TO RETURN DUMMY DATA**
-Description: Returns list of cpusocket handle objects on current machine
-
-Input parameters: `None`
-
-Output: List of cpusocket handle objects
-
-Exceptions that can be thrown by `amdsmi_get_cpusocket_handles` function:
-
-* `AmdSmiLibraryException`
-
-Example:
-
-```python
-try:
-    sockets = amdsmi_get_cpusocket_handles()
-    print('Socket numbers: {}'.format(len(sockets)))
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_cpusocket_info
+### amdsmi_get_processor_info
 
 **Note: CURRENTLY HARDCODED TO RETURN EMPTY VALUES**
-Description: Return cpu socket index
+Description: Return processor name
 
 Input parameters:
-`socket_handle` cpu socket handle
+`processor_handle` processor handle
 
-Output: Socket index
+Output: Processor name
 
-Exceptions that can be thrown by `amdsmi_get_cpusocket_info` function:
-
-* `AmdSmiLibraryException`
-
-Example:
-
-```python
-try:
-    socket_handles = amdsmi_get_cpusocket_handles()
-    if len(socket_handles) == 0:
-        print("No CPU sockets on machine")
-    else:
-        for socket in socket_handles:
-            print(amdsmi_get_cpusocket_info(socket))
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_cpucore_handles
-
-Description: Returns list of CPU core handle objects on current machine
-
-Input parameters: `None`
-
-Output: List of CPU core handle objects
-
-Exceptions that can be thrown by `amdsmi_get_cpucore_handles` function:
+Exceptions that can be thrown by `amdsmi_get_processor_info` function:
 
 * `AmdSmiLibraryException`
 
@@ -5186,12 +3535,12 @@ Example:
 
 ```python
 try:
-    core_handles = amdsmi_get_cpucore_handles()
-    if len(core_handles) == 0:
-        print("No CPU cores on machine")
+    processor_handles = amdsmi_get_processor_handles()
+    if len(processor_handles) == 0:
+        print("No processors on machine")
     else:
-        for core in core_handles:
-            print(amdsmi_get_cpucore_info(core))
+        for processor in processor_handles:
+            print(amdsmi_get_processor_info(processor))
 except AmdSmiException as e:
     print(e)
 ```
@@ -5210,12 +3559,12 @@ Example:
 
 ```python
 try:
-    socket_handles = amdsmi_get_cpusocket_handles()
-    if len(socket_handles) == 0:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
-        for socket in socket_handles:
-            version = amdsmi_get_cpu_hsmp_proto_ver(socket)
+        for processor in processor_handles:
+            version = amdsmi_get_cpu_hsmp_proto_ver(processor)
             print(version)
 except AmdSmiException as e:
     print(e)
@@ -5235,12 +3584,12 @@ Example:
 
 ```python
 try:
-    socket_handles = amdsmi_get_cpusocket_handles()
-    if len(socket_handles) == 0:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
-        for socket in socket_handles:
-            version = amdsmi_get_cpu_smu_fw_version(socket)
+        for processor in processor_handles:
+            version = amdsmi_get_cpu_smu_fw_version(processor)
             print(version['debug'])
             print(version['minor'])
             print(version['major'])
@@ -5262,12 +3611,12 @@ Example:
 
 ```python
 try:
-    socket_handles = amdsmi_get_cpusocket_handles()
-    if len(socket_handles) == 0:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
-        for socket in socket_handles:
-            prochot = amdsmi_get_cpu_prochot_status(socket)
+        for processor in processor_handles:
+            prochot = amdsmi_get_cpu_prochot_status(processor)
             print(prochot)
 except AmdSmiException as e:
     print(e)
@@ -5287,12 +3636,12 @@ Example:
 
 ```python
 try:
-    socket_handles = amdsmi_get_cpusocket_handles()
-    if len(socket_handles) == 0:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
-        for socket in socket_handles:
-            clk = amdsmi_get_cpu_fclk_mclk(socket)
+        for processor in processor_handles:
+            clk = amdsmi_get_cpu_fclk_mclk(processor)
             for fclk, mclk in clk.items():
                 print(fclk)
                 print(mclk)
@@ -5314,12 +3663,12 @@ Example:
 
 ```python
 try:
-    socket_handles = amdsmi_get_cpusocket_handles()
-    if len(socket_handles) == 0:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
-        for socket in socket_handles:
-            cclk_limit = amdsmi_get_cpu_cclk_limit(socket)
+        for processor in processor_handles:
+            cclk_limit = amdsmi_get_cpu_cclk_limit(processor)
             print(cclk_limit)
 except AmdSmiException as e:
     print(e)
@@ -5339,12 +3688,12 @@ Example:
 
 ```python
 try:
-    socket_handles = amdsmi_get_cpusocket_handles()
-    if len(socket_handles) == 0:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
-        for socket in socket_handles:
-            freq_limit = amdsmi_get_cpu_socket_current_active_freq_limit(socket)
+        for processor in processor_handles:
+            freq_limit = amdsmi_get_cpu_socket_current_active_freq_limit(processor)
             for freq, src in freq_limit.items():
                 print(freq)
                 print(src)
@@ -5366,12 +3715,12 @@ Example:
 
 ```python
 try:
-    socket_handles = amdsmi_get_cpusocket_handles()
-    if len(socket_handles) == 0:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
-        for socket in socket_handles:
-            freq_range = amdsmi_get_cpu_socket_freq_range(socket)
+        for processor in processor_handles:
+            freq_range = amdsmi_get_cpu_socket_freq_range(processor)
             for fmax, fmin in freq_range.items():
                 print(fmax)
                 print(fmin)
@@ -5393,12 +3742,12 @@ Example:
 
 ```python
 try:
-    core_handles = amdsmi_get_cpucore_handles()
-    if len(core_handles) == 0:
+    processor_handles = amdsmi_get_cpucore_handles()
+    if len(processor_handles) == 0:
         print("No CPU cores on machine")
     else:
-        for core in core_handles:
-            freq_limit = amdsmi_get_cpu_core_current_freq_limit(core)
+        for processor in processor_handles:
+            freq_limit = amdsmi_get_cpu_core_current_freq_limit(processor)
             print(freq_limit)
 except AmdSmiException as e:
     print(e)
@@ -5418,12 +3767,12 @@ Example:
 
 ```python
 try:
-    socket_handles = amdsmi_get_cpusocket_handles()
-    if len(socket_handles) == 0:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
-        for socket in socket_handles:
-            sock_power = amdsmi_get_cpu_socket_power(socket)
+        for processor in processor_handles:
+            sock_power = amdsmi_get_cpu_socket_power(processor)
             print(sock_power)
 except AmdSmiException as e:
     print(e)
@@ -5443,12 +3792,12 @@ Example:
 
 ```python
 try:
-    socket_handles = amdsmi_get_cpusocket_handles()
-    if len(socket_handles) == 0:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
-        for socket in socket_handles:
-            sock_power = amdsmi_get_cpu_socket_power_cap(socket)
+        for processor in processor_handles:
+            sock_power = amdsmi_get_cpu_socket_power_cap(processor)
             print(sock_power)
 except AmdSmiException as e:
     print(e)
@@ -5468,12 +3817,12 @@ Example:
 
 ```python
 try:
-    socket_handles = amdsmi_get_cpusocket_handles()
-    if len(socket_handles) == 0:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
-        for socket in socket_handles:
-            sock_power = amdsmi_get_cpu_socket_power_cap_max(socket)
+        for processor in processor_handles:
+            sock_power = amdsmi_get_cpu_socket_power_cap_max(processor)
             print(sock_power)
 except AmdSmiException as e:
     print(e)
@@ -5493,12 +3842,12 @@ Example:
 
 ```python
 try:
-    socket_handles = amdsmi_get_cpusocket_handles()
-    if len(socket_handles) == 0:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
-        for socket in socket_handles:
-            power = amdsmi_get_cpu_pwr_svi_telemetry_all_rails(socket)
+        for processor in processor_handles:
+            power = amdsmi_get_cpu_pwr_svi_telemetry_all_rails(processor)
             print(power)
 except AmdSmiException as e:
     print(e)
@@ -5508,7 +3857,7 @@ except AmdSmiException as e:
 
 Description: Set the power cap value for a given socket.
 
-Input: socket index, amdsmi socket power cap value
+Input: amdsmi socket power cap value
 
 Exceptions that can be thrown by `amdsmi_set_cpu_socket_power_cap` function:
 
@@ -5518,12 +3867,12 @@ Example:
 
 ```python
 try:
-    socket_handles = amdsmi_get_cpusocket_handles()
-    if len(socket_handles) == 0:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
-        for socket in socket_handles:
-            power = amdsmi_set_cpu_socket_power_cap(socket, 0, 1000)
+        for processor in processor_handles:
+            power = amdsmi_set_cpu_socket_power_cap(processor, 1000)
 except AmdSmiException as e:
     print(e)
 ```
@@ -5532,7 +3881,7 @@ except AmdSmiException as e:
 
 Description: Set the power efficiency profile policy.
 
-Input: socket index, mode(0, 1, or 2)
+Input: mode(0, 1, or 2)
 
 Exceptions that can be thrown by `amdsmi_set_cpu_pwr_efficiency_mode` function:
 
@@ -5542,12 +3891,12 @@ Example:
 
 ```python
 try:
-    socket_handles = amdsmi_get_cpusocket_handles()
-    if len(socket_handles) == 0:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
-        for socket in socket_handles:
-            policy = amdsmi_set_cpu_pwr_efficiency_mode(socket, 0, 0)
+        for processor in processor_handles:
+            policy = amdsmi_set_cpu_pwr_efficiency_mode(processor, 0)
 except AmdSmiException as e:
     print(e)
 ```
@@ -5566,12 +3915,12 @@ Example:
 
 ```python
 try:
-    core_handles = amdsmi_get_cpucore_handles()
-    if len(core_handles) == 0:
+    processor_handles = amdsmi_get_cpucore_handles()
+    if len(processor_handles) == 0:
         print("No CPU cores on machine")
     else:
-        for core in core_handles:
-            boost_limit = amdsmi_get_cpu_core_boostlimit(core)
+        for processor in processor_handles:
+            boost_limit = amdsmi_get_cpu_core_boostlimit(processor)
             print(boost_limit)
 except AmdSmiException as e:
     print(e)
@@ -5591,12 +3940,12 @@ Example:
 
 ```python
 try:
-    socket_handles = amdsmi_get_cpusocket_handles()
-    if len(socket_handles) == 0:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
-        for socket in socket_handles:
-            c0_residency = amdsmi_get_cpu_socket_c0_residency(socket)
+        for processor in processor_handles:
+            c0_residency = amdsmi_get_cpu_socket_c0_residency(processor)
             print(c0_residency)
 except AmdSmiException as e:
     print(e)
@@ -5616,12 +3965,12 @@ Example:
 
 ```python
 try:
-    core_handles = amdsmi_get_cpucore_handles()
-    if len(core_handles) == 0:
+    processor_handles = amdsmi_get_cpucore_handles()
+    if len(processor_handles) == 0:
         print("No CPU cores on machine")
     else:
-        for core in core_handles:
-            boost_limit = amdsmi_set_cpu_core_boostlimit(core, 1000)
+        for processor in processor_handles:
+            boost_limit = amdsmi_set_cpu_core_boostlimit(processor, 1000)
 except AmdSmiException as e:
     print(e)
 ```
@@ -5640,12 +3989,12 @@ Example:
 
 ```python
 try:
-    socket_handles = amdsmi_get_cpusocket_handles()
-    if len(socket_handles) == 0:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
-        for socket in socket_handles:
-            boost_limit = amdsmi_set_cpu_socket_boostlimit(socket, 1000)
+        for processor in processor_handles:
+            boost_limit = amdsmi_set_cpu_socket_boostlimit(processor, 1000)
 except AmdSmiException as e:
     print(e)
 ```
@@ -5664,12 +4013,12 @@ Example:
 
 ```python
 try:
-    socket_handles = amdsmi_get_cpusocket_handles()
-    if len(socket_handles) == 0:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
-        for socket in socket_handles:
-            ddr_bw = amdsmi_get_cpu_ddr_bw(socket)
+        for processor in processor_handles:
+            ddr_bw = amdsmi_get_cpu_ddr_bw(processor)
             print(ddr_bw['max_bw'])
             print(ddr_bw['utilized_bw'])
             print(ddr_bw['utilized_pct'])
@@ -5691,12 +4040,12 @@ Example:
 
 ```python
 try:
-    socket_handles = amdsmi_get_cpusocket_handles()
-    if len(socket_handles) == 0:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
-        for socket in socket_handles:
-            ptmon = amdsmi_get_cpu_socket_temperature(socket)
+        for processor in processor_handles:
+            ptmon = amdsmi_get_cpu_socket_temperature(processor)
             print(ptmon)
 except AmdSmiException as e:
     print(e)
@@ -5716,12 +4065,12 @@ Example:
 
 ```python
 try:
-    socket_handles = amdsmi_get_cpusocket_handles()
-    if len(socket_handles) == 0:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
-        for socket in socket_handles:
-            dimm = amdsmi_get_cpu_dimm_temp_range_and_refresh_rate(socket)
+        for processor in processor_handles:
+            dimm = amdsmi_get_cpu_dimm_temp_range_and_refresh_rate(processor)
             print(dimm['range'])
             print(dimm['ref_rate'])
 except AmdSmiException as e:
@@ -5742,12 +4091,12 @@ Example:
 
 ```python
 try:
-    socket_handles = amdsmi_get_cpusocket_handles()
-    if len(socket_handles) == 0:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
-        for socket in socket_handles:
-            dimm = amdsmi_get_cpu_dimm_power_consumption(socket)
+        for processor in processor_handles:
+            dimm = amdsmi_get_cpu_dimm_power_consumption(processor)
             print(dimm['power'])
             print(dimm['update_rate'])
             print(dimm['dimm_addr'])
@@ -5769,12 +4118,12 @@ Example:
 
 ```python
 try:
-    socket_handles = amdsmi_get_cpusocket_handles()
-    if len(socket_handles) == 0:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
-        for socket in socket_handles:
-            dimm = amdsmi_get_cpu_dimm_thermal_sensor(socket)
+        for processor in processor_handles:
+            dimm = amdsmi_get_cpu_dimm_thermal_sensor(processor)
             print(dimm['sensor'])
             print(dimm['update_rate'])
             print(dimm['dimm_addr'])
@@ -5797,12 +4146,353 @@ Example:
 
 ```python
 try:
-    socket_handles = amdsmi_get_cpusocket_handles()
-    if len(socket_handles) == 0:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for processor in processor_handles:
+            xgmi_width = amdsmi_set_cpu_xgmi_width(processor, 0, 100)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_set_cpu_gmi3_link_width_range
+
+Description:  Set gmi3 link width range.
+
+Input: minimum & maximum link width to be set.
+
+Exceptions that can be thrown by `amdsmi_set_cpu_gmi3_link_width_range` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for processor in processor_handles:
+            gmi_link_width = amdsmi_set_cpu_gmi3_link_width_range(processor, 0, 100)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_cpu_apb_enable
+
+Description:  Enable APB.
+
+Input: amdsmi processor handle
+
+Exceptions that can be thrown by `amdsmi_cpu_apb_enable` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for processor in processor_handles:
+            apb_enable = amdsmi_cpu_apb_enable(processor)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_cpu_apb_disable
+
+Description:  Disable APB.
+
+Input: pstate value
+
+Exceptions that can be thrown by `amdsmi_cpu_apb_disable` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for processor in processor_handles:
+            apb_disable = amdsmi_cpu_apb_disable(processor, 0)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_set_cpu_socket_lclk_dpm_level
+
+Description:  Set NBIO lclk dpm level value.
+
+Input: nbio id, min value, max value
+
+Exceptions that can be thrown by `amdsmi_set_cpu_socket_lclk_dpm_level` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
         print("No CPU sockets on machine")
     else:
         for socket in socket_handles:
-            xgmi_width = amdsmi_set_cpu_xgmi_width(socket, 0, 100)
+            nbio = amdsmi_set_cpu_socket_lclk_dpm_level(socket, 0, 0, 2)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpu_socket_lclk_dpm_level
+
+Description: Get NBIO LCLK dpm level.
+
+Output: nbio id
+
+Exceptions that can be thrown by `amdsmi_get_cpu_socket_lclk_dpm_level` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for processor in processor_handles:
+            nbio = amdsmi_get_cpu_socket_lclk_dpm_level(processor)
+            print(nbio['max_dpm_level'])
+            print(nbio['max_dpm_level'])
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_set_cpu_pcie_link_rate
+
+Description:  Set pcie link rate.
+
+Input: rate control value
+
+Exceptions that can be thrown by `amdsmi_set_cpu_pcie_link_rate` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for processor in processor_handles:
+            link_rate = amdsmi_set_cpu_pcie_link_rate(processor, 0, 0)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_set_cpu_df_pstate_range
+
+Description:  Set df pstate range.
+
+Input: max pstate, min pstate
+
+Exceptions that can be thrown by `amdsmi_set_cpu_df_pstate_range` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for processor in processor_handles:
+            pstate_range = amdsmi_set_cpu_df_pstate_range(processor, 0, 2)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpu_current_io_bandwidth
+
+Description: Get current input output bandwidth.
+
+Output: link id and bw type to which io bandwidth to be obtained
+
+Exceptions that can be thrown by `amdsmi_get_cpu_current_io_bandwidth` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for processor in processor_handles:
+            io_bw = amdsmi_get_cpu_current_io_bandwidth(processor)
+            print(io_bw)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpu_current_xgmi_bw
+
+Description: Get current xgmi bandwidth.
+
+Output: amdsmi link id and bw type to which xgmi bandwidth to be obtained
+
+Exceptions that can be thrown by `amdsmi_get_cpu_current_xgmi_bw` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for processor in processor_handles:
+            xgmi_bw = amdsmi_get_cpu_current_xgmi_bw(processor)
+            print(xgmi_bw)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_hsmp_metrics_table_version
+
+Description: Get HSMP metrics table version.
+
+Output: amdsmi HSMP metrics table version
+
+Exceptions that can be thrown by `amdsmi_get_hsmp_metrics_table_version` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for processor in processor_handles:
+            met_ver = amdsmi_get_hsmp_metrics_table_version(processor)
+            print(met_ver)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_hsmp_metrics_table
+
+Description: Get HSMP metrics table
+
+Output: HSMP metric table data
+
+Exceptions that can be thrown by `amdsmi_get_hsmp_metrics_table` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for processor in processor_handles:
+            mtbl = amdsmi_get_hsmp_metrics_table(processor)
+            print(mtbl['accumulation_counter'])
+            print(mtbl['max_socket_temperature'])
+            print(mtbl['max_vr_temperature'])
+            print(mtbl['max_hbm_temperature'])
+            print(mtbl['socket_power_limit'])
+            print(mtbl['max_socket_power_limit'])
+            print(mtbl['socket_power'])
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_first_online_core_on_cpu_socket
+
+Description: Get first online core on cpu socket.
+
+Output: first online core on cpu socket
+
+Exceptions that can be thrown by `amdsmi_first_online_core_on_cpu_socket` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+    processor_handles = amdsmi_get_cpusocket_handles()
+    if len(processor_handles) == 0:
+        print("No CPU sockets on machine")
+    else:
+        for processor in processor_handles:
+            pcore_ind = amdsmi_first_online_core_on_cpu_socket(processor)
+            print(pcore_ind)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpu_family
+
+Description: Get cpu family.
+
+Output: cpu family
+
+Exceptions that can be thrown by `amdsmi_get_cpu_family` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+     cpu_family = amdsmi_get_cpu_family()
+     print(cpu_family)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_cpu_model
+
+Description: Get cpu model.
+
+Output: cpu model
+
+Exceptions that can be thrown by `amdsmi_get_cpu_model` function:
+
+* `AmdSmiLibraryException`
+
+Example:
+
+```python
+try:
+     cpu_model = amdsmi_get_cpu_model()
+     print(cpu_model)
 except AmdSmiException as e:
     print(e)
 ```

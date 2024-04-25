@@ -25,8 +25,8 @@ import json
 import re
 import time
 from typing import Dict
-import yaml
 from enum import Enum
+import yaml
 
 from amdsmi_helpers import AMDSMIHelpers
 import amdsmi_cli_exceptions
@@ -72,6 +72,8 @@ class AMDSMILogger():
     def is_human_readable_format(self):
         return self.format == self.LoggerFormat.human_readable.value
 
+    def clear_multiple_devices_ouput(self):
+        self.multiple_device_output.clear()
 
     def _capitalize_keys(self, input_dict):
         output_dict = {}
@@ -116,14 +118,43 @@ class AMDSMILogger():
                     table_values += value.rjust(12)
                 elif key in ('throttle_status', 'pcie_replay'):
                     table_values += value.rjust(13)
-                elif 'gpu_' in key: # handle topology tables
-                    table_values += value.rjust(13)
+                # Only for handling topology tables
+                elif 'gpu_' in key:
+                    table_values += value.ljust(13)
+                # Only for handling xgmi tables
+                elif key == "gpu#":
+                    table_values += value.ljust(7)
+                elif key == "bdf":
+                    table_values += value.ljust(13)
+                elif "bdf_" in key:
+                    table_values += value.ljust(13)
+                elif key == "bit_rate":
+                    table_values += value.ljust(9)
+                elif key == "max_bandwidth":
+                    table_values += value.ljust(14)
+                elif key == "link_type":
+                    table_values += value.ljust(10)
+                elif key == "RW":
+                    table_values += " " + value.ljust(52)
+                # Default spacing
                 else:
                     table_values += value.rjust(10)
             return table_values.rstrip()
 
         # First Capitalize all keys in the json object
         capitalized_json = self._capitalize_keys(json_object)
+
+        # Increase tabbing for device arguments by pulling them out of the main dictionary and assiging them to an empty string
+        tabbed_dictionary = {}
+        for key, value in capitalized_json.items():
+            if key not in ["GPU", "CPU", "CORE"]:
+                tabbed_dictionary[key] = value
+
+        for key, value in tabbed_dictionary.items():
+            del capitalized_json[key]
+
+        capitalized_json["AMDSMI_SPACING_REMOVAL"] = tabbed_dictionary
+
         json_string = json.dumps(capitalized_json, indent=4)
         yaml_data = yaml.safe_load(json_string)
         yaml_output = yaml.dump(yaml_data, sort_keys=False, allow_unicode=True)
@@ -214,6 +245,76 @@ class AMDSMILogger():
         """
         gpu_id = self.helpers.get_gpu_id_from_device_handle(device_handle)
         self._store_output_amdsmi(gpu_id=gpu_id, argument=argument, data=data)
+
+
+    def store_cpu_output(self, device_handle, argument, data):
+        """ Convert device handle to cpu id and store output
+            params:
+                device_handle - device handle object to the target device output
+                argument (str) - key to store data
+                data (dict | list) - Data store against argument
+            return:
+                Nothing
+        """
+        cpu_id = self.helpers.get_cpu_id_from_device_handle(device_handle)
+        self._store_cpu_output_amdsmi(cpu_id=cpu_id, argument=argument, data=data)
+
+
+    def store_core_output(self, device_handle, argument, data):
+        """ Convert device handle to core id and store output
+            params:
+                device_handle - device handle object to the target device output
+                argument (str) - key to store data
+                data (dict | list) - Data store against argument
+            return:
+                Nothing
+        """
+        core_id = self.helpers.get_core_id_from_device_handle(device_handle)
+        self._store_core_output_amdsmi(core_id=core_id, argument=argument, data=data)
+
+
+    def _store_core_output_amdsmi(self, core_id, argument, data):
+        if argument == 'timestamp': # Make sure timestamp is the first element in the output
+            self.output['timestamp'] = int(time.time())
+
+        if self.is_json_format() or self.is_human_readable_format():
+            self.output['core'] = int(core_id)
+            if argument == 'values' and isinstance(data, dict):
+                self.output.update(data)
+            else:
+                self.output[argument] = data
+        elif self.is_csv_format():
+            self.output['core'] = int(core_id)
+
+            if argument == 'values' or isinstance(data, dict):
+                flat_dict = self.flatten_dict(data)
+                self.output.update(flat_dict)
+            else:
+                self.output[argument] = data
+        else:
+            raise amdsmi_cli_exceptions(self, "Invalid output format given, only json, csv, and human_readable supported")
+
+
+    def _store_cpu_output_amdsmi(self, cpu_id, argument, data):
+        if argument == 'timestamp': # Make sure timestamp is the first element in the output
+            self.output['timestamp'] = int(time.time())
+
+        if self.is_json_format() or self.is_human_readable_format():
+            self.output['cpu'] = int(cpu_id)
+            if argument == 'values' and isinstance(data, dict):
+                self.output.update(data)
+            else:
+                self.output[argument] = data
+        elif self.is_csv_format():
+            self.output['cpu'] = int(cpu_id)
+
+            if argument == 'values' or isinstance(data, dict):
+                flat_dict = self.flatten_dict(data)
+                self.output.update(flat_dict)
+            else:
+                self.output[argument] = data
+        else:
+            raise amdsmi_cli_exceptions(self, "Invalid output format given, only json, csv, and human_readable supported")
 
 
     def _store_output_amdsmi(self, gpu_id, argument, data):
@@ -317,7 +418,7 @@ class AMDSMILogger():
         if multiple_device_enabled:
             json_output = self.multiple_device_output
         else:
-            json_output = self.output
+            json_output = [self.output]
 
         if self.destination == 'stdout':
             if json_output:

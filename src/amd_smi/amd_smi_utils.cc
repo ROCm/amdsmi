@@ -43,6 +43,7 @@
 
 #include "amd_smi/impl/amd_smi_utils.h"
 #include "shared_mutex.h"  // NOLINT
+#include "rocm_smi/rocm_smi_logger.h"
 
 static const uint32_t kAmdGpuId = 0x1002;
 
@@ -153,6 +154,20 @@ amdsmi_status_t smi_amdgpu_get_board_info(amd::smi::AMDSmiGPUDevice* device, amd
         fgets(info->product_name, sizeof(info->product_name), fp);
         fclose(fp);
     }
+    std::ostringstream ss;
+    ss << __PRETTY_FUNCTION__
+       << "Returning status = AMDSMI_STATUS_SUCCESS"
+       << " | model_number_path = " << model_number_path
+       << "; info->model_number: " << info->model_number
+       << "\n product_serial_path = " << product_serial_path
+       << "; info->product_serial: " << info->product_serial
+       << "\n fru_id_path = " << fru_id_path
+       << "; info->fru_id: " << info->fru_id
+       << "\n manufacturer_name_path = " << manufacturer_name_path
+       << "; info->manufacturer_name: " << info->manufacturer_name
+       << "\n product_name_path = " << product_name_path
+       << "; info->product_name: " << info->product_name;
+    LOG_INFO(ss);
 
     return AMDSMI_STATUS_SUCCESS;
 }
@@ -236,8 +251,8 @@ amdsmi_status_t smi_amdgpu_get_ranges(amd::smi::AMDSmiGPUDevice* device, amdsmi_
         unsigned int dpm_level, freq;
 
         char firstChar = line[0];
-        if (firstChar == 'S'){
-            if (sscanf(line.c_str(), "%c: %d%s", &single_char, &sleep_freq, str) <= 2){
+        if (firstChar == 'S') {
+            if (sscanf(line.c_str(), "%c: %d%s", &single_char, &sleep_freq, str) <= 2) {
                 ranges.close();
                 return AMDSMI_STATUS_NO_DATA;
             }
@@ -507,6 +522,7 @@ amdsmi_status_t smi_amdgpu_get_market_name_from_dev_id(uint32_t device_id, char 
             break;
         case 0x73a1:
         case 0x73ae:
+        case 0x73bf:
             strcpy(market_name, "NAVI21");
             break;
         case 0x74b4:

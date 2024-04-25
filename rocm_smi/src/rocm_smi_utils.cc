@@ -42,11 +42,14 @@
  */
 #define _GNU_SOURCE 1 // REQUIRED: to utilize some GNU features/functions, see
                       // _GNU_SOURCE functions which check
+#include <assert.h>
+#include <errno.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <dirent.h>
-#include <dlfcn.h>
 #include <glob.h>
 #include <sys/utsname.h>
-#include <unistd.h>
+#include <dlfcn.h>
 
 #include <algorithm>
 #include <cassert>
@@ -252,6 +255,16 @@ bool IsInteger(const std::string & n_str) {
   strtol(n_str.c_str(), &tmp, 10);
 
   return (*tmp == 0);
+}
+
+bool stringToInteger(const std::string & n_str, int& value) {
+  try {
+    value = std::stoi(trim(n_str), nullptr);
+    return true;
+  } catch (...) {
+    return false;
+  }
+  return false;
 }
 
 rsmi_status_t handleException() {
@@ -500,6 +513,7 @@ std::vector<std::string> getListOfAppTmpFiles() {
       continue;
     }
   }
+  closedir(dir);
   return tmpFiles;
 }
 
