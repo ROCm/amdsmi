@@ -843,7 +843,7 @@ Input parameters:
 
 * `processor_handle` device which to query
 
-Output: List consisting of dictionaries with fields for each bad page found
+Output: List consisting of dictionaries with fields for each bad page found; can be an empty list
 
 Field | Description
 ---|---
@@ -868,7 +868,7 @@ try:
     else:
         for device in devices:
             bad_page_info = amdsmi_get_gpu_bad_page_info(device)
-            if not len(bad_page_info):
+            if not bad_page_info: # Can be empty list
                 print("No bad pages found")
                 continue
             for bad_page in bad_page_info:
@@ -879,6 +879,53 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
+
+### amdsmi_get_gpu_memory_reserved_pages
+
+Description: Returns reserved memory page info for the given GPU.
+It is not supported on virtual machine guest
+
+Input parameters:
+
+* `processor_handle` device which to query
+
+Output: List consisting of dictionaries with fields for each reserved memory page found; can be an empty list
+
+Field | Description
+---|---
+`value` | Value of memory reserved page
+`page_address` | Address of memory reserved page
+`page_size` | Size of memory reserved page
+`status` | Status of memory reserved page
+
+Exceptions that can be thrown by `amdsmi_get_gpu_memory_reserved_pages` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            reserved_memory_page_info = amdsmi_get_gpu_memory_reserved_pages(device)
+            if not reserved_memory_page_info: # Can be empty list
+                print("No memory reserved pages found")
+                continue
+            for reserved_memory_page in reserved_memory_page_info:
+                print(reserved_memory_page["value"])
+                print(reserved_memory_page["page_address"])
+                print(reserved_memory_page["page_size"])
+                print(reserved_memory_page["status"])
+except AmdSmiException as e:
+    print(e)
+```
+
 
 ### amdsmi_get_gpu_process_list
 

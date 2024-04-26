@@ -12,6 +12,9 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/](
 
 ### Changed
 
+- **Updated Python Library return types for amdsmi_get_gpu_memory_reserved_pages & amdsmi_get_gpu_bad_page_info**  
+Previously calls were returning "No bad pages found." if no pages were found, now it only returns the list type and can be empty.
+
 - **Updated `amd-smi monitor --pcie` output**  
 The source for pcie bandwidth monitor output was a legacy file we no longer support and was causing delays within the monitor command. The output is no longer using TX/RX but instantaneous bandwidth from gpu_metrics instead; updated output:
 
@@ -332,18 +335,21 @@ $ /opt/rocm/bin/amd-smi topology -a -t --json
 
 ### Fixed
 
-- **Fix for GPU reset error on non-amdgpu cards**
+- **Fixed python interface call amdsmi_get_gpu_memory_reserved_pages & amdsmi_get_gpu_bad_page_info**  
+Previously python interface calls to populated bad pages resulted in a `ValueError: NULL pointer access`. This fixes the bad-pages subcommand CLI  subcommand as well.
+
+- **Fix for GPU reset error on non-amdgpu cards**  
 Previously our reset could attempting to reset non-amd GPUS- resuting in "Unable to reset non-amd GPU" error. Fix
 updates CLI to target only AMD ASICs.
 
-- **Fix for `amd-smi metric --pcie` and `amdsmi_get_pcie_info()`Navi32/31 cards**
+- **Fix for `amd-smi metric --pcie` and `amdsmi_get_pcie_info()`Navi32/31 cards**  
 Updated API to include `amdsmi_card_form_factor_t.AMDSMI_CARD_FORM_FACTOR_CEM`. Prevously, this would report "UNKNOWN". This fix
 provides the correct board `SLOT_TYPE` associated with these ASICs (and other Navi cards).
 
-- **Fix for `amd-smi process`**
+- **Fix for `amd-smi process`**  
 Fixed output results when getting processes running on a device.
 
-- **Improved Error handling for `amd-smi process`**
+- **Improved Error handling for `amd-smi process`**  
 Fixed Attribute Error when getting process in csv format
 
 ### Known issues
