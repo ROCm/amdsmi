@@ -440,21 +440,22 @@ def _format_bad_page_info(bad_page_info, bad_page_count: ctypes.c_uint32) -> Lis
     Format bad page info data retrieved.
 
     Parameters:
-        bad_page_info(`POINTER(amdsmi_retired_page_record_t)`): Pointer to bad page info
-        retrieved.
+        bad_page_info(`amdsmi_retired_page_record_t`): A populated list of amdsmi_retired_page_record_t(s)
+        retrieved. Ex: (amdsmi_wrapper.amdsmi_retired_page_record_t * #)()
         bad_page_count(`c_uint32`): Bad page count.
 
     Returns:
-        `list`: List containing formatted bad pages.
+        `list`: List containing formatted bad pages. Can be empty
     """
-    if not isinstance(
-        bad_page_info, ctypes.POINTER(
-            amdsmi_wrapper.amdsmi_retired_page_record_t)
-    ):
-        raise AmdSmiParameterException(
-            bad_page_info, ctypes.POINTER(
-                amdsmi_wrapper.amdsmi_retired_page_record_t)
-        )
+    if bad_page_count == 0:
+        return []
+
+    # Check if each struct within bad_page_info is valid
+    for bad_page in bad_page_info:
+        if not isinstance(bad_page, amdsmi_wrapper.amdsmi_retired_page_record_t):
+            raise AmdSmiParameterException(
+                bad_page, amdsmi_wrapper.amdsmi_retired_page_record_t
+            )
 
     table_records = []
     for i in range(bad_page_count.value):
@@ -1803,23 +1804,24 @@ def amdsmi_get_gpu_bad_page_info(
         )
 
     num_pages = ctypes.c_uint32()
-    retired_page_record = ctypes.POINTER(
-        amdsmi_wrapper.amdsmi_retired_page_record_t)()
-
+    nullptr = ctypes.POINTER(amdsmi_wrapper.amdsmi_retired_page_record_t)()
     _check_res(
         amdsmi_wrapper.amdsmi_get_gpu_bad_page_info(
-            processor_handle, ctypes.byref(num_pages), retired_page_record
+            processor_handle, ctypes.byref(num_pages), nullptr
         )
     )
 
-    table_records = _format_bad_page_info(retired_page_record, num_pages)
-
     if num_pages.value == 0:
-        return "No bad pages found."
-    else:
-        table_records = _format_bad_page_info(retired_page_record, num_pages)
+        return []
 
-    return table_records
+    bad_pages = (amdsmi_wrapper.amdsmi_retired_page_record_t * num_pages.value)()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_bad_page_info(
+            processor_handle, ctypes.byref(num_pages), bad_pages
+        )
+    )
+
+    return _format_bad_page_info(bad_pages, num_pages)
 
 
 def amdsmi_get_gpu_total_ecc_count(
@@ -3859,21 +3861,24 @@ def amdsmi_get_gpu_memory_reserved_pages(
         )
 
     num_pages = ctypes.c_uint32()
-    retired_page_record = ctypes.POINTER(
-        amdsmi_wrapper.amdsmi_retired_page_record_t)()
+    nullptr = ctypes.POINTER(amdsmi_wrapper.amdsmi_retired_page_record_t)()
     _check_res(
         amdsmi_wrapper.amdsmi_get_gpu_memory_reserved_pages(
-            processor_handle, ctypes.byref(num_pages), retired_page_record
+            processor_handle, ctypes.byref(num_pages), nullptr
         )
     )
 
-    table_records = _format_bad_page_info(retired_page_record, num_pages)
     if num_pages.value == 0:
-        return "No bad pages found."
-    else:
-        table_records = _format_bad_page_info(retired_page_record, num_pages)
+        return []
 
-    return table_records
+    mem_reserved_pages = (amdsmi_wrapper.amdsmi_retired_page_record_t * num_pages)()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_memory_reserved_pages(
+            processor_handle, ctypes.byref(num_pages), mem_reserved_pages
+        )
+    )
+
+    return _format_bad_page_info(mem_reserved_pages, num_pages)
 
 
 def amdsmi_get_gpu_metrics_header_info(
