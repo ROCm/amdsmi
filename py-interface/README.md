@@ -3367,13 +3367,8 @@ Example:
 
 ```python
 try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on machine")
-    else:
-        for device in devices:
-            version = amdsmi_get_lib_version()
-            print(version)
+    version = amdsmi_get_lib_version()
+    print(version)
 except AmdSmiException as e:
     print(e)
 ```
