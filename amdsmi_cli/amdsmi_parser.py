@@ -699,6 +699,7 @@ class AMDSMIParser(argparse.ArgumentParser):
 
         # Help text for Arguments only on Linux Baremetal platforms
         fan_help = "Current fan speed"
+        vc_help = "Display voltage curve"
         overdrive_help = "Current GPU clock overdrive level"
         perf_level_help = "Current DPM performance level"
         xgmi_err_help = "XGMI error information since last read"
@@ -769,6 +770,7 @@ class AMDSMIParser(argparse.ArgumentParser):
             # Optional Args for Linux Baremetal Systems
             if self.helpers.is_baremetal() and self.helpers.is_linux():
                 metric_parser.add_argument('-f', '--fan', action='store_true', required=False, help=fan_help)
+                metric_parser.add_argument('-C', '--voltage-curve', action='store_true', required=False, help=vc_help)
                 metric_parser.add_argument('-o', '--overdrive', action='store_true', required=False, help=overdrive_help)
                 metric_parser.add_argument('-l', '--perf-level', action='store_true', required=False, help=perf_level_help)
                 metric_parser.add_argument('-x', '--xgmi-err', action='store_true', required=False, help=xgmi_err_help)

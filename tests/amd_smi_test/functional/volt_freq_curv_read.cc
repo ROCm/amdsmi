@@ -146,7 +146,7 @@ static void print_amdsmi_od_volt_freq_regions(uint32_t num_regions,
 
 void TestVoltCurvRead::Run(void) {
   amdsmi_status_t err;
-  amdsmi_od_volt_freq_data_t odv{};
+  amdsmi_od_volt_freq_data_t odv;
 
   TestBase::Run();
   if (setup_failed_) {
@@ -176,6 +176,26 @@ void TestVoltCurvRead::Run(void) {
       // Verify api support checking functionality is working
       err =  amdsmi_get_gpu_od_volt_info(processor_handles_[i], nullptr);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
+    }
+
+    if (err == AMDSMI_STATUS_SUCCESS) {
+      std::cout << "\t**Frequency-voltage curve data:" << std::endl;
+      print_amdsmi_od_volt_freq_data_t(&odv);
+
+      amdsmi_freq_volt_region_t *regions;
+      uint32_t num_regions;
+      regions = new amdsmi_freq_volt_region_t[odv.num_regions];
+      ASSERT_TRUE(regions != nullptr);
+
+      num_regions = odv.num_regions;
+      err =  amdsmi_get_gpu_od_volt_curve_regions(processor_handles_[i], &num_regions, regions);
+      CHK_ERR_ASRT(err)
+      ASSERT_TRUE(num_regions == odv.num_regions);
+
+      std::cout << "\t**Frequency-voltage curve regions:" << std::endl;
+      print_amdsmi_od_volt_freq_regions(num_regions, regions);
+
+      delete []regions;
     }
   }
 }

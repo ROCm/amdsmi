@@ -4,7 +4,7 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/](
 
 ***All information listed below is for reference and subject to change.***
 
-## amd_smi_lib for ROCm 6.2 (Unreleased)
+## amd_smi_lib for ROCm 6.1.2
 
 ### Added
 
@@ -42,11 +42,22 @@ GPU: 1
 - **`amdsmi_get_power_cap_info` now returns values in uW instead of W**  
 `amdsmi_get_power_cap_info` will return in uW as originally reflected by driver. Previously `amdsmi_get_power_cap_info` returned W values, this conflicts with our sets and modifies values retrieved from driver. We decided to keep the values returned from driver untouched (in original units, uW). Then in CLI we will convert to watts (as previously done - no changes here). Additionally, driver made updates to min power cap displayed for devices when overdrive is disabled which prompted for this change (in this case min_power_cap and max_power_cap are the same).
 
+- **Updated Python Library return types for amdsmi_get_gpu_memory_reserved_pages & amdsmi_get_gpu_bad_page_info**  
+Previously calls were returning "No bad pages found." if no pages were found, now it only returns the list type and can be empty.
+
 ### Optimizations
 
-- N/A
+- **Updated `amd-smi monitor --pcie` output**  
+The source for pcie bandwidth monitor output was a legacy file we no longer support and was causing delays within the monitor command. The output is no longer using TX/RX but instantaneous bandwidth from gpu_metrics instead; updated output:
+
+```shell
+$ amd-smi monitor --pcie
+GPU   PCIE_BW
+  0   26 Mb/s
+```
 
 ### Fixed
+
 - **Fixed `amd-smi metric --power` now provides power output for Navi2x/Navi3x/MI1x**  
 These systems use an older version of gpu_metrics in amdgpu. This fix only updates what CLI outputs.
 No change in any of our APIs.
@@ -70,44 +81,12 @@ GPU: 1
         POWER_MANAGEMENT: ENABLED
         THROTTLE_STATUS: UNTHROTTLED
 ```
+
 - **Fixed `amdsmitstReadWrite.TestPowerCapReadWrite` test for Navi3X, Navi2X, MI100**  
 Updates required `amdsmi_get_power_cap_info` to return in uW as originally reflected by driver. Previously `amdsmi_get_power_cap_info` returned W values, this conflicts with our sets and modifies values retrieved from driver. We decided to keep the values returned from driver untouched (in original units, uW). Then in CLI we will convert to watts (as previously done - no changes here). Additionally, driver made updates to min power cap displayed for devices when overdrive is disabled which prompted for this change (in this case min_power_cap and max_power_cap are the same).
 
-
-## amd_smi_lib for ROCm 6.1.2
-
-### Added
-
-- **Updated Python Library return types for amdsmi_get_gpu_memory_reserved_pages & amdsmi_get_gpu_bad_page_info**  
-Previously calls were returning "No bad pages found." if no pages were found, now it only returns the list type and can be empty.
-
-### Changed
-
-- **Deprecated Volt Curve APIs**  
-The latest amdgpu driver has dropped support for getting and setting volt curve information. amdsmi_set_gpu_od_volt_info() & amdsmi_get_gpu_od_volt_curve_regions() have been deprecated with amdsmi_get_gpu_od_volt_info() now no longer populating voltage curve frequencies.
-
-- **Removed `amd-smi metric --voltage-curve` from CLI Tool** 
-Due to amdgpu driver dropping support for voltage curve, the CLI option has been removed as well.
-
-### Optimizations
-
-- **Updated `amd-smi monitor --pcie` output**  
-The source for pcie bandwidth monitor output was a legacy file we no longer support and was causing delays within the monitor command. The output is no longer using TX/RX but instantaneous bandwidth from gpu_metrics instead; updated output:
-
-```shell
-$ amd-smi monitor --pcie
-GPU   PCIE_BW
-  0   26 Mb/s
-```
-
-### Fixed
-
 - **Fixed python interface call amdsmi_get_gpu_memory_reserved_pages & amdsmi_get_gpu_bad_page_info**  
 Previously python interface calls to populated bad pages resulted in a `ValueError: NULL pointer access`. This fixes the bad-pages subcommand CLI  subcommand as well.
-
-### Known issues
-
-- None
 
 ## amd_smi_lib for ROCm 6.1.1
 
@@ -427,9 +406,6 @@ $ /opt/rocm/bin/amd-smi topology -a -t --json
 - N/A
 
 ### Fixed
-
-- **Fixed python interface call amdsmi_get_gpu_memory_reserved_pages & amdsmi_get_gpu_bad_page_info**  
-Previously python interface calls to populated bad pages resulted in a `ValueError: NULL pointer access`. This fixes the bad-pages subcommand CLI  subcommand as well.
 
 - **Fix for GPU reset error on non-amdgpu cards**  
 Previously our reset could attempting to reset non-amd GPUS- resuting in "Unable to reset non-amd GPU" error. Fix

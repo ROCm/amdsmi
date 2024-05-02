@@ -1253,13 +1253,12 @@ typedef struct {
 typedef struct {
   amdsmi_range_t curr_sclk_range;          //!< The current SCLK frequency range
   amdsmi_range_t curr_mclk_range;          //!< The current MCLK frequency range;
-                                           //!< (upper bound only)
+                                         //!< (upper bound only)
   amdsmi_range_t sclk_freq_limits;         //!< The range possible of SCLK values
   amdsmi_range_t mclk_freq_limits;         //!< The range possible of MCLK values
 
   /**
    * @brief The current voltage curve
-   * @deprecated ::Voltage curve support has been deprecated by the driver
    */
   amdsmi_od_volt_curve_t curve;
   uint32_t num_regions;                //!< The number of voltage curve regions
@@ -2966,7 +2965,7 @@ amdsmi_status_t amdsmi_get_clk_freq(amdsmi_processor_handle processor_handle,
 amdsmi_status_t amdsmi_reset_gpu(amdsmi_processor_handle processor_handle);
 
 /**
- *  @brief This function retrieves the overdrive GFX & MCLK information. It is
+ *  @brief This function retrieves the voltage/frequency curve information. It is
  *  not supported on virtual machine guest
  *
  *  @platform{gpu_bm_linux}
@@ -3167,9 +3166,6 @@ amdsmi_status_t amdsmi_set_gpu_od_clk_info(amdsmi_processor_handle processor_han
  *
  *  @platform{gpu_bm_linux}
  *
- *  @deprecated ::Voltage curve information is no longer supported by the
- *  amdgpu driver; this includes the ability to set voltage curve regions
- *
  *  @details Given a processor handle @p processor_handle, a voltage point @p vpoint
  *  and a voltage value @p voltvalue this function will set voltage curve point
  *
@@ -3195,9 +3191,6 @@ amdsmi_status_t amdsmi_set_gpu_od_volt_info(amdsmi_processor_handle processor_ha
  *  frequency/voltage space. It is not supported on virtual machine guest
  *
  *  @platform{gpu_bm_linux}
- *
- *  @deprecated ::Voltage curve information is no longer supported by the
- *  amdgpu driver; this includes the number of valid voltage regions
  *
  *  @details Given a processor handle @p processor_handle, a pointer to an unsigned integer
  *  @p num_regions and a buffer of ::amdsmi_freq_volt_region_t structures, @p
@@ -3509,7 +3502,7 @@ amdsmi_status_t amdsmi_set_gpu_process_isolation(amdsmi_processor_handle process
  * @platform{gpu_bm_linux} @platform{guest_1vf}
  *
  * @details Given a processor handle @p processor_handle, and a sclean flag @p sclean,
- * this function will clear the SRAM data of this processor. This can be called between
+ * this function will clear the SRAM data of this processor. This can be called between 
  * user logins to prevent information leak.
  *
  *  @note This function requires root access
