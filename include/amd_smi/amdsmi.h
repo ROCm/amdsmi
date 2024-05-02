@@ -154,7 +154,7 @@ typedef enum {
 #define AMDSMI_LIB_VERSION_MAJOR 5
 
 //! Minor version should be updated for each API change, but without changing headers
-#define AMDSMI_LIB_VERSION_MINOR 1
+#define AMDSMI_LIB_VERSION_MINOR 2
 
 //! Release version should be set to 0 as default and can be updated by the PMs for each CSP point release
 #define AMDSMI_LIB_VERSION_RELEASE 0
@@ -522,11 +522,11 @@ typedef struct {
 } amdsmi_pcie_info_t;
 
 typedef struct {
-  uint64_t power_cap;
-  uint64_t default_power_cap;
-  uint64_t dpm_cap;
-  uint64_t min_power_cap;
-  uint64_t max_power_cap;
+  uint64_t power_cap;           //!< current power cap (uW)
+  uint64_t default_power_cap;   //!< default power cap (uW)
+  uint64_t dpm_cap;             //!< dpm power cap (MHz)
+  uint64_t min_power_cap;       //!< minimum power cap (uW)
+  uint64_t max_power_cap;       //!< maximum power cap (uW)
   uint64_t reserved[3];
 } amdsmi_power_cap_info_t;
 
@@ -964,10 +964,10 @@ typedef enum {
  */
 typedef enum {
   AMDSMI_GPU_BLOCK_INVALID =   0x0000000000000000,  //!< Used to indicate an
-                                                  //!< invalid block
+                                                    //!< invalid block
   AMDSMI_GPU_BLOCK_FIRST =     0x0000000000000001,
 
-  AMDSMI_GPU_BLOCK_UMC = AMDSMI_GPU_BLOCK_FIRST,      //!< UMC block
+  AMDSMI_GPU_BLOCK_UMC = AMDSMI_GPU_BLOCK_FIRST,    //!< UMC block
   AMDSMI_GPU_BLOCK_SDMA =      0x0000000000000002,  //!< SDMA block
   AMDSMI_GPU_BLOCK_GFX =       0x0000000000000004,  //!< GFX block
   AMDSMI_GPU_BLOCK_MMHUB =     0x0000000000000008,  //!< MMHUB block
@@ -981,9 +981,14 @@ typedef enum {
   AMDSMI_GPU_BLOCK_MP0 =       0x0000000000000800,  //!< MP0 block
   AMDSMI_GPU_BLOCK_MP1 =       0x0000000000001000,  //!< MP1 block
   AMDSMI_GPU_BLOCK_FUSE =      0x0000000000002000,  //!< Fuse block
+  AMDSMI_GPU_BLOCK_MCA =       0x0000000000004000,  //!< MCA block
+  AMDSMI_GPU_BLOCK_VCN =       0x0000000000008000,  //!< VCN block
+  AMDSMI_GPU_BLOCK_JPEG =      0x0000000000010000,  //!< JPEG block
+  AMDSMI_GPU_BLOCK_IH =        0x0000000000020000,  //!< IH block
+  AMDSMI_GPU_BLOCK_MPIO =      0x0000000000040000,  //!< MPIO block
 
-  AMDSMI_GPU_BLOCK_LAST = AMDSMI_GPU_BLOCK_FUSE,       //!< The highest bit position
-                                                  //!< for supported blocks
+  AMDSMI_GPU_BLOCK_LAST = AMDSMI_GPU_BLOCK_MPIO,    //!< The highest bit position
+                                                    //!< for supported blocks
   AMDSMI_GPU_BLOCK_RESERVED =  0x8000000000000000
 } amdsmi_gpu_block_t;
 
@@ -3450,6 +3455,68 @@ amdsmi_status_t amdsmi_get_xgmi_plpd(amdsmi_processor_handle processor_handle,
 amdsmi_status_t amdsmi_set_xgmi_plpd(amdsmi_processor_handle processor_handle,
                              uint32_t plpd_id);
 
+
+/**
+ * @brief Get the status of the Process Isolation
+ *
+ * @platform{gpu_bm_linux} @platform{guest_1vf}
+ *
+ * @details Given a processor handle @p processor_handle, this function will write
+ * current process isolation status to @p pisolate. The 0 is the process isolation
+ * disabled, and the 1 is the process isolation enabled.
+ *
+ *  @param[in] processor_handle a processor handle
+ *
+ *  @param[in, out] pisolate the process isolation status.
+ *  If this parameter is nullptr, this function will return
+ *  ::AMDSMI_STATUS_INVAL
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_get_gpu_process_isolation(amdsmi_processor_handle processor_handle,
+                             uint32_t* pisolate);
+
+/**
+ * @brief Enable/disable the system Process Isolation
+ *
+ * @platform{gpu_bm_linux} @platform{guest_1vf}
+ *
+ * @details Given a processor handle @p processor_handle and a process isolation @p pisolate,
+ * flag, this function will set the Process Isolation for this processor. The 0 is the process
+ * isolation disabled, and the 1 is the process isolation enabled.
+ *
+ *  @note This function requires root access
+ *
+ *  @param[in] processor_handle a processor handle
+ *
+ *  @param[in] pisolate the process isolation status to set.
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_set_gpu_process_isolation(amdsmi_processor_handle processor_handle,
+                             uint32_t pisolate);
+
+/**
+ * @brief Clear the GPU SRAM data
+ *
+ * @platform{gpu_bm_linux} @platform{guest_1vf}
+ *
+ * @details Given a processor handle @p processor_handle, and a sclean flag @p sclean,
+ * this function will clear the SRAM data of this processor. This can be called between 
+ * user logins to prevent information leak.
+ *
+ *  @note This function requires root access
+ *
+ *  @param[in] processor_handle a processor handle
+ *
+ *  @param[in] sclean the clean flag. Only 1 will take effect and other number
+ *  are reserved for future usage.
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_set_gpu_clear_sram_data(amdsmi_processor_handle processor_handle,
+                  uint32_t sclean);
+
 /** @} End PerfCont */
 
 /*****************************************************************************/
@@ -4541,7 +4608,8 @@ amdsmi_get_gpu_board_info(amdsmi_processor_handle processor_handle, amdsmi_board
 
 /**
  *  @brief          Returns the power caps as currently configured in the
- *                  system. It is not supported on virtual machine guest
+ *                  system. Power in units of uW.
+ *                  It is not supported on virtual machine guest
  *
  *  @platform{gpu_bm_linux}  @platform{host}
  *
