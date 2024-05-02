@@ -8,8 +8,15 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/](
 
 ### Added
 
+- **Added process isolation and clean shader APIs and CLI commands**  
+Added APIs CLI and APIs to address LeftoverLocals security issues. Allowing clearing the sram data and setting process isolation on a per GPU basis. New APIs:
+  - `amdsmi_get_gpu_process_isolation()`
+  - `amdsmi_set_gpu_process_isolation()`
+  - `amdsmi_set_gpu_clear_sram_data()`
+
 - **Added `MIN_POWER` to output of `amd-smi static --limit`**  
-This change was to help users to identify what range they can change the power cap of the GPU to. We added this to simplify why a device supports (or does not support) power capping (also known as overdrive). See `amd-smi set -g all --power-cap <value in W>` or `amd-smi reset -g all --power-cap`. 
+This change was to help users to identify what range they can change the power cap of the GPU to. We added this to simplify why a device supports (or does not support) power capping (also known as overdrive). See `amd-smi set -g all --power-cap <value in W>` or `amd-smi reset -g all --power-cap`.
+
 ```shell
 $ amd-smi static --limit 
 GPU: 0
@@ -61,6 +68,7 @@ GPU   PCIE_BW
 - **Fixed `amd-smi metric --power` now provides power output for Navi2x/Navi3x/MI1x**  
 These systems use an older version of gpu_metrics in amdgpu. This fix only updates what CLI outputs.
 No change in any of our APIs.
+
 ```shell
 $ amd-smi metric --power
 GPU: 0
@@ -274,7 +282,8 @@ GPU: 0
 - **Updated `amd-smi topology --json` to align with host/guest**  
 Topology's `--json` output now is changed to align with output reported bt host/guest systems. Additionally, users can select/filter specific topology details as desired (refer to `amd-smi topology -h` for full list). See examples shown below.
 
-*Previous format:*  
+*Previous format:*
+
 ```shell
 $ amd-smi topology --json
 [
@@ -328,6 +337,7 @@ $ amd-smi topology --json
 ```
 
 *New format:*
+
 ```shell
 $ amd-smi topology --json
 [
@@ -359,6 +369,7 @@ $ amd-smi topology --json
     ...
 ]
 ```
+
 ```shell
 $ /opt/rocm/bin/amd-smi topology -a -t --json
 [
