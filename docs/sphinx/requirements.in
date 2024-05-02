@@ -1,4 +1,4 @@
-rocm-docs-core[api_reference]==1.1.1
+rocm-docs-core[api_reference]==1.0.0
 --extra-index-url https://test.pypi.org/simple/
 Sphinx-Substitution-Extensions
 autodoc
