@@ -52,6 +52,46 @@ GPU: 1
 - **Updated Python Library return types for amdsmi_get_gpu_memory_reserved_pages & amdsmi_get_gpu_bad_page_info**  
 Previously calls were returning "No bad pages found." if no pages were found, now it only returns the list type and can be empty.
 
+- **Updated `amd-smi metric --ecc-blocks` output**  
+The ecc blocks arguement was outputing blocks without counters available, updated the filtering show blocks that counters are available for:
+
+``` shell
+$ amd-smi metric --ecc-block
+GPU: 0
+    ECC_BLOCKS:
+        UMC:
+            CORRECTABLE_COUNT: 0
+            UNCORRECTABLE_COUNT: 0
+            DEFERRED_COUNT: 0
+        SDMA:
+            CORRECTABLE_COUNT: 0
+            UNCORRECTABLE_COUNT: 0
+            DEFERRED_COUNT: 0
+        GFX:
+            CORRECTABLE_COUNT: 0
+            UNCORRECTABLE_COUNT: 0
+            DEFERRED_COUNT: 0
+        MMHUB:
+            CORRECTABLE_COUNT: 0
+            UNCORRECTABLE_COUNT: 0
+            DEFERRED_COUNT: 0
+        PCIE_BIF:
+            CORRECTABLE_COUNT: 0
+            UNCORRECTABLE_COUNT: 0
+            DEFERRED_COUNT: 0
+        HDP:
+            CORRECTABLE_COUNT: 0
+            UNCORRECTABLE_COUNT: 0
+            DEFERRED_COUNT: 0
+        XGMI_WAFL:
+            CORRECTABLE_COUNT: 0
+            UNCORRECTABLE_COUNT: 0
+            DEFERRED_COUNT: 0
+```
+
+- **Removed `amdsmi_get_gpu_process_info` from python library**  
+amdsmi_get_gpu_process_info was removed from the C library in an earlier build, but the API was still in the python interface
+
 ### Optimizations
 
 - **Updated `amd-smi monitor --pcie` output**  
@@ -103,46 +143,6 @@ Previously python interface calls to populated bad pages resulted in a `ValueErr
 - N/A
 
 ### Changed
-
-- **Updated `amd-smi metric --ecc-blocks` output**  
-The ecc blocks arguement was outputing blocks without counters available, updated the filtering show blocks that counters are available for:
-
-``` shell
-$ amd-smi metric --ecc-block
-GPU: 0
-    ECC_BLOCKS:
-        UMC:
-            CORRECTABLE_COUNT: 0
-            UNCORRECTABLE_COUNT: 0
-            DEFERRED_COUNT: 0
-        SDMA:
-            CORRECTABLE_COUNT: 0
-            UNCORRECTABLE_COUNT: 0
-            DEFERRED_COUNT: 0
-        GFX:
-            CORRECTABLE_COUNT: 0
-            UNCORRECTABLE_COUNT: 0
-            DEFERRED_COUNT: 0
-        MMHUB:
-            CORRECTABLE_COUNT: 0
-            UNCORRECTABLE_COUNT: 0
-            DEFERRED_COUNT: 0
-        PCIE_BIF:
-            CORRECTABLE_COUNT: 0
-            UNCORRECTABLE_COUNT: 0
-            DEFERRED_COUNT: 0
-        HDP:
-            CORRECTABLE_COUNT: 0
-            UNCORRECTABLE_COUNT: 0
-            DEFERRED_COUNT: 0
-        XGMI_WAFL:
-            CORRECTABLE_COUNT: 0
-            UNCORRECTABLE_COUNT: 0
-            DEFERRED_COUNT: 0
-```
-
-- **Removed `amdsmi_get_gpu_process_info` from python library**  
-amdsmi_get_gpu_process_info was removed from the C library in an earlier build, but the API was still in the python interface
 
 - **Updated metrics --clocks**  
 Output for `amd-smi metric --clock` is updated to reflect each engine and bug fixes for the clock lock status and deep sleep status.
@@ -280,7 +280,7 @@ GPU: 0
 ```
 
 - **Updated `amd-smi topology --json` to align with host/guest**  
-Topology's `--json` output now is changed to align with output reported bt host/guest systems. Additionally, users can select/filter specific topology details as desired (refer to `amd-smi topology -h` for full list). See examples shown below.
+Topology's `--json` output now is changed to align with output host/guest systems. Additionally, users can select/filter specific topology details as desired (refer to `amd-smi topology -h` for full list). See examples shown below.
 
 *Previous format:*
 
