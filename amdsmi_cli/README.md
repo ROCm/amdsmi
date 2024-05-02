@@ -269,7 +269,7 @@ Command Modifiers:
 ~$ amd-smi metric --help
 usage: amd-smi metric [-h] [-g GPU [GPU ...] | -U CPU [CPU ...] | -O CORE [CORE ...]]
                       [-w INTERVAL] [-W TIME] [-i ITERATIONS] [-m] [-u] [-p] [-c] [-t]
-                      [-P] [-e] [-k] [-f] [-C] [-o] [-l] [-x] [-E] [--cpu-power-metrics]
+                      [-P] [-e] [-k] [-f] [-o] [-l] [-x] [-E] [--cpu-power-metrics]
                       [--cpu-prochot] [--cpu-freq-metrics] [--cpu-c0-res]
                       [--cpu-lclk-dpm-level NBIOID] [--cpu-pwr-svi-telemtry-rails]
                       [--cpu-io-bandwidth IO_BW LINKID_NAME]
@@ -313,7 +313,6 @@ Metric arguments:
   -e, --ecc                                 Total number of ECC errors
   -k, --ecc-blocks                          Number of ECC errors per block
   -f, --fan                                 Current fan speed
-  -C, --voltage-curve                       Display voltage curve
   -o, --overdrive                           Current GPU clock overdrive level
   -l, --perf-level                          Current DPM performance level
   -x, --xgmi-err                            XGMI error information since last read

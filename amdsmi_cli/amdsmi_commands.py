@@ -1108,7 +1108,7 @@ class AMDSMICommands():
     def metric_gpu(self, args, multiple_devices=False, watching_output=False, gpu=None,
                 usage=None, watch=None, watch_time=None, iterations=None, power=None,
                 clock=None, temperature=None, ecc=None, ecc_blocks=None, pcie=None,
-                fan=None, voltage_curve=None, overdrive=None, perf_level=None,
+                fan=None, overdrive=None, perf_level=None,
                 xgmi_err=None, energy=None, mem_usage=None, schedule=None,
                 guard=None, guest_data=None, fb_usage=None, xgmi=None,):
         """Get Metric information for target gpu
@@ -1129,7 +1129,6 @@ class AMDSMICommands():
             ecc_blocks (bool, optional): Value override for args.ecc. Defaults to None.
             pcie (bool, optional): Value override for args.pcie. Defaults to None.
             fan (bool, optional): Value override for args.fan. Defaults to None.
-            voltage_curve (bool, optional): Value override for args.voltage_curve. Defaults to None.
             overdrive (bool, optional): Value override for args.overdrive. Defaults to None.
             perf_level (bool, optional): Value override for args.perf_level. Defaults to None.
             xgmi_err (bool, optional): Value override for args.xgmi_err. Defaults to None.
@@ -1188,8 +1187,6 @@ class AMDSMICommands():
         if self.helpers.is_baremetal() and self.helpers.is_linux():
             if fan:
                 args.fan = fan
-            if voltage_curve:
-                args.voltage_curve = voltage_curve
             if overdrive:
                 args.overdrive = overdrive
             if perf_level:
@@ -1198,8 +1195,8 @@ class AMDSMICommands():
                 args.xgmi_err = xgmi_err
             if energy:
                 args.energy = energy
-            current_platform_args += ["fan", "voltage_curve", "overdrive", "perf_level", "xgmi_err", "energy"]
-            current_platform_values += [args.fan, args.voltage_curve, args.overdrive, args.perf_level, args.xgmi_err, args.energy]
+            current_platform_args += ["fan", "overdrive", "perf_level", "xgmi_err", "energy"]
+            current_platform_values += [args.fan, args.overdrive, args.perf_level, args.xgmi_err, args.energy]
 
         if self.helpers.is_hypervisor():
             if schedule:
@@ -1786,26 +1783,6 @@ class AMDSMICommands():
                     logging.debug("Failed to get fan rpms for gpu %s | %s", args.gpu, e.get_error_info())
 
                 values_dict["fan"] = fan_dict
-        if "voltage_curve" in current_platform_args:
-            if args.voltage_curve:
-                try:
-                    od_volt = amdsmi_interface.amdsmi_get_gpu_od_volt_info(args.gpu)
-
-                    voltage_point_dict = {}
-
-                    for point in range(3):
-                        if isinstance(od_volt, dict):
-                            frequency = int(od_volt["curve.vc_points"][point].frequency / 1000000)
-                            voltage = int(od_volt["curve.vc_points"][point].voltage)
-                        else:
-                            frequency = 0
-                            voltage = 0
-                        voltage_point_dict[f'voltage_point_{point}'] = f"{frequency} Mhz {voltage} mV"
-
-                    values_dict['voltage_curve'] = voltage_point_dict
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    values_dict['voltage_curve'] = "N/A"
-                    logging.debug("Failed to get voltage curve for gpu %s | %s", gpu_id, e.get_error_info())
         if "overdrive" in current_platform_args:
             if args.overdrive:
                 try:
@@ -2321,7 +2298,7 @@ class AMDSMICommands():
     def metric(self, args, multiple_devices=False, watching_output=False, gpu=None,
                 usage=None, watch=None, watch_time=None, iterations=None, power=None,
                 clock=None, temperature=None, ecc=None, ecc_blocks=None, pcie=None,
-                fan=None, voltage_curve=None, overdrive=None, perf_level=None,
+                fan=None, overdrive=None, perf_level=None,
                 xgmi_err=None, energy=None, mem_usage=None, schedule=None,
                 guard=None, guest_data=None, fb_usage=None, xgmi=None,
                 cpu=None, cpu_power_metrics=None, cpu_prochot=None, cpu_freq_metrics=None,
@@ -2350,7 +2327,6 @@ class AMDSMICommands():
             ecc_blocks (bool, optional): Value override for args.ecc. Defaults to None.
             pcie (bool, optional): Value override for args.pcie. Defaults to None.
             fan (bool, optional): Value override for args.fan. Defaults to None.
-            voltage_curve (bool, optional): Value override for args.voltage_curve. Defaults to None.
             overdrive (bool, optional): Value override for args.overdrive. Defaults to None.
             perf_level (bool, optional): Value override for args.perf_level. Defaults to None.
             xgmi_err (bool, optional): Value override for args.xgmi_err. Defaults to None.
@@ -2404,7 +2380,7 @@ class AMDSMICommands():
         # Check if a GPU argument has been set
         gpu_args_enabled = False
         gpu_attributes = ["usage", "watch", "watch_time", "iterations", "power", "clock",
-                          "temperature", "ecc", "ecc_blocks", "pcie", "fan", "voltage_curve",
+                          "temperature", "ecc", "ecc_blocks", "pcie", "fan",
                           "overdrive", "perf_level", "xgmi_err", "energy", "mem_usage", "schedule",
                           "guard", "guest_data", "fb_usage", "xgmi"]
         for attr in gpu_attributes:
@@ -2477,7 +2453,7 @@ class AMDSMICommands():
                 self.metric_gpu(args, multiple_devices, watching_output, gpu,
                                 usage, watch, watch_time, iterations, power,
                                 clock, temperature, ecc, ecc_blocks, pcie,
-                                fan, voltage_curve, overdrive, perf_level,
+                                fan, overdrive, perf_level,
                                 xgmi_err, energy, mem_usage, schedule,
                                 guard, guest_data, fb_usage, xgmi)
         elif self.helpers.is_amd_hsmp_initialized(): # Only CPU is initialized
@@ -2512,7 +2488,7 @@ class AMDSMICommands():
             self.metric_gpu(args, multiple_devices, watching_output, gpu,
                                 usage, watch, watch_time, iterations, power,
                                 clock, temperature, ecc, ecc_blocks, pcie,
-                                fan, voltage_curve, overdrive, perf_level,
+                                fan, overdrive, perf_level,
                                 xgmi_err, energy, mem_usage, schedule)
 
 
