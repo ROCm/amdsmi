@@ -1591,7 +1591,7 @@ except AmdSmiException as e:
 
 ### amdsmi_set_gpu_od_clk_info
 
-Description: This function sets the clock frequency information
+Description: **deprecated** This function sets the clock frequency information
 It is not supported on virtual machine guest
 
 Input parameters:
@@ -2306,7 +2306,7 @@ except AmdSmiException as e:
 
 ### amdsmi_get_gpu_od_volt_curve_regions
 
-Description: This function will retrieve the current valid regions in the
+Description: **deprecated** This function will retrieve the current valid regions in the
 frequency/voltage space. It is not supported on virtual machine guest
 
 Input parameters:

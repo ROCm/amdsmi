@@ -4,16 +4,22 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/](
 
 ***All information listed below is for reference and subject to change.***
 
-## amd_smi_lib for ROCm 6.1.1
+## amd_smi_lib for ROCm 6.1.2
 
 ### Added
 
-- N/A
+- **Updated Python Library return types for amdsmi_get_gpu_memory_reserved_pages & amdsmi_get_gpu_bad_page_info**  
+Previously calls were returning "No bad pages found." if no pages were found, now it only returns the list type and can be empty.
 
 ### Changed
 
-- **Updated Python Library return types for amdsmi_get_gpu_memory_reserved_pages & amdsmi_get_gpu_bad_page_info**  
-Previously calls were returning "No bad pages found." if no pages were found, now it only returns the list type and can be empty.
+- **Deprecated Volt Curve APIs**  
+The latest amdgpu driver has dropped support for getting and setting volt curve information. amdsmi_set_gpu_od_volt_info() & amdsmi_get_gpu_od_volt_curve_regions() have been deprecated with amdsmi_get_gpu_od_volt_info() now no longer populating voltage curve frequencies.
+
+- **Removed `amd-smi metric --voltage-curve` from CLI Tool** 
+Due to amdgpu driver dropping support for voltage curve, the CLI option has been removed as well.
+
+### Optimizations
 
 - **Updated `amd-smi monitor --pcie` output**  
 The source for pcie bandwidth monitor output was a legacy file we no longer support and was causing delays within the monitor command. The output is no longer using TX/RX but instantaneous bandwidth from gpu_metrics instead; updated output:
@@ -23,6 +29,23 @@ $ amd-smi monitor --pcie
 GPU   PCIE_BW
   0   26 Mb/s
 ```
+
+### Fixed
+
+- **Fixed python interface call amdsmi_get_gpu_memory_reserved_pages & amdsmi_get_gpu_bad_page_info**  
+Previously python interface calls to populated bad pages resulted in a `ValueError: NULL pointer access`. This fixes the bad-pages subcommand CLI  subcommand as well.
+
+### Known issues
+
+- None
+
+## amd_smi_lib for ROCm 6.1.1
+
+### Added
+
+- N/A
+
+### Changed
 
 - **Updated `amd-smi metric --ecc-blocks` output**  
 The ecc blocks arguement was outputing blocks without counters available, updated the filtering show blocks that counters are available for:
