@@ -61,7 +61,19 @@ GPU   PCIE_BW
   0   26 Mb/s
 ```
 
-### Changes
+- **Updated CLI voltage curve command output**.  
+The output for `amd-smi metric --voltage-curve` now splits the frequency and voltage output by curve point or outputs N/A if not applicable
+
+```shell
+GPU: 0
+    VOLTAGE_CURVE:
+        POINT_0_FREQUENCY: 872 Mhz
+        POINT_0_VOLTAGE: 736 mV
+        POINT_1_FREQUENCY: 1354 Mhz
+        POINT_1_VOLTAGE: 860 mV
+        POINT_2_FREQUENCY: 1837 Mhz
+        POINT_2_VOLTAGE: 1186 mV
+```
 
 - **Updated `amdsmi_get_gpu_board_info()` now has larger structure sizes for `amdsmi_board_info_t`**.  
 Updated sizes that work for retreiving relavant board information across AMD's
@@ -120,6 +132,9 @@ Previously if there was a partial failure to retrieve character strings, we woul
 garbage output to users using the API. This fix intends to populate as many values as possible.
 Then any failure(s) found along the way, `\0` is provided to `amdsmi_board_info_t`
 structures data members which cannot be populated. Ensuring empty char string values.
+
+- **Fixed parsing of `pp_od_clk_voltage` within `amdsmi_get_gpu_od_volt_info`**.  
+The parsing of `pp_od_clk_voltage` was not dynamic enough to work with the dropping of voltage curve support on MI series cards. This propagates down to correcting the CLI's output `amd-smi metric --voltage-curve` to N/A if voltage curve is not enabled.
 
 - **Fixed `amd-smi metric --power` now provides power output for Navi2x/Navi3x/MI1x**.  
 These systems use an older version of gpu_metrics in amdgpu. This fix only updates what CLI outputs.
