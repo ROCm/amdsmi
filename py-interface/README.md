@@ -1224,7 +1224,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-             amdsmi_set_gpu_pci_bandwidth(device, 0)
+            amdsmi_set_gpu_pci_bandwidth(device, 0)
 except AmdSmiException as e:
     print(e)
 ```
@@ -1620,7 +1620,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-             amdsmi_set_gpu_od_clk_info(
+            amdsmi_set_gpu_od_clk_info(
                 device,
                 AmdSmiFreqInd.AMDSMI_FREQ_IND_MAX,
                 1000,
@@ -1691,7 +1691,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-             amdsmi_set_gpu_od_volt_info(device, 1, 1000, 980)
+            amdsmi_set_gpu_od_volt_info(device, 1, 1000, 980)
 except AmdSmiException as e:
     print(e)
 ```
@@ -2168,15 +2168,16 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-             amdsmi_get_clk_freq(device, AmdSmiClkType.SYS)
+            amdsmi_get_clk_freq(device, AmdSmiClkType.SYS)
 except AmdSmiException as e:
     print(e)
 ```
 
 ### amdsmi_get_gpu_od_volt_info
 
-Description: This function retrieves the voltage/frequency curve information
-It is not supported on virtual machine guest
+Description: This function retrieves the voltage/frequency curve information.
+If the num_regions is 0 then the voltage curve is not supported.
+It is not supported on virtual machine guest.
 
 Input parameters:
 
@@ -2190,8 +2191,8 @@ Field | Description
 `curr_mclk_range` |  <table> <thead><tr><th> Subfield </th><th>Description</th></tr></thead><tbody><tr><td>`lower_bound`</td><td>lower bound mclk range</td></tr><tr><td>`upper_bound`</td><td>upper bound mclk range</td></tr></tbody></table>
 `sclk_freq_limits` |  <table> <thead><tr><th> Subfield </th><th>Description</th></tr></thead><tbody><tr><td>`lower_bound`</td><td>lower bound sclk range limt</td></tr><tr><td>`upper_bound`</td><td>upper bound sclk range limit</td></tr></tbody></table>
 `mclk_freq_limits` |  <table> <thead><tr><th> Subfield </th><th>Description</th></tr></thead><tbody><tr><td>`lower_bound`</td><td>lower bound mclk range limit</td></tr><tr><td>`upper_bound`</td><td>upper bound mclk range limit</td></tr></tbody></table>
-`curve.vc_points` | The number of supported frequencies
-`num_regions` | The current frequency index
+`curve.vc_points` | List of voltage curve points
+`num_regions` | The number of voltage curve regions
 
 Exceptions that can be thrown by `amdsmi_get_gpu_od_volt_info` function:
 
@@ -2208,7 +2209,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-             amdsmi_get_gpu_od_volt_info(dev)
+            amdsmi_get_gpu_od_volt_info(dev)
 except AmdSmiException as e:
     print(e)
 ```
@@ -2300,7 +2301,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-             amdsmi_get_gpu_metrics_info(dev)
+            amdsmi_get_gpu_metrics_info(dev)
 except AmdSmiException as e:
     print(e)
 ```
@@ -2337,7 +2338,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-             amdsmi_get_gpu_od_volt_curve_regions(device, 3)
+            amdsmi_get_gpu_od_volt_curve_regions(device, 3)
 except AmdSmiException as e:
     print(e)
 ```
@@ -2375,7 +2376,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-             amdsmi_get_gpu_power_profile_presets(device, 0)
+            amdsmi_get_gpu_power_profile_presets(device, 0)
 except AmdSmiException as e:
     print(e)
 ```
@@ -2604,7 +2605,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-             amdsmi_set_gpu_perf_level(device, AmdSmiDevPerfLevel.STABLE_PEAK)
+            amdsmi_set_gpu_perf_level(device, AmdSmiDevPerfLevel.STABLE_PEAK)
 except AmdSmiException as e:
     print(e)
 ```
@@ -2907,7 +2908,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-             amdsmi_set_gpu_overdrive_level(device, 0)
+            amdsmi_set_gpu_overdrive_level(device, 0)
 except AmdSmiException as e:
     print(e)
 ```
