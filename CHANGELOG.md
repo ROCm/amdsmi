@@ -18,7 +18,7 @@ Added APIs CLI and APIs to address LeftoverLocals security issues. Allowing clea
   - `amdsmi_set_gpu_clear_sram_data()`
 
 - **Added `MIN_POWER` to output of `amd-smi static --limit`**.
-This change was to help users to identify what range they can change the power cap of the GPU to. We added this to simplify why a device supports (or does not support) power capping (also known as overdrive). See `amd-smi set -g all --power-cap <value in W>` or `amd-smi reset -g all --power-cap`.
+This change helps users identify the range to which they can change the power cap of the GPU. The change is added to simplify why a device supports (or does not support) power capping (also known as overdrive). See `amd-smi set -g all --power-cap <value in W>` or `amd-smi reset -g all --power-cap`.
 
 ```shell
 $ amd-smi static --limit
