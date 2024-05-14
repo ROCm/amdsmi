@@ -187,9 +187,10 @@ if(BUILD_TESTS)
     add_subdirectory("tests/amd_smi_test")
 endif()
 
-# python interface and CLI depend on shared libraries
+# python interface, CLI, and py-test depend on shared libraries
 if(BUILD_SHARED_LIBS)
     add_subdirectory("py-interface")
+    add_subdirectory("pytest")
     if(BUILD_CLI)
         add_subdirectory("amdsmi_cli")
     endif()

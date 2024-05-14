@@ -590,6 +590,26 @@ def _padHexValue(value, length):
         return '0x' + value[2:].zfill(length)
     return value
 
+class UIntegerTypes(IntEnum):
+    UINT8_T  = 0xFF
+    UINT16_T = 0xFFFF
+    UINT32_T = 0xFFFFFFFF
+    UINT64_T = 0xFFFFFFFFFFFFFFFF
+
+def _validateIfMaxUint(valToCheck, uintType: UIntegerTypes):
+    return_val = "N/A"
+    if not isinstance(valToCheck, list):
+        if valToCheck == uintType:
+            return return_val
+        else:
+            return valToCheck
+    else:
+        return_val = valToCheck
+        for idx, v in enumerate(valToCheck):
+            if v == uintType:
+                return_val[idx] = "N/A"
+    return return_val
+
 
 def amdsmi_get_socket_handles() -> List[amdsmi_wrapper.amdsmi_socket_handle]:
     """
@@ -2277,30 +2297,22 @@ def amdsmi_get_pcie_info(
 
     pcie_info_dict = {
         "pcie_static": {
-            "max_pcie_width": pcie_info.pcie_static.max_pcie_width,
-            "max_pcie_speed": pcie_info.pcie_static.max_pcie_speed,
-            "pcie_interface_version": pcie_info.pcie_static.pcie_interface_version,
+            "max_pcie_width": _validateIfMaxUint(pcie_info.pcie_static.max_pcie_width, UIntegerTypes.UINT16_T),
+            "max_pcie_speed": _validateIfMaxUint(pcie_info.pcie_static.max_pcie_speed, UIntegerTypes.UINT32_T),
+            "pcie_interface_version": _validateIfMaxUint(pcie_info.pcie_static.pcie_interface_version, UIntegerTypes.UINT32_T),
             "slot_type": pcie_info.pcie_static.slot_type,
             },
         "pcie_metric": {
-            "pcie_width": pcie_info.pcie_metric.pcie_width,
-            "pcie_speed": pcie_info.pcie_metric.pcie_speed,
-            "pcie_bandwidth": pcie_info.pcie_metric.pcie_bandwidth,
-            "pcie_replay_count": pcie_info.pcie_metric.pcie_replay_count,
-            "pcie_l0_to_recovery_count": pcie_info.pcie_metric.pcie_l0_to_recovery_count,
-            "pcie_replay_roll_over_count": pcie_info.pcie_metric.pcie_replay_roll_over_count,
-            "pcie_nak_sent_count": pcie_info.pcie_metric.pcie_nak_sent_count,
-            "pcie_nak_received_count": pcie_info.pcie_metric.pcie_nak_received_count,
+            "pcie_width": _validateIfMaxUint(pcie_info.pcie_metric.pcie_width, UIntegerTypes.UINT16_T),
+            "pcie_speed": _validateIfMaxUint(pcie_info.pcie_metric.pcie_speed, UIntegerTypes.UINT32_T),
+            "pcie_bandwidth": _validateIfMaxUint(pcie_info.pcie_metric.pcie_bandwidth, UIntegerTypes.UINT32_T),
+            "pcie_replay_count": _validateIfMaxUint(pcie_info.pcie_metric.pcie_replay_count, UIntegerTypes.UINT64_T),
+            "pcie_l0_to_recovery_count": _validateIfMaxUint(pcie_info.pcie_metric.pcie_l0_to_recovery_count, UIntegerTypes.UINT64_T),
+            "pcie_replay_roll_over_count": _validateIfMaxUint(pcie_info.pcie_metric.pcie_replay_roll_over_count, UIntegerTypes.UINT64_T),
+            "pcie_nak_sent_count": _validateIfMaxUint(pcie_info.pcie_metric.pcie_nak_sent_count, UIntegerTypes.UINT64_T),
+            "pcie_nak_received_count": _validateIfMaxUint(pcie_info.pcie_metric.pcie_nak_received_count, UIntegerTypes.UINT64_T),
         }
     }
-
-    # Check pcie static values for uint max
-    if pcie_info_dict['pcie_static']['max_pcie_width'] == 0xFFFF:
-        pcie_info_dict['pcie_static']['max_pcie_width'] = "N/A"
-    if pcie_info_dict['pcie_static']['max_pcie_speed'] == 0xFFFFFFFF:
-        pcie_info_dict['pcie_static']['max_pcie_speed'] = "N/A"
-    if pcie_info_dict['pcie_static']['pcie_interface_version'] == 0xFFFFFFFF:
-        pcie_info_dict['pcie_static']['pcie_interface_version'] = "N/A"
 
     slot_type = pcie_info_dict['pcie_static']['slot_type']
     if isinstance(slot_type, int):
@@ -2311,29 +2323,6 @@ def amdsmi_get_pcie_info(
             pcie_info_dict['pcie_static']['slot_type'] = "Unknown"
     else:
         pcie_info_dict['pcie_static']['slot_type'] = "N/A"
-
-    # Check pcie metric values for uint max
-    if pcie_info_dict['pcie_metric']['pcie_width'] == 0xFFFF:
-        pcie_info_dict['pcie_metric']['pcie_width'] = "N/A"
-    if pcie_info_dict['pcie_metric']['pcie_speed'] == 0xFFFFFFFF:
-        pcie_info_dict['pcie_metric']['pcie_speed'] = "N/A"
-    if pcie_info_dict['pcie_metric']['pcie_bandwidth'] == 0xFFFFFFFF:
-        pcie_info_dict['pcie_metric']['pcie_bandwidth'] = "N/A"
-
-    # TODO Just Navi 21 has a different uint max size for pcie_bandwidth
-    # if pcie_info_dict['pcie_metric']['pcie_bandwidth'] == 0xFFFFFFFF:
-    #     pcie_info_dict['pcie_metric']['pcie_bandwidth'] = "N/A"
-
-    if pcie_info_dict['pcie_metric']['pcie_replay_count'] == 0xFFFFFFFFFFFFFFFF:
-        pcie_info_dict['pcie_metric']['pcie_replay_count'] = "N/A"
-    if pcie_info_dict['pcie_metric']['pcie_l0_to_recovery_count'] == 0xFFFFFFFFFFFFFFFF:
-        pcie_info_dict['pcie_metric']['pcie_l0_to_recovery_count'] = "N/A"
-    if pcie_info_dict['pcie_metric']['pcie_replay_roll_over_count'] == 0xFFFFFFFFFFFFFFFF:
-        pcie_info_dict['pcie_metric']['pcie_replay_roll_over_count'] = "N/A"
-    if pcie_info_dict['pcie_metric']['pcie_nak_sent_count'] == 0xFFFFFFFFFFFFFFFF:
-        pcie_info_dict['pcie_metric']['pcie_nak_sent_count'] = "N/A"
-    if pcie_info_dict['pcie_metric']['pcie_nak_received_count'] == 0xFFFFFFFFFFFFFFFF:
-        pcie_info_dict['pcie_metric']['pcie_nak_received_count'] = "N/A"
 
     return pcie_info_dict
 
