@@ -440,6 +440,13 @@ amdsmi_status_t amdsmi_get_gpu_board_info(amdsmi_processor_handle processor_hand
         status = rsmi_wrapper(rsmi_dev_name_get,
                               processor_handle, board_info->product_name,
                               AMDSMI_256_LENGTH);
+        // Check if the value is in hex format
+        if (status == AMDSMI_STATUS_SUCCESS) {
+            if (board_info->product_name[0] == '0' && board_info->product_name[1] == 'x') {
+                memset(board_info->product_name, 0,
+                        AMDSMI_256_LENGTH * sizeof(board_info->product_name[0]));
+            }
+        }
         if (status != AMDSMI_STATUS_SUCCESS) {
             memset(board_info->product_name, 0,
                     AMDSMI_256_LENGTH * sizeof(board_info->product_name[0]));
