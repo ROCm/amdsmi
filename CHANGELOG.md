@@ -7,6 +7,291 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 ## amd_smi_lib for ROCm 6.3.0
 
 ### Changes
+- **Added support for GPU metrics 1.6 to `amdsmi_get_gpu_metrics_info()`**  
+Updated `amdsmi_get_gpu_metrics_info()` and structure `amdsmi_gpu_metrics_t` to include new fields for PVIOL / TVIOL,  XCP (Graphics Compute Partitions) stats, and pcie_lc_perf_other_end_recovery:  
+  - `uint64_t accumulation_counter` - used for all throttled calculations
+  - `uint64_t prochot_residency_acc` - Processor hot accumulator
+  - `uint64_t ppt_residency_acc` - Package Power Tracking (PPT) accumulator (used in PVIOL calculations)
+  - `uint64_t socket_thm_residency_acc` - Socket thermal accumulator - (used in TVIOL calculations)
+  - `uint64_t vr_thm_residency_acc` - Voltage Rail (VR) thermal accumulator
+  - `uint64_t hbm_thm_residency_acc` - High Bandwidth Memory (HBM) thermal accumulator 
+  - `uint16_t num_partition` - corresponds to the current total number of partitions
+  - `struct amdgpu_xcp_metrics_t xcp_stats[MAX_NUM_XCP]` - for each partition associated with current GPU, provides gfx busy & accumulators, jpeg, and decoder (VCN) engine utilizations
+    - `uint32_t gfx_busy_inst[MAX_NUM_XCC]` - graphic engine utilization (%)
+    - `uint16_t jpeg_busy[MAX_NUM_JPEG_ENGS]` - jpeg engine utilization (%)
+    - `uint16_t vcn_busy[MAX_NUM_VCNS]` - decoder (VCN) engine utilization (%)
+    - `uint64_t gfx_busy_acc[MAX_NUM_XCC]` - graphic engine utilization accumulated (%)
+  - `uint32_t pcie_lc_perf_other_end_recovery` - corresponds to the pcie other end recovery counter
+
+- **Added new violation status outputs and APIs: `amdsmi_status_t amdsmi_get_violation_status()`, `amd-smi metric  --throttle`, and `amd-smi monitor --violation`**  
+  ***Only available for MI300+ ASICs.***  
+  Users can now retrieve violation status' through either our Python or C++ APIs. Additionally, we have
+  added capability to view these outputs conviently through `amd-smi metric --throttle` and `amd-smi monitor --violation`.  
+  Example outputs are listed below (below is for reference, output is subject to change):
+```shell
+$ amd-smi metric --throttle
+GPU: 0
+    THROTTLE:
+        ACCUMULATION_COUNTER: 1226415116
+        PROCHOT_ACCUMULATED: 0
+        PPT_ACCUMULATED: 12
+        SOCKET_THERMAL_ACCUMULATED: 0
+        VR_THERMAL_ACCUMULATED: 0
+        HBM_THERMAL_ACCUMULATED: 0
+        PROCHOT_VIOLATION_ACTIVE: NOT ACTIVE
+        PPT_VIOLATION_ACTIVE: NOT ACTIVE
+        SOCKET_THERMAL_VIOLATION_ACTIVE: NOT ACTIVE
+        VR_THERMAL_VIOLATION_ACTIVE: NOT ACTIVE
+        HBM_THERMAL_VIOLATION_ACTIVE: NOT ACTIVE
+        PROCHOT_VIOLATION_PERCENT: 0 %
+        PPT_VIOLATION_PERCENT: 0 %
+        SOCKET_THERMAL_VIOLATION_PERCENT: 0 %
+        VR_THERMAL_VIOLATION_PERCENT: 0 %
+        HBM_THERMAL_VIOLATION_PERCENT: 0 %
+
+GPU: 1
+    THROTTLE:
+        ACCUMULATION_COUNTER: 1226415121
+        PROCHOT_ACCUMULATED: 0
+        PPT_ACCUMULATED: 12
+        SOCKET_THERMAL_ACCUMULATED: 0
+        VR_THERMAL_ACCUMULATED: 0
+        HBM_THERMAL_ACCUMULATED: 0
+        PROCHOT_VIOLATION_ACTIVE: NOT ACTIVE
+        PPT_VIOLATION_ACTIVE: NOT ACTIVE
+        SOCKET_THERMAL_VIOLATION_ACTIVE: NOT ACTIVE
+        VR_THERMAL_VIOLATION_ACTIVE: NOT ACTIVE
+        HBM_THERMAL_VIOLATION_ACTIVE: NOT ACTIVE
+        PROCHOT_VIOLATION_PERCENT: 0 %
+        PPT_VIOLATION_PERCENT: 0 %
+        SOCKET_THERMAL_VIOLATION_PERCENT: 0 %
+        VR_THERMAL_VIOLATION_PERCENT: 0 %
+        HBM_THERMAL_VIOLATION_PERCENT: 0 %
+...
+```
+```shell
+$ amd-smi monitor --violation
+GPU     PVIOL     TVIOL  PHOT_TVIOL  VR_TVIOL  HBM_TVIOL
+  0       0 %       0 %         0 %       0 %        0 %
+  1       0 %       0 %         0 %       0 %        0 %
+  2       0 %       0 %         0 %       0 %        0 %
+  3       0 %       0 %         0 %       0 %        0 %
+  4       0 %       0 %         0 %       0 %        0 %
+  5       0 %       0 %         0 %       0 %        0 %
+  6       0 %       0 %         0 %       0 %        0 %
+  7       0 %       0 %         0 %       0 %        0 %
+  8       0 %       0 %         0 %       0 %        0 %
+  9       0 %       0 %         0 %       0 %        0 %
+ 10       0 %       0 %         0 %       0 %        0 %
+ 11       0 %       0 %         0 %       0 %        0 %
+ 12       0 %       0 %         0 %       0 %        0 %
+ 13       0 %       0 %         0 %       0 %        0 %
+ 14       0 %       0 %         0 %       0 %        0 %
+ 15       0 %       0 %         0 %       0 %        0 %
+...
+```
+
+- **Added ability to view XCP (Graphics Compute Partition) activity within `amd-smi metric --usage`**  
+  ***Partition specific features are only available on MI300+ ASICs***  
+  Users can now retrieve graphic utilization statistic on a per-XCP (per-partition) basis. Here all  XCP activities will be listed,
+  but the current XCP is the partition id listed under both `amd-smi list` and `amd-smi static --partition`.
+
+  Example outputs are listed below (below is for reference, output is subject to change):
+```shell
+$ amd-smi metric --usage
+GPU: 0
+    USAGE:
+        GFX_ACTIVITY: 0 %
+        UMC_ACTIVITY: 0 %
+        MM_ACTIVITY: N/A
+        VCN_ACTIVITY: [0 %, N/A, N/A, N/A]
+        JPEG_ACTIVITY: [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, N/A, N/A, N/A, N/A, N/A,
+            N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A,
+            N/A, N/A, N/A]
+        GFX_BUSY_INST:
+            XCP_0: [0 %, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_1: [0 %, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_2: [0 %, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_3: [0 %, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_4: [0 %, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_5: [0 %, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_6: [0 %, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_7: [0 %, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+        JPEG_BUSY:
+            XCP_0: [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A]
+            XCP_1: [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A]
+            XCP_2: [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A]
+            XCP_3: [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A]
+            XCP_4: [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A]
+            XCP_5: [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A]
+            XCP_6: [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A]
+            XCP_7: [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A]
+        VCN_BUSY:
+            XCP_0: [0 %, N/A, N/A, N/A]
+            XCP_1: [0 %, N/A, N/A, N/A]
+            XCP_2: [0 %, N/A, N/A, N/A]
+            XCP_3: [0 %, N/A, N/A, N/A]
+            XCP_4: [0 %, N/A, N/A, N/A]
+            XCP_5: [0 %, N/A, N/A, N/A]
+            XCP_6: [0 %, N/A, N/A, N/A]
+            XCP_7: [0 %, N/A, N/A, N/A]
+        GFX_BUSY_ACC:
+            XCP_0: [N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_1: [N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_2: [N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_3: [N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_4: [N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_5: [N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_6: [N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_7: [N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+
+
+GPU: 1
+    USAGE:
+        GFX_ACTIVITY: 0 %
+        UMC_ACTIVITY: 0 %
+        MM_ACTIVITY: N/A
+        VCN_ACTIVITY: [0 %, N/A, N/A, N/A]
+        JPEG_ACTIVITY: [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, N/A, N/A, N/A, N/A, N/A,
+            N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A,
+            N/A, N/A, N/A]
+        GFX_BUSY_INST:
+            XCP_0: [0 %, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_1: [0 %, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_2: [0 %, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_3: [0 %, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_4: [0 %, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_5: [0 %, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_6: [0 %, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_7: [0 %, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+        JPEG_BUSY:
+            XCP_0: [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A]
+            XCP_1: [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A]
+            XCP_2: [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A]
+            XCP_3: [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A]
+            XCP_4: [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A]
+            XCP_5: [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A]
+            XCP_6: [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A]
+            XCP_7: [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A,
+                N/A, N/A, N/A]
+        VCN_BUSY:
+            XCP_0: [0 %, N/A, N/A, N/A]
+            XCP_1: [0 %, N/A, N/A, N/A]
+            XCP_2: [0 %, N/A, N/A, N/A]
+            XCP_3: [0 %, N/A, N/A, N/A]
+            XCP_4: [0 %, N/A, N/A, N/A]
+            XCP_5: [0 %, N/A, N/A, N/A]
+            XCP_6: [0 %, N/A, N/A, N/A]
+            XCP_7: [0 %, N/A, N/A, N/A]
+        GFX_BUSY_ACC:
+            XCP_0: [N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_1: [N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_2: [N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_3: [N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_4: [N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_5: [N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_6: [N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+            XCP_7: [N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
+
+...
+```
+
+- **Added `LC_PERF_OTHER_END_RECOVERY` CLI output to `amd-smi metric --pcie` and updated `amdsmi_get_pcie_info()` to include this value**  
+  ***Feature is only available on MI300+ ASICs***  
+  Users can now retrieve both through `amdsmi_get_pcie_info()` which has an updated structure:
+```C
+typedef struct {
+  ...
+  struct pcie_metric_ {
+    uint16_t pcie_width;                  //!< current PCIe width
+    uint32_t pcie_speed;                  //!< current PCIe speed in MT/s
+    uint32_t pcie_bandwidth;              //!< current instantaneous PCIe bandwidth in Mb/s
+    uint64_t pcie_replay_count;           //!< total number of the replays issued on the PCIe link
+    uint64_t pcie_l0_to_recovery_count;   //!< total number of times the PCIe link transitioned from L0 to the recovery state
+    uint64_t pcie_replay_roll_over_count; //!< total number of replay rollovers issued on the PCIe link
+    uint64_t pcie_nak_sent_count;         //!< total number of NAKs issued on the PCIe link by the device
+    uint64_t pcie_nak_received_count;     //!< total number of NAKs issued on the PCIe link by the receiver
+    uint32_t pcie_lc_perf_other_end_recovery_count;  //!< PCIe other end recovery counter
+    uint64_t reserved[12];
+  } pcie_metric;
+  uint64_t reserved[32];
+} amdsmi_pcie_info_t;
+``` 
+
+  Example outputs are listed below (below is for reference, output is subject to change):
+```shell
+$ amd-smi metric --pcie
+GPU: 0
+    PCIE:
+        WIDTH: 16
+        SPEED: 32 GT/s
+        BANDWIDTH: 18 Mb/s
+        REPLAY_COUNT: 0
+        L0_TO_RECOVERY_COUNT: 0
+        REPLAY_ROLL_OVER_COUNT: 0
+        NAK_SENT_COUNT: 0
+        NAK_RECEIVED_COUNT: 0
+        CURRENT_BANDWIDTH_SENT: N/A
+        CURRENT_BANDWIDTH_RECEIVED: N/A
+        MAX_PACKET_SIZE: N/A
+        LC_PERF_OTHER_END_RECOVERY: 0
+
+GPU: 1
+    PCIE:
+        WIDTH: 16
+        SPEED: 32 GT/s
+        BANDWIDTH: 18 Mb/s
+        REPLAY_COUNT: 0
+        L0_TO_RECOVERY_COUNT: 0
+        REPLAY_ROLL_OVER_COUNT: 0
+        NAK_SENT_COUNT: 0
+        NAK_RECEIVED_COUNT: 0
+        CURRENT_BANDWIDTH_SENT: N/A
+        CURRENT_BANDWIDTH_RECEIVED: N/A
+        MAX_PACKET_SIZE: N/A
+        LC_PERF_OTHER_END_RECOVERY: 0
+...
+```
+
+- **Updated BDF commands to look use KFD SYSFS for BDF: `amdsmi_get_gpu_device_bdf()`**
+This aligns BDF output with ROCm SMI.
+See below for overview as seen from `rsmi_dev_pci_id_get()` now provides partition ID. See API for better detail. Previously these bits were reserved bits (right before domain) and partition id was within function.
+  - bits [63:32] = domain
+  - bits [31:28] = partition id
+  - bits [27:16] = reserved
+  - bits [15: 0] = pci bus/device/function
+
 
 - **Moved python tests directory path install location**.  
   - `/opt/<rocm-path>/share/amd_smi/pytest/..` to `/opt/<rocm-path>/share/amd_smi/tests/python_unittest/..`
@@ -19,7 +304,9 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 - **Added more supported utilization count types to `amdsmi_get_utilization_count()`**.  
 
 - **Added `amd-smi set -L/--clk-limit ...` command**.  
-  - Equivalent to rocm-smi's '--extremum' command which sets sclk's or mclk's soft minimum or soft maximum clock frequency.
+  Equivalent to rocm-smi's '--extremum' command which sets sclk's or mclk's soft minimum or soft maximum clock frequency.
+
+
 
 - **Added Pytest functionality to test amdsmi API calls in Python**.  
 
@@ -140,7 +427,8 @@ Legend:
 typedef struct {
   uint64_t kfd_id;  //< 0xFFFFFFFFFFFFFFFF if not supported
   uint32_t node_id;  //< 0xFFFFFFFF if not supported
-  uint32_t reserved[13];
+  uint32_t current_partition_id;  //< 0xFFFFFFFF if not supported
+  uint32_t reserved[12];
 } amdsmi_kfd_info_t;
 ```
 
@@ -362,6 +650,7 @@ GPU  POWER  GPU_TEMP  MEM_TEMP  VRAM_USED  VRAM_TOTAL
 ```
 
 - **Fixed incorrect implementation of the Python API `amdsmi_get_gpu_metrics_header_info()`**.  
+- **`amdsmitst` TestGpuMetricsRead now prints metric in correct units**
 
 - **`amd-smi static --partition` will have updates with additional partition information from `amdsmi_get_gpu_accelerator_partition_profile()`**.  
 
@@ -377,10 +666,10 @@ GPU  POWER  GPU_TEMP  MEM_TEMP  VRAM_USED  VRAM_TOTAL
 
 ### Additions
 
-- **Removed `amd-smi metric --ecc` & `amd-smi metric --ecc-blocks` on Guest VMs**.  
+- **Removed `amd-smi metric --ecc` & `amd-smi metric --ecc-blocks` on Guest VMs**.
 Guest VMs do not support getting current ECC counts from the Host cards.
 
-- **Added `amd-smi static --ras`on Guest VMs**.  
+- **Added `amd-smi static --ras`on Guest VMs**.
 Guest VMs can view enabled/disabled ras features that are on Host cards.
 
 ### Optimizations
@@ -393,9 +682,9 @@ Guest VMs can view enabled/disabled ras features that are on Host cards.
 
 - **Updated CLI error strings to handle empty and invalid GPU/CPU inputs**.  
 
-- **Fixed Guest VM showing passthrough options**.  
+- **Fixed Guest VM showing passthrough options**.
 
-- **Fixed firmware formatting where leading 0s were missing**.  
+- **Fixed firmware formatting where leading 0s were missing**.
 
 ### Known Issues
 
@@ -1006,7 +1295,7 @@ $ /opt/rocm/bin/amd-smi topology -a -t --json
 Previously our reset could attempting to reset non-amd GPUS- resuting in "Unable to reset non-amd GPU" error. Fix
 updates CLI to target only AMD ASICs.
 
-- **Fix for `amd-smi static --pcie` and `amdsmi_get_pcie_info()`Navi32/31 cards**.  
+- **Fix for `amd-smi static --pcie` and `amdsmi_get_pcie_info()` Navi32/31 cards**.  
 Updated API to include `amdsmi_card_form_factor_t.AMDSMI_CARD_FORM_FACTOR_CEM`. Prevously, this would report "UNKNOWN". This fix
 provides the correct board `SLOT_TYPE` associated with these ASICs (and other Navi cards).
 

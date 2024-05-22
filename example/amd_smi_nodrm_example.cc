@@ -61,7 +61,7 @@
             const char *err_str;                                               \
             std::cout << "AMDSMI call returned " << RET << " at line "         \
                       << __LINE__ << std::endl;                                \
-            amdsmi_status_code_to_string(RET, &err_str);                               \
+            amdsmi_status_code_to_string(RET, &err_str);                       \
             std::cout << err_str << std::endl;                                 \
             return RET;                                                        \
         }                                                                      \
@@ -262,8 +262,10 @@ int main() {
             char bad_page_status_names[3][15] = {"RESERVED", "PENDING",
                                                  "UNRESERVABLE"};
             uint32_t num_pages = 0;
+            std::vector<amdsmi_retired_page_record_t> bad_page_info(num_pages);
             ret = amdsmi_get_gpu_bad_page_info(processor_handles[j], &num_pages,
-                                           nullptr);
+                                           bad_page_info.data());
+            std::cout << "num_pages = " << num_pages << "\n";
             CHK_AMDSMI_RET(ret)
             printf("    Output of amdsmi_get_gpu_bad_page_info:\n");
             if (!num_pages) {
