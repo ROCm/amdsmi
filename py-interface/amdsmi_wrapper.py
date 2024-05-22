@@ -727,6 +727,28 @@ struct_amdsmi_vram_usage_t._fields_ = [
 ]
 
 amdsmi_vram_usage_t = struct_amdsmi_vram_usage_t
+class struct_amdsmi_violation_status_t(Structure):
+    pass
+
+struct_amdsmi_violation_status_t._pack_ = 1 # source:False
+struct_amdsmi_violation_status_t._fields_ = [
+    ('reference_timestamp', ctypes.c_uint64),
+    ('violation_timestamp', ctypes.c_uint64),
+    ('per_prochot_thrm', ctypes.c_uint64),
+    ('per_ppt_pwr', ctypes.c_uint64),
+    ('per_socket_thrm', ctypes.c_uint64),
+    ('per_vr_thrm', ctypes.c_uint64),
+    ('per_hbm_thrm', ctypes.c_uint64),
+    ('active_prochot_thrm', ctypes.c_ubyte),
+    ('active_ppt_pwr', ctypes.c_ubyte),
+    ('active_socket_thrm', ctypes.c_ubyte),
+    ('active_vr_thrm', ctypes.c_ubyte),
+    ('active_hbm_thrm', ctypes.c_ubyte),
+    ('PADDING_0', ctypes.c_ubyte * 3),
+    ('reserved', ctypes.c_uint64 * 24),
+]
+
+amdsmi_violation_status_t = struct_amdsmi_violation_status_t
 class struct_amdsmi_frequency_range_t(Structure):
     pass
 
@@ -804,7 +826,9 @@ struct_pcie_metric_._fields_ = [
     ('pcie_replay_roll_over_count', ctypes.c_uint64),
     ('pcie_nak_sent_count', ctypes.c_uint64),
     ('pcie_nak_received_count', ctypes.c_uint64),
-    ('reserved', ctypes.c_uint64 * 13),
+    ('pcie_lc_perf_other_end_recovery_count', ctypes.c_uint32),
+    ('PADDING_2', ctypes.c_ubyte * 4),
+    ('reserved', ctypes.c_uint64 * 12),
 ]
 
 struct_amdsmi_pcie_info_t._pack_ = 1 # source:False
@@ -933,7 +957,8 @@ struct_amdsmi_kfd_info_t._pack_ = 1 # source:False
 struct_amdsmi_kfd_info_t._fields_ = [
     ('kfd_id', ctypes.c_uint64),
     ('node_id', ctypes.c_uint32),
-    ('reserved', ctypes.c_uint32 * 13),
+    ('current_partition_id', ctypes.c_uint32),
+    ('reserved', ctypes.c_uint32 * 12),
 ]
 
 amdsmi_kfd_info_t = struct_amdsmi_kfd_info_t
@@ -1102,16 +1127,6 @@ amdsmi_process_handle_t = ctypes.c_uint32
 class struct_amdsmi_proc_info_t(Structure):
     pass
 
-class struct_engine_usage_(Structure):
-    pass
-
-struct_engine_usage_._pack_ = 1 # source:False
-struct_engine_usage_._fields_ = [
-    ('gfx', ctypes.c_uint64),
-    ('enc', ctypes.c_uint64),
-    ('reserved', ctypes.c_uint32 * 12),
-]
-
 class struct_memory_usage_(Structure):
     pass
 
@@ -1121,6 +1136,16 @@ struct_memory_usage_._fields_ = [
     ('cpu_mem', ctypes.c_uint64),
     ('vram_mem', ctypes.c_uint64),
     ('reserved', ctypes.c_uint32 * 10),
+]
+
+class struct_engine_usage_(Structure):
+    pass
+
+struct_engine_usage_._pack_ = 1 # source:False
+struct_engine_usage_._fields_ = [
+    ('gfx', ctypes.c_uint64),
+    ('enc', ctypes.c_uint64),
+    ('reserved', ctypes.c_uint32 * 12),
 ]
 
 struct_amdsmi_proc_info_t._pack_ = 1 # source:False
@@ -1713,6 +1738,17 @@ struct_amd_metrics_table_header_t._fields_ = [
 ]
 
 amd_metrics_table_header_t = struct_amd_metrics_table_header_t
+class struct_amdsmi_gpu_xcp_metrics_t(Structure):
+    pass
+
+struct_amdsmi_gpu_xcp_metrics_t._pack_ = 1 # source:False
+struct_amdsmi_gpu_xcp_metrics_t._fields_ = [
+    ('gfx_busy_inst', ctypes.c_uint32 * 8),
+    ('jpeg_busy', ctypes.c_uint16 * 32),
+    ('vcn_busy', ctypes.c_uint16 * 4),
+    ('gfx_busy_acc', ctypes.c_uint64 * 8),
+]
+
 class struct_amdsmi_gpu_metrics_t(Structure):
     pass
 
@@ -1780,6 +1816,17 @@ struct_amdsmi_gpu_metrics_t._fields_ = [
     ('jpeg_activity', ctypes.c_uint16 * 32),
     ('pcie_nak_sent_count_acc', ctypes.c_uint32),
     ('pcie_nak_rcvd_count_acc', ctypes.c_uint32),
+    ('accumulation_counter', ctypes.c_uint64),
+    ('prochot_residency_acc', ctypes.c_uint64),
+    ('ppt_residency_acc', ctypes.c_uint64),
+    ('socket_thm_residency_acc', ctypes.c_uint64),
+    ('vr_thm_residency_acc', ctypes.c_uint64),
+    ('hbm_thm_residency_acc', ctypes.c_uint64),
+    ('num_partition', ctypes.c_uint16),
+    ('PADDING_4', ctypes.c_ubyte * 6),
+    ('xcp_stats', struct_amdsmi_gpu_xcp_metrics_t * 8),
+    ('pcie_lc_perf_other_end_recovery', ctypes.c_uint32),
+    ('PADDING_5', ctypes.c_ubyte * 4),
 ]
 
 amdsmi_gpu_metrics_t = struct_amdsmi_gpu_metrics_t
@@ -1852,8 +1899,7 @@ struct_amdsmi_topology_nearest_t._fields_ = [
     ('count', ctypes.c_uint32),
     ('PADDING_0', ctypes.c_ubyte * 4),
     ('processor_list', ctypes.POINTER(None) * 32),
-    ('reserved', ctypes.c_uint32 * 15),
-    ('PADDING_1', ctypes.c_ubyte * 4),
+    ('reserved', ctypes.c_uint64 * 15),
 ]
 
 amdsmi_topology_nearest_t = struct_amdsmi_topology_nearest_t
@@ -2385,6 +2431,9 @@ amdsmi_get_clock_info.argtypes = [amdsmi_processor_handle, amdsmi_clk_type_t, ct
 amdsmi_get_gpu_vram_usage = _libraries['libamd_smi.so'].amdsmi_get_gpu_vram_usage
 amdsmi_get_gpu_vram_usage.restype = amdsmi_status_t
 amdsmi_get_gpu_vram_usage.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_vram_usage_t)]
+amdsmi_get_violation_status = _libraries['libamd_smi.so'].amdsmi_get_violation_status
+amdsmi_get_violation_status.restype = amdsmi_status_t
+amdsmi_get_violation_status.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_violation_status_t)]
 amdsmi_get_gpu_process_list = _libraries['libamd_smi.so'].amdsmi_get_gpu_process_list
 amdsmi_get_gpu_process_list.restype = amdsmi_status_t
 amdsmi_get_gpu_process_list.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(struct_amdsmi_proc_info_t)]
@@ -2828,9 +2877,9 @@ __all__ = \
     'amdsmi_get_soc_pstate', 'amdsmi_get_socket_handles',
     'amdsmi_get_socket_info', 'amdsmi_get_temp_metric',
     'amdsmi_get_threads_per_core', 'amdsmi_get_utilization_count',
-    'amdsmi_get_xgmi_info', 'amdsmi_get_xgmi_plpd',
-    'amdsmi_gpu_block_t', 'amdsmi_gpu_cache_info_t',
-    'amdsmi_gpu_control_counter',
+    'amdsmi_get_violation_status', 'amdsmi_get_xgmi_info',
+    'amdsmi_get_xgmi_plpd', 'amdsmi_gpu_block_t',
+    'amdsmi_gpu_cache_info_t', 'amdsmi_gpu_control_counter',
     'amdsmi_gpu_counter_group_supported', 'amdsmi_gpu_create_counter',
     'amdsmi_gpu_destroy_counter', 'amdsmi_gpu_metrics_t',
     'amdsmi_gpu_read_counter', 'amdsmi_gpu_xgmi_error_status',
@@ -2883,9 +2932,9 @@ __all__ = \
     'amdsmi_topo_get_p2p_status', 'amdsmi_topology_nearest_t',
     'amdsmi_utilization_counter_t',
     'amdsmi_utilization_counter_type_t', 'amdsmi_vbios_info_t',
-    'amdsmi_version_t', 'amdsmi_voltage_metric_t',
-    'amdsmi_voltage_type_t', 'amdsmi_vram_info_t',
-    'amdsmi_vram_type_t', 'amdsmi_vram_usage_t',
+    'amdsmi_version_t', 'amdsmi_violation_status_t',
+    'amdsmi_voltage_metric_t', 'amdsmi_voltage_type_t',
+    'amdsmi_vram_info_t', 'amdsmi_vram_type_t', 'amdsmi_vram_usage_t',
     'amdsmi_vram_vendor_type_t', 'amdsmi_xgmi_info_t',
     'amdsmi_xgmi_status_t', 'processor_type_t', 'size_t',
     'struct__links', 'struct_amd_metrics_table_header_t',
@@ -2901,6 +2950,7 @@ __all__ = \
     'struct_amdsmi_freq_volt_region_t', 'struct_amdsmi_frequencies_t',
     'struct_amdsmi_frequency_range_t', 'struct_amdsmi_fw_info_t',
     'struct_amdsmi_gpu_cache_info_t', 'struct_amdsmi_gpu_metrics_t',
+    'struct_amdsmi_gpu_xcp_metrics_t',
     'struct_amdsmi_hsmp_metrics_table_t', 'struct_amdsmi_kfd_info_t',
     'struct_amdsmi_link_id_bw_type_t', 'struct_amdsmi_link_metrics_t',
     'struct_amdsmi_name_value_t', 'struct_amdsmi_od_vddc_point_t',
@@ -2918,9 +2968,9 @@ __all__ = \
     'struct_amdsmi_topology_nearest_t',
     'struct_amdsmi_utilization_counter_t',
     'struct_amdsmi_vbios_info_t', 'struct_amdsmi_version_t',
-    'struct_amdsmi_vram_info_t', 'struct_amdsmi_vram_usage_t',
-    'struct_amdsmi_xgmi_info_t', 'struct_cache_',
-    'struct_engine_usage_', 'struct_fw_info_list_',
+    'struct_amdsmi_violation_status_t', 'struct_amdsmi_vram_info_t',
+    'struct_amdsmi_vram_usage_t', 'struct_amdsmi_xgmi_info_t',
+    'struct_cache_', 'struct_engine_usage_', 'struct_fw_info_list_',
     'struct_memory_usage_', 'struct_nps_flags_',
     'struct_pcie_metric_', 'struct_pcie_static_',
     'struct_amdsmi_bdf_t','uint32_t', 'uint64_t', 'uint8_t',

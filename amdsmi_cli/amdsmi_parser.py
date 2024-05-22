@@ -758,6 +758,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         perf_level_help = "Current DPM performance level"
         xgmi_err_help = "XGMI error information since last read"
         energy_help = "Amount of energy consumed"
+        throttle_help = "Displays throttle accumulators; Only available for MI300 or newer ASICs"
 
         # Help text for Arguments only on Hypervisors
         schedule_help = "All scheduling information"
@@ -832,6 +833,7 @@ class AMDSMIParser(argparse.ArgumentParser):
                 metric_parser.add_argument('-l', '--perf-level', action='store_true', required=False, help=perf_level_help)
                 metric_parser.add_argument('-x', '--xgmi-err', action='store_true', required=False, help=xgmi_err_help)
                 metric_parser.add_argument('-E', '--energy', action='store_true', required=False, help=energy_help)
+                metric_parser.add_argument('-T', '--throttle', action='store_true', required=False, help=throttle_help)
 
             # Options to only display to Hypervisors
             if self.helpers.is_hypervisor():
@@ -1184,6 +1186,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         mem_usage_help = "Monitor memory usage in MB"
         pcie_bandwidth_help = "Monitor PCIe bandwidth in Mb/s"
         process_help = "Enable Process information table below monitor output"
+        violation_help = "Monitor power and thermal violation status (%%); Only available for MI300 or newer ASICs"
 
         # Create monitor subparser
         monitor_parser = subparsers.add_parser('monitor', help=monitor_help, description=monitor_subcommand_help, aliases=["dmon"])
@@ -1207,6 +1210,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         monitor_parser.add_argument('-v', '--vram-usage', action='store_true', required=False, help=mem_usage_help)
         monitor_parser.add_argument('-r', '--pcie', action='store_true', required=False, help=pcie_bandwidth_help)
         monitor_parser.add_argument('-q', '--process', action='store_true', required=False, help=process_help)
+        monitor_parser.add_argument('-V', '--violation', action='store_true', required=False, help=violation_help)
 
 
     def _add_rocm_smi_parser(self, subparsers, func):

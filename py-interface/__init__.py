@@ -106,6 +106,7 @@ from .amdsmi_interface import amdsmi_get_clock_info
 
 from .amdsmi_interface import amdsmi_get_pcie_info
 from .amdsmi_interface import amdsmi_get_gpu_bad_page_info
+from .amdsmi_interface import amdsmi_get_violation_status
 
 # # Process Information
 from .amdsmi_interface import amdsmi_get_gpu_process_list

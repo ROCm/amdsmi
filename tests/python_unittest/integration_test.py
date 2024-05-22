@@ -114,6 +114,8 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
                 kfd_info['kfd_id']))
             print("  kfd_info['node_id'] is: {}".format(
                 kfd_info['node_id']))
+            print("  kfd_info['current_partition_id'] is: {}\n".format(
+                kfd_info['current_partition_id']))
         print()
         self.tearDown()
 
@@ -527,6 +529,8 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
                 pcie_info['pcie_metric']['pcie_nak_sent_count']))
             print("  pcie_info['pcie_metric']['pcie_nak_received_count'] is: {}".format(
                 pcie_info['pcie_metric']['pcie_nak_received_count']))
+            print("  pcie_info['pcie_metric']['pcie_lc_perf_other_end_recovery_count'] is: {}".format(
+                pcie_info['pcie_metric']['pcie_lc_perf_other_end_recovery_count']))
         print()
         self.tearDown()
 
@@ -844,6 +848,65 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
         self.tearDown()
 
     # @unittest.SkipTest
+    @handle_exceptions
+    def test_accelerator_partition_profile(self):
+        self.setUp()
+        processors = amdsmi.amdsmi_get_processor_handles()
+        self.assertGreaterEqual(len(processors), 1)
+        self.assertLessEqual(len(processors), 32)
+        for i in range(0, len(processors)):
+            bdf = amdsmi.amdsmi_get_gpu_device_bdf(processors[i])
+            print("\n\n###Test Processor {}, bdf: {}".format(i, bdf))
+            print("\n###Test amdsmi_get_gpu_accelerator_partition_profile \n")
+            accelerator_partition = amdsmi.amdsmi_get_gpu_accelerator_partition_profile(processors[i])
+            print("  Current partition id: {}".format(
+                accelerator_partition['partition_id']))
+        print()
+        self.tearDown()
+
+    # Only supported on MI300+ ASICs
+    @handle_exceptions
+    def test_get_violation_status(self):
+        self.setUp()
+        processors = amdsmi.amdsmi_get_processor_handles()
+        self.assertGreaterEqual(len(processors), 1)
+        self.assertLessEqual(len(processors), 32)
+        for i in range(0, len(processors)):
+            bdf = amdsmi.amdsmi_get_gpu_device_bdf(processors[i])
+            print("\n\n###Test Processor {}, bdf: {}".format(i, bdf))
+            print("\n###Test amdsmi_get_violation_status \n")
+
+            violation_status = amdsmi.amdsmi_get_violation_status(processors[i])
+            print("  Reference Timestamp: {}".format(
+                violation_status['reference_timestamp']))
+            print("  Violation Timestamp: {}".format(
+                violation_status['violation_timestamp']))
+
+            print(" Prochot Thrm Violation (%): {}".format(
+                violation_status['per_prochot_thrm']))
+            print(" PVIOL (per_ppt_pwr) (%): {}".format(
+                violation_status['per_ppt_pwr']))
+            print(" TVIOL (per_socket_thrm) (%): {}".format(
+                violation_status['per_socket_thrm']))
+            print(" VR_THRM Violation (%): {}".format(
+                violation_status['per_vr_thrm']))
+            print(" HBM Thrm Violation (%): {}".format(
+                violation_status['per_hbm_thrm']))
+
+            print(" Prochot Thrm Violation (bool): {}".format(
+                violation_status['active_prochot_thrm']))
+            print(" PVIOL (active_ppt_pwr) (bool): {}".format(
+                violation_status['active_ppt_pwr']))
+            print(" TVIOL (active_socket_thrm) (bool): {}".format(
+                violation_status['active_socket_thrm']))
+            print(" VR_THRM Violation (bool): {}".format(
+                violation_status['active_vr_thrm']))
+            print(" HBM Thrm Violation (bool): {}".format(
+                violation_status['active_hbm_thrm']))
+        print()
+        self.tearDown()
+
+
     def test_walkthrough(self):
         print("\n\n#######################################################################")
         print("========> test_walkthrough start <========\n")
