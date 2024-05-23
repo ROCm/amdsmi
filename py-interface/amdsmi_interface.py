@@ -87,7 +87,7 @@ class AmdSmiContainerTypes(IntEnum):
 
 
 class AmdSmiDeviceType(IntEnum):
-    UNKNOWN_DEVICE = amdsmi_wrapper.UNKNOWN
+    UNKNOWN_DEVICE = amdsmi_wrapper.AMDSMI_PROCESSOR_TYPE_UNKNOWN
     AMD_GPU_DEVICE = amdsmi_wrapper.AMDSMI_PROCESSOR_TYPE_AMD_GPU
     AMD_CPU_DEVICE = amdsmi_wrapper.AMDSMI_PROCESSOR_TYPE_AMD_CPU
     NON_AMD_GPU_DEVICE = amdsmi_wrapper.AMDSMI_PROCESSOR_TYPE_NON_AMD_GPU
@@ -120,8 +120,8 @@ class AmdSmiFwBlock(IntEnum):
     AMDSMI_FW_ID_SDMA7 = amdsmi_wrapper.AMDSMI_FW_ID_SDMA7
     AMDSMI_FW_ID_VCN = amdsmi_wrapper.AMDSMI_FW_ID_VCN
     AMDSMI_FW_ID_UVD = amdsmi_wrapper.AMDSMI_FW_ID_UVD
-   AMDSMI_FW_ID_VCE = amdsmi_wrapper.AMDSMI_FW_ID_VCE
-    AMDSMI_ FW_ID_ISP = amdsmi_wrapper.AMDSMI_ FW_ID_ISP
+    AMDSMI_FW_ID_VCE = amdsmi_wrapper.AMDSMI_FW_ID_VCE
+    AMDSMI_FW_ID_ISP = amdsmi_wrapper.AMDSMI_FW_ID_ISP
     AMDSMI_FW_ID_DMCU_ERAM = amdsmi_wrapper.AMDSMI_FW_ID_DMCU_ERAM
     AMDSMI_FW_ID_DMCU_ISR = amdsmi_wrapper.AMDSMI_FW_ID_DMCU_ISR
     AMDSMI_FW_ID_RLC_RESTORE_LIST_GPM_MEM = amdsmi_wrapper.AMDSMI_FW_ID_RLC_RESTORE_LIST_GPM_MEM
@@ -391,7 +391,7 @@ class AmdSmiUtilizationCounterType(IntEnum):
 
 
 class AmdSmiProcessorType(IntEnum):
-    UNKNOWN = amdsmi_wrapper.UNKNOWN
+    UNKNOWN = amdsmi_wrapper.AMDSMI_PROCESSOR_TYPE_UNKNOWN
     AMDSMI_PROCESSOR_TYPE_AMD_GPU = amdsmi_wrapper.AMDSMI_PROCESSOR_TYPE_AMD_GPU
     AMDSMI_PROCESSOR_TYPE_AMD_CPU = amdsmi_wrapper.AMDSMI_PROCESSOR_TYPE_AMD_CPU
     AMDSMI_PROCESSOR_TYPE_NON_AMD_GPU = amdsmi_wrapper.AMDSMI_PROCESSOR_TYPE_NON_AMD_GPU
@@ -513,10 +513,10 @@ def _format_bdf(amdsmi_bdf: amdsmi_wrapper.amdsmi_bdf_t) -> str:
     Returns:
         `str`: String containing BDF data in a readable format.
     """
-    domain = hex(amdsmi_bdf.domain_number)[2:].zfill(4)
-    bus = hex(amdsmi_bdf.bus_number)[2:].zfill(2)
-    device = hex(amdsmi_bdf.device_number)[2:].zfill(2)
-    function = hex(amdsmi_bdf.function_number)[2:]
+    domain = hex(amdsmi_bdf.struct_amdsmi_bdf_t.domain_number)[2:].zfill(4)
+    bus = hex(amdsmi_bdf.struct_amdsmi_bdf_t.bus_number)[2:].zfill(2)
+    device = hex(amdsmi_bdf.struct_amdsmi_bdf_t.device_number)[2:].zfill(2)
+    function = hex(amdsmi_bdf.struct_amdsmi_bdf_t.function_number)[2:]
 
     return domain + ":" + bus + ":" + device + "." + function
 
@@ -563,10 +563,10 @@ def _make_amdsmi_bdf_from_list(bdf):
     if len(bdf) != 4:
         return None
     amdsmi_bdf = amdsmi_wrapper.amdsmi_bdf_t()
-    amdsmi_bdf.function_number = bdf[3]
-    amdsmi_bdf.device_number = bdf[2]
-    amdsmi_bdf.bus_number = bdf[1]
-    amdsmi_bdf.domain_number = bdf[0]
+    amdsmi_bdf.struct_amdsmi_bdf_t.function_number = bdf[3]
+    amdsmi_bdf.struct_amdsmi_bdf_t.device_number = bdf[2]
+    amdsmi_bdf.struct_amdsmi_bdf_t.bus_number = bdf[1]
+    amdsmi_bdf.struct_amdsmi_bdf_t.domain_number = bdf[0]
     return amdsmi_bdf
 
 def _padHexValue(value, length):
