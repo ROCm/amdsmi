@@ -2705,7 +2705,7 @@ except AmdSmiException as e:
     print(e)
 ```
 
-### amdsmi_get_dpm_policy
+### amdsmi_get_soc_pstate
 
 Description: Get dpm policy information.
 
@@ -2722,7 +2722,7 @@ Field | Description
 `current_id` | current policy id
 `policies` | list of dictionaries containing possible policies
 
-Exceptions that can be thrown by `amdsmi_get_dpm_policy` function:
+Exceptions that can be thrown by `amdsmi_get_soc_pstate` function:
 
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
@@ -2737,13 +2737,13 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            dpm_policies = amdsmi_get_dpm_policy(device)
+            dpm_policies = amdsmi_get_soc_pstate(device)
             print(dpm_policies)
 except AmdSmiException as e:
     print(e)
 ```
 
-### amdsmi_set_dpm_policy
+### amdsmi_set_soc_pstate
 
 Description: Set the dpm policy to corresponding policy_id. Typically following: 0(default),1,2,3
 
@@ -2754,7 +2754,7 @@ Input parameters:
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_set_dpm_policy` function:
+Exceptions that can be thrown by `amdsmi_set_soc_pstate` function:
 
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
@@ -2769,7 +2769,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_set_dpm_policy(device, 0)
+            amdsmi_set_soc_pstate(device, 0)
 except AmdSmiException as e:
     print(e)
 ```

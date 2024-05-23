@@ -1519,7 +1519,7 @@ struct_amdsmi_dpm_policy_entry_t._fields_ = [
     ('policy_description', ctypes.c_char * 32),
 ]
 
-amdsmi_dpm_policy_entry_t = struct_amdsmi_dpm_policy_entry_t
+struct_amdsmi_dpm_policy_entry_t = struct_amdsmi_dpm_policy_entry_t
 class struct_amdsmi_dpm_policy_t(Structure):
     pass
 
@@ -2082,12 +2082,12 @@ amdsmi_set_gpu_overdrive_level.argtypes = [amdsmi_processor_handle, uint32_t]
 amdsmi_set_clk_freq = _libraries['libamd_smi.so'].amdsmi_set_clk_freq
 amdsmi_set_clk_freq.restype = amdsmi_status_t
 amdsmi_set_clk_freq.argtypes = [amdsmi_processor_handle, amdsmi_clk_type_t, uint64_t]
-amdsmi_get_dpm_policy = _libraries['libamd_smi.so'].amdsmi_get_dpm_policy
-amdsmi_get_dpm_policy.restype = amdsmi_status_t
-amdsmi_get_dpm_policy.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_dpm_policy_t)]
-amdsmi_set_dpm_policy = _libraries['libamd_smi.so'].amdsmi_set_dpm_policy
-amdsmi_set_dpm_policy.restype = amdsmi_status_t
-amdsmi_set_dpm_policy.argtypes = [amdsmi_processor_handle, uint32_t]
+amdsmi_get_soc_pstate = _libraries['libamd_smi.so'].amdsmi_get_soc_pstate
+amdsmi_get_soc_pstate.restype = amdsmi_status_t
+amdsmi_get_soc_pstate.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_dpm_policy_t)]
+amdsmi_set_soc_pstate = _libraries['libamd_smi.so'].amdsmi_set_soc_pstate
+amdsmi_set_soc_pstate.restype = amdsmi_status_t
+amdsmi_set_soc_pstate.argtypes = [amdsmi_processor_handle, uint32_t]
 amdsmi_get_xgmi_plpd = _libraries['libamd_smi.so'].amdsmi_get_xgmi_plpd
 amdsmi_get_xgmi_plpd.restype = amdsmi_status_t
 amdsmi_get_xgmi_plpd.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_dpm_policy_t)]
@@ -2619,7 +2619,7 @@ __all__ = \
     'amdsmi_get_cpu_socket_power', 'amdsmi_get_cpu_socket_power_cap',
     'amdsmi_get_cpu_socket_power_cap_max',
     'amdsmi_get_cpu_socket_temperature', 'amdsmi_get_cpucore_handles',
-    'amdsmi_get_cpusocket_handles', 'amdsmi_get_dpm_policy',
+    'amdsmi_get_cpusocket_handles', 'amdsmi_get_soc_pstate',
     'amdsmi_get_energy_count', 'amdsmi_get_esmi_err_msg',
     'amdsmi_get_fw_info', 'amdsmi_get_gpu_activity',
     'amdsmi_get_gpu_asic_info', 'amdsmi_get_gpu_available_counters',
@@ -2703,7 +2703,7 @@ __all__ = \
     'amdsmi_set_cpu_socket_boostlimit',
     'amdsmi_set_cpu_socket_lclk_dpm_level',
     'amdsmi_set_cpu_socket_power_cap', 'amdsmi_set_cpu_xgmi_width',
-    'amdsmi_set_dpm_policy', 'amdsmi_set_gpu_clear_sram_data',
+    'amdsmi_set_soc_pstate', 'amdsmi_set_gpu_clear_sram_data',
     'amdsmi_set_gpu_clk_range', 'amdsmi_set_gpu_compute_partition',
     'amdsmi_set_gpu_event_notification_mask',
     'amdsmi_set_gpu_fan_speed', 'amdsmi_set_gpu_memory_partition',

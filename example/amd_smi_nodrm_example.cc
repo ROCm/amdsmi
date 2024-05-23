@@ -333,10 +333,10 @@ int main() {
                       << "W\n\n";
 
             amdsmi_dpm_policy_t policy;
-            ret = amdsmi_get_dpm_policy(processor_handles[j], &policy);
+            ret = amdsmi_get_soc_pstate(processor_handles[j], &policy);
             if (ret != AMDSMI_STATUS_NOT_SUPPORTED) {
                 CHK_AMDSMI_RET(ret)
-                std::cout << "\t amdsmi_get_dpm_policy total:" << policy.num_supported
+                std::cout << "\t amdsmi_get_soc_pstate total:" << policy.num_supported
                         <<" current:" << policy.current << "\n";
                 for (int x=0; x < policy.num_supported; x++) {
                     std::cout << x <<": (" << policy.policies[x].policy_id
