@@ -2786,7 +2786,7 @@ def amdsmi_set_clk_freq(
     )
 
 
-def amdsmi_set_dpm_policy(
+def amdsmi_set_soc_pstate(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     policy_id: int,
 ):
@@ -2795,7 +2795,7 @@ def amdsmi_set_dpm_policy(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
     _check_res(
-        amdsmi_wrapper.amdsmi_set_dpm_policy(
+        amdsmi_wrapper.amdsmi_set_soc_pstate(
             processor_handle, policy_id
         )
     )
@@ -3405,7 +3405,7 @@ def amdsmi_get_clk_freq(
     }
 
 
-def amdsmi_get_dpm_policy(
+def amdsmi_get_soc_pstate(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -3415,7 +3415,7 @@ def amdsmi_get_dpm_policy(
 
     policy = amdsmi_wrapper.amdsmi_dpm_policy_t()
     _check_res(
-        amdsmi_wrapper.amdsmi_get_dpm_policy(
+        amdsmi_wrapper.amdsmi_get_soc_pstate(
             processor_handle, ctypes.byref(policy)
         )
     )

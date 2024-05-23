@@ -1409,19 +1409,19 @@ amdsmi_status_t  amdsmi_set_clk_freq(amdsmi_processor_handle processor_handle,
                     static_cast<rsmi_clk_type_t>(clk_type), freq_bitmask);
 }
 
-amdsmi_status_t amdsmi_set_dpm_policy(amdsmi_processor_handle processor_handle,
+amdsmi_status_t amdsmi_set_soc_pstate(amdsmi_processor_handle processor_handle,
                          uint32_t policy) {
     AMDSMI_CHECK_INIT();
 
-    return rsmi_wrapper(rsmi_dev_dpm_policy_set, processor_handle,
+    return rsmi_wrapper(rsmi_dev_soc_pstate_set, processor_handle,
                     policy);
 }
 
-amdsmi_status_t amdsmi_get_dpm_policy(amdsmi_processor_handle processor_handle,
+amdsmi_status_t amdsmi_get_soc_pstate(amdsmi_processor_handle processor_handle,
                          amdsmi_dpm_policy_t* policy) {
     AMDSMI_CHECK_INIT();
 
-    return rsmi_wrapper(rsmi_dev_dpm_policy_get, processor_handle,
+    return rsmi_wrapper(rsmi_dev_soc_pstate_get, processor_handle,
                     reinterpret_cast<rsmi_dpm_policy_t*>(policy));
 }
 

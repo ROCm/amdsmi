@@ -774,8 +774,28 @@ GPU: 0
     PARTITION:
         COMPUTE_PARTITION: SPX
         MEMORY_PARTITION: NPS1
-    DPM_POLICY: N/A
-    XGMI_PLPD: N/A
+    SOC_PSTATE:
+        NUM_SUPPORTED: 4
+        CURRENT_ID: 1
+        POLICIES:
+            POLICY_ID: 0
+            POLICY_DESCRIPTION: pstate_default
+            POLICY_ID: 1
+            POLICY_DESCRIPTION: soc_pstate_0
+            POLICY_ID: 2
+            POLICY_DESCRIPTION: soc_pstate_1
+            POLICY_ID: 3
+            POLICY_DESCRIPTION: soc_pstate_2
+    XGMI_PLPD:
+        NUM_SUPPORTED: 3
+        CURRENT_ID: 1
+        PLPDS:
+            POLICY_ID: 0
+            POLICY_DESCRIPTION: plpd_disallow
+            POLICY_ID: 1
+            POLICY_DESCRIPTION: plpd_default
+            POLICY_ID: 2
+            POLICY_DESCRIPTION: plpd_optimized
     PROCESS_ISOLATION: N/A
     NUMA:
         NODE: 0
@@ -879,8 +899,28 @@ GPU: 1
     PARTITION:
         COMPUTE_PARTITION: SPX
         MEMORY_PARTITION: NPS1
-    DPM_POLICY: N/A
-    XGMI_PLPD: N/A
+    SOC_PSTATE:
+        NUM_SUPPORTED: 4
+        CURRENT_ID: 1
+        POLICIES:
+            POLICY_ID: 0
+            POLICY_DESCRIPTION: pstate_default
+            POLICY_ID: 1
+            POLICY_DESCRIPTION: soc_pstate_0
+            POLICY_ID: 2
+            POLICY_DESCRIPTION: soc_pstate_1
+            POLICY_ID: 3
+            POLICY_DESCRIPTION: soc_pstate_2
+    XGMI_PLPD:
+        NUM_SUPPORTED: 3
+        CURRENT_ID: 1
+        PLPDS:
+            POLICY_ID: 0
+            POLICY_DESCRIPTION: plpd_disallow
+            POLICY_ID: 1
+            POLICY_DESCRIPTION: plpd_default
+            POLICY_ID: 2
+            POLICY_DESCRIPTION: plpd_optimized
     PROCESS_ISOLATION: N/A
     NUMA:
         NODE: 1
@@ -984,8 +1024,28 @@ GPU: 2
     PARTITION:
         COMPUTE_PARTITION: SPX
         MEMORY_PARTITION: NPS1
-    DPM_POLICY: N/A
-    XGMI_PLPD: N/A
+    SOC_PSTATE:
+        NUM_SUPPORTED: 4
+        CURRENT_ID: 1
+        POLICIES:
+            POLICY_ID: 0
+            POLICY_DESCRIPTION: pstate_default
+            POLICY_ID: 1
+            POLICY_DESCRIPTION: soc_pstate_0
+            POLICY_ID: 2
+            POLICY_DESCRIPTION: soc_pstate_1
+            POLICY_ID: 3
+            POLICY_DESCRIPTION: soc_pstate_2
+    XGMI_PLPD:
+        NUM_SUPPORTED: 3
+        CURRENT_ID: 1
+        PLPDS:
+            POLICY_ID: 0
+            POLICY_DESCRIPTION: plpd_disallow
+            POLICY_ID: 1
+            POLICY_DESCRIPTION: plpd_default
+            POLICY_ID: 2
+            POLICY_DESCRIPTION: plpd_optimized
     PROCESS_ISOLATION: N/A
     NUMA:
         NODE: 2
@@ -1089,8 +1149,28 @@ GPU: 3
     PARTITION:
         COMPUTE_PARTITION: SPX
         MEMORY_PARTITION: NPS1
-    DPM_POLICY: N/A
-    XGMI_PLPD: N/A
+    SOC_PSTATE:
+        NUM_SUPPORTED: 4
+        CURRENT_ID: 1
+        POLICIES:
+            POLICY_ID: 0
+            POLICY_DESCRIPTION: pstate_default
+            POLICY_ID: 1
+            POLICY_DESCRIPTION: soc_pstate_0
+            POLICY_ID: 2
+            POLICY_DESCRIPTION: soc_pstate_1
+            POLICY_ID: 3
+            POLICY_DESCRIPTION: soc_pstate_2
+    XGMI_PLPD:
+        NUM_SUPPORTED: 3
+        CURRENT_ID: 1
+        PLPDS:
+            POLICY_ID: 0
+            POLICY_DESCRIPTION: plpd_disallow
+            POLICY_ID: 1
+            POLICY_DESCRIPTION: plpd_default
+            POLICY_ID: 2
+            POLICY_DESCRIPTION: plpd_optimized
     PROCESS_ISOLATION: N/A
     NUMA:
         NODE: 3

@@ -543,7 +543,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         vram_help = "All vram information"
         cache_help = "All cache information"
         board_help = "All board information"
-        dpm_policy_help = "The available DPM policy"
+        soc_pstate_help = "The available soc pstate policy"
         xgmi_plpd_help = "The available XGMI per-link power down policy"
         process_isolation_help = "The process isolation status"
 
@@ -586,7 +586,7 @@ class AMDSMIParser(argparse.ArgumentParser):
                 static_parser.add_argument('-r', '--ras', action='store_true', required=False, help=ras_help)
                 static_parser.add_argument('-p', '--partition', action='store_true', required=False, help=partition_help)
                 static_parser.add_argument('-l', '--limit', action='store_true', required=False, help=limit_help)
-                static_parser.add_argument('-P', '--policy', action='store_true', required=False, help=dpm_policy_help)
+                static_parser.add_argument('-P', '--soc-pstate', action='store_true', required=False, help=soc_pstate_help)
                 static_parser.add_argument('-x', '--xgmi-plpd', action='store_true', required=False, help=xgmi_plpd_help)
 
             if self.helpers.is_linux() and not self.helpers.is_virtual_os():
@@ -969,7 +969,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         set_compute_partition_help = f"Set one of the following the compute partition modes:\n\t{compute_partition_choices_str}"
         set_memory_partition_help = f"Set one of the following the memory partition modes:\n\t{memory_partition_choices_str}"
         set_power_cap_help = "Set power capacity limit"
-        set_dpm_policy_help = "Set the GPU DPM policy using policy id\n"
+        set_soc_pstate_help = "Set the GPU soc pstate policy using policy id\n"
         set_xgmi_plpd_help = "Set the GPU XGMI per-link power down policy using policy id\n"
         set_process_isolation_help = "Enable or disable the GPU process isolation: 0 for disable and 1 for enable.\n"
 
@@ -1008,7 +1008,7 @@ class AMDSMIParser(argparse.ArgumentParser):
                 set_value_parser.add_argument('-C', '--compute-partition', action='store', choices=self.helpers.get_compute_partition_types(), type=str.upper, required=False, help=set_compute_partition_help, metavar='PARTITION')
                 set_value_parser.add_argument('-M', '--memory-partition', action='store', choices=self.helpers.get_memory_partition_types(), type=str.upper, required=False, help=set_memory_partition_help, metavar='PARTITION')
                 set_value_parser.add_argument('-o', '--power-cap', action='store', type=self._positive_int, required=False, help=set_power_cap_help, metavar='WATTS')
-                set_value_parser.add_argument('-p', '--dpm-policy', action='store', required=False,  type=self._not_negative_int, help=set_dpm_policy_help, metavar='POLICY_ID')
+                set_value_parser.add_argument('-p', '--soc-pstate', action='store', required=False,  type=self._not_negative_int, help=set_soc_pstate_help, metavar='POLICY_ID')
                 set_value_parser.add_argument('-x', '--xgmi-plpd', action='store', required=False,  type=self._not_negative_int, help=set_xgmi_plpd_help, metavar='POLICY_ID')
 
             set_value_parser.add_argument('-R', '--process-isolation', action='store', choices=[0,1], type=self._not_negative_int, required=False, help=set_process_isolation_help, metavar='STATUS')

@@ -3384,45 +3384,45 @@ amdsmi_status_t amdsmi_set_clk_freq(amdsmi_processor_handle processor_handle,
                              amdsmi_clk_type_t clk_type, uint64_t freq_bitmask);
 
 /**
- * @brief Get the dpm policy for the processor
+ * @brief Get the soc pstate policy for the processor
  *
  * @platform{gpu_bm_linux} @platform{guest_1vf}
  *
  * @details Given a processor handle @p processor_handle, this function will write
- * current dpm policy settings to @p policy. All the processors at the same socket
+ * current soc pstate  policy settings to @p policy. All the processors at the same socket
  * will have the same policy.
  *
  *  @param[in] processor_handle a processor handle
  *
- *  @param[in, out] policy the dpm policy for this processor.
+ *  @param[in, out] policy the soc pstate  policy for this processor.
  *  If this parameter is nullptr, this function will return
  *  ::AMDSMI_STATUS_INVAL
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_get_dpm_policy(amdsmi_processor_handle processor_handle,
+amdsmi_status_t amdsmi_get_soc_pstate(amdsmi_processor_handle processor_handle,
                              amdsmi_dpm_policy_t* policy);
 
 /**
- * @brief Set the dpm policy for the processor
+ * @brief Set the soc pstate  policy for the processor
  *
  * @platform{gpu_bm_linux} @platform{guest_1vf}
  *
- * @details Given a processor handle @p processor_handle and a dpm policy @p policy_id,
- * this function will set the dpm policy for this processor. All the processors at
+ * @details Given a processor handle @p processor_handle and a soc pstate  policy @p policy_id,
+ * this function will set the soc pstate  policy for this processor. All the processors at
  * the same socket will be set to the same policy.
  *
  *  @note This function requires root access
  *
  *  @param[in] processor_handle a processor handle
  *
- *  @param[in] policy_id the dpm policy id to set. The id is the id in
+ *  @param[in] policy_id the soc pstate  policy id to set. The id is the id in
  *  amdsmi_dpm_policy_entry_t, which can be obtained by calling
- *  amdsmi_get_dpm_policy()
+ *  amdsmi_get_soc_pstate()
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_set_dpm_policy(amdsmi_processor_handle processor_handle,
+amdsmi_status_t amdsmi_set_soc_pstate(amdsmi_processor_handle processor_handle,
                              uint32_t policy_id);
 
 /**
