@@ -470,7 +470,7 @@ Field | Description
 ---|---
 `vram_type` |  vram type
 `vram_vendor` |  vram vendor
-`vram_size_mb` |  vram size in mb
+`vram_size` |  vram size in mb
 
 Exceptions that can be thrown by `amdsmi_get_gpu_vram_info` function:
 
@@ -490,7 +490,7 @@ try:
             vram_info = amdsmi_get_gpu_vram_info(device)
             print(vram_info['vram_type'])
             print(vram_info['vram_vendor'])
-            print(vram_info['vram_size_mb'])
+            print(vram_info['vram_size'])
 except AmdSmiException as e:
     print(e)
 ```
