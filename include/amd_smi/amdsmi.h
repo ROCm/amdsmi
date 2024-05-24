@@ -238,15 +238,15 @@ typedef enum {
     AMDSMI_STATUS_UNEXPECTED_DATA = 43,  //!< The data read or provided to function is not what was expected
     //esmi errors
     AMDSMI_STATUS_NON_AMD_CPU = 44, //!< System has different cpu than AMD
-    AMDSMI_NO_ENERGY_DRV = 45, //!< Energy driver not found
-    AMDSMI_NO_MSR_DRV = 46, //!< MSR driver not found
-    AMDSMI_NO_HSMP_DRV = 47, //!< HSMP driver not found
-    AMDSMI_NO_HSMP_SUP = 48, //!< HSMP not supported
-    AMDSMI_NO_HSMP_MSG_SUP = 49, //!< HSMP message/feature not supported
-    AMDSMI_HSMP_TIMEOUT = 50,  //!< HSMP message is timedout
-    AMDSMI_NO_DRV = 51,  //!< No Energy and HSMP driver present
-    AMDSMI_FILE_NOT_FOUND = 52, //!< file or directory not found
-    AMDSMI_ARG_PTR_NULL = 53,   //!< Parsed argument is invalid
+    AMDSMI_STATUS_NO_ENERGY_DRV = 45, //!< Energy driver not found
+    AMDSMI_STATUS_NO_MSR_DRV = 46, //!< MSR driver not found
+    AMDSMI_STATUS_NO_HSMP_DRV = 47, //!< HSMP driver not found
+    AMDSMI_STATUS_NO_HSMP_SUP = 48, //!< HSMP not supported
+    AMDSMI_STATUS_NO_HSMP_MSG_SUP = 49, //!< HSMP message/feature not supported
+    AMDSMI_STATUS_HSMP_TIMEOUT = 50,  //!< HSMP message is timedout
+    AMDSMI_STATUS_NO_DRV = 51,  //!< No Energy and HSMP driver present
+    AMDSMI_STATUS_FILE_NOT_FOUND = 52, //!< file or directory not found
+    AMDSMI_STATUS_ARG_PTR_NULL = 53,   //!< Parsed argument is invalid
     AMDSMI_STATUS_AMDGPU_RESTART_ERR = 54, //!< AMDGPU restart failed
     AMDSMI_STATUS_SETTING_UNAVAILABLE = 55, //!< Setting is not available
 
@@ -419,19 +419,26 @@ typedef enum {
   AMDSMI_FW_ID__MAX
 } amdsmi_fw_block_t;
 
-
 typedef enum {
   AMDSMI_VRAM_TYPE_UNKNOWN = 0,
-  AMDSMI_VRAM_TYPE_GDDR1 = 1,
-  AMDSMI_VRAM_TYPE_DDR2 = 2,
-  AMDSMI_VRAM_TYPE_GDDR3 = 3,
-  AMDSMI_VRAM_TYPE_GDDR4 = 4,
-  AMDSMI_VRAM_TYPE_GDDR5 = 5,
-  AMDSMI_VRAM_TYPE_HBM = 6,
-  AMDSMI_VRAM_TYPE_DDR3 = 7,
-  AMDSMI_VRAM_TYPE_DDR4 = 8,
-  AMDSMI_VRAM_TYPE_GDDR6 = 9,
-  AMDSMI_VRAM_TYPE__MAX = AMDSMI_VRAM_TYPE_GDDR6
+  // HBM
+  AMDSMI_VRAM_TYPE_HBM = 1,
+  AMDSMI_VRAM_TYPE_HBM2 = 2,
+  AMDSMI_VRAM_TYPE_HBM2E = 3,
+  AMDSMI_VRAM_TYPE_HBM3 = 4,
+  // DDR
+  AMDSMI_VRAM_TYPE_DDR2 = 10,
+  AMDSMI_VRAM_TYPE_DDR3 = 11,
+  AMDSMI_VRAM_TYPE_DDR4 = 12,
+  // GDDR
+  AMDSMI_VRAM_TYPE_GDDR1 = 17,
+  AMDSMI_VRAM_TYPE_GDDR2 = 18,
+  AMDSMI_VRAM_TYPE_GDDR3 = 19,
+  AMDSMI_VRAM_TYPE_GDDR4 = 20,
+  AMDSMI_VRAM_TYPE_GDDR5 = 21,
+  AMDSMI_VRAM_TYPE_GDDR6 = 22,
+  AMDSMI_VRAM_TYPE_GDDR7 = 23,
+  AMDSMI_VRAM_TYPE__MAX = AMDSMI_VRAM_TYPE_GDDR7
 } amdsmi_vram_type_t;
 
 typedef enum {

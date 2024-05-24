@@ -72,7 +72,7 @@ class AMDSMICommands():
                 self.cpu_handles = amdsmi_interface.amdsmi_get_cpusocket_handles()
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.err_code in (amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NOT_INIT,
-                                amdsmi_interface.amdsmi_wrapper.AMDSMI_NO_DRV):
+                                amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_DRV):
                     logging.info('Unable to get CPU devices, amd_hsmp driver not loaded')
                 else:
                     raise e
@@ -82,7 +82,7 @@ class AMDSMICommands():
                 self.core_handles = amdsmi_interface.amdsmi_get_cpucore_handles()
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.err_code in (amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NOT_INIT,
-                                amdsmi_interface.amdsmi_wrapper.AMDSMI_NO_DRV):
+                                amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_DRV):
                     logging.info('Unable to get CORE devices, amd_hsmp driver not loaded')
                 else:
                     raise e
@@ -694,12 +694,12 @@ class AMDSMICommands():
 
                 # Get vram type string
                 vram_type_enum = vram_info['vram_type']
-                if vram_type_enum == amdsmi_interface.amdsmi_wrapper.AMDSMI_VRAM_TYPE_GDDR6:
-                    vram_type = "GDDR6"
+                if vram_type_enum == amdsmi_interface.amdsmi_wrapper.AMDSMI_VRAM_TYPE__MAX:
+                    vram_type = "GDDR7"
                 else:
                     vram_type = amdsmi_interface.amdsmi_wrapper.amdsmi_vram_type_t__enumvalues[vram_type_enum]
                     # Remove amdsmi enum prefix
-                    vram_type = vram_type.replace('VRAM_TYPE_', '').replace('_', '')
+                    vram_type = vram_type.replace('AMDSMI_VRAM_TYPE_', '').replace('_', '')
 
                 # Get vram vendor string
                 vram_vendor_enum = vram_info['vram_vendor']
@@ -944,7 +944,7 @@ class AMDSMICommands():
 
                 for fw_index, fw_entry in enumerate(fw_info['fw_list']):
                     # Change fw_name to fw_id
-                    fw_entry['fw_id'] = fw_entry.pop('fw_name').name.replace("FW_ID_", "")
+                    fw_entry['fw_id'] = fw_entry.pop('fw_name').name.replace("AMDSMI_FW_ID_", "")
                     fw_entry['fw_version'] = fw_entry.pop('fw_version') # popping to ensure order
 
                     # Add custom human readable formatting

@@ -805,8 +805,7 @@ amdsmi_status_t amdsmi_get_gpu_vram_info(
             AMDGPU_INFO_DEV_INFO,
             sizeof(struct drm_amdgpu_info_device), &dev_info);
         if (r == AMDSMI_STATUS_SUCCESS) {
-            info->vram_type = static_cast<amdsmi_vram_type_t>(
-                            dev_info.vram_type);
+            info->vram_type = amd::smi::vram_type_value(dev_info.vram_type);
         }
     }
 
