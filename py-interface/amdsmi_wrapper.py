@@ -736,6 +736,7 @@ struct_amdsmi_bdf_t._fields_ = [
 ]
 
 union_amdsmi_bdf_t._pack_ = 1 # source:False
+
 union_amdsmi_bdf_t._fields_ = [
     ('struct_amdsmi_bdf_t', struct_amdsmi_bdf_t),
     ('as_uint', ctypes.c_uint64),
@@ -758,19 +759,6 @@ amdsmi_card_form_factor_t = ctypes.c_uint32 # enum
 class struct_amdsmi_pcie_info_t(Structure):
     pass
 
-class struct_pcie_static_(Structure):
-    pass
-
-struct_pcie_static_._pack_ = 1 # source:False
-struct_pcie_static_._fields_ = [
-    ('max_pcie_width', ctypes.c_uint16),
-    ('PADDING_0', ctypes.c_ubyte * 2),
-    ('max_pcie_speed', ctypes.c_uint32),
-    ('pcie_interface_version', ctypes.c_uint32),
-    ('slot_type', amdsmi_card_form_factor_t),
-    ('reserved', ctypes.c_uint64 * 10),
-]
-
 class struct_pcie_metric_(Structure):
     pass
 
@@ -787,6 +775,19 @@ struct_pcie_metric_._fields_ = [
     ('pcie_nak_sent_count', ctypes.c_uint64),
     ('pcie_nak_received_count', ctypes.c_uint64),
     ('reserved', ctypes.c_uint64 * 13),
+]
+
+class struct_pcie_static_(Structure):
+    pass
+
+struct_pcie_static_._pack_ = 1 # source:False
+struct_pcie_static_._fields_ = [
+    ('max_pcie_width', ctypes.c_uint16),
+    ('PADDING_0', ctypes.c_ubyte * 2),
+    ('max_pcie_speed', ctypes.c_uint32),
+    ('pcie_interface_version', ctypes.c_uint32),
+    ('slot_type', amdsmi_card_form_factor_t),
+    ('reserved', ctypes.c_uint64 * 10),
 ]
 
 struct_amdsmi_pcie_info_t._pack_ = 1 # source:False
@@ -2756,5 +2757,6 @@ __all__ = \
     'struct_amdsmi_xgmi_info_t', 'struct_cache_',
     'struct_engine_usage_', 'struct_fw_info_list_',
     'struct_memory_usage_', 'struct_pcie_metric_',
-    'struct_pcie_static_', 'uint32_t', 'uint64_t', 'uint8_t',
-    'union_amdsmi_bdf_t', 'struct_amdsmi_bdf_t']
+    'struct_pcie_static_', 'struct_amdsmi_bdf_t',
+    'uint32_t', 'uint64_t', 'uint8_t',
+    'union_amdsmi_bdf_t']
