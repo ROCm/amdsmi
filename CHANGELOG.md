@@ -1881,7 +1881,7 @@ Updated `amdsmi_get_gpu_metrics_info()` and structure `amdsmi_gpu_metrics_t` to 
 - **Added new violation status outputs and APIs: `amdsmi_status_t amdsmi_get_violation_status()`, `amd-smi metric  --throttle`, and `amd-smi monitor --violation`**.  
   ***Only available for MI300+ ASICs.***  
   Users can now retrieve violation status' through either our Python or C++ APIs. Additionally, we have
-  added capability to view these outputs conviently through `amd-smi metric --throttle` and `amd-smi monitor --violation`.  
+  added capability to view these outputs conveniently through `amd-smi metric --throttle` and `amd-smi monitor --violation`.  
   Example outputs are listed below (below is for reference, output is subject to change):
 
 ```shell
@@ -2156,7 +2156,7 @@ GPU: 1
 - **Added unittest functionality to test amdsmi API calls in Python**.  
 
 - **Changed the `power` parameter in `amdsmi_get_energy_count()` to `energy_accumulator`**.  
-  - Changes propagate forwards into the python interface as well, however we are maintaing backwards compatibility and keeping the `power` field in the python API until ROCm 6.4.
+  - Changes propagate forwards into the python interface as well, however we are maintaining backwards compatibility and keeping the `power` field in the python API until ROCm 6.4.
 
 - **Added GPU memory overdrive percentage to `amd-smi metric -o`**.  
   - Added `amdsmi_get_gpu_mem_overdrive_level()` function to amd-smi C and Python Libraries.
@@ -2499,7 +2499,7 @@ GPU: 0
 
 - **Fixed CPX not showing total number of logical GPUs**.  
   - Updates were made to `amdsmi_init()` and `amdsmi_get_gpu_bdf_id(..)`. In order to display all logical devices, we needed a way to provide order to GPU's enumerated. This was done by adding a partition_id within the BDF optional pci_id bits.
-  - Due to driver changes in KFD, some devices may report bits [31:28] or [2:0]. With the newly added `amdsmi_get_gpu_bdf_id(..)`, we provided this fallback to properly retreive partition ID. We
+  - Due to driver changes in KFD, some devices may report bits [31:28] or [2:0]. With the newly added `amdsmi_get_gpu_bdf_id(..)`, we provided this fallback to properly retrieve partition ID. We
 plan to eventually remove partition ID from the function portion of the BDF (Bus Device Function). See below for PCI ID description.
 
     - bits [63:32] = domain
@@ -2627,7 +2627,7 @@ GPU                  NAME      PID  GTT_MEM  CPU_MEM  VRAM_MEM  MEM_USAGE     GF
 ```
 
 - **Added Handling to detect VMs with passthrough configurations in CLI Tool**.  
-CLI Tool had only allowed a restricted set of options for Virtual Machines with passthrough GPUs. Now we offer an expanded set of functions availble to passthrough configured GPUs.
+CLI Tool had only allowed a restricted set of options for Virtual Machines with passthrough GPUs. Now we offer an expanded set of functions available to passthrough configured GPUs.
 
 - **Added Process Isolation and Clear SRAM functionality to the CLI Tool for VMs**.  
 VMs now have the ability to set the process isolation and clear the sram from the CLI tool. Using the following commands
@@ -2743,7 +2743,7 @@ GPU: 0
 ```
 
 - **Updated `amdsmi_get_gpu_board_info()` now has larger structure sizes for `amdsmi_board_info_t`**.  
-Updated sizes that work for retreiving relavant board information across AMD's
+Updated sizes that work for retrieving relevant board information across AMD's
 ASIC products. This requires users to update any ABIs using this structure.
 
 ### Resolved issues
@@ -2858,7 +2858,7 @@ GPU   PCIE_BW
 Previously calls were returning "No bad pages found." if no pages were found, now it only returns the list type and can be empty.
 
 - **Updated `amd-smi metric --ecc-blocks` output**.  
-The ecc blocks argument was outputing blocks without counters available, updated the filtering show blocks that counters are available for:
+The ecc blocks argument was outputting blocks without counters available, updated the filtering show blocks that counters are available for:
 
 ``` shell
 $ amd-smi metric --ecc-block
@@ -3205,11 +3205,11 @@ $ /opt/rocm/bin/amd-smi topology -a -t --json
 ### Resolved issues
 
 - **Fix for GPU reset error on non-amdgpu cards**.  
-Previously our reset could attempting to reset non-amd GPUS- resuting in "Unable to reset non-amd GPU" error. Fix
+Previously our reset could attempting to reset non-amd GPUS- resulting in "Unable to reset non-amd GPU" error. Fix
 updates CLI to target only AMD ASICs.
 
 - **Fix for `amd-smi static --pcie` and `amdsmi_get_pcie_info()` Navi32/31 cards**.  
-Updated API to include `amdsmi_card_form_factor_t.AMDSMI_CARD_FORM_FACTOR_CEM`. Prevously, this would report "UNKNOWN". This fix
+Updated API to include `amdsmi_card_form_factor_t.AMDSMI_CARD_FORM_FACTOR_CEM`. Previously, this would report "UNKNOWN". This fix
 provides the correct board `SLOT_TYPE` associated with these ASICs (and other Navi cards).
 
 - **Fix for `amd-smi process`**.  
@@ -3227,7 +3227,7 @@ Fixed Attribute Error when getting process in csv format
 ### Added
 
 - **Added Monitor Command**.  
-Provides users the ability to customize GPU metrics to capture, collect, and observe. Output is provided in a table view. This aligns closer to ROCm SMI `rocm-smi` (no argument), additionally allows uers to customize what data is helpful for their use-case.
+Provides users the ability to customize GPU metrics to capture, collect, and observe. Output is provided in a table view. This aligns closer to ROCm SMI `rocm-smi` (no argument), additionally allows users to customize what data is helpful for their use-case.
 
 ```shell
 $ amd-smi monitor -h
@@ -3437,7 +3437,7 @@ CPU: 0
 ```
 
 - **Added support for new metrics: VCN, JPEG engines, and PCIe errors**.  
-Using the AMD SMI tool, users can retreive VCN, JPEG engines, and PCIe errors by calling `amd-smi metric -P` or `amd-smi metric --usage`. Depending on device support, `VCN_ACTIVITY` will update for MI3x ASICs (with 4 separate VCN engine activities) for older asics `MM_ACTIVITY` with UVD/VCN engine activity (average of all engines). `JPEG_ACTIVITY` is a new field for MI3x ASICs, where device can support up to 32 JPEG engine activities. See our documentation for more in-depth understanding of these new fields.
+Using the AMD SMI tool, users can retrieve VCN, JPEG engines, and PCIe errors by calling `amd-smi metric -P` or `amd-smi metric --usage`. Depending on device support, `VCN_ACTIVITY` will update for MI3x ASICs (with 4 separate VCN engine activities) for older asics `MM_ACTIVITY` with UVD/VCN engine activity (average of all engines). `JPEG_ACTIVITY` is a new field for MI3x ASICs, where device can support up to 32 JPEG engine activities. See our documentation for more in-depth understanding of these new fields.
 
 ```shell
 $ amd-smi metric -P
@@ -3550,7 +3550,7 @@ amd-smi metric -p --json
 
 ### Changed
 
-- **Topology is now left-aligned with BDF of each device listed individual table's row/coloumns**.  
+- **Topology is now left-aligned with BDF of each device listed individual table's row/columns**.  
 We provided each device's BDF for every table's row/columns, then left aligned data. We want AMD SMI Tool output to be easy to understand and digest for our users. Having users scroll up to find this information made it difficult to follow, especially for devices which have many devices associated with one ASIC.
 
 ```shell
@@ -3628,7 +3628,7 @@ TypeError: dump_all() got an unexpected keyword argument 'sort_keys'
 ```
 
 - **Fix for crash when user is not a member of video/render groups**.  
-AMD SMI now uses same mutex handler for devices as rocm-smi. This helps avoid crashes when DRM/device data is inaccessable to the logged in user.
+AMD SMI now uses same mutex handler for devices as rocm-smi. This helps avoid crashes when DRM/device data is inaccessible to the logged in user.
 
 ## amd_smi_lib for ROCm 6.0.0
 
@@ -3658,4 +3658,4 @@ Now the information is displayed as a table by each GPU's BDF, which closer rese
 ### Resolved issues
 
 - **Fix for driver not initialized**.  
-If driver module is not loaded, user retrieve error reponse indicating amdgpu module is not loaded.
+If driver module is not loaded, user retrieve error response indicating amdgpu module is not loaded.

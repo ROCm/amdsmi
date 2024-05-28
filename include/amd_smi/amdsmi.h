@@ -1371,7 +1371,7 @@ typedef struct {
 
 /**
  * @brief Temperature Metrics. This enum is used to identify various
- * temperature metrics. Corresponding values will be in Celcius
+ * temperature metrics. Corresponding values will be in Celsius
  *
  * @cond @tag{gpu_bm_linux} @tag{host} @tag{guest_windows} @endcond
  */
@@ -3003,7 +3003,7 @@ amdsmi_status_t amdsmi_get_gpu_vram_vendor(amdsmi_processor_handle processor_han
 amdsmi_status_t amdsmi_get_gpu_subsystem_id(amdsmi_processor_handle processor_handle, uint16_t *id);
 
 /**
- *  @brief Get the name string for the device subsytem
+ *  @brief Get the name string for the device subsystem
  *
  *  @ingroup tagIdentQuery
  *
@@ -3908,7 +3908,7 @@ amdsmi_status_t amdsmi_get_gpu_busy_percent(amdsmi_processor_handle processor_ha
  *
  *  @param[in] processor_handle a processor handle
  *
- *  @param[in,out] utilization_counters Multiple utilization counters can be retreived with a single
+ *  @param[in,out] utilization_counters Multiple utilization counters can be retrieved with a single
  *  call. The caller must allocate enough space to the utilization_counters array. The caller also
  *  needs to set valid AMDSMI_UTILIZATION_COUNTER_TYPE type for each element of the array.
  *  ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the provided arguments.
@@ -4178,7 +4178,7 @@ amdsmi_status_t amdsmi_get_gpu_partition_metrics_info(amdsmi_processor_handle pr
  *  @details Given a device handle @p processor_handle, @p pm_metrics pointer,
  *  and @p num_of_metrics pointer,
  *  this function will write the pm metrics name value pair
- *  to the array at @p pm_metrics and the number of metrics retreived to @p num_of_metrics
+ *  to the array at @p pm_metrics and the number of metrics retrieved to @p num_of_metrics
  *  Note: the library allocated memory for pm_metrics, and user must call
  *  free(pm_metrics) to free it after use.
  *
@@ -4189,7 +4189,7 @@ amdsmi_status_t amdsmi_get_gpu_partition_metrics_info(amdsmi_processor_handle pr
  *  The caller must free this memory after usage to avoid memory leak.
  *
  *  @param[inout] num_of_metrics a pointer to uint32_t to which the number of
- *  metrics is allocated for pm_metrics array as input, and the number of metrics retreived
+ *  metrics is allocated for pm_metrics array as input, and the number of metrics retrieved
  *  as output. If this parameter is NULL, this function will return
  *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
@@ -4216,7 +4216,7 @@ amdsmi_status_t amdsmi_get_gpu_pm_metrics_info(amdsmi_processor_handle processor
  *  @details Given a device handle @p processor_handle, @p reg_type, @p reg_metrics pointer,
  *  and @p num_of_metrics pointer,
  *  this function will write the register metrics name value pair
- *  to the array at @p reg_metrics and the number of metrics retreived to @p num_of_metrics
+ *  to the array at @p reg_metrics and the number of metrics retrieved to @p num_of_metrics
  *  Note: the library allocated memory for reg_metrics, and user must call
  *  free(reg_metrics) to free it after use.
  *
@@ -4229,7 +4229,7 @@ amdsmi_status_t amdsmi_get_gpu_pm_metrics_info(amdsmi_processor_handle processor
  *  The caller must free this memory after usage to avoid memory leak.
  *
  *  @param[inout] num_of_metrics a pointer to uint32_t to which the number of
- *  metrics is allocated for reg_metrics array as input, and the number of metrics retreived
+ *  metrics is allocated for reg_metrics array as input, and the number of metrics retrieved
  *  as output. If this parameter is NULL, this function will return
  *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
@@ -5559,7 +5559,7 @@ amdsmi_topo_get_link_weight(amdsmi_processor_handle processor_handle_src, amdsmi
                             uint64_t *weight);
 
 /**
- *  @brief Retreive minimal and maximal io link bandwidth between 2 GPUs
+ *  @brief Retrieve minimal and maximal io link bandwidth between 2 GPUs
  *
  *  @ingroup tagHWTopology
  *
@@ -6588,7 +6588,7 @@ amdsmi_get_gpu_process_list(amdsmi_processor_handle processor_handle, uint32_t *
  *  ::AMDSMI_STATUS_AMDGPU_RESTART_ERR is returned, it means the driver
  *  did not reload properly and the user should check dmesg logs.
  * 
- *  This function has been created in order to conviently reload the
+ *  This function has been created in order to conveniently reload the
  *  AMD GPU driver once `amdsmi_set_gpu_memory_partition()` or
  *  `amdsmi_set_gpu_memory_partition_mode()` successfully has been changed
  *  on Baremetal systems. Now users can control the reload once all GPU

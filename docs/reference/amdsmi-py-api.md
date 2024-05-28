@@ -773,7 +773,7 @@ Input parameters:
 
 * `processor_handle` device which to query
 
-Output: Dictionary of activites to their respective usage percentage or 'N/A' if not supported
+Output: Dictionary of activities to their respective usage percentage or 'N/A' if not supported
 
 Field | Description
 ---|---
@@ -1552,7 +1552,7 @@ Input parameters:
 
 #### stop
 
-Description: Any resources used by event notification for the the given device will be freed with this function. This can be used explicitly or
+Description: Any resources used by event notification for the given device will be freed with this function. This can be used explicitly or
 automatically using `with` statement, like in the examples below. This should be called either manually or automatically for every created AmdSmiEventReader object.
 
 Input parameters: `None`
@@ -2243,7 +2243,7 @@ Input parameters:
 * `sensor_type` part of device from which temperature should be obtained
 * `metric` enum indicated which temperature value should be retrieved
 
-Output: Temperature as integer in millidegrees Celcius
+Output: Temperature as integer in millidegrees Celsius
 
 Exceptions that can be thrown by `amdsmi_get_temp_metric` function:
 
@@ -2320,7 +2320,7 @@ Output: List containing dictionaries with fields
 
 Field | Description
 ---|---
-`timestamp` | The timestamp when the counter is retreived - Resolution: 1 ns
+`timestamp` | The timestamp when the counter is retrieved - Resolution: 1 ns
 `Dictionary for each counter` | <table> <thead><tr><th> Subfield </th><th>Description</th></tr></thead><tbody><tr><td>`type`</td><td>Counter that was requested</td></tr><tr><td>`value`</td><td>Value gotten for utilization counter</td></tr></tbody></table>
 
 Exceptions that can be thrown by `amdsmi_get_utilization_count` function:
@@ -2750,7 +2750,7 @@ except AmdSmiException as e:
 
 ### amdsmi_get_gpu_pm_metrics_info
 
-Description: This function will retreive the name and value for each
+Description: This function will retrieve the name and value for each
 item in the pm metrics table with the given processor handle.
 
 Input parameters:
@@ -3852,13 +3852,13 @@ except AmdSmiException as e:
 
 ### amdsmi_get_gpu_subsystem_name
 
-Description: Get the name string for the device subsytem
+Description: Get the name string for the device subsystem
 
 Input parameters:
 
 * `processor_handle` device which to query
 
-Output: device subsytem
+Output: device subsystem
 
 Exceptions that can be thrown by `amdsmi_get_gpu_subsystem_name` function:
 
@@ -3947,7 +3947,7 @@ except AmdSmiException as e:
 
 ### amdsmi_get_minmax_bandwidth_between_processors
 
-Description: Retreive minimal and maximal io link bandwidth between 2 GPUs.
+Description: Retrieve minimal and maximal io link bandwidth between 2 GPUs.
 
 Input parameters:
 
@@ -4433,7 +4433,7 @@ Output: Dictionary holding the following fields.
 Field | Description
 ---|---
 `UNKNOWN` | Virtualization mode not detected
-`BAREMETAL` | Baremetal paltform detected
+`BAREMETAL` | Baremetal platform detected
 `HOST` | Host/Hypervisor platform detected
 `GUEST` | Guest/Virtual Machine detected
 `PASSTHROUGH` | GPU Passthrough mode detected

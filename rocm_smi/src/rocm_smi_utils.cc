@@ -685,7 +685,7 @@ std::string getRSMIStatusString(rsmi_status_t ret, bool fullStatus) {
 // string release = os's release level
 // string version = os's version level
 // string machine = hardware type system is running on
-// string domainName = domain name of the the system's node on the network
+// string domainName = domain name of the system's node on the network
 // string os_distribution = pretty name of os distribution
 // (typically found in /etc/*-release file)
 // string endianness = system's endianness.

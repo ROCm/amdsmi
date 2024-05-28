@@ -475,7 +475,7 @@ typedef struct {
 /**
  * @brief Temperature Metrics.  This enum is used to identify various
  * temperature metrics. Corresponding values will be in millidegress
- * Celcius.
+ * Celsius.
  */
 typedef enum {
   RSMI_TEMP_CURRENT = 0x0,   //!< Temperature current value.
@@ -1969,7 +1969,7 @@ rsmi_status_t rsmi_dev_serial_number_get(uint32_t dv_ind,
 rsmi_status_t rsmi_dev_subsystem_id_get(uint32_t dv_ind, uint16_t *id);
 
 /**
- *  @brief Get the name string for the device subsytem
+ *  @brief Get the name string for the device subsystem
  *
  *  @details Given a device index @p dv_ind, a pointer to a caller provided
  *  char buffer @p name, and a length of this buffer @p len, this function
@@ -2933,7 +2933,7 @@ rsmi_status_t rsmi_dev_npm_info_get(uint32_t dv_ind,
  *  retrieved
  *
  *  @param[inout] temperature a pointer to int64_t to which the temperature
- *  will be written, in millidegrees Celcius.
+ *  will be written, in millidegrees Celsius.
  *  If this parameter is nullptr, this function will return
  *  ::RSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
  *  arguments and ::RSMI_STATUS_NOT_SUPPORTED if it is not supported with the
@@ -3076,7 +3076,7 @@ rsmi_dev_busy_percent_get(uint32_t dv_ind, uint32_t *busy_percent);
  *
  *  @param[in] dv_ind a device index
  *
- *  @param[inout] utilization_counters Multiple utilization counters can be retreived with a single
+ *  @param[inout] utilization_counters Multiple utilization counters can be retrieved with a single
  *  call. The caller must allocate enough space to the utilization_counters array. The caller also
  *  needs to set valid RSMI_UTILIZATION_COUNTER_TYPE type for each element of the array.
  *  ::RSMI_STATUS_NOT_SUPPORTED if it is not supported with the provided arguments.
@@ -3086,7 +3086,7 @@ rsmi_dev_busy_percent_get(uint32_t dv_ind, uint32_t *busy_percent);
  *
  *  @param[in] count The size of utilization_counters array.
  *
- *  @param[inout] timestamp The timestamp when the counter is retreived. Resolution: 1 ns.
+ *  @param[inout] timestamp The timestamp when the counter is retrieved. Resolution: 1 ns.
  *  @retval ::RSMI_STATUS_SUCCESS call was successful
  *  @retval ::RSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
  *  support this function with the given arguments
@@ -3377,7 +3377,7 @@ rsmi_status_t rsmi_dev_gpu_metrics_info_get(uint32_t dv_ind,
  *  @details Given a device index @p dv_ind, @p pm_metrics pointer,
  *  and @p num_of_metrics pointer,
  *  this function will write the pm metrics name value pair
- *  to the array at @p pm_metrics and the number of metrics retreived to @p num_of_metrics
+ *  to the array at @p pm_metrics and the number of metrics retrieved to @p num_of_metrics
  *  Note: the library allocated memory for pm_metrics, and user must call
  *  free(pm_metrics) to free it after use.
  *
@@ -3388,7 +3388,7 @@ rsmi_status_t rsmi_dev_gpu_metrics_info_get(uint32_t dv_ind,
  *  The caller must free this memory after usage to avoid memory leak.
  *
  *  @param[inout] num_of_metrics a pointer to uint32_t to which the number of
- *  metrics is allocated for pm_metrics array as input, and the number of metrics retreived
+ *  metrics is allocated for pm_metrics array as input, and the number of metrics retrieved
  *  as output. If this parameter is NULL, this function will return
  *  ::RSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
  *  arguments and ::RSMI_STATUS_NOT_SUPPORTED if it is not supported with the
@@ -3411,7 +3411,7 @@ rsmi_status_t rsmi_dev_pm_metrics_info_get(uint32_t dv_ind,
  *  @details Given a device index @p dv_ind, @p reg_type, @p reg_metrics pointer,
  *  and @p num_of_metrics pointer,
  *  this function will write the register metrics name value pair
- *  to the array at @p reg_metrics and the number of metrics retreived to @p num_of_metrics
+ *  to the array at @p reg_metrics and the number of metrics retrieved to @p num_of_metrics
  *  Note: the library allocated memory for reg_metrics, and user must call
  *  free(reg_metrics) to free it after use.
  *
@@ -3424,7 +3424,7 @@ rsmi_status_t rsmi_dev_pm_metrics_info_get(uint32_t dv_ind,
  *  The caller must free this memory after usage to avoid memory leak.
  *
  *  @param[inout] num_of_metrics a pointer to uint32_t to which the number of
- *  metrics is allocated for reg_metrics array as input, and the number of metrics retreived
+ *  metrics is allocated for reg_metrics array as input, and the number of metrics retrieved
  *  as output. If this parameter is NULL, this function will return
  *  ::RSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
  *  arguments and ::RSMI_STATUS_NOT_SUPPORTED if it is not supported with the
@@ -4714,7 +4714,7 @@ rsmi_topo_get_link_weight(uint32_t dv_ind_src, uint32_t dv_ind_dst,
                           uint64_t *weight);
 
 /**
- *  @brief Retreive minimal and maximal io link bandwidth between 2 GPUs
+ *  @brief Retrieve minimal and maximal io link bandwidth between 2 GPUs
  *
  *  @details Given a source device index @p dv_ind_src and
  *  a destination device index @p dv_ind_dst,  pointer to an
@@ -5648,7 +5648,7 @@ rsmi_dev_metrics_log_get(uint32_t dv_ind);
  *  ::RSMI_STATUS_AMDGPU_RESTART_ERR is returned, it means the driver
  *  did not reload properly and the user should check dmesg logs.
  * 
- *  This function has been created in order to conviently reload the
+ *  This function has been created in order to conveniently reload the
  *  AMD GPU driver once `rsmi_dev_memory_partition_set()`
  *  successfully has been changed on Baremetal systems.
  *  Now users can control the reload once all GPU processes/workloads

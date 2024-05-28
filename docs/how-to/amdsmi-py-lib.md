@@ -143,7 +143,7 @@ Exceptions that can be thrown by AMD SMI are:
 * `AmdSmiTimeoutException` : Derives `AmdSmiLibraryException` class and
   represents that call had timed out.
 * `AmdSmiParameterException`: Derives base `AmdSmiException` class and
-  represents errors related to invaild parameters passed to functions. When this
+  represents errors related to invalid parameters passed to functions. When this
   exception is thrown, `err_msg` is set and it explains what is the actual and
   expected type of the parameters.
 * `AmdSmiBdfFormatException`: Derives base `AmdSmiException` class and
