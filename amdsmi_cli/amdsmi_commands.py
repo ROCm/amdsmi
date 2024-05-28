@@ -3954,9 +3954,9 @@ class AMDSMICommands():
                     break
 
         # Only allow one device's arguments to be set at a time
-        if gpu_args_enabled == cpu_args_enabled == core_args_enabled == False:
+        if not any([gpu_args_enabled, cpu_args_enabled, core_args_enabled]):
             raise ValueError('No GPU, CPU, or CORE arguments provided, specific arguments are needed')
-        elif gpu_args_enabled == cpu_args_enabled == core_args_enabled == True:
+        elif all([gpu_args_enabled, cpu_args_enabled, core_args_enabled]):
             raise ValueError('Cannot set GPU, CPU, and CORE arguments at the same time')
         elif not (gpu_args_enabled ^ cpu_args_enabled ^ core_args_enabled):
             raise ValueError('Cannot set GPU, CPU, or CORE arguments at the same time')
