@@ -291,10 +291,14 @@ class AMDSMICommands():
             args.vram = vram
         if cache:
             args.cache = cache
+        if process_isolation:
+            args.process_isolation = process_isolation
 
         # Store args that are applicable to the current platform
-        current_platform_args = ["asic", "bus", "vbios", "driver", "vram", "cache", "board"]
-        current_platform_values = [args.asic, args.bus, args.vbios, args.driver, args.vram, args.cache, args.board]
+        current_platform_args = ["asic", "bus", "vbios", "driver", "vram", "cache",
+                                 "board", "process_isolation"]
+        current_platform_values = [args.asic, args.bus, args.vbios, args.driver, args.vram, args.cache,
+                                   args.board, args.process_isolation]
 
         if self.helpers.is_linux() and self.helpers.is_baremetal():
             if ras:
@@ -307,10 +311,9 @@ class AMDSMICommands():
                 args.policy = policy
             if xgmi_plpd:
                 args.xgmi_plpd = xgmi_plpd
-            if process_isolation:
-                args.process_isolation = process_isolation
-            current_platform_args += ["ras", "limit", "partition", "policy", "xgmi_plpd", "process_isolation"]
-            current_platform_values += [args.ras, args.limit, args.partition, args.policy, args.xgmi_plpd, args.process_isolation]
+
+            current_platform_args += ["ras", "limit", "partition", "policy", "xgmi_plpd"]
+            current_platform_values += [args.ras, args.limit, args.partition, args.policy, args.xgmi_plpd]
 
         if self.helpers.is_linux() and not self.helpers.is_virtual_os():
             if numa:
@@ -3385,7 +3388,7 @@ class AMDSMICommands():
     def set_gpu(self, args, multiple_devices=False, gpu=None, fan=None, perf_level=None,
                   profile=None, perf_determinism=None, compute_partition=None,
                   memory_partition=None, power_cap=None, dpm_policy=None, xgmi_plpd = None,
-                  process_isolation=None, clear_sram_data = None):
+                  process_isolation=None):
         """Issue reset commands to target gpu(s)
 
         Args:
@@ -3402,7 +3405,6 @@ class AMDSMICommands():
             dpm_policy (int, optional): Value override for args.dpm_policy. Defaults to None.
             xgmi_plpd (int, optional): Value override for args.xgmi_plpd. Defaults to None.
             process_isolation (int, optional): Value override for args.process_isolation. Defaults to None.
-            clear_sram_data (int, optional): Value override for args.clear_sram_data. Defaults to None.
         Raises:
             ValueError: Value error if no gpu value is provided
             IndexError: Index error if gpu list is empty
@@ -3433,8 +3435,7 @@ class AMDSMICommands():
             args.xgmi_plpd = xgmi_plpd
         if process_isolation:
             args.process_isolation = process_isolation
-        if clear_sram_data:
-            args.clear_sram_data = clear_sram_data
+
         # Handle No GPU passed
         if args.gpu == None:
             raise ValueError('No GPU provided, specific GPU target(s) are needed')
@@ -3456,8 +3457,7 @@ class AMDSMICommands():
                     args.power_cap is not None,
                     args.dpm_policy is not None,
                     args.xgmi_plpd is not None,
-                    args.process_isolation is not None,
-                    args.clear_sram_data]):
+                    args.process_isolation is not None]):
             command = " ".join(sys.argv[1:])
             raise AmdSmiRequiredCommandException(command, self.logger.format)
 
@@ -3583,16 +3583,6 @@ class AMDSMICommands():
                 raise ValueError(f"Unable to set process isolation to {status_string} on {gpu_string}") from e
 
             self.logger.store_output(args.gpu, 'process_isolation', result)
-        if args.clear_sram_data:
-            try:
-                # Only 1 can be used for now.
-                amdsmi_interface.amdsmi_set_gpu_clear_sram_data(args.gpu, 1)
-                result = 'Successfully clear GPU SRAM data'
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
-                    raise PermissionError('Command requires elevation') from e
-                raise ValueError(f"Unable to clear SRAM data on GPU {gpu_id}") from e
-            self.logger.store_output(args.gpu, 'clear_sram_data', result)
 
         if multiple_devices:
             self.logger.store_multiple_device_output()
@@ -3608,7 +3598,7 @@ class AMDSMICommands():
                   cpu_pwr_eff_mode=None, cpu_gmi3_link_width=None, cpu_pcie_link_rate=None,
                   cpu_df_pstate_range=None, cpu_enable_apb=None, cpu_disable_apb=None,
                   soc_boost_limit=None, core=None, core_boost_limit=None, dpm_policy=None, xgmi_plpd=None,
-                  process_isolation=None, clear_sram_data=None):
+                  process_isolation=None):
         """Issue reset commands to target gpu(s)
 
         Args:
@@ -3640,7 +3630,6 @@ class AMDSMICommands():
             dpm_policy (int, optional): Value override for args.dpm_policy. Defaults to None.
             xgmi_plpd (int, optional): Value override for args.xgmi_plpd. Defaults to None.
             process_isolation (int, optional): Value override for args.process_isolation. Defaults to None.
-            clear_sram_data (int, optional): Value override for args.clear_sram_data. Defaults to None.
         Raises:
             ValueError: Value error if no gpu value is provided
             IndexError: Index error if gpu list is empty
@@ -3660,8 +3649,7 @@ class AMDSMICommands():
         # Check if a GPU argument has been set
         gpu_args_enabled = False
         gpu_attributes = ["fan", "perf_level", "profile", "perf_determinism", "compute_partition",
-                          "memory_partition", "power_cap", "dpm_policy", "xgmi_plpd", "process_isolation",
-                          "clear_sram_data"]
+                          "memory_partition", "power_cap", "dpm_policy", "xgmi_plpd", "process_isolation"]
         for attr in gpu_attributes:
             if hasattr(args, attr):
                 if getattr(args, attr) is not None:
@@ -3717,7 +3705,7 @@ class AMDSMICommands():
                 self.set_gpu(args, multiple_devices, gpu, fan, perf_level,
                                 profile, perf_determinism, compute_partition,
                                 memory_partition, power_cap, dpm_policy, xgmi_plpd,
-                                process_isolation, clear_sram_data)
+                                process_isolation)
         elif self.helpers.is_amd_hsmp_initialized(): # Only CPU is initialized
             if args.cpu == None and args.core == None:
                 raise ValueError('No CPU or CORE provided, specific target(s) are needed')
@@ -3737,12 +3725,12 @@ class AMDSMICommands():
             self.set_gpu(args, multiple_devices, gpu, fan, perf_level,
                             profile, perf_determinism, compute_partition,
                             memory_partition, power_cap, dpm_policy, xgmi_plpd,
-                            process_isolation, clear_sram_data)
+                            process_isolation)
 
 
     def reset(self, args, multiple_devices=False, gpu=None, gpureset=None,
                 clocks=None, fans=None, profile=None, xgmierr=None, perf_determinism=None,
-                compute_partition=None, memory_partition=None, power_cap=None):
+                compute_partition=None, memory_partition=None, power_cap=None, clear_sram_data=None):
         """Issue reset commands to target gpu(s)
 
         Args:
@@ -3757,7 +3745,9 @@ class AMDSMICommands():
             perf_determinism (bool, optional): Value override for args.perf_determinism. Defaults to None.
             compute_partition (bool, optional): Value override for args.compute_partition. Defaults to None.
             memory_partition (bool, optional): Value override for args.memory_partition. Defaults to None.
-            power_cap (int, optional): Value override for args.power_cap. Defaults to None.
+            power_cap (bool, optional): Value override for args.power_cap. Defaults to None.
+            clear_sram_data (bool, optional): Value override for args.clear_sram_data. Defaults to None.
+
         Raises:
             ValueError: Value error if no gpu value is provided
             IndexError: Index error if gpu list is empty
@@ -3786,6 +3776,8 @@ class AMDSMICommands():
             args.memory_partition = memory_partition
         if power_cap:
             args.power_cap = power_cap
+        if clear_sram_data:
+            args.clear_sram_data = clear_sram_data
 
         # Handle No GPU passed
         if args.gpu == None:
@@ -3804,7 +3796,7 @@ class AMDSMICommands():
         # Error if no subcommand args are passed
         if not any([args.gpureset, args.clocks, args.fans, args.profile, args.xgmierr, \
                     args.perf_determinism, args.compute_partition, args.memory_partition, \
-                    args.power_cap]):
+                    args.power_cap, args.clear_sram_data]):
             command = " ".join(sys.argv[1:])
             raise AmdSmiRequiredCommandException(command, self.logger.format)
 
@@ -3955,6 +3947,16 @@ class AMDSMICommands():
                         raise PermissionError('Command requires elevation') from e
                     raise ValueError(f"Unable to reset power cap to {default_power_cap_in_w} on GPU {gpu_id}") from e
                 self.logger.store_output(args.gpu, 'powercap', f"Successfully set power cap to {default_power_cap_in_w}")
+        if args.clear_sram_data:
+            try:
+                # Only 1 can be used for now.
+                amdsmi_interface.amdsmi_set_gpu_clear_sram_data(args.gpu, 1)
+                result = 'Successfully clear GPU SRAM data'
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
+                    raise PermissionError('Command requires elevation') from e
+                raise ValueError(f"Unable to clear SRAM data on GPU {gpu_id}") from e
+            self.logger.store_output(args.gpu, 'clear_sram_data', result)
 
         if multiple_devices:
             self.logger.store_multiple_device_output()
