@@ -579,6 +579,7 @@ class AMDSMIParser(argparse.ArgumentParser):
             static_parser.add_argument('-v', '--vram', action='store_true', required=False, help=vram_help)
             static_parser.add_argument('-c', '--cache', action='store_true', required=False, help=cache_help)
             static_parser.add_argument('-B', '--board', action='store_true', required=False, help=board_help)
+            static_parser.add_argument('-R', '--process-isolation', action='store_true', required=False, help=process_isolation_help)
 
             # Options to display on Hypervisors and Baremetal
             if self.helpers.is_hypervisor() or self.helpers.is_baremetal():
@@ -587,7 +588,6 @@ class AMDSMIParser(argparse.ArgumentParser):
                 static_parser.add_argument('-l', '--limit', action='store_true', required=False, help=limit_help)
                 static_parser.add_argument('-P', '--policy', action='store_true', required=False, help=dpm_policy_help)
                 static_parser.add_argument('-x', '--xgmi-plpd', action='store_true', required=False, help=xgmi_plpd_help)
-                static_parser.add_argument('-R', '--process-isolation', action='store_true', required=False, help=process_isolation_help)
 
             if self.helpers.is_linux() and not self.helpers.is_virtual_os():
                 static_parser.add_argument('-u', '--numa', action='store_true', required=False, help=numa_help)
@@ -985,7 +985,6 @@ class AMDSMIParser(argparse.ArgumentParser):
         set_cpu_enable_apb_help = "Enables the DF p-state performance boost algorithm"
         set_cpu_disable_apb_help = "Disables the DF p-state performance boost algorithm. Input parameter is DFPstate (0-3)"
         set_soc_boost_limit_help = "Sets the boost limit for the given socket. Input parameter is socket BOOST_LIMIT value"
-        run_gpu_clear_sram_data_help = f"Clear the GPU SRAM data\n"
 
         # Help text for CPU Core set options
         set_core_boost_limit_help = "Sets the boost limit for the given core. Input parameter is core BOOST_LIMIT value"
@@ -1013,7 +1012,6 @@ class AMDSMIParser(argparse.ArgumentParser):
                 set_value_parser.add_argument('-x', '--xgmi-plpd', action='store', required=False,  type=self._not_negative_int, help=set_xgmi_plpd_help, metavar='POLICY_ID')
 
             set_value_parser.add_argument('-R', '--process-isolation', action='store', choices=[0,1], type=self._not_negative_int, required=False, help=set_process_isolation_help, metavar='STATUS')
-            set_value_parser.add_argument('-c', '--clear-sram-data', action='store_true', required=False, help=run_gpu_clear_sram_data_help)
 
         if self.helpers.is_amd_hsmp_initialized():
             if self.helpers.is_baremetal():
@@ -1039,8 +1037,8 @@ class AMDSMIParser(argparse.ArgumentParser):
 
 
     def _add_reset_parser(self, subparsers, func):
-        if not(self.helpers.is_baremetal() and self.helpers.is_linux()):
-            # This subparser is only applicable to Baremetal Linux
+        if not self.helpers.is_linux():
+            # This subparser is only applicable to Linux
             return
 
         if not self.helpers.is_amdgpu_initialized():
@@ -1063,6 +1061,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         reset_compute_help = "Reset compute partitions on the specified GPU"
         reset_memory_help = "Reset memory partitions on the specified GPU"
         reset_power_cap_help = "Reset power capacity limit to max capable"
+        reset_gpu_clear_sram_data_help = "Clear the GPU SRAM data\n"
 
         # Create reset subparser
         reset_parser = subparsers.add_parser('reset', help=reset_help, description=reset_subcommand_help)
@@ -1075,16 +1074,20 @@ class AMDSMIParser(argparse.ArgumentParser):
         # Device args are required as safeguard from the user applying the operation to all gpus unintentionally
         self._add_device_arguments(reset_parser, required=True)
 
-        # Add reset arguments
-        reset_parser.add_argument('-G', '--gpureset', action='store_true', required=False, help=gpureset_help)
-        reset_parser.add_argument('-c', '--clocks', action='store_true', required=False, help=reset_clocks_help)
-        reset_parser.add_argument('-f', '--fans', action='store_true', required=False, help=reset_fans_help)
-        reset_parser.add_argument('-p', '--profile', action='store_true', required=False, help=reset_profile_help)
-        reset_parser.add_argument('-x', '--xgmierr', action='store_true', required=False, help=reset_xgmierr_help)
-        reset_parser.add_argument('-d', '--perf-determinism', action='store_true', required=False, help=reset_perf_det_help)
-        reset_parser.add_argument('-C', '--compute-partition', action='store_true', required=False, help=reset_compute_help)
-        reset_parser.add_argument('-M', '--memory-partition', action='store_true', required=False, help=reset_memory_help)
-        reset_parser.add_argument('-o', '--power-cap', action='store_true', required=False, help=reset_power_cap_help)
+        if self.helpers.is_baremetal():
+            # Add Baremetal reset arguments
+            reset_parser.add_argument('-G', '--gpureset', action='store_true', required=False, help=gpureset_help)
+            reset_parser.add_argument('-c', '--clocks', action='store_true', required=False, help=reset_clocks_help)
+            reset_parser.add_argument('-f', '--fans', action='store_true', required=False, help=reset_fans_help)
+            reset_parser.add_argument('-p', '--profile', action='store_true', required=False, help=reset_profile_help)
+            reset_parser.add_argument('-x', '--xgmierr', action='store_true', required=False, help=reset_xgmierr_help)
+            reset_parser.add_argument('-d', '--perf-determinism', action='store_true', required=False, help=reset_perf_det_help)
+            reset_parser.add_argument('-C', '--compute-partition', action='store_true', required=False, help=reset_compute_help)
+            reset_parser.add_argument('-M', '--memory-partition', action='store_true', required=False, help=reset_memory_help)
+            reset_parser.add_argument('-o', '--power-cap', action='store_true', required=False, help=reset_power_cap_help)
+
+        # Add Baremetal and Virtual OS reset arguments
+        reset_parser.add_argument('-l', '--clear-sram-data', action='store_true', required=False, help=reset_gpu_clear_sram_data_help)
 
 
     def _add_monitor_parser(self, subparsers, func):
