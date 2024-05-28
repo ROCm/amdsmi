@@ -338,7 +338,7 @@ def getProcessName(pid):
     except subprocess.CalledProcessError as e:
         pName = 'UNKNOWN'
 
-    if pName == None:
+    if pName is None:
         pName = 'UNKNOWN'
 
     # Remove the substrings surrounding from process name (b' and \n')
@@ -1789,7 +1789,7 @@ def showAllConcise(deviceList):
         mem_use_pct = 0
         if vram_used is None:
             mem_use_pct='Unsupported'
-        if vram_used != None and vram_total != None and float(vram_total) != 0:
+        if vram_used is not None and vram_total is not None and float(vram_total) != 0:
             mem_use_pct = '% 3.0f%%' % (100 * (float(vram_used) / float(vram_total)))
 
         gpu_dev_product_info_top_name = gpu_dev_product_info_names[0]
@@ -2162,7 +2162,7 @@ def getCoarseGrainUtil(device, typeName=None):
     """
     timestamp = c_uint64(0)
 
-    if typeName != None:
+    if typeName is not None:
 
         try:
             i = utilization_counter_name.index(typeName)
@@ -3148,7 +3148,7 @@ def showWeightTopology(deviceList):
         for gpu2 in deviceList:
             if (gpu1 == gpu2):
                 printTableRow('%-12s', '0')
-            elif (gpu_links_weight[gpu1][gpu2] == None):
+            elif (gpu_links_weight[gpu1][gpu2] is None):
                 printTableRow('%-12s', 'N/A')
             else:
                 printTableRow('%-12s', gpu_links_weight[gpu1][gpu2].value)
@@ -3194,7 +3194,7 @@ def showHopsTopology(deviceList):
         for gpu2 in deviceList:
             if (gpu1 == gpu2):
                 printTableRow('%-12s', '0')
-            elif (gpu_links_hops[gpu1][gpu2] == None):
+            elif (gpu_links_hops[gpu1][gpu2] is None):
                 printTableRow('%-12s', 'N/A')
             else:
                 printTableRow('%-12s', gpu_links_hops[gpu1][gpu2].value)
@@ -3975,7 +3975,7 @@ if __name__ == '__main__':
         showPcieReplayCount(deviceList)
     if args.showserial:
         showSerialNumber(deviceList)
-    if args.showpids != None:
+    if args.showpids is not None:
         showPids(args.showpids)
     if args.showpidgpus or str(args.showpidgpus) == '[]':
         showGpusByPid(args.showpidgpus)

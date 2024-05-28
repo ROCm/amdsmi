@@ -70,7 +70,7 @@ if __name__ == '__main__':
             print (f)
         exit(0)
         
-    if args.diff != None:
+    if args.diff is not None:
         if args.diff[0] not in platform_map or args.diff[1] not in platform_map:
             print("Unknown platforms ", args.diff)
             exit(1)
@@ -83,7 +83,7 @@ if __name__ == '__main__':
         exit(0)
         
         
-    if args.common != None:
+    if args.common is not None:
         if args.common[0] not in platform_map or args.common[1] not in platform_map:
             print("Unknown platforms ", args.common)
             exit(1)
