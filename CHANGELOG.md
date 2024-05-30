@@ -4,9 +4,12 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ***All information listed below is for reference and subject to change.***
 
-## amd_smi_lib for ROCm 6.1.2
+## amd_smi_lib for ROCm 6.2.0
 
 ### Additions
+
+- **Addedd Handling to detect VMs with passthrough configurations in CLI Tool**.  
+CLI Tool had only allowed a restricted set of options for Virtual Machines with passthrough GPUs. Now we offer an expanded set of functions availble to passthrough configured GPUs.
 
 - **Added macros that were in `amdsmi.h` to the amdsmi Python library `amdsmi_interface.py`**.  
 Added macros to reference max size limitations for certain amdsmi functions such as max dpm policies and max fanspeed.
