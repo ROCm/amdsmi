@@ -421,7 +421,8 @@ class AmdSmiEventReader:
         self.processor_handle = processor_handle
         mask = 0
         for event_type in event_types:
-            mask |= (1 << (int(event_type) - 1))
+            if event_type != AmdSmiEvtNotificationType.NONE:
+                mask |= (1 << (int(event_type) - 1))
 
         _check_res(amdsmi_wrapper.amdsmi_init_gpu_event_notification(processor_handle))
         _check_res(amdsmi_wrapper.amdsmi_set_gpu_event_notification_mask(
