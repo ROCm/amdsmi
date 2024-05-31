@@ -495,6 +495,7 @@ typedef union {
 typedef enum {
   AMDSMI_CARD_FORM_FACTOR_PCIE,
   AMDSMI_CARD_FORM_FACTOR_OAM,
+  AMDSMI_CARD_FORM_FACTOR_CEM,
   AMDSMI_CARD_FORM_FACTOR_UNKNOWN
 } amdsmi_card_form_factor_t;
 
@@ -509,7 +510,7 @@ typedef struct {
   struct pcie_metric_ {
     uint16_t pcie_width;                  //!< current PCIe width
     uint32_t pcie_speed;                  //!< current PCIe speed in MT/s
-    uint32_t pcie_bandwidth;              //!< current PCIe bandwidth Mb/s
+    uint32_t pcie_bandwidth;              //!< current instantaneous PCIe bandwidth in Mb/s
     uint64_t pcie_replay_count;           //!< total number of the replays issued on the PCIe link
     uint64_t pcie_l0_to_recovery_count;   //!< total number of times the PCIe link transitioned from L0 to the recovery state
     uint64_t pcie_replay_roll_over_count; //!< total number of replay rollovers issued on the PCIe link
@@ -656,8 +657,8 @@ typedef struct {
   uint32_t mm_activity;
   uint32_t reserved[13];
 } amdsmi_engine_usage_t;
-
 typedef uint32_t amdsmi_process_handle_t;
+
 
 typedef struct {
   char name[AMDSMI_NORMAL_STRING_LENGTH];
@@ -677,6 +678,7 @@ typedef struct {
   char container_name[AMDSMI_NORMAL_STRING_LENGTH];
   uint32_t reserved[4];
 } amdsmi_proc_info_t;
+
 
 //! Guaranteed maximum possible number of supported frequencies
 #define AMDSMI_MAX_NUM_FREQUENCIES 33
@@ -3405,6 +3407,49 @@ amdsmi_status_t amdsmi_get_dpm_policy(amdsmi_processor_handle processor_handle,
  */
 amdsmi_status_t amdsmi_set_dpm_policy(amdsmi_processor_handle processor_handle,
                              uint32_t policy_id);
+
+/**
+ * @brief Get the xgmi per-link power down policy parameter for the processor
+ *
+ * @platform{gpu_bm_linux}
+ *
+ * @details Given a processor handle @p processor_handle, this function will write
+ * current xgmi plpd settings to @p policy. All the processors at the same socket
+ * will have the same policy.
+ *
+ *  @param[in] processor_handle a processor handle
+ *
+ *  @param[in, out] policy the xgmi plpd for this processor.
+ *  If this parameter is nullptr, this function will return
+ *  ::AMDSMI_STATUS_INVAL
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_get_xgmi_plpd(amdsmi_processor_handle processor_handle,
+                             amdsmi_dpm_policy_t* xgmi_plpd);
+
+/**
+ * @brief Set the xgmi per-link power down policy parameter for the processor
+ *
+ * @platform{gpu_bm_linux}
+ *
+ * @details Given a processor handle @p processor_handle and a dpm policy @p plpd_id,
+ * this function will set the xgmi plpd for this processor. All the processors at
+ * the same socket will be set to the same policy.
+ *
+ *  @note This function requires root access
+ *
+ *  @param[in] processor_handle a processor handle
+ *
+ *  @param[in] xgmi_plpd_id the xgmi plpd id to set. The id is the id in
+ *  amdsmi_dpm_policy_entry_t, which can be obtained by calling
+ *  amdsmi_get_xgmi_plpd()
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_set_xgmi_plpd(amdsmi_processor_handle processor_handle,
+                             uint32_t plpd_id);
+
 /** @} End PerfCont */
 
 /*****************************************************************************/
@@ -4699,33 +4744,39 @@ amdsmi_get_gpu_vram_usage(amdsmi_processor_handle processor_handle, amdsmi_vram_
  *                  number of processes currently running,
  *                  AMDSMI_STATUS_OUT_OF_RESOURCES will be returned.
  *
+ *                  For cases where max_process is not zero (0), it specifies the list's size limit.
+ *                  That is, the maximum size this list will be able to hold. After the list is built
+ *                  internally, as a return status, we will have AMDSMI_STATUS_OUT_OF_RESOURCES when
+ *                  the original size limit is smaller than the actual list of processes running.
+ *                  Hence, the caller is aware the list size needs to be resized, or
+ *                  AMDSMI_STATUS_SUCCESS otherwise.
+ *                  Holding a copy of max_process before it is passed in will be helpful for monitoring
+ *                  the allocations done upon each call since the max_process will permanently be changed
+ *                  to reflect the actual number of processes running.
+ *                  Note: For the specific cases where the return status is AMDSMI_STATUS_NO_PERM only.
+ *                        The list of process and size are AMDSMI_STATUS_SUCCESS, however there are
+ *                        processes details not fully retrieved due to permissions.
+ *
+ *
  *  @param[out]     list Reference to a user-provided buffer where the process
  *                  list will be returned. This buffer must contain at least
- *                  max_processes entries of type smi_process_handle. Must be allocated
+ *                  max_processes entries of type amd_proc_info_list_t. Must be allocated
  *                  by user.
  *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success,
+ *                            | ::AMDSMI_STATUS_NO_PERM on success, but not all details from process retrieved,
+ *                            | ::AMDSMI_STATUS_OUT_OF_RESOURCES, filled list buffer with data, but number of
+ *                                actual running processes is larger than the size provided.
+ *
  */
+    //  Note: If the reserved size for processes is smaller than the number of
+    //        actual processes running. The AMDSMI_STATUS_OUT_OF_RESOURCES is
+    //        an indication the caller should handle the situation (resize).
+    //        The max_processes is always changed to reflect the actual size of
+    //        list of processes running, so the caller knows where it is at.
+    //
 amdsmi_status_t
-amdsmi_get_gpu_process_list(amdsmi_processor_handle processor_handle, uint32_t *max_processes, amdsmi_process_handle_t *list);
-
-/**
- *  @brief          Returns the process information of a given process.
- *                  Engine usage show how much time the process spend using these engines in ns.
- *
- *  @platform{gpu_bm_linux} @platform{guest_1vf}  @platform{guest_mvf} @platform{guest_windows}
- *
- *  @param[in]      processor_handle Device which to query
- *
- *  @param[in]      process Handle of process to query.
- *
- *  @param[out]     info Reference to a process information structure where to return
- *                  information. Must be allocated by user.
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t
-amdsmi_get_gpu_process_info(amdsmi_processor_handle processor_handle, amdsmi_process_handle_t process, amdsmi_proc_info_t *info);
+amdsmi_get_gpu_process_list(amdsmi_processor_handle processor_handle, uint32_t *max_processes, amdsmi_proc_info_t *list);
 
 /** @} End processinfo */
 

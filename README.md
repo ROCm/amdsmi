@@ -26,11 +26,18 @@ installed to query firmware information and hardware IPs.
 
 ### Installation
 
-* Install amdgpu driver
-* Install amd-smi-lib package through package manager
+### Install amdgpu using ROCm
+* Install amdgpu driver:  
+See example below, your release and link may differ. The `amdgpu-install --usecase=rocm` triggers both an amdgpu driver update and AMD SMI packages to be installed on your device.
+```shell
+sudo apt update
+wget https://repo.radeon.com/amdgpu-install/6.0.2/ubuntu/jammy/amdgpu-install_6.0.60002-1_all.deb
+sudo apt install ./amdgpu-install_6.0.60002-1_all.deb
+sudo amdgpu-install --usecase=rocm
+```
 * amd-smi --help
 
-### Install Example for Ubuntu 22.04
+### Install Example for Ubuntu 22.04 (without ROCm)
 
 ``` bash
 apt install amd-smi-lib
@@ -101,7 +108,7 @@ The only required AMD-SMI call for any program that wants to use AMD-SMI is the 
 
 When AMD-SMI is no longer being used, `amdsmi_shut_down()` should be called. This provides a way to do any releasing of resources that AMD-SMI may have held.
 
-A simple "Hello World" type program that displays the temperature of detected devices would look like this:
+1) A simple "Hello World" type program that displays the temperature of detected devices would look like this:
 
 ```c++
 #include <iostream>
@@ -174,6 +181,67 @@ int main() {
   ret = amdsmi_shut_down();
 
   return 0;
+}
+```
+
+2) A sample program that displays the power of detected cpus would look like this:
+
+```c++
+#include <iostream>
+#include <vector>
+#include "amd_smi/amdsmi.h"
+
+int main(int argc, char **argv) {
+    amdsmi_status_t ret;
+	uint32_t socket_count = 0;
+
+    // Initialize amdsmi for AMD CPUs
+    ret = amdsmi_init(AMDSMI_INIT_AMD_CPUS);
+
+    ret = amdsmi_get_socket_handles(&socket_count, nullptr);
+
+    // Allocate the memory for the sockets
+    std::vector<amdsmi_socket_handle> sockets(socket_count);
+
+    // Get the sockets of the system
+    ret = amdsmi_get_socket_handles(&socket_count, &sockets[0]);
+
+    std::cout << "Total Socket: " << socket_count << std::endl;
+
+    // For each socket, get cpus
+    for (uint32_t i = 0; i < socket_count; i++) {
+        uint32_t cpu_count = 0;
+
+        // Set processor type as AMD_CPU
+        processor_type_t processor_type = AMD_CPU;
+        ret = amdsmi_get_processor_handles_by_type(sockets[i], processor_type, nullptr, &cpu_count);
+
+        // Allocate the memory for the cpus
+        std::vector<amdsmi_processor_handle> plist(cpu_count);
+
+		 // Get the cpus for each socket
+        ret = amdsmi_get_processor_handles_by_type(sockets[i], processor_type, &plist[0], &cpu_count);
+
+        for (uint32_t index = 0; index < plist.size(); index++) {
+            uint32_t socket_power;
+            std::cout<<"CPU "<<index<<"\t"<< std::endl;
+            std::cout<<"Power (Watts): ";
+
+            ret = amdsmi_get_cpu_socket_power(plist[index], &socket_power);
+            if(ret != AMDSMI_STATUS_SUCCESS)
+                std::cout<<"Failed to get cpu socket power"<<"["<<index<<"] , Err["<<ret<<"] "<< std::endl;
+
+            if (!ret) {
+                std::cout<<static_cast<double>(socket_power)/1000<<std::endl;
+            }
+            std::cout<<std::endl;
+        }
+    }
+
+    // Clean up resources allocated at amdsmi_init
+    ret = amdsmi_shut_down();
+
+    return 0;
 }
 ```
 
@@ -277,4 +345,4 @@ Path to the program `amdsmitst`: build/tests/amd_smi_test/
 
 The information contained herein is for informational purposes only, and is subject to change without notice. In addition, any stated support is planned and is also subject to change. While every precaution has been taken in the preparation of this document, it may contain technical inaccuracies, omissions and typographical errors, and AMD is under no obligation to update or otherwise correct this information. Advanced Micro Devices, Inc. makes no representations or warranties with respect to the accuracy or completeness of the contents of this document, and assumes no liability of any kind, including the implied warranties of noninfringement, merchantability or fitness for particular purposes, with respect to the operation or use of AMD hardware, software or other products described herein.
 
-© 2023 Advanced Micro Devices, Inc. All Rights Reserved.
+© 2023-2024 Advanced Micro Devices, Inc. All Rights Reserved.
