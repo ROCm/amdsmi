@@ -111,7 +111,7 @@ def main():
 
     os_platform = platform.system()
     if os_platform == "Windows":
-        clang_include_dir += "\include"
+        clang_include_dir += "\\include"
         if "Program Files(x86)" in clang_include_dir:
             clang_include_dir = clang_include_dir.replace("Program Files(x86)", "Progra~2")
         elif "Program Files" in clang_include_dir:
