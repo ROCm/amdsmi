@@ -66,7 +66,7 @@ The file structure referenced to dpm_policy changed to soc_pstate and we have ch
 Previously on devices without a FRU we would not populate the product name in the `amdsmi_board_info_t` structure, now we will fallback to using the name listed according to the pciids file if available.
 
 - **Updated CLI voltage curve command output**.  
-The output for `amd-smi metric --voltage-curve` now splits the frequency and voltage output by curve point or outputs N/A if not applicable
+The output for `amd-smi metric --voltage-curve` now splits the frequency and voltage output by curve point or outputs N/A for each curve point if not applicable
 
 ```shell
 GPU: 0
