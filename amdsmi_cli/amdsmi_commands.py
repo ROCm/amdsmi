@@ -1792,46 +1792,46 @@ class AMDSMICommands():
                 values_dict["fan"] = fan_dict
         if "voltage_curve" in current_platform_args:
             if args.voltage_curve:
+                # Populate N/A values per voltage point
+                voltage_point_dict = {}
+                for point in range(amdsmi_interface.AMDSMI_NUM_VOLTAGE_CURVE_POINTS):
+                    voltage_point_dict[f'point_{point}_frequency'] = "N/A"
+                    voltage_point_dict[f'point_{point}_voltage'] = "N/A"
+
                 try:
                     od_volt = amdsmi_interface.amdsmi_get_gpu_od_volt_info(args.gpu)
                     logging.debug(f"OD Voltage info: {od_volt}")
-
-                    # Populate N/A values per voltage point
-                    voltage_point_dict = {}
-                    for point in range(amdsmi_interface.AMDSMI_NUM_VOLTAGE_CURVE_POINTS):
-                        voltage_point_dict[f'point_{point}_frequency'] = "N/A"
-                        voltage_point_dict[f'point_{point}_voltage'] = "N/A"
-
-                    # Populate voltage point values
-                    for point in range(amdsmi_interface.AMDSMI_NUM_VOLTAGE_CURVE_POINTS):
-                        if isinstance(od_volt, dict):
-                            logging.debug(f"point_{point} frequency: {od_volt['curve.vc_points'][point].frequency}")
-                            logging.debug(f"point_{point} voltage:   {od_volt['curve.vc_points'][point].voltage}")
-                            frequency = int(od_volt["curve.vc_points"][point].frequency / 1000000)
-                            voltage = int(od_volt["curve.vc_points"][point].voltage)
-                        else:
-                            frequency = "N/A"
-                            voltage = "N/A"
-
-                        if frequency == 0:
-                            frequency = "N/A"
-
-                        if voltage == 0:
-                            voltage = "N/A"
-
-                        if frequency != "N/A":
-                            frequency = self.helpers.unit_format(self.logger, frequency, "Mhz")
-
-                        if voltage != "N/A":
-                            voltage = self.helpers.unit_format(self.logger, voltage, "mV")
-
-                        voltage_point_dict[f'point_{point}_frequency'] = frequency
-                        voltage_point_dict[f'point_{point}_voltage'] = voltage
-
-                    values_dict['voltage_curve'] = voltage_point_dict
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    values_dict['voltage_curve'] = "N/A"
+                    od_volt = "N/A" # Value not used, but needs to not be a dict
                     logging.debug("Failed to get voltage curve for gpu %s | %s", gpu_id, e.get_error_info())
+
+                # Populate voltage point values
+                for point in range(amdsmi_interface.AMDSMI_NUM_VOLTAGE_CURVE_POINTS):
+                    if isinstance(od_volt, dict):
+                        logging.debug(f"point_{point} frequency: {od_volt['curve.vc_points'][point].frequency}")
+                        logging.debug(f"point_{point} voltage:   {od_volt['curve.vc_points'][point].voltage}")
+                        frequency = int(od_volt["curve.vc_points"][point].frequency / 1000000)
+                        voltage = int(od_volt["curve.vc_points"][point].voltage)
+                    else:
+                        frequency = "N/A"
+                        voltage = "N/A"
+
+                    if frequency == 0:
+                        frequency = "N/A"
+
+                    if voltage == 0:
+                        voltage = "N/A"
+
+                    if frequency != "N/A":
+                        frequency = self.helpers.unit_format(self.logger, frequency, "Mhz")
+
+                    if voltage != "N/A":
+                        voltage = self.helpers.unit_format(self.logger, voltage, "mV")
+
+                    voltage_point_dict[f'point_{point}_frequency'] = frequency
+                    voltage_point_dict[f'point_{point}_voltage'] = voltage
+
+                values_dict['voltage_curve'] = voltage_point_dict
         if "overdrive" in current_platform_args:
             if args.overdrive:
                 try:
