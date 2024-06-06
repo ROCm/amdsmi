@@ -27,6 +27,9 @@ Added `AMDSMI_EVT_NOTIF_RING_HANG` to the possible events in the `amdsmi_evt_not
 
 ### Optimizations
 
+- **Updated naming for `amdsmi_set_gpu_clear_sram_data()` to `amdsmi_set_gpu_run_cleaner_shader()`**.  
+Changed the naming to be more accurate to what the function was doing. This change also extends to the CLI where we changed the `clear-sram-data` command to `run-shader` that accepts a shader name to run.
+
 - **Updated `amdsmi_clk_info_t` struct in amdsmi.h and amdsmi_interface.py to align with host/guest**.  
 Changed cur_clk to clk, changed sleep_clk to clk_deep_sleep, and added clk_locked value. New struct will be in the following format:
 
@@ -96,7 +99,7 @@ The parsing of `pp_od_clk_voltage` was not dynamic enough to work with the dropp
 
 ### Known Issues
 
-- N/A
+- **Process isolation and run shader commands do no currently work and will be supported in a future release**.  
 
 ## amd_smi_lib for ROCm 6.1.2
 
@@ -106,7 +109,7 @@ The parsing of `pp_od_clk_voltage` was not dynamic enough to work with the dropp
 Added APIs CLI and APIs to address LeftoverLocals security issues. Allowing clearing the sram data and setting process isolation on a per GPU basis. New APIs:
   - `amdsmi_get_gpu_process_isolation()`
   - `amdsmi_set_gpu_process_isolation()`
-  - `amdsmi_set_gpu_run_cleaner_shader()`
+  - `amdsmi_set_gpu_clear_sram_data()`
 
 - **Added `MIN_POWER` to output of `amd-smi static --limit`**.  
 This change helps users identify the range to which they can change the power cap of the GPU. The change is added to simplify why a device supports (or does not support) power capping (also known as overdrive). See `amd-smi set -g all --power-cap <value in W>` or `amd-smi reset -g all --power-cap`.
