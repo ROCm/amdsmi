@@ -88,6 +88,9 @@ ASIC products. This requires users to update any ABIs using this structure.
 
 ### Fixes
 
+- **Removed `throttle-status` from `amd-smi monitor` as it is no longer reliably supported**.  
+Throttle status may work for older ASICs, but will be replaced with PVIOL and TVIOL metrics for future ASIC support. It remains a field in the gpu_metrics API and in `amd-smi metric --power`.
+
 - **`amdsmi_get_gpu_board_info()` no longer returns junk char strings**.  
 Previously if there was a partial failure to retrieve character strings, we would return
 garbage output to users using the API. This fix intends to populate as many values as possible.

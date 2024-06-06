@@ -1328,8 +1328,8 @@ class AMDSMICommands():
                               'gfx_voltage': "N/A",
                               'soc_voltage': "N/A",
                               'mem_voltage': "N/A",
-                              'power_management': "N/A",
-                              'throttle_status': "N/A"}
+                              'throttle_status': "N/A",
+                              'power_management': "N/A"}
 
                 try:
                     voltage_unit = "mV"
@@ -3968,7 +3968,7 @@ class AMDSMICommands():
     def monitor(self, args, multiple_devices=False, watching_output=False, gpu=None,
                   watch=None, watch_time=None, iterations=None, power_usage=None,
                   temperature=None, gfx_util=None, mem_util=None, encoder=None, decoder=None,
-                  throttle_status=None, ecc=None, vram_usage=None, pcie=None):
+                  ecc=None, vram_usage=None, pcie=None):
         """ Populate a table with each GPU as an index to rows of targeted data
 
         Args:
@@ -3984,7 +3984,6 @@ class AMDSMICommands():
             mem (bool, optional): Value override for args.mem. Defaults to None.
             encoder (bool, optional): Value override for args.encoder. Defaults to None.
             decoder (bool, optional): Value override for args.decoder. Defaults to None.
-            throttle_status (bool, optional): Value override for args.throttle_status. Defaults to None.
             ecc (bool, optional): Value override for args.ecc. Defaults to None.
             vram_usage (bool, optional): Value override for args.vram_usage. Defaults to None.
             pcie (bool, optional): Value override for args.pcie. Defaults to None.
@@ -4019,8 +4018,6 @@ class AMDSMICommands():
             args.encoder = encoder
         if decoder:
             args.decoder = decoder
-        if throttle_status:
-            args.throttle_status = throttle_status
         if ecc:
             args.ecc = ecc
         if vram_usage:
@@ -4034,10 +4031,10 @@ class AMDSMICommands():
 
         # If all arguments are False, the print all values
         if not any([args.power_usage, args.temperature, args.gfx, args.mem,
-                    args.encoder, args.decoder, args.throttle_status, args.ecc,
+                    args.encoder, args.decoder, args.ecc,
                     args.vram_usage, args.pcie]):
             args.power_usage = args.temperature = args.gfx = args.mem = \
-                args.encoder = args.decoder = args.throttle_status = args.ecc = \
+                args.encoder = args.decoder = args.ecc = \
                 args.vram_usage = args.pcie = True
 
         # Handle watch logic, will only enter this block once
@@ -4282,20 +4279,6 @@ class AMDSMICommands():
                 logging.debug("Failed to get decoder clock on gpu %s | %s", gpu_id, e.get_error_info())
 
             self.logger.table_header += 'DEC_CLOCK'.rjust(11)
-        if args.throttle_status:
-            try:
-                throttle_status = amdsmi_interface.amdsmi_get_gpu_metrics_info(args.gpu)['throttle_status']
-                if throttle_status != "N/A":
-                    if throttle_status:
-                        throttle_status = "THROTTLED"
-                    else:
-                        throttle_status = "UNTHROTTLED"
-                monitor_values['throttle_status'] = throttle_status
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                monitor_values['throttle_status'] = "N/A"
-                logging.debug("Failed to get throttle status on gpu %s | %s", gpu_id, e.get_error_info())
-
-            self.logger.table_header += 'THROTTLE'.rjust(13)
         if args.ecc:
             try:
                 ecc = amdsmi_interface.amdsmi_get_gpu_total_ecc_count(args.gpu)
