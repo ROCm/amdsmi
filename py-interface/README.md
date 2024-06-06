@@ -1588,8 +1588,12 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            memory = amdsmi_get_gpu_memory_total(device)
-            print(memory)
+            vram_memory_total = amdsmi_get_gpu_memory_total(device, amdsmi_interface.AmdSmiMemoryType.VRAM)
+            print(vram_memory_total)
+            vis_vram_memory_total = amdsmi_get_gpu_memory_total(device, amdsmi_interface.AmdSmiMemoryType.VIS_VRAM)
+            print(vis_vram_memory_total)
+            gtt_memory_total = amdsmi_get_gpu_memory_total(device, amdsmi_interface.AmdSmiMemoryType.GTT)
+            print(gtt_memory_total)
 except AmdSmiException as e:
     print(e)
 ```
@@ -1660,8 +1664,12 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            memory = amdsmi_get_gpu_memory_usage(device)
-            print(memory)
+            vram_memory_usage = amdsmi_get_gpu_memory_usage(device, amdsmi_interface.AmdSmiMemoryType.VRAM)
+            print(vram_memory_usage)
+            vis_vram_memory_usage = amdsmi_get_gpu_memory_usage(device, amdsmi_interface.AmdSmiMemoryType.VIS_VRAM)
+            print(vis_vram_memory_usage)
+            gtt_memory_usage = amdsmi_get_gpu_memory_usage(device, amdsmi_interface.AmdSmiMemoryType.GTT)
+            print(gtt_memory_usage)
 except AmdSmiException as e:
     print(e)
 ```
