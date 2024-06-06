@@ -116,7 +116,7 @@ class AMDSMILogger():
                     table_values += value.rjust(11)
                 elif key == 'vram_total' or 'ecc' in key:
                     table_values += value.rjust(12)
-                elif key in ('throttle_status', 'pcie_replay'):
+                elif key in ['pcie_replay']:
                     table_values += value.rjust(13)
                 # Only for handling topology tables
                 elif 'gpu_' in key:

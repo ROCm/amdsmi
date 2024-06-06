@@ -2257,7 +2257,7 @@ Output: Dictionary with fields
 `current_dclk0` | Current dclk0 | MHz
 `current_vclk1` | Current vclk1 | MHz
 `current_dclk1` | Current dclk1 | MHz
-`throttle_status` | Current throttle status | MHz
+`throttle_status` | Current throttle status | bool
 `current_fan_speed` | Current fan speed | RPM
 `pcie_link_width` | PCIe link width (number of lanes) | lanes
 `pcie_link_speed` | PCIe link speed in 0.1 GT/s (Giga Transfers per second) | GT/s
