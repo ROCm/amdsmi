@@ -88,7 +88,7 @@ Initialize GPUs only example:
 ```python
 try:
     # by default we initalize with AmdSmiInitFlags.INIT_AMD_GPUS
-    init_flag = amdsmi_init()
+    ret = amdsmi_init()
     # continue with amdsmi
 except AmdSmiException as e:
     print("Init GPUs failed")
@@ -99,7 +99,7 @@ Initialize CPUs only example:
 
 ```python
 try:
-    init_flag = amdsmi_init(AmdSmiInitFlags.INIT_AMD_CPUS)
+    ret = amdsmi_init(AmdSmiInitFlags.INIT_AMD_CPUS)
     # continue with amdsmi
 except AmdSmiException as e:
     print("Init CPUs failed")
@@ -110,7 +110,7 @@ Initialize both GPUs and CPUs example:
 
 ```python
 try:
-    init_flag = amdsmi_init(AmdSmiInitFlags.INIT_AMD_APUS)
+    ret = amdsmi_init(AmdSmiInitFlags.INIT_AMD_APUS)
     # continue with amdsmi
 except AmdSmiException as e:
     print("Init both GPUs & CPUs failed")
@@ -414,13 +414,13 @@ Input parameters:
 
 Output: Dictionary with fields
 
-Field | Description
----|---
-`power_cap` |  power capability
-`dpm_cap` |  dynamic power management capability
-`default_power_cap` |  default power capability
-`min_power_cap` | min power capability
-`max_power_cap` | max power capability
+Field | Description | Units
+---|---|---
+`power_cap` |  power capability | uW
+`dpm_cap` |  dynamic power management capability | MHz
+`default_power_cap` |  default power capability | uW
+`min_power_cap` | min power capability | uW
+`max_power_cap` | max power capability | uW
 
 Exceptions that can be thrown by `amdsmi_get_power_cap_info` function:
 
@@ -843,7 +843,7 @@ Input parameters:
 
 * `processor_handle` device which to query
 
-Output: List consisting of dictionaries with fields for each bad page found
+Output: List consisting of dictionaries with fields for each bad page found; can be an empty list
 
 Field | Description
 ---|---
@@ -868,7 +868,7 @@ try:
     else:
         for device in devices:
             bad_page_info = amdsmi_get_gpu_bad_page_info(device)
-            if not len(bad_page_info):
+            if not bad_page_info: # Can be empty list
                 print("No bad pages found")
                 continue
             for bad_page in bad_page_info:
@@ -880,15 +880,70 @@ except AmdSmiException as e:
     print(e)
 ```
 
-### amdsmi_get_gpu_process_list
+### amdsmi_get_gpu_memory_reserved_pages
 
-Description: Returns the list of processes running on the target GPU.
+Description: Returns reserved memory page info for the given GPU.
+It is not supported on virtual machine guest
 
 Input parameters:
 
 * `processor_handle` device which to query
 
-Output: List of `amdsmi_proc_info_t` process objects running on the target GPU; can be empty
+Output: List consisting of dictionaries with fields for each reserved memory page found; can be an empty list
+
+Field | Description
+---|---
+`value` | Value of memory reserved page
+`page_address` | Address of memory reserved page
+`page_size` | Size of memory reserved page
+`status` | Status of memory reserved page
+
+Exceptions that can be thrown by `amdsmi_get_gpu_memory_reserved_pages` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            reserved_memory_page_info = amdsmi_get_gpu_memory_reserved_pages(device)
+            if not reserved_memory_page_info: # Can be empty list
+                print("No memory reserved pages found")
+                continue
+            for reserved_memory_page in reserved_memory_page_info:
+                print(reserved_memory_page["value"])
+                print(reserved_memory_page["page_address"])
+                print(reserved_memory_page["page_size"])
+                print(reserved_memory_page["status"])
+except AmdSmiException as e:
+    print(e)
+```
+
+
+### amdsmi_get_gpu_process_list
+
+Description: Returns the list of processes running on the target GPU; May require root level access
+
+Input parameters:
+
+* `processor_handle` device which to query
+
+Output: List of Dictionaries with the corresponding fields; empty list if no running process are detected
+
+Field | Description
+---|---
+`name` | Name of process
+`pid` | Process ID
+`mem` | Process memory usage
+`engine_usage` | <table><thead><tr> <th> Subfield </th> <th> Description</th> </tr></thead><tbody><tr><td>`gfx`</td><td>GFX engine usage in ns</td></tr><tr><td>`enc`</td><td>Encode engine usage in ns</td></tr></tbody></table>
+`memory_usage` | <table><thead><tr> <th> Subfield </th> <th> Description</th> </tr></thead><tbody><tr><td>`gtt_mem`</td><td>GTT memory usage</td></tr><tr><td>`cpu_mem`</td><td>CPU memory usage</td></tr><tr><td>`vram_mem`</td><td>VRAM memory usage</td></tr> </tbody></table>
 
 Exceptions that can be thrown by `amdsmi_get_gpu_process_list` function:
 
@@ -910,50 +965,7 @@ try:
                 print("No processes running on this GPU")
             else:
                 for process in processes:
-                    print(amdsmi_get_gpu_process_info(device, process))
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_gpu_process_info
-
-Description: Returns info about process given the target GPU and the corresponding `amdsmi_proc_info_t` object
-
-Input parameters:
-
-* `processor_handle` device which to query
-
-Output: Dictionary with fields
-
-Field | Description
----|---
-`name` | Name of process
-`pid` | Process ID
-`mem` | Process memory usage
-`engine_usage` | <table><thead><tr> <th> Subfield </th> <th> Description</th> </tr></thead><tbody><tr><td>`gfx`</td><td>GFX engine usage in ns</td></tr><tr><td>`enc`</td><td>Encode engine usage in ns</td></tr></tbody></table>
-`memory_usage` | <table><thead><tr> <th> Subfield </th> <th> Description</th> </tr></thead><tbody><tr><td>`gtt_mem`</td><td>GTT memory usage</td></tr><tr><td>`cpu_mem`</td><td>CPU memory usage</td></tr><tr><td>`vram_mem`</td><td>VRAM memory usage</td></tr> </tbody></table
-
-Exceptions that can be thrown by `amdsmi_get_gpu_process_info` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiRetryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on machine")
-    else:
-        for device in devices:
-            processes = amdsmi_get_gpu_process_list(device)
-            if len(processes) == 0:
-                print("No processes running on this GPU")
-            else:
-                for process in processes:
-                    print(amdsmi_get_gpu_process_info(device, process))
+                    print(process)
 except AmdSmiException as e:
     print(e)
 ```
@@ -1998,6 +2010,98 @@ except AmdSmiException as e:
     print(e)
 ```
 
+### amdsmi_get_gpu_process_isolation
+
+Description: Get the status of the Process Isolation
+
+Input parameters:
+
+* `processor_handle` handle for the given device
+
+Output: integer corresponding to isolation_status; 0 - disabled, 1 - enabled
+
+Exceptions that can be thrown by `amdsmi_get_gpu_process_isolation` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            isolate = amdsmi_get_gpu_process_isolation(device)
+            print("Process Isolation Status: ", isolate)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_set_gpu_process_isolation
+Description: Enable/disable the system Process Isolation for the given device handle.
+
+Input parameters:
+
+* `processor_handle` handle for the given device
+* `pisolate` the process isolation status to set. 0 is the process isolation disabled, and 1 is the process isolation enabled.
+
+Output: None
+
+Exceptions that can be thrown by `amdsmi_set_gpu_process_isolation` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            amdsmi_set_gpu_process_isolation(device, 1)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_set_gpu_clear_sram_data
+Description: Clear the SRAM data of the given device. This can be called between user logins to prevent information leak.
+
+Input parameters:
+
+* `processor_handle` handle for the given device
+* `sclean` the clean flag. Only 1 will take effect and other number are reserved for future usage.
+
+Output: None
+
+Exceptions that can be thrown by `amdsmi_set_gpu_clear_sram_data` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            amdsmi_set_gpu_clear_sram_data(device, 1)
+except AmdSmiException as e:
+    print(e)
+```
+
+
 ### amdsmi_get_gpu_overdrive_level
 
 Description: Get the overdrive percent associated with the device with provided
@@ -2637,6 +2741,75 @@ except AmdSmiException as e:
     print(e)
 ```
 
+### amdsmi_get_dpm_policy
+
+Description: Get dpm policy information.
+
+Input parameters:
+
+* `processor_handle` handle for the given device
+* `policy_id` the policy id to set.
+
+Output: Dictionary with fields
+
+Field | Description
+---|---
+`num_supported` | total number of supported policies
+`current_id` | current policy id
+`policies` | list of dictionaries containing possible policies
+
+Exceptions that can be thrown by `amdsmi_get_dpm_policy` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            dpm_policies = amdsmi_get_dpm_policy(device)
+            print(dpm_policies)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_set_dpm_policy
+
+Description: Set the dpm policy to corresponding policy_id. Typically following: 0(default),1,2,3
+
+Input parameters:
+
+* `processor_handle` handle for the given device
+* `policy_id` the policy id to set.
+
+Output: None
+
+Exceptions that can be thrown by `amdsmi_set_dpm_policy` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            amdsmi_set_dpm_policy(device, 0)
+except AmdSmiException as e:
+    print(e)
+```
+
 ### amdsmi_set_xgmi_plpd
 
 Description: Set the xgmi per-link power down policy parameter for the processor
@@ -3194,13 +3367,8 @@ Example:
 
 ```python
 try:
-    devices = amdsmi_get_processor_handles()
-    if len(devices) == 0:
-        print("No GPUs on machine")
-    else:
-        for device in devices:
-            version = amdsmi_get_lib_version()
-            print(version)
+    version = amdsmi_get_lib_version()
+    print(version)
 except AmdSmiException as e:
     print(e)
 ```

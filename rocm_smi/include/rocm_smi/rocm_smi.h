@@ -608,8 +608,13 @@ typedef enum {
   RSMI_GPU_BLOCK_MP0 =       0x0000000000000800,  //!< MP0 block
   RSMI_GPU_BLOCK_MP1 =       0x0000000000001000,  //!< MP1 block
   RSMI_GPU_BLOCK_FUSE =      0x0000000000002000,  //!< Fuse block
+  RSMI_GPU_BLOCK_MCA =       0x0000000000004000,  //!< MCA block
+  RSMI_GPU_BLOCK_VCN =       0x0000000000008000,  //!< VCN block
+  RSMI_GPU_BLOCK_JPEG =      0x0000000000010000,  //!< JPEG block
+  RSMI_GPU_BLOCK_IH =        0x0000000000020000,  //!< IH block
+  RSMI_GPU_BLOCK_MPIO =      0x0000000000040000,  //!< MPIO block
 
-  RSMI_GPU_BLOCK_LAST = RSMI_GPU_BLOCK_FUSE,       //!< The highest bit position
+  RSMI_GPU_BLOCK_LAST = RSMI_GPU_BLOCK_MPIO,       //!< The highest bit position
                                                   //!< for supported blocks
   RSMI_GPU_BLOCK_RESERVED =  0x8000000000000000
 } rsmi_gpu_block_t;
@@ -3357,7 +3362,7 @@ rsmi_status_t rsmi_dev_dpm_policy_get(uint32_t dv_ind,
  *
  *  @note This function requires root access
  *
- *  @param[in] processor_handle a processor handle
+ *  @param[in] dv_ind a device index
  *
  *  @param[in] policy_id the dpm policy will be modified
  *
@@ -3405,6 +3410,61 @@ rsmi_status_t rsmi_dev_xgmi_plpd_get(uint32_t dv_ind,
  */
 rsmi_status_t rsmi_dev_xgmi_plpd_set(uint32_t dv_ind,
                              uint32_t plpd_id);
+
+/**
+ * @brief Get the status of the Process Isolation
+ *
+ * @details Given a device index @p dv_ind, this function will write
+ * current process isolation status to @p pisolate. The 0 is the process isolation
+ * disabled, and the 1 is the process isolation enabled.
+ *
+ *  @param[in] dv_ind a device index
+ *
+ *  @param[in, out] pisolate the process isolation status.
+ *  If this parameter is nullptr, this function will return
+ *  ::RSMI_STATUS_INVAL
+ *
+ *  @return ::RSMI_STATUS_SUCCESS is returned upon successful call, non-zero on fail
+ */
+rsmi_status_t rsmi_dev_process_isolation_get(uint32_t dv_ind,
+                             uint32_t* pisolate);
+
+/**
+ * @brief Enable/disable the system Process Isolation
+ *
+ * @details Given a device index @p dv_ind and a process isolation @p pisolate,
+ * flag, this function will set the Process Isolation for this device. The 0 is the process
+ * isolation disabled, and the 1 is the process isolation enabled.
+ *
+ *  @note This function requires root access
+ *
+ *  @param[in] dv_ind a device index
+ *
+ *  @param[in] pisolate the process isolation status to set.
+ *
+ *  @return ::RSMI_STATUS_SUCCESS is returned upon successful call, non-zero on fail
+ */
+rsmi_status_t rsmi_dev_process_isolation_set(uint32_t dv_ind,
+                             uint32_t pisolate);
+
+/**
+ * @brief Clear the GPU SRAM data 
+ *
+ *
+ * @details Given a device index @p dv_ind, this function will clear the
+ * GPU SRAM data  of this device. This can be called between user logins to prevent information leak.
+ *
+ *  @note This function requires root access
+ *
+ *  @param[in] dv_ind a device index
+ *
+ *  @param[in] sclean the clean flag. Only 1 will take effect and other number
+ *  are reserved for future usage.
+ *
+ *  @return ::RSMI_STATUS_SUCCESS is returned upon successful call, non-zero on fail
+ */
+rsmi_status_t rsmi_dev_gpu_clear_sram_data(uint32_t dv_ind, uint32_t sclean);
+
 /** @} */  // end of PerfCont
 
 /*****************************************************************************/

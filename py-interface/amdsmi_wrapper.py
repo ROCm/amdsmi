@@ -748,6 +748,19 @@ amdsmi_card_form_factor_t = ctypes.c_uint32 # enum
 class struct_amdsmi_pcie_info_t(Structure):
     pass
 
+class struct_pcie_static_(Structure):
+    pass
+
+struct_pcie_static_._pack_ = 1 # source:False
+struct_pcie_static_._fields_ = [
+    ('max_pcie_width', ctypes.c_uint16),
+    ('PADDING_0', ctypes.c_ubyte * 2),
+    ('max_pcie_speed', ctypes.c_uint32),
+    ('pcie_interface_version', ctypes.c_uint32),
+    ('slot_type', amdsmi_card_form_factor_t),
+    ('reserved', ctypes.c_uint64 * 10),
+]
+
 class struct_pcie_metric_(Structure):
     pass
 
@@ -764,19 +777,6 @@ struct_pcie_metric_._fields_ = [
     ('pcie_nak_sent_count', ctypes.c_uint64),
     ('pcie_nak_received_count', ctypes.c_uint64),
     ('reserved', ctypes.c_uint64 * 13),
-]
-
-class struct_pcie_static_(Structure):
-    pass
-
-struct_pcie_static_._pack_ = 1 # source:False
-struct_pcie_static_._fields_ = [
-    ('max_pcie_width', ctypes.c_uint16),
-    ('PADDING_0', ctypes.c_ubyte * 2),
-    ('max_pcie_speed', ctypes.c_uint32),
-    ('pcie_interface_version', ctypes.c_uint32),
-    ('slot_type', amdsmi_card_form_factor_t),
-    ('reserved', ctypes.c_uint64 * 10),
 ]
 
 struct_amdsmi_pcie_info_t._pack_ = 1 # source:False
@@ -1300,7 +1300,12 @@ amdsmi_gpu_block_t__enumvalues = {
     2048: 'AMDSMI_GPU_BLOCK_MP0',
     4096: 'AMDSMI_GPU_BLOCK_MP1',
     8192: 'AMDSMI_GPU_BLOCK_FUSE',
-    8192: 'AMDSMI_GPU_BLOCK_LAST',
+    16384: 'AMDSMI_GPU_BLOCK_MCA',
+    32768: 'AMDSMI_GPU_BLOCK_VCN',
+    65536: 'AMDSMI_GPU_BLOCK_JPEG',
+    131072: 'AMDSMI_GPU_BLOCK_IH',
+    262144: 'AMDSMI_GPU_BLOCK_MPIO',
+    262144: 'AMDSMI_GPU_BLOCK_LAST',
     9223372036854775808: 'AMDSMI_GPU_BLOCK_RESERVED',
 }
 AMDSMI_GPU_BLOCK_INVALID = 0
@@ -1319,7 +1324,12 @@ AMDSMI_GPU_BLOCK_SEM = 1024
 AMDSMI_GPU_BLOCK_MP0 = 2048
 AMDSMI_GPU_BLOCK_MP1 = 4096
 AMDSMI_GPU_BLOCK_FUSE = 8192
-AMDSMI_GPU_BLOCK_LAST = 8192
+AMDSMI_GPU_BLOCK_MCA = 16384
+AMDSMI_GPU_BLOCK_VCN = 32768
+AMDSMI_GPU_BLOCK_JPEG = 65536
+AMDSMI_GPU_BLOCK_IH = 131072
+AMDSMI_GPU_BLOCK_MPIO = 262144
+AMDSMI_GPU_BLOCK_LAST = 262144
 AMDSMI_GPU_BLOCK_RESERVED = 9223372036854775808
 amdsmi_gpu_block_t = ctypes.c_uint64 # enum
 
@@ -2066,6 +2076,15 @@ amdsmi_get_xgmi_plpd.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_
 amdsmi_set_xgmi_plpd = _libraries['libamd_smi.so'].amdsmi_set_xgmi_plpd
 amdsmi_set_xgmi_plpd.restype = amdsmi_status_t
 amdsmi_set_xgmi_plpd.argtypes = [amdsmi_processor_handle, uint32_t]
+amdsmi_get_gpu_process_isolation = _libraries['libamd_smi.so'].amdsmi_get_gpu_process_isolation
+amdsmi_get_gpu_process_isolation.restype = amdsmi_status_t
+amdsmi_get_gpu_process_isolation.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32)]
+amdsmi_set_gpu_process_isolation = _libraries['libamd_smi.so'].amdsmi_set_gpu_process_isolation
+amdsmi_set_gpu_process_isolation.restype = amdsmi_status_t
+amdsmi_set_gpu_process_isolation.argtypes = [amdsmi_processor_handle, uint32_t]
+amdsmi_set_gpu_clear_sram_data = _libraries['libamd_smi.so'].amdsmi_set_gpu_clear_sram_data
+amdsmi_set_gpu_clear_sram_data.restype = amdsmi_status_t
+amdsmi_set_gpu_clear_sram_data.argtypes = [amdsmi_processor_handle, uint32_t]
 amdsmi_get_lib_version = _libraries['libamd_smi.so'].amdsmi_get_lib_version
 amdsmi_get_lib_version.restype = amdsmi_status_t
 amdsmi_get_lib_version.argtypes = [ctypes.POINTER(struct_amdsmi_version_t)]
@@ -2380,17 +2399,19 @@ __all__ = \
     'AMDSMI_GPU_BLOCK_ATHUB', 'AMDSMI_GPU_BLOCK_DF',
     'AMDSMI_GPU_BLOCK_FIRST', 'AMDSMI_GPU_BLOCK_FUSE',
     'AMDSMI_GPU_BLOCK_GFX', 'AMDSMI_GPU_BLOCK_HDP',
-    'AMDSMI_GPU_BLOCK_INVALID', 'AMDSMI_GPU_BLOCK_LAST',
-    'AMDSMI_GPU_BLOCK_MMHUB', 'AMDSMI_GPU_BLOCK_MP0',
-    'AMDSMI_GPU_BLOCK_MP1', 'AMDSMI_GPU_BLOCK_PCIE_BIF',
+    'AMDSMI_GPU_BLOCK_IH', 'AMDSMI_GPU_BLOCK_INVALID',
+    'AMDSMI_GPU_BLOCK_JPEG', 'AMDSMI_GPU_BLOCK_LAST',
+    'AMDSMI_GPU_BLOCK_MCA', 'AMDSMI_GPU_BLOCK_MMHUB',
+    'AMDSMI_GPU_BLOCK_MP0', 'AMDSMI_GPU_BLOCK_MP1',
+    'AMDSMI_GPU_BLOCK_MPIO', 'AMDSMI_GPU_BLOCK_PCIE_BIF',
     'AMDSMI_GPU_BLOCK_RESERVED', 'AMDSMI_GPU_BLOCK_SDMA',
     'AMDSMI_GPU_BLOCK_SEM', 'AMDSMI_GPU_BLOCK_SMN',
-    'AMDSMI_GPU_BLOCK_UMC', 'AMDSMI_GPU_BLOCK_XGMI_WAFL',
-    'AMDSMI_HSMP_TIMEOUT', 'AMDSMI_INIT_ALL_PROCESSORS',
-    'AMDSMI_INIT_AMD_APUS', 'AMDSMI_INIT_AMD_CPUS',
-    'AMDSMI_INIT_AMD_GPUS', 'AMDSMI_INIT_NON_AMD_CPUS',
-    'AMDSMI_INIT_NON_AMD_GPUS', 'AMDSMI_INVALID_POWER',
-    'AMDSMI_IOLINK_TYPE_NUMIOLINKTYPES',
+    'AMDSMI_GPU_BLOCK_UMC', 'AMDSMI_GPU_BLOCK_VCN',
+    'AMDSMI_GPU_BLOCK_XGMI_WAFL', 'AMDSMI_HSMP_TIMEOUT',
+    'AMDSMI_INIT_ALL_PROCESSORS', 'AMDSMI_INIT_AMD_APUS',
+    'AMDSMI_INIT_AMD_CPUS', 'AMDSMI_INIT_AMD_GPUS',
+    'AMDSMI_INIT_NON_AMD_CPUS', 'AMDSMI_INIT_NON_AMD_GPUS',
+    'AMDSMI_INVALID_POWER', 'AMDSMI_IOLINK_TYPE_NUMIOLINKTYPES',
     'AMDSMI_IOLINK_TYPE_PCIEXPRESS', 'AMDSMI_IOLINK_TYPE_SIZE',
     'AMDSMI_IOLINK_TYPE_UNDEFINED', 'AMDSMI_IOLINK_TYPE_XGMI',
     'AMDSMI_LINK_TYPE_NOT_APPLICABLE', 'AMDSMI_LINK_TYPE_PCIE',
@@ -2577,7 +2598,7 @@ __all__ = \
     'amdsmi_get_gpu_pci_throughput', 'amdsmi_get_gpu_perf_level',
     'amdsmi_get_gpu_pm_metrics_info',
     'amdsmi_get_gpu_power_profile_presets',
-    'amdsmi_get_gpu_process_list',
+    'amdsmi_get_gpu_process_isolation', 'amdsmi_get_gpu_process_list',
     'amdsmi_get_gpu_ras_block_features_enabled',
     'amdsmi_get_gpu_ras_feature_info',
     'amdsmi_get_gpu_reg_table_info', 'amdsmi_get_gpu_revision',
@@ -2634,18 +2655,19 @@ __all__ = \
     'amdsmi_set_cpu_socket_boostlimit',
     'amdsmi_set_cpu_socket_lclk_dpm_level',
     'amdsmi_set_cpu_socket_power_cap', 'amdsmi_set_cpu_xgmi_width',
-    'amdsmi_set_dpm_policy', 'amdsmi_set_gpu_clk_range',
-    'amdsmi_set_gpu_compute_partition',
+    'amdsmi_set_dpm_policy', 'amdsmi_set_gpu_clear_sram_data',
+    'amdsmi_set_gpu_clk_range', 'amdsmi_set_gpu_compute_partition',
     'amdsmi_set_gpu_event_notification_mask',
     'amdsmi_set_gpu_fan_speed', 'amdsmi_set_gpu_memory_partition',
     'amdsmi_set_gpu_od_clk_info', 'amdsmi_set_gpu_od_volt_info',
     'amdsmi_set_gpu_overdrive_level', 'amdsmi_set_gpu_pci_bandwidth',
     'amdsmi_set_gpu_perf_determinism_mode',
     'amdsmi_set_gpu_perf_level', 'amdsmi_set_gpu_power_profile',
-    'amdsmi_set_power_cap', 'amdsmi_set_xgmi_plpd',
-    'amdsmi_shut_down', 'amdsmi_smu_fw_version_t',
-    'amdsmi_socket_handle', 'amdsmi_status_code_to_string',
-    'amdsmi_status_t', 'amdsmi_stop_gpu_event_notification',
+    'amdsmi_set_gpu_process_isolation', 'amdsmi_set_power_cap',
+    'amdsmi_set_xgmi_plpd', 'amdsmi_shut_down',
+    'amdsmi_smu_fw_version_t', 'amdsmi_socket_handle',
+    'amdsmi_status_code_to_string', 'amdsmi_status_t',
+    'amdsmi_stop_gpu_event_notification',
     'amdsmi_temp_range_refresh_rate_t', 'amdsmi_temperature_metric_t',
     'amdsmi_temperature_type_t', 'amdsmi_topo_get_link_type',
     'amdsmi_topo_get_link_weight', 'amdsmi_topo_get_numa_node_number',

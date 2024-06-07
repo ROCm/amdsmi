@@ -10,8 +10,7 @@ subtrees:
   entries:
     - file: install/install.rst
       title: AMD SMI installation
-      
-      
+
 - caption: How to
   entries:
     - file: how-to/using-amdsmi-for-C++.rst
@@ -34,8 +33,6 @@ subtrees:
     - file: doxygen/docBin/html/functions_data_fields
       title: Data fields
 
-    
-      
 - caption: Tutorials
   entries:
     - url: https://github.com/ROCm/amdsmi/tree/develop/example
@@ -46,4 +43,3 @@ subtrees:
 - caption: About
   entries:
     - file: license.md
-

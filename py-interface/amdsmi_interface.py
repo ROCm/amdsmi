@@ -300,6 +300,11 @@ class AmdSmiGpuBlock(IntEnum):
     MP0 = amdsmi_wrapper.AMDSMI_GPU_BLOCK_MP0
     MP1 = amdsmi_wrapper.AMDSMI_GPU_BLOCK_MP1
     FUSE = amdsmi_wrapper.AMDSMI_GPU_BLOCK_FUSE
+    MCA = amdsmi_wrapper.AMDSMI_GPU_BLOCK_MCA
+    VCN = amdsmi_wrapper.AMDSMI_GPU_BLOCK_VCN
+    JPEG = amdsmi_wrapper.AMDSMI_GPU_BLOCK_JPEG
+    IH = amdsmi_wrapper.AMDSMI_GPU_BLOCK_IH
+    MPIO = amdsmi_wrapper.AMDSMI_GPU_BLOCK_MPIO
     RESERVED = amdsmi_wrapper.AMDSMI_GPU_BLOCK_RESERVED
 
 
@@ -359,6 +364,7 @@ class AmdSmiProcessorType(IntEnum):
     AMD_CPU = amdsmi_wrapper.AMD_CPU
     NON_AMD_GPU = amdsmi_wrapper.NON_AMD_GPU
     NON_AMD_CPU = amdsmi_wrapper.NON_AMD_CPU
+
 
 class AmdSmiEventReader:
     def __init__(
@@ -434,21 +440,22 @@ def _format_bad_page_info(bad_page_info, bad_page_count: ctypes.c_uint32) -> Lis
     Format bad page info data retrieved.
 
     Parameters:
-        bad_page_info(`POINTER(amdsmi_retired_page_record_t)`): Pointer to bad page info
-        retrieved.
+        bad_page_info(`amdsmi_retired_page_record_t`): A populated list of amdsmi_retired_page_record_t(s)
+        retrieved. Ex: (amdsmi_wrapper.amdsmi_retired_page_record_t * #)()
         bad_page_count(`c_uint32`): Bad page count.
 
     Returns:
-        `list`: List containing formatted bad pages.
+        `list`: List containing formatted bad pages. Can be empty
     """
-    if not isinstance(
-        bad_page_info, ctypes.POINTER(
-            amdsmi_wrapper.amdsmi_retired_page_record_t)
-    ):
-        raise AmdSmiParameterException(
-            bad_page_info, ctypes.POINTER(
-                amdsmi_wrapper.amdsmi_retired_page_record_t)
-        )
+    if bad_page_count == 0:
+        return []
+
+    # Check if each struct within bad_page_info is valid
+    for bad_page in bad_page_info:
+        if not isinstance(bad_page, amdsmi_wrapper.amdsmi_retired_page_record_t):
+            raise AmdSmiParameterException(
+                bad_page, amdsmi_wrapper.amdsmi_retired_page_record_t
+            )
 
     table_records = []
     for i in range(bad_page_count.value):
@@ -1797,20 +1804,24 @@ def amdsmi_get_gpu_bad_page_info(
         )
 
     num_pages = ctypes.c_uint32()
-    retired_page_record = ctypes.POINTER(
-        amdsmi_wrapper.amdsmi_retired_page_record_t)()
+    nullptr = ctypes.POINTER(amdsmi_wrapper.amdsmi_retired_page_record_t)()
     _check_res(
         amdsmi_wrapper.amdsmi_get_gpu_bad_page_info(
-            processor_handle, ctypes.byref(num_pages), retired_page_record
+            processor_handle, ctypes.byref(num_pages), nullptr
         )
     )
-    table_records = _format_bad_page_info(retired_page_record, num_pages)
-    if num_pages.value == 0:
-        return "No bad pages found."
-    else:
-        table_records = _format_bad_page_info(retired_page_record, num_pages)
 
-    return table_records
+    if num_pages.value == 0:
+        return []
+
+    bad_pages = (amdsmi_wrapper.amdsmi_retired_page_record_t * num_pages.value)()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_bad_page_info(
+            processor_handle, ctypes.byref(num_pages), bad_pages
+        )
+    )
+
+    return _format_bad_page_info(bad_pages, num_pages)
 
 
 def amdsmi_get_gpu_total_ecc_count(
@@ -1903,7 +1914,7 @@ def amdsmi_get_gpu_ras_block_features_enabled(
         if gpu_block.name == "RESERVED" or gpu_block.name == "INVALID":
             continue
         if gpu_block.name == "LAST":
-            gpu_block.name = "FUSE"
+            gpu_block.name = "MPIO"
         _check_res(
             amdsmi_wrapper.amdsmi_get_gpu_ras_block_features_enabled(
                 processor_handle,
@@ -1942,37 +1953,22 @@ def amdsmi_get_gpu_process_list(
 
     result = []
     for index in range(max_processes.value):
-        result.append(process_list[index])
+        result.append({
+            "name": process_list[index].name.decode("utf-8"),
+            "pid": process_list[index].pid,
+            "mem": process_list[index].mem,
+            "engine_usage": {
+                "gfx": process_list[index].engine_usage.gfx,
+                "enc": process_list[index].engine_usage.enc
+            },
+            "memory_usage": {
+                "gtt_mem": process_list[index].memory_usage.gtt_mem,
+                "cpu_mem": process_list[index].memory_usage.cpu_mem,
+                "vram_mem": process_list[index].memory_usage.vram_mem,
+            },
+        })
+
     return result
-
-
-def amdsmi_get_gpu_process_info(
-    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
-    process: amdsmi_wrapper.amdsmi_proc_info_t,
-) -> Dict[str, Any]:
-    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
-        raise AmdSmiParameterException(
-            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
-        )
-
-    if not isinstance(process, amdsmi_wrapper.amdsmi_proc_info_t):
-        raise AmdSmiParameterException(
-            process, amdsmi_wrapper.amdsmi_proc_info_t)
-
-    return {
-        "name": process.name.decode("utf-8"),
-        "pid": process.pid,
-        "mem": process.mem,
-        "engine_usage": {
-            "gfx": process.engine_usage.gfx,
-            "enc": process.engine_usage.enc
-        },
-        "memory_usage": {
-            "gtt_mem": process.memory_usage.gtt_mem,
-            "cpu_mem": process.memory_usage.cpu_mem,
-            "vram_mem": process.memory_usage.vram_mem,
-        },
-    }
 
 
 def amdsmi_get_gpu_device_uuid(processor_handle: amdsmi_wrapper.amdsmi_processor_handle) -> str:
@@ -2741,6 +2737,7 @@ def amdsmi_set_clk_freq(
         )
     )
 
+
 def amdsmi_set_dpm_policy(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     policy_id: int,
@@ -2755,6 +2752,7 @@ def amdsmi_set_dpm_policy(
         )
     )
 
+
 def amdsmi_set_xgmi_plpd(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     policy_id: int,
@@ -2768,6 +2766,37 @@ def amdsmi_set_xgmi_plpd(
             processor_handle, policy_id
         )
     )
+
+
+def amdsmi_set_gpu_process_isolation(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    pisolate: int,
+):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+    _check_res(
+        amdsmi_wrapper.amdsmi_set_gpu_process_isolation(
+            processor_handle, pisolate
+        )
+    )
+
+
+def amdsmi_set_gpu_clear_sram_data(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    sclean: int,
+):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+    _check_res(
+        amdsmi_wrapper.amdsmi_set_gpu_clear_sram_data(
+            processor_handle, sclean
+        )
+    )
+
 
 def amdsmi_set_gpu_overdrive_level(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, overdrive_value: int
@@ -2799,6 +2828,7 @@ def amdsmi_get_gpu_bdf_id(processor_handle: amdsmi_wrapper.amdsmi_processor_hand
     )
 
     return bdfid.value
+
 
 def amdsmi_set_gpu_pci_bandwidth(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, bitmask: int
@@ -3096,7 +3126,6 @@ def amdsmi_set_gpu_od_volt_info(
     )
 
 
-
 def amdsmi_get_gpu_fan_rpms(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, sensor_idx: int
 ) -> int:
@@ -3327,6 +3356,7 @@ def amdsmi_get_clk_freq(
         "frequency": list(freq.frequency)[: freq.num_supported - 1],
     }
 
+
 def amdsmi_get_dpm_policy(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
@@ -3358,6 +3388,7 @@ def amdsmi_get_dpm_policy(
         "policies": polices,
     }
 
+
 def amdsmi_get_xgmi_plpd(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
@@ -3388,6 +3419,25 @@ def amdsmi_get_xgmi_plpd(
         "current_id": current_id,
         "plpds": polices,
     }
+
+
+def amdsmi_get_gpu_process_isolation(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    pisolate = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_process_isolation(
+            processor_handle, ctypes.byref(pisolate)
+        )
+    )
+
+    return pisolate.value
+
 
 def amdsmi_get_gpu_od_volt_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
@@ -3811,21 +3861,24 @@ def amdsmi_get_gpu_memory_reserved_pages(
         )
 
     num_pages = ctypes.c_uint32()
-    retired_page_record = ctypes.POINTER(
-        amdsmi_wrapper.amdsmi_retired_page_record_t)()
+    nullptr = ctypes.POINTER(amdsmi_wrapper.amdsmi_retired_page_record_t)()
     _check_res(
         amdsmi_wrapper.amdsmi_get_gpu_memory_reserved_pages(
-            processor_handle, ctypes.byref(num_pages), retired_page_record
+            processor_handle, ctypes.byref(num_pages), nullptr
         )
     )
 
-    table_records = _format_bad_page_info(retired_page_record, num_pages)
     if num_pages.value == 0:
-        return "No bad pages found."
-    else:
-        table_records = _format_bad_page_info(retired_page_record, num_pages)
+        return []
 
-    return table_records
+    mem_reserved_pages = (amdsmi_wrapper.amdsmi_retired_page_record_t * num_pages)()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_memory_reserved_pages(
+            processor_handle, ctypes.byref(num_pages), mem_reserved_pages
+        )
+    )
+
+    return _format_bad_page_info(mem_reserved_pages, num_pages)
 
 
 def amdsmi_get_gpu_metrics_header_info(
