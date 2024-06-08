@@ -88,6 +88,40 @@ ASIC products. This requires users to update any ABIs using this structure.
 
 ### Fixes
 
+- **Fixed multiple processes not being registered in `amd-smi process` with json and csv format**.  
+Multiple process outputs in the CLI tool were not being registered correctly. The json output did not handle multiple processes and is now in a new valid json format:
+
+```shell
+[
+    {
+        "gpu": 0,
+        "process_list": [
+            {
+                "process_info": {
+                    "name": "TransferBench",
+                    "pid": 420157,
+                    "mem_usage": {
+                        "value": 0,
+                        "unit": "B"
+                    }
+                }
+            },
+            {
+                "process_info": {
+                    "name": "rvs",
+                    "pid": 420315,
+                    "mem_usage": {
+                        "value": 0,
+                        "unit": "B"
+                    }
+                }
+            }
+        ]
+    }
+]
+```
+
+
 - **Removed `throttle-status` from `amd-smi monitor` as it is no longer reliably supported**.  
 Throttle status may work for older ASICs, but will be replaced with PVIOL and TVIOL metrics for future ASIC support. It remains a field in the gpu_metrics API and in `amd-smi metric --power`.
 
