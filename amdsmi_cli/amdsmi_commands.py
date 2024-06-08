@@ -2706,47 +2706,47 @@ class AMDSMICommands():
                     process_names.append(process_info)
             filtered_process_values = process_names
 
+        # If the name or pid args filter processes out then insert an N/A placeholder
+        if not filtered_process_values:
+            filtered_process_values.append({'process_info': "N/A"})
+
         logging.debug(f"Process Info for GPU {gpu_id} | {filtered_process_values}")
 
-        multiple_devices_csv_override = False
-        # Convert and store output by pid for csv format
-        if self.logger.is_csv_format():
-            # Check for empty list first
-            if not filtered_process_values:
-                self.logger.store_output(args.gpu, 'process_info', 'No running processes detected')
-            else:
-                for process_info in filtered_process_values:
-                    if process_info['process_info'] == "N/A":
-                        self.logger.store_output(args.gpu, 'process_info', 'No running processes detected')
-                    else:
-                        for key, value in process_info['process_info'].items():
-                            multiple_devices_csv_override = True
-                            if watching_output:
-                                self.logger.store_output(args.gpu, 'timestamp', int(time.time()))
-                            self.logger.store_output(args.gpu, key, value)
+        for index, process in enumerate(filtered_process_values):
+            if process['process_info'] == "N/A":
+                filtered_process_values[index]['process_info'] = "No running processes detected"
 
-                    self.logger.store_multiple_device_output()
-        else:
+        if self.logger.is_json_format():
             if watching_output:
                 self.logger.store_output(args.gpu, 'timestamp', int(time.time()))
+            self.logger.store_output(args.gpu, 'process_list', filtered_process_values)
 
-            # Store values in logger.output
-            if not filtered_process_values:
-                self.logger.store_output(args.gpu, 'process_info', 'No running processes detected')
-            else:
-                for process_info in filtered_process_values:
-                    if process_info['process_info'] == "N/A":
-                        process_info['process_info'] = 'No running processes detected'
-                    self.logger.store_output(args.gpu, 'process_info', process_info['process_info'])
+        if self.logger.is_human_readable_format():
+            if watching_output:
+                self.logger.store_output(args.gpu, 'timestamp', int(time.time()))
+            # When we print out process_info we remove the index
+            # The removal is needed only for human readable process format to align with Host
+            for index, process in enumerate(filtered_process_values):
+                self.logger.store_output(args.gpu, f'process_info_{index}', process['process_info'])
+
+        multiple_devices_csv_override = False
+        if self.logger.is_csv_format():
+            multiple_devices_csv_override = True
+            for process in filtered_process_values:
+                if watching_output:
+                    self.logger.store_output(args.gpu, 'timestamp', int(time.time()))
+                self.logger.store_output(args.gpu, 'process_info', process['process_info'])
+                self.logger.store_multiple_device_output()
 
         if multiple_devices:
             self.logger.store_multiple_device_output()
             return # Skip printing when there are multiple devices
 
-        self.logger.print_output(multiple_device_enabled=multiple_devices_csv_override, watching_output=watching_output)
+        multiple_devices = multiple_devices or multiple_devices_csv_override
+        self.logger.print_output(multiple_device_enabled=multiple_devices, watching_output=watching_output)
 
         if watching_output: # End of single gpu add to watch_output
-            self.logger.store_watch_output(multiple_device_enabled=multiple_devices_csv_override)
+            self.logger.store_watch_output(multiple_device_enabled=multiple_devices)
 
 
     def profile(self, args):

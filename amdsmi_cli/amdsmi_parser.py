@@ -148,6 +148,16 @@ class AMDSMIParser(argparse.ArgumentParser):
         raise amdsmi_cli_exceptions.AmdSmiInvalidParameterValueException(int_value, outputformat)
 
 
+    def _is_valid_string(self, string_value):
+        # Argument type validator
+        # This is for triggering a cli exception if an empty string is detected
+        if string_value:
+            return string_value
+
+        outputformat = self.helpers.get_output_format()
+        raise amdsmi_cli_exceptions.AmdSmiInvalidParameterValueException(string_value, outputformat)
+
+
     def _check_output_file_path(self):
         """ Argument action validator:
             Returns a path to a file from the output file path provided.
@@ -863,7 +873,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         process_parser.add_argument('-G', '--general', action='store_true', required=False, help=general_help)
         process_parser.add_argument('-e', '--engine', action='store_true', required=False, help=engine_help)
         process_parser.add_argument('-p', '--pid', action='store', type=self._not_negative_int, required=False, help=pid_help)
-        process_parser.add_argument('-n', '--name', action='store', required=False, help=name_help)
+        process_parser.add_argument('-n', '--name', action='store', type=self._is_valid_string, required=False, help=name_help)
 
 
     def _add_profile_parser(self, subparsers, func):
