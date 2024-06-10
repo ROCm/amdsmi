@@ -750,9 +750,11 @@ amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_i
     }
 
     // default to 0xffff as not supported
-    info->oam_id = std::numeric_limits<uint16_t>::max();
+    info->oam_id = std::numeric_limits<uint32_t>::max();
+    uint16_t tmp_oam_id = 0;
     status =  rsmi_wrapper(rsmi_dev_oam_id_get, processor_handle,
-                    &(info->oam_id));
+                    &(tmp_oam_id));
+    info->oam_id = tmp_oam_id;
 
     return AMDSMI_STATUS_SUCCESS;
 }

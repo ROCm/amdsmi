@@ -587,8 +587,8 @@ typedef struct {
   uint64_t device_id;   //< The device id of a GPU
   uint32_t rev_id;
   char asic_serial[AMDSMI_NORMAL_STRING_LENGTH];
-  uint16_t oam_id;   //< 0xFFFF if not supported
-  uint16_t reserved[37];
+  uint32_t oam_id;   //< 0xFFFF if not supported
+  uint32_t reserved[18];
 } amdsmi_asic_info_t;
 
 typedef enum {
