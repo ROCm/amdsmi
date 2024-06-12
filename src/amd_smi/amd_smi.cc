@@ -2231,6 +2231,22 @@ static amdsmi_status_t amdsmi_errno_to_esmi_status(amdsmi_status_t status)
     return AMDSMI_STATUS_SUCCESS;
 }
 
+amdsmi_status_t amdsmi_get_threads_per_core(uint32_t *threads_per_core)
+{
+    amdsmi_status_t status;
+    uint32_t esmi_threads_per_core;
+
+    AMDSMI_CHECK_INIT();
+
+    status = static_cast<amdsmi_status_t>(esmi_threads_per_core_get(&esmi_threads_per_core));
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return amdsmi_errno_to_esmi_status(status);
+
+    *threads_per_core = esmi_threads_per_core;
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
 amdsmi_status_t amdsmi_get_cpu_hsmp_proto_ver(amdsmi_processor_handle processor_handle,
                 uint32_t *proto_ver)
 {

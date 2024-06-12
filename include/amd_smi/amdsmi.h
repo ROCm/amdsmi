@@ -4924,6 +4924,17 @@ amdsmi_status_t amdsmi_get_cpu_socket_energy(amdsmi_processor_handle processor_h
  */
 
 /**
+ *  @brief Get Number of threads Per Core.
+ *
+ *  @platform{cpu_bm}
+ *
+ *  @param[in,out]    threads_per_core - Input buffer to return the Number of threads Per Core
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_get_threads_per_core(uint32_t *threads_per_core);
+
+/**
  *  @brief Get SMU Firmware Version.
  *
  *  @platform{cpu_bm}
