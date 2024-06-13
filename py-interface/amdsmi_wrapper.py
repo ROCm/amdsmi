@@ -2100,9 +2100,9 @@ amdsmi_get_gpu_process_isolation.argtypes = [amdsmi_processor_handle, ctypes.POI
 amdsmi_set_gpu_process_isolation = _libraries['libamd_smi.so'].amdsmi_set_gpu_process_isolation
 amdsmi_set_gpu_process_isolation.restype = amdsmi_status_t
 amdsmi_set_gpu_process_isolation.argtypes = [amdsmi_processor_handle, uint32_t]
-amdsmi_set_gpu_run_cleaner_shader = _libraries['libamd_smi.so'].amdsmi_set_gpu_run_cleaner_shader
-amdsmi_set_gpu_run_cleaner_shader.restype = amdsmi_status_t
-amdsmi_set_gpu_run_cleaner_shader.argtypes = [amdsmi_processor_handle, uint32_t]
+amdsmi_clean_gpu_local_data = _libraries['libamd_smi.so'].amdsmi_clean_gpu_local_data
+amdsmi_clean_gpu_local_data.restype = amdsmi_status_t
+amdsmi_clean_gpu_local_data.argtypes = [amdsmi_processor_handle]
 amdsmi_get_lib_version = _libraries['libamd_smi.so'].amdsmi_get_lib_version
 amdsmi_get_lib_version.restype = amdsmi_status_t
 amdsmi_get_lib_version.argtypes = [ctypes.POINTER(struct_amdsmi_version_t)]
@@ -2711,7 +2711,7 @@ __all__ = \
     'amdsmi_set_gpu_perf_determinism_mode',
     'amdsmi_set_gpu_perf_level', 'amdsmi_set_gpu_power_profile',
     'amdsmi_set_gpu_process_isolation',
-    'amdsmi_set_gpu_run_cleaner_shader', 'amdsmi_set_power_cap',
+    'amdsmi_clean_gpu_local_data', 'amdsmi_set_power_cap',
     'amdsmi_set_soc_pstate', 'amdsmi_set_xgmi_plpd',
     'amdsmi_shut_down', 'amdsmi_smu_fw_version_t',
     'amdsmi_socket_handle', 'amdsmi_status_code_to_string',

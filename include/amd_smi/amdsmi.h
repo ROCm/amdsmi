@@ -3509,25 +3509,22 @@ amdsmi_status_t amdsmi_set_gpu_process_isolation(amdsmi_processor_handle process
                              uint32_t pisolate);
 
 /**
- * @brief Run the cleaner shader to clean up data in LDS/GPRs
+ * @brief Clean up local data in LDS/GPRs
  *
  * @platform{gpu_bm_linux} @platform{guest_1vf}
  *
- * @details Given a processor handle @p processor_handle, and a sclean flag @p sclean,
- * this function will clear the local data of this processor. This can be called between
+ * @details Given a processor handle @p processor_handle,
+ * this function will clean the local data of this processor. This can be called between
  * user logins to prevent information leak.
  *
  *  @note This function requires root access
  *
  *  @param[in] processor_handle a processor handle
  *
- *  @param[in] sclean the clean flag. Only 1 will take effect and other number
- *  are reserved for future usage.
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_set_gpu_run_cleaner_shader(amdsmi_processor_handle processor_handle,
-                  uint32_t sclean);
+amdsmi_status_t amdsmi_clean_gpu_local_data(amdsmi_processor_handle processor_handle);
 
 /** @} End PerfCont */
 

@@ -27,7 +27,7 @@ Added `AMDSMI_EVT_NOTIF_RING_HANG` to the possible events in the `amdsmi_evt_not
 
 ### Optimizations
 
-- **Updated naming for `amdsmi_set_gpu_clear_sram_data()` to `amdsmi_set_gpu_run_cleaner_shader()`**.  
+- **Updated naming for `amdsmi_set_gpu_clear_sram_data()` to `amdsmi_clean_gpu_local_data()`**.  
 Changed the naming to be more accurate to what the function was doing. This change also extends to the CLI where we changed the `clear-sram-data` command to `run-shader` that accepts a shader name to run.
 
 - **Updated `amdsmi_clk_info_t` struct in amdsmi.h and amdsmi_interface.py to align with host/guest**.  
