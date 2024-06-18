@@ -2631,8 +2631,6 @@ class AMDSMICommands():
         try:
             process_list = amdsmi_interface.amdsmi_get_gpu_process_list(args.gpu)
         except amdsmi_exception.AmdSmiLibraryException as e:
-            if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
-                raise PermissionError('Command requires elevation') from e
             logging.debug("Failed to get process list for gpu %s | %s", gpu_id, e.get_error_info())
             raise e
 

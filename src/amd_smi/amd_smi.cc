@@ -1889,15 +1889,9 @@ amdsmi_get_gpu_process_list(amdsmi_processor_handle processor_handle, uint32_t *
 
     const auto max_processes_original_size(*max_processes);
     auto idx = uint32_t(0);
-    auto is_required_previlegies_required(false);
     for (auto& process : compute_process_list) {
         if (idx < *max_processes) {
             list[idx++] = static_cast<amdsmi_proc_info_t>(process.second);
-            //  Note: If we could not read the process info for an existing process,
-            //        that is likely a permission error.
-            if (!is_required_previlegies_required && std::string(process.second.name).empty()) {
-                is_required_previlegies_required = true;
-            }
         } else {
             break;
         }
@@ -1910,11 +1904,9 @@ amdsmi_get_gpu_process_list(amdsmi_processor_handle processor_handle, uint32_t *
     //        list of processes running, so the caller knows where it is at.
     //        Holding a copy of max_process before it is passed in will be helpful
     //        for the caller.
-    status_code = is_required_previlegies_required
-          ? amdsmi_status_t::AMDSMI_STATUS_NO_PERM : AMDSMI_STATUS_SUCCESS;
     *max_processes = static_cast<uint32_t>(compute_process_list.size());
     return (max_processes_original_size >= static_cast<uint32_t>(compute_process_list.size()))
-            ? status_code : amdsmi_status_t::AMDSMI_STATUS_OUT_OF_RESOURCES;
+            ? AMDSMI_STATUS_SUCCESS : amdsmi_status_t::AMDSMI_STATUS_OUT_OF_RESOURCES;
 }
 
 amdsmi_status_t
