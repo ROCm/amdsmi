@@ -1328,8 +1328,8 @@ class AMDSMICommands():
                               'gfx_voltage': "N/A",
                               'soc_voltage': "N/A",
                               'mem_voltage': "N/A",
-                              'power_management': "N/A",
-                              'throttle_status': "N/A"}
+                              'throttle_status': "N/A",
+                              'power_management': "N/A"}
 
                 try:
                     voltage_unit = "mV"
@@ -1792,46 +1792,46 @@ class AMDSMICommands():
                 values_dict["fan"] = fan_dict
         if "voltage_curve" in current_platform_args:
             if args.voltage_curve:
+                # Populate N/A values per voltage point
+                voltage_point_dict = {}
+                for point in range(amdsmi_interface.AMDSMI_NUM_VOLTAGE_CURVE_POINTS):
+                    voltage_point_dict[f'point_{point}_frequency'] = "N/A"
+                    voltage_point_dict[f'point_{point}_voltage'] = "N/A"
+
                 try:
                     od_volt = amdsmi_interface.amdsmi_get_gpu_od_volt_info(args.gpu)
                     logging.debug(f"OD Voltage info: {od_volt}")
-
-                    # Populate N/A values per voltage point
-                    voltage_point_dict = {}
-                    for point in range(amdsmi_interface.AMDSMI_NUM_VOLTAGE_CURVE_POINTS):
-                        voltage_point_dict[f'point_{point}_frequency'] = "N/A"
-                        voltage_point_dict[f'point_{point}_voltage'] = "N/A"
-
-                    # Populate voltage point values
-                    for point in range(amdsmi_interface.AMDSMI_NUM_VOLTAGE_CURVE_POINTS):
-                        if isinstance(od_volt, dict):
-                            logging.debug(f"point_{point} frequency: {od_volt['curve.vc_points'][point].frequency}")
-                            logging.debug(f"point_{point} voltage:   {od_volt['curve.vc_points'][point].voltage}")
-                            frequency = int(od_volt["curve.vc_points"][point].frequency / 1000000)
-                            voltage = int(od_volt["curve.vc_points"][point].voltage)
-                        else:
-                            frequency = "N/A"
-                            voltage = "N/A"
-
-                        if frequency == 0:
-                            frequency = "N/A"
-
-                        if voltage == 0:
-                            voltage = "N/A"
-
-                        if frequency != "N/A":
-                            frequency = self.helpers.unit_format(self.logger, frequency, "Mhz")
-
-                        if voltage != "N/A":
-                            voltage = self.helpers.unit_format(self.logger, voltage, "mV")
-
-                        voltage_point_dict[f'point_{point}_frequency'] = frequency
-                        voltage_point_dict[f'point_{point}_voltage'] = voltage
-
-                    values_dict['voltage_curve'] = voltage_point_dict
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    values_dict['voltage_curve'] = "N/A"
+                    od_volt = "N/A" # Value not used, but needs to not be a dict
                     logging.debug("Failed to get voltage curve for gpu %s | %s", gpu_id, e.get_error_info())
+
+                # Populate voltage point values
+                for point in range(amdsmi_interface.AMDSMI_NUM_VOLTAGE_CURVE_POINTS):
+                    if isinstance(od_volt, dict):
+                        logging.debug(f"point_{point} frequency: {od_volt['curve.vc_points'][point].frequency}")
+                        logging.debug(f"point_{point} voltage:   {od_volt['curve.vc_points'][point].voltage}")
+                        frequency = int(od_volt["curve.vc_points"][point].frequency / 1000000)
+                        voltage = int(od_volt["curve.vc_points"][point].voltage)
+                    else:
+                        frequency = "N/A"
+                        voltage = "N/A"
+
+                    if frequency == 0:
+                        frequency = "N/A"
+
+                    if voltage == 0:
+                        voltage = "N/A"
+
+                    if frequency != "N/A":
+                        frequency = self.helpers.unit_format(self.logger, frequency, "Mhz")
+
+                    if voltage != "N/A":
+                        voltage = self.helpers.unit_format(self.logger, voltage, "mV")
+
+                    voltage_point_dict[f'point_{point}_frequency'] = frequency
+                    voltage_point_dict[f'point_{point}_voltage'] = voltage
+
+                values_dict['voltage_curve'] = voltage_point_dict
         if "overdrive" in current_platform_args:
             if args.overdrive:
                 try:
@@ -2646,23 +2646,23 @@ class AMDSMICommands():
 
             if self.logger.is_human_readable_format():
                 process_info['mem_usage'] = self.helpers.convert_bytes_to_readable(process_info['mem_usage'])
-
-                for usage_metric in process_info['usage']:
-                    process_info['usage'][usage_metric] = f"{process_info['usage'][usage_metric]} {engine_usage_unit}"
-
                 for usage_metric in process_info['memory_usage']:
-                    process_info['memory_usage'][usage_metric] = self.helpers.convert_bytes_to_readable(process_info['memory_usage'][usage_metric])
-            elif self.logger.is_json_format():
-                process_info['mem_usage'] = {"value" : process_info['mem_usage'],
-                                             "unit" : memory_usage_unit}
+                    process_info["memory_usage"][usage_metric] = self.helpers.convert_bytes_to_readable(process_info["memory_usage"][usage_metric])
+                memory_usage_unit = ""
 
-                for usage_metric in process_info['usage']:
-                    process_info['usage'][usage_metric] = {"value" : process_info['usage'][usage_metric],
-                                                           "unit" : engine_usage_unit}
+            process_info['mem_usage'] = self.helpers.unit_format(self.logger,
+                                                                 process_info['mem_usage'],
+                                                                 memory_usage_unit)
 
-                for usage_metric in process_info['memory_usage']:
-                    process_info['memory_usage'][usage_metric] = {"value" : process_info['memory_usage'][usage_metric],
-                                                                  "unit" : memory_usage_unit}
+            for usage_metric in process_info['usage']:
+                process_info['usage'][usage_metric] = self.helpers.unit_format(self.logger,
+                                                                               process_info['usage'][usage_metric],
+                                                                               engine_usage_unit)
+
+            for usage_metric in process_info['memory_usage']:
+                process_info['memory_usage'][usage_metric] = self.helpers.unit_format(self.logger,
+                                                                                      process_info['memory_usage'][usage_metric],
+                                                                                      memory_usage_unit)
 
             filtered_process_values.append({'process_info': process_info})
 
@@ -2706,47 +2706,47 @@ class AMDSMICommands():
                     process_names.append(process_info)
             filtered_process_values = process_names
 
+        # If the name or pid args filter processes out then insert an N/A placeholder
+        if not filtered_process_values:
+            filtered_process_values.append({'process_info': "N/A"})
+
         logging.debug(f"Process Info for GPU {gpu_id} | {filtered_process_values}")
 
-        multiple_devices_csv_override = False
-        # Convert and store output by pid for csv format
-        if self.logger.is_csv_format():
-            # Check for empty list first
-            if not filtered_process_values:
-                self.logger.store_output(args.gpu, 'process_info', 'No running processes detected')
-            else:
-                for process_info in filtered_process_values:
-                    if process_info['process_info'] == "N/A":
-                        self.logger.store_output(args.gpu, 'process_info', 'No running processes detected')
-                    else:
-                        for key, value in process_info['process_info'].items():
-                            multiple_devices_csv_override = True
-                            if watching_output:
-                                self.logger.store_output(args.gpu, 'timestamp', int(time.time()))
-                            self.logger.store_output(args.gpu, key, value)
+        for index, process in enumerate(filtered_process_values):
+            if process['process_info'] == "N/A":
+                filtered_process_values[index]['process_info'] = "No running processes detected"
 
-                    self.logger.store_multiple_device_output()
-        else:
+        if self.logger.is_json_format():
             if watching_output:
                 self.logger.store_output(args.gpu, 'timestamp', int(time.time()))
+            self.logger.store_output(args.gpu, 'process_list', filtered_process_values)
 
-            # Store values in logger.output
-            if not filtered_process_values:
-                self.logger.store_output(args.gpu, 'process_info', 'No running processes detected')
-            else:
-                for process_info in filtered_process_values:
-                    if process_info['process_info'] == "N/A":
-                        process_info['process_info'] = 'No running processes detected'
-                    self.logger.store_output(args.gpu, 'process_info', process_info['process_info'])
+        if self.logger.is_human_readable_format():
+            if watching_output:
+                self.logger.store_output(args.gpu, 'timestamp', int(time.time()))
+            # When we print out process_info we remove the index
+            # The removal is needed only for human readable process format to align with Host
+            for index, process in enumerate(filtered_process_values):
+                self.logger.store_output(args.gpu, f'process_info_{index}', process['process_info'])
+
+        multiple_devices_csv_override = False
+        if self.logger.is_csv_format():
+            multiple_devices_csv_override = True
+            for process in filtered_process_values:
+                if watching_output:
+                    self.logger.store_output(args.gpu, 'timestamp', int(time.time()))
+                self.logger.store_output(args.gpu, 'process_info', process['process_info'])
+                self.logger.store_multiple_device_output()
 
         if multiple_devices:
             self.logger.store_multiple_device_output()
             return # Skip printing when there are multiple devices
 
-        self.logger.print_output(multiple_device_enabled=multiple_devices_csv_override, watching_output=watching_output)
+        multiple_devices = multiple_devices or multiple_devices_csv_override
+        self.logger.print_output(multiple_device_enabled=multiple_devices, watching_output=watching_output)
 
         if watching_output: # End of single gpu add to watch_output
-            self.logger.store_watch_output(multiple_device_enabled=multiple_devices_csv_override)
+            self.logger.store_watch_output(multiple_device_enabled=multiple_devices)
 
 
     def profile(self, args):
@@ -3730,7 +3730,7 @@ class AMDSMICommands():
 
     def reset(self, args, multiple_devices=False, gpu=None, gpureset=None,
                 clocks=None, fans=None, profile=None, xgmierr=None, perf_determinism=None,
-                compute_partition=None, memory_partition=None, power_cap=None, run_shader=None):
+                compute_partition=None, memory_partition=None, power_cap=None, clean_local_data=None):
         """Issue reset commands to target gpu(s)
 
         Args:
@@ -3746,7 +3746,7 @@ class AMDSMICommands():
             compute_partition (bool, optional): Value override for args.compute_partition. Defaults to None.
             memory_partition (bool, optional): Value override for args.memory_partition. Defaults to None.
             power_cap (bool, optional): Value override for args.power_cap. Defaults to None.
-            run_shader (bool, optional): Value override for args.run_cleaner_shader. Defaults to None.
+            clean_local_data (bool, optional): Value override for args.run_cleaner_shader. Defaults to None.
 
         Raises:
             ValueError: Value error if no gpu value is provided
@@ -3776,8 +3776,8 @@ class AMDSMICommands():
             args.memory_partition = memory_partition
         if power_cap:
             args.power_cap = power_cap
-        if run_shader:
-            args.run_shader = run_shader
+        if clean_local_data:
+            args.clean_local_data = clean_local_data
 
         # Handle No GPU passed
         if args.gpu == None:
@@ -3796,7 +3796,7 @@ class AMDSMICommands():
         # Error if no subcommand args are passed
         if not any([args.gpureset, args.clocks, args.fans, args.profile, args.xgmierr, \
                     args.perf_determinism, args.compute_partition, args.memory_partition, \
-                    args.power_cap, args.run_shader]):
+                    args.power_cap, args.clean_local_data]):
             command = " ".join(sys.argv[1:])
             raise AmdSmiRequiredCommandException(command, self.logger.format)
 
@@ -3947,16 +3947,15 @@ class AMDSMICommands():
                         raise PermissionError('Command requires elevation') from e
                     raise ValueError(f"Unable to reset power cap to {default_power_cap_in_w} on GPU {gpu_id}") from e
                 self.logger.store_output(args.gpu, 'powercap', f"Successfully set power cap to {default_power_cap_in_w}")
-        if args.run_shader:
+        if args.clean_local_data:
             try:
-                # Only 1 can be used for now.
-                amdsmi_interface.amdsmi_set_gpu_run_cleaner_shader(args.gpu, 1)
+                amdsmi_interface.amdsmi_clean_gpu_local_data(args.gpu)
                 result = 'Successfully clean GPU local data'
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
                     raise PermissionError('Command requires elevation') from e
                 raise ValueError(f"Unable to clean local data on GPU {gpu_id}") from e
-            self.logger.store_output(args.gpu, 'run_shader', result)
+            self.logger.store_output(args.gpu, 'clean_local_data', result)
 
         if multiple_devices:
             self.logger.store_multiple_device_output()
@@ -3968,7 +3967,7 @@ class AMDSMICommands():
     def monitor(self, args, multiple_devices=False, watching_output=False, gpu=None,
                   watch=None, watch_time=None, iterations=None, power_usage=None,
                   temperature=None, gfx_util=None, mem_util=None, encoder=None, decoder=None,
-                  throttle_status=None, ecc=None, vram_usage=None, pcie=None):
+                  ecc=None, vram_usage=None, pcie=None, process=None):
         """ Populate a table with each GPU as an index to rows of targeted data
 
         Args:
@@ -3984,10 +3983,10 @@ class AMDSMICommands():
             mem (bool, optional): Value override for args.mem. Defaults to None.
             encoder (bool, optional): Value override for args.encoder. Defaults to None.
             decoder (bool, optional): Value override for args.decoder. Defaults to None.
-            throttle_status (bool, optional): Value override for args.throttle_status. Defaults to None.
             ecc (bool, optional): Value override for args.ecc. Defaults to None.
             vram_usage (bool, optional): Value override for args.vram_usage. Defaults to None.
             pcie (bool, optional): Value override for args.pcie. Defaults to None.
+            process (bool, optional): Value override for args.process. Defaults to None.
 
         Raises:
             ValueError: Value error if no gpu value is provided
@@ -4019,25 +4018,26 @@ class AMDSMICommands():
             args.encoder = encoder
         if decoder:
             args.decoder = decoder
-        if throttle_status:
-            args.throttle_status = throttle_status
         if ecc:
             args.ecc = ecc
         if vram_usage:
             args.vram_usage = vram_usage
         if pcie:
             args.pcie = pcie
+        if process:
+            args.process = process
 
         # Handle No GPU passed
         if args.gpu == None:
             args.gpu = self.device_handles
 
         # If all arguments are False, the print all values
+        # Don't include process in this logic as it's an optional edge case
         if not any([args.power_usage, args.temperature, args.gfx, args.mem,
-                    args.encoder, args.decoder, args.throttle_status, args.ecc,
+                    args.encoder, args.decoder, args.ecc,
                     args.vram_usage, args.pcie]):
             args.power_usage = args.temperature = args.gfx = args.mem = \
-                args.encoder = args.decoder = args.throttle_status = args.ecc = \
+                args.encoder = args.decoder = args.ecc = \
                 args.vram_usage = args.pcie = True
 
         # Handle watch logic, will only enter this block once
@@ -4053,22 +4053,27 @@ class AMDSMICommands():
                 for gpu in args.gpu:
                     stored_gpus.append(gpu)
 
-                # Store output from multiple devices
+                # Store output from multiple devices without printing to console
                 for device_handle in args.gpu:
                     self.monitor(args, multiple_devices=True, watching_output=watching_output, gpu=device_handle)
 
                 # Reload original gpus
                 args.gpu = stored_gpus
 
-                # Print multiple device output
-                self.logger.print_output(multiple_device_enabled=True, watching_output=watching_output, tabular=True)
+                dual_csv_output = False
+                if args.process:
+                    if self.logger.is_csv_format():
+                        dual_csv_output = True
+
+                # Flush the output
+                self.logger.print_output(multiple_device_enabled=True,
+                                          watching_output=watching_output,
+                                          tabular=True,
+                                          dual_csv_output=dual_csv_output)
 
                 # Add output to total watch output and clear multiple device output
                 if watching_output:
                     self.logger.store_watch_output(multiple_device_enabled=True)
-
-                    # Flush the watching output
-                    self.logger.print_output(multiple_device_enabled=True, watching_output=watching_output, tabular=True)
 
                 return
             elif len(args.gpu) == 1:
@@ -4081,15 +4086,11 @@ class AMDSMICommands():
         # Get gpu_id for logging
         gpu_id = self.helpers.get_gpu_id_from_device_handle(args.gpu)
 
-        # Clear the table header
-        self.logger.table_header = ''
-
-        # Store timestamp for watch output
+        # Reset the table header and store the timestamp if watch output is enabled
+        self.logger.table_header = 'GPU'
         if watching_output:
             self.logger.store_output(args.gpu, 'timestamp', int(time.time()))
-            self.logger.table_header += 'TIMESTAMP'.rjust(10) + '  '
-
-        self.logger.table_header += 'GPU'
+            self.logger.table_header = 'TIMESTAMP'.rjust(10) + '  ' + self.logger.table_header
 
         if args.power_usage:
             try:
@@ -4282,20 +4283,6 @@ class AMDSMICommands():
                 logging.debug("Failed to get decoder clock on gpu %s | %s", gpu_id, e.get_error_info())
 
             self.logger.table_header += 'DEC_CLOCK'.rjust(11)
-        if args.throttle_status:
-            try:
-                throttle_status = amdsmi_interface.amdsmi_get_gpu_metrics_info(args.gpu)['throttle_status']
-                if throttle_status != "N/A":
-                    if throttle_status:
-                        throttle_status = "THROTTLED"
-                    else:
-                        throttle_status = "UNTHROTTLED"
-                monitor_values['throttle_status'] = throttle_status
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                monitor_values['throttle_status'] = "N/A"
-                logging.debug("Failed to get throttle status on gpu %s | %s", gpu_id, e.get_error_info())
-
-            self.logger.table_header += 'THROTTLE'.rjust(13)
         if args.ecc:
             try:
                 ecc = amdsmi_interface.amdsmi_get_gpu_total_ecc_count(args.gpu)
@@ -4350,14 +4337,96 @@ class AMDSMICommands():
 
         self.logger.store_output(args.gpu, 'values', monitor_values)
 
+        # intialize dual_csv_format; applicable to process only
+        dual_csv_output = False
+
+        # Store process list seperately
+        if args.process:
+            # Populate initial processes
+            try:
+                process_list = amdsmi_interface.amdsmi_get_gpu_process_list(args.gpu)
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
+                    raise PermissionError('Command requires elevation') from e
+                logging.debug("Failed to get process list for gpu %s | %s", gpu_id, e.get_error_info())
+                raise e
+
+            # Clean processes dictionary
+            filtered_process_values = []
+            for process_info in process_list:
+                process_info['mem_usage'] = process_info.pop('mem')
+                process_info['usage'] = process_info.pop('engine_usage')
+
+                engine_usage_unit = "ns"
+                memory_usage_unit = "B"
+
+                if self.logger.is_human_readable_format():
+                    process_info['mem_usage'] = self.helpers.convert_bytes_to_readable(process_info['mem_usage'])
+                    for usage_metric in process_info['memory_usage']:
+                        process_info["memory_usage"][usage_metric] = self.helpers.convert_bytes_to_readable(process_info["memory_usage"][usage_metric])
+                    memory_usage_unit = ""
+
+                process_info['mem_usage'] = self.helpers.unit_format(self.logger,
+                                                                     process_info['mem_usage'],
+                                                                     memory_usage_unit)
+
+                for usage_metric in process_info['usage']:
+                    process_info['usage'][usage_metric] = self.helpers.unit_format(self.logger,
+                                                                                   process_info['usage'][usage_metric],
+                                                                                   engine_usage_unit)
+
+                for usage_metric in process_info['memory_usage']:
+                    process_info['memory_usage'][usage_metric] = self.helpers.unit_format(self.logger,
+                                                                                          process_info['memory_usage'][usage_metric],
+                                                                                          memory_usage_unit)
+
+                filtered_process_values.append({'process_info': process_info})
+
+            # If no processes are populated then we populate an N/A placeholder
+            if not filtered_process_values:
+                logging.debug("Monitor - Failed to detect any process on gpu %s", gpu_id)
+                filtered_process_values.append({'process_info': "N/A"})
+
+            for index, process in enumerate(filtered_process_values):
+                if process['process_info'] == "N/A":
+                    filtered_process_values[index]['process_info'] = "No running processes detected"
+
+            # Build the process table's title and header
+            self.logger.secondary_table_title = "PROCESS INFO"
+            self.logger.secondary_table_header = 'GPU'.rjust(3) + "NAME".rjust(22) + "PID".rjust(9) + "GTT_MEM".rjust(10) + \
+                                                "CPU_MEM".rjust(10) + "VRAM_MEM".rjust(10) + "MEM_USAGE".rjust(11) + \
+                                                "GFX".rjust(8) + "ENC".rjust(8)
+
+            if watching_output:
+                self.logger.secondary_table_header = 'TIMESTAMP'.rjust(10) + '  ' + self.logger.secondary_table_header
+
+            logging.debug(f"Monitor - Process Info for GPU {gpu_id} | {filtered_process_values}")
+
+            if self.logger.is_json_format():
+                self.logger.store_output(args.gpu, 'process_list', filtered_process_values)
+
+            if self.logger.is_human_readable_format():
+                # Print out process in flattened format
+                # The logger detects if process list is present and pulls it out and prints
+                #  that table with timestamp, gpu, and prints headers separately
+                self.logger.store_output(args.gpu, 'process_list', filtered_process_values)
+
+            if self.logger.is_csv_format():
+                dual_csv_output = True
+                # The logger detects if process list is present and pulls it out and prints
+                #  that table with timestamp, gpu, and prints headers separately
+                self.logger.store_output(args.gpu, 'process_list', filtered_process_values)
+
+        # Now handling the single gpu case only
         if multiple_devices:
             self.logger.store_multiple_device_output()
-            return # Skip printing when there are multiple devices
+            return
 
-        self.logger.print_output(watching_output=watching_output, tabular=True)
-
-        if watching_output: # End of single gpu add to watch_output
+        if watching_output and not self.logger.destination == "stdout": # End of single gpu add to watch_output
             self.logger.store_watch_output(multiple_device_enabled=False)
+
+
+        self.logger.print_output(multiple_device_enabled=False, watching_output=watching_output, tabular=True, dual_csv_output=dual_csv_output)
 
 
     def rocm_smi(self, args):

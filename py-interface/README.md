@@ -677,8 +677,11 @@ Output: Dictionary with fields
 
 Field | Description
 ---|---
+`current_socket_power` | current socket power
 `average_socket_power` | average socket power
 `gfx_voltage` | voltage gfx
+`soc_voltage` | voltage soc
+`mem_voltage` | voltage mem
 `power_limit` | power limit
 
 Exceptions that can be thrown by `amdsmi_get_power_info` function:
@@ -697,8 +700,11 @@ try:
     else:
         for device in devices:
             power_measure = amdsmi_get_power_info(device)
+            print(power_measure['current_socket_power'])
             print(power_measure['average_socket_power'])
             print(power_measure['gfx_voltage'])
+            print(power_measure['soc_voltage'])
+            print(power_measure['mem_voltage'])
             print(power_measure['power_limit'])
 except AmdSmiException as e:
     print(e)
@@ -1588,8 +1594,12 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            memory = amdsmi_get_gpu_memory_total(device)
-            print(memory)
+            vram_memory_total = amdsmi_get_gpu_memory_total(device, amdsmi_interface.AmdSmiMemoryType.VRAM)
+            print(vram_memory_total)
+            vis_vram_memory_total = amdsmi_get_gpu_memory_total(device, amdsmi_interface.AmdSmiMemoryType.VIS_VRAM)
+            print(vis_vram_memory_total)
+            gtt_memory_total = amdsmi_get_gpu_memory_total(device, amdsmi_interface.AmdSmiMemoryType.GTT)
+            print(gtt_memory_total)
 except AmdSmiException as e:
     print(e)
 ```
@@ -1660,8 +1670,12 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            memory = amdsmi_get_gpu_memory_usage(device)
-            print(memory)
+            vram_memory_usage = amdsmi_get_gpu_memory_usage(device, amdsmi_interface.AmdSmiMemoryType.VRAM)
+            print(vram_memory_usage)
+            vis_vram_memory_usage = amdsmi_get_gpu_memory_usage(device, amdsmi_interface.AmdSmiMemoryType.VIS_VRAM)
+            print(vis_vram_memory_usage)
+            gtt_memory_usage = amdsmi_get_gpu_memory_usage(device, amdsmi_interface.AmdSmiMemoryType.GTT)
+            print(gtt_memory_usage)
 except AmdSmiException as e:
     print(e)
 ```
@@ -2076,17 +2090,16 @@ except AmdSmiException as e:
     print(e)
 ```
 
-### amdsmi_set_gpu_run_cleaner_shader
+### amdsmi_clean_gpu_local_data
 Description: Clear the SRAM data of the given device. This can be called between user logins to prevent information leak.
 
 Input parameters:
 
 * `processor_handle` handle for the given device
-* `sclean` the clean flag. Only 1 will take effect and other number are reserved for future usage.
 
 Output: None
 
-Exceptions that can be thrown by `amdsmi_set_gpu_run_cleaner_shader` function:
+Exceptions that can be thrown by `amdsmi_clean_gpu_local_data` function:
 
 * `AmdSmiLibraryException`
 * `AmdSmiRetryException`
@@ -2101,7 +2114,7 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            amdsmi_set_gpu_run_cleaner_shader(device, 1)
+            amdsmi_clean_gpu_local_data(device)
 except AmdSmiException as e:
     print(e)
 ```
@@ -2257,7 +2270,7 @@ Output: Dictionary with fields
 `current_dclk0` | Current dclk0 | MHz
 `current_vclk1` | Current vclk1 | MHz
 `current_dclk1` | Current dclk1 | MHz
-`throttle_status` | Current throttle status | MHz
+`throttle_status` | Current throttle status | bool
 `current_fan_speed` | Current fan speed | RPM
 `pcie_link_width` | PCIe link width (number of lanes) | lanes
 `pcie_link_speed` | PCIe link speed in 0.1 GT/s (Giga Transfers per second) | GT/s

@@ -148,6 +148,16 @@ class AMDSMIParser(argparse.ArgumentParser):
         raise amdsmi_cli_exceptions.AmdSmiInvalidParameterValueException(int_value, outputformat)
 
 
+    def _is_valid_string(self, string_value):
+        # Argument type validator
+        # This is for triggering a cli exception if an empty string is detected
+        if string_value:
+            return string_value
+
+        outputformat = self.helpers.get_output_format()
+        raise amdsmi_cli_exceptions.AmdSmiInvalidParameterValueException(string_value, outputformat)
+
+
     def _check_output_file_path(self):
         """ Argument action validator:
             Returns a path to a file from the output file path provided.
@@ -863,7 +873,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         process_parser.add_argument('-G', '--general', action='store_true', required=False, help=general_help)
         process_parser.add_argument('-e', '--engine', action='store_true', required=False, help=engine_help)
         process_parser.add_argument('-p', '--pid', action='store', type=self._not_negative_int, required=False, help=pid_help)
-        process_parser.add_argument('-n', '--name', action='store', required=False, help=name_help)
+        process_parser.add_argument('-n', '--name', action='store', type=self._is_valid_string, required=False, help=name_help)
 
 
     def _add_profile_parser(self, subparsers, func):
@@ -1061,7 +1071,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         reset_compute_help = "Reset compute partitions on the specified GPU"
         reset_memory_help = "Reset memory partitions on the specified GPU"
         reset_power_cap_help = "Reset power capacity limit to max capable"
-        reset_gpu_run_cleaner_shader_help = "Run the shader on processor. Only CLEANER shader can be used to clean up data in LDS/GPRs"
+        reset_gpu_clean_local_data_help = "Clean up local data in LDS/GPRs"
 
         # Create reset subparser
         reset_parser = subparsers.add_parser('reset', help=reset_help, description=reset_subcommand_help)
@@ -1087,7 +1097,7 @@ class AMDSMIParser(argparse.ArgumentParser):
             reset_parser.add_argument('-o', '--power-cap', action='store_true', required=False, help=reset_power_cap_help)
 
         # Add Baremetal and Virtual OS reset arguments
-        reset_parser.add_argument('-l', '--run-shader', action='store', choices=["CLEANER"], type=str.upper, required=False, help=reset_gpu_run_cleaner_shader_help, metavar='SHADER_NAME')
+        reset_parser.add_argument('-l', '--clean-local-data', action='store_true', required=False, help=reset_gpu_clean_local_data_help)
 
 
     def _add_monitor_parser(self, subparsers, func):
@@ -1113,10 +1123,10 @@ class AMDSMIParser(argparse.ArgumentParser):
         mem_util_help = "Monitor memory utilization (%%) and clock (MHz)"
         encoder_util_help = "Monitor encoder utilization (%%) and clock (MHz)"
         decoder_util_help = "Monitor decoder utilization (%%) and clock (MHz)"
-        throttle_help = "Monitor thermal throttle status"
         ecc_help = "Monitor ECC single bit, ECC double bit, and PCIe replay error counts"
         mem_usage_help = "Monitor memory usage in MB"
         pcie_bandwidth_help = "Monitor PCIe bandwidth in Mb/s"
+        process_help = "Enable Process information table below monitor output"
 
         # Create monitor subparser
         monitor_parser = subparsers.add_parser('monitor', help=monitor_help, description=monitor_subcommand_help)
@@ -1136,10 +1146,10 @@ class AMDSMIParser(argparse.ArgumentParser):
         monitor_parser.add_argument('-m', '--mem', action='store_true', required=False, help=mem_util_help)
         monitor_parser.add_argument('-n', '--encoder', action='store_true', required=False, help=encoder_util_help)
         monitor_parser.add_argument('-d', '--decoder', action='store_true', required=False, help=decoder_util_help)
-        monitor_parser.add_argument('-s', '--throttle-status', action='store_true', required=False, help=throttle_help)
         monitor_parser.add_argument('-e', '--ecc', action='store_true', required=False, help=ecc_help)
         monitor_parser.add_argument('-v', '--vram-usage', action='store_true', required=False, help=mem_usage_help)
         monitor_parser.add_argument('-r', '--pcie', action='store_true', required=False, help=pcie_bandwidth_help)
+        monitor_parser.add_argument('-q', '--process', action='store_true', required=False, help=process_help)
 
 
     def _add_rocm_smi_parser(self, subparsers, func):

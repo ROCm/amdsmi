@@ -79,7 +79,7 @@ amd-smi will report the version and current platform detected when running the c
 ~$ amd-smi
 usage: amd-smi [-h]  ...
 
-AMD System Management Interface | Version: 24.6.0.0 | ROCm version: 6.2.0 | Platform: Linux Baremetal
+AMD System Management Interface | Version: 24.6.1.0 | ROCm version: 6.2.0 | Platform: Linux Baremetal
 
 options:
   -h, --help          show this help message and exit
@@ -594,7 +594,7 @@ Command Modifiers:
 usage: amd-smi monitor [-h] [--json | --csv] [--file FILE] [--loglevel LEVEL]
                        [-g GPU [GPU ...] | -U CPU [CPU ...] | -O CORE [CORE ...]]
                        [-w INTERVAL] [-W TIME] [-i ITERATIONS] [-p] [-t] [-u] [-m] [-n]
-                       [-d] [-s] [-e] [-v] [-r]
+                       [-d] [-e] [-v] [-r]
 
 Monitor a target device for the specified arguments.
 If no arguments are provided, all arguments will be enabled.
@@ -626,7 +626,6 @@ Monitor Arguments:
   -m, --mem                    Monitor memory utilization (%) and clock (MHz)
   -n, --encoder                Monitor encoder utilization (%) and clock (MHz)
   -d, --decoder                Monitor decoder utilization (%) and clock (MHz)
-  -s, --throttle-status        Monitor thermal throttle status
   -e, --ecc                    Monitor ECC single bit, ECC double bit, and PCIe replay error counts
   -v, --vram-usage             Monitor memory usage in MB
   -r, --pcie                   Monitor PCIe bandwidth in Mb/s

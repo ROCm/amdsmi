@@ -104,8 +104,8 @@ class AMDSMIHelpers():
 
         if string_format:
             return f"{operating_system} {operating_system_type}"
-        else:
-            return (operating_system, operating_system_type)
+
+        return (operating_system, operating_system_type)
 
 
     def is_virtual_os(self):
@@ -738,7 +738,7 @@ class AMDSMIHelpers():
         if logger.is_json_format():
             return {"value": value, "unit": unit}
         if logger.is_human_readable_format():
-            return f"{value} {unit}"
+            return f"{value} {unit}".rstrip()
         return f"{value}"
 
     class SI_Unit(float, Enum):
