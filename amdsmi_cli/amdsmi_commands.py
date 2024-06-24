@@ -115,9 +115,15 @@ class AMDSMICommands():
         self.logger.output['rocm_version'] = f'{rocm_version_str}'
 
         if self.logger.is_human_readable_format():
-            print(f'AMDSMI Tool: {__version__} | '\
-                    f'AMDSMI Library version: {amdsmi_lib_version_str} | ' \
-                    f'ROCm version: {rocm_version_str}')
+            human_readable_output = f"AMDSMI Tool: {__version__} | " \
+                                    f"AMDSMI Library version: {amdsmi_lib_version_str} | " \
+                                    f"ROCm version: {rocm_version_str}"
+            # Custom human readable handling for version
+            if self.logger.destination == 'stdout':
+                print(human_readable_output)
+            else:
+                with self.logger.destination.open('a') as output_file:
+                    output_file.write(human_readable_output + '\n')
         elif self.logger.is_json_format() or self.logger.is_csv_format():
             self.logger.print_output()
 
