@@ -1243,7 +1243,7 @@ class AMDSMIParser(argparse.ArgumentParser):
             message = message.split("'")[0]
             # Check if the command is possible in other system configurations and error accordingly
             if message in self.possible_commands:
-                raise amdsmi_cli_exceptions.AmdSmiNotSupportedCommandException(message, outputformat)
+                raise amdsmi_cli_exceptions.AmdSmiCommandNotSupportedException(message, outputformat)
             raise amdsmi_cli_exceptions.AmdSmiInvalidCommandException(message, outputformat)
         elif "unrecognized arguments: " in message:
             l = len("unrecognized arguments: ")
