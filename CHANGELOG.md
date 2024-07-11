@@ -8,6 +8,8 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ### Additions
 
+- **`amd-smi dmon` is now available as an alias to `amd-smi monitor`**.  
+
 - **Added optional process table under `amd-smi monitor -q`**.  
 The monitor subcommand within the CLI Tool now has the `-q` option to enable an optional process table underneath the original monitored output.
 
@@ -39,6 +41,48 @@ Added macros to reference max size limitations for certain amdsmi functions such
 Added `AMDSMI_EVT_NOTIF_RING_HANG` to the possible events in the `amdsmi_evt_notification_type_t` enum.
 
 ### Optimizations
+
+- **Updated CLI error strings to specify invalid device type queried**  
+
+```shell
+$ amd-smi static --asic --gpu 123123
+Can not find a device: GPU '123123' Error code: -3
+```
+
+- **Removed elevated permission requirements for `amdsmi_get_gpu_process_list()`**.  
+Previously if a processes with elevated permissions was running amd-smi would required sudo to display all output. Now amd-smi will populate all process data and return N/A for elevated process names instead. However if ran with sudo you will be able to see the name like so:
+
+```shell
+$ amd-smi process
+GPU: 0
+    PROCESS_INFO:
+        NAME: N/A
+        PID: 1693982
+        MEMORY_USAGE:
+            GTT_MEM: 0.0 B
+            CPU_MEM: 0.0 B
+            VRAM_MEM: 10.1 GB
+        MEM_USAGE: 0.0 B
+        USAGE:
+            GFX: 0 ns
+            ENC: 0 ns
+```
+
+```shell
+$ sudo amd-smi process
+GPU: 0
+    PROCESS_INFO:
+        NAME: TransferBench
+        PID: 1693982
+        MEMORY_USAGE:
+            GTT_MEM: 0.0 B
+            CPU_MEM: 0.0 B
+            VRAM_MEM: 10.1 GB
+        MEM_USAGE: 0.0 B
+        USAGE:
+            GFX: 0 ns
+            ENC: 0 ns
+```
 
 - **Updated naming for `amdsmi_set_gpu_clear_sram_data()` to `amdsmi_clean_gpu_local_data()`**.  
 Changed the naming to be more accurate to what the function was doing. This change also extends to the CLI where we changed the `clear-sram-data` command to `clean_local_data`.

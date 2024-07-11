@@ -111,6 +111,11 @@ class AMDSMIParser(argparse.ArgumentParser):
             help="Descriptions:",
             metavar='')
 
+        # Store possible subcommands & aliases for later errors
+        self.possible_commands = ['version', 'list', 'static', 'firmware', 'ucode', 'bad-pages',
+                                  'metric', 'process', 'profile', 'event', 'topology', 'set',
+                                  'reset', 'monitor', 'dmon', 'xgmi']
+
         # Add all subparsers
         self._add_version_parser(self.subparsers, version)
         self._add_list_parser(self.subparsers, list)
@@ -257,7 +262,9 @@ class AMDSMIParser(argparse.ArgumentParser):
                     if selected_device_handles == '':
                         raise amdsmi_cli_exceptions.AmdSmiMissingParameterValueException("--gpu", _GPUSelectAction.ouputformat)
                     else:
-                        raise amdsmi_cli_exceptions.AmdSmiDeviceNotFoundException(selected_device_handles, _GPUSelectAction.ouputformat)
+                        raise amdsmi_cli_exceptions.AmdSmiDeviceNotFoundException(selected_device_handles,
+                                                                                  _GPUSelectAction.ouputformat,
+                                                                                  True, False, False)
 
         return _GPUSelectAction
 
@@ -283,7 +290,8 @@ class AMDSMIParser(argparse.ArgumentParser):
                         raise amdsmi_cli_exceptions.AmdSmiMissingParameterValueException("--cpu", _CPUSelectAction.ouputformat)
                     else:
                         raise amdsmi_cli_exceptions.AmdSmiDeviceNotFoundException(selected_device_handles,
-                                                                                  _CPUSelectAction.ouputformat)
+                                                                                  _CPUSelectAction.ouputformat,
+                                                                                  False, True, False)
         return _CPUSelectAction
 
 
@@ -308,7 +316,8 @@ class AMDSMIParser(argparse.ArgumentParser):
                         raise amdsmi_cli_exceptions.AmdSmiMissingParameterValueException("--core", _CoreSelectAction.ouputformat)
                     else:
                         raise amdsmi_cli_exceptions.AmdSmiDeviceNotFoundException(selected_device_handles,
-                                                                                  _CoreSelectAction.ouputformat)
+                                                                                  _CoreSelectAction.ouputformat,
+                                                                                  False, False, True)
         return _CoreSelectAction
 
 
@@ -1129,7 +1138,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         process_help = "Enable Process information table below monitor output"
 
         # Create monitor subparser
-        monitor_parser = subparsers.add_parser('monitor', help=monitor_help, description=monitor_subcommand_help)
+        monitor_parser = subparsers.add_parser('monitor', help=monitor_help, description=monitor_subcommand_help, aliases=["dmon"])
         monitor_parser._optionals.title = monitor_optionals_title
         monitor_parser.formatter_class=lambda prog: AMDSMISubparserHelpFormatter(prog)
         monitor_parser.set_defaults(func=func)
@@ -1232,6 +1241,9 @@ class AMDSMIParser(argparse.ArgumentParser):
             l = len("argument : invalid choice: ") + 1
             message = message[l:]
             message = message.split("'")[0]
+            # Check if the command is possible in other system configurations and error accordingly
+            if message in self.possible_commands:
+                raise amdsmi_cli_exceptions.AmdSmiCommandNotSupportedException(message, outputformat)
             raise amdsmi_cli_exceptions.AmdSmiInvalidCommandException(message, outputformat)
         elif "unrecognized arguments: " in message:
             l = len("unrecognized arguments: ")
