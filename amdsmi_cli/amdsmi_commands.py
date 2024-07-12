@@ -122,7 +122,7 @@ class AMDSMICommands():
             if self.logger.destination == 'stdout':
                 print(human_readable_output)
             else:
-                with self.logger.destination.open('a') as output_file:
+                with self.logger.destination.open('a', encoding="utf-8") as output_file:
                     output_file.write(human_readable_output + '\n')
         elif self.logger.is_json_format() or self.logger.is_csv_format():
             self.logger.print_output()
