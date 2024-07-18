@@ -68,9 +68,10 @@ class AMDSMIHelpers():
             output = run(["lspci", "-nn"], stdout=PIPE, stderr=STDOUT, encoding="UTF-8").stdout
             passthrough_device_ids = ["7460", "73c8", "74a0", "74a1", "74a2"]
             if any(device_id in output for device_id in passthrough_device_ids):
-                self._is_baremetal = True
-                self._is_virtual_os = False
-                self._is_passthrough = True
+                if self._is_virtual_os:
+                    self._is_baremetal = True
+                    self._is_virtual_os = False
+                    self._is_passthrough = True
 
 
     def os_info(self, string_format=True):
