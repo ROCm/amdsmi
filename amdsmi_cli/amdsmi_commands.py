@@ -2679,14 +2679,15 @@ class AMDSMICommands():
         # General and Engine to expose process_info values
         if args.general or args.engine:
             for process_info in filtered_process_values:
-                if args.general and args.engine:
-                    del process_info['process_info']['memory_usage']
-                elif args.general:
-                    del process_info['process_info']['memory_usage']
-                    del process_info['process_info']['usage'] # Used in engine
-                elif args.engine:
-                    del process_info['process_info']['memory_usage']
-                    del process_info['process_info']['mem_usage'] # Used in general
+                if not process_info['process_info'] == "N/A":
+                    if args.general and args.engine:
+                        del process_info['process_info']['memory_usage']
+                    elif args.general:
+                        del process_info['process_info']['memory_usage']
+                        del process_info['process_info']['usage'] # Used in engine
+                    elif args.engine:
+                        del process_info['process_info']['memory_usage']
+                        del process_info['process_info']['mem_usage'] # Used in general
 
         # Filter out non specified pids
         if args.pid:
