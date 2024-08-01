@@ -1217,6 +1217,10 @@ amdsmi_status_t amdsmi_get_gpu_reg_table_info(
                     num_of_metrics);
 }
 
+void amdsmi_free_name_value_pairs(void *p) {
+    free(p);
+}
+
 amdsmi_status_t
 amdsmi_get_power_cap_info(amdsmi_processor_handle processor_handle,
                     uint32_t sensor_ind,
