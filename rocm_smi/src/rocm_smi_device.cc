@@ -82,6 +82,8 @@ static const char *kDevPCieVendorIDFName = "vendor";
 
 // Device sysfs file names
 static const char *kDevPerfLevelFName = "power_dpm_force_performance_level";
+static const char *kDevSocPstateFName = "pm_policy/soc_pstate";
+static const char *kDevXgmiPlpdFName = "pm_policy/xgmi_plpd";
 static const char *kDevProcessIsolationFName = "enforce_isolation";
 static const char *kDevShaderCleanFName = "run_cleaner_shader";
 static const char *kDevDevProdNameFName = "product_name";
@@ -138,7 +140,6 @@ static const char *kDevAvailableComputePartitionFName =
                   "available_compute_partition";
 static const char *kDevComputePartitionFName = "current_compute_partition";
 static const char *kDevMemoryPartitionFName = "current_memory_partition";
-static const char* kDevDPMPolicyFName = "pm_policy";  // The PM policy for pstat and XGMI
 
 // Firmware version files
 static const char *kDevFwVersionAsdFName = "fw_version/asd_fw_version";
@@ -318,7 +319,8 @@ static const std::map<DevInfoTypes, const char *> kDevAttribNameMap = {
     {kDevNumaNode, kDevNumaNodeFName},
     {kDevGpuMetrics, kDevGpuMetricsFName},
     {kDevPmMetrics, kDevPmMetricsFName},
-    {kDevDPMPolicy, kDevDPMPolicyFName},
+    {kDevSocPstate, kDevSocPstateFName},
+    {kDevXgmiPlpd, kDevXgmiPlpdFName},
     {kDevProcessIsolation, kDevProcessIsolationFName},
     {kDevShaderClean, kDevShaderCleanFName},
     {kDevRegMetrics, kDevRegMetricsFName},
@@ -478,7 +480,8 @@ Device::devInfoTypesStrings = {
   {kDevComputePartition, "kDevComputePartition"},
   {kDevMemoryPartition, "kDevMemoryPartition"},
   {kDevPCieVendorID, "kDevPCieVendorID"},
-  {kDevDPMPolicy, "kDevDPMPolicy"},
+  {kDevSocPstate, "kDevSocPstate"},
+  {kDevXgmiPlpd, "kDevXgmiPlpd"},
   {kDevProcessIsolation, "kDevProcessIsolation"},
   {kDevShaderClean, "kDevShaderClean"},
 };
@@ -522,6 +525,10 @@ static const std::map<const char *, dev_depends_t> kDevFuncDependsMap = {
   {"rsmi_dev_perf_level_set",            {{kDevPerfLevelFName}, {}}},
   {"rsmi_dev_perf_level_set_v1",         {{kDevPerfLevelFName}, {}}},
   {"rsmi_dev_perf_level_get",            {{kDevPerfLevelFName}, {}}},
+  {"rsmi_dev_soc_pstate_set",            {{kDevSocPstateFName}, {}}},
+  {"rsmi_dev_soc_pstate_get",            {{kDevSocPstateFName}, {}}},
+  {"rsmi_dev_xgmi_plpd_set",             {{kDevXgmiPlpdFName}, {}}},
+  {"rsmi_dev_xgmi_plpd_get",             {{kDevXgmiPlpdFName}, {}}},
   {"rsmi_dev_process_isolation_set",             {{kDevProcessIsolationFName}, {}}},
   {"rsmi_dev_process_isolation_get",             {{kDevProcessIsolationFName}, {}}},
   {"rsmi_dev_gpu_shader_clean",            {{kDevShaderCleanFName}, {}}},
@@ -545,10 +552,6 @@ static const std::map<const char *, dev_depends_t> kDevFuncDependsMap = {
   {"rsmi_topo_numa_affinity_get",        {{kDevNumaNodeFName}, {}}},
   {"rsmi_dev_gpu_metrics_info_get",      {{kDevGpuMetricsFName}, {}}},
   {"rsmi_dev_pm_metrics_info_get",       {{kDevPmMetricsFName}, {}}},
-  {"rsmi_dev_dpm_policy_get",            {{kDevDPMPolicyFName}, {}}},
-  {"rsmi_dev_dpm_policy_set",            {{kDevDPMPolicyFName}, {}}},
-  {"rsmi_dev_xgmi_plpd_get",             {{kDevDPMPolicyFName}, {}}},
-  {"rsmi_dev_xgmi_plpd_set",             {{kDevDPMPolicyFName}, {}}},
   {"rsmi_dev_reg_table_info_get",        {{kDevRegMetricsFName}, {}}},
   {"rsmi_dev_gpu_reset",                 {{kDevGpuResetFName}, {}}},
   {"rsmi_dev_compute_partition_get",     {{kDevComputePartitionFName}, {}}},
@@ -743,7 +746,7 @@ int Device::openSysfsFileStream(DevInfoTypes type, T *fs, const char *str) {
   if (ret != 0) {
     ss << __PRETTY_FUNCTION__ << " | Issue: File did not exist - SYSFS file ("
        << sysfs_path
-       << ") for DevInfoInfoType (" << devInfoTypesStrings.at(type)
+       << ") for DevInfoInfoType (" << get_type_string(type)
        << "), returning " << std::to_string(ret);
     LOG_ERROR(ss);
     return ret;
@@ -752,7 +755,7 @@ int Device::openSysfsFileStream(DevInfoTypes type, T *fs, const char *str) {
     ss << __PRETTY_FUNCTION__
        << " | Issue: File is not a regular file - SYSFS file ("
        << sysfs_path << ") for "
-       << "DevInfoInfoType (" << devInfoTypesStrings.at(type) << "),"
+       << "DevInfoInfoType (" << get_type_string(type) << "),"
        << " returning ENOENT (" << std::strerror(ENOENT) << ")";
     LOG_ERROR(ss);
     return ENOENT;
@@ -763,7 +766,7 @@ int Device::openSysfsFileStream(DevInfoTypes type, T *fs, const char *str) {
   if (!fs->is_open()) {
     ss << __PRETTY_FUNCTION__
        << " | Issue: Could not open - SYSFS file (" << sysfs_path << ") for "
-       << "DevInfoInfoType (" << devInfoTypesStrings.at(type) << "), "
+       << "DevInfoInfoType (" << get_type_string(type) << "), "
        << ", returning " << std::to_string(errno) << " ("
        << std::strerror(errno) << ")";
     LOG_ERROR(ss);
@@ -772,7 +775,7 @@ int Device::openSysfsFileStream(DevInfoTypes type, T *fs, const char *str) {
 
   ss << __PRETTY_FUNCTION__ << " | Successfully opened SYSFS file ("
      << sysfs_path
-     << ") for DevInfoInfoType (" << devInfoTypesStrings.at(type)
+     << ") for DevInfoInfoType (" << get_type_string(type)
      << ")";
   LOG_INFO(ss);
   return 0;
@@ -789,7 +792,7 @@ int Device::readDebugInfoStr(DevInfoTypes type, std::string *retStr) {
   ret = openDebugFileStream(type, &fs);
   if (ret != 0) {
     ss << "Could not read debugInfoStr for DevInfoType ("
-     << devInfoTypesStrings.at(type)<< "), returning "
+     << get_type_string(type)<< "), returning "
      << std::to_string(ret);
     LOG_ERROR(ss);
     return ret;
@@ -803,7 +806,7 @@ int Device::readDebugInfoStr(DevInfoTypes type, std::string *retStr) {
   fs.close();
 
   ss << "Successfully read debugInfoStr for DevInfoType ("
-     << devInfoTypesStrings.at(type)<< "), retString= " << *retStr;
+     << get_type_string(type)<< "), retString= " << *retStr;
   LOG_INFO(ss);
 
   return 0;
@@ -819,7 +822,7 @@ int Device::readDevInfoStr(DevInfoTypes type, std::string *retStr) {
   ret = openSysfsFileStream(type, &fs);
   if (ret != 0) {
     ss << "Could not read device info string for DevInfoType ("
-     << devInfoTypesStrings.at(type) << "), returning "
+     << get_type_string(type) << "), returning "
      << std::to_string(ret);
     LOG_ERROR(ss);
     return ret;
@@ -829,7 +832,7 @@ int Device::readDevInfoStr(DevInfoTypes type, std::string *retStr) {
   fs.close();
   ss << __PRETTY_FUNCTION__
      << "Successfully read device info string for DevInfoType (" <<
-            devInfoTypesStrings.at(type) << "): " + *retStr
+            get_type_string(type) << "): " + *retStr
      << " | "
      << (fs.is_open() ? " File stream is opened" : " File stream is closed")
      << " | " << (fs.bad() ? "[ERROR] Bad read operation" :
@@ -864,7 +867,7 @@ int Device::writeDevInfoStr(DevInfoTypes type, std::string valStr,
     fs.close();
     ss << __PRETTY_FUNCTION__ << " | Issue: Could not open fileStream; "
        << "Could not write device info string (" << valStr
-       << ") for DevInfoType (" << devInfoTypesStrings.at(type)
+       << ") for DevInfoType (" << get_type_string(type)
        << "), returning " << std::to_string(ret);
     LOG_ERROR(ss);
     return ret;
@@ -875,7 +878,7 @@ int Device::writeDevInfoStr(DevInfoTypes type, std::string valStr,
     fs.flush();
     fs.close();
     ss << "Successfully wrote device info string (" << valStr
-       << ") for DevInfoType (" << devInfoTypesStrings.at(type)
+       << ") for DevInfoType (" << get_type_string(type)
        << "), returning RSMI_STATUS_SUCCESS";
     LOG_INFO(ss);
     ret = RSMI_STATUS_SUCCESS;
@@ -889,7 +892,7 @@ int Device::writeDevInfoStr(DevInfoTypes type, std::string valStr,
     fs.close();
     ss << __PRETTY_FUNCTION__ << " | Issue: Could not write to file; "
        << "Could not write device info string (" << valStr
-       << ") for DevInfoType (" << devInfoTypesStrings.at(type)
+       << ") for DevInfoType (" << get_type_string(type)
        << "), returning " << getRSMIStatusString(ErrnoToRsmiStatus(ret));
     ss << " | "
        << (fs.is_open() ? "[ERROR] File stream open" :
@@ -948,6 +951,8 @@ int Device::writeDevInfo(DevInfoTypes type, std::string val) {
   sysfs_path += kDevAttribNameMap.at(type);
   switch (type) {
     case kDevGPUMClk:
+    case kDevSocPstate:
+    case kDevXgmiPlpd:
     case kDevProcessIsolation:
     case kDevShaderClean:
     case kDevDCEFClk:
@@ -956,7 +961,6 @@ int Device::writeDevInfo(DevInfoTypes type, std::string val) {
     case kDevPCIEClk:
     case kDevPowerODVoltage:
     case kDevSOCClk:
-    case kDevDPMPolicy:
       return writeDevInfoStr(type, val);
     case kDevComputePartition:
     case kDevMemoryPartition:
@@ -979,20 +983,29 @@ int Device::readDevInfoLine(DevInfoTypes type, std::string *line) {
   ret = openSysfsFileStream(type, &fs);
   if (ret != 0) {
     ss << "Could not read DevInfoLine for DevInfoType ("
-       << devInfoTypesStrings.at(type) << ")";
+       << get_type_string(type) << ")";
     LOG_ERROR(ss);
     return ret;
   }
 
   std::getline(fs, *line);
   ss << "Successfully read DevInfoLine for DevInfoType ("
-     << devInfoTypesStrings.at(type) << "), returning *line = "
+     << get_type_string(type) << "), returning *line = "
      << *line;
   LOG_INFO(ss);
 
   return 0;
 }
 
+const char* Device::get_type_string(DevInfoTypes type) {
+  auto ite = devInfoTypesStrings.find(type);
+  if (ite != devInfoTypesStrings.end()) {
+    return ite->second;
+  }
+
+  return "Unknown";
+
+}
 int Device::readDevInfoBinary(DevInfoTypes type, std::size_t b_size,
                                 void *p_binary_data) {
   auto sysfs_path = path_;
@@ -1005,7 +1018,7 @@ int Device::readDevInfoBinary(DevInfoTypes type, std::size_t b_size,
   ptr = fopen(sysfs_path.c_str(), "rb");
   if (!ptr) {
     ss << "Could not read DevInfoBinary for DevInfoType ("
-       << devInfoTypesStrings.at(type) << ")"
+       << get_type_string(type) << ")"
        << " - SYSFS (" << sysfs_path << ")"
        << ", returning " << std::to_string(errno) << " ("
        << std::strerror(errno) << ")";
@@ -1017,7 +1030,7 @@ int Device::readDevInfoBinary(DevInfoTypes type, std::size_t b_size,
   fclose(ptr);
   if ((num*b_size) != b_size) {
     ss << "Could not read DevInfoBinary for DevInfoType ("
-       << devInfoTypesStrings.at(type) << ") - SYSFS ("
+       << get_type_string(type) << ") - SYSFS ("
        << sysfs_path << "), binary size error; "
        << "[buff: "
        << p_binary_data
@@ -1031,7 +1044,7 @@ int Device::readDevInfoBinary(DevInfoTypes type, std::size_t b_size,
     return ENOENT;
   }
   ss << "Successfully read DevInfoBinary for DevInfoType ("
-     << devInfoTypesStrings.at(type) << ") - SYSFS ("
+     << get_type_string(type) << ") - SYSFS ("
      << sysfs_path << "), returning binaryData = " << p_binary_data
      << "; byte_size = " << std::dec << static_cast<int>(b_size);
 
@@ -1063,7 +1076,7 @@ int Device::readDevInfoMultiLineStr(DevInfoTypes type,
 
   if (retVec->empty()) {
     ss << "Read devInfoMultiLineStr for DevInfoType ("
-       << devInfoTypesStrings.at(type) << ")"
+       << get_type_string(type) << ")"
        << ", but contained no string lines";
     LOG_ERROR(ss);
     return ENXIO;
@@ -1081,12 +1094,12 @@ int Device::readDevInfoMultiLineStr(DevInfoTypes type,
 
   if (!allLines.empty()) {
     ss << "Successfully read devInfoMultiLineStr for DevInfoType ("
-       << devInfoTypesStrings.at(type) << ") "
+       << get_type_string(type) << ") "
        << ", returning lines read = " << allLines;
     LOG_INFO(ss);
   } else {
     ss << "Read devInfoMultiLineStr for DevInfoType ("
-       << devInfoTypesStrings.at(type) << ")"
+       << get_type_string(type) << ")"
        << ", but lines were empty";
     LOG_INFO(ss);
     return ENXIO;
@@ -1223,6 +1236,8 @@ int Device::readDevInfo(DevInfoTypes type, std::vector<std::string> *val) {
 
   switch (type) {
     case kDevGPUMClk:
+    case kDevSocPstate:
+    case kDevXgmiPlpd:
     case kDevProcessIsolation:
     case kDevGPUSClk:
     case kDevDCEFClk:
@@ -1239,7 +1254,6 @@ int Device::readDevInfo(DevInfoTypes type, std::vector<std::string> *val) {
     case kDevErrCntHDP:
     case kDevErrCntXGMIWAFL:
     case kDevMemPageBad:
-    case kDevDPMPolicy:
       return readDevInfoMultiLineStr(type, val);
       break;
 

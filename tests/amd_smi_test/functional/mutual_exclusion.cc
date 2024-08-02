@@ -183,10 +183,10 @@ void TestMutualExclusion::Run(void) {
     int64_t dmy_i64 = 0;
     char dmy_str[10];
     amdsmi_dev_perf_level_t dmy_perf_lvl;
-    amdsmi_frequencies_t dmy_freqs;
-    amdsmi_od_volt_freq_data_t dmy_od_volt;
-    amdsmi_freq_volt_region_t dmy_vlt_reg;
-    amdsmi_error_count_t dmy_err_cnt;
+    amdsmi_frequencies_t dmy_freqs{};
+    amdsmi_od_volt_freq_data_t dmy_od_volt{};
+    amdsmi_freq_volt_region_t dmy_vlt_reg{};
+    amdsmi_error_count_t dmy_err_cnt{};
     amdsmi_ras_err_state_t dmy_ras_err_st;
 
     // This can be replaced with ASSERT_EQ() once env. stabilizes
@@ -229,7 +229,7 @@ void TestMutualExclusion::Run(void) {
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret = amdsmi_get_gpu_fan_speed_max(processor_handles_[0], 0, &dmy_ui64);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret =  amdsmi_get_temp_metric(processor_handles_[0], TEMPERATURE_TYPE_EDGE, AMDSMI_TEMP_CURRENT, &dmy_i64);
+    ret =  amdsmi_get_temp_metric(processor_handles_[0], AMDSMI_TEMPERATURE_TYPE_EDGE, AMDSMI_TEMP_CURRENT, &dmy_i64);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret = amdsmi_reset_gpu_fan(processor_handles_[0], 0);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
@@ -239,13 +239,13 @@ void TestMutualExclusion::Run(void) {
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret = amdsmi_get_gpu_overdrive_level(processor_handles_[0], &dmy_ui32);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret =  amdsmi_get_clk_freq(processor_handles_[0], CLK_TYPE_SYS, &dmy_freqs);
+    ret =  amdsmi_get_clk_freq(processor_handles_[0], AMDSMI_CLK_TYPE_SYS, &dmy_freqs);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret =  amdsmi_get_gpu_od_volt_info(processor_handles_[0], &dmy_od_volt);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret =  amdsmi_get_gpu_od_volt_curve_regions(processor_handles_[0], &dmy_ui32, &dmy_vlt_reg);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
-    ret =  amdsmi_set_clk_freq(processor_handles_[0], CLK_TYPE_SYS, 0);
+    ret =  amdsmi_set_clk_freq(processor_handles_[0], AMDSMI_CLK_TYPE_SYS, 0);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
     ret =  amdsmi_get_gpu_ecc_count(processor_handles_[0], AMDSMI_GPU_BLOCK_UMC, &dmy_err_cnt);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);

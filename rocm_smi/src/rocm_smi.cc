@@ -83,7 +83,6 @@ using amd::smi::monitorTypesToString;
 using amd::smi::getRSMIStatusString;
 using amd::smi::AMDGpuMetricsUnitType_t;
 using amd::smi::AMDGpuMetricTypeId_t;
-auto &devInfoTypesStrings = amd::smi::Device::devInfoTypesStrings;
 
 static const uint32_t kMaxOverdriveLevel = 20;
 static const float kEnergyCounterResolution = 15.3F;
@@ -1415,17 +1414,6 @@ For the new format, GFXCLK field will show min and max values(0/1). If the curre
 frequency in neither min/max but lies within the range, this is indicated by
 an additional value followed by * at index 1 and max value at index 2.
 */
-constexpr uint32_t kOD_SCLK_label_array_index = 0;
-constexpr uint32_t kOD_MCLK_label_array_index =
-                                            kOD_SCLK_label_array_index + 3;
-constexpr uint32_t kOD_VDDC_CURVE_label_array_index =
-                                            kOD_MCLK_label_array_index + 2;
-constexpr uint32_t kOD_OD_RANGE_label_array_index =
-                                      kOD_VDDC_CURVE_label_array_index + 4;
-constexpr uint32_t kOD_VDDC_CURVE_start_index =
-                                           kOD_OD_RANGE_label_array_index + 3;
-// constexpr uint32_t kOD_VDDC_CURVE_num_lines =
-//                                             kOD_VDDC_CURVE_start_index + 4;
 constexpr uint32_t kMIN_VALID_LINES = 2;
 
 static rsmi_status_t get_od_clk_volt_info(uint32_t dv_ind,
@@ -1450,62 +1438,95 @@ static rsmi_status_t get_od_clk_volt_info(uint32_t dv_ind,
     return RSMI_STATUS_NOT_YET_IMPLEMENTED;
   }
 
-  assert(val_vec[kOD_SCLK_label_array_index] == "OD_SCLK:" ||
-                            val_vec[kOD_SCLK_label_array_index] == "GFXCLK:");
-  if ((val_vec[kOD_SCLK_label_array_index] != "OD_SCLK:") &&
-                            (val_vec[kOD_SCLK_label_array_index] != "GFXCLK:")) {
-    return RSMI_STATUS_UNEXPECTED_DATA;
+  // Tags expected in this file
+  const std::string kTAG_OD_SCLK{"OD_SCLK:"};
+  const std::string KTAG_OD_MCLK{"OD_MCLK:"};
+  const std::string kTAG_GFXCLK{"GFXCLK:"};
+  const std::string KTAG_MCLK{"MCLK:"};
+  const std::string KTAG_SCLK{"SCLK:"};
+  const std::string KTAG_OD_RANGE{"OD_RANGE:"};
+  const std::string KTAG_OD_VDDGFX_OFFSET{"OD_VDDGFX_OFFSET:"};
+  const std::string KTAG_FIRST_FREQ_IDX{"0:"};
+
+  amd::smi::TextFileTagContents_t txt_power_dev_od_voltage(val_vec);
+  txt_power_dev_od_voltage
+    .set_title_terminator(":", amd::smi::TagSplitterPositional_t::kLAST)
+    .set_key_data_splitter(":", amd::smi::TagSplitterPositional_t::kBETWEEN)
+    .structure_content();
+
+  //
+  // Note:  We must have minimum of 'GFXCLK:' && 'MCLK:' OR:
+  //        'OD_SCLK:' && 'OD_MCLK:' tags.
+  if (txt_power_dev_od_voltage.get_title_size() < kMIN_VALID_LINES)  {
+      return rsmi_status_t::RSMI_STATUS_NO_DATA;
   }
 
-
-  // find last_item but skip empty lines
-  int last_item = val_vec.size()-1;
-  while (val_vec[last_item].empty() || val_vec[last_item][0] == 0)
-      last_item--;
-
-  p->curr_sclk_range.lower_bound = freq_string_to_int(val_vec, nullptr,
-                                     nullptr, kOD_SCLK_label_array_index + 1);
-  p->curr_sclk_range.upper_bound = freq_string_to_int(val_vec, nullptr,
-                                     nullptr, kOD_SCLK_label_array_index + 2);
-
-  if (val_vec.size() < (kOD_MCLK_label_array_index + 1)) {
-    return RSMI_STATUS_UNEXPECTED_SIZE;
-  }
-  // The condition below checks if it is the old style or new style format.
-  if (val_vec[kOD_MCLK_label_array_index] == "OD_MCLK:") {
-    p->curr_mclk_range.lower_bound = 0;
-    p->curr_mclk_range.upper_bound = freq_string_to_int(val_vec, nullptr,
-                                   nullptr, kOD_MCLK_label_array_index + 1);
-  } else if (val_vec[kOD_MCLK_label_array_index] == "MCLK:") {
-    p->curr_mclk_range.lower_bound = freq_string_to_int(val_vec, nullptr,
-                                 nullptr, kOD_MCLK_label_array_index + 1);
-    // the upper memory frequency is the last
-    p->curr_mclk_range.upper_bound = freq_string_to_int(val_vec, nullptr,
-                                 nullptr, last_item);
-    return RSMI_STATUS_SUCCESS;
-  } else {
-    if (val_vec.size() < (kOD_MCLK_label_array_index + 3)) {
-      return RSMI_STATUS_UNEXPECTED_SIZE;
-    }
-    if (val_vec[kOD_MCLK_label_array_index + 1] == "MCLK:") {
-      p->curr_sclk_range.upper_bound = freq_string_to_int(val_vec, nullptr,
-                                   nullptr, kOD_SCLK_label_array_index + 3);
-      p->curr_mclk_range.lower_bound = freq_string_to_int(val_vec, nullptr,
-                                   nullptr, kOD_MCLK_label_array_index + 2);
-      // the upper memory frequency is the last
-      p->curr_mclk_range.upper_bound = freq_string_to_int(val_vec, nullptr,
-                                   nullptr, last_item);
-      return RSMI_STATUS_SUCCESS;
-    }
-    return RSMI_STATUS_NOT_YET_IMPLEMENTED;
+  // Note:  For debug builds/purposes only.
+  assert(txt_power_dev_od_voltage.contains_title_key(kTAG_GFXCLK) ||
+         txt_power_dev_od_voltage.contains_title_key(kTAG_OD_SCLK));
+  // Note:  For release builds/purposes.
+  if (!txt_power_dev_od_voltage.contains_title_key(kTAG_GFXCLK) &&
+      !txt_power_dev_od_voltage.contains_title_key(kTAG_OD_SCLK)) {
+      return rsmi_status_t::RSMI_STATUS_UNEXPECTED_DATA;
   }
 
-  if (val_vec.size() < kOD_VDDC_CURVE_label_array_index) {
-    return RSMI_STATUS_UNEXPECTED_SIZE;
+  // Note: Quick helpers for getting 1st and last elements found
+  auto build_lower_bound = [&](const std::string& prim_key) {
+      auto lower_bound_data = txt_power_dev_od_voltage.get_structured_data_subkey_first(prim_key);
+      return std::vector<std::string>{lower_bound_data};
+  };
+
+  auto build_upper_bound = [&](const std::string& prim_key) {
+      auto upper_bound_data = txt_power_dev_od_voltage.get_structured_data_subkey_last(prim_key);
+      return std::vector<std::string>{upper_bound_data};
+  };
+
+  // Validates 'OD_SCLK' is in the structure
+  if (txt_power_dev_od_voltage.contains_structured_key(kTAG_OD_SCLK,
+                                                       KTAG_FIRST_FREQ_IDX)) {
+      p->curr_sclk_range.lower_bound = freq_string_to_int(build_lower_bound(kTAG_OD_SCLK), nullptr, nullptr, 0);
+      p->curr_sclk_range.upper_bound = freq_string_to_int(build_upper_bound(kTAG_OD_SCLK), nullptr, nullptr, 0);
+
+      // Validates 'OD_MCLK' is in the structure
+      if (txt_power_dev_od_voltage.contains_structured_key(KTAG_OD_MCLK,
+                                                           KTAG_FIRST_FREQ_IDX)) {
+          p->curr_mclk_range.lower_bound = freq_string_to_int(build_lower_bound(KTAG_OD_MCLK), nullptr, nullptr, 0);
+          p->curr_mclk_range.upper_bound = freq_string_to_int(build_upper_bound(KTAG_OD_MCLK), nullptr, nullptr, 0);
+      }
+
+      // Validates 'OD_RANGE' is in the structure
+      if (txt_power_dev_od_voltage.contains_structured_key(KTAG_OD_RANGE,
+                                                           KTAG_SCLK)) {
+          od_value_pair_str_to_range(txt_power_dev_od_voltage
+                                        .get_structured_value_by_keys(KTAG_OD_RANGE, KTAG_SCLK),
+                                     &p->sclk_freq_limits);
+      }
+      if (txt_power_dev_od_voltage.contains_structured_key(KTAG_OD_RANGE,
+                                                           KTAG_MCLK)) {
+          od_value_pair_str_to_range(txt_power_dev_od_voltage
+                                        .get_structured_value_by_keys(KTAG_OD_RANGE, KTAG_MCLK),
+                                     &p->mclk_freq_limits);
+      }
+  }
+  // Validates 'GFXCLK' is in the structure
+  else if (txt_power_dev_od_voltage.contains_structured_key(kTAG_GFXCLK,
+                                                            KTAG_FIRST_FREQ_IDX)) {
+      p->curr_sclk_range.lower_bound = freq_string_to_int(build_lower_bound(kTAG_GFXCLK), nullptr, nullptr, 0);
+      p->curr_sclk_range.upper_bound = freq_string_to_int(build_upper_bound(kTAG_GFXCLK), nullptr, nullptr, 0);
+
+      // Validates 'MCLK' is in the structure
+      if (txt_power_dev_od_voltage.contains_structured_key(KTAG_MCLK,
+                                                           KTAG_FIRST_FREQ_IDX)) {
+          p->curr_mclk_range.lower_bound = freq_string_to_int(build_lower_bound(KTAG_MCLK), nullptr, nullptr, 0);
+          p->curr_mclk_range.upper_bound = freq_string_to_int(build_upper_bound(KTAG_MCLK), nullptr, nullptr, 0);
+      }
+  }
+  else {
+      return RSMI_STATUS_NOT_YET_IMPLEMENTED;
   }
 
-  p->num_regions =
-     static_cast<uint32_t>((val_vec.size()) / 2);
+  // Note: No curve entries.
+  p->num_regions = 0;
 
   return RSMI_STATUS_SUCCESS;
   CATCH
@@ -1674,28 +1695,34 @@ rsmi_status_t rsmi_dev_od_volt_info_set(uint32_t dv_ind, uint32_t vpoint,
 }
 
 
-static void get_vc_region(uint32_t start_ind,
-                std::vector<std::string> *val_vec, rsmi_freq_volt_region_t *p) {
+static void get_vc_region(const std::vector<std::string>& val_vec, rsmi_freq_volt_region_t& p)
+{
   std::ostringstream ss;
   ss << __PRETTY_FUNCTION__ << " | ======= start =======";
   LOG_TRACE(ss);
-  assert(p != nullptr);
-  assert(val_vec != nullptr);
-  THROW_IF_NULLPTR_DEREF(p)
-  THROW_IF_NULLPTR_DEREF(val_vec)
 
-  // There must be at least 1 region to read in
-  assert(val_vec->size() >= kOD_OD_RANGE_label_array_index + 2);
-  assert((*val_vec)[kOD_OD_RANGE_label_array_index] == "OD_RANGE:");
-  if ((val_vec->size() < kOD_OD_RANGE_label_array_index + 2)  ||
-      ((*val_vec)[kOD_OD_RANGE_label_array_index] != "OD_RANGE:") ) {
-    ss << __PRETTY_FUNCTION__ << " | ======= end ======= | returning "
-       << getRSMIStatusString(RSMI_STATUS_UNEXPECTED_DATA);
-    LOG_TRACE(ss);
-    throw amd::smi::rsmi_exception(RSMI_STATUS_UNEXPECTED_DATA, __FUNCTION__);
+  //
+  amd::smi::TextFileTagContents_t txt_power_dev_od_voltage(val_vec);
+  txt_power_dev_od_voltage
+    .set_title_terminator(":", amd::smi::TagSplitterPositional_t::kLAST)
+    .set_key_data_splitter(":", amd::smi::TagSplitterPositional_t::kBETWEEN)
+    .structure_content();
+
+  const std::string KTAG_OD_RANGE{"OD_RANGE:"};
+  const std::string KTAG_MCLK{"MCLK:"};
+  const std::string KTAG_SCLK{"SCLK:"};
+  if (txt_power_dev_od_voltage.contains_structured_key(KTAG_OD_RANGE,
+                                                       KTAG_SCLK)) {
+      od_value_pair_str_to_range(txt_power_dev_od_voltage
+                                    .get_structured_value_by_keys(KTAG_OD_RANGE, KTAG_SCLK),
+                                 &p.freq_range);
   }
-  od_value_pair_str_to_range((*val_vec)[start_ind], &p->freq_range);
-  od_value_pair_str_to_range((*val_vec)[start_ind + 1], &p->volt_range);
+  if (txt_power_dev_od_voltage.contains_structured_key(KTAG_OD_RANGE,
+                                                       KTAG_MCLK)) {
+      od_value_pair_str_to_range(txt_power_dev_od_voltage
+                                    .get_structured_value_by_keys(KTAG_OD_RANGE, KTAG_MCLK),
+                                 &p.volt_range);
+  }
 }
 
 /*
@@ -1729,23 +1756,24 @@ static rsmi_status_t get_od_clk_volt_curve_regions(uint32_t dv_ind,
 
   // This is a work-around to handle systems where kDevPowerODVoltage is not
   // fully supported yet.
-  if (val_vec.size() < 2) {
+  if (val_vec.size() < kMIN_VALID_LINES) {
     ss << __PRETTY_FUNCTION__
-       << " | Issue: val_vec.size() < 2" << "; returning "
+       << " | Issue: val_vec.size() < " << kMIN_VALID_LINES << "; returning "
        << getRSMIStatusString(RSMI_STATUS_NOT_YET_IMPLEMENTED);
     LOG_ERROR(ss);
     return RSMI_STATUS_NOT_YET_IMPLEMENTED;
   }
 
   uint32_t val_vec_size = static_cast<uint32_t>(val_vec.size());
-  assert((val_vec_size - kOD_VDDC_CURVE_start_index) > 0);
-
   ss << __PRETTY_FUNCTION__
      << " | val_vec_size = " << std::dec
-     << val_vec_size
-     << " | kOD_VDDC_CURVE_start_index = " << kOD_VDDC_CURVE_start_index;
+     << val_vec_size;
   LOG_DEBUG(ss);
-  *num_regions = std::min((val_vec_size) / 2, *num_regions);
+
+  // Note: No curve entries.
+  *num_regions = 0;
+  // Get OD ranges.
+  get_vc_region(val_vec, *p);
 
   return RSMI_STATUS_SUCCESS;
   CATCH
@@ -2094,7 +2122,7 @@ rsmi_status_t rsmi_dev_process_isolation_set(uint32_t dv_ind,
   CATCH
 }
 
-rsmi_status_t rsmi_dev_gpu_clear_sram_data(uint32_t dv_ind,
+rsmi_status_t rsmi_dev_gpu_run_cleaner_shader(uint32_t dv_ind,
     uint32_t sclean) {
   rsmi_status_t ret;
 
@@ -2108,27 +2136,6 @@ rsmi_status_t rsmi_dev_gpu_clear_sram_data(uint32_t dv_ind,
 
   std::string value = std::to_string(sclean);
   int ret = dev->writeDevInfo(amd::smi::kDevShaderClean , value);
-  return amd::smi::ErrnoToRsmiStatus(ret);
-
-  CATCH
-}
-
-rsmi_status_t
-rsmi_dev_dpm_policy_set(uint32_t dv_ind,
-                      uint32_t policy_id) {
-  rsmi_status_t ret;
-
-  TRY
-  std::ostringstream ss;
-  ss << __PRETTY_FUNCTION__ << " | ======= start =======";
-  LOG_TRACE(ss);
-  REQUIRE_ROOT_ACCESS
-  DEVICE_MUTEX
-  GET_DEV_FROM_INDX
-
-  std::string value("soc_pstate ");
-  value += std::to_string(policy_id);
-  int ret = dev->writeDevInfo(amd::smi::kDevDPMPolicy , value);
   return amd::smi::ErrnoToRsmiStatus(ret);
 
   CATCH
@@ -2152,7 +2159,7 @@ rsmi_dev_xgmi_plpd_get(uint32_t dv_ind,
   LOG_TRACE(ss);
   DEVICE_MUTEX
 
-  ret = GetDevValueVec(amd::smi::kDevDPMPolicy, dv_ind, &val_vec);
+  ret = GetDevValueVec(amd::smi::kDevXgmiPlpd, dv_ind, &val_vec);
   if (ret == RSMI_STATUS_FILE_ERROR) {
     ss << __PRETTY_FUNCTION__ << " | ======= end ======="
        << ", GetDevValueVec() ret was RSMI_STATUS_FILE_ERROR "
@@ -2170,21 +2177,14 @@ rsmi_dev_xgmi_plpd_get(uint32_t dv_ind,
   /*
     It will reply on the number but no string as it may vary from soc to soc.
     The current xmgi plpd marked with *
-    xgmi plpd
-    0 : plpd_disallow
-    1 : plpd_default
-    2 : plpd_optimized*
+      0 : plpd_disallow
+      1 : plpd_default*
+      2 : plpd_optimized
   */
-  bool see_plpd_pstate = false;
   bool see_current = false;
   policy->num_supported = 0;
   for (uint32_t i = 0; i < val_vec.size(); ++i) {
     auto current_line = amd::smi::trim(val_vec[i]);
-    if (current_line == "xgmi plpd") {
-      see_plpd_pstate = true;
-      continue;
-    }
-    if (see_plpd_pstate == false) continue;
 
     // Get tokens: <integer> : <string *>
     std::vector<std::string> tokens;
@@ -2221,17 +2221,13 @@ rsmi_dev_xgmi_plpd_get(uint32_t dv_ind,
     policy->num_supported++;
   }  //  end for
 
-  if (!see_plpd_pstate) {
-    return RSMI_STATUS_NOT_SUPPORTED;
-  }
-
   if (!see_current) {
       ss << __PRETTY_FUNCTION__ << " | ======= end ======="
-          << ", Unexpected pstat data: cannot find the current plpd policy.";
+          << ", Unexpected pstat data: cannot find the current xgmi_plpd policy.";
           LOG_ERROR(ss);
           return RSMI_STATUS_UNEXPECTED_DATA;
   }
-  // Cannot find it
+
   return RSMI_STATUS_SUCCESS;
 
   CATCH
@@ -2250,16 +2246,16 @@ rsmi_dev_xgmi_plpd_set(uint32_t dv_ind,
   DEVICE_MUTEX
   GET_DEV_FROM_INDX
 
-  std::string value("xgmi ");
-  value += std::to_string(plpd_id);
-  int ret = dev->writeDevInfo(amd::smi::kDevDPMPolicy , value);
+  // Need to add new line character
+  std::string value = std::to_string(plpd_id) + "\n";
+  int ret = dev->writeDevInfo(amd::smi::kDevXgmiPlpd , value);
   return amd::smi::ErrnoToRsmiStatus(ret);
 
   CATCH
 }
 
 rsmi_status_t
-rsmi_dev_dpm_policy_get(uint32_t dv_ind,
+rsmi_dev_soc_pstate_get(uint32_t dv_ind,
                       rsmi_dpm_policy_t* policy) {
   rsmi_status_t ret;
   std::vector<std::string> val_vec;
@@ -2276,7 +2272,7 @@ rsmi_dev_dpm_policy_get(uint32_t dv_ind,
   LOG_TRACE(ss);
   DEVICE_MUTEX
 
-  ret = GetDevValueVec(amd::smi::kDevDPMPolicy, dv_ind, &val_vec);
+  ret = GetDevValueVec(amd::smi::kDevSocPstate, dv_ind, &val_vec);
   if (ret == RSMI_STATUS_FILE_ERROR) {
     ss << __PRETTY_FUNCTION__ << " | ======= end ======="
        << ", GetDevValueVec() ret was RSMI_STATUS_FILE_ERROR "
@@ -2294,22 +2290,15 @@ rsmi_dev_dpm_policy_get(uint32_t dv_ind,
   /*
     It will reply on the number but no string as it may vary from soc to soc.
     The current pstate marked with *
-    soc pstate
     0 : soc_pstate_default
     1 : soc_pstate_0
     2 : soc_pstate_1*
     3 : soc_pstate_2
   */
-  bool see_soc_pstate = false;
   bool see_current = false;
   policy->num_supported = 0;
   for (uint32_t i = 0; i < val_vec.size(); ++i) {
     auto current_line = amd::smi::trim(val_vec[i]);
-    if (current_line == "soc pstate") {
-      see_soc_pstate = true;
-      continue;
-    }
-    if (see_soc_pstate == false) continue;
 
     // Get tokens: <integer> : <string *>
     std::vector<std::string> tokens;
@@ -2346,10 +2335,6 @@ rsmi_dev_dpm_policy_get(uint32_t dv_ind,
     policy->num_supported++;
   }  //  end for
 
-  if (!see_soc_pstate) {
-    return RSMI_STATUS_NOT_SUPPORTED;
-  }
-
   if (!see_current) {
       ss << __PRETTY_FUNCTION__ << " | ======= end ======="
           << ", Unexpected pstat data: cannot find the current policy.";
@@ -2358,6 +2343,27 @@ rsmi_dev_dpm_policy_get(uint32_t dv_ind,
   }
   // Cannot find it
   return RSMI_STATUS_SUCCESS;
+
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_soc_pstate_set(uint32_t dv_ind,
+                      uint32_t policy_id) {
+  rsmi_status_t ret;
+
+  TRY
+  std::ostringstream ss;
+  ss << __PRETTY_FUNCTION__ << " | ======= start =======";
+  LOG_TRACE(ss);
+  REQUIRE_ROOT_ACCESS
+  DEVICE_MUTEX
+  GET_DEV_FROM_INDX
+
+  // need to add new line character
+  std::string value = std::to_string(policy_id) + "\n";
+  int ret = dev->writeDevInfo(amd::smi::kDevSocPstate , value);
+  return amd::smi::ErrnoToRsmiStatus(ret);
 
   CATCH
 }
@@ -3429,7 +3435,8 @@ rsmi_dev_gpu_reset(uint32_t dv_ind) {
   ss << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ss);
   REQUIRE_ROOT_ACCESS
-  DEVICE_MUTEX
+  // No longer using DEVICE_MUTEX as it blocks long running processes
+  // DEVICE_MUTEX
 
   rsmi_status_t ret;
   uint64_t status_code = 0;
@@ -3842,7 +3849,7 @@ rsmi_dev_memory_total_get(uint32_t dv_ind, rsmi_memory_type_t mem_type,
       ss << __PRETTY_FUNCTION__
          << " | inside success fallback... "
          << " | Device #: " << std::to_string(dv_ind)
-         << " | Type = " << devInfoTypesStrings.at(mem_type_file)
+         << " | Type = " << amd::smi::Device::get_type_string(mem_type_file)
          << " | Data: total = " << std::to_string(*total)
          << " | ret = " << getRSMIStatusString(RSMI_STATUS_SUCCESS);
       LOG_DEBUG(ss);
@@ -3853,7 +3860,7 @@ rsmi_dev_memory_total_get(uint32_t dv_ind, rsmi_memory_type_t mem_type,
   ss << __PRETTY_FUNCTION__
      << " | after fallback... "
      << " | Device #: " << std::to_string(dv_ind)
-     << " | Type = " << devInfoTypesStrings.at(mem_type_file)
+     << " | Type = " << amd::smi::Device::get_type_string(mem_type_file)
      << " | Data: total = " << std::to_string(*total)
      << " | ret = " << getRSMIStatusString(ret);
   LOG_DEBUG(ss);
@@ -3922,7 +3929,7 @@ rsmi_dev_memory_usage_get(uint32_t dv_ind, rsmi_memory_type_t mem_type,
       ss << __PRETTY_FUNCTION__
          << " no fallback needed! - "
          << " | Device #: " << std::to_string(dv_ind)
-         << " | Type = " << devInfoTypesStrings.at(mem_type_file)
+         << " | Type = " << amd::smi::Device::get_type_string(mem_type_file)
          << " | Data: Used = " << std::to_string(*used)
          << " | Data: total = " << std::to_string(total)
          << " | ret = " << getRSMIStatusString(ret);
@@ -3933,7 +3940,7 @@ rsmi_dev_memory_usage_get(uint32_t dv_ind, rsmi_memory_type_t mem_type,
       ss << __PRETTY_FUNCTION__
          << " | in fallback == success ..."
          << " | Device #: " << std::to_string(dv_ind)
-         << " | Type = " << devInfoTypesStrings.at(mem_type_file)
+         << " | Type = " << amd::smi::Device::get_type_string(mem_type_file)
          << " | Data: Used = " << std::to_string(*used)
          << " | Data: total = " << std::to_string(total)
          << " | ret = " << getRSMIStatusString(RSMI_STATUS_SUCCESS);
@@ -3944,7 +3951,7 @@ rsmi_dev_memory_usage_get(uint32_t dv_ind, rsmi_memory_type_t mem_type,
   ss << __PRETTY_FUNCTION__
      << " | at end!!!! after fallback ..."
      << " | Device #: " << std::to_string(dv_ind)
-     << " | Type = " << devInfoTypesStrings.at(mem_type_file)
+     << " | Type = " << amd::smi::Device::get_type_string(mem_type_file)
      << " | Data: Used = " << std::to_string(*used)
      << " | ret = " << getRSMIStatusString(ret);
   LOG_DEBUG(ss);
@@ -5227,7 +5234,7 @@ rsmi_dev_compute_partition_get(uint32_t dv_ind, char *compute_partition,
        << " | Fail "
        << " | Device #: " << dv_ind
        << " | Type: "
-       << devInfoTypesStrings.at(amd::smi::kDevComputePartition)
+       << amd::smi::Device::get_type_string(amd::smi::kDevComputePartition)
        << " | Cause: len was 0 or compute_partition variable was null"
        << " | Returning = "
        << getRSMIStatusString(RSMI_STATUS_INVALID_ARGS) << " |";
@@ -5246,7 +5253,7 @@ rsmi_dev_compute_partition_get(uint32_t dv_ind, char *compute_partition,
        << " | Fail "
        << " | Device #: " << dv_ind
        << " | Type: "
-       << devInfoTypesStrings.at(amd::smi::kDevComputePartition)
+       << amd::smi::Device::get_type_string(amd::smi::kDevComputePartition)
        << " | Cause: could not retrieve current compute partition"
        << " | Returning = "
        << getRSMIStatusString(ret) << " |";
@@ -5263,7 +5270,7 @@ rsmi_dev_compute_partition_get(uint32_t dv_ind, char *compute_partition,
        << " | Fail "
        << " | Device #: " << dv_ind
        << " | Type: "
-       << devInfoTypesStrings.at(amd::smi::kDevComputePartition)
+       << amd::smi::Device::get_type_string(amd::smi::kDevComputePartition)
        << " | Cause: requested size was insufficient"
        << " | Returning = "
        << getRSMIStatusString(RSMI_STATUS_INSUFFICIENT_SIZE) << " |";
@@ -5275,7 +5282,7 @@ rsmi_dev_compute_partition_get(uint32_t dv_ind, char *compute_partition,
      << " | Success "
      << " | Device #: " << dv_ind
      << " | Type: "
-     << devInfoTypesStrings.at(amd::smi::kDevComputePartition)
+     << amd::smi::Device::get_type_string(amd::smi::kDevComputePartition)
      << " | Data: " << compute_partition
      << " | Returning = "
      << getRSMIStatusString(ret) << " |";
@@ -5335,7 +5342,7 @@ rsmi_dev_compute_partition_set(uint32_t dv_ind,
          << " | Fail "
          << " | Device #: " << dv_ind
          << " | Type: "
-         << devInfoTypesStrings.at(amd::smi::kDevComputePartition)
+         << amd::smi::Device::get_type_string(amd::smi::kDevComputePartition)
          << " | Data: " << newComputePartitionStr
          << " | Cause: requested setting was invalid"
          << " | Returning = "
@@ -5354,7 +5361,7 @@ rsmi_dev_compute_partition_set(uint32_t dv_ind,
        << " | Fail "
        << " | Device #: " << dv_ind
        << " | Type: "
-       << devInfoTypesStrings.at(amd::smi::kDevComputePartition)
+       << amd::smi::Device::get_type_string(amd::smi::kDevComputePartition)
        << " | Data: " << newComputePartitionStr
        << " | Cause: not an available compute partition setting"
        << " | Returning = "
@@ -5374,7 +5381,7 @@ rsmi_dev_compute_partition_set(uint32_t dv_ind,
        << " | Fail "
        << " | Device #: " << dv_ind
        << " | Type: "
-       << devInfoTypesStrings.at(amd::smi::kDevComputePartition)
+       << amd::smi::Device::get_type_string(amd::smi::kDevComputePartition)
        << " | Cause: could retrieve current compute partition or retrieved"
        << " unexpected data"
        << " | Returning = "
@@ -5390,7 +5397,7 @@ rsmi_dev_compute_partition_set(uint32_t dv_ind,
        << " | Success - compute partition was already set at requested value"
        << " | Device #: " << dv_ind
        << " | Type: "
-       << devInfoTypesStrings.at(amd::smi::kDevComputePartition)
+       << amd::smi::Device::get_type_string(amd::smi::kDevComputePartition)
        << " | Data: " << newComputePartitionStr
        << " | Returning = "
        << getRSMIStatusString(RSMI_STATUS_SUCCESS) << " |";
@@ -5416,7 +5423,7 @@ rsmi_dev_compute_partition_set(uint32_t dv_ind,
      << " | Success "
      << " | Device #: " << dv_ind
      << " | Type: "
-     << devInfoTypesStrings.at(amd::smi::kDevComputePartition)
+     << amd::smi::Device::get_type_string(amd::smi::kDevComputePartition)
      << " | Data: " << newComputePartitionStr
      << " | Returning = "
      << getRSMIStatusString(returnResponse) << " |";
@@ -5488,7 +5495,7 @@ rsmi_dev_memory_partition_set(uint32_t dv_ind,
          << " | Fail "
          << " | Device #: " << dv_ind
          << " | Type: "
-         << devInfoTypesStrings.at(amd::smi::kDevMemoryPartition)
+         << amd::smi::Device::get_type_string(amd::smi::kDevMemoryPartition)
          << " | Cause: device board name does not support this action"
          << " | Returning = "
          << getRSMIStatusString(RSMI_STATUS_NOT_SUPPORTED) << " |";
@@ -5509,7 +5516,7 @@ rsmi_dev_memory_partition_set(uint32_t dv_ind,
          << " | Fail "
          << " | Device #: " << dv_ind
          << " | Type: "
-         << devInfoTypesStrings.at(amd::smi::kDevMemoryPartition)
+         << amd::smi::Device::get_type_string(amd::smi::kDevMemoryPartition)
          << " | Cause: requested setting was invalid"
          << " | Returning = "
          << getRSMIStatusString(RSMI_STATUS_INVALID_ARGS) << " |";
@@ -5530,7 +5537,7 @@ rsmi_dev_memory_partition_set(uint32_t dv_ind,
        << " | Fail "
        << " | Device #: " << dv_ind
        << " | Type: "
-       << devInfoTypesStrings.at(amd::smi::kDevMemoryPartition)
+       << amd::smi::Device::get_type_string(amd::smi::kDevMemoryPartition)
        << " | Cause: could retrieve current memory partition or retrieved"
        << " unexpected data"
        << " | Returning = "
@@ -5547,7 +5554,7 @@ rsmi_dev_memory_partition_set(uint32_t dv_ind,
      << " setting"
      << " | Device #: " << dv_ind
      << " | Type: "
-     << devInfoTypesStrings.at(amd::smi::kDevMemoryPartition)
+     << amd::smi::Device::get_type_string(amd::smi::kDevMemoryPartition)
      << " | Data: " << newMemoryPartition
      << " | Returning = "
      << getRSMIStatusString(RSMI_STATUS_SUCCESS) << " |";
@@ -5569,7 +5576,7 @@ rsmi_dev_memory_partition_set(uint32_t dv_ind,
        << " | Fail "
        << " | Device #: " << dv_ind
        << " | Type: "
-       << devInfoTypesStrings.at(amd::smi::kDevMemoryPartition)
+       << amd::smi::Device::get_type_string(amd::smi::kDevMemoryPartition)
        << " | Cause: issue writing reqested setting of " + newMemoryPartition
        << " | Returning = "
        << getRSMIStatusString(err) << " |";
@@ -5583,7 +5590,7 @@ rsmi_dev_memory_partition_set(uint32_t dv_ind,
      << " | Success - if restart completed successfully"
      << " | Device #: " << dv_ind
      << " | Type: "
-     << devInfoTypesStrings.at(amd::smi::kDevMemoryPartition)
+     << amd::smi::Device::get_type_string(amd::smi::kDevMemoryPartition)
      << " | Data: " << newMemoryPartition
      << " | Returning = "
      << getRSMIStatusString(restartRet) << " |";
@@ -5605,7 +5612,7 @@ rsmi_dev_memory_partition_get(uint32_t dv_ind, char *memory_partition,
        << " | Fail "
        << " | Device #: " << dv_ind
        << " | Type: "
-       << devInfoTypesStrings.at(amd::smi::kDevMemoryPartition)
+       << amd::smi::Device::get_type_string(amd::smi::kDevMemoryPartition)
        << " | Cause: user sent invalid arguments, len = 0 or memory partition"
        << " was a null ptr"
        << " | Returning = "
@@ -5625,7 +5632,7 @@ rsmi_dev_memory_partition_get(uint32_t dv_ind, char *memory_partition,
        << " | Fail "
        << " | Device #: " << dv_ind
        << " | Type: "
-       << devInfoTypesStrings.at(amd::smi::kDevMemoryPartition)
+       << amd::smi::Device::get_type_string(amd::smi::kDevMemoryPartition)
        << " | Cause: could not successfully retrieve current memory partition "
        << " | Returning = "
        << getRSMIStatusString(ret) << " |";
@@ -5643,7 +5650,7 @@ rsmi_dev_memory_partition_get(uint32_t dv_ind, char *memory_partition,
        << " | Fail "
        << " | Device #: " << dv_ind
        << " | Type: "
-       << devInfoTypesStrings.at(amd::smi::kDevMemoryPartition)
+       << amd::smi::Device::get_type_string(amd::smi::kDevMemoryPartition)
        << " | Cause: could not successfully retrieve current memory partition "
        << " | Returning = "
        << getRSMIStatusString(ret) << " |";
@@ -5655,7 +5662,7 @@ rsmi_dev_memory_partition_get(uint32_t dv_ind, char *memory_partition,
      << " | Success "
      << " | Device #: " << dv_ind
      << " | Type: "
-     << devInfoTypesStrings.at(amd::smi::kDevMemoryPartition)
+     << amd::smi::Device::get_type_string(amd::smi::kDevMemoryPartition)
      << " | Data: " << memory_partition
      << " | Returning = "
      << getRSMIStatusString(ret) << " |";
@@ -5694,7 +5701,7 @@ rsmi_status_t rsmi_dev_compute_partition_reset(uint32_t dv_ind) {
      << " | Success - if original boot state was not unknown or valid setting"
      << " | Device #: " << dv_ind
      << " | Type: "
-     << devInfoTypesStrings.at(amd::smi::kDevComputePartition)
+     << amd::smi::Device::get_type_string(amd::smi::kDevComputePartition)
      << " | Data: " << bootState
      << " | Returning = "
      << getRSMIStatusString(ret) << " |";
@@ -5733,7 +5740,7 @@ rsmi_status_t rsmi_dev_memory_partition_reset(uint32_t dv_ind) {
      << " | Success - if original boot state was not unknown or valid setting"
      << " | Device #: " << dv_ind
      << " | Type: "
-     << devInfoTypesStrings.at(amd::smi::kDevMemoryPartition)
+     << amd::smi::Device::get_type_string(amd::smi::kDevMemoryPartition)
      << " | Data: " << bootState
      << " | Returning = "
      << getRSMIStatusString(ret) << " |";

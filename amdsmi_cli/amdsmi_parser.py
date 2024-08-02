@@ -111,6 +111,11 @@ class AMDSMIParser(argparse.ArgumentParser):
             help="Descriptions:",
             metavar='')
 
+        # Store possible subcommands & aliases for later errors
+        self.possible_commands = ['version', 'list', 'static', 'firmware', 'ucode', 'bad-pages',
+                                  'metric', 'process', 'profile', 'event', 'topology', 'set',
+                                  'reset', 'monitor', 'dmon', 'xgmi']
+
         # Add all subparsers
         self._add_version_parser(self.subparsers, version)
         self._add_list_parser(self.subparsers, list)
@@ -135,7 +140,10 @@ class AMDSMIParser(argparse.ArgumentParser):
             return int(int_value)
 
         outputformat = self.helpers.get_output_format()
-        raise amdsmi_cli_exceptions.AmdSmiInvalidParameterValueException(int_value, outputformat)
+        if int_value == "":
+            raise amdsmi_cli_exceptions.AmdSmiMissingParameterValueException(int_value, outputformat)
+        else:
+            raise amdsmi_cli_exceptions.AmdSmiInvalidParameterValueException(int_value, outputformat)
 
 
     def _positive_int(self, int_value):
@@ -145,8 +153,23 @@ class AMDSMIParser(argparse.ArgumentParser):
                 return int(int_value)
 
         outputformat = self.helpers.get_output_format()
-        raise amdsmi_cli_exceptions.AmdSmiInvalidParameterValueException(int_value, outputformat)
+        if int_value == "":
+            raise amdsmi_cli_exceptions.AmdSmiMissingParameterValueException(int_value, outputformat)
+        else:
+            raise amdsmi_cli_exceptions.AmdSmiInvalidParameterValueException(int_value, outputformat)
 
+
+    def _is_valid_string(self, string_value):
+        # Argument type validator
+        # This is for triggering a cli exception if an empty string is detected
+        if string_value:
+            return string_value
+
+        outputformat = self.helpers.get_output_format()
+        if string_value == "":
+            raise amdsmi_cli_exceptions.AmdSmiMissingParameterValueException(string_value, outputformat)
+        else:
+            raise amdsmi_cli_exceptions.AmdSmiInvalidParameterValueException(string_value, outputformat)
 
     def _check_output_file_path(self):
         """ Argument action validator:
@@ -247,7 +270,9 @@ class AMDSMIParser(argparse.ArgumentParser):
                     if selected_device_handles == '':
                         raise amdsmi_cli_exceptions.AmdSmiMissingParameterValueException("--gpu", _GPUSelectAction.ouputformat)
                     else:
-                        raise amdsmi_cli_exceptions.AmdSmiDeviceNotFoundException(selected_device_handles, _GPUSelectAction.ouputformat)
+                        raise amdsmi_cli_exceptions.AmdSmiDeviceNotFoundException(selected_device_handles,
+                                                                                  _GPUSelectAction.ouputformat,
+                                                                                  True, False, False)
 
         return _GPUSelectAction
 
@@ -273,7 +298,8 @@ class AMDSMIParser(argparse.ArgumentParser):
                         raise amdsmi_cli_exceptions.AmdSmiMissingParameterValueException("--cpu", _CPUSelectAction.ouputformat)
                     else:
                         raise amdsmi_cli_exceptions.AmdSmiDeviceNotFoundException(selected_device_handles,
-                                                                                  _CPUSelectAction.ouputformat)
+                                                                                  _CPUSelectAction.ouputformat,
+                                                                                  False, True, False)
         return _CPUSelectAction
 
 
@@ -298,7 +324,8 @@ class AMDSMIParser(argparse.ArgumentParser):
                         raise amdsmi_cli_exceptions.AmdSmiMissingParameterValueException("--core", _CoreSelectAction.ouputformat)
                     else:
                         raise amdsmi_cli_exceptions.AmdSmiDeviceNotFoundException(selected_device_handles,
-                                                                                  _CoreSelectAction.ouputformat)
+                                                                                  _CoreSelectAction.ouputformat,
+                                                                                  False, False, True)
         return _CoreSelectAction
 
 
@@ -543,7 +570,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         vram_help = "All vram information"
         cache_help = "All cache information"
         board_help = "All board information"
-        dpm_policy_help = "The available DPM policy"
+        soc_pstate_help = "The available soc pstate policy"
         xgmi_plpd_help = "The available XGMI per-link power down policy"
         process_isolation_help = "The process isolation status"
 
@@ -579,15 +606,15 @@ class AMDSMIParser(argparse.ArgumentParser):
             static_parser.add_argument('-v', '--vram', action='store_true', required=False, help=vram_help)
             static_parser.add_argument('-c', '--cache', action='store_true', required=False, help=cache_help)
             static_parser.add_argument('-B', '--board', action='store_true', required=False, help=board_help)
+            static_parser.add_argument('-R', '--process-isolation', action='store_true', required=False, help=process_isolation_help)
 
             # Options to display on Hypervisors and Baremetal
             if self.helpers.is_hypervisor() or self.helpers.is_baremetal():
                 static_parser.add_argument('-r', '--ras', action='store_true', required=False, help=ras_help)
                 static_parser.add_argument('-p', '--partition', action='store_true', required=False, help=partition_help)
                 static_parser.add_argument('-l', '--limit', action='store_true', required=False, help=limit_help)
-                static_parser.add_argument('-P', '--policy', action='store_true', required=False, help=dpm_policy_help)
+                static_parser.add_argument('-P', '--soc-pstate', action='store_true', required=False, help=soc_pstate_help)
                 static_parser.add_argument('-x', '--xgmi-plpd', action='store_true', required=False, help=xgmi_plpd_help)
-                static_parser.add_argument('-R', '--process-isolation', action='store_true', required=False, help=process_isolation_help)
 
             if self.helpers.is_linux() and not self.helpers.is_virtual_os():
                 static_parser.add_argument('-u', '--numa', action='store_true', required=False, help=numa_help)
@@ -863,7 +890,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         process_parser.add_argument('-G', '--general', action='store_true', required=False, help=general_help)
         process_parser.add_argument('-e', '--engine', action='store_true', required=False, help=engine_help)
         process_parser.add_argument('-p', '--pid', action='store', type=self._not_negative_int, required=False, help=pid_help)
-        process_parser.add_argument('-n', '--name', action='store', required=False, help=name_help)
+        process_parser.add_argument('-n', '--name', action='store', type=self._is_valid_string, required=False, help=name_help)
 
 
     def _add_profile_parser(self, subparsers, func):
@@ -949,8 +976,8 @@ class AMDSMIParser(argparse.ArgumentParser):
 
 
     def _add_set_value_parser(self, subparsers, func):
-        if not(self.helpers.is_baremetal() and self.helpers.is_linux()):
-            # This subparser is only applicable to Baremetal Linux
+        if not self.helpers.is_linux():
+            # This subparser is only applicable to Linux
             return
 
         # Subparser help text
@@ -969,7 +996,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         set_compute_partition_help = f"Set one of the following the compute partition modes:\n\t{compute_partition_choices_str}"
         set_memory_partition_help = f"Set one of the following the memory partition modes:\n\t{memory_partition_choices_str}"
         set_power_cap_help = "Set power capacity limit"
-        set_dpm_policy_help = "Set the GPU DPM policy using policy id\n"
+        set_soc_pstate_help = "Set the GPU soc pstate policy using policy id\n"
         set_xgmi_plpd_help = "Set the GPU XGMI per-link power down policy using policy id\n"
         set_process_isolation_help = "Enable or disable the GPU process isolation: 0 for disable and 1 for enable.\n"
 
@@ -985,7 +1012,6 @@ class AMDSMIParser(argparse.ArgumentParser):
         set_cpu_enable_apb_help = "Enables the DF p-state performance boost algorithm"
         set_cpu_disable_apb_help = "Disables the DF p-state performance boost algorithm. Input parameter is DFPstate (0-3)"
         set_soc_boost_limit_help = "Sets the boost limit for the given socket. Input parameter is socket BOOST_LIMIT value"
-        run_gpu_clear_sram_data_help = f"Clear the GPU SRAM data\n"
 
         # Help text for CPU Core set options
         set_core_boost_limit_help = "Sets the boost limit for the given core. Input parameter is core BOOST_LIMIT value"
@@ -1000,44 +1026,46 @@ class AMDSMIParser(argparse.ArgumentParser):
         self._add_device_arguments(set_value_parser, required=True)
 
         if self.helpers.is_amdgpu_initialized():
-            # Optional GPU Args
-            set_value_parser.add_argument('-f', '--fan', action=self._validate_fan_speed(), required=False, help=set_fan_help, metavar='%')
-            set_value_parser.add_argument('-l', '--perf-level', action='store', choices=self.helpers.get_perf_levels()[0], type=str.upper, required=False, help=set_perf_level_help, metavar='LEVEL')
-            set_value_parser.add_argument('-P', '--profile', action='store', required=False, help=set_profile_help, metavar='SETPROFILE')
-            set_value_parser.add_argument('-d', '--perf-determinism', action='store', type=self._not_negative_int, required=False, help=set_perf_det_help, metavar='SCLKMAX')
-            set_value_parser.add_argument('-C', '--compute-partition', action='store', choices=self.helpers.get_compute_partition_types(), type=str.upper, required=False, help=set_compute_partition_help, metavar='PARTITION')
-            set_value_parser.add_argument('-M', '--memory-partition', action='store', choices=self.helpers.get_memory_partition_types(), type=str.upper, required=False, help=set_memory_partition_help, metavar='PARTITION')
-            set_value_parser.add_argument('-o', '--power-cap', action='store', type=self._positive_int, required=False, help=set_power_cap_help, metavar='WATTS')
-            set_value_parser.add_argument('-p', '--dpm-policy', action='store', required=False,  type=self._not_negative_int, help=set_dpm_policy_help, metavar='POLICY_ID')
-            set_value_parser.add_argument('-x', '--xgmi-plpd', action='store', required=False,  type=self._not_negative_int, help=set_xgmi_plpd_help, metavar='POLICY_ID')
+            if self.helpers.is_baremetal():
+                # Optional GPU Args
+                set_value_parser.add_argument('-f', '--fan', action=self._validate_fan_speed(), required=False, help=set_fan_help, metavar='%')
+                set_value_parser.add_argument('-l', '--perf-level', action='store', choices=self.helpers.get_perf_levels()[0], type=str.upper, required=False, help=set_perf_level_help, metavar='LEVEL')
+                set_value_parser.add_argument('-P', '--profile', action='store', required=False, help=set_profile_help, metavar='SETPROFILE')
+                set_value_parser.add_argument('-d', '--perf-determinism', action='store', type=self._not_negative_int, required=False, help=set_perf_det_help, metavar='SCLKMAX')
+                set_value_parser.add_argument('-C', '--compute-partition', action='store', choices=self.helpers.get_compute_partition_types(), type=str.upper, required=False, help=set_compute_partition_help, metavar='PARTITION')
+                set_value_parser.add_argument('-M', '--memory-partition', action='store', choices=self.helpers.get_memory_partition_types(), type=str.upper, required=False, help=set_memory_partition_help, metavar='PARTITION')
+                set_value_parser.add_argument('-o', '--power-cap', action='store', type=self._positive_int, required=False, help=set_power_cap_help, metavar='WATTS')
+                set_value_parser.add_argument('-p', '--soc-pstate', action='store', required=False,  type=self._not_negative_int, help=set_soc_pstate_help, metavar='POLICY_ID')
+                set_value_parser.add_argument('-x', '--xgmi-plpd', action='store', required=False,  type=self._not_negative_int, help=set_xgmi_plpd_help, metavar='POLICY_ID')
+
             set_value_parser.add_argument('-R', '--process-isolation', action='store', choices=[0,1], type=self._not_negative_int, required=False, help=set_process_isolation_help, metavar='STATUS')
-            set_value_parser.add_argument('-c', '--clear-sram-data', action='store_true', required=False, help=run_gpu_clear_sram_data_help)
 
         if self.helpers.is_amd_hsmp_initialized():
-            # Optional CPU Args
-            cpu_group = set_value_parser.add_argument_group("CPU Arguments")
-            cpu_group.add_argument('--cpu-pwr-limit', action='append', required=False, type=self._validate_positive, nargs=1, metavar=("PWR_LIMIT"), help=set_cpu_pwr_limit_help)
-            cpu_group.add_argument('--cpu-xgmi-link-width', action='append', required=False, type=self._validate_positive, nargs=2, metavar=("MIN_WIDTH", "MAX_WIDTH"), help=set_cpu_xgmi_link_width_help)
-            cpu_group.add_argument('--cpu-lclk-dpm-level', action='append', required=False, type=self._validate_positive, nargs=3, metavar=("NBIOID", "MIN_DPM", "MAX_DPM"), help=set_cpu_lclk_dpm_level_help)
-            cpu_group.add_argument('--cpu-pwr-eff-mode', action='append', required=False, type=self._validate_positive, nargs=1, metavar=("MODE"), help=set_cpu_pwr_eff_mode_help)
-            cpu_group.add_argument('--cpu-gmi3-link-width', action='append', required=False, type=self._validate_positive, nargs=2, metavar=("MIN_LW", "MAX_LW"), help=set_cpu_gmi3_link_width_help)
-            cpu_group.add_argument('--cpu-pcie-link-rate', action='append', required=False, type=self._validate_positive, nargs=1, metavar=("LINK_RATE"), help=set_cpu_pcie_link_rate_help)
-            cpu_group.add_argument('--cpu-df-pstate-range', action='append', required=False, type=self._validate_positive, nargs=2, metavar=("MAX_PSTATE", "MIN_PSTATE"), help=set_cpu_df_pstate_range_help)
-            cpu_group.add_argument('--cpu-enable-apb', action='store_true', required=False, help=set_cpu_enable_apb_help)
-            cpu_group.add_argument('--cpu-disable-apb', action='append', required=False, type=self._validate_positive, nargs=1, metavar=("DF_PSTATE"), help=set_cpu_disable_apb_help)
-            cpu_group.add_argument('--soc-boost-limit', action='append', required=False, type=self._validate_positive, nargs=1, metavar=("BOOST_LIMIT"), help=set_soc_boost_limit_help)
+            if self.helpers.is_baremetal():
+                # Optional CPU Args
+                cpu_group = set_value_parser.add_argument_group("CPU Arguments")
+                cpu_group.add_argument('--cpu-pwr-limit', action='append', required=False, type=self._validate_positive, nargs=1, metavar=("PWR_LIMIT"), help=set_cpu_pwr_limit_help)
+                cpu_group.add_argument('--cpu-xgmi-link-width', action='append', required=False, type=self._validate_positive, nargs=2, metavar=("MIN_WIDTH", "MAX_WIDTH"), help=set_cpu_xgmi_link_width_help)
+                cpu_group.add_argument('--cpu-lclk-dpm-level', action='append', required=False, type=self._validate_positive, nargs=3, metavar=("NBIOID", "MIN_DPM", "MAX_DPM"), help=set_cpu_lclk_dpm_level_help)
+                cpu_group.add_argument('--cpu-pwr-eff-mode', action='append', required=False, type=self._validate_positive, nargs=1, metavar=("MODE"), help=set_cpu_pwr_eff_mode_help)
+                cpu_group.add_argument('--cpu-gmi3-link-width', action='append', required=False, type=self._validate_positive, nargs=2, metavar=("MIN_LW", "MAX_LW"), help=set_cpu_gmi3_link_width_help)
+                cpu_group.add_argument('--cpu-pcie-link-rate', action='append', required=False, type=self._validate_positive, nargs=1, metavar=("LINK_RATE"), help=set_cpu_pcie_link_rate_help)
+                cpu_group.add_argument('--cpu-df-pstate-range', action='append', required=False, type=self._validate_positive, nargs=2, metavar=("MAX_PSTATE", "MIN_PSTATE"), help=set_cpu_df_pstate_range_help)
+                cpu_group.add_argument('--cpu-enable-apb', action='store_true', required=False, help=set_cpu_enable_apb_help)
+                cpu_group.add_argument('--cpu-disable-apb', action='append', required=False, type=self._validate_positive, nargs=1, metavar=("DF_PSTATE"), help=set_cpu_disable_apb_help)
+                cpu_group.add_argument('--soc-boost-limit', action='append', required=False, type=self._validate_positive, nargs=1, metavar=("BOOST_LIMIT"), help=set_soc_boost_limit_help)
 
-            # Optional CPU Core Args
-            core_group = set_value_parser.add_argument_group("CPU Core Arguments")
-            core_group.add_argument('--core-boost-limit', action='append', required=False, type=self._validate_positive, nargs=1, metavar=("BOOST_LIMIT"), help=set_core_boost_limit_help)
+                # Optional CPU Core Args
+                core_group = set_value_parser.add_argument_group("CPU Core Arguments")
+                core_group.add_argument('--core-boost-limit', action='append', required=False, type=self._validate_positive, nargs=1, metavar=("BOOST_LIMIT"), help=set_core_boost_limit_help)
 
         # Add command modifiers to the bottom
         self._add_command_modifiers(set_value_parser)
 
 
     def _add_reset_parser(self, subparsers, func):
-        if not(self.helpers.is_baremetal() and self.helpers.is_linux()):
-            # This subparser is only applicable to Baremetal Linux
+        if not self.helpers.is_linux():
+            # This subparser is only applicable to Linux
             return
 
         if not self.helpers.is_amdgpu_initialized():
@@ -1060,6 +1088,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         reset_compute_help = "Reset compute partitions on the specified GPU"
         reset_memory_help = "Reset memory partitions on the specified GPU"
         reset_power_cap_help = "Reset power capacity limit to max capable"
+        reset_gpu_clean_local_data_help = "Clean up local data in LDS/GPRs"
 
         # Create reset subparser
         reset_parser = subparsers.add_parser('reset', help=reset_help, description=reset_subcommand_help)
@@ -1072,20 +1101,24 @@ class AMDSMIParser(argparse.ArgumentParser):
         # Device args are required as safeguard from the user applying the operation to all gpus unintentionally
         self._add_device_arguments(reset_parser, required=True)
 
-        # Add reset arguments
-        reset_parser.add_argument('-G', '--gpureset', action='store_true', required=False, help=gpureset_help)
-        reset_parser.add_argument('-c', '--clocks', action='store_true', required=False, help=reset_clocks_help)
-        reset_parser.add_argument('-f', '--fans', action='store_true', required=False, help=reset_fans_help)
-        reset_parser.add_argument('-p', '--profile', action='store_true', required=False, help=reset_profile_help)
-        reset_parser.add_argument('-x', '--xgmierr', action='store_true', required=False, help=reset_xgmierr_help)
-        reset_parser.add_argument('-d', '--perf-determinism', action='store_true', required=False, help=reset_perf_det_help)
-        reset_parser.add_argument('-C', '--compute-partition', action='store_true', required=False, help=reset_compute_help)
-        reset_parser.add_argument('-M', '--memory-partition', action='store_true', required=False, help=reset_memory_help)
-        reset_parser.add_argument('-o', '--power-cap', action='store_true', required=False, help=reset_power_cap_help)
+        if self.helpers.is_baremetal():
+            # Add Baremetal reset arguments
+            reset_parser.add_argument('-G', '--gpureset', action='store_true', required=False, help=gpureset_help)
+            reset_parser.add_argument('-c', '--clocks', action='store_true', required=False, help=reset_clocks_help)
+            reset_parser.add_argument('-f', '--fans', action='store_true', required=False, help=reset_fans_help)
+            reset_parser.add_argument('-p', '--profile', action='store_true', required=False, help=reset_profile_help)
+            reset_parser.add_argument('-x', '--xgmierr', action='store_true', required=False, help=reset_xgmierr_help)
+            reset_parser.add_argument('-d', '--perf-determinism', action='store_true', required=False, help=reset_perf_det_help)
+            reset_parser.add_argument('-C', '--compute-partition', action='store_true', required=False, help=reset_compute_help)
+            reset_parser.add_argument('-M', '--memory-partition', action='store_true', required=False, help=reset_memory_help)
+            reset_parser.add_argument('-o', '--power-cap', action='store_true', required=False, help=reset_power_cap_help)
+
+        # Add Baremetal and Virtual OS reset arguments
+        reset_parser.add_argument('-l', '--clean-local-data', action='store_true', required=False, help=reset_gpu_clean_local_data_help)
 
 
     def _add_monitor_parser(self, subparsers, func):
-        if not(self.helpers.is_linux()):
+        if not self.helpers.is_linux():
             # This subparser is only applicable to Linux
             return
 
@@ -1107,13 +1140,13 @@ class AMDSMIParser(argparse.ArgumentParser):
         mem_util_help = "Monitor memory utilization (%%) and clock (MHz)"
         encoder_util_help = "Monitor encoder utilization (%%) and clock (MHz)"
         decoder_util_help = "Monitor decoder utilization (%%) and clock (MHz)"
-        throttle_help = "Monitor thermal throttle status"
         ecc_help = "Monitor ECC single bit, ECC double bit, and PCIe replay error counts"
         mem_usage_help = "Monitor memory usage in MB"
         pcie_bandwidth_help = "Monitor PCIe bandwidth in Mb/s"
+        process_help = "Enable Process information table below monitor output"
 
         # Create monitor subparser
-        monitor_parser = subparsers.add_parser('monitor', help=monitor_help, description=monitor_subcommand_help)
+        monitor_parser = subparsers.add_parser('monitor', help=monitor_help, description=monitor_subcommand_help, aliases=["dmon"])
         monitor_parser._optionals.title = monitor_optionals_title
         monitor_parser.formatter_class=lambda prog: AMDSMISubparserHelpFormatter(prog)
         monitor_parser.set_defaults(func=func)
@@ -1130,10 +1163,10 @@ class AMDSMIParser(argparse.ArgumentParser):
         monitor_parser.add_argument('-m', '--mem', action='store_true', required=False, help=mem_util_help)
         monitor_parser.add_argument('-n', '--encoder', action='store_true', required=False, help=encoder_util_help)
         monitor_parser.add_argument('-d', '--decoder', action='store_true', required=False, help=decoder_util_help)
-        monitor_parser.add_argument('-s', '--throttle-status', action='store_true', required=False, help=throttle_help)
         monitor_parser.add_argument('-e', '--ecc', action='store_true', required=False, help=ecc_help)
         monitor_parser.add_argument('-v', '--vram-usage', action='store_true', required=False, help=mem_usage_help)
         monitor_parser.add_argument('-r', '--pcie', action='store_true', required=False, help=pcie_bandwidth_help)
+        monitor_parser.add_argument('-q', '--process', action='store_true', required=False, help=process_help)
 
 
     def _add_rocm_smi_parser(self, subparsers, func):
@@ -1216,6 +1249,9 @@ class AMDSMIParser(argparse.ArgumentParser):
             l = len("argument : invalid choice: ") + 1
             message = message[l:]
             message = message.split("'")[0]
+            # Check if the command is possible in other system configurations and error accordingly
+            if message in self.possible_commands:
+                raise amdsmi_cli_exceptions.AmdSmiCommandNotSupportedException(message, outputformat)
             raise amdsmi_cli_exceptions.AmdSmiInvalidCommandException(message, outputformat)
         elif "unrecognized arguments: " in message:
             l = len("unrecognized arguments: ")

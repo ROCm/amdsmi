@@ -560,7 +560,7 @@ std::string RocmSMI::getRSMIEnvVarInfo(void) {
   for (auto it=env_vars_.enum_overrides.begin();
        it != env_vars_.enum_overrides.end(); ++it) {
     DevInfoTypes type = static_cast<DevInfoTypes>(*it);
-    ss << (std::to_string(*it) + " (" + Device::devInfoTypesStrings.at(type) + ")");
+    ss << (std::to_string(*it) + " (" + Device::get_type_string(type) + ")");
     auto temp_it = it;
     if(++temp_it != env_vars_.enum_overrides.end()) {
       ss << ", ";
@@ -707,6 +707,8 @@ static bool isAMDGPU(std::string dev_path) {
 uint32_t RocmSMI::DiscoverAmdgpuDevices(void) {
   std::string err_msg;
   uint32_t count = 0;
+  int32_t cardId = 0;
+  int32_t max_cardId = -1;
   std::ostringstream ss;
 
   // If this gets called more than once, clear previous findings.
@@ -730,6 +732,9 @@ uint32_t RocmSMI::DiscoverAmdgpuDevices(void) {
         if ((strcmp(dentry->d_name, ".") == 0) ||
            (strcmp(dentry->d_name, "..") == 0))
            continue;
+        sscanf(&dentry->d_name[strlen(kDeviceNamePrefix)], "%d", &cardId);
+        if (cardId > max_cardId)
+           max_cardId = cardId;
         count++;
     }
     dentry = readdir(drm_dir);
@@ -782,7 +787,7 @@ uint32_t RocmSMI::DiscoverAmdgpuDevices(void) {
 
   uint32_t cardAdded = 0;
   // Discover all root cards & gpu partitions associated with each
-  for (uint32_t cardId = 0; cardId < count; cardId++) {
+  for (uint32_t cardId = 0; cardId <= max_cardId; cardId++) {
     std::string path = kPathDRMRoot;
     path += "/card";
     path += std::to_string(cardId);

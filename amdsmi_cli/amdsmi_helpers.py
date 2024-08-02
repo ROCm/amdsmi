@@ -22,6 +22,7 @@
 
 import logging
 import math
+import os
 import platform
 import sys
 import time
@@ -30,6 +31,7 @@ from subprocess import run
 from subprocess import PIPE, STDOUT
 from typing import List
 from enum import Enum
+from typing import Set
 
 from amdsmi_init import *
 from BDF import BDF
@@ -49,6 +51,7 @@ class AMDSMIHelpers():
         self._is_hypervisor = False
         self._is_virtual_os = False
         self._is_baremetal = False
+        self._is_passthrough = False
 
         self._is_linux = False
         self._is_windows = False
@@ -57,11 +60,23 @@ class AMDSMIHelpers():
             self._is_linux = True
             logging.debug(f"AMDSMIHelpers: Platform is linux:{self._is_linux}")
 
-            output = run(["lscpu"], stdout=PIPE, stderr=STDOUT, encoding="UTF-8").stdout
-            if "hypervisor" not in output:
-                self._is_baremetal = True
-            else:
-                self._is_virtual_os = True
+            try:
+                with open('/proc/cpuinfo', 'r') as f:
+                    if 'hypervisor' in f.read():
+                        self._is_virtual_os = True
+            except IOError:
+                pass
+
+            self._is_baremetal = not self._is_virtual_os
+
+            # Check for passthrough system filtering by device id
+            output = self.get_pci_device_ids()
+            passthrough_device_ids = ["7460", "73c8", "74a0", "74a1", "74a2"]
+            if any(('0x' + device_id) in output for device_id in passthrough_device_ids):
+                if self._is_virtual_os:
+                    self._is_baremetal = True
+                    self._is_virtual_os = False
+                    self._is_passthrough = True
 
 
     def os_info(self, string_format=True):
@@ -89,10 +104,14 @@ class AMDSMIHelpers():
         else:
             operating_system_type = "Unknown"
 
+        # Passthrough Override
+        if self._is_passthrough:
+            operating_system_type = "Guest (Passthrough)"
+
         if string_format:
             return f"{operating_system} {operating_system_type}"
-        else:
-            return (operating_system, operating_system_type)
+
+        return (operating_system, operating_system_type)
 
 
     def is_virtual_os(self):
@@ -725,7 +744,7 @@ class AMDSMIHelpers():
         if logger.is_json_format():
             return {"value": value, "unit": unit}
         if logger.is_human_readable_format():
-            return f"{value} {unit}"
+            return f"{value} {unit}".rstrip()
         return f"{value}"
 
     class SI_Unit(float, Enum):
@@ -770,3 +789,17 @@ class AMDSMIHelpers():
             int : converted SI unit of value requested
         """
         return int(float(val) * unit_in / unit_out)
+
+    def get_pci_device_ids(self) -> Set[str]:
+        pci_devices_path = "/sys/bus/pci/devices"
+        pci_devices: set[str] = set()
+        for device in os.listdir(pci_devices_path):
+            subsystem_device_path = os.path.join(pci_devices_path, device, "subsystem_device")
+            try:
+                with open(subsystem_device_path, 'r') as f:
+                    subsystem_device = f.read().strip()
+                    pci_devices.add(subsystem_device)
+            except Exception as _:
+                continue
+        return pci_devices
+

@@ -149,6 +149,7 @@ typedef enum {
                                          //!< information can be retrieved. By
                                          //!< default, only AMD devices are
                                          //!<  enumerated by RSMI.
+  RSMI_INIT_FLAG_THRAD_ONLY_MUTEX = 0x400000000000000,   //!< The mutex limit to thread
   RSMI_INIT_FLAG_RESRV_TEST1 = 0x800000000000000,  //!< Reserved for test
 } rsmi_init_flags_t;
 
@@ -357,13 +358,16 @@ typedef struct {
  * Event notification event types
  */
 typedef enum {
+  RSMI_EVT_NOTIF_NONE = KFD_SMI_EVENT_NONE,        //!< Unused
   RSMI_EVT_NOTIF_VMFAULT = KFD_SMI_EVENT_VMFAULT,  //!< VM page fault
   RSMI_EVT_NOTIF_FIRST = RSMI_EVT_NOTIF_VMFAULT,
+
   RSMI_EVT_NOTIF_THERMAL_THROTTLE = KFD_SMI_EVENT_THERMAL_THROTTLE,
   RSMI_EVT_NOTIF_GPU_PRE_RESET = KFD_SMI_EVENT_GPU_PRE_RESET,
   RSMI_EVT_NOTIF_GPU_POST_RESET = KFD_SMI_EVENT_GPU_POST_RESET,
+  RSMI_EVT_NOTIF_RING_HANG = KFD_SMI_EVENT_RING_HANG,
 
-  RSMI_EVT_NOTIF_LAST = RSMI_EVT_NOTIF_GPU_POST_RESET
+  RSMI_EVT_NOTIF_LAST = RSMI_EVT_NOTIF_RING_HANG
 } rsmi_evt_notification_type_t;
 
 /**
@@ -3350,7 +3354,7 @@ rsmi_status_t rsmi_dev_gpu_clk_freq_set(uint32_t dv_ind,
  *
  *  @return ::RSMI_STATUS_SUCCESS is returned upon successful call, non-zero on fail
  */
-rsmi_status_t rsmi_dev_dpm_policy_get(uint32_t dv_ind,
+rsmi_status_t rsmi_dev_soc_pstate_get(uint32_t dv_ind,
                              rsmi_dpm_policy_t* policy);
 
 /**
@@ -3368,7 +3372,7 @@ rsmi_status_t rsmi_dev_dpm_policy_get(uint32_t dv_ind,
  *
  *  @return ::RSMI_STATUS_SUCCESS is returned upon successful call, non-zero on fail
  */
-rsmi_status_t rsmi_dev_dpm_policy_set(uint32_t dv_ind,
+rsmi_status_t rsmi_dev_soc_pstate_set(uint32_t dv_ind,
                              uint32_t policy_id);
 
 /**
@@ -3403,7 +3407,7 @@ rsmi_status_t rsmi_dev_xgmi_plpd_get(uint32_t dv_ind,
  *  @param[in] processor_handle a processor handle
  *
  *  @param[in] xgmi_plpd_id the xgmi plpd id to set. The id is the id in
- *  rsmi_dpm_policy_entry_t, which can be obtained by calling
+ *  rsmi_soc_pstate_entry_t, which can be obtained by calling
  *  rsmi_dev_xgmi_plpd_get()
  *
  *  @return ::RSMI_STATUS_SUCCESS is returned upon successful call, non-zero on fail
@@ -3448,11 +3452,10 @@ rsmi_status_t rsmi_dev_process_isolation_set(uint32_t dv_ind,
                              uint32_t pisolate);
 
 /**
- * @brief Clear the GPU SRAM data 
- *
+ * @brief Run the cleaner shader to clean up data in LDS/GPRs
  *
  * @details Given a device index @p dv_ind, this function will clear the
- * GPU SRAM data  of this device. This can be called between user logins to prevent information leak.
+ * GPU local data  of this device. This can be called between user logins to prevent information leak.
  *
  *  @note This function requires root access
  *
@@ -3463,7 +3466,7 @@ rsmi_status_t rsmi_dev_process_isolation_set(uint32_t dv_ind,
  *
  *  @return ::RSMI_STATUS_SUCCESS is returned upon successful call, non-zero on fail
  */
-rsmi_status_t rsmi_dev_gpu_clear_sram_data(uint32_t dv_ind, uint32_t sclean);
+rsmi_status_t rsmi_dev_gpu_run_cleaner_shader(uint32_t dv_ind, uint32_t sclean);
 
 /** @} */  // end of PerfCont
 
