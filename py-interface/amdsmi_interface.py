@@ -386,6 +386,10 @@ class AmdSmiIoLinkType(IntEnum):
 class AmdSmiUtilizationCounterType(IntEnum):
     COARSE_GRAIN_GFX_ACTIVITY = amdsmi_wrapper.AMDSMI_COARSE_GRAIN_GFX_ACTIVITY
     COARSE_GRAIN_MEM_ACTIVITY = amdsmi_wrapper.AMDSMI_COARSE_GRAIN_MEM_ACTIVITY
+    COARSE_DECODER_ACTIVITY = amdsmi_wrapper.AMDSMI_COARSE_DECODER_ACTIVITY
+    FINE_GRAIN_GFX_ACTIVITY = amdsmi_wrapper.AMDSMI_FINE_GRAIN_GFX_ACTIVITY
+    FINE_GRAIN_MEM_ACTIVITY = amdsmi_wrapper.AMDSMI_FINE_GRAIN_MEM_ACTIVITY
+    FINE_DECODER_ACTIVITY = amdsmi_wrapper.AMDSMI_FINE_DECODER_ACTIVITY
     UTILIZATION_COUNTER_FIRST = amdsmi_wrapper.AMDSMI_UTILIZATION_COUNTER_FIRST
     UTILIZATION_COUNTER_LAST = amdsmi_wrapper.AMDSMI_UTILIZATION_COUNTER_LAST
 
@@ -3395,7 +3399,7 @@ def amdsmi_get_utilization_count(
         if counter_type == "AMDSMI_UTILIZATION_COUNTER_FIRST":
             counter_type = "AMDSMI_COARSE_GRAIN_GPU_ACTIVITY"
         if counter_type == "AMDSMI_UTILIZATION_COUNTER_LAST":
-            counter_type = "AMDSMI_COARSE_GRAIN_MEM_ACTIVITY"
+            counter_type = "AMDSMI_FINE_DECODER_ACTIVITY"
         result.append(
             {"type": counter_type, "value": util_counter_list[index].value})
 
