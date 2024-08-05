@@ -375,6 +375,9 @@ class AMDSMIParser(argparse.ArgumentParser):
 
 
     def _validate_cpu_core(self, value):
+        if value == '':
+            outputformat = self.helpers.get_output_format()
+            raise amdsmi_cli_exceptions.AmdSmiMissingParameterValueException(value, outputformat)
         if isinstance(value, str):
             if value.lower() == "all":
                 return value
