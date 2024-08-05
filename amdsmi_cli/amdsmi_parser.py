@@ -171,6 +171,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         else:
             raise amdsmi_cli_exceptions.AmdSmiInvalidParameterValueException(string_value, outputformat)
 
+
     def _check_output_file_path(self):
         """ Argument action validator:
             Returns a path to a file from the output file path provided.

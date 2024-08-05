@@ -331,7 +331,7 @@ class AMDSMIHelpers():
             (False, valid_gpu_format, str): Return False, whether the format of the GPU input is valid, and the first input that failed to be converted
         """
         if 'all' in gpu_selections:
-            return (True, amdsmi_interface.amdsmi_get_processor_handles())
+            return True, True, amdsmi_interface.amdsmi_get_processor_handles()
 
         if isinstance(gpu_selections, str):
             gpu_selections = [gpu_selections]
@@ -387,7 +387,7 @@ class AMDSMIHelpers():
             (False, str): Return False, and the first input that failed to be converted
         """
         if 'all' in cpu_selections:
-            return (True, amdsmi_interface.amdsmi_get_cpusocket_handles())
+            return True, True, amdsmi_interface.amdsmi_get_cpusocket_handles()
 
         if isinstance(cpu_selections, str):
             cpu_selections = [cpu_selections]
@@ -428,7 +428,7 @@ class AMDSMIHelpers():
             (False, str): Return False, and the first input that failed to be converted
         """
         if 'all' in core_selections:
-            return (True, amdsmi_interface.amdsmi_get_cpucore_handles())
+            return True, True, amdsmi_interface.amdsmi_get_cpucore_handles()
 
         if isinstance(core_selections, str):
             core_selections = [core_selections]
