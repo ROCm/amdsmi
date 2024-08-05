@@ -55,6 +55,7 @@
 #include <set>
 #include <map>
 #include <memory>
+#include <limits>
 #include <xf86drm.h>
 #include "amd_smi/amdsmi.h"
 #include "amd_smi/impl/fdinfo.h"
@@ -799,6 +800,7 @@ amdsmi_status_t amdsmi_get_gpu_vram_info(
     info->vram_type = AMDSMI_VRAM_TYPE_UNKNOWN;
     info->vram_size = 0;
     info->vram_vendor = AMDSMI_VRAM_VENDOR__PLACEHOLDER0;
+    info->vram_bit_width = std::numeric_limits<decltype(info->vram_bit_width)>::max();
 
     // Only can read vram type from libdrm
     if (gpu_device->check_if_drm_is_supported()) {
@@ -808,6 +810,7 @@ amdsmi_status_t amdsmi_get_gpu_vram_info(
             sizeof(struct drm_amdgpu_info_device), &dev_info);
         if (r == AMDSMI_STATUS_SUCCESS) {
             info->vram_type = amd::smi::vram_type_value(dev_info.vram_type);
+            info->vram_bit_width = dev_info.vram_bit_width;
         }
     }
 
