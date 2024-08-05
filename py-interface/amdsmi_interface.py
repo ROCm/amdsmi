@@ -1770,6 +1770,7 @@ def amdsmi_get_gpu_vram_info(
         "vram_type": vram_info.vram_type,
         "vram_vendor": vram_info.vram_vendor,
         "vram_size": vram_info.vram_size,
+        "vram_bit_width": vram_info.vram_bit_width
     }
 
 

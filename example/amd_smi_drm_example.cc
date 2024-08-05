@@ -303,6 +303,20 @@ int main() {
             printf("\tRevisionID: 0x%x\n", asic_info.rev_id);
             printf("\tAsic serial: 0x%s\n\n", asic_info.asic_serial);
 
+            // Get VRAM info
+            amdsmi_vram_info_t vram_info = {};
+            ret = amdsmi_get_gpu_vram_info(processor_handles[j], &vram_info);
+            if (ret != amdsmi_status_t::AMDSMI_STATUS_NOT_SUPPORTED) {
+                CHK_AMDSMI_RET(ret)
+                printf("    Output of amdsmi_get_gpu_vram_info:\n");
+                printf("\tVRAM Size: 0x%lx (%ld) \n", vram_info.vram_size, vram_info.vram_size);
+                printf("\tBIT Width: 0x%x (%d) \n\n", vram_info.vram_bit_width, vram_info.vram_bit_width);
+            }
+            else {
+                printf("\t**amdsmi_get_gpu_vram_info() not supported on this system.\n");
+            }
+
+
             // Get VBIOS info
             amdsmi_vbios_info_t vbios_info = {};
             ret = amdsmi_get_gpu_vbios_info(processor_handles[j], &vbios_info);

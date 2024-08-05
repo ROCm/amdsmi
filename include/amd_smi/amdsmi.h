@@ -616,7 +616,8 @@ typedef struct {
   amdsmi_vram_type_t vram_type;
   amdsmi_vram_vendor_type_t vram_vendor;
   uint64_t vram_size;
-  uint64_t reserved[6];
+  uint32_t vram_bit_width;
+  uint64_t reserved[5];
 } amdsmi_vram_info_t;
 
 

@@ -953,7 +953,9 @@ struct_amdsmi_vram_info_t._fields_ = [
     ('vram_type', amdsmi_vram_type_t),
     ('vram_vendor', amdsmi_vram_vendor_type_t),
     ('vram_size', ctypes.c_uint64),
-    ('reserved', ctypes.c_uint64 * 6),
+    ('vram_bit_width', ctypes.c_uint32),
+    ('PADDING_0', ctypes.c_ubyte * 4),
+    ('reserved', ctypes.c_uint64 * 5),
 ]
 
 amdsmi_vram_info_t = struct_amdsmi_vram_info_t
