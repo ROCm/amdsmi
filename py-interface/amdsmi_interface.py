@@ -1643,7 +1643,8 @@ def amdsmi_get_gpu_asic_info(
         "device_id": asic_info_struct.device_id,
         "rev_id": _padHexValue(hex(asic_info_struct.rev_id), 2),
         "asic_serial": asic_info_struct.asic_serial.decode("utf-8"),
-        "oam_id": asic_info_struct.oam_id
+        "oam_id": asic_info_struct.oam_id,
+        "num_compute_units": asic_info_struct.num_of_compute_units
     }
 
     string_values = ["market_name", "vendor_name"]
@@ -1669,6 +1670,10 @@ def amdsmi_get_gpu_asic_info(
     # Check for max value as a sign for not applicable
     if asic_info["oam_id"] == 0xFFFF: # uint 16 max
         asic_info["oam_id"] = "N/A"
+
+    # Check for max value as a sign for not applicable
+    if asic_info["num_compute_units"] == 0xFFFFFFFF: # uint 32 max
+        asic_info["num_compute_units"] = "N/A"
 
     # Remove commas from vendor name for clean output
     asic_info["vendor_name"] = asic_info["vendor_name"].replace(',', '')

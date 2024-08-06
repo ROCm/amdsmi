@@ -901,7 +901,8 @@ struct_amdsmi_asic_info_t._fields_ = [
     ('rev_id', ctypes.c_uint32),
     ('asic_serial', ctypes.c_char * 32),
     ('oam_id', ctypes.c_uint32),
-    ('reserved', ctypes.c_uint32 * 18),
+    ('num_of_compute_units', ctypes.c_uint32),
+    ('reserved', ctypes.c_uint32 * 17),
 ]
 
 amdsmi_asic_info_t = struct_amdsmi_asic_info_t

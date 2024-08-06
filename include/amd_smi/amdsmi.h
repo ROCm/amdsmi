@@ -588,7 +588,8 @@ typedef struct {
   uint32_t rev_id;
   char asic_serial[AMDSMI_NORMAL_STRING_LENGTH];
   uint32_t oam_id;   //< 0xFFFF if not supported
-  uint32_t reserved[18];
+  uint32_t num_of_compute_units;   //< 0xFFFFFFFF if not supported
+  uint32_t reserved[17];
 } amdsmi_asic_info_t;
 
 typedef enum {
