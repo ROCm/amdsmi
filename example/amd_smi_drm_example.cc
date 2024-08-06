@@ -301,7 +301,8 @@ int main() {
             printf("\tDeviceID: 0x%lx\n", asic_info.device_id);
             printf("\tVendorID: 0x%x\n", asic_info.vendor_id);
             printf("\tRevisionID: 0x%x\n", asic_info.rev_id);
-            printf("\tAsic serial: 0x%s\n\n", asic_info.asic_serial);
+            printf("\tAsic serial: 0x%s\n", asic_info.asic_serial);
+            printf("\tNum of Computes: %d\n\n", asic_info.num_of_compute_units);
 
             // Get VRAM info
             amdsmi_vram_info_t vram_info = {};

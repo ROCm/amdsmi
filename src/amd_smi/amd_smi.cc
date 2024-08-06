@@ -757,6 +757,15 @@ amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_i
                     &(tmp_oam_id));
     info->oam_id = tmp_oam_id;
 
+    // default to 0xffffffff as not supported
+    info->num_of_compute_units = std::numeric_limits<uint32_t>::max();
+    auto tmp_num_of_compute_units = uint32_t(0);
+    status = rsmi_wrapper(amd::smi::rsmi_dev_number_of_computes_get, processor_handle,
+                          &tmp_num_of_compute_units);
+    if (status == amdsmi_status_t::AMDSMI_STATUS_SUCCESS) {
+        info->num_of_compute_units = tmp_num_of_compute_units;
+    }
+
     return AMDSMI_STATUS_SUCCESS;
 }
 
