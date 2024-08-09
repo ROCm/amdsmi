@@ -1,6 +1,6 @@
 # AMD SMI CLI Tool
 
-**Disclaimer: CLI Tool is provided as example code to aid development of telemetry tools. Use of the Python or C++ Library is reccomended for a reliable source of data.**
+**Disclaimer: CLI Tool is provided as an example code to aid the development of telemetry tools. Python or C++ Library is recommended as a reliable data source.**  
 
 This tool acts as a command line interface for manipulating
 and monitoring the amdgpu kernel, and is intended to replace
