@@ -1552,6 +1552,16 @@ amdsmi_status_t amdsmi_set_gpu_clk_range(amdsmi_processor_handle processor_handl
                 static_cast<rsmi_clk_type_t>(clkType));
 }
 
+amdsmi_status_t amdsmi_set_gpu_clk_limit(amdsmi_processor_handle processor_handle,
+                                         amdsmi_clk_type_t clk_type,
+                                          amdsmi_clk_limit_type_t limit_type,
+                                          uint64_t clk_value) {
+    return rsmi_wrapper(rsmi_dev_clk_extremum_set, processor_handle,
+                static_cast<rsmi_freq_ind_t>(limit_type),
+                clk_value,
+                static_cast<rsmi_clk_type_t>(clk_type));
+}
+
 amdsmi_status_t amdsmi_reset_gpu(amdsmi_processor_handle processor_handle) {
     return rsmi_wrapper(rsmi_dev_gpu_reset, processor_handle);
 }
