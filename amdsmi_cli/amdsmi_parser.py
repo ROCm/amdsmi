@@ -171,6 +171,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         else:
             raise amdsmi_cli_exceptions.AmdSmiInvalidParameterValueException(string_value, outputformat)
 
+
     def _check_output_file_path(self):
         """ Argument action validator:
             Returns a path to a file from the output file path provided.
@@ -262,13 +263,16 @@ class AMDSMIParser(argparse.ArgumentParser):
             def __call__(self, parser, args, values, option_string=None):
                 if "all" in gpu_choices:
                     del gpu_choices["all"]
-                status, selected_device_handles = amdsmi_helpers.get_device_handles_from_gpu_selections(gpu_selections=values,
+                status, gpu_format, selected_device_handles = amdsmi_helpers.get_device_handles_from_gpu_selections(gpu_selections=values,
                                                                                                          gpu_choices=gpu_choices)
                 if status:
                     setattr(args, self.dest, selected_device_handles)
                 else:
                     if selected_device_handles == '':
                         raise amdsmi_cli_exceptions.AmdSmiMissingParameterValueException("--gpu", _GPUSelectAction.ouputformat)
+                    elif not gpu_format:
+                        raise amdsmi_cli_exceptions.AmdSmiInvalidParameterValueException(selected_device_handles,
+                                                                                         _GPUSelectAction.ouputformat)
                     else:
                         raise amdsmi_cli_exceptions.AmdSmiDeviceNotFoundException(selected_device_handles,
                                                                                   _GPUSelectAction.ouputformat,
@@ -289,13 +293,16 @@ class AMDSMIParser(argparse.ArgumentParser):
             def __call__(self, parser, args, values, option_string=None):
                 if "all" in cpu_choices:
                     del cpu_choices["all"]
-                status, selected_device_handles = amdsmi_helpers.get_device_handles_from_cpu_selections(cpu_selections=values,
+                status, cpu_format, selected_device_handles = amdsmi_helpers.get_device_handles_from_cpu_selections(cpu_selections=values,
                                                                                                         cpu_choices=cpu_choices)
                 if status:
                     setattr(args, self.dest, selected_device_handles)
                 else:
                     if selected_device_handles == '':
                         raise amdsmi_cli_exceptions.AmdSmiMissingParameterValueException("--cpu", _CPUSelectAction.ouputformat)
+                    elif not cpu_format:
+                        raise amdsmi_cli_exceptions.AmdSmiInvalidParameterValueException(selected_device_handles,
+                                                                                         _CPUSelectAction.ouputformat)
                     else:
                         raise amdsmi_cli_exceptions.AmdSmiDeviceNotFoundException(selected_device_handles,
                                                                                   _CPUSelectAction.ouputformat,
@@ -315,13 +322,16 @@ class AMDSMIParser(argparse.ArgumentParser):
             def __call__(self, parser, args, values, option_string=None):
                 if "all" in core_choices:
                     del core_choices["all"]
-                status, selected_device_handles = amdsmi_helpers.get_device_handles_from_core_selections(core_selections=values,
+                status, core_format, selected_device_handles = amdsmi_helpers.get_device_handles_from_core_selections(core_selections=values,
                                                                                                         core_choices=core_choices)
                 if status:
                     setattr(args, self.dest, selected_device_handles)
                 else:
                     if selected_device_handles == '':
                         raise amdsmi_cli_exceptions.AmdSmiMissingParameterValueException("--core", _CoreSelectAction.ouputformat)
+                    elif not core_format:
+                        raise amdsmi_cli_exceptions.AmdSmiInvalidParameterValueException(selected_device_handles,
+                                                                                         _CoreSelectAction.ouputformat)
                     else:
                         raise amdsmi_cli_exceptions.AmdSmiDeviceNotFoundException(selected_device_handles,
                                                                                   _CoreSelectAction.ouputformat,
@@ -366,6 +376,9 @@ class AMDSMIParser(argparse.ArgumentParser):
 
 
     def _validate_cpu_core(self, value):
+        if value == '':
+            outputformat = self.helpers.get_output_format()
+            raise amdsmi_cli_exceptions.AmdSmiMissingParameterValueException(value, outputformat)
         if isinstance(value, str):
             if value.lower() == "all":
                 return value
@@ -607,10 +620,10 @@ class AMDSMIParser(argparse.ArgumentParser):
             static_parser.add_argument('-c', '--cache', action='store_true', required=False, help=cache_help)
             static_parser.add_argument('-B', '--board', action='store_true', required=False, help=board_help)
             static_parser.add_argument('-R', '--process-isolation', action='store_true', required=False, help=process_isolation_help)
+            static_parser.add_argument('-r', '--ras', action='store_true', required=False, help=ras_help)
 
             # Options to display on Hypervisors and Baremetal
             if self.helpers.is_hypervisor() or self.helpers.is_baremetal():
-                static_parser.add_argument('-r', '--ras', action='store_true', required=False, help=ras_help)
                 static_parser.add_argument('-p', '--partition', action='store_true', required=False, help=partition_help)
                 static_parser.add_argument('-l', '--limit', action='store_true', required=False, help=limit_help)
                 static_parser.add_argument('-P', '--soc-pstate', action='store_true', required=False, help=soc_pstate_help)
@@ -791,6 +804,9 @@ class AMDSMIParser(argparse.ArgumentParser):
                 metric_parser.add_argument('-c', '--clock', action='store_true', required=False, help=clock_help)
                 metric_parser.add_argument('-t', '--temperature', action='store_true', required=False, help=temperature_help)
                 metric_parser.add_argument('-P', '--pcie', action='store_true', required=False, help=pcie_help)
+
+            # Options that only apply to Hypervisors and Baremetal Linux
+            if self.helpers.is_hypervisor() or (self.helpers.is_baremetal() and self.helpers.is_linux()):
                 metric_parser.add_argument('-e', '--ecc', action='store_true', required=False, help=ecc_help)
                 metric_parser.add_argument('-k', '--ecc-blocks', action='store_true', required=False, help=ecc_blocks_help)
 

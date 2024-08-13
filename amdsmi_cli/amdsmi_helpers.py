@@ -26,10 +26,9 @@ import os
 import platform
 import sys
 import time
+import re
 
-from subprocess import run
-from subprocess import PIPE, STDOUT
-from typing import List
+from typing import List, Union
 from enum import Enum
 from typing import Set
 
@@ -305,7 +304,21 @@ class AMDSMIHelpers():
         return (gpu_choices, gpu_choices_str)
 
 
-    def get_device_handles_from_gpu_selections(self, gpu_selections: List[str], gpu_choices=None):
+    @staticmethod
+    def is_UUID(uuid_question: str) -> bool:
+        """Determine if given string is of valid UUID format
+        Args:
+            uuid_question (str): the given string to be evaluated.
+        Returns:
+            True or False: wether the UUID given matches the UUID format.
+        """
+        UUID_pattern = re.compile("^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$", flags=re.IGNORECASE)
+        if re.match(UUID_pattern, uuid_question) is None:
+            return False
+        return True
+
+
+    def get_device_handles_from_gpu_selections(self, gpu_selections: List[str], gpu_choices=None) -> tuple:
         """Convert provided gpu_selections to device_handles
 
         Args:
@@ -313,17 +326,18 @@ class AMDSMIHelpers():
                     ex: ID:0  | BDF:0000:23:00.0 | UUID:ffffffff-0000-1000-0000-000000000000
             gpu_choices (dict{gpu_choices}): This is a dictionary of the possible gpu_choices
         Returns:
-            (True, list[device_handles]): Returns a list of all the gpu_selections converted to
+            (True, True, list[device_handles]): Returns a list of all the gpu_selections converted to
                 amdsmi device_handles
-            (False, str): Return False, and the first input that failed to be converted
+            (False, valid_gpu_format, str): Return False, whether the format of the GPU input is valid, and the first input that failed to be converted
         """
         if 'all' in gpu_selections:
-            return (True, amdsmi_interface.amdsmi_get_processor_handles())
+            return True, True, amdsmi_interface.amdsmi_get_processor_handles()
 
         if isinstance(gpu_selections, str):
             gpu_selections = [gpu_selections]
 
         if gpu_choices is None:
+            # obtains dictionary of possible gpu choices
             gpu_choices = self.get_gpu_choices()[0]
 
         selected_device_handles = []
@@ -332,6 +346,7 @@ class AMDSMIHelpers():
 
             for gpu_id, gpu_info in gpu_choices.items():
                 bdf = gpu_info['BDF']
+                is_bdf = True
                 uuid = gpu_info['UUID']
                 device_handle = gpu_info['Device Handle']
 
@@ -347,13 +362,16 @@ class AMDSMIHelpers():
                             valid_gpu_choice = True
                             break
                     except Exception:
-                        # Ignore exception when checking if the gpu_choice is a BDF
+                        is_bdf = False
                         pass
 
             if not valid_gpu_choice:
                 logging.debug(f"AMDSMIHelpers.get_device_handles_from_gpu_selections - Unable to convert {gpu_selection}")
-                return False, gpu_selection
-        return True, selected_device_handles
+                valid_gpu_format = True
+                if not self.is_UUID(gpu_selection) and not gpu_selection.isdigit() and not is_bdf:
+                    valid_gpu_format = False
+                return False, valid_gpu_format, gpu_selection
+        return True, True, selected_device_handles
 
 
     def get_device_handles_from_cpu_selections(self, cpu_selections: List[str], cpu_choices=None):
@@ -369,7 +387,7 @@ class AMDSMIHelpers():
             (False, str): Return False, and the first input that failed to be converted
         """
         if 'all' in cpu_selections:
-            return (True, amdsmi_interface.amdsmi_get_cpusocket_handles())
+            return True, True, amdsmi_interface.amdsmi_get_cpusocket_handles()
 
         if isinstance(cpu_selections, str):
             cpu_selections = [cpu_selections]
@@ -390,8 +408,11 @@ class AMDSMIHelpers():
                     break
             if not valid_cpu_choice:
                 logging.debug(f"AMDSMIHelpers.get_device_handles_from_cpu_selections - Unable to convert {cpu_selection}")
-                return False, cpu_selection
-        return True, selected_device_handles
+                valid_cpu_format = True
+                if not cpu_selection.isdigit():
+                    valid_cpu_format = False
+                return False, valid_cpu_format, cpu_selection
+        return True, True, selected_device_handles
 
 
     def get_device_handles_from_core_selections(self, core_selections: List[str], core_choices=None):
@@ -407,7 +428,7 @@ class AMDSMIHelpers():
             (False, str): Return False, and the first input that failed to be converted
         """
         if 'all' in core_selections:
-            return (True, amdsmi_interface.amdsmi_get_cpucore_handles())
+            return True, True, amdsmi_interface.amdsmi_get_cpucore_handles()
 
         if isinstance(core_selections, str):
             core_selections = [core_selections]
@@ -428,8 +449,11 @@ class AMDSMIHelpers():
                     break
             if not valid_core_choice:
                 logging.debug(f"AMDSMIHelpers.get_device_handles_from_core_selections - Unable to convert {core_selection}")
-                return False, core_selection
-        return True, selected_device_handles
+                valid_core_format = True
+                if not core_selection.isdigit():
+                    valid_core_format = False
+                return False, valid_core_format, core_selection
+        return True, True, selected_device_handles
 
 
     def handle_gpus(self, args, logger, subcommand):
@@ -760,46 +784,34 @@ class AMDSMIHelpers():
         MICRO = 0.000001   # 10^-6
         NANO = 0.000000001 # 10^-9
 
-    def convert_SI_unit(val: float, unit_in: SI_Unit, unit_out = SI_Unit.BASE) -> float:
+    def convert_SI_unit(self, val: Union[int, float], unit_in: SI_Unit, unit_out = SI_Unit.BASE) -> Union[int, float]:
         """This function will convert a value into another
          scientific (SI) unit. Defaults unit_out to SI_Unit.BASE
-         This function returns a float.
 
         params:
-            val: float unit to convert
+            val: int or float unit to convert
             unit_in: Requires using SI_Unit to set current value's SI unit (eg. SI_Unit.MICRO)
             unit_out - Requires using SI_Unit to set current value's SI unit
              default value is SI_Unit.BASE (eg. SI_Unit.MICRO)
         return:
-            float : converted SI unit of value requested
+            int or float : converted SI unit of value requested
         """
-        return val * unit_in / unit_out
-
-    def convert_SI_unit(val: int, unit_in: SI_Unit, unit_out=SI_Unit.BASE) -> int:
-        """This function will convert a value into another
-         scientific (SI) unit. Defaults unit_out to SI_Unit.BASE
-         This function returns a int.
-
-        params:
-            val: int unit to convert
-            unit_in: Requires using SI_Unit to set current value's SI unit (eg. SI_Unit.MICRO)
-            unit_out - Requires using SI_Unit to set current value's SI unit
-             default value is SI_Unit.BASE (eg. SI_Unit.MICRO)
-        return:
-            int : converted SI unit of value requested
-        """
-        return int(float(val) * unit_in / unit_out)
+        if isinstance(val, float):
+            return val * unit_in / unit_out
+        elif isinstance(val, int):
+            return int(float(val) * unit_in / unit_out)
+        else:
+            raise TypeError("val must be an int or float")
 
     def get_pci_device_ids(self) -> Set[str]:
         pci_devices_path = "/sys/bus/pci/devices"
         pci_devices: set[str] = set()
         for device in os.listdir(pci_devices_path):
-            subsystem_device_path = os.path.join(pci_devices_path, device, "subsystem_device")
+            device_path = os.path.join(pci_devices_path, device, "device")
             try:
-                with open(subsystem_device_path, 'r') as f:
-                    subsystem_device = f.read().strip()
-                    pci_devices.add(subsystem_device)
+                with open(device_path, 'r') as f:
+                    device = f.read().strip()
+                    pci_devices.add(device)
             except Exception as _:
                 continue
         return pci_devices
-
