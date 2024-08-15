@@ -3534,7 +3534,7 @@ def amdsmi_get_clk_freq(
     return {
         "num_supported": freq.num_supported,
         "current": freq.current,
-        "frequency": list(freq.frequency)[: freq.num_supported - 1],
+        "frequency": list(freq.frequency)[: freq.num_supported],
     }
 
 
