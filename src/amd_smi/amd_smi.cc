@@ -1053,6 +1053,26 @@ amdsmi_is_P2P_accessible(amdsmi_processor_handle processor_handle_src,
     return amd::smi::rsmi_to_amdsmi_status(rstatus);
 }
 
+amdsmi_status_t
+amdsmi_topo_get_p2p_status(amdsmi_processor_handle processor_handle_src,
+                           amdsmi_processor_handle processor_handle_dst,
+                           amdsmi_io_link_type_t *type, amdsmi_p2p_capability_t *cap) {
+    AMDSMI_CHECK_INIT();
+
+    amd::smi::AMDSmiGPUDevice* src_device = nullptr;
+    amd::smi::AMDSmiGPUDevice* dst_device = nullptr;
+    amdsmi_status_t r = get_gpu_device_from_handle(processor_handle_src, &src_device);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+    r = get_gpu_device_from_handle(processor_handle_dst, &dst_device);
+    if (r != AMDSMI_STATUS_SUCCESS)
+        return r;
+    auto rstatus = rsmi_topo_get_p2p_status(src_device->get_gpu_id(), dst_device->get_gpu_id(),
+                reinterpret_cast<RSMI_IO_LINK_TYPE*>(type),
+                reinterpret_cast<rsmi_p2p_capability_t*>(cap));
+    return amd::smi::rsmi_to_amdsmi_status(rstatus);
+}
+
 // Compute Partition functions
 amdsmi_status_t
 amdsmi_get_gpu_compute_partition(amdsmi_processor_handle processor_handle,

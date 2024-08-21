@@ -19,6 +19,163 @@ Added `amdsmi_get_gpu_mem_overdrive_level()` function to amd-smi C and Python Li
 - **Added Subsystem Device ID to `amd-smi static --asic`**.
 No underlying changes to amdsmi_get_gpu_asic_info
 
+- **Added retrieving connection type and P2P capabilities between two GPUs**.
+  - Added `amdsmi_topo_get_p2p_status` function to amd-smi C and Python Libraries.
+  - Added retrieving P2P link capabilities to CLI `amd-smi topology`.
+
+```shell
+$ amd-smi topology -h
+usage: amd-smi topology [-h] [--json | --csv] [--file FILE] [--loglevel LEVEL]
+                        [-g GPU [GPU ...]] [-a] [-w] [-o] [-t] [-b]
+
+If no GPU is specified, returns information for all GPUs on the system.
+If no topology argument is provided all topology information will be displayed.
+
+Topology arguments:
+  -h, --help               show this help message and exit
+  -g, --gpu GPU [GPU ...]  Select a GPU ID, BDF, or UUID from the possible choices:
+                           ID: 0 | BDF: 0000:0c:00.0 | UUID: 5fff74a1-0000-1000-808c-324a4d24b37e
+                           ID: 1 | BDF: 0000:22:00.0 | UUID: 06ff74a1-0000-1000-80d3-f5e97636ae62
+                           ID: 2 | BDF: 0000:38:00.0 | UUID: 87ff74a1-0000-1000-80a0-d0a45576c5ed
+                           ID: 3 | BDF: 0000:5c:00.0 | UUID: 5dff74a1-0000-1000-8054-a29c595fd7f3
+                           ID: 4 | BDF: 0000:9f:00.0 | UUID: a8ff74a1-0000-1000-805b-92615ca9e7b4
+                           ID: 5 | BDF: 0000:af:00.0 | UUID: ddff74a1-0000-1000-809e-5a98a60013bd
+                           ID: 6 | BDF: 0000:bf:00.0 | UUID: 9aff74a1-0000-1000-80e8-cbefaf9f72c3
+                           ID: 7 | BDF: 0000:df:00.0 | UUID: 48ff74a1-0000-1000-806e-3c0b30d78e00
+                             all | Selects all devices
+
+
+  -a, --access             Displays link accessibility between GPUs
+  -w, --weight             Displays relative weight between GPUs
+  -o, --hops               Displays the number of hops between GPUs
+  -t, --link-type          Displays the link type between GPUs
+  -b, --numa-bw            Display max and min bandwidth between nodes
+  -c, --coherent           Display cache coherant (or non-coherant) link capability between nodes
+  -n, --atomics            Display 32 and 64-bit atomic io link capability between nodes
+  -d, --dma                Display P2P direct memory access (DMA) link capability between nodes
+  -z, --bi-dir             Display P2P bi-directional link capability between nodes
+
+
+Command Modifiers:
+  --json                   Displays output in JSON format (human readable by default).
+  --csv                    Displays output in CSV format (human readable by default).
+  --file FILE              Saves output into a file on the provided path (stdout by default).
+  --loglevel LEVEL         Set the logging level from the possible choices:
+                                DEBUG, INFO, WARNING, ERROR, CRITICAL
+```
+
+```shell
+$ amd-smi topology
+ACCESS TABLE:
+             0000:0c:00.0 0000:22:00.0 0000:38:00.0 0000:5c:00.0 0000:9f:00.0 0000:af:00.0 0000:bf:00.0 0000:df:00.0
+0000:0c:00.0 ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED
+0000:22:00.0 ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED
+0000:38:00.0 ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED
+0000:5c:00.0 ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED
+0000:9f:00.0 ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED
+0000:af:00.0 ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED
+0000:bf:00.0 ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED
+0000:df:00.0 ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED
+
+WEIGHT TABLE:
+             0000:0c:00.0 0000:22:00.0 0000:38:00.0 0000:5c:00.0 0000:9f:00.0 0000:af:00.0 0000:bf:00.0 0000:df:00.0
+0000:0c:00.0 0            15           15           15           15           15           15           15
+0000:22:00.0 15           0            15           15           15           15           15           15
+0000:38:00.0 15           15           0            15           15           15           15           15
+0000:5c:00.0 15           15           15           0            15           15           15           15
+0000:9f:00.0 15           15           15           15           0            15           15           15
+0000:af:00.0 15           15           15           15           15           0            15           15
+0000:bf:00.0 15           15           15           15           15           15           0            15
+0000:df:00.0 15           15           15           15           15           15           15           0
+
+HOPS TABLE:
+             0000:0c:00.0 0000:22:00.0 0000:38:00.0 0000:5c:00.0 0000:9f:00.0 0000:af:00.0 0000:bf:00.0 0000:df:00.0
+0000:0c:00.0 0            1            1            1            1            1            1            1
+0000:22:00.0 1            0            1            1            1            1            1            1
+0000:38:00.0 1            1            0            1            1            1            1            1
+0000:5c:00.0 1            1            1            0            1            1            1            1
+0000:9f:00.0 1            1            1            1            0            1            1            1
+0000:af:00.0 1            1            1            1            1            0            1            1
+0000:bf:00.0 1            1            1            1            1            1            0            1
+0000:df:00.0 1            1            1            1            1            1            1            0
+
+LINK TYPE TABLE:
+             0000:0c:00.0 0000:22:00.0 0000:38:00.0 0000:5c:00.0 0000:9f:00.0 0000:af:00.0 0000:bf:00.0 0000:df:00.0
+0000:0c:00.0 SELF         XGMI         XGMI         XGMI         XGMI         XGMI         XGMI         XGMI
+0000:22:00.0 XGMI         SELF         XGMI         XGMI         XGMI         XGMI         XGMI         XGMI
+0000:38:00.0 XGMI         XGMI         SELF         XGMI         XGMI         XGMI         XGMI         XGMI
+0000:5c:00.0 XGMI         XGMI         XGMI         SELF         XGMI         XGMI         XGMI         XGMI
+0000:9f:00.0 XGMI         XGMI         XGMI         XGMI         SELF         XGMI         XGMI         XGMI
+0000:af:00.0 XGMI         XGMI         XGMI         XGMI         XGMI         SELF         XGMI         XGMI
+0000:bf:00.0 XGMI         XGMI         XGMI         XGMI         XGMI         XGMI         SELF         XGMI
+0000:df:00.0 XGMI         XGMI         XGMI         XGMI         XGMI         XGMI         XGMI         SELF
+
+NUMA BW TABLE:
+             0000:0c:00.0 0000:22:00.0 0000:38:00.0 0000:5c:00.0 0000:9f:00.0 0000:af:00.0 0000:bf:00.0 0000:df:00.0
+0000:0c:00.0 N/A          50000-50000  50000-50000  50000-50000  50000-50000  50000-50000  50000-50000  50000-50000
+0000:22:00.0 50000-50000  N/A          50000-50000  50000-50000  50000-50000  50000-50000  50000-50000  50000-50000
+0000:38:00.0 50000-50000  50000-50000  N/A          50000-50000  50000-50000  50000-50000  50000-50000  50000-50000
+0000:5c:00.0 50000-50000  50000-50000  50000-50000  N/A          50000-50000  50000-50000  50000-50000  50000-50000
+0000:9f:00.0 50000-50000  50000-50000  50000-50000  50000-50000  N/A          50000-50000  50000-50000  50000-50000
+0000:af:00.0 50000-50000  50000-50000  50000-50000  50000-50000  50000-50000  N/A          50000-50000  50000-50000
+0000:bf:00.0 50000-50000  50000-50000  50000-50000  50000-50000  50000-50000  50000-50000  N/A          50000-50000
+0000:df:00.0 50000-50000  50000-50000  50000-50000  50000-50000  50000-50000  50000-50000  50000-50000  N/A
+
+CACHE COHERANCY TABLE:
+             0000:0c:00.0 0000:22:00.0 0000:38:00.0 0000:5c:00.0 0000:9f:00.0 0000:af:00.0 0000:bf:00.0 0000:df:00.0
+0000:0c:00.0 SELF         C            NC           NC           C            C            C            NC
+0000:22:00.0 C            SELF         NC           C            C            C            NC           C
+0000:38:00.0 NC           NC           SELF         C            C            NC           C            NC
+0000:5c:00.0 NC           C            C            SELF         NC           C            NC           NC
+0000:9f:00.0 C            C            C            NC           SELF         NC           NC           C
+0000:af:00.0 C            C            NC           C            NC           SELF         C            C
+0000:bf:00.0 C            NC           C            NC           NC           C            SELF         NC
+0000:df:00.0 NC           C            NC           NC           C            C            NC           SELF
+
+ATOMICS TABLE:
+             0000:0c:00.0 0000:22:00.0 0000:38:00.0 0000:5c:00.0 0000:9f:00.0 0000:af:00.0 0000:bf:00.0 0000:df:00.0
+0000:0c:00.0 SELF         64,32        64,32        64           32           32           N/A          64,32
+0000:22:00.0 64,32        SELF         64           32           32           N/A          64,32        64,32
+0000:38:00.0 64,32        64           SELF         32           N/A          64,32        64,32        64,32
+0000:5c:00.0 64           32           32           SELF         64,32        64,32        64,32        32
+0000:9f:00.0 32           32           N/A          64,32        SELF         64,32        32           32
+0000:af:00.0 32           N/A          64,32        64,32        64,32        SELF         32           N/A
+0000:bf:00.0 N/A          64,32        64,32        64,32        32           32           SELF         64,32
+0000:df:00.0 64,32        64,32        64,32        32           32           N/A          64,32        SELF
+
+DMA TABLE:
+             0000:0c:00.0 0000:22:00.0 0000:38:00.0 0000:5c:00.0 0000:9f:00.0 0000:af:00.0 0000:bf:00.0 0000:df:00.0
+0000:0c:00.0 SELF         T            T            F            F            T            F            T
+0000:22:00.0 T            SELF         F            F            T            F            T            T
+0000:38:00.0 T            F            SELF         T            F            T            T            T
+0000:5c:00.0 F            F            T            SELF         T            T            T            F
+0000:9f:00.0 F            T            F            T            SELF         T            F            F
+0000:af:00.0 T            F            T            T            T            SELF         F            T
+0000:bf:00.0 F            T            T            T            F            F            SELF         F
+0000:df:00.0 T            T            T            F            F            T            F            SELF
+
+BI-DIRECTIONAL TABLE:
+             0000:0c:00.0 0000:22:00.0 0000:38:00.0 0000:5c:00.0 0000:9f:00.0 0000:af:00.0 0000:bf:00.0 0000:df:00.0
+0000:0c:00.0 SELF         T            T            F            F            T            F            T
+0000:22:00.0 T            SELF         F            F            T            F            T            T
+0000:38:00.0 T            F            SELF         T            F            T            T            T
+0000:5c:00.0 F            F            T            SELF         T            T            T            F
+0000:9f:00.0 F            T            F            T            SELF         T            F            F
+0000:af:00.0 T            F            T            T            T            SELF         F            T
+0000:bf:00.0 F            T            T            T            F            F            SELF         F
+0000:df:00.0 T            T            T            F            F            T            F            SELF
+
+
+Legend:
+ SELF = Current GPU
+ ENABLED / DISABLED = Link is enabled or disabled
+ N/A = Not supported
+ T/F = True / False
+ C/NC = Coherant / Non-Coherant io links
+ 64,32 = 64 bit and 32 bit atomic support
+ <BW from>-<BW to>
+```
+
 ### Removals
 
 - N/A

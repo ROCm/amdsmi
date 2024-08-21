@@ -972,6 +972,10 @@ class AMDSMIParser(argparse.ArgumentParser):
         hops_help = "Displays the number of hops between GPUs"
         link_type_help = "Displays the link type between GPUs"
         numa_bw_help = "Display max and min bandwidth between nodes"
+        coherent_help = "Display cache coherant (or non-coherant) link capability between nodes"
+        atomics_help = "Display 32 and 64-bit atomic io link capability between nodes"
+        dma_help = "Display P2P direct memory access (DMA) link capability between nodes"
+        bi_dir_help = "Display P2P bi-directional link capability between nodes"
 
         # Create topology subparser
         topology_parser = subparsers.add_parser('topology', help=topology_help, description=topology_subcommand_help)
@@ -989,6 +993,10 @@ class AMDSMIParser(argparse.ArgumentParser):
         topology_parser.add_argument('-o', '--hops', action='store_true', required=False, help=hops_help)
         topology_parser.add_argument('-t', '--link-type', action='store_true', required=False, help=link_type_help)
         topology_parser.add_argument('-b', '--numa-bw', action='store_true', required=False, help=numa_bw_help)
+        topology_parser.add_argument('-c', '--coherent', action='store_true', required=False, help=coherent_help)
+        topology_parser.add_argument('-n', '--atomics', action='store_true', required=False, help=atomics_help)
+        topology_parser.add_argument('-d', '--dma', action='store_true', required=False, help=dma_help)
+        topology_parser.add_argument('-z', '--bi-dir', action='store_true', required=False, help=bi_dir_help)
 
 
     def _add_set_value_parser(self, subparsers, func):

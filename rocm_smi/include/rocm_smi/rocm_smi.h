@@ -867,6 +867,17 @@ typedef rsmi_frequencies_t rsmi_frequencies;
 /// \endcond
 
 /**
+ * @brief IO Link P2P Capability
+ */
+typedef struct {
+  uint8_t is_iolink_coherent;    // 1 = true, 0 = false, UINT8_MAX = Not defined.
+  uint8_t is_iolink_atomics_32bit;
+  uint8_t is_iolink_atomics_64bit;
+  uint8_t is_iolink_dma;
+  uint8_t is_iolink_bi_directional;
+} rsmi_p2p_capability_t;
+
+/**
  * @brief This structure holds information about the possible PCIe
  * bandwidths. Specifically, the possible transfer rates and their
  * associated numbers of lanes are stored here.
@@ -4325,6 +4336,37 @@ rsmi_topo_get_link_type(uint32_t dv_ind_src, uint32_t dv_ind_dst,
 rsmi_status_t
 rsmi_is_P2P_accessible(uint32_t dv_ind_src, uint32_t dv_ind_dst,
                        bool *accessible);
+
+/**
+ *  @brief Retrieve connection type and P2P capabilities between 2 GPUs
+ *
+ *  @platform{gpu_bm_linux} @platform{host} @platform{guest_1vf}  @platform{guest_mvf}
+ *
+ *  @details Given a source processor handle @p processor_handle_src and
+ *  a destination processor handle @p processor_handle_dst, a pointer to an amdsmi_io_link_type_t @p type,
+ *  and a pointer to rsmi_p2p_capability_t @p cap. This function will write the connection type,
+ *  and io link capabilities between the device
+ *  @p processor_handle_src and @p processor_handle_dst to the memory
+ *  pointed to by @p cap and @p type.
+ *
+ *  @param[in] dv_ind_src the source device index
+ *
+ *  @param[in] dv_ind_dst the destination device index
+ *
+ *  @param[inout] type A pointer to an ::RSMI_IO_LINK_TYPE to which the
+ *  type for the connection should be written.
+ *
+ *  @param[in,out] cap A pointer to an ::rsmi_p2p_capability_t to which the
+ *  io link capabilities should be written.
+ *
+ *  @retval ::RSMI_STATUS_SUCCESS call was successful
+ *  @retval ::RSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *  @retval ::RSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
+ *  support this function
+ */
+rsmi_status_t
+rsmi_topo_get_p2p_status(uint32_t dv_ind_src, uint32_t dv_ind_dst,
+                         RSMI_IO_LINK_TYPE *type, rsmi_p2p_capability_t *cap);
 
 /** @} */  // end of HWTopo
 
