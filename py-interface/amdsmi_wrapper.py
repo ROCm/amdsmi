@@ -1065,6 +1065,19 @@ struct_amdsmi_proc_info_t._fields_ = [
 ]
 
 amdsmi_proc_info_t = struct_amdsmi_proc_info_t
+class struct_amdsmi_p2p_capability_t(Structure):
+    pass
+
+struct_amdsmi_p2p_capability_t._pack_ = 1 # source:False
+struct_amdsmi_p2p_capability_t._fields_ = [
+    ('is_iolink_coherent', ctypes.c_ubyte),
+    ('is_iolink_atomics_32bit', ctypes.c_ubyte),
+    ('is_iolink_atomics_64bit', ctypes.c_ubyte),
+    ('is_iolink_dma', ctypes.c_ubyte),
+    ('is_iolink_bi_directional', ctypes.c_ubyte),
+]
+
+amdsmi_p2p_capability_t = struct_amdsmi_p2p_capability_t
 
 # values for enumeration 'amdsmi_dev_perf_level_t'
 amdsmi_dev_perf_level_t__enumvalues = {
@@ -2201,6 +2214,9 @@ amdsmi_topo_get_link_type.argtypes = [amdsmi_processor_handle, amdsmi_processor_
 amdsmi_is_P2P_accessible = _libraries['libamd_smi.so'].amdsmi_is_P2P_accessible
 amdsmi_is_P2P_accessible.restype = amdsmi_status_t
 amdsmi_is_P2P_accessible.argtypes = [amdsmi_processor_handle, amdsmi_processor_handle, ctypes.POINTER(ctypes.c_bool)]
+amdsmi_topo_get_p2p_status = _libraries['libamd_smi.so'].amdsmi_topo_get_p2p_status
+amdsmi_topo_get_p2p_status.restype = amdsmi_status_t
+amdsmi_topo_get_p2p_status.argtypes = [amdsmi_processor_handle, amdsmi_processor_handle, ctypes.POINTER(amdsmi_io_link_type_t), ctypes.POINTER(struct_amdsmi_p2p_capability_t)]
 amdsmi_get_gpu_compute_partition = _libraries['libamd_smi.so'].amdsmi_get_gpu_compute_partition
 amdsmi_get_gpu_compute_partition.restype = amdsmi_status_t
 amdsmi_get_gpu_compute_partition.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_char), uint32_t]
@@ -2726,9 +2742,9 @@ __all__ = \
     'amdsmi_memory_partition_type_t', 'amdsmi_memory_type_t',
     'amdsmi_mm_ip_t', 'amdsmi_name_value_t', 'amdsmi_od_vddc_point_t',
     'amdsmi_od_volt_curve_t', 'amdsmi_od_volt_freq_data_t',
-    'amdsmi_pcie_bandwidth_t', 'amdsmi_pcie_info_t',
-    'amdsmi_power_cap_info_t', 'amdsmi_power_info_t',
-    'amdsmi_power_profile_preset_masks_t',
+    'amdsmi_p2p_capability_t', 'amdsmi_pcie_bandwidth_t',
+    'amdsmi_pcie_info_t', 'amdsmi_power_cap_info_t',
+    'amdsmi_power_info_t', 'amdsmi_power_profile_preset_masks_t',
     'amdsmi_power_profile_status_t', 'amdsmi_power_type_t',
     'amdsmi_proc_info_t', 'amdsmi_process_handle_t',
     'amdsmi_process_info_t', 'amdsmi_processor_handle',
@@ -2761,7 +2777,7 @@ __all__ = \
     'amdsmi_temp_range_refresh_rate_t', 'amdsmi_temperature_metric_t',
     'amdsmi_temperature_type_t', 'amdsmi_topo_get_link_type',
     'amdsmi_topo_get_link_weight', 'amdsmi_topo_get_numa_node_number',
-    'amdsmi_utilization_counter_t',
+    'amdsmi_topo_get_p2p_status', 'amdsmi_utilization_counter_t',
     'amdsmi_utilization_counter_type_t', 'amdsmi_vbios_info_t',
     'amdsmi_version_t', 'amdsmi_voltage_metric_t',
     'amdsmi_voltage_type_t', 'amdsmi_vram_info_t',
@@ -2785,6 +2801,7 @@ __all__ = \
     'struct_amdsmi_name_value_t', 'struct_amdsmi_od_vddc_point_t',
     'struct_amdsmi_od_volt_curve_t',
     'struct_amdsmi_od_volt_freq_data_t',
+    'struct_amdsmi_p2p_capability_t',
     'struct_amdsmi_pcie_bandwidth_t', 'struct_amdsmi_pcie_info_t',
     'struct_amdsmi_power_cap_info_t', 'struct_amdsmi_power_info_t',
     'struct_amdsmi_power_profile_status_t',

@@ -2540,6 +2540,40 @@ def amdsmi_topo_get_link_type(
 
     return {"hops": hops.value, "type": type.value}
 
+def amdsmi_topo_get_p2p_status(
+    processor_handle_src: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle_dst: amdsmi_wrapper.amdsmi_processor_handle,
+):
+    if not isinstance(processor_handle_src, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle_src, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    if not isinstance(processor_handle_dst, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle_dst, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    type = ctypes.c_uint32()
+    cap = amdsmi_wrapper.struct_amdsmi_p2p_capability_t()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_topo_get_p2p_status(
+            processor_handle_src, processor_handle_dst, ctypes.byref(type), ctypes.byref(cap)
+        )
+    )
+
+    return {
+        'type' : type,
+        'cap': {
+            'is_iolink_coherent': cap.is_iolink_coherent,
+            'is_iolink_atomics_32bit': cap.is_iolink_atomics_32bit,
+            'is_iolink_atomics_64bit': cap.is_iolink_atomics_64bit,
+            'is_iolink_dma': cap.is_iolink_dma,
+            'is_iolink_bi_directional': cap.is_iolink_bi_directional
+        }
+    }
+
 
 def amdsmi_is_P2P_accessible(
     processor_handle_src: amdsmi_wrapper.amdsmi_processor_handle,

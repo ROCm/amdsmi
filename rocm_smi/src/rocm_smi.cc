@@ -5285,6 +5285,81 @@ rsmi_is_P2P_accessible(uint32_t dv_ind_src, uint32_t dv_ind_dst,
   CATCH
 }
 
+rsmi_status_t
+rsmi_topo_get_p2p_status(uint32_t dv_ind_src, uint32_t dv_ind_dst,
+                         RSMI_IO_LINK_TYPE *type, rsmi_p2p_capability_t *cap) {
+  TRY
+
+  uint32_t dv_ind = dv_ind_src;
+  GET_DEV_AND_KFDNODE_FROM_INDX
+  DEVICE_MUTEX
+
+  if (type == nullptr || cap == nullptr) {
+    return RSMI_STATUS_INVALID_ARGS;
+  }
+
+  // If source device is same as destination, return invalid args
+  if (dv_ind_src == dv_ind_dst) {
+    return RSMI_STATUS_INVALID_ARGS;
+  }
+
+  uint32_t node_ind_src, node_ind_dst;
+  // Fetch the source and destination node index
+  if (smi.get_node_index(dv_ind_src, &node_ind_src) ||
+      smi.get_node_index(dv_ind_dst, &node_ind_dst)) {
+    return RSMI_STATUS_INVALID_ARGS;
+  }
+
+  bool node_is_find = false;
+  std::map<uint32_t, std::shared_ptr<amd::smi::IOLink>> io_link_map_tmp;
+  std::map<uint32_t, std::shared_ptr<amd::smi::IOLink>>::iterator it;
+  // Iterate over P2P links
+  if (DiscoverP2PLinksPerNode(node_ind_src, &io_link_map_tmp) == 0) {
+    for (it = io_link_map_tmp.begin(); it != io_link_map_tmp.end(); it++) {
+      if (it->first == node_ind_dst) {
+        node_is_find = true;
+        break;
+      }
+    }
+    io_link_map_tmp.clear();
+  } else {
+    return RSMI_STATUS_FILE_ERROR;
+  }
+
+  if (!node_is_find) {
+    // Iterate over IO links
+    if (DiscoverIOLinksPerNode(node_ind_src, &io_link_map_tmp) == 0) {
+      for (it = io_link_map_tmp.begin(); it != io_link_map_tmp.end(); it++) {
+        if (it->first == node_ind_dst) {
+          node_is_find = true;
+          break;
+        }
+      }
+      io_link_map_tmp.clear();
+    } else {
+      return RSMI_STATUS_FILE_ERROR;
+    }
+  }
+
+  if (node_is_find) {
+    amd::smi::IO_LINK_TYPE io_link_type = it->second->type();
+    if (io_link_type == amd::smi::IOLINK_TYPE_PCIEXPRESS) {
+      *type = RSMI_IOLINK_TYPE_PCIEXPRESS;
+    } else if (io_link_type == amd::smi::IOLINK_TYPE_XGMI) {
+      *type = RSMI_IOLINK_TYPE_XGMI;
+    } else {
+      // Unexpected IO Link type read
+      return RSMI_STATUS_NOT_SUPPORTED;
+    }
+    *cap = it->second->get_link_capability();
+    return RSMI_STATUS_SUCCESS;
+  }
+
+  return RSMI_STATUS_NOT_SUPPORTED;
+
+  CATCH
+}
+
 static rsmi_status_t
 get_compute_partition(uint32_t dv_ind, std::string &compute_partition) {
   TRY

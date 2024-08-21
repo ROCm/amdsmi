@@ -690,6 +690,17 @@ typedef struct {
   uint32_t reserved[4];
 } amdsmi_proc_info_t;
 
+/**
+ * @brief IO Link P2P Capability
+ */
+typedef struct {
+  uint8_t is_iolink_coherent;    // 1 = true, 0 = false, UINT8_MAX = Not defined.
+  uint8_t is_iolink_atomics_32bit;
+  uint8_t is_iolink_atomics_64bit;
+  uint8_t is_iolink_dma;
+  uint8_t is_iolink_bi_directional;
+} amdsmi_p2p_capability_t;
+
 
 //! Guaranteed maximum possible number of supported frequencies
 #define AMDSMI_MAX_NUM_FREQUENCIES 33
@@ -4282,6 +4293,36 @@ amdsmi_status_t
 amdsmi_is_P2P_accessible(amdsmi_processor_handle processor_handle_src,
                           amdsmi_processor_handle processor_handle_dst,
                           bool *accessible);
+
+
+/**
+ *  @brief Retrieve connection type and P2P capabilities between 2 GPUs
+ *
+ *  @platform{gpu_bm_linux} @platform{host} @platform{guest_1vf}  @platform{guest_mvf}
+ *
+ *  @details Given a source processor handle @p processor_handle_src and
+ *  a destination processor handle @p processor_handle_dst, a pointer to an amdsmi_io_link_type_t @p type,
+ *  and a pointer to amdsmi_p2p_capability_t @p cap. This function will write the connection type,
+ *  and io link capabilities between the device
+ *  @p processor_handle_src and @p processor_handle_dst to the memory
+ *  pointed to by @p cap and @p type.
+ *
+ *  @param[in] processor_handle_src the source processor handle
+ *
+ *  @param[in] processor_handle_dst the destination processor handle
+ *
+ *  @param[in,out] type A pointer to an ::amdsmi_io_link_type_t to which the
+ *  type for the connection should be written.
+ *
+ *  @param[in,out] type A pointer to an ::amdsmi_p2p_capability_t to which the
+ *  io link capabilities should be written.
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t
+amdsmi_topo_get_p2p_status(amdsmi_processor_handle processor_handle_src,
+                           amdsmi_processor_handle processor_handle_dst,
+                           amdsmi_io_link_type_t *type, amdsmi_p2p_capability_t *cap);
 
 /** @} End HWTopo */
 

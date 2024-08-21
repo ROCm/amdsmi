@@ -2822,7 +2822,8 @@ class AMDSMICommands():
 
 
     def topology(self, args, multiple_devices=False, gpu=None, access=None,
-                weight=None, hops=None, link_type=None, numa_bw=None):
+                weight=None, hops=None, link_type=None, numa_bw=None,
+                coherent=None, atomics=None, dma=None, bi_dir=None):
         """ Get topology information for target gpus
             params:
                 args - argparser args to pass to subcommand
@@ -2833,6 +2834,10 @@ class AMDSMICommands():
                 hops (bool) - Value override for args.hops
                 type (bool) - Value override for args.type
                 numa_bw (bool) - Value override for args.numa_bw
+                coherent (bool) - Value override for args.coherent
+                atomics (bool) - Value override for args.atomics
+                dma (bool) - Value override for args.dma
+                bi_dir (bool) - Value override for args.bi_dir
             return:
                 Nothing
         """
@@ -2849,6 +2854,14 @@ class AMDSMICommands():
             args.link_type = link_type
         if numa_bw:
             args.numa_bw = numa_bw
+        if coherent:
+            args.coherent = coherent
+        if atomics:
+            args.atomics = atomics
+        if dma:
+            args.dma = dma
+        if bi_dir:
+            args.bi_dir = bi_dir
 
         # Handle No GPU passed
         if args.gpu == None:
@@ -2858,8 +2871,10 @@ class AMDSMICommands():
             args.gpu = [args.gpu]
 
         # Handle all args being false
-        if not any([args.access, args.weight, args.hops, args.link_type, args.numa_bw]):
-            args.access = args.weight = args.hops = args.link_type= args.numa_bw = True
+        if not any([args.access, args.weight, args.hops, args.link_type, args.numa_bw,
+                    args.coherent, args.atomics, args.dma, args.bi_dir]):
+            args.access = args.weight = args.hops = args.link_type= args.numa_bw = \
+            args.coherent = args.atomics = args.dma = args.bi_dir = True
 
         # Clear the table header
         self.logger.table_header = ''.rjust(12)
@@ -2890,6 +2905,10 @@ class AMDSMICommands():
             #         "num_hops": num_hops - # of hops between devices
             #         "bandwidth": numa_bw - The NUMA "minimum bandwidth-maximum bandwidth" beween src and dest nodes
             #                      "N/A" - self node or not connected devices
+            #         "coherent": coherent - Coherant / Non-Coherant io links
+            #         "atomics": atomics - 32 and 64-bit atomic io link capability between nodes
+            #         "dma": dma - P2P direct memory access (DMA) link capability between nodes
+            #         "bi_dir": bi_dir - P2P bi-directional link capability between nodes
             #     }
 
             for dest_gpu_index, dest_gpu in enumerate(args.gpu):
@@ -2928,6 +2947,42 @@ class AMDSMICommands():
                 else:
                     link_status = "DISABLED"
 
+                link_coherent = "SELF"
+                link_atomics = "SELF"
+                link_dma = "SELF"
+                link_bi_dir = "SELF"
+
+                if src_gpu != dest_gpu:
+                    try:
+                        cap = amdsmi_interface.amdsmi_topo_get_p2p_status(src_gpu, dest_gpu)['cap']
+                        link_coherent = (
+                            "C" if cap['is_iolink_coherent'] == 1 else
+                            "NC" if cap['is_iolink_coherent'] == 0 else
+                            "N/A"
+                        )
+                        link_atomics = (
+                            "64,32" if cap['is_iolink_atomics_32bit'] == 1 and cap['is_iolink_atomics_64bit'] == 1 else
+                            "32" if cap['is_iolink_atomics_32bit'] == 1 else
+                            "64" if cap['is_iolink_atomics_64bit'] == 1 else
+                            "N/A"
+                        )
+                        link_dma = (
+                            "T" if cap['is_iolink_dma'] == 1 else
+                            "F" if cap['is_iolink_dma'] == 0 else
+                            "N/A"
+                        )
+                        link_bi_dir = (
+                            "T" if cap['is_iolink_bi_directional'] == 1 else
+                            "F" if cap['is_iolink_bi_directional'] == 0 else
+                            "N/A"
+                        )
+                    except amdsmi_exception.AmdSmiLibraryException as e:
+                        logging.debug("Failed to get link status for %s to %s | %s",
+                                    self.helpers.get_gpu_id_from_device_handle(src_gpu),
+                                    self.helpers.get_gpu_id_from_device_handle(dest_gpu),
+                                    e.get_error_info())
+
+
                 # link_status = amdsmi_is_P2P_accessible(src,dest)
                 dest_gpu_links = {
                     "gpu": self.helpers.get_gpu_id_from_device_handle(dest_gpu),
@@ -2937,6 +2992,10 @@ class AMDSMICommands():
                     "link_type": link_type,
                     "num_hops": num_hops,
                     "bandwidth": numa_bw,
+                    "coherent": link_coherent,
+                    "atomics": link_atomics,
+                    "dma": link_dma,
+                    "bi_dir": link_bi_dir
                 }
                 if not args.access:
                     del dest_gpu_links['link_status']
@@ -2948,6 +3007,14 @@ class AMDSMICommands():
                     del dest_gpu_links['num_hops']
                 if not args.numa_bw:
                     del dest_gpu_links['bandwidth']
+                if not args.coherent:
+                    del dest_gpu_links['coherent']
+                if not args.atomics:
+                    del dest_gpu_links['atomics']
+                if not args.dma:
+                    del dest_gpu_links['dma']
+                if not args.bi_dir:
+                    del dest_gpu_links['bi_dir']
                 links.append(dest_gpu_links)
                 dest_end = dest_gpu_index+1 == len(args.gpu)
                 isEndOfSrc = src_gpu_index+1 == len(args.gpu)
@@ -3164,6 +3231,175 @@ class AMDSMICommands():
                 self.logger.multiple_device_output = tabular_output
                 self.logger.table_title = "NUMA BW TABLE"
                 self.logger.print_output(multiple_device_enabled=True, tabular=True)
+
+        if args.coherent:
+            tabular_output = []
+            for src_gpu_index, src_gpu in enumerate(args.gpu):
+                src_gpu_bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(src_gpu)
+                if self.logger.is_human_readable_format():
+                    tabular_output_dict = {'gpu' : f"{src_gpu_bdf} "}
+                else:
+                    tabular_output_dict = {'gpu' : src_gpu_bdf}
+                src_gpu_coherent = {}
+                for dest_gpu in args.gpu:
+                    dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(dest_gpu)
+                    dest_gpu_key = f'gpu_{dest_gpu_id}'
+
+                    if src_gpu == dest_gpu:
+                        src_gpu_coherent[dest_gpu_key] = "SELF"
+                        continue
+                    try:
+                        iolink_coherent = amdsmi_interface.amdsmi_topo_get_p2p_status(src_gpu, dest_gpu)['cap']['is_iolink_coherent']
+                        src_gpu_coherent[dest_gpu_key] = "C" if iolink_coherent == 1 else "NC" if iolink_coherent == 0 else "N/A"
+                    except amdsmi_exception.AmdSmiLibraryException as e:
+                        src_gpu_coherent[dest_gpu_key] = "N/A"
+                        logging.debug("Failed to get link coherent for %s to %s | %s",
+                                        self.helpers.get_gpu_id_from_device_handle(src_gpu),
+                                        self.helpers.get_gpu_id_from_device_handle(dest_gpu),
+                                        e.get_error_info())
+
+                topo_values[src_gpu_index]['coherent'] = src_gpu_coherent
+
+                tabular_output_dict.update(src_gpu_coherent)
+                tabular_output.append(tabular_output_dict)
+
+            if self.logger.is_human_readable_format():
+                self.logger.multiple_device_output = tabular_output
+                self.logger.table_title = "CACHE COHERANCY TABLE"
+                self.logger.print_output(multiple_device_enabled=True, tabular=True)
+
+        if args.atomics:
+            tabular_output = []
+            for src_gpu_index, src_gpu in enumerate(args.gpu):
+                src_gpu_bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(src_gpu)
+                if self.logger.is_human_readable_format():
+                    tabular_output_dict = {'gpu' : f"{src_gpu_bdf} "}
+                else:
+                    tabular_output_dict = {'gpu' : src_gpu_bdf}
+                src_gpu_atomics = {}
+                for dest_gpu in args.gpu:
+                    dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(dest_gpu)
+                    dest_gpu_key = f'gpu_{dest_gpu_id}'
+
+                    if src_gpu == dest_gpu:
+                        src_gpu_atomics[dest_gpu_key] = "SELF"
+                        continue
+                    try:
+                        cap = amdsmi_interface.amdsmi_topo_get_p2p_status(src_gpu, dest_gpu)['cap']
+                        src_gpu_atomics[dest_gpu_key] = (
+                            "64,32" if cap['is_iolink_atomics_32bit'] == 1 and cap['is_iolink_atomics_64bit'] == 1 else
+                            "32" if cap['is_iolink_atomics_32bit'] == 1 else
+                            "64" if cap['is_iolink_atomics_64bit'] == 1 else
+                            "N/A"
+                        )
+                    except amdsmi_exception.AmdSmiLibraryException as e:
+                        src_gpu_atomics[dest_gpu_key] = "N/A"
+                        logging.debug("Failed to get link atomics for %s to %s | %s",
+                                        self.helpers.get_gpu_id_from_device_handle(src_gpu),
+                                        self.helpers.get_gpu_id_from_device_handle(dest_gpu),
+                                        e.get_error_info())
+
+                topo_values[src_gpu_index]['atomics'] = src_gpu_atomics
+
+                tabular_output_dict.update(src_gpu_atomics)
+                tabular_output.append(tabular_output_dict)
+
+            if self.logger.is_human_readable_format():
+                self.logger.multiple_device_output = tabular_output
+                self.logger.table_title = "ATOMICS TABLE"
+                self.logger.print_output(multiple_device_enabled=True, tabular=True)
+
+        if args.dma:
+            tabular_output = []
+            for src_gpu_index, src_gpu in enumerate(args.gpu):
+                src_gpu_bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(src_gpu)
+                if self.logger.is_human_readable_format():
+                    tabular_output_dict = {'gpu' : f"{src_gpu_bdf} "}
+                else:
+                    tabular_output_dict = {'gpu' : src_gpu_bdf}
+                src_gpu_dma = {}
+                for dest_gpu in args.gpu:
+                    dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(dest_gpu)
+                    dest_gpu_key = f'gpu_{dest_gpu_id}'
+
+                    if src_gpu == dest_gpu:
+                        src_gpu_dma[dest_gpu_key] = "SELF"
+                        continue
+                    try:
+                        iolink_dma = amdsmi_interface.amdsmi_topo_get_p2p_status(src_gpu, dest_gpu)['cap']['is_iolink_dma']
+                        src_gpu_dma[dest_gpu_key] = "T" if iolink_dma == 1 else "F" if iolink_dma == 0 else "N/A"
+                    except amdsmi_exception.AmdSmiLibraryException as e:
+                        src_gpu_dma[dest_gpu_key] = "N/A"
+                        logging.debug("Failed to get link dma for %s to %s | %s",
+                                        self.helpers.get_gpu_id_from_device_handle(src_gpu),
+                                        self.helpers.get_gpu_id_from_device_handle(dest_gpu),
+                                        e.get_error_info())
+
+                topo_values[src_gpu_index]['dma'] = src_gpu_dma
+
+                tabular_output_dict.update(src_gpu_dma)
+                tabular_output.append(tabular_output_dict)
+
+            if self.logger.is_human_readable_format():
+                self.logger.multiple_device_output = tabular_output
+                self.logger.table_title = "DMA TABLE"
+                self.logger.print_output(multiple_device_enabled=True, tabular=True)
+
+        if args.bi_dir:
+            tabular_output = []
+            for src_gpu_index, src_gpu in enumerate(args.gpu):
+                src_gpu_bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(src_gpu)
+                if self.logger.is_human_readable_format():
+                    tabular_output_dict = {'gpu' : f"{src_gpu_bdf} "}
+                else:
+                    tabular_output_dict = {'gpu' : src_gpu_bdf}
+                src_gpu_bi_dir = {}
+                for dest_gpu in args.gpu:
+                    dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(dest_gpu)
+                    dest_gpu_key = f'gpu_{dest_gpu_id}'
+
+                    if src_gpu == dest_gpu:
+                        src_gpu_bi_dir[dest_gpu_key] = "SELF"
+                        continue
+                    try:
+                        iolink_bi_dir = amdsmi_interface.amdsmi_topo_get_p2p_status(src_gpu, dest_gpu)['cap']['is_iolink_bi_directional']
+                        src_gpu_bi_dir[dest_gpu_key] = "T" if iolink_bi_dir == 1 else "F" if iolink_bi_dir == 0 else "N/A"
+                    except amdsmi_exception.AmdSmiLibraryException as e:
+                        src_gpu_bi_dir[dest_gpu_key] = "N/A"
+                        logging.debug("Failed to get link bi-directional for %s to %s | %s",
+                                        self.helpers.get_gpu_id_from_device_handle(src_gpu),
+                                        self.helpers.get_gpu_id_from_device_handle(dest_gpu),
+                                        e.get_error_info())
+
+                topo_values[src_gpu_index]['bi_dir'] = src_gpu_bi_dir
+
+                tabular_output_dict.update(src_gpu_bi_dir)
+                tabular_output.append(tabular_output_dict)
+
+            if self.logger.is_human_readable_format():
+                self.logger.multiple_device_output = tabular_output
+                self.logger.table_title = "BI-DIRECTIONAL TABLE"
+                self.logger.print_output(multiple_device_enabled=True, tabular=True)
+
+        if self.logger.is_human_readable_format():
+            # Populate the legend output
+            legend_parts = [
+                "\n\nLegend:",
+                "  SELF = Current GPU",
+                "  ENABLED / DISABLED = Link is enabled or disabled",
+                "  N/A = Not supported",
+                "  T/F = True / False",
+                "  C/NC = Coherant / Non-Coherant io links",
+                "  64,32 = 64 bit and 32 bit atomic support",
+                "  <BW from>-<BW to>"
+            ]
+            legend_output = "\n".join(legend_parts)
+
+            if self.logger.destination == 'stdout':
+                print(legend_output)
+            else:
+                with self.logger.destination.open('a', encoding="utf-8") as output_file:
+                    output_file.write(legend_output + '\n')
 
         self.logger.multiple_device_output = topo_values
 
