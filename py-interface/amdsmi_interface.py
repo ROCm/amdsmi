@@ -1722,7 +1722,7 @@ def amdsmi_get_gpu_pm_metrics_info(
 
 def amdsmi_get_gpu_reg_table_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
-    reg_type: amdsmi_reg_type_t,
+    reg_type: amdsmi_wrapper.amdsmi_reg_type_t,
 ) -> Dict[str, Any]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
