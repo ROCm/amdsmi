@@ -2158,7 +2158,6 @@ def amdsmi_get_fw_info(
         elif fw_name in dec_format_fw:
             # Convert the fw_version from a int to a hex string padded leading 0s
             fw_version_string = hex(fw_version)[2:].zfill(8)
-            print(fw_version_string)
 
             # Convert every two hex digits to decimal and join them with a dot
             dec_version_string = ''
