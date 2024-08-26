@@ -344,6 +344,35 @@ int main() {
                     <<"," << policy.policies[x].policy_description << ")\n";
                 }
             }
+
+            // Get nearest GPUs
+            char *topology_link_type_str[] = {
+                "AMDSMI_LINK_TYPE_INTERNAL",
+                "AMDSMI_LINK_TYPE_XGMI",
+                "AMDSMI_LINK_TYPE_PCIE",
+                "AMDSMI_LINK_TYPE_NOT_APPLICABLE",
+                "AMDSMI_LINK_TYPE_UNKNOWN",
+            };
+            printf("\tOutput of amdsmi_get_link_topology_nearest:\n");
+            for (uint32_t topo_link_type = AMDSMI_LINK_TYPE_INTERNAL; topo_link_type <= AMDSMI_LINK_TYPE_UNKNOWN; topo_link_type++) {
+                auto topology_nearest_info = amdsmi_topology_nearest_t();
+                ret = amdsmi_get_link_topology_nearest(processor_handles[j],
+                                                       static_cast<amdsmi_link_type_t>(topo_link_type),
+                                                       nullptr);
+                CHK_AMDSMI_RET(ret);
+                ret = amdsmi_get_link_topology_nearest(processor_handles[j],
+                                                       static_cast<amdsmi_link_type_t>(topo_link_type),
+                                                       &topology_nearest_info);
+                CHK_AMDSMI_RET(ret);
+                printf("\tNearest GPUs found at %s\n", topology_link_type_str[topo_link_type]);
+                for (uint32_t k = 0; k < topology_nearest_info.count; k++) {
+                    amdsmi_bdf_t bdf = {};
+                    ret = amdsmi_get_gpu_device_bdf(topology_nearest_info.processor_list[k], &bdf);
+                    CHK_AMDSMI_RET(ret)
+                    printf("\tGPU BDF %04lx:%02x:%02x.%d\n", bdf.domain_number,
+                        bdf.bus_number, bdf.device_number, bdf.function_number);
+                }
+            }
         }
     }
 
