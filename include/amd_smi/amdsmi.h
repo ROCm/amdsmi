@@ -651,8 +651,9 @@ typedef struct {
 } amdsmi_accelerator_partition_profile_t;
 
 typedef enum {
-  AMDSMI_LINK_TYPE_PCIE,
+  AMDSMI_LINK_TYPE_INTERNAL,
   AMDSMI_LINK_TYPE_XGMI,
+  AMDSMI_LINK_TYPE_PCIE,
   AMDSMI_LINK_TYPE_NOT_APPLICABLE,
   AMDSMI_LINK_TYPE_UNKNOWN
 } amdsmi_link_type_t;
@@ -1584,6 +1585,14 @@ typedef struct {
     uint64_t sdma_usage;      //!< SDMA usage in microseconds
     uint32_t cu_occupancy;    //!< Compute Unit usage in percent
 } amdsmi_process_info_t;
+
+
+typedef struct {
+    uint32_t count;
+    amdsmi_processor_handle processor_list[AMDSMI_MAX_DEVICES];
+    uint64_t reserved[15];
+} amdsmi_topology_nearest_t;
+
 
 //! Place-holder "variant" for functions that have don't have any variants,
 //! but do have monitors or sensors.
@@ -5096,6 +5105,35 @@ amdsmi_status_t
 amdsmi_get_gpu_total_ecc_count(amdsmi_processor_handle processor_handle, amdsmi_error_count_t *ec);
 
 /** @} End eccinfo */
+
+/**
+ *  @brief          Retrieve the set of GPUs that are nearest to a given device
+ *                  at a specific interconnectivity level.
+ *
+ *  @platform{gpu_bm_linux}  @platform{host}
+ *
+ *  @details        Once called topology_nearest_info will get populated with a list of
+ *                  all nearest devices for a given link_type. The list has a count of
+ *                  the number of devices found and their respective handles/identifiers.
+ *
+ *  @param[in]      processor_handle The identifier of the given device.
+ *
+ *  @param[in]      link_type The amdsmi_link_type_t level to search for nearest GPUs.
+ *
+ *  @param[in,out]  topology_nearest_info
+ *                  .count;
+ *                    - When zero, is set to the number of matching GPUs such that .device_list can
+ *                    be malloc'd.
+ *                    - When non-zero, .device_list will be filled with count number of processor_handle.
+ *
+ *  @param[out]     .device_list An array of processor_handle for GPUs found at level.
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail.
+ */
+amdsmi_status_t
+amdsmi_get_link_topology_nearest(amdsmi_processor_handle processor_handle,
+                                 amdsmi_link_type_t link_type,
+                                 amdsmi_topology_nearest_t* topology_nearest_info);
 
 
 #ifdef ENABLE_ESMI_LIB

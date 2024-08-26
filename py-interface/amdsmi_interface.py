@@ -383,6 +383,14 @@ class AmdSmiIoLinkType(IntEnum):
     SIZE = amdsmi_wrapper.AMDSMI_IOLINK_TYPE_SIZE
 
 
+class AmdSmiLinkType(IntEnum):
+    AMDSMI_LINK_TYPE_INTERNAL = amdsmi_wrapper.AMDSMI_LINK_TYPE_INTERNAL
+    AMDSMI_LINK_TYPE_XGMI = amdsmi_wrapper.AMDSMI_LINK_TYPE_XGMI
+    AMDSMI_LINK_TYPE_PCIE = amdsmi_wrapper.AMDSMI_LINK_TYPE_PCIE
+    AMDSMI_LINK_TYPE_NOT_APPLICABLE = amdsmi_wrapper.AMDSMI_LINK_TYPE_NOT_APPLICABLE
+    AMDSMI_LINK_TYPE_UNKNOWN = amdsmi_wrapper.AMDSMI_LINK_TYPE_UNKNOWN
+
+
 class AmdSmiUtilizationCounterType(IntEnum):
     COARSE_GRAIN_GFX_ACTIVITY = amdsmi_wrapper.AMDSMI_COARSE_GRAIN_GFX_ACTIVITY
     COARSE_GRAIN_MEM_ACTIVITY = amdsmi_wrapper.AMDSMI_COARSE_GRAIN_MEM_ACTIVITY
@@ -4173,4 +4181,27 @@ def amdsmi_get_gpu_metrics_header_info(
         "structure_size": header_info.structure_size,
         "format_revision": header_info.format_revision,
         "content_revision": header_info.content_revision
+    }
+
+def amdsmi_get_link_topology_nearest(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    link_type: AmdSmiLinkType,
+    )-> Dict[str, Any]:
+
+    topology_nearest_list = amdsmi_wrapper.amdsmi_topology_nearest_t()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_link_topology_nearest(
+               processor_handle,
+               link_type,
+               ctypes.byref(topology_nearest_list)
+        )
+    )
+
+    device_list = []
+    for index in range(topology_nearest_list.count):
+        device_list.append(topology_nearest_list.processor_list[index])
+
+    return {
+        'count': topology_nearest_list.count,
+        'processor_list': device_list
     }

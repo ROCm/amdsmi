@@ -51,11 +51,13 @@
 #include <iomanip>
 #include <iostream>
 #include <fstream>
+#include <queue>
 #include <vector>
 #include <set>
 #include <map>
 #include <memory>
 #include <limits>
+#include <functional>
 #include <xf86drm.h>
 #include "amd_smi/amdsmi.h"
 #include "amd_smi/impl/fdinfo.h"
@@ -2321,6 +2323,166 @@ amdsmi_status_t amdsmi_get_processor_handle_from_bdf(amdsmi_bdf_t bdf,
     return AMDSMI_STATUS_API_FAILED;
 }
 
+amdsmi_status_t
+amdsmi_get_link_topology_nearest(amdsmi_processor_handle processor_handle,
+                                 amdsmi_link_type_t link_type,
+                                 amdsmi_topology_nearest_t* topology_nearest_info)
+{
+    if (topology_nearest_info == nullptr) {
+        return amdsmi_status_t::AMDSMI_STATUS_INVAL;
+    }
+
+    if (link_type < amdsmi_link_type_t::AMDSMI_LINK_TYPE_INTERNAL ||
+        link_type > amdsmi_link_type_t::AMDSMI_LINK_TYPE_UNKNOWN) {
+        return amdsmi_status_t::AMDSMI_STATUS_INVAL;
+    }
+
+
+    auto status(amdsmi_status_t::AMDSMI_STATUS_SUCCESS);
+    constexpr auto kKFD_CRAT_INTRA_SOCKET_WEIGHT = uint32_t(13);
+    constexpr auto kKFD_CRAT_XGMI_WEIGHT = uint32_t(15);
+
+    /*
+     *  Note: This will need to be eventually consolidated within a unique link type.
+     */
+    static const std::map<amdsmi_link_type_t, amdsmi_io_link_type_t> kLinkToIoLinkTypeTranslationTable =
+    {
+        {amdsmi_link_type_t::AMDSMI_LINK_TYPE_INTERNAL,       amdsmi_io_link_type_t::AMDSMI_IOLINK_TYPE_UNDEFINED},
+        {amdsmi_link_type_t::AMDSMI_LINK_TYPE_XGMI,           amdsmi_io_link_type_t::AMDSMI_IOLINK_TYPE_XGMI},
+        {amdsmi_link_type_t::AMDSMI_LINK_TYPE_PCIE,           amdsmi_io_link_type_t::AMDSMI_IOLINK_TYPE_PCIEXPRESS},
+        {amdsmi_link_type_t::AMDSMI_LINK_TYPE_NOT_APPLICABLE, amdsmi_io_link_type_t::AMDSMI_IOLINK_TYPE_UNDEFINED},
+        {amdsmi_link_type_t::AMDSMI_LINK_TYPE_UNKNOWN,        amdsmi_io_link_type_t::AMDSMI_IOLINK_TYPE_UNDEFINED}
+    };
+
+    auto translated_link_type = [&](amdsmi_link_type_t link_type) {
+        auto io_link_type(amdsmi_io_link_type_t::AMDSMI_IOLINK_TYPE_UNDEFINED);
+        if (kLinkToIoLinkTypeTranslationTable.find(link_type) != kLinkToIoLinkTypeTranslationTable.end()) {
+            io_link_type = kLinkToIoLinkTypeTranslationTable.at(link_type);
+        }
+        return io_link_type;
+    };
+
+    auto translated_io_link_type = [&](amdsmi_io_link_type_t io_link_type) {
+        auto link_type(amdsmi_link_type_t::AMDSMI_LINK_TYPE_UNKNOWN);
+        for (const auto& [key, value] : kLinkToIoLinkTypeTranslationTable) {
+            if (value == io_link_type) {
+                link_type = key;
+                break;
+            }
+        }
+        return link_type;
+    };
+    //
+
+    struct LinkTopolyInfo_t
+    {
+        amdsmi_processor_handle target_processor_handle;
+        amdsmi_link_type_t link_type;
+        bool is_accessible;
+        uint64_t num_hops;
+        uint64_t link_weight;
+    };
+
+    using LinkTopogyOrderPair_t = std::pair<uint64_t, uint64_t>;
+    /*
+     *  Note: The link topology table is sorted by the number of hops and link weight.
+     */
+    struct LinkTopogyOrderCmp_t {
+        constexpr bool operator()(const LinkTopolyInfo_t& left,
+                                  const LinkTopolyInfo_t& right) const noexcept
+        {
+            if (left.num_hops == right.num_hops) {
+                return (left.num_hops >= right.num_hops);
+            }
+            else {
+                return (left.link_weight > right.link_weight);
+            }
+        }
+    };
+    std::priority_queue<LinkTopolyInfo_t,
+                        std::vector<LinkTopolyInfo_t>,
+                        LinkTopogyOrderCmp_t> link_topology_order{};
+    //
+
+
+    AMDSMI_CHECK_INIT();
+    auto socket_counter = uint32_t(0);
+    if (auto api_status = amdsmi_get_socket_handles(&socket_counter, nullptr);
+        (api_status != amdsmi_status_t::AMDSMI_STATUS_SUCCESS)) {
+        return api_status;
+    }
+
+    amdsmi_socket_handle socket_list[socket_counter];
+    if (auto api_status = amdsmi_get_socket_handles(&socket_counter, &socket_list[0]);
+        (api_status != amdsmi_status_t::AMDSMI_STATUS_SUCCESS)) {
+        return api_status;
+    }
+
+
+    uint32_t device_counter(AMDSMI_MAX_DEVICES);
+    amdsmi_processor_handle device_list[AMDSMI_MAX_DEVICES];
+    for (auto socket_idx = uint32_t(0); socket_idx < socket_counter; ++socket_idx) {
+        if (auto api_status = amdsmi_get_processor_handles(socket_list[socket_idx], &device_counter, device_list);
+            (api_status != amdsmi_status_t::AMDSMI_STATUS_SUCCESS)) {
+            return api_status;
+        }
+
+        for (auto device_idx = uint32_t(0); device_idx < device_counter; ++device_idx) {
+            /*  Note: Skip the processor handle that is being queried. */
+            if (processor_handle != device_list[device_idx]) {
+                // Accessibility?
+                auto is_accessible(false);
+                if (auto api_status = amdsmi_is_P2P_accessible(processor_handle, device_list[device_idx], &is_accessible);
+                    (api_status != amdsmi_status_t::AMDSMI_STATUS_SUCCESS) || !is_accessible) {
+                    continue;
+                }
+
+                // Link type matches what we are searching for?
+                auto io_link_type = translated_link_type(link_type);
+                auto io_link_type_bck(io_link_type);
+                auto num_hops = uint64_t(0);
+                if (auto api_status = amdsmi_topo_get_link_type(processor_handle, device_list[device_idx], &num_hops, &io_link_type);
+                    (api_status != amdsmi_status_t::AMDSMI_STATUS_SUCCESS) || (translated_io_link_type(io_link_type) != link_type)) {
+                    continue;
+                }
+
+                // Link weights
+                auto link_weight = uint64_t(0);
+                if (auto api_status = amdsmi_topo_get_link_weight(processor_handle, device_list[device_idx], &link_weight);
+                    (api_status != amdsmi_status_t::AMDSMI_STATUS_SUCCESS)) {
+                    continue;
+                }
+
+                // Topology nearest info
+                LinkTopolyInfo_t link_info = {
+                    .target_processor_handle = device_list[device_idx],
+                    .link_type = translated_io_link_type(io_link_type),
+                    .is_accessible = is_accessible,
+                    .num_hops = num_hops,
+                    .link_weight = link_weight
+                };
+                link_topology_order.push(link_info);
+            }
+        }
+    }
+
+    /*
+     *  Note: The link topology table is sorted by the number of hops and link weight.
+     */
+    topology_nearest_info->processor_list[AMDSMI_MAX_DEVICES] = {nullptr};
+    topology_nearest_info->count = link_topology_order.size();
+    auto topology_nearest_counter = uint32_t(0);
+    while (!link_topology_order.empty()) {
+        auto link_info = link_topology_order.top();
+        link_topology_order.pop();
+
+        if (topology_nearest_counter < AMDSMI_MAX_DEVICES) {
+            topology_nearest_info->processor_list[topology_nearest_counter++] = link_info.target_processor_handle;
+        }
+    }
+
+    return status;
+}
 
 #ifdef ENABLE_ESMI_LIB
 static amdsmi_status_t amdsmi_errno_to_esmi_status(amdsmi_status_t status)
