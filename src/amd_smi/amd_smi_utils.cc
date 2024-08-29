@@ -577,6 +577,9 @@ amdsmi_status_t smi_amdgpu_get_market_name_from_dev_id(uint32_t device_id, char 
         case 0x74a1:
         case 0x74b5:
             strcpy(market_name, "MI300X-O");
+        case 0x74a2:
+        case 0x74b6:
+            strcpy(market_name, "MI308X");
             break;
         default:
             return AMDSMI_STATUS_API_FAILED;
