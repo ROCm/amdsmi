@@ -2958,6 +2958,30 @@ amdsmi_status_t amdsmi_get_gpu_overdrive_level(amdsmi_processor_handle processor
                                                 uint32_t *od);
 
 /**
+ *  @brief Get the GPU memory clock overdrive percent associated with the device with provided
+ *  processor handle. It is not supported on virtual machine guest
+ *
+ *  @platform{gpu_bm_linux}
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a uint32_t @p od,
+ *  this function will write the overdrive percentage to the uint32_t pointed
+ *  to by @p od
+ *
+ *  @param[in] processor_handle a processor handle
+ *
+ *  @param[in,out] od a pointer to uint32_t to which the GPU memory clock overdrive percentage
+ *  will be written
+ *  If this parameter is nullptr, this function will return
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
+ *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
+ *  provided arguments.
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_get_gpu_mem_overdrive_level(amdsmi_processor_handle processor_handle,
+                                                uint32_t *od);
+
+/**
  *  @brief Get the list of possible system clock speeds of device for a
  *  specified clock type. It is not supported on virtual machine guest
  *

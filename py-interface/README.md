@@ -2156,6 +2156,38 @@ except AmdSmiException as e:
     print(e)
 ```
 
+### amdsmi_get_gpu_mem_overdrive_level
+
+Description: Get the GPU memory clock overdrive percent associated with the device with provided
+device handle. It is not supported on virtual machine guest
+
+Input parameters:
+
+* `processor_handle` handle for the given device
+
+Output: Overdrive percentage as integer
+
+Exceptions that can be thrown by `amdsmi_get_gpu_mem_overdrive_level` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            od_level = amdsmi_get_gpu_mem_overdrive_level(dev)
+            print(od_level)
+except AmdSmiException as e:
+    print(e)
+```
+
 ### amdsmi_get_clk_freq
 
 Description: Get the list of possible system clock speeds of device for a

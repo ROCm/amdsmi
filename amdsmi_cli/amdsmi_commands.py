@@ -1851,18 +1851,19 @@ class AMDSMICommands():
             if args.overdrive:
                 try:
                     overdrive_level = amdsmi_interface.amdsmi_get_gpu_overdrive_level(args.gpu)
-
                     od_unit = '%'
-                    if self.logger.is_human_readable_format():
-                        overdrive_level = f"{overdrive_level} {od_unit}"
-                    if self.logger.is_json_format():
-                        overdrive_level = {"value" : overdrive_level,
-                                           "unit" : od_unit}
-
-                    values_dict['overdrive'] = overdrive_level
+                    values_dict['overdrive'] = self.helpers.unit_format(self.logger, overdrive_level, od_unit)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     values_dict['overdrive'] = "N/A"
-                    logging.debug("Failed to get overdrive level for gpu %s | %s", gpu_id, e.get_error_info())
+                    logging.debug("Failed to get gpu overdrive level for gpu %s | %s", gpu_id, e.get_error_info())
+
+                try:
+                    mem_overdrive_level = amdsmi_interface.amdsmi_get_gpu_mem_overdrive_level(args.gpu)
+                    od_unit = '%'
+                    values_dict['mem_overdrive'] = self.helpers.unit_format(self.logger, mem_overdrive_level, od_unit)
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    values_dict['mem_overdrive'] = "N/A"
+                    logging.debug("Failed to get mem overdrive level for gpu %s | %s", gpu_id, e.get_error_info())
         if "perf_level" in current_platform_args:
             if args.perf_level:
                 try:
