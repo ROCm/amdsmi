@@ -13,6 +13,9 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 - **Changed the `power` parameter in `amdsmi_get_energy_count()` to `energy_accumulator`**.  
 Changes propagate forwards into the python interface as well, however we are maintaing backwards compatibility and keeping the `power` field in the python API until ROCm 6.4.
 
+- **Added GPU memory overdrive percentage to `amd-smi metric -o`**.
+Added `amdsmi_get_gpu_mem_overdrive_level()` function to amd-smi C and Python Libraries.
+
 ### Removals
 
 - N/A

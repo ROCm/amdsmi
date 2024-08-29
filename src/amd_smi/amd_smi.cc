@@ -1506,6 +1506,12 @@ amdsmi_status_t amdsmi_get_gpu_overdrive_level(
     return rsmi_wrapper(rsmi_dev_overdrive_level_get, processor_handle, od);
 }
 
+amdsmi_status_t amdsmi_get_gpu_mem_overdrive_level(
+            amdsmi_processor_handle processor_handle,
+            uint32_t *od) {
+    return rsmi_wrapper(rsmi_dev_mem_overdrive_level_get, processor_handle, od);
+}
+
 amdsmi_status_t  amdsmi_set_gpu_overdrive_level(
             amdsmi_processor_handle processor_handle, uint32_t od) {
     return rsmi_wrapper(rsmi_dev_overdrive_level_set_v1, processor_handle, od);

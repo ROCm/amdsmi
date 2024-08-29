@@ -3458,6 +3458,24 @@ def amdsmi_get_gpu_overdrive_level(
     return od_level.value
 
 
+def amdsmi_get_gpu_mem_overdrive_level(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> int:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    mem_od_level = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_mem_overdrive_level(
+            processor_handle, ctypes.byref(mem_od_level)
+        )
+    )
+
+    return mem_od_level.value
+
+
 def amdsmi_get_clk_freq(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle, clk_type: AmdSmiClkType
 ) -> Dict[str, Any]:
