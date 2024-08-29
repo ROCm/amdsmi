@@ -3105,17 +3105,18 @@ def amdsmi_get_energy_count(processor_handle: amdsmi_wrapper.amdsmi_processor_ha
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    power = ctypes.c_uint64()
+    energy_accumulator= ctypes.c_uint64()
     counter_resolution = ctypes.c_float()
     timestamp = ctypes.c_uint64()
 
     _check_res(
         amdsmi_wrapper.amdsmi_get_energy_count(processor_handle, ctypes.byref(
-            power), ctypes.byref(counter_resolution), ctypes.byref(timestamp))
+            energy_accumulator), ctypes.byref(counter_resolution), ctypes.byref(timestamp))
     )
 
     return {
-        'power': power.value,
+        'power': energy_accumulator.value, # deprecating in 6.4
+        'energy_accumulator': energy_accumulator.value,
         'counter_resolution': counter_resolution.value,
         'timestamp': timestamp.value,
     }
