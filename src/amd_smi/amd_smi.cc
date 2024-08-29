@@ -1591,9 +1591,9 @@ amdsmi_status_t amdsmi_get_utilization_count(amdsmi_processor_handle processor_h
 }
 
 amdsmi_status_t amdsmi_get_energy_count(amdsmi_processor_handle processor_handle,
-            uint64_t *power, float *counter_resolution, uint64_t *timestamp) {
+            uint64_t *energy_accumulator, float *counter_resolution, uint64_t *timestamp) {
     return rsmi_wrapper(rsmi_dev_energy_count_get, processor_handle,
-            power, counter_resolution, timestamp);
+            energy_accumulator, counter_resolution, timestamp);
 }
 
 amdsmi_status_t amdsmi_get_gpu_bdf_id(

@@ -1884,7 +1884,7 @@ class AMDSMICommands():
                 try:
                     energy_dict = amdsmi_interface.amdsmi_get_energy_count(args.gpu)
 
-                    energy = energy_dict['power'] * round(energy_dict['counter_resolution'], 1)
+                    energy = round(energy_dict["energy_accumulator"] * energy_dict["counter_resolution"], 3)
                     energy /= 1000000
                     energy = round(energy, 3)
 

@@ -8,7 +8,10 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ### Changes
 
-- **Added Pytest functionality to test amdsmi API calls in Python**.
+- **Added Pytest functionality to test amdsmi API calls in Python**.  
+
+- **Changed the `power` parameter in `amdsmi_get_energy_count()` to `energy_accumulator`**.  
+Changes propagate forwards into the python interface as well, however we are maintaing backwards compatibility and keeping the `power` field in the python API until ROCm 6.4.
 
 ### Removals
 
@@ -28,7 +31,7 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ### Upcoming changes
 
-- N/A
+- **Python API for `amdsmi_get_energy_count()` will deprecate the `power` field in ROCm 6.4 and use `energy_accumulator` field instead**.  
 
 ## amd_smi_lib for ROCm 6.2.1
 
@@ -46,9 +49,9 @@ Guest VMs can view enabled/disabled ras features that are on Host cards.
 
 ### Fixes
 
-- **Fixed TypeError in `amd-smi process -G`**.
+- **Fixed TypeError in `amd-smi process -G`**.  
 
-- **Updated CLI error strings to handle empty and invalid GPU/CPU inputs**.
+- **Updated CLI error strings to handle empty and invalid GPU/CPU inputs**.  
 
 - **Fixed Guest VM showing passthrough options**.  
 
