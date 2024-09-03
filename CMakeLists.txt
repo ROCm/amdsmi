@@ -185,12 +185,12 @@ if(BUILD_TESTS)
     set(TESTS_COMPONENT "tests")
     #add_subdirectory("tests/rocm_smi_test")
     add_subdirectory("tests/amd_smi_test")
+    add_subdirectory("tests/python_unittest")
 endif()
 
 # python interface, CLI, and py-test depend on shared libraries
 if(BUILD_SHARED_LIBS)
     add_subdirectory("py-interface")
-    add_subdirectory("pytest")
     if(BUILD_CLI)
         add_subdirectory("amdsmi_cli")
     endif()
@@ -252,7 +252,7 @@ install(
 
 #Debian package specific variables
 set(CPACK_DEBIAN_PACKAGE_PROVIDES "amd-smi")
-set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "python3-argcomplete, libdrm-dev, python3-yaml")
+set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "python3-argcomplete, libdrm-dev, python3-PyYAML")
 set(CPACK_DEBIAN_ASAN_PACKAGE_RECOMMENDS ${CPACK_DEBIAN_PACKAGE_RECOMMENDS})
 set(CPACK_DEBIAN_DEV_PACKAGE_RECOMMENDS ${CPACK_DEBIAN_PACKAGE_RECOMMENDS})
 set(CPACK_DEBIAN_ASAN_PACKAGE_PROVIDES "${AMD_SMI_PACKAGE}-asan")
