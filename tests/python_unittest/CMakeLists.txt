@@ -18,7 +18,7 @@ message("--------CPACK_COMPONENT_INCLUDE_TOPLEVEL_DIRECTORY: " ${CPACK_COMPONENT
 # copy python test files into shared directory
 install(
     DIRECTORY ./
-    DESTINATION ${SHARE_INSTALL_PREFIX}/tests/pytest/
+    DESTINATION ${SHARE_INSTALL_PREFIX}/tests/python_unittest/
     COMPONENT dev
     USE_SOURCE_PERMISSIONS
     FILES_MATCHING

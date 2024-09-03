@@ -7,6 +7,10 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 ## amd_smi_lib for ROCm 6.3.0
 
 ### Changes
+- **Moved python tests directory path install location.**
+  - `/opt/<rocm-path>/share/amd_smi/pytest/.. to /opt/<rocm-path>/share/amd_smi/tests/python_unittest/..`
+- **On amd-smi-lib-tests uninstall, the amd_smi tests folder is removed.**
+- **Removed pytest dependency, our python testing depends only on unittest framework.**
 
 - **Added more supported utilization count types to `amdsmi_get_utilization_count()`**.  
 
