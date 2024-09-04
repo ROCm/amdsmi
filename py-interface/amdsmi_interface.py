@@ -2403,7 +2403,7 @@ def amdsmi_get_gpu_subsystem_id(processor_handle: amdsmi_wrapper.amdsmi_processo
             processor_handle, ctypes.byref(id))
     )
 
-    return id.value
+    return _padHexValue(hex(id.value), 4)
 
 
 def amdsmi_get_gpu_subsystem_name(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
