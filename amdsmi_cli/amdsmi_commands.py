@@ -356,9 +356,26 @@ class AMDSMICommands():
         if args.asic:
             try:
                 asic_info = amdsmi_interface.amdsmi_get_gpu_asic_info(args.gpu)
-                static_dict['asic'] = asic_info
+                static_dict["asic"] = asic_info
             except amdsmi_exception.AmdSmiLibraryException as e:
-                static_dict['asic'] = "N/A"
+                static_dict["asic"] = "N/A"
+                logging.debug("Failed to get asic info for gpu %s | %s", gpu_id, e.get_error_info())
+
+#           static["asic"] = "N/A"
+            try:
+                subsystem_id = amdsmi_interface.amdsmi_get_gpu_subsystem_id(args.gpu)
+                if static_dict["asic"] != "N/A":
+                    # Reorder asic to include subsystem_id after device_id
+                    static_dict["asic"]["subsystem_id"] = subsystem_id
+                    static_dict["asic"]["rev_id"] = static_dict["asic"].pop("rev_id")
+                    static_dict["asic"]["asic_serial"] = static_dict["asic"].pop("asic_serial")
+                    static_dict["asic"]["oam_id"] = static_dict["asic"].pop("oam_id")
+                    static_dict["asic"]["num_compute_units"] = static_dict["asic"].pop("num_compute_units")
+                else:
+                    static_dict["asic"]["subsystem_id"] = subsystem_id
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                if static_dict["asic"] != "N/A":
+                    static_dict["asic"]["subsystem_id"] = "N/A"
                 logging.debug("Failed to get asic info for gpu %s | %s", gpu_id, e.get_error_info())
         if args.bus:
             bus_info = {

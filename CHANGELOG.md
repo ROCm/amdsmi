@@ -16,6 +16,9 @@ Changes propagate forwards into the python interface as well, however we are mai
 - **Added GPU memory overdrive percentage to `amd-smi metric -o`**.
 Added `amdsmi_get_gpu_mem_overdrive_level()` function to amd-smi C and Python Libraries.
 
+- **Added Subsystem Device ID to `amd-smi static --asic`**.
+No underlying changes to amdsmi_get_gpu_asic_info
+
 ### Removals
 
 - N/A
