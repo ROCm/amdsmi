@@ -1762,7 +1762,7 @@ def amdsmi_get_gpu_reg_table_info(
     num_regs = ctypes.c_uint32;
 
     _check_res(
-        amdsmi_wrapper.amdsmi_get_cpu_reg_table_info(
+        amdsmi_wrapper.amdsmi_get_gpu_reg_table_info(
             processor_handle, reg_type, ctypes.byref(reg_metrics), ctypes.byref(num_regs)
         )
     )
