@@ -753,16 +753,52 @@ amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_i
     // default to 0xffff as not supported
     info->oam_id = std::numeric_limits<uint16_t>::max();
     uint16_t tmp_oam_id = 0;
-    status =  rsmi_wrapper(rsmi_dev_oam_id_get, processor_handle, &(tmp_oam_id));
+    status =  rsmi_wrapper(rsmi_dev_xgmi_physical_id_get, processor_handle, &(tmp_oam_id));
     info->oam_id = tmp_oam_id;
 
     // default to 0xffffffff as not supported
     info->num_of_compute_units = std::numeric_limits<uint32_t>::max();
     auto tmp_num_of_compute_units = uint32_t(0);
     status = rsmi_wrapper(amd::smi::rsmi_dev_number_of_computes_get, processor_handle,
-                          &tmp_num_of_compute_units);
+                          &(tmp_num_of_compute_units));
     if (status == amdsmi_status_t::AMDSMI_STATUS_SUCCESS) {
         info->num_of_compute_units = tmp_num_of_compute_units;
+    }
+
+    // default to 0xffffffffffffffff as not supported
+    info->target_graphics_version = std::numeric_limits<uint64_t>::max();
+    auto tmp_target_gfx_version = uint64_t(0);
+    status = rsmi_wrapper(rsmi_dev_target_graphics_version_get, processor_handle,
+                          &(tmp_target_gfx_version));
+    if (status == amdsmi_status_t::AMDSMI_STATUS_SUCCESS) {
+        info->target_graphics_version = tmp_target_gfx_version;
+    }
+
+    // default to 0xffffffffffffffff as not supported
+    info->kfd_id = std::numeric_limits<uint64_t>::max();
+    auto tmp_kfd_id = uint64_t(0);
+    status = rsmi_wrapper(rsmi_dev_guid_get, processor_handle,
+                          &(tmp_kfd_id));
+    if (status == amdsmi_status_t::AMDSMI_STATUS_SUCCESS) {
+        info->kfd_id = tmp_kfd_id;
+    }
+
+    // default to 0xffffffff as not supported
+    info->node_id = std::numeric_limits<uint32_t>::max();
+    auto tmp_node_id = uint32_t(0);
+    status = rsmi_wrapper(rsmi_dev_node_id_get, processor_handle,
+                          &(tmp_node_id));
+    if (status == amdsmi_status_t::AMDSMI_STATUS_SUCCESS) {
+        info->node_id = tmp_node_id;
+    }
+
+    // default to 0xffffffff as not supported
+    info->partition_id = std::numeric_limits<uint32_t>::max();
+    auto tmp_partition_id = uint32_t(0);
+    status = rsmi_wrapper(rsmi_dev_partition_id_get, processor_handle,
+                          &(tmp_partition_id));
+    if (status == amdsmi_status_t::AMDSMI_STATUS_SUCCESS) {
+        info->partition_id = tmp_partition_id;
     }
 
     return AMDSMI_STATUS_SUCCESS;

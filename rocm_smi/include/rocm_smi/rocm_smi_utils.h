@@ -48,8 +48,11 @@
 #include <algorithm>
 #include <cstdint>
 #include <iomanip>
+#include <iosfwd>
 #include <iostream>
+#include <iterator>
 #include <limits>
+#include <ostream>
 #include <queue>
 #include <sstream>
 #include <string>
@@ -594,6 +597,7 @@ class TagTextContents_t
                 }
             }
         }
+
 };
 
 using TextFileTagContents_t = TagTextContents_t<std::string, std::string,
