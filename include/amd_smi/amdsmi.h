@@ -281,16 +281,16 @@ typedef enum {
  */
 typedef enum {
   AMDSMI_COMPUTE_PARTITION_INVALID = 0,
-  AMDSMI_COMPUTE_PARTITION_CPX, //!< Core mode (CPX)- Per-chip XCC with
-                         //!< shared memory
-  AMDSMI_COMPUTE_PARTITION_SPX, //!< Single GPU mode (SPX)- All XCCs work
-                         //!< together with shared memory
-  AMDSMI_COMPUTE_PARTITION_DPX, //!< Dual GPU mode (DPX)- Half XCCs work
-                         //!< together with shared memory
-  AMDSMI_COMPUTE_PARTITION_TPX, //!< Triple GPU mode (TPX)- One-third XCCs
-                         //!< work together with shared memory
-  AMDSMI_COMPUTE_PARTITION_QPX  //!< Quad GPU mode (QPX)- Quarter XCCs
-                         //!< work together with shared memory
+  AMDSMI_COMPUTE_PARTITION_SPX,  //!< Single GPU mode (SPX)- All XCCs work
+                                 //!< together with shared memory
+  AMDSMI_COMPUTE_PARTITION_DPX,  //!< Dual GPU mode (DPX)- Half XCCs work
+                                 //!< together with shared memory
+  AMDSMI_COMPUTE_PARTITION_TPX,  //!< Triple GPU mode (TPX)- One-third XCCs
+                                 //!< work together with shared memory
+  AMDSMI_COMPUTE_PARTITION_QPX,   //!< Quad GPU mode (QPX)- Quarter XCCs
+                                 //!< work together with shared memory
+  AMDSMI_COMPUTE_PARTITION_CPX,  //!< Core mode (CPX)- Per-chip XCC with
+                                 //!< shared memory
 } amdsmi_compute_partition_type_t;
 
 /**
@@ -589,7 +589,11 @@ typedef struct {
   char asic_serial[AMDSMI_NORMAL_STRING_LENGTH];
   uint32_t oam_id;   //< 0xFFFF if not supported
   uint32_t num_of_compute_units;   //< 0xFFFFFFFF if not supported
-  uint32_t reserved[17];
+  uint64_t target_graphics_version;  //< 0xFFFFFFFFFFFFFFFF if not supported
+  uint64_t kfd_id;  //< 0xFFFFFFFFFFFFFFFF if not supported
+  uint32_t node_id;  //< 0xFFFFFFFF if not supported
+  uint32_t partition_id;  //< 0xFFFFFFFF if not supported
+  uint32_t reserved[11];
 } amdsmi_asic_info_t;
 
 typedef enum {
@@ -2233,16 +2237,18 @@ amdsmi_get_gpu_pci_bandwidth(amdsmi_processor_handle processor_handle,
  *
  *  The format of @p bdfid will be as follows:
  *
- *      BDFID = ((DOMAIN & 0xffffffff) << 32) | ((BUS & 0xff) << 8) |
- *                                   ((DEVICE & 0x1f) <<3 ) | (FUNCTION & 0x7)
+ *      BDFID = ((DOMAIN & 0xFFFFFFFF) << 32) | ((Partition & 0xF) << 28)
+ *              | ((BUS & 0xFF) << 8) | ((DEVICE & 0x1F) <<3 )
+ *              | (FUNCTION & 0x7)
  *
- *  | Name     | Field   |
- *  ---------- | ------- |
- *  | Domain   | [64:32] |
- *  | Reserved | [31:16] |
- *  | Bus      | [15: 8] |
- *  | Device   | [ 7: 3] |
- *  | Function | [ 2: 0] |
+ *  | Name         | Field   | KFD property       KFD -> PCIe ID (uint64_t)
+ *  -------------- | ------- | ---------------- | ---------------------------- |
+ *  | Domain       | [63:32] | "domain"         | (DOMAIN & 0xFFFFFFFF) << 32  |
+ *  | Partition id | [31:28] | "location id"    | (LOCATION & 0xF0000000)      |
+ *  | Reserved     | [27:16] | "location id"    | N/A                          |
+ *  | Bus          | [15: 8] | "location id"    | (LOCATION & 0xFF00)          |
+ *  | Device       | [ 7: 3] | "location id"    | (LOCATION & 0xF8)            |
+ *  | Function     | [ 2: 0] | "location id"    | (LOCATION & 0x7)             |
  *
  *  @param[in] processor_handle a processor handle
  *

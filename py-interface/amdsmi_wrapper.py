@@ -380,18 +380,18 @@ amdsmi_clk_type_t = ctypes.c_uint32 # enum
 # values for enumeration 'amdsmi_compute_partition_type_t'
 amdsmi_compute_partition_type_t__enumvalues = {
     0: 'AMDSMI_COMPUTE_PARTITION_INVALID',
-    1: 'AMDSMI_COMPUTE_PARTITION_CPX',
-    2: 'AMDSMI_COMPUTE_PARTITION_SPX',
-    3: 'AMDSMI_COMPUTE_PARTITION_DPX',
-    4: 'AMDSMI_COMPUTE_PARTITION_TPX',
-    5: 'AMDSMI_COMPUTE_PARTITION_QPX',
+    1: 'AMDSMI_COMPUTE_PARTITION_SPX',
+    2: 'AMDSMI_COMPUTE_PARTITION_DPX',
+    3: 'AMDSMI_COMPUTE_PARTITION_TPX',
+    4: 'AMDSMI_COMPUTE_PARTITION_QPX',
+    5: 'AMDSMI_COMPUTE_PARTITION_CPX',
 }
 AMDSMI_COMPUTE_PARTITION_INVALID = 0
-AMDSMI_COMPUTE_PARTITION_CPX = 1
-AMDSMI_COMPUTE_PARTITION_SPX = 2
-AMDSMI_COMPUTE_PARTITION_DPX = 3
-AMDSMI_COMPUTE_PARTITION_TPX = 4
-AMDSMI_COMPUTE_PARTITION_QPX = 5
+AMDSMI_COMPUTE_PARTITION_SPX = 1
+AMDSMI_COMPUTE_PARTITION_DPX = 2
+AMDSMI_COMPUTE_PARTITION_TPX = 3
+AMDSMI_COMPUTE_PARTITION_QPX = 4
+AMDSMI_COMPUTE_PARTITION_CPX = 5
 amdsmi_compute_partition_type_t = ctypes.c_uint32 # enum
 
 # values for enumeration 'amdsmi_memory_partition_type_t'
@@ -902,7 +902,13 @@ struct_amdsmi_asic_info_t._fields_ = [
     ('asic_serial', ctypes.c_char * 32),
     ('oam_id', ctypes.c_uint32),
     ('num_of_compute_units', ctypes.c_uint32),
+    ('PADDING_0', ctypes.c_ubyte * 4),
+    ('target_graphics_version', ctypes.c_uint64),
+    ('kfd_id', ctypes.c_uint64),
+    ('node_id', ctypes.c_uint32),
+    ('partition_id', ctypes.c_uint32),
     ('reserved', ctypes.c_uint32 * 17),
+    ('PADDING_1', ctypes.c_ubyte * 4),
 ]
 
 amdsmi_asic_info_t = struct_amdsmi_asic_info_t

@@ -1664,7 +1664,11 @@ def amdsmi_get_gpu_asic_info(
         "rev_id": _padHexValue(hex(asic_info_struct.rev_id), 2),
         "asic_serial": asic_info_struct.asic_serial.decode("utf-8"),
         "oam_id": asic_info_struct.oam_id,
-        "num_compute_units": asic_info_struct.num_of_compute_units
+        "num_compute_units": asic_info_struct.num_of_compute_units,
+        "target_graphics_version": "gfx" + str(asic_info_struct.target_graphics_version),
+        "kfd_id": asic_info_struct.kfd_id,
+        "node_id": asic_info_struct.node_id,
+        "partition_id": asic_info_struct.partition_id
     }
 
     string_values = ["market_name", "vendor_name"]

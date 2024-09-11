@@ -175,6 +175,98 @@ Legend:
  64,32 = 64 bit and 32 bit atomic support
  <BW from>-<BW to>
 ```
+- **Added Target_Graphics_Version, KFD_ID, Node_id, and partition id to `amd-smi static --asic`**.  
+Due to fixes needed to properly enumerate all logical GPUs in CPX, new device identifiers
+were placed within the `amdsmi_asic_info_t` struct. These new fields are only available for BM/Guest Linux
+devices at this time.
+
+```C
+typedef struct {
+  char  market_name[AMDSMI_256_LENGTH];
+  uint32_t vendor_id;   //< Use 32 bit to be compatible with other platform.
+  char vendor_name[AMDSMI_MAX_STRING_LENGTH];
+  uint32_t subvendor_id;   //< The subsystem vendor id
+  uint64_t device_id;   //< The device id of a GPU
+  uint32_t rev_id;
+  char asic_serial[AMDSMI_NORMAL_STRING_LENGTH];
+  uint32_t oam_id;   //< 0xFFFF if not supported
+  uint32_t num_of_compute_units;   //< 0xFFFFFFFF if not supported
+  uint64_t target_graphics_version;  //< 0xFFFFFFFFFFFFFFFF if not supported
+  uint64_t kfd_id;  //< 0xFFFFFFFFFFFFFFFF if not supported
+  uint32_t node_id;  //< 0xFFFFFFFF if not supported
+  uint32_t partition_id;  //< 0xFFFFFFFF if not supported
+  uint32_t reserved[17];
+} amdsmi_asic_info_t;
+```
+
+```shell
+$ amd-smi static --asic --board --bus --partition
+GPU: 0
+    ASIC:
+        MARKET_NAME: MI308X
+        VENDOR_ID: 0x1002
+        VENDOR_NAME: Advanced Micro Devices Inc. [AMD/ATI]
+        SUBVENDOR_ID: 0x1002
+        DEVICE_ID: 0x74a2
+        TARGET_GRAPHICS_VERSION: gfx942
+        KFD_ID: 24248
+        NODE_ID: 2
+        PARTITION_ID: 0
+        SUBSYSTEM_ID: 0x74a2
+        REV_ID: 0x00
+        ASIC_SERIAL: <redacted>
+        OAM_ID: 5
+        NUM_COMPUTE_UNITS: 20
+    BUS:
+        BDF: 0000:0A:00.0
+        MAX_PCIE_WIDTH: 16
+        MAX_PCIE_SPEED: 32 GT/s
+        PCIE_INTERFACE_VERSION: Gen 5
+        SLOT_TYPE: PCIE
+    BOARD:
+        MODEL_NUMBER: 102-G30218-00
+        PRODUCT_SERIAL: 692432000576
+        FRU_ID: 113-AMDG302180002-0000000000000
+        PRODUCT_NAME: AMD Instinct MI308X OAM
+        MANUFACTURER_NAME: AMD
+    PARTITION:
+        COMPUTE_PARTITION: CPX
+        MEMORY_PARTITION: NPS4
+
+GPU: 1
+    ASIC:
+        MARKET_NAME: MI308X
+        VENDOR_ID: 0x1002
+        VENDOR_NAME: Advanced Micro Devices Inc. [AMD/ATI]
+        SUBVENDOR_ID: 0x1002
+        DEVICE_ID: 0x74a2
+        TARGET_GRAPHICS_VERSION: gfx942
+        KFD_ID: 41657
+        NODE_ID: 3
+        PARTITION_ID: 1
+        SUBSYSTEM_ID: 0x74a2
+        REV_ID: 0x00
+        ASIC_SERIAL: <redacted>
+        OAM_ID: 5
+        NUM_COMPUTE_UNITS: 20
+    BUS:
+        BDF: 0000:0A:00.1
+        MAX_PCIE_WIDTH: 16
+        MAX_PCIE_SPEED: 32 GT/s
+        PCIE_INTERFACE_VERSION: Gen 5
+        SLOT_TYPE: PCIE
+    BOARD:
+        MODEL_NUMBER: 102-G30218-00
+        PRODUCT_SERIAL: 692432000576
+        FRU_ID: 113-AMDG302180002-0000000000000
+        PRODUCT_NAME: AMD Instinct MI308X OAM
+        MANUFACTURER_NAME: AMD
+    PARTITION:
+        COMPUTE_PARTITION: CPX
+        MEMORY_PARTITION: NPS4
+...
+```
+
 
 ### Removals
 
@@ -186,7 +278,58 @@ Legend:
 
 ### Resolved issues
 
-- N/A
+- **Fixed CPX not showing total number of logical GPUs**.  
+Updates were made to `amdsmi_init()` and `amdsmi_get_gpu_bdf_id(..)`. In order to display all logical devices, we needed a way to provide order to GPU's enumerated. This was done
+by adding a partition_id within the BDF optional pci_id bits.
+
+Due to driver changes in KFD, some devices may report bits [31:28] or [2:0]. With the newly added `amdsmi_get_gpu_bdf_id(..)`, we provided this fallback to properly retreive partition ID. We
+plan to eventually remove partition ID from the function portion of the BDF (Bus Device Function). See below for PCI ID description.
+
+  - bits [63:32] = domain
+  - bits [31:28] or bits [2:0] = partition id 
+  - bits [27:16] = reserved
+  - bits [15:8]  = Bus
+  - bits [7:3] = Device
+  - bits [2:0] = Function (partition id maybe in bits [2:0]) <-- Fallback for non SPX modes
+
+Previously in non-SPX modes (ex. CPX/TPX/DPX/etc) some MI3x ASICs would not report all logical GPU devices within AMD SMI.
+
+```shell
+$ amd-smi monitor -p -t -v
+GPU  POWER  GPU_TEMP  MEM_TEMP  VRAM_USED  VRAM_TOTAL
+  0  248 W     55 °C     48 °C     283 MB   196300 MB
+  1  247 W     55 °C     48 °C     283 MB   196300 MB
+  2  247 W     55 °C     48 °C     283 MB   196300 MB
+  3  247 W     55 °C     48 °C     283 MB   196300 MB
+  4  221 W     50 °C     42 °C     283 MB   196300 MB
+  5  221 W     50 °C     42 °C     283 MB   196300 MB
+  6  222 W     50 °C     42 °C     283 MB   196300 MB
+  7  221 W     50 °C     42 °C     283 MB   196300 MB
+  8  239 W     53 °C     46 °C     283 MB   196300 MB
+  9  239 W     53 °C     46 °C     283 MB   196300 MB
+ 10  239 W     53 °C     46 °C     283 MB   196300 MB
+ 11  239 W     53 °C     46 °C     283 MB   196300 MB
+ 12  219 W     51 °C     48 °C     283 MB   196300 MB
+ 13  219 W     51 °C     48 °C     283 MB   196300 MB
+ 14  219 W     51 °C     48 °C     283 MB   196300 MB
+ 15  219 W     51 °C     48 °C     283 MB   196300 MB
+ 16  222 W     51 °C     47 °C     283 MB   196300 MB
+ 17  222 W     51 °C     47 °C     283 MB   196300 MB
+ 18  222 W     51 °C     47 °C     283 MB   196300 MB
+ 19  222 W     51 °C     48 °C     283 MB   196300 MB
+ 20  241 W     55 °C     48 °C     283 MB   196300 MB
+ 21  241 W     55 °C     48 °C     283 MB   196300 MB
+ 22  241 W     55 °C     48 °C     283 MB   196300 MB
+ 23  240 W     55 °C     48 °C     283 MB   196300 MB
+ 24  211 W     51 °C     45 °C     283 MB   196300 MB
+ 25  211 W     51 °C     45 °C     283 MB   196300 MB
+ 26  211 W     51 °C     45 °C     283 MB   196300 MB
+ 27  211 W     51 °C     45 °C     283 MB   196300 MB
+ 28  227 W     51 °C     49 °C     283 MB   196300 MB
+ 29  227 W     51 °C     49 °C     283 MB   196300 MB
+ 30  227 W     51 °C     49 °C     283 MB   196300 MB
+ 31  227 W     51 °C     49 °C     283 MB   196300 MB
+```
 
 ### Known issues
 
@@ -829,7 +972,7 @@ $ /opt/rocm/bin/amd-smi topology -a -t --json
 Previously our reset could attempting to reset non-amd GPUS- resuting in "Unable to reset non-amd GPU" error. Fix
 updates CLI to target only AMD ASICs.
 
-- **Fix for `amd-smi metric --pcie` and `amdsmi_get_pcie_info()`Navi32/31 cards**.
+- **Fix for `amd-smi static --pcie` and `amdsmi_get_pcie_info()`Navi32/31 cards**.  
 Updated API to include `amdsmi_card_form_factor_t.AMDSMI_CARD_FORM_FACTOR_CEM`. Prevously, this would report "UNKNOWN". This fix
 provides the correct board `SLOT_TYPE` associated with these ASICs (and other Navi cards).
 

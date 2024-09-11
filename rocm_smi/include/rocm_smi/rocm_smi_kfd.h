@@ -94,6 +94,11 @@ class KFDNode {
     int32_t get_simd_per_cu(uint64_t* simd_per_cu) const;
     int32_t get_simd_count(uint64_t* simd_count) const;
 
+    // Get gpu_id (AKA GUID) version from kfd
+    int get_gpu_id(uint64_t *gpu_id);
+    // Get node id from kfd
+    int get_node_id(uint32_t *node_id);
+
  private:
     uint32_t node_indx_;
     uint32_t amdgpu_dev_index_;

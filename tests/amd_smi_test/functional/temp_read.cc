@@ -137,8 +137,7 @@ void TestTempRead::Run(void) {
         ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
         IF_VERB(STANDARD) {
-          std::cout << "\t**" << label << ": " << val_i64/1000 <<
-                                                             "C" << std::endl;
+          std::cout << "\t**" << label << ": " << val_i64 << "C" << std::endl;
         }
       };
       for (type = AMDSMI_TEMPERATURE_TYPE_FIRST; type <= AMDSMI_TEMPERATURE_TYPE__MAX; ++type) {
