@@ -361,7 +361,6 @@ class AMDSMICommands():
                 static_dict["asic"] = "N/A"
                 logging.debug("Failed to get asic info for gpu %s | %s", gpu_id, e.get_error_info())
 
-#           static["asic"] = "N/A"
             try:
                 subsystem_id = amdsmi_interface.amdsmi_get_gpu_subsystem_id(args.gpu)
                 if static_dict["asic"] != "N/A":
@@ -1299,13 +1298,19 @@ class AMDSMICommands():
         # Get gpu_id for logging
         gpu_id = self.helpers.get_gpu_id_from_device_handle(args.gpu)
 
-        # Put the metrics table in the debug logs
-        try:
-            gpu_metric_debug_info = amdsmi_interface.amdsmi_get_gpu_metrics_info(args.gpu)
-            gpu_metric_str = json.dumps(gpu_metric_debug_info, indent=4)
-            logging.debug("GPU Metrics table for %s | %s", gpu_id, gpu_metric_str)
-        except amdsmi_exception.AmdSmiLibraryException as e:
-            logging.debug("Unabled to load GPU Metrics table for %s | %s", gpu_id, e.err_info)
+        if args.loglevel == "DEBUG":
+            try:
+                # Get GPU Metrics table version
+                gpu_metric_version_info = amdsmi_interface.amdsmi_get_gpu_metrics_header_info(args.gpu)
+                gpu_metric_version_str = json.dumps(gpu_metric_version_info, indent=4)
+                logging.debug("GPU Metrics table Version for GPU %s | %s", gpu_id, gpu_metric_version_str)
+
+                # Get GPU Metrics table
+                gpu_metric_debug_info = amdsmi_interface.amdsmi_get_gpu_metrics_info(args.gpu)
+                gpu_metric_str = json.dumps(gpu_metric_debug_info, indent=4)
+                logging.debug("GPU Metrics table for GPU %s | %s", gpu_id, gpu_metric_str)
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                logging.debug("Unabled to load GPU Metrics table for %s | %s", gpu_id, e.err_info)
 
         logging.debug(f"Metric Arg information for GPU {gpu_id} on {self.helpers.os_info()}")
         logging.debug(f"Args:   {current_platform_args}")
@@ -1318,6 +1323,88 @@ class AMDSMICommands():
 
         # Add timestamp and store values for specified arguments
         values_dict = {}
+
+        # Populate the pcie_dict first due to multiple gpu metrics calls incorrectly increasing bandwidth
+        if "pcie" in current_platform_args:
+            if args.pcie:
+                pcie_dict = {"width": "N/A",
+                             "speed": "N/A",
+                             "bandwidth": "N/A",
+                             "replay_count" : "N/A",
+                             "l0_to_recovery_count" : "N/A",
+                             "replay_roll_over_count" : "N/A",
+                             "nak_sent_count" : "N/A",
+                             "nak_received_count" : "N/A",
+                             "current_bandwidth_sent": "N/A",
+                             "current_bandwidth_received": "N/A",
+                             "max_packet_size": "N/A"}
+
+                try:
+                    pcie_metric = amdsmi_interface.amdsmi_get_pcie_info(args.gpu)['pcie_metric']
+                    logging.debug("PCIE Metric for %s | %s", gpu_id, pcie_metric)
+
+                    pcie_dict['width'] = pcie_metric['pcie_width']
+
+                    if pcie_metric['pcie_speed'] != "N/A":
+                        if pcie_metric['pcie_speed'] % 1000 != 0:
+                            pcie_speed_GTs_value = round(pcie_metric['pcie_speed'] / 1000, 1)
+                        else:
+                            pcie_speed_GTs_value = round(pcie_metric['pcie_speed'] / 1000)
+                        pcie_dict['speed'] = pcie_speed_GTs_value
+
+                    pcie_dict['bandwidth'] = pcie_metric['pcie_bandwidth']
+                    pcie_dict['replay_count'] = pcie_metric['pcie_replay_count']
+                    pcie_dict['l0_to_recovery_count'] = pcie_metric['pcie_l0_to_recovery_count']
+                    pcie_dict['replay_roll_over_count'] = pcie_metric['pcie_replay_roll_over_count']
+                    pcie_dict['nak_received_count'] = pcie_metric['pcie_nak_received_count']
+                    pcie_dict['nak_sent_count'] = pcie_metric['pcie_nak_sent_count']
+
+                    pcie_speed_unit = 'GT/s'
+                    pcie_bw_unit = 'Mb/s'
+                    if self.logger.is_human_readable_format():
+                        if pcie_dict['speed'] != "N/A":
+                            pcie_dict['speed'] = f"{pcie_dict['speed']} {pcie_speed_unit}"
+                        if pcie_dict['bandwidth'] != "N/A":
+                            pcie_dict['bandwidth'] = f"{pcie_dict['bandwidth']} {pcie_bw_unit}"
+                    if self.logger.is_json_format():
+                        if pcie_dict['speed'] != "N/A":
+                            pcie_dict['speed'] = {"value" : pcie_dict['speed'],
+                                                  "unit" : pcie_speed_unit}
+                        if pcie_dict['bandwidth'] != "N/A":
+                            pcie_dict['bandwidth'] = {"value" : pcie_dict['bandwidth'],
+                                                      "unit" : pcie_bw_unit}
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    logging.debug("Failed to get pcie link status for gpu %s | %s", gpu_id, e.get_error_info())
+
+                try:
+                    pcie_bw = amdsmi_interface.amdsmi_get_gpu_pci_throughput(args.gpu)
+                    sent = pcie_bw['sent'] * pcie_bw['max_pkt_sz']
+                    received = pcie_bw['received'] * pcie_bw['max_pkt_sz']
+
+                    bw_unit = "Mb/s"
+                    packet_size_unit = "B"
+                    if sent > 0:
+                        sent = sent // 1024 // 1024
+                    if received > 0:
+                        received = received // 1024 // 1024
+
+                    if self.logger.is_human_readable_format():
+                        sent = f"{sent} {bw_unit}"
+                        received = f"{received} {bw_unit}"
+                        pcie_bw['max_pkt_sz'] = f"{pcie_bw['max_pkt_sz']} {packet_size_unit}"
+                    if self.logger.is_json_format():
+                        sent = {"value" : sent,
+                                "unit" : bw_unit}
+                        received = {"value" : received,
+                                    "unit" : bw_unit}
+                        pcie_bw['max_pkt_sz'] = {"value" : pcie_bw['max_pkt_sz'],
+                                                 "unit" : packet_size_unit}
+
+                    pcie_dict['current_bandwidth_sent'] = sent
+                    pcie_dict['current_bandwidth_received'] = received
+                    pcie_dict['max_packet_size'] = pcie_bw['max_pkt_sz']
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    logging.debug("Failed to get pcie bandwidth for gpu %s | %s", gpu_id, e.get_error_info())
 
         if "usage" in current_platform_args:
             if args.usage:
@@ -1648,89 +1735,12 @@ class AMDSMICommands():
                                                             "unit" : temp_unit_json}
 
                 values_dict['temperature'] = temperatures
+
+        # Since pcie bw may increase based on frequent metrics calls, we add it to the output here, but the populate the values first
         if "pcie" in current_platform_args:
             if args.pcie:
-                pcie_dict = {"width": "N/A",
-                             "speed": "N/A",
-                             "bandwidth": "N/A",
-                             "replay_count" : "N/A",
-                             "l0_to_recovery_count" : "N/A",
-                             "replay_roll_over_count" : "N/A",
-                             "nak_sent_count" : "N/A",
-                             "nak_received_count" : "N/A",
-                             "current_bandwidth_sent": "N/A",
-                             "current_bandwidth_received": "N/A",
-                             "max_packet_size": "N/A"}
-
-                try:
-                    pcie_metric = amdsmi_interface.amdsmi_get_pcie_info(args.gpu)['pcie_metric']
-                    logging.debug("PCIE Metric for %s | %s", gpu_id, pcie_metric)
-
-                    pcie_dict['width'] = pcie_metric['pcie_width']
-
-                    if pcie_metric['pcie_speed'] != "N/A":
-                        if pcie_metric['pcie_speed'] % 1000 != 0:
-                            pcie_speed_GTs_value = round(pcie_metric['pcie_speed'] / 1000, 1)
-                        else:
-                            pcie_speed_GTs_value = round(pcie_metric['pcie_speed'] / 1000)
-                        pcie_dict['speed'] = pcie_speed_GTs_value
-
-                    pcie_dict['bandwidth'] = pcie_metric['pcie_bandwidth']
-                    pcie_dict['replay_count'] = pcie_metric['pcie_replay_count']
-                    pcie_dict['l0_to_recovery_count'] = pcie_metric['pcie_l0_to_recovery_count']
-                    pcie_dict['replay_roll_over_count'] = pcie_metric['pcie_replay_roll_over_count']
-                    pcie_dict['nak_received_count'] = pcie_metric['pcie_nak_received_count']
-                    pcie_dict['nak_sent_count'] = pcie_metric['pcie_nak_sent_count']
-
-                    pcie_speed_unit = 'GT/s'
-                    pcie_bw_unit = 'Mb/s'
-                    if self.logger.is_human_readable_format():
-                        if pcie_dict['speed'] != "N/A":
-                            pcie_dict['speed'] = f"{pcie_dict['speed']} {pcie_speed_unit}"
-                        if pcie_dict['bandwidth'] != "N/A":
-                            pcie_dict['bandwidth'] = f"{pcie_dict['bandwidth']} {pcie_bw_unit}"
-                    if self.logger.is_json_format():
-                        if pcie_dict['speed'] != "N/A":
-                            pcie_dict['speed'] = {"value" : pcie_dict['speed'],
-                                                  "unit" : pcie_speed_unit}
-                        if pcie_dict['bandwidth'] != "N/A":
-                            pcie_dict['bandwidth'] = {"value" : pcie_dict['bandwidth'],
-                                                      "unit" : pcie_bw_unit}
-
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    logging.debug("Failed to get pcie link status for gpu %s | %s", gpu_id, e.get_error_info())
-
-                try:
-                    pcie_bw = amdsmi_interface.amdsmi_get_gpu_pci_throughput(args.gpu)
-                    sent = pcie_bw['sent'] * pcie_bw['max_pkt_sz']
-                    received = pcie_bw['received'] * pcie_bw['max_pkt_sz']
-
-                    bw_unit = "Mb/s"
-                    packet_size_unit = "B"
-                    if sent > 0:
-                        sent = sent // 1024 // 1024
-                    if received > 0:
-                        received = received // 1024 // 1024
-
-                    if self.logger.is_human_readable_format():
-                        sent = f"{sent} {bw_unit}"
-                        received = f"{received} {bw_unit}"
-                        pcie_bw['max_pkt_sz'] = f"{pcie_bw['max_pkt_sz']} {packet_size_unit}"
-                    if self.logger.is_json_format():
-                        sent = {"value" : sent,
-                                "unit" : bw_unit}
-                        received = {"value" : received,
-                                    "unit" : bw_unit}
-                        pcie_bw['max_pkt_sz'] = {"value" : pcie_bw['max_pkt_sz'],
-                                                 "unit" : packet_size_unit}
-
-                    pcie_dict['current_bandwidth_sent'] = sent
-                    pcie_dict['current_bandwidth_received'] = received
-                    pcie_dict['max_packet_size'] = pcie_bw['max_pkt_sz']
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    logging.debug("Failed to get pcie bandwidth for gpu %s | %s", gpu_id, e.get_error_info())
-
                 values_dict['pcie'] = pcie_dict
+
         if "ecc" in current_platform_args:
             if args.ecc:
                 ecc_count = {}
@@ -4360,6 +4370,15 @@ class AMDSMICommands():
             self.logger.store_output(args.gpu, 'timestamp', int(time.time()))
             self.logger.table_header = 'TIMESTAMP'.rjust(10) + '  ' + self.logger.table_header
 
+        # Store the pcie_bw values due to possible increase in bandwidth due to repeated gpu_metrics calls
+        if args.pcie:
+            try:
+                pcie_info = amdsmi_interface.amdsmi_get_pcie_info(args.gpu)['pcie_metric']
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                pcie_info = "N/A"
+                logging.debug("Failed to get pci bandwidth on gpu %s | %s", gpu_id, e.get_error_info())
+
+        # Resume regular ordering of values
         if args.power_usage:
             try:
                 gpu_metrics_info = amdsmi_interface.amdsmi_get_gpu_metrics_info(args.gpu)
@@ -4601,15 +4620,13 @@ class AMDSMICommands():
             self.logger.table_header += 'VRAM_USED'.rjust(11)
             self.logger.table_header += 'VRAM_TOTAL'.rjust(12)
         if args.pcie:
-            try:
-                pcie_info = amdsmi_interface.amdsmi_get_pcie_info(args.gpu)['pcie_metric']
+            if pcie_info != "N/A":
                 pcie_bw_unit = 'Mb/s'
                 monitor_values['pcie_bw'] = self.helpers.unit_format(self.logger, pcie_info['pcie_bandwidth'], pcie_bw_unit)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                monitor_values['pcie_bw'] = "N/A"
-                logging.debug("Failed to get pci bandwidth on gpu %s | %s", gpu_id, e.get_error_info())
+            else:
+                monitor_values['pcie_bw'] = pcie_info
 
-            self.logger.table_header += 'PCIE_BW'.rjust(10)
+            self.logger.table_header += 'PCIE_BW'.rjust(12)
 
         self.logger.store_output(args.gpu, 'values', monitor_values)
 
