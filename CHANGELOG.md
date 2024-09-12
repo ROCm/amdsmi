@@ -7,25 +7,28 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 ## amd_smi_lib for ROCm 6.3.0
 
 ### Changes
-- **Moved python tests directory path install location.**
-  - `/opt/<rocm-path>/share/amd_smi/pytest/.. to /opt/<rocm-path>/share/amd_smi/tests/python_unittest/..`
-- **On amd-smi-lib-tests uninstall, the amd_smi tests folder is removed.**
-- **Removed pytest dependency, our python testing depends only on unittest framework.**
+- **Moved python tests directory path install location**.  
+  - `/opt/<rocm-path>/share/amd_smi/pytest/..` to `/opt/<rocm-path>/share/amd_smi/tests/python_unittest/..`
+  - On amd-smi-lib-tests uninstall, the amd_smi tests folder is removed.
+  - Removed pytest dependency, our python testing now only depends on the unittest framework.
 
 - **Added more supported utilization count types to `amdsmi_get_utilization_count()`**.  
+
+- **Added `amd-smi set -L/--clk-limit ...` command**.  
+Equivalent to rocm-smi's '--extremum' command which sets sclk's or mclk's soft minimum or soft maximum clock frequency.
 
 - **Added Pytest functionality to test amdsmi API calls in Python**.  
 
 - **Changed the `power` parameter in `amdsmi_get_energy_count()` to `energy_accumulator`**.  
 Changes propagate forwards into the python interface as well, however we are maintaing backwards compatibility and keeping the `power` field in the python API until ROCm 6.4.
 
-- **Added GPU memory overdrive percentage to `amd-smi metric -o`**.
+- **Added GPU memory overdrive percentage to `amd-smi metric -o`**.  
 Added `amdsmi_get_gpu_mem_overdrive_level()` function to amd-smi C and Python Libraries.
 
-- **Added Subsystem Device ID to `amd-smi static --asic`**.
+- **Added Subsystem Device ID to `amd-smi static --asic`**.  
 No underlying changes to amdsmi_get_gpu_asic_info
 
-- **Added retrieving connection type and P2P capabilities between two GPUs**.
+- **Added retrieving connection type and P2P capabilities between two GPUs**.  
   - Added `amdsmi_topo_get_p2p_status` function to amd-smi C and Python Libraries.
   - Added retrieving P2P link capabilities to CLI `amd-smi topology`.
 
@@ -276,7 +279,7 @@ GPU: 1
 
 ### Removals
 
-- **Removed usage of _validate_positive in Parser and replaced with _positive_int and _not_negative_int as appropriate**
+- **Removed usage of _validate_positive in Parser and replaced with _positive_int and _not_negative_int as appropriate**.  
 This will allow 0 to be a valid input for several options in setting CPUs where appropriate (for example, as a mode or NBIOID)
 
 ### Optimizations
