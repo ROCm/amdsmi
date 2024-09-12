@@ -3190,6 +3190,36 @@ def amdsmi_set_gpu_clk_range(
     )
 
 
+def amdsmi_set_gpu_clk_limit(
+        processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+        clk_type: str,
+        limit_type: str,
+        value: int
+    ) -> None:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+    if not isinstance(value, int):
+        raise AmdSmiParameterException(value, int)
+    if clk_type.lower() == "sclk":
+        clk_type_conversion = amdsmi_wrapper.AMDSMI_CLK_TYPE_SYS
+    elif clk_type.lower() == "mclk":
+        clk_type_conversion = amdsmi_wrapper.AMDSMI_CLK_TYPE_MEM
+    if limit_type.lower() == "min":
+        limit_type_conversion = amdsmi_wrapper.CLK_LIMIT_MIN
+    elif limit_type.lower() == "max":
+        limit_type_conversion = amdsmi_wrapper.CLK_LIMIT_MAX
+    _check_res(
+        amdsmi_wrapper.amdsmi_set_gpu_clk_limit(
+            processor_handle,
+            amdsmi_wrapper.amdsmi_clk_type_t(clk_type_conversion),
+            amdsmi_wrapper.amdsmi_clk_limit_type_t(limit_type_conversion),
+            ctypes.c_uint64(value),
+        )
+    )
+
+
 def amdsmi_get_gpu_memory_total(processor_handle: amdsmi_wrapper.amdsmi_processor_handle, mem_type: AmdSmiMemoryType):
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(

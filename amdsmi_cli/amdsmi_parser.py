@@ -26,6 +26,7 @@ import errno
 import os
 import sys
 import time
+import collections
 
 from pathlib import Path
 
@@ -170,6 +171,27 @@ class AMDSMIParser(argparse.ArgumentParser):
             raise amdsmi_cli_exceptions.AmdSmiMissingParameterValueException(string_value, outputformat)
         else:
             raise amdsmi_cli_exceptions.AmdSmiInvalidParameterValueException(string_value, outputformat)
+
+
+    def _limit_select(self):
+        """Custom action for setting clock limits"""
+        output_format = self.helpers.get_output_format()
+
+        class AMDSMILimitArgs(argparse.Action):
+            def __call__(self, parser: AMDSMIParser, namespace: argparse.Namespace,
+                         values: str | list | None, option_string: str | None = None) -> None:
+                # valid values
+                valid_clk_types = ('sclk', 'mclk')
+                valid_lim_types = ('min', 'max')
+                clk_type, lim_type, val = values
+                if clk_type not in valid_clk_types:
+                    raise amdsmi_cli_exceptions.AmdSmiInvalidParameterValueException(clk_type, output_format)
+                if lim_type not in valid_lim_types:
+                    raise amdsmi_cli_exceptions.AmdSmiInvalidParameterValueException(lim_type, output_format)
+                val = int(val)
+                clk_limit_args = collections.namedtuple('clk_limit_args', ['clk_type', 'lim_type', 'val'])
+                setattr(namespace, self.dest, clk_limit_args(clk_type, lim_type, val))
+        return AMDSMILimitArgs
 
 
     def _check_output_file_path(self):
@@ -1014,6 +1036,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         set_soc_pstate_help = "Set the GPU soc pstate policy using policy id\n"
         set_xgmi_plpd_help = "Set the GPU XGMI per-link power down policy using policy id\n"
         set_process_isolation_help = "Enable or disable the GPU process isolation: 0 for disable and 1 for enable.\n"
+        set_clk_limit_help = "Sets the sclk (aka gfxclk) or mclk minimum and maximum frequencies. \nOf form: amd-smi set -L (sclk | mclk) (min | max) value"
 
         # Help text for CPU set options
         set_cpu_pwr_limit_help = "Set power limit for the given socket. Input parameter is power limit value."
@@ -1052,6 +1075,7 @@ class AMDSMIParser(argparse.ArgumentParser):
                 set_value_parser.add_argument('-o', '--power-cap', action='store', type=self._positive_int, required=False, help=set_power_cap_help, metavar='WATTS')
                 set_value_parser.add_argument('-p', '--soc-pstate', action='store', required=False,  type=self._not_negative_int, help=set_soc_pstate_help, metavar='POLICY_ID')
                 set_value_parser.add_argument('-x', '--xgmi-plpd', action='store', required=False,  type=self._not_negative_int, help=set_xgmi_plpd_help, metavar='POLICY_ID')
+                set_value_parser.add_argument('-L', '--clk-limit', action=self._limit_select(), nargs=3, required=False, help=set_clk_limit_help, metavar=('CLK_TYPE', 'LIM_TYPE', 'VALUE'))
 
             set_value_parser.add_argument('-R', '--process-isolation', action='store', choices=[0,1], type=self._not_negative_int, required=False, help=set_process_isolation_help, metavar='STATUS')
 

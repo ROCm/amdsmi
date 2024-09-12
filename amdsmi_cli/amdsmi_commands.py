@@ -3665,7 +3665,7 @@ class AMDSMICommands():
     def set_gpu(self, args, multiple_devices=False, gpu=None, fan=None, perf_level=None,
                   profile=None, perf_determinism=None, compute_partition=None,
                   memory_partition=None, power_cap=None, soc_pstate=None, xgmi_plpd = None,
-                  process_isolation=None):
+                  process_isolation=None, clk_limit=None):
         """Issue reset commands to target gpu(s)
 
         Args:
@@ -3712,6 +3712,8 @@ class AMDSMICommands():
             args.xgmi_plpd = xgmi_plpd
         if process_isolation:
             args.process_isolation = process_isolation
+        if clk_limit:
+            args.clk_limit = clk_limit
 
         # Handle No GPU passed
         if args.gpu == None:
@@ -3734,7 +3736,8 @@ class AMDSMICommands():
                     args.power_cap is not None,
                     args.soc_pstate is not None,
                     args.xgmi_plpd is not None,
-                    args.process_isolation is not None]):
+                    args.process_isolation is not None,
+                    args.clk_limit is not None]):
             command = " ".join(sys.argv[1:])
             raise AmdSmiRequiredCommandException(command, self.logger.format)
 
@@ -3860,6 +3863,17 @@ class AMDSMICommands():
                 raise ValueError(f"Unable to set process isolation to {status_string} on {gpu_string}") from e
 
             self.logger.store_output(args.gpu, 'process_isolation', result)
+        if isinstance(args.clk_limit, tuple):
+            try:
+                clk_type = args.clk_limit.clk_type
+                lim_type = args.clk_limit.lim_type
+                val = args.clk_limit.val
+                amdsmi_interface.amdsmi_set_gpu_clk_limit(args.gpu, clk_type, lim_type, val)
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
+                    raise PermissionError('Command requires elevation') from e
+                raise ValueError(f"Unable to set {args.clk_limit.lim_type} of {args.clk_limit.clk_type} to {args.clk_limit.val} on {gpu_string}") from e
+            self.logger.store_output(args.gpu, 'clk_limit', f"Successfully changed {args.clk_limit.lim_type} of {args.clk_limit.clk_type} to {args.clk_limit.val}")
 
         if multiple_devices:
             self.logger.store_multiple_device_output()
@@ -3875,7 +3889,7 @@ class AMDSMICommands():
                   cpu_pwr_eff_mode=None, cpu_gmi3_link_width=None, cpu_pcie_link_rate=None,
                   cpu_df_pstate_range=None, cpu_enable_apb=None, cpu_disable_apb=None,
                   soc_boost_limit=None, core=None, core_boost_limit=None, soc_pstate=None, xgmi_plpd=None,
-                  process_isolation=None):
+                  process_isolation=None, clk_limit=None):
         """Issue reset commands to target gpu(s)
 
         Args:
@@ -3926,8 +3940,8 @@ class AMDSMICommands():
         # Check if a GPU argument has been set
         gpu_args_enabled = False
         gpu_attributes = ["fan", "perf_level", "profile", "perf_determinism", "compute_partition",
-                          "memory_partition", "power_cap", "soc_pstate", "xgmi_plpd", "process_isolation",
-                          ]
+                          "memory_partition", "power_cap", "soc_pstate", "xgmi_plpd",
+                          "process_isolation", "clk_limit"]
         for attr in gpu_attributes:
             if hasattr(args, attr):
                 if getattr(args, attr) is not None:
@@ -3983,7 +3997,7 @@ class AMDSMICommands():
                 self.set_gpu(args, multiple_devices, gpu, fan, perf_level,
                                 profile, perf_determinism, compute_partition,
                                 memory_partition, power_cap, soc_pstate, xgmi_plpd,
-                                process_isolation)
+                                process_isolation, clk_limit)
         elif self.helpers.is_amd_hsmp_initialized(): # Only CPU is initialized
             if args.cpu == None and args.core == None:
                 raise ValueError('No CPU or CORE provided, specific target(s) are needed')
@@ -4003,7 +4017,7 @@ class AMDSMICommands():
             self.set_gpu(args, multiple_devices, gpu, fan, perf_level,
                             profile, perf_determinism, compute_partition,
                             memory_partition, power_cap, soc_pstate, xgmi_plpd,
-                            process_isolation)
+                            process_isolation, clk_limit)
 
 
     def reset(self, args, multiple_devices=False, gpu=None, gpureset=None,
