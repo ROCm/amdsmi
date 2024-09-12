@@ -274,7 +274,8 @@ GPU: 1
 
 ### Optimizations
 
-- N/A
+- **Adjusted ordering of gpu_metrics calls to ensure that pcie_bw values remain stable in `amd-smi metric` & `amd-smi monitor`**.  
+With this change additional padding was added to PCIE_BW `amd-smi monitor --pcie`
 
 ### Resolved issues
 
@@ -330,6 +331,8 @@ GPU  POWER  GPU_TEMP  MEM_TEMP  VRAM_USED  VRAM_TOTAL
  30  227 W     51 °C     49 °C     283 MB   196300 MB
  31  227 W     51 °C     49 °C     283 MB   196300 MB
 ```
+
+- **Fixed incorrect implementation of the Python API `amdsmi_get_gpu_metrics_header_info()`**.  
 
 ### Known issues
 

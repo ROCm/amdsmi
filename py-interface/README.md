@@ -810,7 +810,7 @@ except AmdSmiException as e:
 
 ### amdsmi_get_pcie_info
 
-Description: Returns the pcie metric and static information for the given GPU.
+Description: Returns the pcie metric and static information for the given GPU. For accurate PCIe Bandwidth measurements it is recommended to use this function once per 1000ms
 It is not supported on virtual machine guest
 
 Input parameters:

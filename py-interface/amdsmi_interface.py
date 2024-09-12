@@ -4073,12 +4073,12 @@ def amdsmi_get_gpu_metrics_header_info(
     header_info = amdsmi_wrapper.amd_metrics_table_header_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_gpu_metrics_header_info(
-            ctypes.byref(header_info)
+            processor_handle, ctypes.byref(header_info)
         )
     )
 
     return {
-        "structure_size": header_info.structure_size.value,
-        "format_revision": header_info.format_revision.value,
-        "content_revision": header_info.content_revision.value
+        "structure_size": header_info.structure_size,
+        "format_revision": header_info.format_revision,
+        "content_revision": header_info.content_revision
     }
