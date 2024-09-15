@@ -250,6 +250,9 @@ install(
     DESTINATION share/doc/${AMD_SMI}
     COMPONENT dev)
 
+# Make for goamdsmi_shim library
+add_subdirectory(goamdsmi_shim)
+
 #Debian package specific variables
 set(CPACK_DEBIAN_PACKAGE_PROVIDES "amd-smi")
 set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "python3-argcomplete, libdrm-dev, python3-PyYAML")
