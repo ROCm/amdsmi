@@ -272,7 +272,8 @@ GPU: 1
 
 ### Removals
 
-- N/A
+- **Removed usage of _validate_positive in Parser and replaced with _positive_int and _not_negative_int as appropriate**
+This will allow 0 to be a valid input for several options in setting CPUs where appropriate (for example, as a mode or NBIOID)
 
 ### Optimizations
 
