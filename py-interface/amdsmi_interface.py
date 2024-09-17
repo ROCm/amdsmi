@@ -3402,6 +3402,14 @@ def amdsmi_get_utilization_count(
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
+
+    # Enforce List typing
+    if not isinstance(counter_types, list):
+        counter_types = [counter_types]
+
+    counter_types = list(set(counter_types))
+
+    # Validate Inputs
     if len(counter_types) == 0:
         raise AmdSmiLibraryException(amdsmi_wrapper.AMDSMI_STATUS_INVAL)
     counters = []

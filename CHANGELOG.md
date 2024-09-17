@@ -8,6 +8,8 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ### Changes
 
+- **Added more supported utilization count types to `amdsmi_get_utilization_count()`**.  
+
 - **Added Pytest functionality to test amdsmi API calls in Python**.  
 
 - **Changed the `power` parameter in `amdsmi_get_energy_count()` to `energy_accumulator`**.  
