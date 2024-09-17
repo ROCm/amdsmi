@@ -2816,7 +2816,7 @@ class AMDSMICommands():
             args.gpu = [args.gpu]
 
         print('EVENT LISTENING:\n')
-        print('Press q and hit ENTER when you want to stop (listening will stop within 10 seconds)')
+        print('Press q and hit ENTER when you want to stop.')
         self.stop = False
         threads = []
         for device_handle in range(len(args.gpu)):
@@ -2826,8 +2826,8 @@ class AMDSMICommands():
 
         while True:
             user_input = input()
-            print("Escape Sequence Detected; Exiting")
             if user_input == 'q':
+                print("Escape Sequence Detected; Exiting")
                 self.stop = True
                 break
 
