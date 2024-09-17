@@ -2817,15 +2817,19 @@ class AMDSMICommands():
 
         print('EVENT LISTENING:\n')
         print('Press q and hit ENTER when you want to stop (listening will stop within 10 seconds)')
-
+        self.stop = False
         threads = []
         for device_handle in range(len(args.gpu)):
             x = threading.Thread(target=self._event_thread, args=(self, device_handle))
             threads.append(x)
             x.start()
 
-        while self.stop!= 'q':
-            self.stop = input("")
+        while True:
+            user_input = input()
+            print("Escape Sequence Detected; Exiting")
+            if user_input == 'q':
+                self.stop = True
+                break
 
         for thread in threads:
             thread.join()
@@ -4942,9 +4946,9 @@ class AMDSMICommands():
                                         amdsmi_interface.AmdSmiEvtNotificationType)
         values_dict = {}
 
-        while self.stop!='q':
+        while not self.stop:
             try:
-                events = listener.read(10000)
+                events = listener.read(2000)
                 for event in events:
                     values_dict["event"] = event["event"]
                     values_dict["message"] = event["message"]
