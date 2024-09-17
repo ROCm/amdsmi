@@ -377,6 +377,8 @@ Field | Content
 `rev_id` |  revision id
 `asic_serial` | asic serial
 `oam_id` | oam id
+`num_of_compute_units` | number of compute units on asic
+`target_graphics_version` | hardware graphics version
 
 Exceptions that can be thrown by `amdsmi_get_gpu_asic_info` function:
 
@@ -394,13 +396,44 @@ try:
     else:
         for device in devices:
             asic_info = amdsmi_get_gpu_asic_info(device)
-            print(asic_info['market_name'])
-            print(hex(asic_info['vendor_id']))
-            print(asic_info['vendor_name'])
-            print(hex(asic_info['device_id']))
-            print(hex(asic_info['rev_id']))
-            print(asic_info['asic_serial'])
-            print(asic_info['oam_id'])
+            print(asic_info)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_gpu_kfd_info
+
+Description: Returns KFD(kernel fusion driver) information for the given GPU
+This correlates to GUID in rocm-smi
+
+Input parameters:
+
+* `processor_handle` device which to query
+
+Output: Dictionary with fields
+
+Field | Content
+---|---
+`kfd_id` | KFD's unique GPU identifier
+`node_id` | KFD's internal GPU index
+
+Exceptions that can be thrown by `amdsmi_get_gpu_kfd_info` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            kfd_info = amdsmi_get_gpu_kfd_info(device)
+            print(kfd_info)
 except AmdSmiException as e:
     print(e)
 ```

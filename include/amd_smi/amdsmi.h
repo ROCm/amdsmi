@@ -590,11 +590,15 @@ typedef struct {
   uint32_t oam_id;   //< 0xFFFF if not supported
   uint32_t num_of_compute_units;   //< 0xFFFFFFFF if not supported
   uint64_t target_graphics_version;  //< 0xFFFFFFFFFFFFFFFF if not supported
+  uint32_t partition_id;  //< 0xFFFFFFFF if not supported
+  uint32_t reserved[14];
+} amdsmi_asic_info_t;
+
+typedef struct {
   uint64_t kfd_id;  //< 0xFFFFFFFFFFFFFFFF if not supported
   uint32_t node_id;  //< 0xFFFFFFFF if not supported
-  uint32_t partition_id;  //< 0xFFFFFFFF if not supported
-  uint32_t reserved[11];
-} amdsmi_asic_info_t;
+  uint32_t reserved[13];
+} amdsmi_kfd_info_t;
 
 typedef enum {
   AMDSMI_LINK_TYPE_PCIE,
@@ -4715,6 +4719,25 @@ amdsmi_get_gpu_driver_info(amdsmi_processor_handle processor_handle, amdsmi_driv
  */
 amdsmi_status_t
 amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_info_t *info);
+
+/**
+ *  @brief          Returns the KFD (Kernel Fusion Driver) information for the device
+ *
+ *  @platform{gpu_bm_linux}  @platform{guest_1vf}  @platform{guest_mvf}
+ *
+ *  @details        This function returns KFD information populated into the amdsmi_kfd_info_t.
+ *                  This contains the kfd_id and node_id which allow for the ID and 
+ *                  index of this device in the KFD.
+ *
+ *  @param[in]      processor_handle Device which to query
+ *
+ *  @param[out]     info Reference to kfd information structure.
+ *                  Must be allocated by user.
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t
+amdsmi_get_gpu_kfd_info(amdsmi_processor_handle processor_handle, amdsmi_kfd_info_t *info);
 
 /**
  *  @brief Returns vram info

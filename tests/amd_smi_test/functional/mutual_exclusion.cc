@@ -200,8 +200,8 @@ void TestMutualExclusion::Run(void) {
     ret = amdsmi_get_gpu_id(processor_handles_[0], &dmy_ui16);
 
     // vendor_id, unique_id
-    amdsmi_asic_info_t asci_info;
-    ret = amdsmi_get_gpu_asic_info(processor_handles_[0], &asci_info);
+    amdsmi_asic_info_t asic_info;
+    ret = amdsmi_get_gpu_asic_info(processor_handles_[0], &asic_info);
     CHECK_RET(ret, AMDSMI_STATUS_BUSY);
 
     // device name, brand, serial_number

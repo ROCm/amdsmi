@@ -566,9 +566,8 @@ class AMDSMIParser(argparse.ArgumentParser):
 
         # Subparser help text
         list_help = "List GPU information"
-        list_subcommand_help = "Lists all the devices on the system and the links between devices.\
-                            \nLists all the sockets and for each socket, GPUs and/or CPUs associated to\
-                            \nthat socket alongside some basic information for each device.\
+        list_subcommand_help = "Lists all detected devices on the system\
+                            \nLists the BDF, UUID, KFD_ID, and NODE_ID for each GPU and/or CPUs\
                             \nIn virtualization environments, it can also list VFs associated to each\
                             \nGPU with some basic information for each VF."
 

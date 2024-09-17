@@ -23,15 +23,13 @@
 # This is not meant to serve best practices for development.
 # Run this post install with python3 -i quick_start.py
 
-
-from amdsmi import *
-from pathlib import Path
-
 import atexit
 import logging
 import signal
 import sys
 
+from amdsmi import *
+from pathlib import Path
 
 # Make exit & quit work without parens because it's annoying
 type(exit).__repr__ = sys.exit
