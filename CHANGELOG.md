@@ -7,6 +7,7 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 ## amd_smi_lib for ROCm 6.3.0
 
 ### Changes
+
 - **Moved python tests directory path install location**.  
   - `/opt/<rocm-path>/share/amd_smi/pytest/..` to `/opt/<rocm-path>/share/amd_smi/tests/python_unittest/..`
   - On amd-smi-lib-tests uninstall, the amd_smi tests folder is removed.
@@ -43,14 +44,14 @@ If no topology argument is provided all topology information will be displayed.
 Topology arguments:
   -h, --help               show this help message and exit
   -g, --gpu GPU [GPU ...]  Select a GPU ID, BDF, or UUID from the possible choices:
-                           ID: 0 | BDF: 0000:0c:00.0 | UUID: 5fff74a1-0000-1000-808c-324a4d24b37e
-                           ID: 1 | BDF: 0000:22:00.0 | UUID: 06ff74a1-0000-1000-80d3-f5e97636ae62
-                           ID: 2 | BDF: 0000:38:00.0 | UUID: 87ff74a1-0000-1000-80a0-d0a45576c5ed
-                           ID: 3 | BDF: 0000:5c:00.0 | UUID: 5dff74a1-0000-1000-8054-a29c595fd7f3
-                           ID: 4 | BDF: 0000:9f:00.0 | UUID: a8ff74a1-0000-1000-805b-92615ca9e7b4
-                           ID: 5 | BDF: 0000:af:00.0 | UUID: ddff74a1-0000-1000-809e-5a98a60013bd
-                           ID: 6 | BDF: 0000:bf:00.0 | UUID: 9aff74a1-0000-1000-80e8-cbefaf9f72c3
-                           ID: 7 | BDF: 0000:df:00.0 | UUID: 48ff74a1-0000-1000-806e-3c0b30d78e00
+                           ID: 0 | BDF: 0000:0c:00.0 | UUID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+                           ID: 1 | BDF: 0000:22:00.0 | UUID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+                           ID: 2 | BDF: 0000:38:00.0 | UUID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+                           ID: 3 | BDF: 0000:5c:00.0 | UUID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+                           ID: 4 | BDF: 0000:9f:00.0 | UUID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+                           ID: 5 | BDF: 0000:af:00.0 | UUID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+                           ID: 6 | BDF: 0000:bf:00.0 | UUID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+                           ID: 7 | BDF: 0000:df:00.0 | UUID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
                              all | Selects all devices
 
 
@@ -184,7 +185,37 @@ Legend:
  64,32 = 64 bit and 32 bit atomic support
  <BW from>-<BW to>
 ```
-- **Added Target_Graphics_Version, KFD_ID, Node_id, and partition id to `amd-smi static --asic`**.  
+
+- **Created new amdsmi_kfd_info_t and added information under `amd-smi list`**.  
+  - Due to fixes needed to properly enumerate all logical GPUs in CPX, new device identifiers were added in to a new `amdsmi_kfd_info_t` which gets populated via the API `amdsmi_get_gpu_kfd_info`.
+  - This info has been added to the `amd-smi list`.
+  - These new fields are only available for BM/Guest Linux devices at this time.
+
+```C
+typedef struct {
+  uint64_t kfd_id;  //< 0xFFFFFFFFFFFFFFFF if not supported
+  uint32_t node_id;  //< 0xFFFFFFFF if not supported
+  uint32_t reserved[13];
+} amdsmi_kfd_info_t;
+```
+
+```shell
+$ amd-smi list
+GPU: 0
+    BDF: 0000:23:00.0
+    UUID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    KFD_ID: 45412
+    NODE_ID: 1
+
+GPU: 1
+    BDF: 0000:26:00.0
+    UUID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    KFD_ID: 59881
+    NODE_ID: 2
+```
+
+- **Added Target_Graphics_Version and partition id to `amd-smi static --asic`**.  
+
 Due to fixes needed to properly enumerate all logical GPUs in CPX, new device identifiers
 were placed within the `amdsmi_asic_info_t` struct. These new fields are only available for BM/Guest Linux
 devices at this time.
@@ -201,15 +232,13 @@ typedef struct {
   uint32_t oam_id;   //< 0xFFFF if not supported
   uint32_t num_of_compute_units;   //< 0xFFFFFFFF if not supported
   uint64_t target_graphics_version;  //< 0xFFFFFFFFFFFFFFFF if not supported
-  uint64_t kfd_id;  //< 0xFFFFFFFFFFFFFFFF if not supported
-  uint32_t node_id;  //< 0xFFFFFFFF if not supported
   uint32_t partition_id;  //< 0xFFFFFFFF if not supported
-  uint32_t reserved[17];
+  uint32_t reserved[14];
 } amdsmi_asic_info_t;
 ```
 
 ```shell
-$ amd-smi static --asic --board --bus --partition
+$ amd-smi static --asic --partition
 GPU: 0
     ASIC:
         MARKET_NAME: MI308X
@@ -226,56 +255,10 @@ GPU: 0
         ASIC_SERIAL: <redacted>
         OAM_ID: 5
         NUM_COMPUTE_UNITS: 20
-    BUS:
-        BDF: 0000:0A:00.0
-        MAX_PCIE_WIDTH: 16
-        MAX_PCIE_SPEED: 32 GT/s
-        PCIE_INTERFACE_VERSION: Gen 5
-        SLOT_TYPE: PCIE
-    BOARD:
-        MODEL_NUMBER: 102-G30218-00
-        PRODUCT_SERIAL: 692432000576
-        FRU_ID: 113-AMDG302180002-0000000000000
-        PRODUCT_NAME: AMD Instinct MI308X OAM
-        MANUFACTURER_NAME: AMD
     PARTITION:
         COMPUTE_PARTITION: CPX
         MEMORY_PARTITION: NPS4
-
-GPU: 1
-    ASIC:
-        MARKET_NAME: MI308X
-        VENDOR_ID: 0x1002
-        VENDOR_NAME: Advanced Micro Devices Inc. [AMD/ATI]
-        SUBVENDOR_ID: 0x1002
-        DEVICE_ID: 0x74a2
-        TARGET_GRAPHICS_VERSION: gfx942
-        KFD_ID: 41657
-        NODE_ID: 3
-        PARTITION_ID: 1
-        SUBSYSTEM_ID: 0x74a2
-        REV_ID: 0x00
-        ASIC_SERIAL: <redacted>
-        OAM_ID: 5
-        NUM_COMPUTE_UNITS: 20
-    BUS:
-        BDF: 0000:0A:00.1
-        MAX_PCIE_WIDTH: 16
-        MAX_PCIE_SPEED: 32 GT/s
-        PCIE_INTERFACE_VERSION: Gen 5
-        SLOT_TYPE: PCIE
-    BOARD:
-        MODEL_NUMBER: 102-G30218-00
-        PRODUCT_SERIAL: 692432000576
-        FRU_ID: 113-AMDG302180002-0000000000000
-        PRODUCT_NAME: AMD Instinct MI308X OAM
-        MANUFACTURER_NAME: AMD
-    PARTITION:
-        COMPUTE_PARTITION: CPX
-        MEMORY_PARTITION: NPS4
-...
 ```
-
 
 ### Removals
 
@@ -1022,7 +1005,7 @@ Use the watch arguments to run continuously
 Monitor Arguments:
   -h, --help                   show this help message and exit
   -g, --gpu GPU [GPU ...]      Select a GPU ID, BDF, or UUID from the possible choices:
-                               ID: 0 | BDF: 0000:01:00.0 | UUID: 4eff74a0-0000-1000-802d-1d762a397f73
+                               ID: 0 | BDF: 0000:01:00.0 | UUID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
                                  all | Selects all devices
   -U, --cpu CPU [CPU ...]      Select a CPU ID from the possible choices:
                                ID: 0

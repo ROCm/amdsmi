@@ -575,7 +575,7 @@ def _make_amdsmi_bdf_from_list(bdf):
     amdsmi_bdf.struct_amdsmi_bdf_t.domain_number = bdf[0]
     return amdsmi_bdf
 
-def _padHexValue(value, length):
+def _pad_hex_value(value, length):
     """ Pad a hexadecimal value with a given length of zeros
 
     :param value: A hexadecimal value to be padded with zeros
@@ -590,23 +590,23 @@ def _padHexValue(value, length):
         return '0x' + value[2:].zfill(length)
     return value
 
-class UIntegerTypes(IntEnum):
+class MaxUIntegerTypes(IntEnum):
     UINT8_T  = 0xFF
     UINT16_T = 0xFFFF
     UINT32_T = 0xFFFFFFFF
     UINT64_T = 0xFFFFFFFFFFFFFFFF
 
-def _validateIfMaxUint(valToCheck, uintType: UIntegerTypes):
+def _validate_if_max_uint(value, uint_type: MaxUIntegerTypes):
     return_val = "N/A"
-    if not isinstance(valToCheck, list):
-        if valToCheck == uintType:
+    if not isinstance(value, list):
+        if value == uint_type:
             return return_val
         else:
-            return valToCheck
+            return value
     else:
-        return_val = valToCheck
-        for idx, v in enumerate(valToCheck):
-            if v == uintType:
+        return_val = value
+        for idx, v in enumerate(value):
+            if v == uint_type:
                 return_val[idx] = "N/A"
     return return_val
 
@@ -1656,18 +1656,16 @@ def amdsmi_get_gpu_asic_info(
     )
 
     asic_info = {
-        "market_name": _padHexValue(asic_info_struct.market_name.decode("utf-8"), 4),
+        "market_name": _pad_hex_value(asic_info_struct.market_name.decode("utf-8"), 4),
         "vendor_id": asic_info_struct.vendor_id,
         "vendor_name": asic_info_struct.vendor_name.decode("utf-8"),
         "subvendor_id": asic_info_struct.subvendor_id,
         "device_id": asic_info_struct.device_id,
-        "rev_id": _padHexValue(hex(asic_info_struct.rev_id), 2),
+        "rev_id": _pad_hex_value(hex(asic_info_struct.rev_id), 2),
         "asic_serial": asic_info_struct.asic_serial.decode("utf-8"),
         "oam_id": asic_info_struct.oam_id,
         "num_compute_units": asic_info_struct.num_of_compute_units,
         "target_graphics_version": "gfx" + str(asic_info_struct.target_graphics_version),
-        "kfd_id": asic_info_struct.kfd_id,
-        "node_id": asic_info_struct.node_id,
         "partition_id": asic_info_struct.partition_id
     }
 
@@ -1703,6 +1701,28 @@ def amdsmi_get_gpu_asic_info(
     asic_info["vendor_name"] = asic_info["vendor_name"].replace(',', '')
 
     return asic_info
+
+
+def amdsmi_get_gpu_kfd_info(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+) -> Dict[str, Any]:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    kfd_info_struct = amdsmi_wrapper.amdsmi_kfd_info_t()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_kfd_info(
+            processor_handle, ctypes.byref(kfd_info_struct))
+    )
+
+    kfd_info = {
+        "kfd_id": _validate_if_max_uint(kfd_info_struct.kfd_id, MaxUIntegerTypes.UINT32_T),
+        "node_id": _validate_if_max_uint(kfd_info_struct.node_id, MaxUIntegerTypes.UINT64_T)
+    }
+
+    return kfd_info
 
 
 def amdsmi_get_power_cap_info(
@@ -1999,10 +2019,10 @@ def amdsmi_get_gpu_board_info(
     )
 
     board_info_dict = {
-        "model_number": _padHexValue(board_info.model_number.decode("utf-8").strip(), 4),
+        "model_number": _pad_hex_value(board_info.model_number.decode("utf-8").strip(), 4),
         "product_serial": board_info.product_serial.decode("utf-8").strip(),
         "fru_id": board_info.fru_id.decode("utf-8").strip(),
-        "product_name": _padHexValue(board_info.product_name.decode("utf-8").strip(), 4),
+        "product_name": _pad_hex_value(board_info.product_name.decode("utf-8").strip(), 4),
         "manufacturer_name": board_info.manufacturer_name.decode("utf-8").strip()
     }
 
@@ -2301,20 +2321,20 @@ def amdsmi_get_pcie_info(
 
     pcie_info_dict = {
         "pcie_static": {
-            "max_pcie_width": _validateIfMaxUint(pcie_info.pcie_static.max_pcie_width, UIntegerTypes.UINT16_T),
-            "max_pcie_speed": _validateIfMaxUint(pcie_info.pcie_static.max_pcie_speed, UIntegerTypes.UINT32_T),
-            "pcie_interface_version": _validateIfMaxUint(pcie_info.pcie_static.pcie_interface_version, UIntegerTypes.UINT32_T),
+            "max_pcie_width": _validate_if_max_uint(pcie_info.pcie_static.max_pcie_width, MaxUIntegerTypes.UINT16_T),
+            "max_pcie_speed": _validate_if_max_uint(pcie_info.pcie_static.max_pcie_speed, MaxUIntegerTypes.UINT32_T),
+            "pcie_interface_version": _validate_if_max_uint(pcie_info.pcie_static.pcie_interface_version, MaxUIntegerTypes.UINT32_T),
             "slot_type": pcie_info.pcie_static.slot_type,
             },
         "pcie_metric": {
-            "pcie_width": _validateIfMaxUint(pcie_info.pcie_metric.pcie_width, UIntegerTypes.UINT16_T),
-            "pcie_speed": _validateIfMaxUint(pcie_info.pcie_metric.pcie_speed, UIntegerTypes.UINT32_T),
-            "pcie_bandwidth": _validateIfMaxUint(pcie_info.pcie_metric.pcie_bandwidth, UIntegerTypes.UINT32_T),
-            "pcie_replay_count": _validateIfMaxUint(pcie_info.pcie_metric.pcie_replay_count, UIntegerTypes.UINT64_T),
-            "pcie_l0_to_recovery_count": _validateIfMaxUint(pcie_info.pcie_metric.pcie_l0_to_recovery_count, UIntegerTypes.UINT64_T),
-            "pcie_replay_roll_over_count": _validateIfMaxUint(pcie_info.pcie_metric.pcie_replay_roll_over_count, UIntegerTypes.UINT64_T),
-            "pcie_nak_sent_count": _validateIfMaxUint(pcie_info.pcie_metric.pcie_nak_sent_count, UIntegerTypes.UINT64_T),
-            "pcie_nak_received_count": _validateIfMaxUint(pcie_info.pcie_metric.pcie_nak_received_count, UIntegerTypes.UINT64_T),
+            "pcie_width": _validate_if_max_uint(pcie_info.pcie_metric.pcie_width, MaxUIntegerTypes.UINT16_T),
+            "pcie_speed": _validate_if_max_uint(pcie_info.pcie_metric.pcie_speed, MaxUIntegerTypes.UINT32_T),
+            "pcie_bandwidth": _validate_if_max_uint(pcie_info.pcie_metric.pcie_bandwidth, MaxUIntegerTypes.UINT32_T),
+            "pcie_replay_count": _validate_if_max_uint(pcie_info.pcie_metric.pcie_replay_count, MaxUIntegerTypes.UINT64_T),
+            "pcie_l0_to_recovery_count": _validate_if_max_uint(pcie_info.pcie_metric.pcie_l0_to_recovery_count, MaxUIntegerTypes.UINT64_T),
+            "pcie_replay_roll_over_count": _validate_if_max_uint(pcie_info.pcie_metric.pcie_replay_roll_over_count, MaxUIntegerTypes.UINT64_T),
+            "pcie_nak_sent_count": _validate_if_max_uint(pcie_info.pcie_metric.pcie_nak_sent_count, MaxUIntegerTypes.UINT64_T),
+            "pcie_nak_received_count": _validate_if_max_uint(pcie_info.pcie_metric.pcie_nak_received_count, MaxUIntegerTypes.UINT64_T),
         }
     }
 
@@ -2407,7 +2427,7 @@ def amdsmi_get_gpu_subsystem_id(processor_handle: amdsmi_wrapper.amdsmi_processo
             processor_handle, ctypes.byref(id))
     )
 
-    return _padHexValue(hex(id.value), 4)
+    return _pad_hex_value(hex(id.value), 4)
 
 
 def amdsmi_get_gpu_subsystem_name(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):

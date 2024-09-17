@@ -904,14 +904,23 @@ struct_amdsmi_asic_info_t._fields_ = [
     ('num_of_compute_units', ctypes.c_uint32),
     ('PADDING_0', ctypes.c_ubyte * 4),
     ('target_graphics_version', ctypes.c_uint64),
-    ('kfd_id', ctypes.c_uint64),
-    ('node_id', ctypes.c_uint32),
     ('partition_id', ctypes.c_uint32),
-    ('reserved', ctypes.c_uint32 * 17),
+    ('reserved', ctypes.c_uint32 * 14),
     ('PADDING_1', ctypes.c_ubyte * 4),
 ]
 
 amdsmi_asic_info_t = struct_amdsmi_asic_info_t
+class struct_amdsmi_kfd_info_t(Structure):
+    pass
+
+struct_amdsmi_kfd_info_t._pack_ = 1 # source:False
+struct_amdsmi_kfd_info_t._fields_ = [
+    ('kfd_id', ctypes.c_uint64),
+    ('node_id', ctypes.c_uint32),
+    ('reserved', ctypes.c_uint32 * 13),
+]
+
+amdsmi_kfd_info_t = struct_amdsmi_kfd_info_t
 
 # values for enumeration 'amdsmi_link_type_t'
 amdsmi_link_type_t__enumvalues = {
@@ -2265,6 +2274,9 @@ amdsmi_get_gpu_driver_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(s
 amdsmi_get_gpu_asic_info = _libraries['libamd_smi.so'].amdsmi_get_gpu_asic_info
 amdsmi_get_gpu_asic_info.restype = amdsmi_status_t
 amdsmi_get_gpu_asic_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_asic_info_t)]
+amdsmi_get_gpu_kfd_info = _libraries['libamd_smi.so'].amdsmi_get_gpu_kfd_info
+amdsmi_get_gpu_kfd_info.restype = amdsmi_status_t
+amdsmi_get_gpu_kfd_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_kfd_info_t)]
 amdsmi_get_gpu_vram_info = _libraries['libamd_smi.so'].amdsmi_get_gpu_vram_info
 amdsmi_get_gpu_vram_info.restype = amdsmi_status_t
 amdsmi_get_gpu_vram_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_vram_info_t)]
@@ -2696,7 +2708,8 @@ __all__ = \
     'amdsmi_get_gpu_ecc_enabled', 'amdsmi_get_gpu_ecc_status',
     'amdsmi_get_gpu_event_notification', 'amdsmi_get_gpu_fan_rpms',
     'amdsmi_get_gpu_fan_speed', 'amdsmi_get_gpu_fan_speed_max',
-    'amdsmi_get_gpu_id', 'amdsmi_get_gpu_mem_overdrive_level',
+    'amdsmi_get_gpu_id', 'amdsmi_get_gpu_kfd_info',
+    'amdsmi_get_gpu_mem_overdrive_level',
     'amdsmi_get_gpu_memory_partition',
     'amdsmi_get_gpu_memory_reserved_pages',
     'amdsmi_get_gpu_memory_total', 'amdsmi_get_gpu_memory_usage',
@@ -2742,7 +2755,7 @@ __all__ = \
     'amdsmi_init', 'amdsmi_init_flags_t',
     'amdsmi_init_gpu_event_notification', 'amdsmi_io_bw_encoding_t',
     'amdsmi_io_link_type_t', 'amdsmi_is_P2P_accessible',
-    'amdsmi_is_gpu_power_management_enabled',
+    'amdsmi_is_gpu_power_management_enabled', 'amdsmi_kfd_info_t',
     'amdsmi_link_id_bw_type_t', 'amdsmi_link_metrics_t',
     'amdsmi_link_type_t', 'amdsmi_memory_page_status_t',
     'amdsmi_memory_partition_type_t', 'amdsmi_memory_type_t',
@@ -2802,7 +2815,7 @@ __all__ = \
     'struct_amdsmi_freq_volt_region_t', 'struct_amdsmi_frequencies_t',
     'struct_amdsmi_frequency_range_t', 'struct_amdsmi_fw_info_t',
     'struct_amdsmi_gpu_cache_info_t', 'struct_amdsmi_gpu_metrics_t',
-    'struct_amdsmi_hsmp_metrics_table_t',
+    'struct_amdsmi_hsmp_metrics_table_t', 'struct_amdsmi_kfd_info_t',
     'struct_amdsmi_link_id_bw_type_t', 'struct_amdsmi_link_metrics_t',
     'struct_amdsmi_name_value_t', 'struct_amdsmi_od_vddc_point_t',
     'struct_amdsmi_od_volt_curve_t',

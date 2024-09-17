@@ -774,24 +774,6 @@ amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_i
         info->target_graphics_version = tmp_target_gfx_version;
     }
 
-    // default to 0xffffffffffffffff as not supported
-    info->kfd_id = std::numeric_limits<uint64_t>::max();
-    auto tmp_kfd_id = uint64_t(0);
-    status = rsmi_wrapper(rsmi_dev_guid_get, processor_handle,
-                          &(tmp_kfd_id));
-    if (status == amdsmi_status_t::AMDSMI_STATUS_SUCCESS) {
-        info->kfd_id = tmp_kfd_id;
-    }
-
-    // default to 0xffffffff as not supported
-    info->node_id = std::numeric_limits<uint32_t>::max();
-    auto tmp_node_id = uint32_t(0);
-    status = rsmi_wrapper(rsmi_dev_node_id_get, processor_handle,
-                          &(tmp_node_id));
-    if (status == amdsmi_status_t::AMDSMI_STATUS_SUCCESS) {
-        info->node_id = tmp_node_id;
-    }
-
     // default to 0xffffffff as not supported
     info->partition_id = std::numeric_limits<uint32_t>::max();
     auto tmp_partition_id = uint32_t(0);
@@ -804,6 +786,37 @@ amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_i
     return AMDSMI_STATUS_SUCCESS;
 }
 
+amdsmi_status_t amdsmi_get_gpu_kfd_info(amdsmi_processor_handle processor_handle,
+                                    amdsmi_kfd_info_t *info) {
+    AMDSMI_CHECK_INIT();
+
+    if (info == nullptr) {
+        return AMDSMI_STATUS_INVAL;
+    }
+
+    amdsmi_status_t status;
+    // default to 0xffffffffffffffff as not supported
+    info->kfd_id = std::numeric_limits<uint64_t>::max();
+    auto tmp_kfd_id = uint64_t(0);
+    status = rsmi_wrapper(rsmi_dev_guid_get, processor_handle, &(tmp_kfd_id));
+    if (status != AMDSMI_STATUS_SUCCESS) {
+        return status;
+    } else {
+        info->kfd_id = tmp_kfd_id;
+    }
+
+    // default to 0xffffffff as not supported
+    info->node_id = std::numeric_limits<uint32_t>::max();
+    auto tmp_node_id = uint32_t(0);
+    status = rsmi_wrapper(rsmi_dev_node_id_get, processor_handle, &(tmp_node_id));
+    if (status != AMDSMI_STATUS_SUCCESS) {
+        return status;
+    } else {
+        info->node_id = tmp_node_id;
+    }
+
+    return AMDSMI_STATUS_SUCCESS;
+}
 
 amdsmi_status_t amdsmi_get_gpu_subsystem_id(amdsmi_processor_handle processor_handle,
                                 uint16_t *id) {

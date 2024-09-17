@@ -157,6 +157,9 @@ class AMDSMICommands():
 
         args.gpu = device_handle
 
+        # Get gpu_id for logging
+        gpu_id = self.helpers.get_gpu_id_from_device_handle(args.gpu)
+
         try:
             bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(args.gpu)
         except amdsmi_exception.AmdSmiLibraryException as e:
@@ -167,13 +170,25 @@ class AMDSMICommands():
         except amdsmi_exception.AmdSmiLibraryException as e:
             uuid = e.get_error_info()
 
+        try:
+            kfd_info = amdsmi_interface.amdsmi_get_gpu_kfd_info(args.gpu)
+            kfd_id = kfd_info['kfd_id']
+            node_id = kfd_info['node_id']
+        except amdsmi_exception.AmdSmiLibraryException as e:
+            kfd_id = node_id = e.get_error_info()
+            logging.debug("Failed to get kfd info for gpu %s | %s", gpu_id, e.get_error_info())
+
         # CSV format is intentionally aligned with Host
         if self.logger.is_csv_format():
             self.logger.store_output(args.gpu, 'gpu_bdf', bdf)
             self.logger.store_output(args.gpu, 'gpu_uuid', uuid)
+            self.logger.store_output(args.gpu, 'kfd_id', kfd_id)
+            self.logger.store_output(args.gpu, 'node_id', node_id)
         else:
             self.logger.store_output(args.gpu, 'bdf', bdf)
             self.logger.store_output(args.gpu, 'uuid', uuid)
+            self.logger.store_output(args.gpu, 'kfd_id', kfd_id)
+            self.logger.store_output(args.gpu, 'node_id', node_id)
 
         if multiple_devices:
             self.logger.store_multiple_device_output()
@@ -354,28 +369,35 @@ class AMDSMICommands():
         # Populate static dictionary for each enabled argument
         static_dict = {}
         if args.asic:
+            asic_dict = {
+                "market_name" : "N/A",
+                "vendor_id" : "N/A",
+                "vendor_name" : "N/A",
+                "subvendor_id" : "N/A",
+                "device_id" : "N/A",
+                "subsystem_id" : "N/A",
+                "rev_id" : "N/A",
+                "asic_serial" : "N/A",
+                "oam_id" : "N/A",
+                "num_compute_units" : "N/A",
+                "target_graphics_version" : "N/A",
+                "partition_id" : "N/A"
+            }
+
             try:
                 asic_info = amdsmi_interface.amdsmi_get_gpu_asic_info(args.gpu)
-                static_dict["asic"] = asic_info
+                for key, value in asic_info.items():
+                    asic_dict[key] = value
             except amdsmi_exception.AmdSmiLibraryException as e:
-                static_dict["asic"] = "N/A"
                 logging.debug("Failed to get asic info for gpu %s | %s", gpu_id, e.get_error_info())
 
             try:
                 subsystem_id = amdsmi_interface.amdsmi_get_gpu_subsystem_id(args.gpu)
-                if static_dict["asic"] != "N/A":
-                    # Reorder asic to include subsystem_id after device_id
-                    static_dict["asic"]["subsystem_id"] = subsystem_id
-                    static_dict["asic"]["rev_id"] = static_dict["asic"].pop("rev_id")
-                    static_dict["asic"]["asic_serial"] = static_dict["asic"].pop("asic_serial")
-                    static_dict["asic"]["oam_id"] = static_dict["asic"].pop("oam_id")
-                    static_dict["asic"]["num_compute_units"] = static_dict["asic"].pop("num_compute_units")
-                else:
-                    static_dict["asic"]["subsystem_id"] = subsystem_id
+                asic_dict["subsystem_id"] = subsystem_id
             except amdsmi_exception.AmdSmiLibraryException as e:
-                if static_dict["asic"] != "N/A":
-                    static_dict["asic"]["subsystem_id"] = "N/A"
                 logging.debug("Failed to get asic info for gpu %s | %s", gpu_id, e.get_error_info())
+
+            static_dict['asic'] = asic_dict
         if args.bus:
             bus_info = {
                 'bdf': "N/A",

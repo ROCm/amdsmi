@@ -153,17 +153,15 @@ void TestSysInfoRead::Run(void) {
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
 
-    // vendor_id, unique_id, target_gfx_version, kfd_id, node_id, partition_id
-    amdsmi_asic_info_t asci_info = {};
-    err = amdsmi_get_gpu_asic_info(processor_handles_[i], &asci_info);
+    // vendor_id, unique_id, target_gfx_version, partition_id
+    amdsmi_asic_info_t asic_info = {};
+    err = amdsmi_get_gpu_asic_info(processor_handles_[i], &asic_info);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
         std::cout <<
             "\t**amdsmi_dev_unique_id() is not supported"
             " on this machine" << std::endl;
-        EXPECT_EQ(asci_info.target_graphics_version, std::numeric_limits<uint64_t>::max());
-        EXPECT_EQ(asci_info.kfd_id, std::numeric_limits<uint64_t>::max());
-        EXPECT_EQ(asci_info.node_id, std::numeric_limits<uint32_t>::max());
-        EXPECT_EQ(asci_info.partition_id, std::numeric_limits<uint32_t>::max());
+        EXPECT_EQ(asic_info.target_graphics_version, std::numeric_limits<uint64_t>::max());
+        EXPECT_EQ(asic_info.partition_id, std::numeric_limits<uint32_t>::max());
         // Verify api support checking functionality is working
         err = amdsmi_get_gpu_asic_info(processor_handles_[i], nullptr);
         ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
@@ -171,21 +169,15 @@ void TestSysInfoRead::Run(void) {
         if (err == AMDSMI_STATUS_SUCCESS) {
             IF_VERB(STANDARD) {
               std:: cout << "\t**GPU PCIe Vendor : "
-                  << asci_info.vendor_name << std::endl;
+                  << asic_info.vendor_name << std::endl;
               std::cout << "\t**Target GFX version: " << std::dec
-                        << asci_info.target_graphics_version << "\n";
-              std::cout << "\t**KFD ID: " << std::dec
-                        << asci_info.kfd_id << "\n";
-              std::cout << "\t**Node ID: " << std::dec
-                        << asci_info.node_id << "\n";
+                        << asic_info.target_graphics_version << "\n";
               std::cout << "\t**Partition ID: " << std::dec
-                        << asci_info.partition_id << "\n";
+                        << asic_info.partition_id << "\n";
             }
             EXPECT_EQ(err, AMDSMI_STATUS_SUCCESS);
-            EXPECT_NE(asci_info.target_graphics_version, std::numeric_limits<uint64_t>::max());
-            EXPECT_NE(asci_info.kfd_id, std::numeric_limits<uint64_t>::max());
-            EXPECT_NE(asci_info.node_id, std::numeric_limits<uint32_t>::max());
-            EXPECT_NE(asci_info.partition_id, std::numeric_limits<uint32_t>::max());
+            EXPECT_NE(asic_info.target_graphics_version, std::numeric_limits<uint64_t>::max());
+            EXPECT_NE(asic_info.partition_id, std::numeric_limits<uint32_t>::max());
             // Verify api support checking functionality is working
             err = amdsmi_get_gpu_asic_info(processor_handles_[i], nullptr);
             ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
@@ -194,6 +186,27 @@ void TestSysInfoRead::Run(void) {
                                                                err << std::endl;
         }
     }
+
+    // kfd_id, node_id
+    amdsmi_kfd_info_t kfd_info = {};
+    err = amdsmi_get_gpu_kfd_info(processor_handles_[i], &kfd_info);
+    if (err != AMDSMI_STATUS_SUCCESS) {
+        EXPECT_EQ(kfd_info.kfd_id, std::numeric_limits<uint64_t>::max());
+        EXPECT_EQ(kfd_info.node_id, std::numeric_limits<uint32_t>::max());
+    } else {
+          IF_VERB(STANDARD) {
+            std::cout << "\t**KFD ID: " << std::dec
+                      << kfd_info.kfd_id << "\n";
+            std::cout << "\t**Node ID: " << std::dec
+                      << kfd_info.node_id << "\n";
+          }
+          EXPECT_EQ(err, AMDSMI_STATUS_SUCCESS);
+          EXPECT_NE(kfd_info.kfd_id, std::numeric_limits<uint64_t>::max());
+          EXPECT_NE(kfd_info.node_id, std::numeric_limits<uint32_t>::max());
+    }
+    // Verify api support checking functionality is working
+    err = amdsmi_get_gpu_kfd_info(processor_handles_[i], nullptr);
+    ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
 
   err = amdsmi_get_lib_version(&ver);
   CHK_ERR_ASRT(err)
