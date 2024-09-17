@@ -70,12 +70,23 @@ def parseArgument():
     return args['output'], args['input'], args['library'], args['extra_args']
 
 
-def replace_line(full_path_file_name, string_to_repalce, new_string):
+def replace_line(full_path_file_name, string_to_replace, new_string):
+    """
+    Replaces a specific string in a file with a new string.
+
+    Args:
+        full_path_file_name (str): The full path of the file to modify.
+        string_to_replace (str): The string to be replaced.
+        new_string (str): The new string to replace the old string with.
+
+    Returns:
+        None
+    """
     fh, abs_path = tempfile.mkstemp()
     with os.fdopen(fh, 'w') as new_file:
         with open(full_path_file_name, 'r+', encoding='UTF-8') as old_file:
             for line in old_file:
-                new_file.write(line.replace(string_to_repalce, new_string))
+                new_file.write(line.replace(string_to_replace, new_string))
 
     shutil.copymode(full_path_file_name, abs_path)
     os.remove(full_path_file_name)
@@ -179,8 +190,14 @@ except OSError as error:
             struct_amdsmi_bdf_t_line = "'struct_amdsmi_bdf_t',"
             replace_line(output_file, struct_anon_all_line, struct_amdsmi_bdf_t_line)
 
-            struct_anon_all_line = f"amdsmi.h:{line_number}:3)', "
-            replace_line(output_file, struct_anon_all_line, "")
+            struct_anon_all_line_to_remove = f"amdsmi.h:{line_number}:3)', "
+            replace_line(output_file, struct_anon_all_line_to_remove, "")
+
+        # Custom handling to ensure amdsmi_get_utilization_count doesn't multiply the struct by 0
+        print(f"Replacing amdsmi_get_utilization_count line in {output_file}")
+        utilization_count_line_bad = "amdsmi_get_utilization_count.argtypes = [amdsmi_processor_handle, struct_amdsmi_utilization_counter_t * 0, uint32_t, ctypes.POINTER(ctypes.c_uint64)]"
+        utilization_count_line_good = "amdsmi_get_utilization_count.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_utilization_counter_t), uint32_t, ctypes.POINTER(ctypes.c_uint64)]"
+        replace_line(output_file, utilization_count_line_bad, utilization_count_line_good)
 
 if __name__ == "__main__":
     main()
