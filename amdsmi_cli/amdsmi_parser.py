@@ -27,6 +27,8 @@ import os
 import sys
 import time
 import collections
+from typing import Optional
+from typing import Union
 
 from pathlib import Path
 
@@ -179,7 +181,7 @@ class AMDSMIParser(argparse.ArgumentParser):
 
         class AMDSMILimitArgs(argparse.Action):
             def __call__(self, parser: AMDSMIParser, namespace: argparse.Namespace,
-                         values: str | list | None, option_string: str | None = None) -> None:
+                         values: Union[str, list, None], option_string: Optional[str] = None) -> None:
                 # valid values
                 valid_clk_types = ('sclk', 'mclk')
                 valid_lim_types = ('min', 'max')
