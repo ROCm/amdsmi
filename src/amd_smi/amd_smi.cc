@@ -774,15 +774,6 @@ amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_i
         info->target_graphics_version = tmp_target_gfx_version;
     }
 
-    // default to 0xffffffff as not supported
-    info->partition_id = std::numeric_limits<uint32_t>::max();
-    auto tmp_partition_id = uint32_t(0);
-    status = rsmi_wrapper(rsmi_dev_partition_id_get, processor_handle,
-                          &(tmp_partition_id));
-    if (status == amdsmi_status_t::AMDSMI_STATUS_SUCCESS) {
-        info->partition_id = tmp_partition_id;
-    }
-
     return AMDSMI_STATUS_SUCCESS;
 }
 
@@ -1168,6 +1159,24 @@ amdsmi_reset_gpu_memory_partition(amdsmi_processor_handle processor_handle) {
     return rsmi_wrapper(rsmi_dev_memory_partition_reset, processor_handle);
 }
 
+amdsmi_status_t
+amdsmi_get_gpu_accelerator_partition_profile(amdsmi_processor_handle processor_handle,
+                                             amdsmi_accelerator_partition_profile_t *profile,
+                                             uint32_t *partition_id) {
+    AMDSMI_CHECK_INIT();
+    // TODO: also fill out profile later
+    // default to 0xffffffff if not supported
+    *partition_id = std::numeric_limits<uint32_t>::max();
+    auto tmp_partition_id = uint32_t(0);
+
+    amdsmi_status_t status = rsmi_wrapper(rsmi_dev_partition_id_get, processor_handle, &tmp_partition_id);
+    if (status == amdsmi_status_t::AMDSMI_STATUS_SUCCESS){
+        *partition_id = tmp_partition_id;
+    }
+
+    return status;
+}
+
 // TODO(bliu) : other xgmi related information
 amdsmi_status_t
 amdsmi_get_xgmi_info(amdsmi_processor_handle processor_handle, amdsmi_xgmi_info_t *info) {
@@ -1303,8 +1312,8 @@ void amdsmi_free_name_value_pairs(void *p) {
 
 amdsmi_status_t
 amdsmi_get_power_cap_info(amdsmi_processor_handle processor_handle,
-                    uint32_t sensor_ind,
-                    amdsmi_power_cap_info_t *info) {
+                          uint32_t sensor_ind,
+                          amdsmi_power_cap_info_t *info) {
     AMDSMI_CHECK_INIT();
 
     if (info == nullptr)

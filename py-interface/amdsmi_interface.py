@@ -1665,8 +1665,7 @@ def amdsmi_get_gpu_asic_info(
         "asic_serial": asic_info_struct.asic_serial.decode("utf-8"),
         "oam_id": asic_info_struct.oam_id,
         "num_compute_units": asic_info_struct.num_of_compute_units,
-        "target_graphics_version": "gfx" + str(asic_info_struct.target_graphics_version),
-        "partition_id": asic_info_struct.partition_id
+        "target_graphics_version": "gfx" + str(asic_info_struct.target_graphics_version)
     }
 
     string_values = ["market_name", "vendor_name"]
@@ -1746,6 +1745,7 @@ def amdsmi_get_power_cap_info(
             "min_power_cap": power_info.min_power_cap,
             "max_power_cap": power_info.max_power_cap}
 
+
 def amdsmi_get_gpu_pm_metrics_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
@@ -1772,6 +1772,7 @@ def amdsmi_get_gpu_pm_metrics_info(
         results.append(item)
     amdsmi_wrapper.amdsmi_free_name_value_pairs(pm_metrics)
     return results
+
 
 def amdsmi_get_gpu_reg_table_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
@@ -1800,6 +1801,7 @@ def amdsmi_get_gpu_reg_table_info(
         results.append(item)
     amdsmi_wrapper.amdsmi_free_name_value_pairs(pm_metrics)
     return results
+
 
 def amdsmi_get_gpu_vram_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
@@ -2564,6 +2566,7 @@ def amdsmi_topo_get_link_type(
 
     return {"hops": hops.value, "type": type.value}
 
+
 def amdsmi_topo_get_p2p_status(
     processor_handle_src: amdsmi_wrapper.amdsmi_processor_handle,
     processor_handle_dst: amdsmi_wrapper.amdsmi_processor_handle,
@@ -2714,6 +2717,36 @@ def amdsmi_reset_gpu_memory_partition(processor_handle: amdsmi_wrapper.amdsmi_pr
         )
 
     _check_res(amdsmi_wrapper.amdsmi_reset_gpu_memory_partition(processor_handle))
+
+
+def amdsmi_get_gpu_accelerator_partition_profile(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle
+    ) -> Dict[str, Any]:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+    partition_id = ctypes.c_uint32()
+    profile = amdsmi_wrapper.amdsmi_accelerator_partition_profile_t()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_accelerator_partition_profile(processor_handle,
+                                                                    ctypes.byref(profile),
+                                                                    ctypes.byref(partition_id))
+    )
+
+    partition_profile_dict = {
+        "profile_type" : profile.profile_type,
+        "num_partitions" : profile.num_partitions,
+        "profile_index" : profile.profile_index,
+        "num_resources" : profile.num_resources,
+        "resources" : "N/A"
+    }
+
+    return {
+        "partition_id" : partition_id.value,
+        "partition_profile" : partition_profile_dict
+    }
 
 
 def amdsmi_get_xgmi_info(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):

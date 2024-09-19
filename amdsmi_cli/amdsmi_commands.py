@@ -175,8 +175,15 @@ class AMDSMICommands():
             kfd_id = kfd_info['kfd_id']
             node_id = kfd_info['node_id']
         except amdsmi_exception.AmdSmiLibraryException as e:
-            kfd_id = node_id = e.get_error_info()
+            kfd_id = node_id = "N/A"
             logging.debug("Failed to get kfd info for gpu %s | %s", gpu_id, e.get_error_info())
+
+        try:
+            partition_info = amdsmi_interface.amdsmi_get_gpu_accelerator_partition_profile(args.gpu)
+            partition_id = partition_info['partition_id']
+        except amdsmi_exception.AmdSmiLibraryException as e:
+            partition_id = "N/A"
+            logging.debug("Failed to get partition ID for gpu %s | %s", gpu_id, e.get_error_info())
 
         # CSV format is intentionally aligned with Host
         if self.logger.is_csv_format():
@@ -184,11 +191,13 @@ class AMDSMICommands():
             self.logger.store_output(args.gpu, 'gpu_uuid', uuid)
             self.logger.store_output(args.gpu, 'kfd_id', kfd_id)
             self.logger.store_output(args.gpu, 'node_id', node_id)
+            self.logger.store_output(args.gpu, 'partition_id', partition_id)
         else:
             self.logger.store_output(args.gpu, 'bdf', bdf)
             self.logger.store_output(args.gpu, 'uuid', uuid)
             self.logger.store_output(args.gpu, 'kfd_id', kfd_id)
             self.logger.store_output(args.gpu, 'node_id', node_id)
+            self.logger.store_output(args.gpu, 'partition_id', partition_id)
 
         if multiple_devices:
             self.logger.store_multiple_device_output()
@@ -380,8 +389,7 @@ class AMDSMICommands():
                 "asic_serial" : "N/A",
                 "oam_id" : "N/A",
                 "num_compute_units" : "N/A",
-                "target_graphics_version" : "N/A",
-                "partition_id" : "N/A"
+                "target_graphics_version" : "N/A"
             }
 
             try:
@@ -679,8 +687,16 @@ class AMDSMICommands():
                     memory_partition = "N/A"
                     logging.debug("Failed to get memory partition info for gpu %s | %s", gpu_id, e.get_error_info())
 
+                try:
+                    partition_info = amdsmi_interface.amdsmi_get_gpu_accelerator_partition_profile(args.gpu)
+                    partition_id = partition_info['partition_id']
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    partition_id = "N/A"
+                    logging.debug("Failed to get partition ID for gpu %s | %s", gpu_id, e.get_error_info())
+
                 static_dict['partition'] = {"compute_partition": compute_partition,
-                                            "memory_partition": memory_partition}
+                                            "memory_partition": memory_partition,
+                                            "partition_id": partition_id}
         if 'soc_pstate' in current_platform_args:
             if args.soc_pstate:
                 try:
