@@ -2102,6 +2102,7 @@ except AmdSmiException as e:
 ```
 
 ### amdsmi_set_gpu_process_isolation
+
 Description: Enable/disable the system Process Isolation for the given device handle.
 
 Input parameters:
@@ -2132,6 +2133,7 @@ except AmdSmiException as e:
 ```
 
 ### amdsmi_clean_gpu_local_data
+
 Description: Clear the SRAM data of the given device. This can be called between user logins to prevent information leak.
 
 Input parameters:
@@ -2159,7 +2161,6 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
-
 
 ### amdsmi_get_gpu_overdrive_level
 
@@ -3822,6 +3823,44 @@ try:
     else:
         for device in devices:
             amdsmi_reset_gpu_memory_partition(device)
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_gpu_accelerator_partition_profile
+
+**Note: CURRENTLY HARDCODED TO RETURN EMPTY VALUES**
+
+Description: Get partition information for target device
+
+Input parameters:
+
+* `processor_handle` the device handle
+
+Output:  Dictionary with fields:
+
+Field | Description
+---|---
+`partition_id` | ID of the partition on the GPU provided
+`partition_profile` | Dict containing partition data (TBD)
+
+Exceptions that can be thrown by `amdsmi_get_gpu_accelerator_partition_profile` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            partition_id = amdsmi_get_gpu_accelerator_partition_profile(device)["partition_id"]
+            print(partition_id)
 except AmdSmiException as e:
     print(e)
 ```

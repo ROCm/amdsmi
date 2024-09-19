@@ -60,7 +60,7 @@ TestSysInfoRead::TestSysInfoRead() : TestBase() {
   set_title("AMDSMI System Info Read Test");
   set_description("This test verifies that system information such as the "
              "BDFID, AMDSMI version, VBIOS version, "
-             "vendor_id, unique_id, target_gfx_version, kfd_id, node_id, partition_id, etc. "
+             "vendor_id, unique_id, target_gfx_version, kfd_id, node_id, etc. "
              "can be read properly.");
 }
 
@@ -153,7 +153,7 @@ void TestSysInfoRead::Run(void) {
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
 
-    // vendor_id, unique_id, target_gfx_version, partition_id
+    // vendor_id, unique_id, target_gfx_version
     amdsmi_asic_info_t asic_info = {};
     err = amdsmi_get_gpu_asic_info(processor_handles_[i], &asic_info);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
@@ -161,7 +161,6 @@ void TestSysInfoRead::Run(void) {
             "\t**amdsmi_dev_unique_id() is not supported"
             " on this machine" << std::endl;
         EXPECT_EQ(asic_info.target_graphics_version, std::numeric_limits<uint64_t>::max());
-        EXPECT_EQ(asic_info.partition_id, std::numeric_limits<uint32_t>::max());
         // Verify api support checking functionality is working
         err = amdsmi_get_gpu_asic_info(processor_handles_[i], nullptr);
         ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
@@ -172,12 +171,9 @@ void TestSysInfoRead::Run(void) {
                   << asic_info.vendor_name << std::endl;
               std::cout << "\t**Target GFX version: " << std::dec
                         << asic_info.target_graphics_version << "\n";
-              std::cout << "\t**Partition ID: " << std::dec
-                        << asic_info.partition_id << "\n";
             }
             EXPECT_EQ(err, AMDSMI_STATUS_SUCCESS);
             EXPECT_NE(asic_info.target_graphics_version, std::numeric_limits<uint64_t>::max());
-            EXPECT_NE(asic_info.partition_id, std::numeric_limits<uint32_t>::max());
             // Verify api support checking functionality is working
             err = amdsmi_get_gpu_asic_info(processor_handles_[i], nullptr);
             ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
