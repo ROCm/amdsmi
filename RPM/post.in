@@ -158,25 +158,7 @@ do_install_amdsmi_python_lib() {
   fi
   unset pip_version
 
-  # Install setuptools wheel (offline install)
-  echo "Checking for amdsmi_offline.tar.gz..."
-  offline_packages_tar_path=@CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBEXECDIR@/amdsmi_cli/amdsmi_offline.tar.gz
-
-  if [ -z "$offline_packages_tar_path" ]; then
-    echo "Error: amdsmi_offline.tar.gz not found. Not installing amdsmi offline packages..."
-  else
-    echo "Extracting amdsmi_offline.tar.gz..."
-    offline_packages_target_path=@CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBEXECDIR@/amdsmi_cli/
-    tar -xzvf $offline_packages_tar_path -C $offline_packages_target_path
-    offline_packages_path=@CPACK_PACKAGING_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBEXECDIR@/amdsmi_cli/offline_packages
-    echo "Installing/Upgrading amdsmi offline packages..."
-    python3 -m pip install --upgrade --upgrade-strategy only-if-needed --no-index --find-links="$offline_packages_path" setuptools
-    unset offline_packages_path
-    unset offline_packages_target_path
-  fi
-  unset offline_packages_tar_path
-
-  # Check PyYAML dependency, typically should not execute
+  # Check PyYAML dependency
   local pyyaml_version
   pyyaml_version=$(pip show pyyaml | grep -Po '(?<=Version: )[0-9]')
   if [[ "$pyyaml_version" -lt 3 ]]; then
@@ -184,6 +166,33 @@ do_install_amdsmi_python_lib() {
     python3 -m pip install 'PyYAML>=5.1' --quiet --disable-pip-version-check --ignore-installed
   fi
   unset pyyaml_version
+
+# Install setuptools wheel (offline install) 
+# Function to find the tarball  
+  find_tarball() {  
+    find / -name "amdsmi_offline.tar.gz" 2>/dev/null | head -n 1  
+  }  
+    
+  # Locate the tarball  
+  tarball_path=$(find_tarball)  
+    
+  if [ -z "$tarball_path" ]; then  
+    echo "Error: amdsmi_offline.tar.gz not found."  
+    exit 1  
+  fi  
+    
+  # Extract directory from tarball path  
+  base_dir=$(dirname "$tarball_path")  
+    
+  # Navigate to the directory containing the tarball  
+  cd "$base_dir" || exit  
+    
+  # Unpack the tarball  
+  tar -xzvf amdsmi_offline.tar.gz  
+    
+  # Install setuptools offline (if needed)  
+  cd offline_packages || exit  
+  python3 -m pip install --upgrade --upgrade-strategy only-if-needed --no-index --find-links=. setuptools  
 
   # install python library at @CPACK_PACKAGING_INSTALL_PREFIX@/@SHARE_INSTALL_PREFIX@/amdsmi
   local python_lib_path=@CPACK_PACKAGING_INSTALL_PREFIX@/@SHARE_INSTALL_PREFIX@
