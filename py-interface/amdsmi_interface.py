@@ -2739,6 +2739,7 @@ def amdsmi_get_gpu_accelerator_partition_profile(
         "profile_type" : profile.profile_type,
         "num_partitions" : profile.num_partitions,
         "profile_index" : profile.profile_index,
+        "memory_caps" : "N/A",
         "num_resources" : profile.num_resources,
         "resources" : "N/A"
     }

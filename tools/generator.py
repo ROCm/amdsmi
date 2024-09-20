@@ -190,6 +190,13 @@ except OSError as error:
             struct_amdsmi_bdf_t_line = "'struct_amdsmi_bdf_t',"
             replace_line(output_file, struct_anon_all_line, struct_amdsmi_bdf_t_line)
 
+            struct_anon_all_line = ", 'struct_struct"
+            replace_line(output_file, struct_anon_all_line, ",")
+
+            struct_anon_all_line = "(anonymous at "
+            struct_amdsmi_bdf_t_line = "'struct_amdsmi_bdf_t',"
+            replace_line(output_file, struct_anon_all_line, struct_amdsmi_bdf_t_line)
+
             struct_anon_all_line_to_remove = f"amdsmi.h:{line_number}:3)', "
             replace_line(output_file, struct_anon_all_line_to_remove, "")
 
