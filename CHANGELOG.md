@@ -4,6 +4,34 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ***All information listed below is for reference and subject to change.***
 
+## amd_smi_lib for ROCm 6.2.1
+
+### Additions
+
+- **Removed `amd-smi metric --ecc` & `amd-smi metric --ecc-blocks` on Guest VMs**.  
+Guest VMs do not support getting current ECC counts from the Host cards.
+
+- **Added `amd-smi static --ras`on Guest VMs**.  
+Guest VMs can view enabled/disabled ras features that are on Host cards.
+
+### Optimizations
+
+- N/A
+
+### Fixes
+
+- **Fixed TypeError in `amd-smi process -G`**.  
+
+- **Updated CLI error strings to handle empty and invalid GPU/CPU inputs**.  
+
+- **Fixed Guest VM showing passthrough options**.  
+
+- **Fixed firmware formatting where leading 0s were missing**.  
+
+### Known Issues
+
+- N/A
+
 ## amd_smi_lib for ROCm 6.2.0
 
 ### Additions

@@ -1,5 +1,7 @@
 # AMD SMI CLI Tool
 
+**Disclaimer: CLI Tool is provided as an example code to aid the development of telemetry tools. Python or C++ Library is recommended as a reliable data source.**  
+
 This tool acts as a command line interface for manipulating
 and monitoring the amdgpu kernel, and is intended to replace
 and deprecate the existing rocm_smi CLI tool & gpuv-smi tool.
@@ -79,7 +81,7 @@ AMD-SMI reports the version and current platform detected when running the comma
 ~$ amd-smi
 usage: amd-smi [-h]  ...
 
-AMD System Management Interface | Version: 24.6.2.0 | ROCm version: 6.2.0 | Platform: Linux Baremetal
+AMD System Management Interface | Version: 24.6.3.0 | ROCm version: 6.2.1 | Platform: Linux Baremetal
 
 options:
   -h, --help          show this help message and exit
