@@ -293,7 +293,7 @@ typedef enum {
   AMDSMI_ACCELERATOR_PARTITION_QPX,        //!< Quad GPU mode (QPX)- Quarter XCCs
                                        //!< work together with shared memory
   AMDSMI_ACCELERATOR_PARTITION_CPX,        //!< Core mode (CPX)- Per-chip XCC with
-                                       //!< shared memory 
+                                       //!< shared memory
 } amdsmi_accelerator_partition_type_t;
 
 /**
@@ -620,10 +620,31 @@ typedef struct {
   uint32_t reserved[13];
 } amdsmi_kfd_info_t;
 
+/**
+ * @brief Possible Memory Partition Modes.
+ * This union is used to identify various memory partitioning settings.
+ */
+typedef union {
+    struct nps_flags_ {
+        uint32_t nps1_cap :1;  // bool 1 = true; 0 = false; Max uint32 means unsupported
+        uint32_t nps2_cap :1;  // bool 1 = true; 0 = false; Max uint32 means unsupported
+        uint32_t nps4_cap :1;  // bool 1 = true; 0 = false; Max uint32 means unsupported
+        uint32_t nps8_cap :1;  // bool 1 = true; 0 = false; Max uint32 means unsupported
+        uint32_t reserved :28;
+    } amdsmi_nps_flags_t;
+
+    uint32_t nps_cap_mask;
+} amdsmi_nps_caps_t;
+
+/**
+ * @brief Possible Memory Partition Modes.
+ * This union is used to identify various memory partitioning settings.
+ */
 typedef struct {
   amdsmi_accelerator_partition_type_t  profile_type;   // SPX, DPX, QPX, CPX and so on
-  uint32_t num_partitions;                   // On MI300X, SPX: 1, DPX: 2, QPX: 4, CPX: 8, the length of resources array
-  uint32_t profile_index;          // The index in the profiles array in amdsmi_accelerator_partition_profile_t
+  uint32_t num_partitions;  // On MI300X, SPX: 1, DPX: 2, QPX: 4, CPX: 8, length of resources array
+  uint32_t profile_index;
+  amdsmi_nps_caps_t memory_caps;             // Possible memory partition capabilities
   uint32_t num_resources;                    // length of index_of_resources_profile
   uint32_t resources[AMDSMI_MAX_ACCELERATOR_PARTITIONS][AMDSMI_MAX_CP_PROFILE_RESOURCES];
   uint64_t reserved[6];
@@ -4772,7 +4793,7 @@ amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_i
  *  @platform{gpu_bm_linux}  @platform{guest_1vf}  @platform{guest_mvf}
  *
  *  @details        This function returns KFD information populated into the amdsmi_kfd_info_t.
- *                  This contains the kfd_id and node_id which allow for the ID and 
+ *                  This contains the kfd_id and node_id which allow for the ID and
  *                  index of this device in the KFD.
  *
  *  @param[in]      processor_handle Device which to query

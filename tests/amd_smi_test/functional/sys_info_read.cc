@@ -202,7 +202,7 @@ void TestSysInfoRead::Run(void) {
     }
     // Verify api support checking functionality is working
     err = amdsmi_get_gpu_kfd_info(processor_handles_[i], nullptr);
-    ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
+    ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
   err = amdsmi_get_lib_version(&ver);
   CHK_ERR_ASRT(err)

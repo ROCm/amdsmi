@@ -238,16 +238,34 @@ typedef enum {
   AMDSMI_ACCELERATOR_PARTITION_QPX,        //!< Quad GPU mode (QPX)- Quarter XCCs
                                        //!< work together with shared memory
   AMDSMI_ACCELERATOR_PARTITION_CPX,        //!< Core mode (CPX)- Per-chip XCC with
-                                       //!< shared memory 
+                                       //!< shared memory
 } amdsmi_accelerator_partition_type_t;
+
+/**
+ * @brief Possible Memory Partition Modes.
+ * This union is used to identify various memory partitioning settings.
+ */
+typedef union {
+    struct {
+        uint32_t nps1_cap :1;  // bool 1 = true; 0 = false; Max uint32 means unsupported
+        uint32_t nps2_cap :1;  // bool 1 = true; 0 = false; Max uint32 means unsupported
+        uint32_t nps4_cap :1;  // bool 1 = true; 0 = false; Max uint32 means unsupported
+        uint32_t nps8_cap :1;  // bool 1 = true; 0 = false; Max uint32 means unsupported
+        uint32_t reserved :28;
+    } amdsmi_nps_flags_t;
+
+    uint32_t nps_cap_mask;
+} amdsmi_nps_caps_t;
+
 
 typedef struct {
   amdsmi_accelerator_partition_type_t  profile_type;   // SPX, DPX, QPX, CPX and so on
-  uint32_t num_partitions;                   // On MI300X, SPX: 1, DPX: 2, QPX: 4, CPX: 8, the length of resources array
-  uint32_t profile_index;          // The index in the profiles array in amdsmi_compute_partition_profile_t
+  uint32_t num_partitions;  // On MI300X, SPX: 1, DPX: 2, QPX: 4, CPX: 8, length of resources array
+  uint32_t profile_index;
+  amdsmi_nps_caps_t memory_caps;             // Possible memory partition capabilities
   uint32_t num_resources;                    // length of index_of_resources_profile
   uint32_t resources[AMDSMI_MAX_ACCELERATOR_PARTITIONS][AMDSMI_MAX_CP_PROFILE_RESOURCES];
-  uint32_t reserved[12];
+  uint64_t reserved[6];
 } amdsmi_accelerator_partition_profile_t;
 ```
 
@@ -288,8 +306,7 @@ GPU: 1
 ### Resolved issues
 
 - **Fixed CPX not showing total number of logical GPUs**.  
-  - Updates were made to `amdsmi_init()` and `amdsmi_get_gpu_bdf_id(..)`. In order to display all logical devices, we needed a way to provide order to GPU's enumerated. This was done
-by adding a partition_id within the BDF optional pci_id bits.
+  - Updates were made to `amdsmi_init()` and `amdsmi_get_gpu_bdf_id(..)`. In order to display all logical devices, we needed a way to provide order to GPU's enumerated. This was done by adding a partition_id within the BDF optional pci_id bits.
   - Due to driver changes in KFD, some devices may report bits [31:28] or [2:0]. With the newly added `amdsmi_get_gpu_bdf_id(..)`, we provided this fallback to properly retreive partition ID. We
 plan to eventually remove partition ID from the function portion of the BDF (Bus Device Function). See below for PCI ID description.
 
