@@ -27,18 +27,9 @@ import time
 from typing import Dict
 from enum import Enum
 import yaml
-import inspect
 
 from amdsmi_helpers import AMDSMIHelpers
 import amdsmi_cli_exceptions
-
-### Custom YAML Functions
-# Dumper class to preserve order of yaml.dump
-class CustomDumper(yaml.Dumper):
-    def represent_dict_preserve_order(self, data):
-        return self.represent_dict(data.items())
-def has_sort_keys_option(): # to check if sort_keys is available 
-    return 'sort_keys' in inspect.signature(yaml.dump).parameters
 
 class AMDSMILogger():
     def __init__(self, format='human_readable', destination='stdout') -> None:
@@ -211,15 +202,9 @@ class AMDSMILogger():
         capitalized_json["AMDSMI_SPACING_REMOVAL"] = tabbed_dictionary
 
         json_string = json.dumps(capitalized_json, indent=4)
+        yaml_data = yaml.safe_load(json_string)
+        yaml_output = yaml.dump(yaml_data, sort_keys=False, allow_unicode=True)
 
-        if has_sort_keys_option():  
-            yaml_data = yaml.safe_load(json_string)
-            yaml_output = yaml.dump(yaml_data, sort_keys=False, allow_unicode=True)  
-        else:  
-            CustomDumper.add_representer(dict, CustomDumper.represent_dict_preserve_order)
-            yaml_data = yaml.safe_load(json_string)
-            yaml_output = yaml.dump(yaml_data, Dumper=CustomDumper, allow_unicode=True, default_flow_style=False)
- 
         # Remove a key line if it is a spacer
         yaml_output = yaml_output.replace("AMDSMI_SPACING_REMOVAL:\n", "")
         yaml_output = yaml_output.replace("'", "") # Remove ''
