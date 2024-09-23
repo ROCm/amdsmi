@@ -774,36 +774,40 @@ amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_i
         info->target_graphics_version = tmp_target_gfx_version;
     }
 
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_get_gpu_kfd_info(amdsmi_processor_handle processor_handle,
+                                    amdsmi_kfd_info_t *info) {
+    AMDSMI_CHECK_INIT();
+
+    if (info == nullptr) {
+        return AMDSMI_STATUS_INVAL;
+    }
+
+    amdsmi_status_t status;
     // default to 0xffffffffffffffff as not supported
     info->kfd_id = std::numeric_limits<uint64_t>::max();
     auto tmp_kfd_id = uint64_t(0);
-    status = rsmi_wrapper(rsmi_dev_guid_get, processor_handle,
-                          &(tmp_kfd_id));
-    if (status == amdsmi_status_t::AMDSMI_STATUS_SUCCESS) {
+    status = rsmi_wrapper(rsmi_dev_guid_get, processor_handle, &(tmp_kfd_id));
+    if (status != AMDSMI_STATUS_SUCCESS) {
+        return status;
+    } else {
         info->kfd_id = tmp_kfd_id;
     }
 
     // default to 0xffffffff as not supported
     info->node_id = std::numeric_limits<uint32_t>::max();
     auto tmp_node_id = uint32_t(0);
-    status = rsmi_wrapper(rsmi_dev_node_id_get, processor_handle,
-                          &(tmp_node_id));
-    if (status == amdsmi_status_t::AMDSMI_STATUS_SUCCESS) {
+    status = rsmi_wrapper(rsmi_dev_node_id_get, processor_handle, &(tmp_node_id));
+    if (status != AMDSMI_STATUS_SUCCESS) {
+        return status;
+    } else {
         info->node_id = tmp_node_id;
-    }
-
-    // default to 0xffffffff as not supported
-    info->partition_id = std::numeric_limits<uint32_t>::max();
-    auto tmp_partition_id = uint32_t(0);
-    status = rsmi_wrapper(rsmi_dev_partition_id_get, processor_handle,
-                          &(tmp_partition_id));
-    if (status == amdsmi_status_t::AMDSMI_STATUS_SUCCESS) {
-        info->partition_id = tmp_partition_id;
     }
 
     return AMDSMI_STATUS_SUCCESS;
 }
-
 
 amdsmi_status_t amdsmi_get_gpu_subsystem_id(amdsmi_processor_handle processor_handle,
                                 uint16_t *id) {
@@ -1155,6 +1159,24 @@ amdsmi_reset_gpu_memory_partition(amdsmi_processor_handle processor_handle) {
     return rsmi_wrapper(rsmi_dev_memory_partition_reset, processor_handle);
 }
 
+amdsmi_status_t
+amdsmi_get_gpu_accelerator_partition_profile(amdsmi_processor_handle processor_handle,
+                                             amdsmi_accelerator_partition_profile_t *profile,
+                                             uint32_t *partition_id) {
+    AMDSMI_CHECK_INIT();
+    // TODO: also fill out profile later
+    // default to 0xffffffff if not supported
+    *partition_id = std::numeric_limits<uint32_t>::max();
+    auto tmp_partition_id = uint32_t(0);
+
+    amdsmi_status_t status = rsmi_wrapper(rsmi_dev_partition_id_get, processor_handle, &tmp_partition_id);
+    if (status == amdsmi_status_t::AMDSMI_STATUS_SUCCESS){
+        *partition_id = tmp_partition_id;
+    }
+
+    return status;
+}
+
 // TODO(bliu) : other xgmi related information
 amdsmi_status_t
 amdsmi_get_xgmi_info(amdsmi_processor_handle processor_handle, amdsmi_xgmi_info_t *info) {
@@ -1290,8 +1312,8 @@ void amdsmi_free_name_value_pairs(void *p) {
 
 amdsmi_status_t
 amdsmi_get_power_cap_info(amdsmi_processor_handle processor_handle,
-                    uint32_t sensor_ind,
-                    amdsmi_power_cap_info_t *info) {
+                          uint32_t sensor_ind,
+                          amdsmi_power_cap_info_t *info) {
     AMDSMI_CHECK_INIT();
 
     if (info == nullptr)

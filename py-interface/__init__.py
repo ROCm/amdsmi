@@ -89,6 +89,7 @@ from .amdsmi_interface import amdsmi_get_gpu_driver_info
 
 # # ASIC and Bus Static Information
 from .amdsmi_interface import amdsmi_get_gpu_asic_info
+from .amdsmi_interface import amdsmi_get_gpu_kfd_info
 from .amdsmi_interface import amdsmi_get_power_cap_info
 from .amdsmi_interface import amdsmi_get_gpu_vram_info
 from .amdsmi_interface import amdsmi_get_gpu_cache_info
@@ -124,6 +125,7 @@ from .amdsmi_interface import amdsmi_set_gpu_pci_bandwidth
 from .amdsmi_interface import amdsmi_set_power_cap
 from .amdsmi_interface import amdsmi_set_gpu_power_profile
 from .amdsmi_interface import amdsmi_set_gpu_clk_range
+from .amdsmi_interface import amdsmi_set_gpu_clk_limit
 from .amdsmi_interface import amdsmi_set_gpu_od_clk_info
 from .amdsmi_interface import amdsmi_set_gpu_od_volt_info
 from .amdsmi_interface import amdsmi_set_gpu_perf_level
@@ -222,6 +224,7 @@ from .amdsmi_interface import amdsmi_reset_gpu_compute_partition
 from .amdsmi_interface import amdsmi_get_gpu_memory_partition
 from .amdsmi_interface import amdsmi_set_gpu_memory_partition
 from .amdsmi_interface import amdsmi_reset_gpu_memory_partition
+from .amdsmi_interface import amdsmi_get_gpu_accelerator_partition_profile
 
 # # Individual GPU Metrics Functions
 from .amdsmi_interface import amdsmi_get_gpu_metrics_header_info

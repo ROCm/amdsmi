@@ -87,6 +87,9 @@ typedef enum {
 #define AMDSMI_MAX_CONTAINER_TYPE    2
 #define AMDSMI_MAX_CACHE_TYPES 10
 #define AMDSMI_MAX_NUM_XGMI_PHYSICAL_LINK 64
+#define AMDSMI_MAX_ACCELERATOR_PROFILE    32
+#define AMDSMI_MAX_CP_PROFILE_RESOURCES   32
+#define AMDSMI_MAX_ACCELERATOR_PARTITIONS 8
 
 #define AMDSMI_GPU_UUID_SIZE 38
 
@@ -154,7 +157,7 @@ typedef enum {
 #define AMDSMI_LIB_VERSION_MAJOR 6
 
 //! Minor version should be updated for each API change, but without changing headers
-#define AMDSMI_LIB_VERSION_MINOR 4
+#define AMDSMI_LIB_VERSION_MINOR 5
 
 //! Release version should be set to 0 as default and can be updated by the PMs for each CSP point release
 #define AMDSMI_LIB_VERSION_RELEASE 0
@@ -274,6 +277,24 @@ typedef enum {
   AMDSMI_CLK_TYPE_DCLK1,
   AMDSMI_CLK_TYPE__MAX = AMDSMI_CLK_TYPE_DCLK1
 } amdsmi_clk_type_t;
+
+/**
+ * @brief Accelerator Partition. This enum is used to identify
+ * various accelerator partitioning settings.
+ */
+typedef enum {
+  AMDSMI_ACCELERATOR_PARTITION_INVALID = 0,
+  AMDSMI_ACCELERATOR_PARTITION_SPX,        //!< Single GPU mode (SPX)- All XCCs work
+                                       //!< together with shared memory
+  AMDSMI_ACCELERATOR_PARTITION_DPX,        //!< Dual GPU mode (DPX)- Half XCCs work
+                                       //!< together with shared memory
+  AMDSMI_ACCELERATOR_PARTITION_TPX,        //!< Triple GPU mode (TPX)- One-third XCCs
+                                       //!< work together with shared memory
+  AMDSMI_ACCELERATOR_PARTITION_QPX,        //!< Quad GPU mode (QPX)- Quarter XCCs
+                                       //!< work together with shared memory
+  AMDSMI_ACCELERATOR_PARTITION_CPX,        //!< Core mode (CPX)- Per-chip XCC with
+                                       //!< shared memory
+} amdsmi_accelerator_partition_type_t;
 
 /**
  * @brief Compute Partition. This enum is used to identify
@@ -590,11 +611,44 @@ typedef struct {
   uint32_t oam_id;   //< 0xFFFF if not supported
   uint32_t num_of_compute_units;   //< 0xFFFFFFFF if not supported
   uint64_t target_graphics_version;  //< 0xFFFFFFFFFFFFFFFF if not supported
+  uint32_t reserved[15];
+} amdsmi_asic_info_t;
+
+typedef struct {
   uint64_t kfd_id;  //< 0xFFFFFFFFFFFFFFFF if not supported
   uint32_t node_id;  //< 0xFFFFFFFF if not supported
-  uint32_t partition_id;  //< 0xFFFFFFFF if not supported
-  uint32_t reserved[11];
-} amdsmi_asic_info_t;
+  uint32_t reserved[13];
+} amdsmi_kfd_info_t;
+
+/**
+ * @brief Possible Memory Partition Modes.
+ * This union is used to identify various memory partitioning settings.
+ */
+typedef union {
+    struct nps_flags_ {
+        uint32_t nps1_cap :1;  // bool 1 = true; 0 = false; Max uint32 means unsupported
+        uint32_t nps2_cap :1;  // bool 1 = true; 0 = false; Max uint32 means unsupported
+        uint32_t nps4_cap :1;  // bool 1 = true; 0 = false; Max uint32 means unsupported
+        uint32_t nps8_cap :1;  // bool 1 = true; 0 = false; Max uint32 means unsupported
+        uint32_t reserved :28;
+    } amdsmi_nps_flags_t;
+
+    uint32_t nps_cap_mask;
+} amdsmi_nps_caps_t;
+
+/**
+ * @brief Possible Memory Partition Modes.
+ * This union is used to identify various memory partitioning settings.
+ */
+typedef struct {
+  amdsmi_accelerator_partition_type_t  profile_type;   // SPX, DPX, QPX, CPX and so on
+  uint32_t num_partitions;  // On MI300X, SPX: 1, DPX: 2, QPX: 4, CPX: 8, length of resources array
+  uint32_t profile_index;
+  amdsmi_nps_caps_t memory_caps;             // Possible memory partition capabilities
+  uint32_t num_resources;                    // length of index_of_resources_profile
+  uint32_t resources[AMDSMI_MAX_ACCELERATOR_PARTITIONS][AMDSMI_MAX_CP_PROFILE_RESOURCES];
+  uint64_t reserved[6];
+} amdsmi_accelerator_partition_profile_t;
 
 typedef enum {
   AMDSMI_LINK_TYPE_PCIE,
@@ -4514,6 +4568,23 @@ amdsmi_status_t amdsmi_reset_gpu_memory_partition(amdsmi_processor_handle proces
 /** @} */  // end of memory_partition
 
 /*****************************************************************************/
+/** @defgroup accelerator_partition_profile Accelerator Partition Profile Functions
+ *  These functions are used to configure and query the device's
+ *  accelerator parition profile setting.
+ *  @{
+ */
+// TODO: declare rest of partition profile functions and complete doc commentary.
+/*
+  Get the current accelerator partition profile. The function will return current profile.
+*/
+amdsmi_status_t
+amdsmi_get_gpu_accelerator_partition_profile(amdsmi_processor_handle processor_handle,
+                                             amdsmi_accelerator_partition_profile_t *profile,
+                                             uint32_t *partition_id);
+
+/** @} */  // end of accelerator_partition_profile
+
+/*****************************************************************************/
 /** @defgroup EvntNotif Event Notification Functions
  *  These functions are used to configure for and get asynchronous event
  *  notifications.
@@ -4715,6 +4786,25 @@ amdsmi_get_gpu_driver_info(amdsmi_processor_handle processor_handle, amdsmi_driv
  */
 amdsmi_status_t
 amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_info_t *info);
+
+/**
+ *  @brief          Returns the KFD (Kernel Fusion Driver) information for the device
+ *
+ *  @platform{gpu_bm_linux}  @platform{guest_1vf}  @platform{guest_mvf}
+ *
+ *  @details        This function returns KFD information populated into the amdsmi_kfd_info_t.
+ *                  This contains the kfd_id and node_id which allow for the ID and
+ *                  index of this device in the KFD.
+ *
+ *  @param[in]      processor_handle Device which to query
+ *
+ *  @param[out]     info Reference to kfd information structure.
+ *                  Must be allocated by user.
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t
+amdsmi_get_gpu_kfd_info(amdsmi_processor_handle processor_handle, amdsmi_kfd_info_t *info);
 
 /**
  *  @brief Returns vram info

@@ -8,18 +8,25 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ### Changes
 
+- **Moved python tests directory path install location**.  
+  - `/opt/<rocm-path>/share/amd_smi/pytest/..` to `/opt/<rocm-path>/share/amd_smi/tests/python_unittest/..`
+  - On amd-smi-lib-tests uninstall, the amd_smi tests folder is removed.
+  - Removed pytest dependency, our python testing now only depends on the unittest framework.
+
+- **Added more supported utilization count types to `amdsmi_get_utilization_count()`**.  
+
+- **Added `amd-smi set -L/--clk-limit ...` command**.  
+  - Equivalent to rocm-smi's '--extremum' command which sets sclk's or mclk's soft minimum or soft maximum clock frequency.
+
 - **Added Pytest functionality to test amdsmi API calls in Python**.  
 
 - **Changed the `power` parameter in `amdsmi_get_energy_count()` to `energy_accumulator`**.  
-Changes propagate forwards into the python interface as well, however we are maintaing backwards compatibility and keeping the `power` field in the python API until ROCm 6.4.
+  - Changes propagate forwards into the python interface as well, however we are maintaing backwards compatibility and keeping the `power` field in the python API until ROCm 6.4.
 
-- **Added GPU memory overdrive percentage to `amd-smi metric -o`**.
-Added `amdsmi_get_gpu_mem_overdrive_level()` function to amd-smi C and Python Libraries.
+- **Added GPU memory overdrive percentage to `amd-smi metric -o`**.  
+  - Added `amdsmi_get_gpu_mem_overdrive_level()` function to amd-smi C and Python Libraries.
 
-- **Added Subsystem Device ID to `amd-smi static --asic`**.
-No underlying changes to amdsmi_get_gpu_asic_info
-
-- **Added retrieving connection type and P2P capabilities between two GPUs**.
+- **Added retrieving connection type and P2P capabilities between two GPUs**.  
   - Added `amdsmi_topo_get_p2p_status` function to amd-smi C and Python Libraries.
   - Added retrieving P2P link capabilities to CLI `amd-smi topology`.
 
@@ -34,14 +41,14 @@ If no topology argument is provided all topology information will be displayed.
 Topology arguments:
   -h, --help               show this help message and exit
   -g, --gpu GPU [GPU ...]  Select a GPU ID, BDF, or UUID from the possible choices:
-                           ID: 0 | BDF: 0000:0c:00.0 | UUID: 5fff74a1-0000-1000-808c-324a4d24b37e
-                           ID: 1 | BDF: 0000:22:00.0 | UUID: 06ff74a1-0000-1000-80d3-f5e97636ae62
-                           ID: 2 | BDF: 0000:38:00.0 | UUID: 87ff74a1-0000-1000-80a0-d0a45576c5ed
-                           ID: 3 | BDF: 0000:5c:00.0 | UUID: 5dff74a1-0000-1000-8054-a29c595fd7f3
-                           ID: 4 | BDF: 0000:9f:00.0 | UUID: a8ff74a1-0000-1000-805b-92615ca9e7b4
-                           ID: 5 | BDF: 0000:af:00.0 | UUID: ddff74a1-0000-1000-809e-5a98a60013bd
-                           ID: 6 | BDF: 0000:bf:00.0 | UUID: 9aff74a1-0000-1000-80e8-cbefaf9f72c3
-                           ID: 7 | BDF: 0000:df:00.0 | UUID: 48ff74a1-0000-1000-806e-3c0b30d78e00
+                           ID: 0 | BDF: 0000:0c:00.0 | UUID: <redacted>
+                           ID: 1 | BDF: 0000:22:00.0 | UUID: <redacted>
+                           ID: 2 | BDF: 0000:38:00.0 | UUID: <redacted>
+                           ID: 3 | BDF: 0000:5c:00.0 | UUID: <redacted>
+                           ID: 4 | BDF: 0000:9f:00.0 | UUID: <redacted>
+                           ID: 5 | BDF: 0000:af:00.0 | UUID: <redacted>
+                           ID: 6 | BDF: 0000:bf:00.0 | UUID: <redacted>
+                           ID: 7 | BDF: 0000:df:00.0 | UUID: <redacted>
                              all | Selects all devices
 
 
@@ -65,62 +72,7 @@ Command Modifiers:
 ```
 
 ```shell
-$ amd-smi topology
-ACCESS TABLE:
-             0000:0c:00.0 0000:22:00.0 0000:38:00.0 0000:5c:00.0 0000:9f:00.0 0000:af:00.0 0000:bf:00.0 0000:df:00.0
-0000:0c:00.0 ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED
-0000:22:00.0 ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED
-0000:38:00.0 ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED
-0000:5c:00.0 ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED
-0000:9f:00.0 ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED
-0000:af:00.0 ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED
-0000:bf:00.0 ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED
-0000:df:00.0 ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED      ENABLED
-
-WEIGHT TABLE:
-             0000:0c:00.0 0000:22:00.0 0000:38:00.0 0000:5c:00.0 0000:9f:00.0 0000:af:00.0 0000:bf:00.0 0000:df:00.0
-0000:0c:00.0 0            15           15           15           15           15           15           15
-0000:22:00.0 15           0            15           15           15           15           15           15
-0000:38:00.0 15           15           0            15           15           15           15           15
-0000:5c:00.0 15           15           15           0            15           15           15           15
-0000:9f:00.0 15           15           15           15           0            15           15           15
-0000:af:00.0 15           15           15           15           15           0            15           15
-0000:bf:00.0 15           15           15           15           15           15           0            15
-0000:df:00.0 15           15           15           15           15           15           15           0
-
-HOPS TABLE:
-             0000:0c:00.0 0000:22:00.0 0000:38:00.0 0000:5c:00.0 0000:9f:00.0 0000:af:00.0 0000:bf:00.0 0000:df:00.0
-0000:0c:00.0 0            1            1            1            1            1            1            1
-0000:22:00.0 1            0            1            1            1            1            1            1
-0000:38:00.0 1            1            0            1            1            1            1            1
-0000:5c:00.0 1            1            1            0            1            1            1            1
-0000:9f:00.0 1            1            1            1            0            1            1            1
-0000:af:00.0 1            1            1            1            1            0            1            1
-0000:bf:00.0 1            1            1            1            1            1            0            1
-0000:df:00.0 1            1            1            1            1            1            1            0
-
-LINK TYPE TABLE:
-             0000:0c:00.0 0000:22:00.0 0000:38:00.0 0000:5c:00.0 0000:9f:00.0 0000:af:00.0 0000:bf:00.0 0000:df:00.0
-0000:0c:00.0 SELF         XGMI         XGMI         XGMI         XGMI         XGMI         XGMI         XGMI
-0000:22:00.0 XGMI         SELF         XGMI         XGMI         XGMI         XGMI         XGMI         XGMI
-0000:38:00.0 XGMI         XGMI         SELF         XGMI         XGMI         XGMI         XGMI         XGMI
-0000:5c:00.0 XGMI         XGMI         XGMI         SELF         XGMI         XGMI         XGMI         XGMI
-0000:9f:00.0 XGMI         XGMI         XGMI         XGMI         SELF         XGMI         XGMI         XGMI
-0000:af:00.0 XGMI         XGMI         XGMI         XGMI         XGMI         SELF         XGMI         XGMI
-0000:bf:00.0 XGMI         XGMI         XGMI         XGMI         XGMI         XGMI         SELF         XGMI
-0000:df:00.0 XGMI         XGMI         XGMI         XGMI         XGMI         XGMI         XGMI         SELF
-
-NUMA BW TABLE:
-             0000:0c:00.0 0000:22:00.0 0000:38:00.0 0000:5c:00.0 0000:9f:00.0 0000:af:00.0 0000:bf:00.0 0000:df:00.0
-0000:0c:00.0 N/A          50000-50000  50000-50000  50000-50000  50000-50000  50000-50000  50000-50000  50000-50000
-0000:22:00.0 50000-50000  N/A          50000-50000  50000-50000  50000-50000  50000-50000  50000-50000  50000-50000
-0000:38:00.0 50000-50000  50000-50000  N/A          50000-50000  50000-50000  50000-50000  50000-50000  50000-50000
-0000:5c:00.0 50000-50000  50000-50000  50000-50000  N/A          50000-50000  50000-50000  50000-50000  50000-50000
-0000:9f:00.0 50000-50000  50000-50000  50000-50000  50000-50000  N/A          50000-50000  50000-50000  50000-50000
-0000:af:00.0 50000-50000  50000-50000  50000-50000  50000-50000  50000-50000  N/A          50000-50000  50000-50000
-0000:bf:00.0 50000-50000  50000-50000  50000-50000  50000-50000  50000-50000  50000-50000  N/A          50000-50000
-0000:df:00.0 50000-50000  50000-50000  50000-50000  50000-50000  50000-50000  50000-50000  50000-50000  N/A
-
+$ amd-smi topology -cndz
 CACHE COHERANCY TABLE:
              0000:0c:00.0 0000:22:00.0 0000:38:00.0 0000:5c:00.0 0000:9f:00.0 0000:af:00.0 0000:bf:00.0 0000:df:00.0
 0000:0c:00.0 SELF         C            NC           NC           C            C            C            NC
@@ -175,10 +127,58 @@ Legend:
  64,32 = 64 bit and 32 bit atomic support
  <BW from>-<BW to>
 ```
-- **Added Target_Graphics_Version, KFD_ID, Node_id, and partition id to `amd-smi static --asic`**.  
-Due to fixes needed to properly enumerate all logical GPUs in CPX, new device identifiers
-were placed within the `amdsmi_asic_info_t` struct. These new fields are only available for BM/Guest Linux
-devices at this time.
+
+- **Created new amdsmi_kfd_info_t and added information under `amd-smi list`**.  
+  - Due to fixes needed to properly enumerate all logical GPUs in CPX, new device identifiers were added in to a new `amdsmi_kfd_info_t` which gets populated via the API `amdsmi_get_gpu_kfd_info`.
+  - This info has been added to the `amd-smi list`.
+  - These new fields are only available for BM/Guest Linux devices at this time.
+
+```C
+typedef struct {
+  uint64_t kfd_id;  //< 0xFFFFFFFFFFFFFFFF if not supported
+  uint32_t node_id;  //< 0xFFFFFFFF if not supported
+  uint32_t reserved[13];
+} amdsmi_kfd_info_t;
+```
+
+```shell
+$ amd-smi list
+GPU: 0
+    BDF: 0000:23:00.0
+    UUID: <redacted>
+    KFD_ID: 45412
+    NODE_ID: 1
+    PARTITION_ID: 0
+
+GPU: 1
+    BDF: 0000:26:00.0
+    UUID: <redacted>
+    KFD_ID: 59881
+    NODE_ID: 2
+    PARTITION_ID: 0
+```
+
+- **Added Subsystem Device ID to `amd-smi static --asic`**.  
+  - No underlying changes to amdsmi_get_gpu_asic_info
+
+```shell
+$ amd-smi static --asic
+GPU: 0
+    ASIC:
+        MARKET_NAME: MI308X
+        VENDOR_ID: 0x1002
+        VENDOR_NAME: Advanced Micro Devices Inc. [AMD/ATI]
+        SUBVENDOR_ID: 0x1002
+        DEVICE_ID: 0x74a2
+        SUBSYSTEM_ID: 0x74a2
+        REV_ID: 0x00
+        ASIC_SERIAL: <redacted>
+        OAM_ID: 5
+        NUM_COMPUTE_UNITS: 20
+        TARGET_GRAPHICS_VERSION: gfx942
+```
+
+- **Added Target_Graphics_Version to `amd-smi static --asic` and `amdsmi_get_gpu_asic_info()`**.  
 
 ```C
 typedef struct {
@@ -192,15 +192,12 @@ typedef struct {
   uint32_t oam_id;   //< 0xFFFF if not supported
   uint32_t num_of_compute_units;   //< 0xFFFFFFFF if not supported
   uint64_t target_graphics_version;  //< 0xFFFFFFFFFFFFFFFF if not supported
-  uint64_t kfd_id;  //< 0xFFFFFFFFFFFFFFFF if not supported
-  uint32_t node_id;  //< 0xFFFFFFFF if not supported
-  uint32_t partition_id;  //< 0xFFFFFFFF if not supported
-  uint32_t reserved[17];
+  uint32_t reserved[15];
 } amdsmi_asic_info_t;
 ```
 
 ```shell
-$ amd-smi static --asic --board --bus --partition
+$ amd-smi static --asic
 GPU: 0
     ASIC:
         MARKET_NAME: MI308X
@@ -208,90 +205,119 @@ GPU: 0
         VENDOR_NAME: Advanced Micro Devices Inc. [AMD/ATI]
         SUBVENDOR_ID: 0x1002
         DEVICE_ID: 0x74a2
-        TARGET_GRAPHICS_VERSION: gfx942
-        KFD_ID: 24248
-        NODE_ID: 2
-        PARTITION_ID: 0
         SUBSYSTEM_ID: 0x74a2
         REV_ID: 0x00
         ASIC_SERIAL: <redacted>
         OAM_ID: 5
         NUM_COMPUTE_UNITS: 20
-    BUS:
-        BDF: 0000:0A:00.0
-        MAX_PCIE_WIDTH: 16
-        MAX_PCIE_SPEED: 32 GT/s
-        PCIE_INTERFACE_VERSION: Gen 5
-        SLOT_TYPE: PCIE
-    BOARD:
-        MODEL_NUMBER: 102-G30218-00
-        PRODUCT_SERIAL: 692432000576
-        FRU_ID: 113-AMDG302180002-0000000000000
-        PRODUCT_NAME: AMD Instinct MI308X OAM
-        MANUFACTURER_NAME: AMD
-    PARTITION:
-        COMPUTE_PARTITION: CPX
-        MEMORY_PARTITION: NPS4
-
-GPU: 1
-    ASIC:
-        MARKET_NAME: MI308X
-        VENDOR_ID: 0x1002
-        VENDOR_NAME: Advanced Micro Devices Inc. [AMD/ATI]
-        SUBVENDOR_ID: 0x1002
-        DEVICE_ID: 0x74a2
         TARGET_GRAPHICS_VERSION: gfx942
-        KFD_ID: 41657
-        NODE_ID: 3
-        PARTITION_ID: 1
-        SUBSYSTEM_ID: 0x74a2
-        REV_ID: 0x00
-        ASIC_SERIAL: <redacted>
-        OAM_ID: 5
-        NUM_COMPUTE_UNITS: 20
-    BUS:
-        BDF: 0000:0A:00.1
-        MAX_PCIE_WIDTH: 16
-        MAX_PCIE_SPEED: 32 GT/s
-        PCIE_INTERFACE_VERSION: Gen 5
-        SLOT_TYPE: PCIE
-    BOARD:
-        MODEL_NUMBER: 102-G30218-00
-        PRODUCT_SERIAL: 692432000576
-        FRU_ID: 113-AMDG302180002-0000000000000
-        PRODUCT_NAME: AMD Instinct MI308X OAM
-        MANUFACTURER_NAME: AMD
-    PARTITION:
-        COMPUTE_PARTITION: CPX
-        MEMORY_PARTITION: NPS4
-...
 ```
 
+- **Udpated Partition APIs and struct information and added and partition_id to `amd-smi static --partition` & `amd-smi list`**.  
+  - As part of an overhaul to partition information, some partition information will be made available in the `amdsmi_accelerator_partition_profile_t`.
+  - This struct will be filled out by a new API, `amdsmi_get_gpu_accelerator_partition_profile()`.
+  - Future data from these APIs wil will eventually get added to `static --partition`.
+
+```C
+#define AMDSMI_MAX_ACCELERATOR_PROFILE    32
+#define AMDSMI_MAX_CP_PROFILE_RESOURCES   32
+#define AMDSMI_MAX_ACCELERATOR_PARTITIONS 8
+
+/**
+ * @brief Accelerator Partition. This enum is used to identify
+ * various accelerator partitioning settings.
+ */
+typedef enum {
+  AMDSMI_ACCELERATOR_PARTITION_INVALID = 0,
+  AMDSMI_ACCELERATOR_PARTITION_SPX,        //!< Single GPU mode (SPX)- All XCCs work
+                                       //!< together with shared memory
+  AMDSMI_ACCELERATOR_PARTITION_DPX,        //!< Dual GPU mode (DPX)- Half XCCs work
+                                       //!< together with shared memory
+  AMDSMI_ACCELERATOR_PARTITION_TPX,        //!< Triple GPU mode (TPX)- One-third XCCs
+                                       //!< work together with shared memory
+  AMDSMI_ACCELERATOR_PARTITION_QPX,        //!< Quad GPU mode (QPX)- Quarter XCCs
+                                       //!< work together with shared memory
+  AMDSMI_ACCELERATOR_PARTITION_CPX,        //!< Core mode (CPX)- Per-chip XCC with
+                                       //!< shared memory
+} amdsmi_accelerator_partition_type_t;
+
+/**
+ * @brief Possible Memory Partition Modes.
+ * This union is used to identify various memory partitioning settings.
+ */
+typedef union {
+    struct {
+        uint32_t nps1_cap :1;  // bool 1 = true; 0 = false; Max uint32 means unsupported
+        uint32_t nps2_cap :1;  // bool 1 = true; 0 = false; Max uint32 means unsupported
+        uint32_t nps4_cap :1;  // bool 1 = true; 0 = false; Max uint32 means unsupported
+        uint32_t nps8_cap :1;  // bool 1 = true; 0 = false; Max uint32 means unsupported
+        uint32_t reserved :28;
+    } amdsmi_nps_flags_t;
+
+    uint32_t nps_cap_mask;
+} amdsmi_nps_caps_t;
+
+
+typedef struct {
+  amdsmi_accelerator_partition_type_t  profile_type;   // SPX, DPX, QPX, CPX and so on
+  uint32_t num_partitions;  // On MI300X, SPX: 1, DPX: 2, QPX: 4, CPX: 8, length of resources array
+  uint32_t profile_index;
+  amdsmi_nps_caps_t memory_caps;             // Possible memory partition capabilities
+  uint32_t num_resources;                    // length of index_of_resources_profile
+  uint32_t resources[AMDSMI_MAX_ACCELERATOR_PARTITIONS][AMDSMI_MAX_CP_PROFILE_RESOURCES];
+  uint64_t reserved[6];
+} amdsmi_accelerator_partition_profile_t;
+```
+
+```shell
+$ amd-smi static --partition
+GPU: 0
+    PARTITION:
+        COMPUTE_PARTITION: CPX
+        MEMORY_PARTITION: NPS4
+        PARTITION_ID: 0
+
+$ amd-smi list
+GPU: 0
+    BDF: 0000:23:00.0
+    UUID: <redacted>
+    KFD_ID: 45412
+    NODE_ID: 1
+    PARTITION_ID: 0
+
+GPU: 1
+    BDF: 0000:26:00.0
+    UUID: <redacted>
+    KFD_ID: 59881
+    NODE_ID: 2
+    PARTITION_ID: 0
+```
 
 ### Removals
 
-- N/A
+- **Removed usage of _validate_positive in Parser and replaced with _positive_int and _not_negative_int as appropriate**.  
+  - This will allow 0 to be a valid input for several options in setting CPUs where appropriate (for example, as a mode or NBIOID)
 
 ### Optimizations
 
 - **Adjusted ordering of gpu_metrics calls to ensure that pcie_bw values remain stable in `amd-smi metric` & `amd-smi monitor`**.  
-With this change additional padding was added to PCIE_BW `amd-smi monitor --pcie`
+  - With this change additional padding was added to PCIE_BW `amd-smi monitor --pcie`
 
 ### Resolved issues
 
-- **Fixed CPX not showing total number of logical GPUs**.  
-Updates were made to `amdsmi_init()` and `amdsmi_get_gpu_bdf_id(..)`. In order to display all logical devices, we needed a way to provide order to GPU's enumerated. This was done
-by adding a partition_id within the BDF optional pci_id bits.
+- **Improved Offline install process & lowered dependency for PyYAML**.  
 
-Due to driver changes in KFD, some devices may report bits [31:28] or [2:0]. With the newly added `amdsmi_get_gpu_bdf_id(..)`, we provided this fallback to properly retreive partition ID. We
+- **Fixed CPX not showing total number of logical GPUs**.  
+  - Updates were made to `amdsmi_init()` and `amdsmi_get_gpu_bdf_id(..)`. In order to display all logical devices, we needed a way to provide order to GPU's enumerated. This was done by adding a partition_id within the BDF optional pci_id bits.
+  - Due to driver changes in KFD, some devices may report bits [31:28] or [2:0]. With the newly added `amdsmi_get_gpu_bdf_id(..)`, we provided this fallback to properly retreive partition ID. We
 plan to eventually remove partition ID from the function portion of the BDF (Bus Device Function). See below for PCI ID description.
 
-  - bits [63:32] = domain
-  - bits [31:28] or bits [2:0] = partition id 
-  - bits [27:16] = reserved
-  - bits [15:8]  = Bus
-  - bits [7:3] = Device
-  - bits [2:0] = Function (partition id maybe in bits [2:0]) <-- Fallback for non SPX modes
+    - bits [63:32] = domain
+    - bits [31:28] or bits [2:0] = partition id
+    - bits [27:16] = reserved
+    - bits [15:8]  = Bus
+    - bits [7:3] = Device
+    - bits [2:0] = Function (partition id maybe in bits [2:0]) <-- Fallback for non SPX modes
 
 Previously in non-SPX modes (ex. CPX/TPX/DPX/etc) some MI3x ASICs would not report all logical GPU devices within AMD SMI.
 
@@ -333,6 +359,8 @@ GPU  POWER  GPU_TEMP  MEM_TEMP  VRAM_USED  VRAM_TOTAL
 ```
 
 - **Fixed incorrect implementation of the Python API `amdsmi_get_gpu_metrics_header_info()`**.  
+
+- **`amd-smi static --partition` will have updates with additional partition information from `amdsmi_get_gpu_accelerator_partition_profile()`**.  
 
 ### Known issues
 
@@ -1010,7 +1038,7 @@ Use the watch arguments to run continuously
 Monitor Arguments:
   -h, --help                   show this help message and exit
   -g, --gpu GPU [GPU ...]      Select a GPU ID, BDF, or UUID from the possible choices:
-                               ID: 0 | BDF: 0000:01:00.0 | UUID: 4eff74a0-0000-1000-802d-1d762a397f73
+                               ID: 0 | BDF: 0000:01:00.0 | UUID: <redacted>
                                  all | Selects all devices
   -U, --cpu CPU [CPU ...]      Select a CPU ID from the possible choices:
                                ID: 0

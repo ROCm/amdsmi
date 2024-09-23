@@ -511,12 +511,12 @@ def walk_through(self):
             asic_info['oam_id']))
         print("  asic_info['target_graphics_version'] is: {}\n".format(
             asic_info['target_graphics_version']))
-        print("  asic_info['kfd_id'] is: {}\n".format(
-            asic_info['kfd_id']))
-        print("  asic_info['node_id'] is: {}\n".format(
-            asic_info['node_id']))
-        print("  asic_info['partition_id'] is: {}\n".format(
-            asic_info['partition_id']))
+        print("\n###Test amdsmi_get_gpu_kfd_info \n")
+        kfd_info = amdsmi.amdsmi_get_gpu_kfd_info(processors[i])
+        print("  kfd_info['kfd_id'] is: {}\n".format(
+            kfd_info['kfd_id']))
+        print("  kfd_info['node_id'] is: {}\n".format(
+            kfd_info['node_id']))
         print("###Test amdsmi_get_power_cap_info \n")
         power_info = amdsmi.amdsmi_get_power_cap_info(processors[i])
         print("  power_info['dpm_cap'] is: {}".format(
