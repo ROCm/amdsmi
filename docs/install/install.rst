@@ -144,4 +144,3 @@ Run the following commands to build the documentation locally:
 The output is available in `docs/_build/html`.
 
 For additional details, see `Contribute to ROCm documentation <https://rocm.docs.amd.com/en/latest/contribute/contributing.html>`_.
-
