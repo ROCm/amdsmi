@@ -2,9 +2,7 @@
 
 Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/projects/amdsmi](https://rocm.docs.amd.com/projects/amdsmi/en/latest/).
 
-***All information listed below is for reference and subject to change.***
-
-## amd_smi_lib for ROCm 6.3.0
+## AMD SMI \<version\> for ROCm 6.3.0
 
 ### Changes
 
@@ -370,33 +368,22 @@ GPU  POWER  GPU_TEMP  MEM_TEMP  VRAM_USED  VRAM_TOTAL
 
 - **Python API for `amdsmi_get_energy_count()` will deprecate the `power` field in ROCm 6.4 and use `energy_accumulator` field instead**.  
 
-## amd_smi_lib for ROCm 6.2.1
+## AMD SMI 24.6.3 for ROCm 6.2.1
 
-### Additions
+### Changes
 
-- **Removed `amd-smi metric --ecc` & `amd-smi metric --ecc-blocks` on Guest VMs**.  
-Guest VMs do not support getting current ECC counts from the Host cards.
+* Added `amd-smi static --ras` on Guest VMs. Guest VMs can view enabled/disabled RAS features on Host cards.
 
-- **Added `amd-smi static --ras`on Guest VMs**.  
-Guest VMs can view enabled/disabled ras features that are on Host cards.
+### Removals
 
-### Optimizations
+* Removed `amd-smi metric --ecc` & `amd-smi metric --ecc-blocks` on Guest VMs. Guest VMs do not support getting current ECC counts from the Host cards.
 
-- N/A
+### Resolved issues
 
-### Fixes
-
-- **Fixed TypeError in `amd-smi process -G`**.  
-
-- **Updated CLI error strings to handle empty and invalid GPU/CPU inputs**.  
-
-- **Fixed Guest VM showing passthrough options**.  
-
-- **Fixed firmware formatting where leading 0s were missing**.  
-
-### Known Issues
-
-- N/A
+* Fixed TypeError in `amd-smi process -G`.
+* Updated CLI error strings to handle empty and invalid GPU/CPU inputs.
+* Fixed Guest VM showing passthrough options.
+* Fixed firmware formatting where leading 0s were missing.
 
 ## amd_smi_lib for ROCm 6.2.0
 
