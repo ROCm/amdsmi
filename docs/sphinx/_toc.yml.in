@@ -14,14 +14,14 @@ subtrees:
       
 - caption: How to
   entries:
-    - file: how-to/using-amdsmi-for-C++.rst
-      title: Use AMD SMI for C++ library
-    - file: how-to/using-amdsmi-for-python.md
-      title: Use AMD SMI for Python library
-    - file: how-to/using-AMD-SMI-CLI-tool.md
-      title: Use AMD SMI CLI tool
+    - file: how-to/cpp-lib
+      title: C++ library basic usage
+    - file: how-to/python-lib
+      title: Python library usage and API
+    - file: how-to/cli-tool
+      title: AMD SMI command line tool usage
   
-- caption: API reference
+- caption: Reference
   entries:
     - file: doxygen/docBin/html/files
       title: Files
@@ -33,8 +33,6 @@ subtrees:
       title: Modules
     - file: doxygen/docBin/html/functions_data_fields
       title: Data fields
-
-    
       
 - caption: Tutorials
   entries:
