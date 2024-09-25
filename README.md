@@ -89,7 +89,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>>
 ```
 
-## Usage Basics for the C Library
+## C++ library basic usage
 
 ### Device/Socket handles
 
@@ -102,7 +102,7 @@ handles, which in turn can be used to query the devices in that socket using `am
 The list of socket handles discovered using `amdsmi_get_socket_handles()`,can also be used to query the cpus in that socket using `amdsmi_get_processor_handles_by_type()`, which in turn can then be used to query the cores in that cpu using `amdsmi_get_processor_handles_by_type()` again.
 
 
-## Hello AMD SMI
+### Hello AMD SMI
 
 The only required AMD-SMI call for any program that wants to use AMD-SMI is the `amdsmi_init()` call. This call initializes some internal data structures that will be used by subsequent AMD-SMI calls. In the call, a flag can be passed if the application is only interested in a specific device type.
 
