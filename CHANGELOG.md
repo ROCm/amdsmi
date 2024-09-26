@@ -7,14 +7,15 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 ## amd_smi_lib for ROCm 6.3.0
 
 ### Changes
-- **Added support for GPU metrics 1.6 to `amdsmi_get_gpu_metrics_info()`**  
+
+- **Added support for GPU metrics 1.6 to `amdsmi_get_gpu_metrics_info()`**.  
 Updated `amdsmi_get_gpu_metrics_info()` and structure `amdsmi_gpu_metrics_t` to include new fields for PVIOL / TVIOL,  XCP (Graphics Compute Partitions) stats, and pcie_lc_perf_other_end_recovery:  
   - `uint64_t accumulation_counter` - used for all throttled calculations
   - `uint64_t prochot_residency_acc` - Processor hot accumulator
   - `uint64_t ppt_residency_acc` - Package Power Tracking (PPT) accumulator (used in PVIOL calculations)
   - `uint64_t socket_thm_residency_acc` - Socket thermal accumulator - (used in TVIOL calculations)
   - `uint64_t vr_thm_residency_acc` - Voltage Rail (VR) thermal accumulator
-  - `uint64_t hbm_thm_residency_acc` - High Bandwidth Memory (HBM) thermal accumulator 
+  - `uint64_t hbm_thm_residency_acc` - High Bandwidth Memory (HBM) thermal accumulator
   - `uint16_t num_partition` - corresponds to the current total number of partitions
   - `struct amdgpu_xcp_metrics_t xcp_stats[MAX_NUM_XCP]` - for each partition associated with current GPU, provides gfx busy & accumulators, jpeg, and decoder (VCN) engine utilizations
     - `uint32_t gfx_busy_inst[MAX_NUM_XCC]` - graphic engine utilization (%)
@@ -23,11 +24,12 @@ Updated `amdsmi_get_gpu_metrics_info()` and structure `amdsmi_gpu_metrics_t` to 
     - `uint64_t gfx_busy_acc[MAX_NUM_XCC]` - graphic engine utilization accumulated (%)
   - `uint32_t pcie_lc_perf_other_end_recovery` - corresponds to the pcie other end recovery counter
 
-- **Added new violation status outputs and APIs: `amdsmi_status_t amdsmi_get_violation_status()`, `amd-smi metric  --throttle`, and `amd-smi monitor --violation`**  
+- **Added new violation status outputs and APIs: `amdsmi_status_t amdsmi_get_violation_status()`, `amd-smi metric  --throttle`, and `amd-smi monitor --violation`**.  
   ***Only available for MI300+ ASICs.***  
   Users can now retrieve violation status' through either our Python or C++ APIs. Additionally, we have
   added capability to view these outputs conviently through `amd-smi metric --throttle` and `amd-smi monitor --violation`.  
   Example outputs are listed below (below is for reference, output is subject to change):
+
 ```shell
 $ amd-smi metric --throttle
 GPU: 0
@@ -69,6 +71,7 @@ GPU: 1
         HBM_THERMAL_VIOLATION_PERCENT: 0 %
 ...
 ```
+
 ```shell
 $ amd-smi monitor --violation
 GPU     PVIOL     TVIOL  PHOT_TVIOL  VR_TVIOL  HBM_TVIOL
@@ -91,12 +94,12 @@ GPU     PVIOL     TVIOL  PHOT_TVIOL  VR_TVIOL  HBM_TVIOL
 ...
 ```
 
-- **Added ability to view XCP (Graphics Compute Partition) activity within `amd-smi metric --usage`**  
+- **Added ability to view XCP (Graphics Compute Partition) activity within `amd-smi metric --usage`**.  
   ***Partition specific features are only available on MI300+ ASICs***  
   Users can now retrieve graphic utilization statistic on a per-XCP (per-partition) basis. Here all  XCP activities will be listed,
-  but the current XCP is the partition id listed under both `amd-smi list` and `amd-smi static --partition`.
-
+  but the current XCP is the partition id listed under both `amd-smi list` and `amd-smi static --partition`.  
   Example outputs are listed below (below is for reference, output is subject to change):
+
 ```shell
 $ amd-smi metric --usage
 GPU: 0
@@ -161,7 +164,6 @@ GPU: 0
             XCP_6: [N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
             XCP_7: [N/A, N/A, N/A, N/A, N/A, N/A, N/A, N/A]
 
-
 GPU: 1
     USAGE:
         GFX_ACTIVITY: 0 %
@@ -227,9 +229,10 @@ GPU: 1
 ...
 ```
 
-- **Added `LC_PERF_OTHER_END_RECOVERY` CLI output to `amd-smi metric --pcie` and updated `amdsmi_get_pcie_info()` to include this value**  
+- **Added `LC_PERF_OTHER_END_RECOVERY` CLI output to `amd-smi metric --pcie` and updated `amdsmi_get_pcie_info()` to include this value**.  
   ***Feature is only available on MI300+ ASICs***  
   Users can now retrieve both through `amdsmi_get_pcie_info()` which has an updated structure:
+
 ```C
 typedef struct {
   ...
@@ -247,9 +250,10 @@ typedef struct {
   } pcie_metric;
   uint64_t reserved[32];
 } amdsmi_pcie_info_t;
-``` 
+```
 
-  Example outputs are listed below (below is for reference, output is subject to change):
+  - Example outputs are listed below (below is for reference, output is subject to change):
+
 ```shell
 $ amd-smi metric --pcie
 GPU: 0
@@ -284,14 +288,13 @@ GPU: 1
 ...
 ```
 
-- **Updated BDF commands to look use KFD SYSFS for BDF: `amdsmi_get_gpu_device_bdf()`**
+- **Updated BDF commands to look use KFD SYSFS for BDF: `amdsmi_get_gpu_device_bdf()`**.  
 This aligns BDF output with ROCm SMI.
 See below for overview as seen from `rsmi_dev_pci_id_get()` now provides partition ID. See API for better detail. Previously these bits were reserved bits (right before domain) and partition id was within function.
   - bits [63:32] = domain
   - bits [31:28] = partition id
   - bits [27:16] = reserved
   - bits [15: 0] = pci bus/device/function
-
 
 - **Moved python tests directory path install location**.  
   - `/opt/<rocm-path>/share/amd_smi/pytest/..` to `/opt/<rocm-path>/share/amd_smi/tests/python_unittest/..`
@@ -306,9 +309,7 @@ See below for overview as seen from `rsmi_dev_pci_id_get()` now provides partiti
 - **Added `amd-smi set -L/--clk-limit ...` command**.  
   Equivalent to rocm-smi's '--extremum' command which sets sclk's or mclk's soft minimum or soft maximum clock frequency.
 
-
-
-- **Added Pytest functionality to test amdsmi API calls in Python**.  
+- **Added unittest functionality to test amdsmi API calls in Python**.  
 
 - **Changed the `power` parameter in `amdsmi_get_energy_count()` to `energy_accumulator`**.  
   - Changes propagate forwards into the python interface as well, however we are maintaing backwards compatibility and keeping the `power` field in the python API until ROCm 6.4.
@@ -341,7 +342,6 @@ Topology arguments:
                            ID: 7 | BDF: 0000:df:00.0 | UUID: <redacted>
                              all | Selects all devices
 
-
   -a, --access             Displays link accessibility between GPUs
   -w, --weight             Displays relative weight between GPUs
   -o, --hops               Displays the number of hops between GPUs
@@ -351,7 +351,6 @@ Topology arguments:
   -n, --atomics            Display 32 and 64-bit atomic io link capability between nodes
   -d, --dma                Display P2P direct memory access (DMA) link capability between nodes
   -z, --bi-dir             Display P2P bi-directional link capability between nodes
-
 
 Command Modifiers:
   --json                   Displays output in JSON format (human readable by default).
@@ -406,7 +405,6 @@ BI-DIRECTIONAL TABLE:
 0000:af:00.0 T            F            T            T            T            SELF         F            T
 0000:bf:00.0 F            T            T            T            F            F            SELF         F
 0000:df:00.0 T            T            T            F            F            T            F            SELF
-
 
 Legend:
  SELF = Current GPU
@@ -504,10 +502,10 @@ GPU: 0
         TARGET_GRAPHICS_VERSION: gfx942
 ```
 
-- **Udpated Partition APIs and struct information and added and partition_id to `amd-smi static --partition` & `amd-smi list`**.  
+- **Udpated Partition APIs and struct information and added and partition_id to `amd-smi static --partition`**.  
   - As part of an overhaul to partition information, some partition information will be made available in the `amdsmi_accelerator_partition_profile_t`.
   - This struct will be filled out by a new API, `amdsmi_get_gpu_accelerator_partition_profile()`.
-  - Future data from these APIs wil will eventually get added to `static --partition`.
+  - Future data from these APIs wil will eventually get added to `amd-smi partition`.
 
 ```C
 #define AMDSMI_MAX_ACCELERATOR_PROFILE    32
@@ -548,7 +546,6 @@ typedef union {
     uint32_t nps_cap_mask;
 } amdsmi_nps_caps_t;
 
-
 typedef struct {
   amdsmi_accelerator_partition_type_t  profile_type;   // SPX, DPX, QPX, CPX and so on
   uint32_t num_partitions;  // On MI300X, SPX: 1, DPX: 2, QPX: 4, CPX: 8, length of resources array
@@ -567,21 +564,6 @@ GPU: 0
         COMPUTE_PARTITION: CPX
         MEMORY_PARTITION: NPS4
         PARTITION_ID: 0
-
-$ amd-smi list
-GPU: 0
-    BDF: 0000:23:00.0
-    UUID: <redacted>
-    KFD_ID: 45412
-    NODE_ID: 1
-    PARTITION_ID: 0
-
-GPU: 1
-    BDF: 0000:26:00.0
-    UUID: <redacted>
-    KFD_ID: 59881
-    NODE_ID: 2
-    PARTITION_ID: 0
 ```
 
 ### Removals
@@ -610,7 +592,7 @@ plan to eventually remove partition ID from the function portion of the BDF (Bus
     - bits [7:3] = Device
     - bits [2:0] = Function (partition id maybe in bits [2:0]) <-- Fallback for non SPX modes
 
-Previously in non-SPX modes (ex. CPX/TPX/DPX/etc) some MI3x ASICs would not report all logical GPU devices within AMD SMI.
+  - Previously in non-SPX modes (ex. CPX/TPX/DPX/etc) some MI3x ASICs would not report all logical GPU devices within AMD SMI.
 
 ```shell
 $ amd-smi monitor -p -t -v
@@ -650,9 +632,8 @@ GPU  POWER  GPU_TEMP  MEM_TEMP  VRAM_USED  VRAM_TOTAL
 ```
 
 - **Fixed incorrect implementation of the Python API `amdsmi_get_gpu_metrics_header_info()`**.  
-- **`amdsmitst` TestGpuMetricsRead now prints metric in correct units**
 
-- **`amd-smi static --partition` will have updates with additional partition information from `amdsmi_get_gpu_accelerator_partition_profile()`**.  
+- **`amdsmitst` TestGpuMetricsRead now prints metric in correct units**.  
 
 ### Known issues
 
@@ -661,6 +642,10 @@ GPU  POWER  GPU_TEMP  MEM_TEMP  VRAM_USED  VRAM_TOTAL
 ### Upcoming changes
 
 - **Python API for `amdsmi_get_energy_count()` will deprecate the `power` field in ROCm 6.4 and use `energy_accumulator` field instead**.  
+
+- **Added preliminary `amd-smi partition` command**.  
+  - The new partition command can be used to display GPU information, including memory and accelerator partition information.
+  - The command will be at full functionality once additional partition information from `amdsmi_get_gpu_accelerator_partition_profile()` has been implemented.
 
 ## amd_smi_lib for ROCm 6.2.1
 
