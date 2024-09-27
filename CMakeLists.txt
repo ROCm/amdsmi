@@ -206,7 +206,7 @@ configure_package_config_file(
 write_basic_package_version_file(
     ${CMAKE_CURRENT_BINARY_DIR}/amd_smi-config-version.cmake
     VERSION
-    "${AMD_SMI_LIBS_TARGET_VERSION_MAJOR}.${AMD_SMI_LIBS_TARGET_VERSION_MINOR}.${AMD_SMI_LIBS_TARGET_VERSION_PATCH}"
+    "${CPACK_PACKAGE_VERSION}"
     COMPATIBILITY SameMajorVersion)
 
 install(
