@@ -2145,15 +2145,13 @@ class AMDSMICommands():
                     logging.debug("Failed to get violation status' for gpu %s | %s", gpu_id, e.get_error_info())
 
                 for key, value in throttle_status.items():
-                    if ("active" in key) and (value is True):
-                        throttle_status[key] = "ACTIVE"
-                        continue
-                    elif ("active" in key) and (value is False):
+                    if "active" in key:
                         throttle_status[key] = "NOT ACTIVE"
+                        if value:
+                            throttle_status[key] = "ACTIVE"
                         continue
-                    if "percent" in key:
-                        True # continue with rest of logic
-                    else:
+
+                    if "percent" not in key:
                         continue
 
                     activity_unit = '%'
