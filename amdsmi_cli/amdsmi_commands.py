@@ -311,8 +311,6 @@ class AMDSMICommands():
             args.board = board
         if driver:
             args.driver = driver
-        if ras:
-            args.ras = ras
         if vram:
             args.vram = vram
         if cache:
@@ -321,12 +319,14 @@ class AMDSMICommands():
             args.process_isolation = process_isolation
 
         # Store args that are applicable to the current platform
-        current_platform_args = ["asic", "bus", "vbios", "driver", "ras",
+        current_platform_args = ["asic", "bus", "vbios", "driver",
                                  "vram", "cache", "board", "process_isolation"]
-        current_platform_values = [args.asic, args.bus, args.vbios, args.driver, args.ras,
+        current_platform_values = [args.asic, args.bus, args.vbios, args.driver,
                                    args.vram, args.cache, args.board, args.process_isolation]
 
         if self.helpers.is_linux() and self.helpers.is_baremetal():
+            if ras:
+                args.ras = ras
             if partition:
                 args.partition = partition
             if limit:
@@ -336,7 +336,8 @@ class AMDSMICommands():
             if xgmi_plpd:
                 args.xgmi_plpd = xgmi_plpd
             current_platform_args += ["ras", "limit", "partition", "soc_pstate", "xgmi_plpd"]
-            current_platform_values += [args.ras, args.limit, args.partition, args.soc_pstate, args.xgmi_plpd]
+            current_platform_values += [args.ras, args.limit, args.partition,
+                                        args.soc_pstate, args.xgmi_plpd]
 
         if self.helpers.is_linux() and not self.helpers.is_virtual_os():
             if numa:
