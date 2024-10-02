@@ -2091,7 +2091,7 @@ class AMDSMICommands():
         if "throttle" in current_platform_args:
             if args.throttle:
                 throttle_status = {
-                    # gpu metric values
+                    # violation status values - counter/accumulated
                     'accumulation_counter': "N/A",
                     'prochot_accumulated': "N/A",
                     'ppt_accumulated': "N/A",
@@ -2115,19 +2115,14 @@ class AMDSMICommands():
                     }
 
                 try:
-                    throttle_status['accumulation_counter'] = gpu_metric['accumulation_counter']
-                    throttle_status['prochot_accumulated'] = gpu_metric['prochot_residency_acc']
-                    throttle_status['ppt_accumulated'] = gpu_metric['ppt_residency_acc']
-                    throttle_status['socket_thermal_accumulated'] = gpu_metric['socket_thm_residency_acc']
-                    throttle_status['vr_thermal_accumulated'] = gpu_metric['vr_thm_residency_acc']
-                    throttle_status['hbm_thermal_accumulated'] = gpu_metric['hbm_thm_residency_acc']
-
-                except Exception as e:
-                    values_dict['throttle'] = throttle_status
-                    logging.debug("Failed to get gpu metric information for throttle status' for gpu %s | %s", gpu_id, e)
-
-                try:
                     violation_status = amdsmi_interface.amdsmi_get_violation_status(args.gpu)
+                    throttle_status['accumulation_counter'] = violation_status['acc_counter']
+                    throttle_status['prochot_accumulated'] = violation_status['acc_prochot_thrm']
+                    throttle_status['ppt_accumulated'] = violation_status['acc_ppt_pwr']
+                    throttle_status['socket_thermal_accumulated'] = violation_status['acc_socket_thrm']
+                    throttle_status['vr_thermal_accumulated'] = violation_status['acc_vr_thrm']
+                    throttle_status['hbm_thermal_accumulated'] = violation_status['acc_hbm_thrm']
+
                     throttle_status['prochot_violation_active'] = violation_status['active_prochot_thrm']
                     throttle_status['ppt_violation_active'] = violation_status['active_ppt_pwr']
                     throttle_status['socket_thermal_violation_active'] = violation_status['active_socket_thrm']
