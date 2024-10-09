@@ -571,8 +571,11 @@ GPU: 0
 - **Removed usage of _validate_positive in Parser and replaced with _positive_int and _not_negative_int as appropriate**.  
   - This will allow 0 to be a valid input for several options in setting CPUs where appropriate (for example, as a mode or NBIOID)
 
-- **Removed `--ras` option from `amd-smi static` command in Guest environments**
+- **Removed `--ras` option from `amd-smi static` command in Guest environments**.  
   - VMs don't have permission from Hosts to obtain RAS information, so this option was made invalid on Guest environments.
+
+- **Removed `--ecc` option from `amd-smi monitor` command in Guest environments**.  
+  - Guest VMs do not support getting current ECC counts from the Host cards.
 
 ### Optimizations
 

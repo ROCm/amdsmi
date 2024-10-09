@@ -1207,7 +1207,10 @@ class AMDSMIParser(argparse.ArgumentParser):
         monitor_parser.add_argument('-m', '--mem', action='store_true', required=False, help=mem_util_help)
         monitor_parser.add_argument('-n', '--encoder', action='store_true', required=False, help=encoder_util_help)
         monitor_parser.add_argument('-d', '--decoder', action='store_true', required=False, help=decoder_util_help)
-        monitor_parser.add_argument('-e', '--ecc', action='store_true', required=False, help=ecc_help)
+
+        if not self.helpers.is_virtual_os():
+            monitor_parser.add_argument('-e', '--ecc', action='store_true', required=False, help=ecc_help)
+
         monitor_parser.add_argument('-v', '--vram-usage', action='store_true', required=False, help=mem_usage_help)
         monitor_parser.add_argument('-r', '--pcie', action='store_true', required=False, help=pcie_bandwidth_help)
         monitor_parser.add_argument('-q', '--process', action='store_true', required=False, help=process_help)

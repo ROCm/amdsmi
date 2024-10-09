@@ -4518,6 +4518,22 @@ class AMDSMICommands():
         if args.gpu == None:
             args.gpu = self.device_handles
 
+        # handle platform for ecc
+        if self.helpers.is_virtual_os():
+            args.ecc = False
+            if not any([args.power_usage, args.temperature, args.gfx, args.mem,
+                    args.encoder, args.decoder, args.vram_usage, args.pcie, args.violation]):
+                args.power_usage = args.temperature = args.gfx = args.mem = \
+                args.encoder = args.decoder = \
+                args.vram_usage = args.pcie = args.violation = True
+        else:
+            if not any([args.power_usage, args.temperature, args.gfx, args.mem,
+                    args.encoder, args.decoder, args.ecc,
+                    args.vram_usage, args.pcie, args.violation]):
+                args.power_usage = args.temperature = args.gfx = args.mem = \
+                args.encoder = args.decoder = args.ecc = \
+                args.vram_usage = args.pcie = args.violation = True
+
         # If all arguments are False, the print all values
         # Don't include process in this logic as it's an optional edge case
         if not any([args.power_usage, args.temperature, args.gfx, args.mem,
