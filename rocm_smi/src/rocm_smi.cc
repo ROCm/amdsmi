@@ -2192,8 +2192,7 @@ rsmi_status_t rsmi_dev_process_isolation_set(uint32_t dv_ind,
   CATCH
 }
 
-rsmi_status_t rsmi_dev_gpu_run_cleaner_shader(uint32_t dv_ind,
-    uint32_t sclean) {
+rsmi_status_t rsmi_dev_gpu_run_cleaner_shader(uint32_t dv_ind) {
   rsmi_status_t ret;
 
   TRY
@@ -2204,7 +2203,11 @@ rsmi_status_t rsmi_dev_gpu_run_cleaner_shader(uint32_t dv_ind,
   DEVICE_MUTEX
   GET_DEV_FROM_INDX
 
-  std::string value = std::to_string(sclean);
+  // To reset you need to provide the partition id
+  // echo "0" | sudo tee  /sys/class/drm/cardX/device/run_cleaner_shader
+  uint32_t partition_id = 0;
+  rsmi_dev_partition_id_get(dv_ind, &partition_id);
+  std::string value = std::to_string(partition_id);
   int ret = dev->writeDevInfo(amd::smi::kDevShaderClean , value);
   return amd::smi::ErrnoToRsmiStatus(ret);
 
