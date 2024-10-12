@@ -810,7 +810,7 @@ rsmi_dev_pci_id_get(uint32_t dv_ind, uint64_t *bdfid) {
    * Add domain to full pci_id:
    * BDFID = ((DOMAIN & 0xFFFFFFFF) << 32) | ((PARTITION_ID & 0xF) << 28) |
    * ((BUS & 0xFF) << 8) | ((DEVICE & 0x1F) <<3 ) | (FUNCTION & 0x7)
-   * 
+   *
    * bits [63:32] = domain
    * bits [31:28] or bits [2:0] = partition id
    * bits [27:16] = reserved
@@ -5370,7 +5370,25 @@ rsmi_topo_get_p2p_status(uint32_t dv_ind_src, uint32_t dv_ind_dst,
       // Unexpected IO Link type read
       return RSMI_STATUS_NOT_SUPPORTED;
     }
-    *cap = it->second->get_link_capability();
+
+    /*
+     *  Note: Adjust tmp_capability for the returned capabilities.
+     *  Todo: We need to fix it directy as part of the KFD Nodes 'KFDNode::Initialize(void)'
+     *        However, it involves a more complex change, so we will discuss it and fix in in the future.
+     *          Ideally, due to the fact we would need to check every IO link (for each KFD node), and
+     *          considering the topology could change (ie; new GPUs added, partioning changed, etc), we
+     *          are looking into O(N^2) time complexity, no to mention the fact that the IO links then
+     *          need to be changed/updated too. I have some ideas about how to do this, but it will take
+     *          some time to implement and test it, should we consider it is *really necessary*.
+     *
+     */
+    auto tmp_capability = it->second->get_link_capability();
+    if (auto link_direction_result = amd::smi::DiscoverIOLinkPerNodeDirection(node_ind_src, node_ind_dst);
+        link_direction_result == amd::smi::IOLinkDirectionType_t::kBiDirectional) {
+        // 1 = true, 0 = false
+        tmp_capability.is_iolink_bi_directional = 1;
+    }
+    *cap = tmp_capability;
     return RSMI_STATUS_SUCCESS;
   }
 
