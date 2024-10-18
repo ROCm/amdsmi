@@ -2,9 +2,7 @@
 
 Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/projects/amdsmi](https://rocm.docs.amd.com/projects/amdsmi/en/latest/).
 
-***All information listed below is for reference and subject to change.***
-
-## amd_smi_lib for ROCm 6.3.0
+## AMD SMI \<version\> for ROCm 6.3.0
 
 ### Changes
 
@@ -648,38 +646,28 @@ GPU  POWER  GPU_TEMP  MEM_TEMP  VRAM_USED  VRAM_TOTAL
 ### Upcoming changes
 
 - **Python API for `amdsmi_get_energy_count()` will deprecate the `power` field in ROCm 6.4 and use `energy_accumulator` field instead**.  
-
 - **Added preliminary `amd-smi partition` command**.  
   - The new partition command can be used to display GPU information, including memory and accelerator partition information.
   - The command will be at full functionality once additional partition information from `amdsmi_get_gpu_accelerator_partition_profile()` has been implemented.
 
-## amd_smi_lib for ROCm 6.2.1
+## AMD SMI 24.6.3 for ROCm 6.2.1
 
-### Additions
+### Changes
 
-- **Removed `amd-smi metric --ecc` & `amd-smi metric --ecc-blocks` on Guest VMs**.
-Guest VMs do not support getting current ECC counts from the Host cards.
+* Added `amd-smi static --ras` on Guest VMs. Guest VMs can view enabled/disabled RAS features on Host cards.
 
-- **Added `amd-smi static --ras`on Guest VMs**.
-Guest VMs can view enabled/disabled ras features that are on Host cards.
 
-### Optimizations
+### Removals
 
-- N/A
+* Removed `amd-smi metric --ecc` & `amd-smi metric --ecc-blocks` on Guest VMs. Guest VMs do not support getting current ECC counts from the Host cards.
 
-### Fixes
 
-- **Fixed TypeError in `amd-smi process -G`**.  
+### Resolved issues
 
-- **Updated CLI error strings to handle empty and invalid GPU/CPU inputs**.  
-
-- **Fixed Guest VM showing passthrough options**.
-
-- **Fixed firmware formatting where leading 0s were missing**.
-
-### Known Issues
-
-- N/A
+* Fixed TypeError in `amd-smi process -G`.
+* Updated CLI error strings to handle empty and invalid GPU/CPU inputs.
+* Fixed Guest VM showing passthrough options.
+* Fixed firmware formatting where leading 0s were missing.
 
 ## amd_smi_lib for ROCm 6.2.0
 
