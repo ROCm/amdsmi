@@ -2573,14 +2573,12 @@ amdsmi_status_t amdsmi_set_gpu_pci_bandwidth(amdsmi_processor_handle processor_h
  *  @platform{gpu_bm_linux}
  *
  *  @details Given a processor handle @p processor_handle, a pointer to a uint64_t
- *  @p power, and a pointer to a uint64_t @p timestamp, this function will write
- *  amount of energy consumed to the uint64_t pointed to by @p power,
- *  and the timestamp to the uint64_t pointed to by @p timestamp.
+ *  @p energy_accumulator, and a pointer to a uint64_t @p timestamp, this function
+ *  will write amount of energy consumed to the uint64_t pointed to by
+ *  @p energy_accumulator, and the timestamp to the uint64_t pointed to by @p timestamp.
  *  This function accumulates all energy consumed.
  *
  *  @param[in] processor_handle a processor handle
- *  @param[in,out] counter_resolution resolution of the counter @p power in
- *  micro Joules
  *
  *  @param[in,out] energy_accumulator a pointer to uint64_t to which the energy
  *  counter will be written
@@ -2588,6 +2586,9 @@ amdsmi_status_t amdsmi_set_gpu_pci_bandwidth(amdsmi_processor_handle processor_h
  *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
  *  and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
  *  provided arguments.
+ *
+ *  @param[in,out] counter_resolution resolution of the counter @p energy_accumulator in
+ *  micro Joules
  *
  *  @param[in,out] timestamp a pointer to uint64_t to which the timestamp
  *  will be written. Resolution: 1 ns.
