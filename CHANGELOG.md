@@ -8,6 +8,9 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ### Added
 
+- **Added support for `amd-smi metric --ecc` & `amd-smi metric --ecc-blocks` on Guest VMs**.
+Guest VMs now support getting current ECC counts and ras information from the Host cards.
+
 - **Added support for GPU metrics 1.6 to `amdsmi_get_gpu_metrics_info()`**.  
 Updated `amdsmi_get_gpu_metrics_info()` and structure `amdsmi_gpu_metrics_t` to include new fields for PVIOL / TVIOL,  XCP (Graphics Compute Partitions) stats, and pcie_lc_perf_other_end_recovery:  
   - `uint64_t accumulation_counter` - used for all throttled calculations
@@ -494,7 +497,7 @@ GPU: 0
 
 ### Changed
 
-- **Updated BDF commands to look use KFD SYSFS for BDF: `amdsmi_get_gpu_device_bdf()`**.
+- **Updated BDF commands to look use KFD SYSFS for BDF: `amdsmi_get_gpu_device_bdf()`**.  
 This aligns BDF output with ROCm SMI.
 See below for overview as seen from `rsmi_dev_pci_id_get()` now provides partition ID. See API for better detail. Previously these bits were reserved bits (right before domain) and partition id was within function.
   - bits [63:32] = domain
@@ -502,7 +505,7 @@ See below for overview as seen from `rsmi_dev_pci_id_get()` now provides partiti
   - bits [27:16] = reserved
   - bits [15: 0] = pci bus/device/function
 
-- **Moved python tests directory path install location**.
+- **Moved python tests directory path install location**.  
   - `/opt/<rocm-path>/share/amd_smi/pytest/..` to `/opt/<rocm-path>/share/amd_smi/tests/python_unittest/..`
   - On amd-smi-lib-tests uninstall, the amd_smi tests folder is removed
   - Removed pytest dependency, our python testing now only depends on the unittest framework.
@@ -579,12 +582,6 @@ GPU: 0
 
 - **Removed usage of _validate_positive in Parser and replaced with _positive_int and _not_negative_int as appropriate**.  
   - This will allow 0 to be a valid input for several options in setting CPUs where appropriate (for example, as a mode or NBIOID)
-
-- **Removed `--ras` option from `amd-smi static` command in Guest environments**.  
-  - VMs don't have permission from Hosts to obtain RAS information, so this option was made invalid on Guest environments.
-
-- **Removed `--ecc` option from `amd-smi monitor` command in Guest environments**.  
-  - Guest VMs do not support getting current ECC counts from the Host cards.
 
 ### Optimized
 
