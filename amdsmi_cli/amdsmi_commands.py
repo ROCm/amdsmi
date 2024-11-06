@@ -5239,6 +5239,9 @@ class AMDSMICommands():
                     current_mem_cap = "N/A"
                     logging.debug("Failed to get current memory partition capabilties for GPU %s | %s", gpu_id, e.get_error_info())
 
+                if profile_type == 0:
+                    profile_type = "N/A"
+
                 tabular_output_dict = {"gpu_id": gpu_id,
                                        "memory": current_mem_cap,
                                        "accelerator_type": profile_type,
@@ -5298,6 +5301,7 @@ class AMDSMICommands():
                 self.logger.store_multiple_device_output()
             self.logger.print_output(multiple_device_enabled=True)
             self.logger.clear_multiple_devices_ouput()
+
         if args.accelerator:
             self.logger.table_header = ''.rjust(7)
             current_header = "GPU_ID".ljust(13) + \
@@ -5360,6 +5364,9 @@ class AMDSMICommands():
                     resources = "N/A"
                     mem_caps_str = "N/A"
                     logging.debug("Failed to get accelerator partition profile for GPU %s | %s", gpu_id, e.get_error_info())
+
+                if profile_type == 0:
+                    profile_type = "N/A"
 
                 tabular_output_dict = {"gpu_id": gpu_id,
                                        "profile_index": profile_index,
