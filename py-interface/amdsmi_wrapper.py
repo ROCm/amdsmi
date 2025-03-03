@@ -165,19 +165,47 @@ def char_pointer_cast(string, encoding='utf-8'):
 
 _libraries = {}
 from pathlib import Path
-libamd_smi_parent_dir = Path(__file__).resolve().parent / "libamd_smi.so"
-libamd_smi_cwd = Path.cwd() / "libamd_smi.so"
+# libamd_smi.so can be located in several different places.
+# Look for it with below priority:
+# 1. ROCM_HOME/ROCM_PATH environment variables
+#    - ROCM_HOME/lib
+#    - ROCM_PATH/lib (usually set to /opt/rocm/)
+# 2. Decided by the linker
+#    - LD_LIBRARY_PATH env var
+#    - defined path in /etc/ld.so.conf.d/
+# 3. Relative to amdsmi_wrapper.py
+#    - parent directory
+#    - current directory
+def find_smi_library():
+    err = OSError("Could not load libamd_smi.so")
+    possible_locations = list()
+    # 1.
+    rocm_path = os.getenv("ROCM_HOME", os.getenv("ROCM_PATH"))
+    if rocm_path:
+        possible_locations.append(os.path.join(rocm_path, "lib/libamd_smi.so"))
+    # 2.
+    possible_locations.append("libamd_smi.so")
+    # 3.
+    libamd_smi_parent_dir = Path(__file__).resolve().parent / "libamd_smi.so"
+    libamd_smi_cwd = Path.cwd() / "libamd_smi.so"
+    possible_locations.append(libamd_smi_parent_dir)
+    possible_locations.append(libamd_smi_cwd)
+
+    for location in possible_locations:
+        try:
+            lib = ctypes.CDLL(location)
+            return lib, location
+        except OSError as e:
+            err = e
+            continue
+    raise err
 
 try:
-    if libamd_smi_parent_dir.is_file():
-        # try to fall back to parent directory
-        _libraries['libamd_smi.so'] = ctypes.CDLL(libamd_smi_parent_dir)
-    else:
-        # lastly - search in current working directory
-        _libraries['libamd_smi.so'] = ctypes.CDLL(libamd_smi_cwd)
-except OSError as error:
-    print(error)
-    print("Unable to find amdsmi library try installing amd-smi-lib from your package manager")
+    _libraries['libamd_smi.so'], location = find_smi_library()
+    #print(f"found smi lib in [", location, "]")
+except OSError as e:
+    print(e)
+    print("Unable to find libamd_smi.so library try installing amd-smi-lib from your package manager")
 
 
 
@@ -845,7 +873,9 @@ struct_pcie_static_._fields_ = [
     ('max_pcie_speed', ctypes.c_uint32),
     ('pcie_interface_version', ctypes.c_uint32),
     ('slot_type', amdsmi_card_form_factor_t),
-    ('reserved', ctypes.c_uint64 * 10),
+    ('max_pcie_interface_version', ctypes.c_uint32),
+    ('PADDING_1', ctypes.c_ubyte * 4),
+    ('reserved', ctypes.c_uint64 * 9),
 ]
 
 struct_amdsmi_pcie_info_t._pack_ = 1 # source:False
