@@ -4471,6 +4471,10 @@ amdsmi_status_t amdsmi_get_lib_version(amdsmi_version_t *version);
  *  @brief Retrieve the error counts for a GPU block. It is not supported on virtual
  *  machine guest
  *
+ *  See [RAS Error Count sysfs Interface (AMDGPU RAS Support - Linux Kernel
+ *  documentation)](https://docs.kernel.org/gpu/amdgpu/ras.html#ras-error-count-sysfs-interface)
+ *  to learn how these error counts are accessed.
+ *
  *  @ingroup tagECCInfo
  *
  *  @platform{gpu_bm_linux}  @platform{host}
@@ -4498,6 +4502,10 @@ amdsmi_status_t amdsmi_get_gpu_ecc_count(amdsmi_processor_handle processor_handl
 
 /**
  *  @brief Retrieve the enabled ECC bit-mask. It is not supported on virtual machine guest
+ *
+ *  See [RAS Error Count sysfs Interface (AMDGPU RAS Support - Linux Kernel
+ *  documentation)](https://docs.kernel.org/gpu/amdgpu/ras.html#ras-error-count-sysfs-interface)
+ *  to learn how these error counts are accessed.
  *
  *  @ingroup tagECCInfo
  *
@@ -4532,6 +4540,10 @@ amdsmi_status_t amdsmi_get_gpu_ecc_enabled(amdsmi_processor_handle processor_han
  *                  uncorrectable and deferred) in the given GPU. It is not supported on
  *                  virtual machine guest
  *
+ *  See [RAS Error Count sysfs Interface (AMDGPU RAS Support - Linux Kernel
+ *  documentation)](https://docs.kernel.org/gpu/amdgpu/ras.html#ras-error-count-sysfs-interface)
+ *  to learn how these error counts are accessed.
+ *
  *  @ingroup tagECCInfo
  *
  *  @platform{gpu_bm_linux} @platform{host} @platform{guest_windows}
@@ -4558,6 +4570,10 @@ amdsmi_get_gpu_total_ecc_count(amdsmi_processor_handle processor_handle, amdsmi_
 /**
  *  @brief Retrieve the ECC status for a GPU block. It is not supported on virtual machine
  *  guest
+ *
+ *  See [RAS Error Count sysfs Interface (AMDGPU RAS Support - Linux Kernel
+ *  documentation)](https://docs.kernel.org/gpu/amdgpu/ras.html#ras-error-count-sysfs-interface)
+ *  to learn how these error counts are accessed.
  *
  *  @ingroup tagErrorQuery
  *
