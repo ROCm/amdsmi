@@ -94,6 +94,7 @@ case "$1" in
   ( remove | upgrade)
     # remove old gpuv-smi symlink
     rm -f @CPACK_PACKAGING_INSTALL_PREFIX@/bin/gpuv-smi &> /dev/null
+    echo "Removing AMDSMI LIB Packages..."
     rm_python_lib
     rm_ldconfig
     rm_leftovers

@@ -84,7 +84,9 @@ if [ "$1" -le 1 ]; then
     # perform the below actions for rpm remove($1=0) or upgrade($1=1) operations
     # remove old gpuv-smi symlink
     rm -f $RPM_INSTALL_PREFIX0/bin/gpuv-smi &> /dev/null
+    echo "Removing AMDSMI Lib Packages..."
     rm_python_lib
+    rm_ldconfig
     rm_leftovers
     rm_logFolder
     rm_rocm_tests_dir

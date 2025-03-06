@@ -255,8 +255,8 @@ class struct_amdsmi_hsmp_driver_version_t(Structure):
 
 struct_amdsmi_hsmp_driver_version_t._pack_ = 1 # source:False
 struct_amdsmi_hsmp_driver_version_t._fields_ = [
-    ('major', ctypes.c_ubyte),
-    ('minor', ctypes.c_ubyte),
+    ('major', ctypes.c_uint32),
+    ('minor', ctypes.c_uint32),
 ]
 
 amdsmi_hsmp_driver_version_t = struct_amdsmi_hsmp_driver_version_t
@@ -1432,7 +1432,8 @@ amdsmi_temperature_metric_t__enumvalues = {
     11: 'AMDSMI_TEMP_OFFSET',
     12: 'AMDSMI_TEMP_LOWEST',
     13: 'AMDSMI_TEMP_HIGHEST',
-    13: 'AMDSMI_TEMP_LAST',
+    14: 'AMDSMI_TEMP_SHUTDOWN',
+    14: 'AMDSMI_TEMP_LAST',
 }
 AMDSMI_TEMP_CURRENT = 0
 AMDSMI_TEMP_FIRST = 0
@@ -1449,7 +1450,8 @@ AMDSMI_TEMP_CRIT_MIN_HYST = 10
 AMDSMI_TEMP_OFFSET = 11
 AMDSMI_TEMP_LOWEST = 12
 AMDSMI_TEMP_HIGHEST = 13
-AMDSMI_TEMP_LAST = 13
+AMDSMI_TEMP_SHUTDOWN = 14
+AMDSMI_TEMP_LAST = 14
 amdsmi_temperature_metric_t = ctypes.c_uint32 # enum
 
 # values for enumeration 'amdsmi_voltage_metric_t'
@@ -2908,7 +2910,7 @@ __all__ = \
     'AMDSMI_TEMP_HIGHEST', 'AMDSMI_TEMP_LAST', 'AMDSMI_TEMP_LOWEST',
     'AMDSMI_TEMP_MAX', 'AMDSMI_TEMP_MAX_HYST', 'AMDSMI_TEMP_MIN',
     'AMDSMI_TEMP_MIN_HYST', 'AMDSMI_TEMP_OFFSET',
-    'AMDSMI_UTILIZATION_COUNTER_FIRST',
+    'AMDSMI_TEMP_SHUTDOWN', 'AMDSMI_UTILIZATION_COUNTER_FIRST',
     'AMDSMI_UTILIZATION_COUNTER_LAST',
     'AMDSMI_VIRTUALIZATION_MODE_BAREMETAL',
     'AMDSMI_VIRTUALIZATION_MODE_GUEST',

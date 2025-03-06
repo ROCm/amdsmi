@@ -127,9 +127,9 @@ pub const AMDSMI_MAX_NUM_XCC: u32 = 8;
 pub const AMDSMI_MAX_NUM_XCP: u32 = 8;
 pub const AMDSMI_TIME_FORMAT: &[u8; 20] = b"%02d:%02d:%02d.%03d\0";
 pub const AMDSMI_DATE_FORMAT: &[u8; 35] = b"%04d-%02d-%02d:%02d:%02d:%02d.%03d\0";
-pub const AMDSMI_LIB_VERSION_YEAR: u32 = 24;
-pub const AMDSMI_LIB_VERSION_MAJOR: u32 = 7;
-pub const AMDSMI_LIB_VERSION_MINOR: u32 = 1;
+pub const AMDSMI_LIB_VERSION_YEAR: u32 = 25;
+pub const AMDSMI_LIB_VERSION_MAJOR: u32 = 25;
+pub const AMDSMI_LIB_VERSION_MINOR: u32 = 2;
 pub const AMDSMI_LIB_VERSION_RELEASE: u32 = 0;
 pub const AMDSMI_MAX_NUM_FREQUENCIES: u32 = 33;
 pub const AMDSMI_MAX_FAN_SPEED: u32 = 255;
@@ -972,7 +972,7 @@ const _: () = {
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union AmdsmiNpsCapsT {
-    pub amdsmi_nps_flags_t: AmdsmiNpsCapsTNpsFlags,
+    pub nps_flags: AmdsmiNpsCapsTNpsFlags,
     pub nps_cap_mask: u32,
 }
 #[repr(C)]
@@ -1079,8 +1079,8 @@ impl AmdsmiNpsCapsTNpsFlags {
 const _: () = {
     ["Size of AmdsmiNpsCapsT"][::std::mem::size_of::<AmdsmiNpsCapsT>() - 4usize];
     ["Alignment of AmdsmiNpsCapsT"][::std::mem::align_of::<AmdsmiNpsCapsT>() - 4usize];
-    ["Offset of field: AmdsmiNpsCapsT::amdsmi_nps_flags_t"]
-        [::std::mem::offset_of!(AmdsmiNpsCapsT, amdsmi_nps_flags_t) - 0usize];
+    ["Offset of field: AmdsmiNpsCapsT::nps_flags"]
+        [::std::mem::offset_of!(AmdsmiNpsCapsT, nps_flags) - 0usize];
     ["Offset of field: AmdsmiNpsCapsT::nps_cap_mask"]
         [::std::mem::offset_of!(AmdsmiNpsCapsT, nps_cap_mask) - 0usize];
 };
@@ -1889,7 +1889,6 @@ const _: () = {
     ["Size of AmdsmiVersionT"][::std::mem::size_of::<AmdsmiVersionT>() - 24usize];
     ["Alignment of AmdsmiVersionT"][::std::mem::align_of::<AmdsmiVersionT>() - 8usize];
     ["Offset of field: AmdsmiVersionT::year"]
-        [::std::mem::offset_of!(AmdsmiVersionT, year) - 0usize];
     ["Offset of field: AmdsmiVersionT::major"]
         [::std::mem::offset_of!(AmdsmiVersionT, major) - 4usize];
     ["Offset of field: AmdsmiVersionT::minor"]
