@@ -5342,7 +5342,8 @@ amdsmi_get_gpu_compute_partition(amdsmi_processor_handle processor_handle,
  *
  *  @details Given a processor handle @p processor_handle, a type of compute partition
  *  @p compute_partition, this function will attempt to update the selected
- *  device's compute partition setting.
+ *  device's compute partition setting. This function does not allow any concurrent operations.
+ *  Device must be idle and have no workloads when performing set partition operations.
  *
  *  @param[in] processor_handle Device which to query
  *
@@ -5416,7 +5417,8 @@ amdsmi_get_gpu_memory_partition(amdsmi_processor_handle processor_handle, char *
  *
  *  @details Given a processor handle @p processor_handle and a type of memory partition
  *  @p memory_partition, this function will attempt to update the selected
- *  device's memory partition setting.
+ *  device's memory partition setting. This function does not allow any concurrent operations.
+ *  Device must be idle and have no workloads when performing set partition operations.
  *
  *  @param[in] processor_handle Device which to query
  *
