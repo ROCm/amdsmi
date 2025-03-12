@@ -31,6 +31,7 @@ AMD SMI is the successor to <https://github.com/ROCm/rocm_smi_lib>.
 * [C++ library usage](./how-to/amdsmi-cpp-lib.md)
 * [Python library usage](./how-to/amdsmi-py-lib.md)
 * [CLI tool usage](./how-to/amdsmi-cli-tool.md)
+* [Use AMD SMI in a Docker container](./how-to/setup-docker-container.md)
 :::
 
 :::{grid-item-card} Reference

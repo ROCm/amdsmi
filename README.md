@@ -29,9 +29,6 @@ for more information.
 The following are required to install and use the AMD SMI libraries and CLI tool.
 
 * Python 3.6.8+ (64-bit)
-  * prerequisite modules:
-    * python3-wheel
-    * python3-setuptools
 * `amdgpu` driver must be loaded for [`amdsmi_init()`](./docs/how-to/amdsmi-cpp-lib#hello-amd-smi) to work.
 
 ## Install amdgpu driver and AMD SMI with ROCm
@@ -118,6 +115,21 @@ Check out
 [Getting to Know Your GPU: A Deep Dive into AMD SMI -- ROCm Blogs](https://rocm.blogs.amd.com/software-tools-optimization/amd-smi-overview/README.html)
 for a rundown.
 
+### Docker container configuration
+
+To ensure proper functionality of AMD SMI within a Docker container, the
+following configuration options must be included. These settings are
+particularly important for managing memory partitions, as partitioning depends
+on loading and unloading kernel drivers.
+
+- `--cap-add=SYS_MODULE`
+
+- `-v /lib/modules:/lib/modules`
+
+See [Using AMD SMI in a Docker
+container](https://rocm.docs.amd.com/projects/amdsmi/en/latest/how-to/setup-docker-container.html)
+for more information.
+
 ## Building AMD SMI
 
 This section describes the prerequisites and steps to build AMD SMI from source.
@@ -135,9 +147,6 @@ during development; earlier versions are not guaranteed to work.
 In order to build the AMD SMI Python package, the following components are required:
 
 * Python (3.6.8 or later)
-  * prerequisite modules:
-    * python3-wheel
-    * python3-setuptools
 * virtualenv -- `python3 -m pip install virtualenv`
 
 ### Build steps
