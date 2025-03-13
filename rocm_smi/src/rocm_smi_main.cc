@@ -56,7 +56,7 @@ static const char *kPathNICRoot = "/sys/class/net";
 static const char *kPathSwitchRoot = "/sys/class/scsi_host";
 
 static const char *kDeviceNamePrefix = "card";
-static const char *kNICPrefix = "en";
+static const char *kNICPrefix = "e"; //changed to 'e' since SLES syspath is 'eth' and RHEL/Ubuntu is 'en'
 static const char *kSwitchPrefix = "host";
 
 static const char *kAMDMonitorTypes[] = {"radeon", "amdgpu", ""};

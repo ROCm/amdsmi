@@ -55,6 +55,8 @@ class AMDSmiNoDrmSwitch {
     uint32_t get_vendor_id();
     amdsmi_status_t amd_query_switch_link(std::string devicePath, amdsmi_brcm_link_metric_t& info);
     amdsmi_status_t amd_query_switch_uuid(std::string bdfStr, std::string& serial);
+    amdsmi_status_t amd_query_switch_numa_affinity(std::string devicePath, int32_t *numa_node);
+    amdsmi_status_t amd_query_switch_cpu_affinity(std::string devicePath, std::string& cpu_affinity);
 
  private:
     // when file is not found, the empty string will be returned

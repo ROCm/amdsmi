@@ -84,6 +84,24 @@ amdsmi_status_t AMDSmiSWITCHDevice::amd_query_switch_uuid(std::string& serial) c
   return nodrm_.amd_query_switch_uuid(std::string(bdf_str), serial);
 }
 
+amdsmi_status_t AMDSmiSWITCHDevice::amd_query_switch_numa_affinity(int32_t *numa_node) const {
+  amdsmi_status_t ret;
+  std::string devicePath;
+  ret = nodrm_.get_device_path_by_index(switch_id_, &devicePath);
+  if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
+
+  return nodrm_.amd_query_switch_numa_affinity(devicePath, numa_node);
+}
+
+amdsmi_status_t AMDSmiSWITCHDevice::amd_query_switch_cpu_affinity(std::string& cpu_affinity) const {
+  char bdf_str[20];
+  sprintf(bdf_str, "%04lx:%02x", bdf_.domain_number, bdf_.bus_number);
+  std::stringstream domain_bus_sstream;
+  domain_bus_sstream << "/sys/class/pci_bus/" << std::string(bdf_str);
+  
+  return nodrm_.amd_query_switch_cpu_affinity(domain_bus_sstream.str(), cpu_affinity);
+}
+
 }  // namespace smi
 }  // namespace amd
 

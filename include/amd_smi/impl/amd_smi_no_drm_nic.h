@@ -53,6 +53,8 @@ class AMDSmiNoDrmNIC {
    uint32_t get_vendor_id();
     amdsmi_status_t amd_query_nic_uuid(std::string devicePath, std::string& version);
     amdsmi_status_t amd_query_nic_temp(std::string hwmonPath, amdsmi_nic_temperature_metric_t& info);
+    amdsmi_status_t amd_query_nic_numa_affinity(std::string devicePath, int32_t *numa_node);
+    amdsmi_status_t amd_query_nic_cpu_affinity(std::string devicePath, std::string& cpu_affinity);
 
  private:
     // when file is not found, the empty string will be returned

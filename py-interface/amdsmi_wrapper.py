@@ -1163,10 +1163,10 @@ class struct_amdsmi_brcm_link_metric_t(Structure):
 
 struct_amdsmi_brcm_link_metric_t._pack_ = 1 # source:False
 struct_amdsmi_brcm_link_metric_t._fields_ = [
-    ('current_link_speed', ctypes.c_uint32),
-    ('max_link_speed', ctypes.c_uint32),
-    ('current_link_width', ctypes.c_uint32),
-    ('max_link_width', ctypes.c_uint32),
+    ('current_link_speed', ctypes.c_char * 256),
+    ('max_link_speed', ctypes.c_char * 256),
+    ('current_link_width', ctypes.c_char * 256),
+    ('max_link_width', ctypes.c_char * 256),
 ]
 
 amdsmi_brcm_link_metric_t = struct_amdsmi_brcm_link_metric_t
@@ -2275,6 +2275,27 @@ amdsmi_get_gpu_bdf_id.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes
 amdsmi_get_gpu_topo_numa_affinity = _libraries['libamd_smi.so'].amdsmi_get_gpu_topo_numa_affinity
 amdsmi_get_gpu_topo_numa_affinity.restype = amdsmi_status_t
 amdsmi_get_gpu_topo_numa_affinity.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_int32)]
+amdsmi_get_gpu_topo_cpu_affinity = _libraries['libamd_smi.so'].amdsmi_get_gpu_topo_cpu_affinity
+amdsmi_get_gpu_topo_cpu_affinity.restype = amdsmi_status_t
+amdsmi_get_gpu_topo_cpu_affinity.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_char)]
+amdsmi_get_nic_topo_numa_affinity = _libraries['libamd_smi.so'].amdsmi_get_nic_topo_numa_affinity
+amdsmi_get_nic_topo_numa_affinity.restype = amdsmi_status_t
+amdsmi_get_nic_topo_numa_affinity.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_int32)]
+amdsmi_get_nic_topo_cpu_affinity = _libraries['libamd_smi.so'].amdsmi_get_nic_topo_cpu_affinity
+amdsmi_get_nic_topo_cpu_affinity.restype = amdsmi_status_t
+amdsmi_get_nic_topo_cpu_affinity.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_char)]
+amdsmi_get_switch_topo_numa_affinity = _libraries['libamd_smi.so'].amdsmi_get_switch_topo_numa_affinity
+amdsmi_get_switch_topo_numa_affinity.restype = amdsmi_status_t
+amdsmi_get_switch_topo_numa_affinity.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_int32)]
+amdsmi_get_switch_topo_cpu_affinity = _libraries['libamd_smi.so'].amdsmi_get_switch_topo_cpu_affinity
+amdsmi_get_switch_topo_cpu_affinity.restype = amdsmi_status_t
+amdsmi_get_switch_topo_cpu_affinity.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_char)]
+amdsmi_get_nic_gpu_topo_info = _libraries['libamd_smi.so'].amdsmi_get_nic_gpu_topo_info
+amdsmi_get_nic_gpu_topo_info.restype = amdsmi_status_t
+amdsmi_get_nic_gpu_topo_info.argtypes = [amdsmi_processor_handle, amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_char)]
+amdsmi_get_root_switch = _libraries['libamd_smi.so'].amdsmi_get_root_switch
+amdsmi_get_root_switch.restype = amdsmi_status_t
+amdsmi_get_root_switch.argtypes = [amdsmi_bdf_t, ctypes.POINTER(union_amdsmi_bdf_t)]
 amdsmi_get_gpu_pci_throughput = _libraries['libamd_smi.so'].amdsmi_get_gpu_pci_throughput
 amdsmi_get_gpu_pci_throughput.restype = amdsmi_status_t
 amdsmi_get_gpu_pci_throughput.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(ctypes.c_uint64)]
@@ -3053,6 +3074,7 @@ __all__ = \
     'amdsmi_get_gpu_ras_feature_info',
     'amdsmi_get_gpu_reg_table_info', 'amdsmi_get_gpu_revision',
     'amdsmi_get_gpu_subsystem_id', 'amdsmi_get_gpu_subsystem_name',
+    'amdsmi_get_gpu_topo_cpu_affinity',
     'amdsmi_get_gpu_topo_numa_affinity',
     'amdsmi_get_gpu_total_ecc_count', 'amdsmi_get_gpu_vbios_info',
     'amdsmi_get_gpu_vendor_name',
@@ -3065,21 +3087,25 @@ __all__ = \
     'amdsmi_get_link_metrics', 'amdsmi_get_link_topology_nearest',
     'amdsmi_get_minmax_bandwidth_between_processors',
     'amdsmi_get_nic_device_bdf', 'amdsmi_get_nic_device_uuid',
-    'amdsmi_get_nic_temp_info', 'amdsmi_get_pcie_info',
+    'amdsmi_get_nic_gpu_topo_info', 'amdsmi_get_nic_temp_info',
+    'amdsmi_get_nic_topo_cpu_affinity',
+    'amdsmi_get_nic_topo_numa_affinity', 'amdsmi_get_pcie_info',
     'amdsmi_get_power_cap_info', 'amdsmi_get_power_info',
     'amdsmi_get_processor_count_from_handles',
     'amdsmi_get_processor_handle_from_bdf',
     'amdsmi_get_processor_handles',
     'amdsmi_get_processor_handles_by_type',
     'amdsmi_get_processor_info', 'amdsmi_get_processor_type',
-    'amdsmi_get_soc_pstate', 'amdsmi_get_socket_handles',
-    'amdsmi_get_socket_info', 'amdsmi_get_switch_device_bdf',
-    'amdsmi_get_switch_device_uuid', 'amdsmi_get_switch_link_info',
-    'amdsmi_get_temp_metric', 'amdsmi_get_threads_per_core',
-    'amdsmi_get_utilization_count', 'amdsmi_get_violation_status',
-    'amdsmi_get_xgmi_info', 'amdsmi_get_xgmi_plpd',
-    'amdsmi_gpu_block_t', 'amdsmi_gpu_cache_info_t',
-    'amdsmi_gpu_control_counter',
+    'amdsmi_get_root_switch', 'amdsmi_get_soc_pstate',
+    'amdsmi_get_socket_handles', 'amdsmi_get_socket_info',
+    'amdsmi_get_switch_device_bdf', 'amdsmi_get_switch_device_uuid',
+    'amdsmi_get_switch_link_info',
+    'amdsmi_get_switch_topo_cpu_affinity',
+    'amdsmi_get_switch_topo_numa_affinity', 'amdsmi_get_temp_metric',
+    'amdsmi_get_threads_per_core', 'amdsmi_get_utilization_count',
+    'amdsmi_get_violation_status', 'amdsmi_get_xgmi_info',
+    'amdsmi_get_xgmi_plpd', 'amdsmi_gpu_block_t',
+    'amdsmi_gpu_cache_info_t', 'amdsmi_gpu_control_counter',
     'amdsmi_gpu_counter_group_supported', 'amdsmi_gpu_create_counter',
     'amdsmi_gpu_destroy_counter', 'amdsmi_gpu_metrics_t',
     'amdsmi_gpu_read_counter', 'amdsmi_gpu_validate_ras_eeprom',

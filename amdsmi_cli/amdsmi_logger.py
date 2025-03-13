@@ -122,6 +122,9 @@ class AMDSMILogger():
             elif key == 'gpu':
                 stored_gpu = string_value
                 table_values += string_value.rjust(3)
+            elif key == 'Device':
+                stored_gpu = string_value
+                table_values += string_value.rjust(3)    
             elif key == 'brcm_nic':
                 table_values += string_value.rjust(3)   
             elif key == 'brcm_switch':
@@ -153,13 +156,13 @@ class AMDSMILogger():
                 table_values += string_value.rjust(20)
             #SWITCH
             elif key == "CURRENT_LINK_SPEED":
-                table_values += string_value.rjust(20)
+                table_values += string_value.rjust(25)
             elif key == "MAX_LINK_SPEED":
-                table_values += string_value.rjust(16)
+                table_values += string_value.rjust(20)
             elif key == "CURRENT_LINK_WIDTH":
                 table_values += string_value.rjust(20)
             elif key == "MAX_LINK_WIDTH":
-                table_values += string_value.rjust(16)
+                table_values += string_value.rjust(20)
             # Only for handling topology tables
             elif 'gpu_' in key:
                 table_values += string_value.ljust(13)

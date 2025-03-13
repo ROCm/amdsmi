@@ -982,10 +982,10 @@ typedef struct {
 } amdsmi_nic_temperature_metric_t;
 
 typedef struct {
-    uint32_t current_link_speed;
-    uint32_t max_link_speed;
-    uint32_t current_link_width;
-    uint32_t max_link_width;
+    char current_link_speed[AMDSMI_MAX_STRING_LENGTH];
+    char max_link_speed[AMDSMI_MAX_STRING_LENGTH];
+    char current_link_width[AMDSMI_MAX_STRING_LENGTH];
+    char max_link_width[AMDSMI_MAX_STRING_LENGTH];
 } amdsmi_brcm_link_metric_t;
 
 typedef struct {
@@ -2898,7 +2898,17 @@ amdsmi_status_t amdsmi_get_gpu_bdf_id(amdsmi_processor_handle processor_handle, 
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t amdsmi_get_gpu_topo_numa_affinity(amdsmi_processor_handle processor_handle, int32_t *numa_node);
-
+amdsmi_status_t amdsmi_get_gpu_topo_cpu_affinity(amdsmi_processor_handle processor_handle, 
+                                                    unsigned int *cpu_aff_length, char *cpu_aff_data);
+amdsmi_status_t amdsmi_get_nic_topo_numa_affinity(amdsmi_processor_handle processor_handle, int32_t *numa_node);
+amdsmi_status_t amdsmi_get_nic_topo_cpu_affinity(amdsmi_processor_handle processor_handle, 
+                                                    unsigned int *cpu_aff_length, char *cpu_aff_data);
+amdsmi_status_t amdsmi_get_switch_topo_numa_affinity(amdsmi_processor_handle processor_handle, int32_t *numa_node);
+amdsmi_status_t amdsmi_get_switch_topo_cpu_affinity(amdsmi_processor_handle processor_handle, 
+                                                    unsigned int *cpu_aff_length, char *cpu_aff_data);
+amdsmi_status_t amdsmi_get_nic_gpu_topo_info(amdsmi_processor_handle nic_processor_handle, 
+                    amdsmi_processor_handle gpu_processor_handle, unsigned int *topo_info_length, char *topo_info);
+amdsmi_status_t amdsmi_get_root_switch(amdsmi_bdf_t deviceBdf, amdsmi_bdf_t *switchBdf);
 /**
  *  @brief Get PCIe traffic information. It is not supported on virtual machine guest
  *

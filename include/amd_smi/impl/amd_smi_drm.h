@@ -56,6 +56,7 @@ class AMDSmiDrm {
     amdsmi_status_t amdgpu_query_vbios(int fd, void *info);
     amdsmi_status_t amdgpu_query_driver_name(int fd, std::string& driver_name);
     amdsmi_status_t amdgpu_query_driver_date(int fd, std::string& driver_date);
+    amdsmi_status_t amdgpu_query_cpu_affinity(std::string devicePath, std::string& cpu_affinity);
 
  private:
     // when file is not found, the empty string will be returned

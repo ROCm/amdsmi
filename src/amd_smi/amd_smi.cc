@@ -47,6 +47,7 @@
 #include "amd_smi/impl/amd_smi_gpu_device.h"
 #include "amd_smi/impl/amd_smi_nic_device.h"
 #include "amd_smi/impl/amd_smi_switch_device.h"
+#include "amd_smi/impl/amd_smi_lspci_commands.h"
 #include "amd_smi/impl/amd_smi_uuid.h"
 #include "rocm_smi/rocm_smi.h"
 #include "rocm_smi/rocm_smi_common.h"
@@ -3098,6 +3099,163 @@ amdsmi_status_t amdsmi_get_gpu_topo_numa_affinity(
     amdsmi_processor_handle processor_handle, int32_t *numa_node) {
     return rsmi_wrapper(rsmi_topo_numa_affinity_get, processor_handle, 0,
             numa_node);
+}
+
+amdsmi_status_t amdsmi_get_gpu_topo_cpu_affinity(amdsmi_processor_handle processor_handle,
+                                           unsigned int *cpu_aff_length, char *cpu_aff_data) {
+    AMDSMI_CHECK_INIT();
+
+    if (cpu_aff_length == nullptr || cpu_aff_data == nullptr || cpu_aff_length == nullptr ||
+        *cpu_aff_length < AMDSMI_MAX_STRING_LENGTH) {
+        return AMDSMI_STATUS_INVAL;
+    }
+
+    amdsmi_status_t status = AMDSMI_STATUS_SUCCESS;
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    status = get_gpu_device_from_handle(processor_handle, &gpu_device);
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    std::string cpu_affinity;
+    status = gpu_device->amdgpu_query_cpu_affinity(cpu_affinity);
+    if (status != AMDSMI_STATUS_SUCCESS) {
+        printf("Getting cpu_affinity info failed. Return code: %d", status);
+        return status;
+    }
+    sprintf(cpu_aff_data, "%s", cpu_affinity.c_str());
+    return status;
+}
+
+amdsmi_status_t amdsmi_get_nic_gpu_topo_info(amdsmi_processor_handle nic_processor_handle, 
+                    amdsmi_processor_handle gpu_processor_handle, unsigned int *topo_info_length, char *topo_info) {
+    AMDSMI_CHECK_INIT();
+    if (topo_info_length == nullptr || topo_info == nullptr || topo_info_length == nullptr ||
+        *topo_info_length < AMDSMI_MAX_STRING_LENGTH) {
+        return AMDSMI_STATUS_INVAL;
+    }
+    amdsmi_status_t status = AMDSMI_STATUS_SUCCESS;
+    amd::smi::AMDSmiNICDevice *nic_device = nullptr;
+    amdsmi_status_t r = get_nic_device_from_handle(nic_processor_handle, &nic_device);
+    if (status != AMDSMI_STATUS_SUCCESS) {
+        printf("Received invalid NIC handler. Return code: %d", status);
+        return status;
+    }
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    status = get_gpu_device_from_handle(gpu_processor_handle, &gpu_device);
+    if (status != AMDSMI_STATUS_SUCCESS) {
+        printf("Received invalid GPU handler. Return code: %d", status);
+        return status;
+    }
+    amdsmi_bdf_t nic_switchBdf = {};
+    status = amdsmi_get_root_switch(nic_device->get_bdf(), &nic_switchBdf);
+    if (status != AMDSMI_STATUS_SUCCESS) {
+        printf("Not able to get nic's switch bdf. Return code: %d", status);
+        return status;
+    }
+    amdsmi_bdf_t gpu_switchBdf = {};
+    status = amdsmi_get_root_switch(gpu_device->get_bdf(), &gpu_switchBdf);
+    if (status != AMDSMI_STATUS_SUCCESS) {
+        printf("Not able to get nic's switch bdf. Return code: %d", status);
+        return status;
+    }
+    int32_t gpu_numa_node;
+    status = rsmi_wrapper(rsmi_topo_numa_affinity_get, gpu_processor_handle, 0, &gpu_numa_node);
+    if (status != AMDSMI_STATUS_SUCCESS) {
+        printf("Not able to get gpu's NUMA. Return code: %d", status);
+        return status;
+    }
+    int32_t nic_numa_node;
+    status = nic_device->amd_query_nic_numa_affinity(&nic_numa_node);
+    if (nic_numa_node == 65535) {
+        printf("Not able to get nic's NUMA. Return code: %d", status);
+        return status;
+    }
+    if(gpu_numa_node != nic_numa_node) {
+        sprintf(topo_info, "%s", "X-NUMA");
+        return AMDSMI_STATUS_SUCCESS;
+    }
+    if(gpu_numa_node == nic_numa_node) {
+        sprintf(topo_info, "%s", "NUMA");
+        if ((gpu_switchBdf.bus_number == nic_switchBdf.bus_number) &&
+                (gpu_switchBdf.device_number == nic_switchBdf.device_number) &&
+                (gpu_switchBdf.domain_number == nic_switchBdf.domain_number) &&
+                (gpu_switchBdf.function_number == nic_switchBdf.function_number)) { 
+            sprintf(topo_info, "%s", "PCIe");
+        }
+    }
+    return AMDSMI_STATUS_SUCCESS;
+}
+amdsmi_status_t amdsmi_get_root_switch(amdsmi_bdf_t devicehBdf, amdsmi_bdf_t *switchBdf) {
+    AMDSMI_CHECK_INIT();
+    amdsmi_status_t status = get_lspci_root_switch(devicehBdf, switchBdf);
+    return status;
+}
+amdsmi_status_t amdsmi_get_nic_topo_numa_affinity(
+    amdsmi_processor_handle processor_handle, int32_t *numa_node) {
+    AMDSMI_CHECK_INIT();
+
+    amd::smi::AMDSmiNICDevice *nic_device = nullptr;
+    amdsmi_status_t r = get_nic_device_from_handle(processor_handle, &nic_device);
+    if (r != AMDSMI_STATUS_SUCCESS) return r;
+    
+    return nic_device->amd_query_nic_numa_affinity(numa_node);
+}
+
+amdsmi_status_t amdsmi_get_nic_topo_cpu_affinity(amdsmi_processor_handle processor_handle,
+                                           unsigned int *cpu_aff_length, char *cpu_aff_data) {
+    AMDSMI_CHECK_INIT();
+    if (cpu_aff_length == nullptr || cpu_aff_data == nullptr || cpu_aff_length == nullptr ||
+        *cpu_aff_length < AMDSMI_MAX_STRING_LENGTH) {
+        return AMDSMI_STATUS_INVAL;
+    }
+
+    amd::smi::AMDSmiNICDevice *nic_device = nullptr;
+    amdsmi_status_t r = get_nic_device_from_handle(processor_handle, &nic_device);
+    if (r != AMDSMI_STATUS_SUCCESS) return r;
+
+    amdsmi_status_t status = AMDSMI_STATUS_SUCCESS;
+    std::string cpu_affinity;
+    status = nic_device->amd_query_nic_cpu_affinity(cpu_affinity);
+    if (status != AMDSMI_STATUS_SUCCESS) {
+        printf("Getting cpu_affinity info failed. Return code: %d", status);
+        return status;
+    }
+    sprintf(cpu_aff_data, "%s", cpu_affinity.c_str());
+    return status;
+}
+
+amdsmi_status_t amdsmi_get_switch_topo_numa_affinity(
+    amdsmi_processor_handle processor_handle, int32_t *numa_node) {
+    AMDSMI_CHECK_INIT();
+
+    amd::smi::AMDSmiSWITCHDevice *switch_device = nullptr;
+    amdsmi_status_t r = get_switch_device_from_handle(processor_handle, &switch_device);
+    if (r != AMDSMI_STATUS_SUCCESS) return r;
+    
+    return switch_device->amd_query_switch_numa_affinity(numa_node);
+}
+
+amdsmi_status_t amdsmi_get_switch_topo_cpu_affinity(amdsmi_processor_handle processor_handle,
+                                           unsigned int *cpu_aff_length, char *cpu_aff_data) {
+    AMDSMI_CHECK_INIT();
+    if (cpu_aff_length == nullptr || cpu_aff_data == nullptr || cpu_aff_length == nullptr ||
+        *cpu_aff_length < AMDSMI_MAX_STRING_LENGTH) {
+        return AMDSMI_STATUS_INVAL;
+    }
+
+    amd::smi::AMDSmiSWITCHDevice *switch_device = nullptr;
+    amdsmi_status_t r = get_switch_device_from_handle(processor_handle, &switch_device);
+    if (r != AMDSMI_STATUS_SUCCESS) return r;
+
+    amdsmi_status_t status = AMDSMI_STATUS_SUCCESS;
+    std::string cpu_affinity;
+    status = switch_device->amd_query_switch_cpu_affinity(cpu_affinity);
+    if (status != AMDSMI_STATUS_SUCCESS) {
+        printf("Getting cpu_affinity info failed. Return code: %d", status);
+        return status;
+    }
+    sprintf(cpu_aff_data, "%s", cpu_affinity.c_str());
+    return status;
 }
 
 amdsmi_status_t amdsmi_get_lib_version(amdsmi_version_t *version) {

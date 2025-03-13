@@ -164,5 +164,19 @@ amdsmi_status_t AMDSmiNoDrmNIC::amd_query_nic_uuid(std::string devicePath, std::
   return AMDSMI_STATUS_SUCCESS;
 }
 
+amdsmi_status_t AMDSmiNoDrmNIC::amd_query_nic_numa_affinity(std::string devicePath, int32_t *numa_node) {
+  std::string numaFile = "numa_node";
+  uint32_t numa = smi_brcm_get_value_u32(devicePath, numaFile);
+  *numa_node = numa;
+  return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t AMDSmiNoDrmNIC::amd_query_nic_cpu_affinity(std::string devicePath, std::string &cpu_affinity) {
+  std::string cpuAffFile = "cpulistaffinity";
+  cpu_affinity = smi_brcm_get_value_string(devicePath, cpuAffFile);
+  
+  return AMDSMI_STATUS_SUCCESS;
+}
+
 }  // namespace smi
 }  // namespace amd

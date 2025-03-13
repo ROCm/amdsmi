@@ -516,6 +516,7 @@ class AmdSmiEventReader:
 _AMDSMI_MAX_DRIVER_VERSION_LENGTH = 80
 _AMDSMI_GPU_UUID_SIZE = 38
 _AMDSMI_STRING_LENGTH = 80
+_AMDSMI_MAX_STRING_LENGTH=256
 
 
 def _format_bad_page_info(bad_page_info, bad_page_count: ctypes.c_uint32) -> List[Dict]:
@@ -3706,6 +3707,86 @@ def amdsmi_get_gpu_topo_numa_affinity(processor_handle: amdsmi_wrapper.amdsmi_pr
     )
 
     return numa_node.value
+
+def amdsmi_get_nic_topo_numa_affinity(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    numa_node = ctypes.c_int32()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_nic_topo_numa_affinity(
+            processor_handle, ctypes.byref(numa_node))
+    )
+
+    return numa_node.value
+
+
+
+def amdsmi_get_gpu_topo_cpu_affinity(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+ 
+    gpucpuaffid = ctypes.create_string_buffer(_AMDSMI_MAX_STRING_LENGTH)
+
+    gpucpuaffid_length = ctypes.c_uint32()
+    gpucpuaffid_length.value = _AMDSMI_MAX_STRING_LENGTH
+   
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_topo_cpu_affinity(
+            processor_handle, ctypes.byref(gpucpuaffid_length), gpucpuaffid
+        )
+    )   
+    return gpucpuaffid.value.decode("utf-8")
+
+
+def amdsmi_get_nic_topo_cpu_affinity(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+   
+    niccpuaffid = ctypes.create_string_buffer(_AMDSMI_MAX_STRING_LENGTH)
+
+    niccpuaffid_length = ctypes.c_uint32()
+    niccpuaffid_length.value = _AMDSMI_MAX_STRING_LENGTH
+   
+    _check_res(
+            amdsmi_wrapper.amdsmi_get_nic_topo_cpu_affinity(
+                processor_handle, ctypes.byref(niccpuaffid_length), niccpuaffid
+            )
+        )   
+    return niccpuaffid.value.decode("utf-8")
+
+
+def amdsmi_get_nic_gpu_topo_info( processor_handle_src: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle_dst: amdsmi_wrapper.amdsmi_processor_handle):
+    
+    if not isinstance(processor_handle_src, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle_src, amdsmi_wrapper.amdsmi_processor_handle
+        )
+    if not isinstance(processor_handle_dst, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle_dst, amdsmi_wrapper.amdsmi_processor_handle
+        )
+   
+    niccgpuinfo = ctypes.create_string_buffer(_AMDSMI_MAX_STRING_LENGTH)
+
+    niccgpuinfo_length = ctypes.c_uint32()
+    niccgpuinfo_length.value = _AMDSMI_MAX_STRING_LENGTH
+   
+    _check_res(
+            amdsmi_wrapper.amdsmi_get_nic_gpu_topo_info(
+                processor_handle_src,processor_handle_dst, ctypes.byref(niccgpuinfo_length), niccgpuinfo
+            )
+        )   
+    return niccgpuinfo.value.decode("utf-8")
+
 
 
 def amdsmi_set_power_cap(

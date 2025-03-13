@@ -57,6 +57,8 @@ class AMDSmiSWITCHDevice: public AMDSmiProcessor {
 
     amdsmi_status_t amd_query_switch_link_info(amdsmi_brcm_link_metric_t& info) const;
     amdsmi_status_t amd_query_switch_uuid(std::string& serial) const;
+    amdsmi_status_t amd_query_switch_numa_affinity(int32_t *numa_node) const;
+    amdsmi_status_t amd_query_switch_cpu_affinity(std::string& cpu_affinity) const;
 
  private:
     uint32_t switch_id_;

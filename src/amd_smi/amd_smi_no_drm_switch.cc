@@ -147,10 +147,10 @@ amdsmi_status_t AMDSmiNoDrmSwitch::amd_query_switch_link( std::string devicePath
   std::string current_width = "current_link_width";
   std::string max_width = "max_link_width";
 
-  info.current_link_speed = smi_brcm_get_value_u32(devicePath, current_speed);
-  info.max_link_speed = smi_brcm_get_value_u32(devicePath, max_speed);
-  info.current_link_width = smi_brcm_get_value_u32(devicePath, current_width);
-  info.max_link_width = smi_brcm_get_value_u32(devicePath, max_width);
+  sprintf(info.current_link_speed, "%s", smi_brcm_get_value_string(devicePath, current_speed).c_str());
+  sprintf(info.max_link_speed, "%s", smi_brcm_get_value_string(devicePath, max_speed).c_str());
+  sprintf(info.current_link_width, "%s", smi_brcm_get_value_string(devicePath, current_width).c_str());
+  sprintf(info.max_link_width, "%s", smi_brcm_get_value_string(devicePath, max_width).c_str());
   
 }
 
@@ -161,6 +161,19 @@ amdsmi_status_t AMDSmiNoDrmSwitch::amd_query_switch_uuid(std::string bdfStr, std
   return AMDSMI_STATUS_SUCCESS;
 }
 
+amdsmi_status_t AMDSmiNoDrmSwitch::amd_query_switch_numa_affinity(std::string devicePath, int32_t *numa_node) {
+  std::string numaFile = "numa_node";
+  uint32_t numa = smi_brcm_get_value_u32(devicePath, numaFile);
+  *numa_node = numa;
+  return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t AMDSmiNoDrmSwitch::amd_query_switch_cpu_affinity(std::string devicePath, std::string &cpu_affinity) {
+  std::string cpuAffFile = "cpulistaffinity";
+  cpu_affinity = smi_brcm_get_value_string(devicePath, cpuAffFile);
+  
+  return AMDSMI_STATUS_SUCCESS;
+}
 
 amdsmi_status_t AMDSmiNoDrmSwitch::get_bdf_by_index(uint32_t switch_index, amdsmi_bdf_t *bdf_info) const {
     if (switch_index + 1 > no_drm_bdfs_.size()) return AMDSMI_STATUS_NOT_SUPPORTED;

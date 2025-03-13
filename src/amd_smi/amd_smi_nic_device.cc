@@ -79,6 +79,24 @@ amdsmi_status_t AMDSmiNICDevice::amd_query_nic_uuid(std::string& version) const 
   return nodrm_.amd_query_nic_uuid(devicePath, version);
 }
 
+amdsmi_status_t AMDSmiNICDevice::amd_query_nic_numa_affinity(int32_t *numa_node) const {
+  amdsmi_status_t ret;
+  std::string devicePath;
+  ret = nodrm_.get_device_path_by_index(nic_id_, &devicePath);
+  if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
+
+  return nodrm_.amd_query_nic_numa_affinity(devicePath, numa_node);
+}
+
+amdsmi_status_t AMDSmiNICDevice::amd_query_nic_cpu_affinity(std::string& cpu_affinity) const {
+  char bdf_str[20];
+  sprintf(bdf_str, "%04lx:%02x", bdf_.domain_number, bdf_.bus_number);
+  std::stringstream domain_bus_sstream;
+  domain_bus_sstream << "/sys/class/pci_bus/" << std::string(bdf_str);
+
+  return nodrm_.amd_query_nic_cpu_affinity(domain_bus_sstream.str(), cpu_affinity);
+}
+
 }  // namespace smi
 }  // namespace amd
 

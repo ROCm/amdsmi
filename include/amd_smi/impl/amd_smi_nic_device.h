@@ -58,6 +58,8 @@ class AMDSmiNICDevice: public AMDSmiProcessor {
 
     amdsmi_status_t amd_query_nic_temp_info(amdsmi_nic_temperature_metric_t& info) const;
     amdsmi_status_t amd_query_nic_uuid(std::string& version) const;
+    amdsmi_status_t amd_query_nic_numa_affinity(int32_t *numa_node) const;
+    amdsmi_status_t amd_query_nic_cpu_affinity(std::string& cpu_affinity) const;
 
  private:
     uint32_t nic_id_;

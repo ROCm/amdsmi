@@ -724,10 +724,6 @@ class AMDSMIHelpers():
                     device_type=amdsmi_interface.amdsmi_get_processor_type(device_handle)
                     if device_type["processor_type"]=='AMDSMI_PROCESSOR_TYPE_AMD_GPU':
                         subcommand(args, multiple_devices=True, gpu=device_handle)
-                    elif device_type["processor_type"]=='AMDSMI_PROCESSOR_TYPE_BRCM_NIC':
-                        subcommand(args, multiple_devices=True, nic=device_handle)
-                    elif device_type["processor_type"]=='AMDSMI_PROCESSOR_TYPE_BRCM_SWITCH':
-                        subcommand(args, multiple_devices=True, switch=device_handle)     
                 logger.print_output(multiple_device_enabled=True)
                 return True, args.gpu
             elif len(args.gpu) == 1:
@@ -763,12 +759,8 @@ class AMDSMIHelpers():
             if len(args.switch) > 1:
                 for device_handle in args.switch:
                     device_type=amdsmi_interface.amdsmi_get_processor_type(device_handle)
-                    if device_type["processor_type"]=='AMDSMI_PROCESSOR_TYPE_AMD_GPU':
-                        subcommand(args, multiple_devices=True, gpu=device_handle)
-                    elif device_type["processor_type"]=='AMDSMI_PROCESSOR_TYPE_BRCM_NIC':
-                        subcommand(args, multiple_devices=True, nic=device_handle)
-                    elif device_type["processor_type"]=='AMDSMI_PROCESSOR_TYPE_BRCM_SWITCH':
-                        subcommand(args, multiple_devices=True, switch=device_handle)      
+                    if device_type["processor_type"]=='AMDSMI_PROCESSOR_TYPE_BRCM_SWITCH':
+                        subcommand(args, multiple_devices=True, switch=device_handle)
                 
                 logger.print_output(multiple_device_enabled=True)
                 return True, args.switch
@@ -780,7 +772,6 @@ class AMDSMIHelpers():
         else:
             return False, args.switch
 
-    #BRCM POC to handle nics  
     def handle_nics(self, args, logger, subcommand):
     
         """This function will run execute the subcommands based on the number
@@ -807,16 +798,9 @@ class AMDSMIHelpers():
                 for device_handle in args.nic:
                 
                     device_type=amdsmi_interface.amdsmi_get_processor_type(device_handle)
-                    if device_type["processor_type"]=='AMDSMI_PROCESSOR_TYPE_AMD_GPU':
-                        subcommand(args, multiple_devices=True, gpu=device_handle)
-
-                    elif device_type["processor_type"]=='AMDSMI_PROCESSOR_TYPE_BRCM_NIC':
-                    
+                    if device_type["processor_type"]=='AMDSMI_PROCESSOR_TYPE_BRCM_NIC':
                         subcommand(args, multiple_devices=True, nic=device_handle)
-                    elif device_type["processor_type"]=='AMDSMI_PROCESSOR_TYPE_BRCM_SWITCH':
-                    
-                        subcommand(args, multiple_devices=True, switch=device_handle) 
-                        
+
                 logger.print_output(multiple_device_enabled=True)
                 return True, args.nic
             elif len(args.nic) == 1:

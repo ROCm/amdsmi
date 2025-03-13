@@ -30,6 +30,7 @@
 #include "amd_smi/impl/amd_smi_drm.h"
 #include "amd_smi/impl/amdgpu_drm.h"
 #include "amd_smi/impl/amd_smi_common.h"
+#include "amd_smi/impl/amd_smi_utils.h"
 #include "rocm_smi/rocm_smi.h"
 #include "rocm_smi/rocm_smi_main.h"
 #include "rocm_smi/rocm_smi_utils.h"
@@ -319,6 +320,13 @@ amdsmi_status_t AMDSmiDrm::get_bdf_by_index(uint32_t gpu_index, amdsmi_bdf_t *bd
     << "\nReturning = AMDSMI_STATUS_SUCCESS";
     LOG_INFO(ss);
     return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t AMDSmiDrm::amdgpu_query_cpu_affinity(std::string devicePath, std::string &cpu_affinity) {
+  std::string cpuAffFile = "cpulistaffinity";
+  cpu_affinity = smi_brcm_get_value_string(devicePath, cpuAffFile);
+  
+  return AMDSMI_STATUS_SUCCESS;
 }
 
 amdsmi_status_t AMDSmiDrm::get_drm_path_by_index(uint32_t gpu_index, std::string *drm_path) const {
