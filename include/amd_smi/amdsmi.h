@@ -1979,7 +1979,7 @@ typedef struct {
  */
 typedef struct {
     uint32_t process_id;    //!< Process ID
-    uint32_t pasid;         //!< PASID
+    uint32_t pasid;         //!< PASID (Not working in ROCm 6.4+, deprecating in 7.0)
     uint64_t vram_usage;    //!< VRAM usage in MB
     uint64_t sdma_usage;    //!< SDMA usage in microseconds
     uint32_t cu_occupancy;  //!< Compute Unit usage in percent
@@ -4508,6 +4508,10 @@ amdsmi_status_t amdsmi_get_lib_version(amdsmi_version_t *version);
  *  @brief Retrieve the error counts for a GPU block. It is not supported on virtual
  *  machine guest
  *
+ *  See [RAS Error Count sysfs Interface (AMDGPU RAS Support - Linux Kernel
+ *  documentation)](https://docs.kernel.org/gpu/amdgpu/ras.html#ras-error-count-sysfs-interface)
+ *  to learn how these error counts are accessed.
+ *
  *  @ingroup tagECCInfo
  *
  *  @platform{gpu_bm_linux}  @platform{host}
@@ -4535,6 +4539,10 @@ amdsmi_status_t amdsmi_get_gpu_ecc_count(amdsmi_processor_handle processor_handl
 
 /**
  *  @brief Retrieve the enabled ECC bit-mask. It is not supported on virtual machine guest
+ *
+ *  See [RAS Error Count sysfs Interface (AMDGPU RAS Support - Linux Kernel
+ *  documentation)](https://docs.kernel.org/gpu/amdgpu/ras.html#ras-error-count-sysfs-interface)
+ *  to learn how these error counts are accessed.
  *
  *  @ingroup tagECCInfo
  *
@@ -4569,6 +4577,10 @@ amdsmi_status_t amdsmi_get_gpu_ecc_enabled(amdsmi_processor_handle processor_han
  *                  uncorrectable and deferred) in the given GPU. It is not supported on
  *                  virtual machine guest
  *
+ *  See [RAS Error Count sysfs Interface (AMDGPU RAS Support - Linux Kernel
+ *  documentation)](https://docs.kernel.org/gpu/amdgpu/ras.html#ras-error-count-sysfs-interface)
+ *  to learn how these error counts are accessed.
+ *
  *  @ingroup tagECCInfo
  *
  *  @platform{gpu_bm_linux} @platform{host} @platform{guest_windows}
@@ -4595,6 +4607,10 @@ amdsmi_get_gpu_total_ecc_count(amdsmi_processor_handle processor_handle, amdsmi_
 /**
  *  @brief Retrieve the ECC status for a GPU block. It is not supported on virtual machine
  *  guest
+ *
+ *  See [RAS Error Count sysfs Interface (AMDGPU RAS Support - Linux Kernel
+ *  documentation)](https://docs.kernel.org/gpu/amdgpu/ras.html#ras-error-count-sysfs-interface)
+ *  to learn how these error counts are accessed.
  *
  *  @ingroup tagErrorQuery
  *
@@ -5363,7 +5379,8 @@ amdsmi_get_gpu_compute_partition(amdsmi_processor_handle processor_handle,
  *
  *  @details Given a processor handle @p processor_handle, a type of compute partition
  *  @p compute_partition, this function will attempt to update the selected
- *  device's compute partition setting.
+ *  device's compute partition setting. This function does not allow any concurrent operations.
+ *  Device must be idle and have no workloads when performing set partition operations.
  *
  *  @param[in] processor_handle Device which to query
  *
@@ -5437,7 +5454,8 @@ amdsmi_get_gpu_memory_partition(amdsmi_processor_handle processor_handle, char *
  *
  *  @details Given a processor handle @p processor_handle and a type of memory partition
  *  @p memory_partition, this function will attempt to update the selected
- *  device's memory partition setting.
+ *  device's memory partition setting. This function does not allow any concurrent operations.
+ *  Device must be idle and have no workloads when performing set partition operations.
  *
  *  @param[in] processor_handle Device which to query
  *

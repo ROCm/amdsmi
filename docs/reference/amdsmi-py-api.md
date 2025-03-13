@@ -1085,6 +1085,10 @@ except AmdSmiException as e:
 Description: Returns the ECC error count for the given GPU.
 It is not supported on virtual machine guest
 
+See [RAS Error Count sysfs Interface (AMDGPU RAS Support - Linux Kernel
+documentation)](https://docs.kernel.org/gpu/amdgpu/ras.html#ras-error-count-sysfs-interface)
+to learn how these error counts are accessed.
+
 Input parameters:
 
 * `processor_handle` device which to query
@@ -3146,6 +3150,10 @@ except AmdSmiException as e:
 Description: Retrieve the error counts for a GPU block. It is not supported
 on virtual machine guest
 
+See [RAS Error Count sysfs Interface (AMDGPU RAS Support - Linux Kernel
+documentation)](https://docs.kernel.org/gpu/amdgpu/ras.html#ras-error-count-sysfs-interface)
+to learn how these error counts are accessed.
+
 Input parameters:
 
 * `processor_handle` handle for the given device
@@ -3185,6 +3193,10 @@ except AmdSmiException as e:
 Description: Retrieve the enabled ECC bit-mask. It is not supported on virtual
 machine guest
 
+See [RAS Error Count sysfs Interface (AMDGPU RAS Support - Linux Kernel
+documentation)](https://docs.kernel.org/gpu/amdgpu/ras.html#ras-error-count-sysfs-interface)
+to learn how these error counts are accessed.
+
 Input parameters:
 
 * `processor_handle` handle for the given device
@@ -3216,6 +3228,10 @@ except AmdSmiException as e:
 
 Description: Retrieve the ECC status for a GPU block. It is not supported
 on virtual machine guest
+
+See [RAS Error Count sysfs Interface (AMDGPU RAS Support - Linux Kernel
+documentation)](https://docs.kernel.org/gpu/amdgpu/ras.html#ras-error-count-sysfs-interface)
+to learn how these error counts are accessed.
 
 Input parameters:
 
@@ -3280,7 +3296,7 @@ Output: List of python dicts each containing a process information
 Field | Description
 ---|---
 `process_id` | Process ID
-`pasid` | PASID
+`pasid` | PASID (Not working in ROCm 6.4+, deprecating in 7.0)
 `vram_usage` | VRAM usage
 `sdma_usage` | SDMA usage in microseconds
 `cu_occupancy` | Compute Unit usage in percents
@@ -3314,7 +3330,7 @@ Output: Dict containing a process information
 Field | Description
 ---|---
 `process_id` | Process ID
-`pasid` | PASID
+`pasid` | PASID (Not working in ROCm 6.4+, deprecating in 7.0)
 `vram_usage` | VRAM usage
 `sdma_usage` | SDMA usage in microseconds
 `cu_occupancy` | Compute Unit usage in percents
@@ -3828,7 +3844,7 @@ except AmdSmiException as e:
 
 ### amdsmi_set_gpu_compute_partition
 
-Description: Set the compute partition to the given GPU
+Description: Set the compute partition to the given GPU. This function does not allow any concurrent operations. Device must be idle and have no workloads when performing set partition operations.
 
 Input parameters:
 
@@ -3892,7 +3908,7 @@ except AmdSmiException as e:
 
 ### amdsmi_set_gpu_memory_partition
 
-Description: Set the memory partition to the given GPU
+Description: Set the memory partition to the given GPU. This function does not allow any concurrent operations. Devices must be idle and have no workloads when performing set partition operations.
 
 Input parameters:
 
