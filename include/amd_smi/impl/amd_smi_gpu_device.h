@@ -27,7 +27,6 @@
 #include "amd_smi/impl/amd_smi_processor.h"
 #include "amd_smi/impl/amd_smi_drm.h"
 #include "shared_mutex.h"  // NOLINT
-#include "rocm_smi/rocm_smi_logger.h"
 
 namespace amd {
 namespace smi {
@@ -80,6 +79,11 @@ class AMDSmiGPUDevice: public AMDSmiProcessor {
     amdsmi_status_t amdgpu_query_driver_name(std::string& name) const;
     amdsmi_status_t amdgpu_query_driver_date(std::string& date) const;
     amdsmi_status_t amdgpu_query_cpu_affinity(std::string& cpu_affinity) const;
+
+// New methods for -e feature
+    std::string bdf_to_string() const;
+    uint32_t get_card_from_bdf() const;
+    uint32_t get_render_id() const;
 
  private:
     uint32_t gpu_id_;

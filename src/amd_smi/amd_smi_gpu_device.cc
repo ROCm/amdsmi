@@ -20,16 +20,20 @@
  * THE SOFTWARE.
  */
 
-#include "amd_smi/impl/amd_smi_gpu_device.h"
-#include "amd_smi/impl/amd_smi_common.h"
-#include "amd_smi/impl/fdinfo.h"
-#include "rocm_smi/rocm_smi_kfd.h"
-#include "rocm_smi/rocm_smi_utils.h"
-
 #include <functional>
 #include <map>
 #include <memory>
 #include <unordered_set>
+#include <dirent.h>
+#include <sys/types.h>
+
+#include "amd_smi/impl/amd_smi_gpu_device.h"
+#include "amd_smi/impl/amd_smi_common.h"
+#include "amd_smi/impl/amd_smi_utils.h"
+#include "amd_smi/impl/fdinfo.h"
+#include "rocm_smi/rocm_smi_kfd.h"
+#include "rocm_smi/rocm_smi_utils.h"
+#include "rocm_smi/rocm_smi_logger.h"
 
 namespace amd {
 namespace smi {
@@ -59,11 +63,32 @@ amdsmi_status_t AMDSmiGPUDevice::get_drm_data() {
     uint32_t fd = 0;
     std::string path;
     amdsmi_bdf_t bdf;
+    std::ostringstream ss;
     ret = drm_.get_drm_fd_by_index(gpu_id_, &fd);
+    ss << __PRETTY_FUNCTION__ << " | gpu_id_: " << gpu_id_
+    << "; fd: " << fd
+    << "; drm_.get_drm_fd_by_index(gpu_id_, &fd): "
+    << smi_amdgpu_get_status_string(ret, false) << std::endl;
+    // std::cout << ss.str();
+    LOG_DEBUG(ss);
     if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
     ret = drm_.get_drm_path_by_index(gpu_id_, &path);
+    ss << __PRETTY_FUNCTION__ << " | gpu_id_: " << gpu_id_
+    << "; path: " << path
+    << "; drm_.get_drm_fd_by_index(gpu_id_, &path): "
+    << smi_amdgpu_get_status_string(ret, false) << std::endl;
+    // std::cout << ss.str();
+    LOG_DEBUG(ss);
     if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
     ret = drm_.get_bdf_by_index(gpu_id_, &bdf);
+    ss << __PRETTY_FUNCTION__ << " | gpu_id_: " << gpu_id_
+    << "; domain: " << bdf.domain_number
+    << "; bus: " << bdf.bus_number
+    << "; device: " << bdf.device_number
+    << "; drm_.get_drm_fd_by_index(gpu_id_, &bdf): "
+    << smi_amdgpu_get_status_string(ret, false) << std::endl;
+    // std::cout << ss.str();
+    LOG_DEBUG(ss);
     if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
 
     bdf_ = bdf, path_ = path, fd_ = fd;
@@ -250,6 +275,7 @@ int32_t AMDSmiGPUDevice::get_compute_process_list_impl(GPUComputeProcessList_t& 
             // Is this device running this process?
             if (list_device_ptr[device_idx] == get_gpu_id()) {
                 rsmi_process_info_t rsmi_dev_proc_info{};
+                // TODO remove pasid Not working in ROCm 6.4+, deprecating in 7.0
                 auto status_code = rsmi_compute_process_info_by_device_get(process_id, list_device_ptr[device_idx], &rsmi_dev_proc_info);
                 if ((status_code == rsmi_status_t::RSMI_STATUS_SUCCESS) &&
                     ((rsmi_dev_proc_info.process_id == process_id) && (rsmi_dev_proc_info.pasid == proc_addr_id))) {
@@ -292,6 +318,92 @@ const GPUComputeProcessList_t& AMDSmiGPUDevice::amdgpu_get_compute_process_list(
     }
 
     return compute_process_list_;
+}
+
+// Convert `amdsmi_bdf_t` to a PCI BDF string
+std::string AMDSmiGPUDevice::bdf_to_string() const {
+    std::ostringstream oss;
+    oss << std::setfill('0') << std::hex      // Use hexadecimal formatting
+        << std::setw(4) << bdf_.domain_number << ":"  // Domain (4 digits)
+        << std::setw(2) << static_cast<int>(bdf_.bus_number) << ":"  // Bus (2 digits)
+        << std::setw(2) << static_cast<int>(bdf_.device_number) << "."  // Device (2 digits)
+        << static_cast<int>(bdf_.function_number);  // Function (1 digit)
+    return oss.str();
+}
+
+
+uint32_t AMDSmiGPUDevice::get_card_from_bdf() const {
+    const std::string drm_path = "/sys/class/drm/";
+
+    DIR* dir = opendir(drm_path.c_str());
+    if (!dir) {
+        return std::numeric_limits<uint32_t>::max();
+    }
+
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != nullptr) {
+        std::string device_name = entry->d_name;
+
+        // Check if the entry starts with "card"
+        if (device_name.find("card") == 0) {
+            const std::string card_path = drm_path + device_name + "/device";
+
+            // Open the uevent file for the device
+            std::ifstream uevent_file(card_path + "/uevent");
+            if (!uevent_file) {
+                continue;  // Skip if the file is not found
+            }
+
+            std::string line;
+            while (std::getline(uevent_file, line)) {
+                // Check for the PCI_SLOT_NAME and if it contains the BDF
+                if (line.rfind("PCI_SLOT_NAME", 0) == 0 && line.find(bdf_to_string()) != std::string::npos) {
+                    closedir(dir);
+                    return std::stoi(device_name.substr(4));  // Convert extracted number to int
+                }
+            }
+        }
+    }
+
+    closedir(dir);
+    return std::numeric_limits<uint32_t>::max();  // Return -1 if no matching card is found
+}
+
+uint32_t AMDSmiGPUDevice::get_render_id() const {
+    const std::string drm_path = "/sys/class/drm/";
+
+    DIR* dir = opendir(drm_path.c_str());
+    if (!dir) {
+        return std::numeric_limits<uint32_t>::max();
+    }
+
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != nullptr) {
+        std::string device_name = entry->d_name;
+
+        // Check if the entry starts with "renderD"
+        if (device_name.find("renderD") == 0) {
+            const std::string render_path = drm_path + device_name + "/device";
+
+            // Open the uevent file for the device
+            std::ifstream uevent_file(render_path + "/uevent");
+            if (!uevent_file) {
+                continue;  // Skip if the file is not found
+            }
+
+            std::string line;
+            while (std::getline(uevent_file, line)) {
+                // Check for the PCI_SLOT_NAME and if it contains the BDF
+                if (line.rfind("PCI_SLOT_NAME", 0) == 0 && line.find(bdf_to_string()) != std::string::npos) {
+                    closedir(dir);
+                    return std::stoi(device_name.substr(7));  // Extract only the number after "renderD"
+                }
+            }
+        }
+    }
+
+    closedir(dir);
+    return std::numeric_limits<uint32_t>::max();  // Return -1 if no matching render ID is found
 }
 
 

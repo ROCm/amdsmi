@@ -13,12 +13,29 @@ and command line tool either as part of the
 
 (install_reqs)=
 ## Requirements
-The following are required to install and use the AMD SMI libraries and CLI
-tool.
 
-* Python 3.6.8+ (64-bit)
-* `amdgpu` driver must be loaded for [`amdsmi_init()`](#cpp_hello_amdsmi) to
-  work.
+The following are required to install and use the AMD SMI library through its language interfaces and CLI.
+
+* The `amdgpu` driver must be loaded for AMD SMI initialization to work.
+
+* Export `LD_LIBRARY_PATH` to the `amdsmi` installation directory.
+
+  ```bash
+  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/rocm/lib:/opt/rocm/lib64
+  ```
+
+### Python interface and CLI tool prerequisites
+
+* Python version 3.6.8 or greater (64-bit)
+
+* Modules:
+  * `python3-wheel`
+
+  * `python3-setuptools`
+
+### Go interface prerequisites
+
+* Go version 1.20 or greater
 
 ### Supported platforms
 
@@ -107,7 +124,7 @@ activate-global-python-argcomplete --user
 ## Install the Python library for multiple ROCm instances
 
 If {doc}`multiple ROCm versions are installed
-<rocm-install-on-linux:install/native-install/multi-version-install>` and you
+<rocm-install-on-linux:install/install-methods/multi-version-install>` and you
 are not using `pyenv`, uninstall previous versions of AMD SMI before installing
 the desired version from your ROCm instance.
 

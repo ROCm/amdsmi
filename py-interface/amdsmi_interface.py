@@ -18,19 +18,33 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import ctypes
-import re
 import json
 import logging
-from typing import Union, Any, Dict, List
-from enum import IntEnum
+import math
+import os
+import re
+import sys
 from collections.abc import Iterable
+from enum import IntEnum
+from pathlib import Path
+from time import asctime, localtime, time
+from typing import Any, Dict, List, Tuple, Union
 
 from . import amdsmi_wrapper
 from .amdsmi_exception import *
-import sys
-import math
-from time import localtime, asctime, time
-import json
+
+
+### Non Library Specific Constants ###
+class MaxUIntegerTypes(IntEnum):
+    UINT8_T  = 0xFF
+    UINT16_T = 0xFFFF
+    UINT32_T = 0xFFFFFFFF
+    UINT64_T = 0xFFFFFFFFFFFFFFFF
+
+NO_OF_32BITS = (sys.getsizeof(ctypes.c_uint32) * 8)
+NO_OF_64BITS = (sys.getsizeof(ctypes.c_uint64) * 8)
+KILO = math.pow(10, 3)
+###############################
 
 MAX_NUM_PROCESSES = 1024
 
@@ -72,7 +86,8 @@ AMDSMI_MAX_NUM_XGMI_PHYSICAL_LINK = 64
 AMDSMI_GPU_UUID_SIZE = 38
 MAX_AMDSMI_NAME_LENGTH = 64
 MAX_EVENT_NOTIFICATION_MSG_SIZE = 96
-
+_AMDSMI_STRING_LENGTH = 80
+_AMDSMI_MAX_STRING_LENGTH=256
 
 class AmdSmiInitFlags(IntEnum):
     INIT_ALL_PROCESSORS = amdsmi_wrapper.AMDSMI_INIT_ALL_PROCESSORS
@@ -257,6 +272,7 @@ class AmdSmiEvtNotificationType(IntEnum):
     GPU_PRE_RESET = amdsmi_wrapper.AMDSMI_EVT_NOTIF_GPU_PRE_RESET
     GPU_POST_RESET = amdsmi_wrapper.AMDSMI_EVT_NOTIF_GPU_POST_RESET
     RING_HANG = amdsmi_wrapper.AMDSMI_EVT_NOTIF_RING_HANG
+
 
 class AmdSmiTemperatureMetric(IntEnum):
     CURRENT = amdsmi_wrapper.AMDSMI_TEMP_CURRENT
@@ -446,6 +462,36 @@ class AmdSmiVirtualizationMode(IntEnum):
     GUEST = amdsmi_wrapper.AMDSMI_VIRTUALIZATION_MODE_GUEST
     PASSTHROUGH = amdsmi_wrapper.AMDSMI_VIRTUALIZATION_MODE_PASSTHROUGH
 
+class AmdSmiVramType(IntEnum):
+    UNKNOWN = amdsmi_wrapper.AMDSMI_VRAM_TYPE_UNKNOWN
+    HBM = amdsmi_wrapper.AMDSMI_VRAM_TYPE_HBM
+    HBM2 = amdsmi_wrapper.AMDSMI_VRAM_TYPE_HBM2
+    HBM2E = amdsmi_wrapper.AMDSMI_VRAM_TYPE_HBM2E
+    HBM3 = amdsmi_wrapper.AMDSMI_VRAM_TYPE_HBM3
+    DDR2 = amdsmi_wrapper.AMDSMI_VRAM_TYPE_DDR2
+    DDR3 = amdsmi_wrapper.AMDSMI_VRAM_TYPE_DDR3
+    DDR4 = amdsmi_wrapper.AMDSMI_VRAM_TYPE_DDR4
+    GDDR1 = amdsmi_wrapper.AMDSMI_VRAM_TYPE_GDDR1
+    GDDR2 = amdsmi_wrapper.AMDSMI_VRAM_TYPE_GDDR2
+    GDDR3 = amdsmi_wrapper.AMDSMI_VRAM_TYPE_GDDR3
+    GDDR4 = amdsmi_wrapper.AMDSMI_VRAM_TYPE_GDDR4
+    GDDR5 = amdsmi_wrapper.AMDSMI_VRAM_TYPE_GDDR5
+    GDDR6 = amdsmi_wrapper.AMDSMI_VRAM_TYPE_GDDR6
+    GDDR7 = amdsmi_wrapper.AMDSMI_VRAM_TYPE_GDDR7
+    MAX = amdsmi_wrapper.AMDSMI_VRAM_TYPE__MAX
+
+class AmdSmiVramVendor(IntEnum):
+    SAMSUNG = amdsmi_wrapper.AMDSMI_VRAM_VENDOR_SAMSUNG
+    INFINEON = amdsmi_wrapper.AMDSMI_VRAM_VENDOR_INFINEON
+    ELPIDA = amdsmi_wrapper.AMDSMI_VRAM_VENDOR_ELPIDA
+    ETRON = amdsmi_wrapper.AMDSMI_VRAM_VENDOR_ETRON
+    NANYA = amdsmi_wrapper.AMDSMI_VRAM_VENDOR_NANYA
+    HYNIX = amdsmi_wrapper.AMDSMI_VRAM_VENDOR_HYNIX
+    MOSEL = amdsmi_wrapper.AMDSMI_VRAM_VENDOR_MOSEL
+    WINBOND = amdsmi_wrapper.AMDSMI_VRAM_VENDOR_WINBOND
+    ESMT = amdsmi_wrapper.AMDSMI_VRAM_VENDOR_ESMT
+    MICRON = amdsmi_wrapper.AMDSMI_VRAM_VENDOR_MICRON
+    UNKNOWN = amdsmi_wrapper.AMDSMI_VRAM_VENDOR_UNKNOWN
 
 class AmdSmiEventReader:
     def __init__(
@@ -511,13 +557,6 @@ class AmdSmiEventReader:
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.stop()
-
-
-_AMDSMI_MAX_DRIVER_VERSION_LENGTH = 80
-_AMDSMI_GPU_UUID_SIZE = 38
-_AMDSMI_STRING_LENGTH = 80
-_AMDSMI_MAX_STRING_LENGTH=256
-
 
 def _format_bad_page_info(bad_page_info, bad_page_count: ctypes.c_uint32) -> List[Dict]:
     """
@@ -621,6 +660,7 @@ def _make_amdsmi_bdf_from_list(bdf):
     amdsmi_bdf.struct_amdsmi_bdf_t.domain_number = bdf[0]
     return amdsmi_bdf
 
+
 def _pad_hex_value(value, length):
     """ Pad a hexadecimal value with a given length of zeros
 
@@ -636,11 +676,6 @@ def _pad_hex_value(value, length):
         return '0x' + value[2:].zfill(length)
     return value
 
-class MaxUIntegerTypes(IntEnum):
-    UINT8_T  = 0xFF
-    UINT16_T = 0xFFFF
-    UINT32_T = 0xFFFFFFFF
-    UINT64_T = 0xFFFFFFFFFFFFFFFF
 
 def _validate_if_max_uint(value, uint_type: MaxUIntegerTypes, isActivity=False, isBool=False):
     return_val = "N/A"
@@ -663,7 +698,6 @@ def _validate_if_max_uint(value, uint_type: MaxUIntegerTypes, isActivity=False, 
         return bool(return_val)
     else:
         return return_val
-
 
 def amdsmi_get_socket_handles() -> List[amdsmi_wrapper.amdsmi_socket_handle]:
     """
@@ -722,7 +756,6 @@ def amdsmi_get_cpusocket_handles() -> List[amdsmi_wrapper.amdsmi_socket_handle]:
     ]
     return cpu_handles
 
-
 def amdsmi_get_socket_info(socket_handle):
     if not isinstance(socket_handle, amdsmi_wrapper.amdsmi_socket_handle):
         raise AmdSmiParameterException(
@@ -749,7 +782,6 @@ def amdsmi_get_processor_info(processor_handle):
     )
 
     return processor_info.value.decode()
-
 
 def amdsmi_get_processor_handles() -> List[amdsmi_wrapper.amdsmi_processor_handle]:
     socket_handles = amdsmi_get_socket_handles()
@@ -943,7 +975,6 @@ def amdsmi_get_cpucore_handles() -> List[amdsmi_wrapper.amdsmi_processor_handle]
     ]
 
     return core_handles
-
 
 def amdsmi_get_cpu_hsmp_proto_ver(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
@@ -1647,10 +1678,6 @@ def amdsmi_get_hsmp_metrics_table_version(
     return metric_tbl_version.value
 
 
-NO_OF_32BITS = (sys.getsizeof(ctypes.c_uint32) * 8)
-NO_OF_64BITS = (sys.getsizeof(ctypes.c_uint64) * 8)
-KILO = math.pow(10, 3)
-
 # Get 2's complement of 32 bit unsigned integer
 def check_msb_32(num):
     msb = 1 << (NO_OF_32BITS - 1)
@@ -1927,6 +1954,65 @@ def amdsmi_get_switch_link_info(
 
     return link_info_dict
 
+
+def amdsmi_get_gpu_device_uuid(processor_handle: amdsmi_wrapper.amdsmi_processor_handle) -> str:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    uuid = ctypes.create_string_buffer(AMDSMI_GPU_UUID_SIZE)
+
+    uuid_length = ctypes.c_uint32()
+    uuid_length.value = AMDSMI_GPU_UUID_SIZE
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_device_uuid(
+            processor_handle, ctypes.byref(uuid_length), uuid
+        )
+    )
+
+    return uuid.value.decode("utf-8")
+
+
+def amdsmi_get_gpu_enumeration_info(processor_handle: amdsmi_wrapper.amdsmi_processor_handle) -> Dict[str, Any]:
+    """
+    Retrieves GPU enumeration information including DRM card ID, DRM render ID, HIP ID, and HIP UUID.
+
+    Parameters:
+        processor_handle (amdsmi_processor_handle): The processor handle.
+
+    Returns:
+        Dict[str, Any]: A dictionary containing the retrieved enumeration information.
+
+    Raises:
+        AmdSmiParameterException: If the input parameters are invalid.
+    """
+    # Validate the processor handle
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    # Create an instance of the enumeration info struct
+    enumeration_info = amdsmi_wrapper.amdsmi_enumeration_info_t()
+
+    # Call the C function to populate the struct
+    status = amdsmi_wrapper.amdsmi_get_gpu_enumeration_info(processor_handle, ctypes.byref(enumeration_info))
+    
+    # Validate the status result
+    _check_res(status)
+
+    # Convert the struct fields into a dictionary and return
+    enumeration_info = {
+        "drm_render": _validate_if_max_uint(enumeration_info.drm_render, MaxUIntegerTypes.UINT32_T),
+        "drm_card": _validate_if_max_uint(enumeration_info.drm_card, MaxUIntegerTypes.UINT32_T),
+        "hsa_id": _validate_if_max_uint(enumeration_info.hsa_id, MaxUIntegerTypes.UINT32_T),
+        "hip_id": _validate_if_max_uint(enumeration_info.hip_id, MaxUIntegerTypes.UINT32_T),
+        "hip_uuid": enumeration_info.hip_uuid.decode('utf-8')
+    }
+
+    return enumeration_info
 
 def amdsmi_get_gpu_asic_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
@@ -2495,7 +2581,6 @@ def amdsmi_get_gpu_process_list(
 
     return result
 
-
 def amdsmi_get_gpu_device_uuid(processor_handle: amdsmi_wrapper.amdsmi_processor_handle) -> str:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
@@ -2555,7 +2640,6 @@ def amdsmi_get_switch_device_uuid(processor_handle: amdsmi_wrapper.amdsmi_proces
   
     return uuid.value.decode("utf-8")
 
-
 def amdsmi_get_gpu_driver_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:
@@ -2565,7 +2649,7 @@ def amdsmi_get_gpu_driver_info(
         )
 
     length = ctypes.c_int()
-    length.value = _AMDSMI_MAX_DRIVER_VERSION_LENGTH
+    length.value = AMDSMI_MAX_DRIVER_VERSION_LENGTH
 
     info = amdsmi_wrapper.amdsmi_driver_info_t()
     _check_res(
@@ -2574,11 +2658,17 @@ def amdsmi_get_gpu_driver_info(
         )
     )
 
-    return {
+    driver_info = {
         "driver_name": info.driver_name.decode("utf-8"),
         "driver_version": info.driver_version.decode("utf-8"),
         "driver_date": info.driver_date.decode("utf-8")
     }
+
+    for key, value in driver_info.items():
+        if value == "":
+            driver_info[key] = "N/A"
+
+    return driver_info
 
 
 def amdsmi_get_power_info(
@@ -2758,6 +2848,18 @@ def amdsmi_get_pcie_info(
 
     return pcie_info_dict
 
+def amdsmi_get_gpu_xcd_counter(processor_handle: amdsmi_wrapper.amdsmi_processor_handle) -> Dict[str, Any]:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(processor_handle, amdsmi_wrapper.amdsmi_processor_handle)
+
+    xcd_counter = ctypes.c_uint16()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_xcd_counter(
+            processor_handle, ctypes.byref(xcd_counter)
+        )
+    )
+
+    return xcd_counter.value
 
 def amdsmi_get_processor_handle_from_bdf(bdf):
     bdf = _parse_bdf(bdf)
@@ -2863,7 +2965,6 @@ def amdsmi_get_lib_version():
     _check_res(amdsmi_wrapper.amdsmi_get_lib_version(ctypes.byref(version)))
 
     return {
-        "year": version.year,
         "major": version.major,
         "minor": version.minor,
         "release": version.release,
@@ -3192,15 +3293,11 @@ def amdsmi_get_gpu_accelerator_partition_profile(
  
     length = profile.num_partitions
     partition_ids = []
-    for i in range(profile.num_partitions):
-        partition_ids.append(partition_id_list[i])
-
-    last_element = 0
-    if length > 0: 
-        last_element = length - 1
-    if ((partition_ids[last_element] == 0)
-        and not((profile_type_ret == str("SPX")) or (profile_type_ret == str("N/A")))):
-        partition_ids = "N/A"
+ 
+    #partition_id[0] will contain the partition id of each device
+    #BM/Guest will include this logic. Host will only display primary partition ids.
+    kPOSITION_OF_PARTITION_ID = 0
+    partition_ids.append(partition_id_list[kPOSITION_OF_PARTITION_ID])
 
     mem_caps_list = []
     if profile.memory_caps.nps_flags.nps1_cap == 1:
@@ -4673,7 +4770,7 @@ def amdsmi_get_gpu_compute_process_info() -> List[Dict[str, int]]:
     return [
         {
             "process_id": proc.process_id,
-            "pasid": proc.pasid,
+            "pasid": proc.pasid, # Not working in ROCm 6.4+, deprecating in 7.0
             "vram_usage": proc.vram_usage,
             "sdma_usage": proc.sdma_usage,
             "cu_occupancy": proc.cu_occupancy,
@@ -4695,7 +4792,7 @@ def amdsmi_get_gpu_compute_process_info_by_pid(pid: int) -> Dict[str, int]:
 
     return {
         "process_id": proc.process_id,
-        "pasid": proc.pasid,
+        "pasid": proc.pasid, # Not working in ROCm 6.4+, deprecating in 7.0
         "vram_usage": proc.vram_usage,
         "sdma_usage": proc.sdma_usage,
         "cu_occupancy": proc.cu_occupancy,
@@ -4802,6 +4899,7 @@ def amdsmi_get_gpu_metrics_header_info(
         "content_revision": header_info.content_revision
     }
 
+
 def amdsmi_get_link_topology_nearest(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
     link_type: AmdSmiLinkType,
@@ -4842,3 +4940,80 @@ def amdsmi_get_gpu_virtualization_mode_info(
     return {
         "mode": AmdSmiVirtualizationMode(mode.value)
     }
+
+### Non C-Lib APIs ###
+
+def amdsmi_get_rocm_version()-> Tuple[bool, str]:
+    """
+    Get the ROCm version for the rocm-core library.
+
+    This function attempts to retrieve the ROCm version by loading the `librocm-core.so` shared library
+    and calling its `getROCmVersion` function. The version is returned as a string in the format "major.minor.patch".
+
+    Returns:
+        Tuple[bool, str]: A tuple containing a boolean and a string.
+            - The boolean indicates whether the operation was successful.
+            - The string contains the ROCm version if successful, or an error message if not.
+
+    Raises:
+        Exception: If there is an error loading the shared library or calling the function.
+
+    Example:
+        rocm_lib_status, version_message = amdsmi_get_rocm_version()
+        if rocm_lib_status:
+            print(f"ROCm version: {version_message}")
+        else:
+            print(f"Error: {version_message}")
+    """
+    # librocm-core.so can be located in found using several different methods.
+    # Look for it with below priority:
+    # 1. ROCM_HOME/ROCM_PATH environment variables
+    #    - ROCM_HOME/lib
+    #    - ROCM_PATH/lib (usually set to /opt/rocm/)
+    # 2. Decided by the linker
+    #    - LD_LIBRARY_PATH env var
+    #    - defined path in /etc/ld.so.conf.d/
+    # 3. Relative to amdsmi_wrapper.py in /opt/rocm/share/amd_smi
+    #    - parent directory
+
+    try:
+        possible_locations = list()
+        # 1.
+        rocm_path = os.getenv("ROCM_HOME", os.getenv("ROCM_PATH"))
+        if rocm_path:
+            possible_locations.append(os.path.join(rocm_path, "lib/librocm-core.so"))
+
+        # Check if /opt/rocm/lib/librocm-core.so exists and add it to the list
+        if os.path.exists("/opt/rocm/lib/librocm-core.so"):
+            possible_locations.append("/opt/rocm/lib/librocm-core.so")
+        # 2.
+        possible_locations.append("librocm-core.so")
+        # 3.
+        librocm_core_parent_dir =  Path(__file__).resolve().parent.parent.parent / "lib" / "librocm-core.so"
+        possible_locations.append(librocm_core_parent_dir)
+
+        for librocm_core_file_path in possible_locations:
+            try:
+                librocm_core = ctypes.CDLL(librocm_core_file_path)
+                VerErrors = ctypes.c_uint32
+                get_rocm_core_version = librocm_core.getROCmVersion
+                get_rocm_core_version.restype = VerErrors
+                get_rocm_core_version.argtypes = [ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_uint32),ctypes.POINTER(ctypes.c_uint32)]
+
+                # call the function
+                major =  ctypes.c_uint32()
+                minor =  ctypes.c_uint32()
+                patch =  ctypes.c_uint32()
+
+                if get_rocm_core_version(ctypes.byref(major), ctypes.byref(minor),ctypes.byref(patch)) == 0:
+                    return True, f"{major.value}.{minor.value}.{patch.value}"
+                else:
+                    return False, "Failed to unpack ROCm version"
+            except OSError as e:
+                err = e
+                continue
+
+        # If we hit here, we were unable to find the librocm-core.so file
+        return False, "Could not find librocm-core.so"
+    except Exception as e:
+        return False, f"Unable to detect ROCm installation, Unknown Error: {e}"

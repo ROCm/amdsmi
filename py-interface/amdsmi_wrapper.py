@@ -165,19 +165,47 @@ def char_pointer_cast(string, encoding='utf-8'):
 
 _libraries = {}
 from pathlib import Path
-libamd_smi_parent_dir = Path(__file__).resolve().parent / "libamd_smi.so"
-libamd_smi_cwd = Path.cwd() / "libamd_smi.so"
+# libamd_smi.so can be located in several different places.
+# Look for it with below priority:
+# 1. ROCM_HOME/ROCM_PATH environment variables
+#    - ROCM_HOME/lib
+#    - ROCM_PATH/lib (usually set to /opt/rocm/)
+# 2. Decided by the linker
+#    - LD_LIBRARY_PATH env var
+#    - defined path in /etc/ld.so.conf.d/
+# 3. Relative to amdsmi_wrapper.py
+#    - parent directory
+#    - current directory
+def find_smi_library():
+    err = OSError("Could not load libamd_smi.so")
+    possible_locations = list()
+    # 1.
+    rocm_path = os.getenv("ROCM_HOME", os.getenv("ROCM_PATH"))
+    if rocm_path:
+        possible_locations.append(os.path.join(rocm_path, "lib/libamd_smi.so"))
+    # 2.
+    possible_locations.append("libamd_smi.so")
+    # 3.
+    libamd_smi_parent_dir = Path(__file__).resolve().parent / "libamd_smi.so"
+    libamd_smi_cwd = Path.cwd() / "libamd_smi.so"
+    possible_locations.append(libamd_smi_parent_dir)
+    possible_locations.append(libamd_smi_cwd)
+
+    for location in possible_locations:
+        try:
+            lib = ctypes.CDLL(location)
+            return lib, location
+        except OSError as e:
+            err = e
+            continue
+    raise err
 
 try:
-    if libamd_smi_parent_dir.is_file():
-        # try to fall back to parent directory
-        _libraries['libamd_smi.so'] = ctypes.CDLL(libamd_smi_parent_dir)
-    else:
-        # lastly - search in current working directory
-        _libraries['libamd_smi.so'] = ctypes.CDLL(libamd_smi_cwd)
-except OSError as error:
-    print(error)
-    print("Unable to find amdsmi library try installing amd-smi-lib from your package manager")
+    _libraries['libamd_smi.so'], location = find_smi_library()
+    #print(f"found smi lib in [", location, "]")
+except OSError as e:
+    print(e)
+    print("Unable to find libamd_smi.so library try installing amd-smi-lib from your package manager")
 
 
 
@@ -803,6 +831,19 @@ union_amdsmi_bdf_t._fields_ = [
 ]
 
 amdsmi_bdf_t = union_amdsmi_bdf_t
+class struct_amdsmi_enumeration_info_t(Structure):
+    pass
+
+struct_amdsmi_enumeration_info_t._pack_ = 1 # source:False
+struct_amdsmi_enumeration_info_t._fields_ = [
+    ('drm_render', ctypes.c_uint32),
+    ('drm_card', ctypes.c_uint32),
+    ('hsa_id', ctypes.c_uint32),
+    ('hip_id', ctypes.c_uint32),
+    ('hip_uuid', ctypes.c_char * 256),
+]
+
+amdsmi_enumeration_info_t = struct_amdsmi_enumeration_info_t
 
 # values for enumeration 'amdsmi_card_form_factor_t'
 amdsmi_card_form_factor_t__enumvalues = {
@@ -849,7 +890,9 @@ struct_pcie_static_._fields_ = [
     ('max_pcie_speed', ctypes.c_uint32),
     ('pcie_interface_version', ctypes.c_uint32),
     ('slot_type', amdsmi_card_form_factor_t),
-    ('reserved', ctypes.c_uint64 * 10),
+    ('max_pcie_interface_version', ctypes.c_uint32),
+    ('PADDING_1', ctypes.c_ubyte * 4),
+    ('reserved', ctypes.c_uint64 * 9),
 ]
 
 struct_amdsmi_pcie_info_t._pack_ = 1 # source:False
@@ -1435,7 +1478,8 @@ amdsmi_temperature_metric_t__enumvalues = {
     11: 'AMDSMI_TEMP_OFFSET',
     12: 'AMDSMI_TEMP_LOWEST',
     13: 'AMDSMI_TEMP_HIGHEST',
-    13: 'AMDSMI_TEMP_LAST',
+    14: 'AMDSMI_TEMP_SHUTDOWN',
+    14: 'AMDSMI_TEMP_LAST',
 }
 AMDSMI_TEMP_CURRENT = 0
 AMDSMI_TEMP_FIRST = 0
@@ -1452,7 +1496,8 @@ AMDSMI_TEMP_CRIT_MIN_HYST = 10
 AMDSMI_TEMP_OFFSET = 11
 AMDSMI_TEMP_LOWEST = 12
 AMDSMI_TEMP_HIGHEST = 13
-AMDSMI_TEMP_LAST = 13
+AMDSMI_TEMP_SHUTDOWN = 14
+AMDSMI_TEMP_LAST = 14
 amdsmi_temperature_metric_t = ctypes.c_uint32 # enum
 
 # values for enumeration 'amdsmi_voltage_metric_t'
@@ -2244,6 +2289,9 @@ amdsmi_get_gpu_device_bdf.argtypes = [amdsmi_processor_handle, ctypes.POINTER(un
 amdsmi_get_gpu_device_uuid = _libraries['libamd_smi.so'].amdsmi_get_gpu_device_uuid
 amdsmi_get_gpu_device_uuid.restype = amdsmi_status_t
 amdsmi_get_gpu_device_uuid.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_char)]
+amdsmi_get_gpu_enumeration_info = _libraries['libamd_smi.so'].amdsmi_get_gpu_enumeration_info
+amdsmi_get_gpu_enumeration_info.restype = amdsmi_status_t
+amdsmi_get_gpu_enumeration_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_enumeration_info_t)]
 amdsmi_get_gpu_id = _libraries['libamd_smi.so'].amdsmi_get_gpu_id
 amdsmi_get_gpu_id.restype = amdsmi_status_t
 amdsmi_get_gpu_id.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint16)]
@@ -2633,6 +2681,9 @@ amdsmi_get_power_cap_info.argtypes = [amdsmi_processor_handle, uint32_t, ctypes.
 amdsmi_get_pcie_info = _libraries['libamd_smi.so'].amdsmi_get_pcie_info
 amdsmi_get_pcie_info.restype = amdsmi_status_t
 amdsmi_get_pcie_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_pcie_info_t)]
+amdsmi_get_gpu_xcd_counter = _libraries['libamd_smi.so'].amdsmi_get_gpu_xcd_counter
+amdsmi_get_gpu_xcd_counter.restype = amdsmi_status_t
+amdsmi_get_gpu_xcd_counter.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint16)]
 amdsmi_get_fw_info = _libraries['libamd_smi.so'].amdsmi_get_fw_info
 amdsmi_get_fw_info.restype = amdsmi_status_t
 amdsmi_get_fw_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_fw_info_t)]
@@ -2957,7 +3008,7 @@ __all__ = \
     'AMDSMI_TEMP_HIGHEST', 'AMDSMI_TEMP_LAST', 'AMDSMI_TEMP_LOWEST',
     'AMDSMI_TEMP_MAX', 'AMDSMI_TEMP_MAX_HYST', 'AMDSMI_TEMP_MIN',
     'AMDSMI_TEMP_MIN_HYST', 'AMDSMI_TEMP_OFFSET',
-    'AMDSMI_UTILIZATION_COUNTER_FIRST',
+    'AMDSMI_TEMP_SHUTDOWN', 'AMDSMI_UTILIZATION_COUNTER_FIRST',
     'AMDSMI_UTILIZATION_COUNTER_LAST',
     'AMDSMI_VIRTUALIZATION_MODE_BAREMETAL',
     'AMDSMI_VIRTUALIZATION_MODE_GUEST',
@@ -2993,18 +3044,18 @@ __all__ = \
     'amdsmi_accelerator_partition_resource_type_t',
     'amdsmi_accelerator_partition_type_t', 'amdsmi_asic_info_t',
     'amdsmi_bdf_t', 'amdsmi_bit_field_t', 'amdsmi_board_info_t',
-    'amdsmi_brcm_link_metric_t', 'amdsmi_cache_property_type_t',
-    'amdsmi_card_form_factor_t', 'amdsmi_clean_gpu_local_data',
-    'amdsmi_clk_info_t', 'amdsmi_clk_limit_type_t',
-    'amdsmi_clk_type_t', 'amdsmi_compute_partition_type_t',
-    'amdsmi_container_types_t', 'amdsmi_counter_command_t',
-    'amdsmi_counter_value_t', 'amdsmi_cpu_apb_disable',
-    'amdsmi_cpu_apb_enable', 'amdsmi_cpusocket_handle',
-    'amdsmi_ddr_bw_metrics_t', 'amdsmi_dev_perf_level_t',
-    'amdsmi_dimm_power_t', 'amdsmi_dimm_thermal_t',
-    'amdsmi_dpm_level_t', 'amdsmi_dpm_policy_entry_t',
-    'amdsmi_dpm_policy_t', 'amdsmi_driver_info_t',
-    'amdsmi_engine_usage_t', 'amdsmi_error_count_t',
+    'amdsmi_brcm_link_metric_t', 'amdsmi_cache_property_type_t', 
+    'amdsmi_card_form_factor_t', 'amdsmi_clean_gpu_local_data', 
+     'amdsmi_clk_info_t', 'amdsmi_clk_limit_type_t', 'amdsmi_clk_type_t',
+    'amdsmi_compute_partition_type_t', 'amdsmi_container_types_t',
+    'amdsmi_counter_command_t', 'amdsmi_counter_value_t',
+    'amdsmi_cpu_apb_disable', 'amdsmi_cpu_apb_enable',
+    'amdsmi_cpusocket_handle', 'amdsmi_ddr_bw_metrics_t',
+    'amdsmi_dev_perf_level_t', 'amdsmi_dimm_power_t',
+    'amdsmi_dimm_thermal_t', 'amdsmi_dpm_level_t',
+    'amdsmi_dpm_policy_entry_t', 'amdsmi_dpm_policy_t',
+    'amdsmi_driver_info_t', 'amdsmi_engine_usage_t',
+    'amdsmi_enumeration_info_t', 'amdsmi_error_count_t',
     'amdsmi_event_group_t', 'amdsmi_event_handle_t',
     'amdsmi_event_type_t', 'amdsmi_evt_notification_data_t',
     'amdsmi_evt_notification_type_t',
@@ -3052,6 +3103,7 @@ __all__ = \
     'amdsmi_get_gpu_device_bdf', 'amdsmi_get_gpu_device_uuid',
     'amdsmi_get_gpu_driver_info', 'amdsmi_get_gpu_ecc_count',
     'amdsmi_get_gpu_ecc_enabled', 'amdsmi_get_gpu_ecc_status',
+    'amdsmi_get_gpu_enumeration_info',
     'amdsmi_get_gpu_event_notification', 'amdsmi_get_gpu_fan_rpms',
     'amdsmi_get_gpu_fan_speed', 'amdsmi_get_gpu_fan_speed_max',
     'amdsmi_get_gpu_id', 'amdsmi_get_gpu_kfd_info',
@@ -3081,7 +3133,7 @@ __all__ = \
     'amdsmi_get_gpu_virtualization_mode',
     'amdsmi_get_gpu_volt_metric', 'amdsmi_get_gpu_vram_info',
     'amdsmi_get_gpu_vram_usage', 'amdsmi_get_gpu_vram_vendor',
-    'amdsmi_get_gpu_xgmi_link_status',
+    'amdsmi_get_gpu_xcd_counter', 'amdsmi_get_gpu_xgmi_link_status',
     'amdsmi_get_hsmp_metrics_table',
     'amdsmi_get_hsmp_metrics_table_version', 'amdsmi_get_lib_version',
     'amdsmi_get_link_metrics', 'amdsmi_get_link_topology_nearest',
@@ -3174,12 +3226,13 @@ __all__ = \
     'struct_amdsmi_accelerator_partition_profile_t',
     'struct_amdsmi_accelerator_partition_resource_profile_t',
     'struct_amdsmi_asic_info_t', 'struct_amdsmi_board_info_t',
-    'struct_amdsmi_brcm_link_metric_t', 'struct_amdsmi_clk_info_t',
-    'struct_amdsmi_counter_value_t', 'struct_amdsmi_ddr_bw_metrics_t',
-    'struct_amdsmi_dimm_power_t', 'struct_amdsmi_dimm_thermal_t',
-    'struct_amdsmi_dpm_level_t', 'struct_amdsmi_dpm_policy_entry_t',
-    'struct_amdsmi_dpm_policy_t', 'struct_amdsmi_driver_info_t',
-    'struct_amdsmi_engine_usage_t', 'struct_amdsmi_error_count_t',
+    'struct_amdsmi_brcm_link_metric_t', 'struct_amdsmi_clk_info_t', 
+     'struct_amdsmi_counter_value_t',
+    'struct_amdsmi_ddr_bw_metrics_t', 'struct_amdsmi_dimm_power_t',
+    'struct_amdsmi_dimm_thermal_t', 'struct_amdsmi_dpm_level_t',
+    'struct_amdsmi_dpm_policy_entry_t', 'struct_amdsmi_dpm_policy_t',
+    'struct_amdsmi_driver_info_t', 'struct_amdsmi_engine_usage_t',
+    'struct_amdsmi_enumeration_info_t', 'struct_amdsmi_error_count_t',
     'struct_amdsmi_evt_notification_data_t',
     'struct_amdsmi_freq_volt_region_t', 'struct_amdsmi_frequencies_t',
     'struct_amdsmi_frequency_range_t', 'struct_amdsmi_fw_info_t',
