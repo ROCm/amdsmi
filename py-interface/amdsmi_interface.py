@@ -2581,25 +2581,6 @@ def amdsmi_get_gpu_process_list(
 
     return result
 
-def amdsmi_get_gpu_device_uuid(processor_handle: amdsmi_wrapper.amdsmi_processor_handle) -> str:
-    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
-        raise AmdSmiParameterException(
-            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
-        )
-
-    uuid = ctypes.create_string_buffer(_AMDSMI_GPU_UUID_SIZE)
-
-    uuid_length = ctypes.c_uint32()
-    uuid_length.value = _AMDSMI_GPU_UUID_SIZE
-
-    _check_res(
-        amdsmi_wrapper.amdsmi_get_gpu_device_uuid(
-            processor_handle, ctypes.byref(uuid_length), uuid
-        )
-    )
-
-    return uuid.value.decode("utf-8")
-
 def amdsmi_get_nic_device_uuid(processor_handle: amdsmi_wrapper.amdsmi_processor_handle) -> str:
    
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
@@ -2607,10 +2588,10 @@ def amdsmi_get_nic_device_uuid(processor_handle: amdsmi_wrapper.amdsmi_processor
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    uuid = ctypes.create_string_buffer(_AMDSMI_GPU_UUID_SIZE)
+    uuid = ctypes.create_string_buffer(AMDSMI_GPU_UUID_SIZE)
 
     uuid_length = ctypes.c_uint32()
-    uuid_length.value = _AMDSMI_GPU_UUID_SIZE
+    uuid_length.value = AMDSMI_GPU_UUID_SIZE
   
     _check_res(
         amdsmi_wrapper.amdsmi_get_nic_device_uuid(
@@ -2627,10 +2608,10 @@ def amdsmi_get_switch_device_uuid(processor_handle: amdsmi_wrapper.amdsmi_proces
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    uuid = ctypes.create_string_buffer(_AMDSMI_GPU_UUID_SIZE)
+    uuid = ctypes.create_string_buffer(AMDSMI_GPU_UUID_SIZE)
 
     uuid_length = ctypes.c_uint32()
-    uuid_length.value = _AMDSMI_GPU_UUID_SIZE
+    uuid_length.value = AMDSMI_GPU_UUID_SIZE
   
     _check_res(
         amdsmi_wrapper.amdsmi_get_switch_device_uuid(

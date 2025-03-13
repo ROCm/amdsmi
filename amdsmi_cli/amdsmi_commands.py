@@ -399,7 +399,7 @@ class AMDSMICommands():
             if isinstance(args.gpu, list):
                 gpuCount = len(args.gpu)
                 self.logger.output = {}
-                self.logger.clear_multiple_devices_ouput()
+                self.logger.clear_multiple_devices_output()
 
                 if gpuCount > 0:
                     self.listGPU(args, False, gpu=args.gpu)
@@ -414,7 +414,7 @@ class AMDSMICommands():
             if isinstance(args.nic, list):
                 nicCount = len(args.nic)
                 self.logger.output = {}
-                self.logger.clear_multiple_devices_ouput()
+                self.logger.clear_multiple_devices_output()
 
                 if nicCount > 0:
                     self.listNIC(args, False, nic=args.nic)
@@ -429,7 +429,7 @@ class AMDSMICommands():
             if isinstance(args.switch, list):
                 switchCount = len(args.switch)
                 self.logger.output = {}
-                self.logger.clear_multiple_devices_ouput()
+                self.logger.clear_multiple_devices_output()
 
                 if switchCount > 0:
                     self.listSwitch(args, False, switch=args.switch)
@@ -439,13 +439,13 @@ class AMDSMICommands():
             self.listGPU(args, False, gpu=args.gpu)
 
         self.logger.output = {}
-        self.logger.clear_multiple_devices_ouput()
+        self.logger.clear_multiple_devices_output()
 
         if nicCount > 0:
             self.listNIC(args, False, nic=args.nic)
 
         self.logger.output = {}
-        self.logger.clear_multiple_devices_ouput()
+        self.logger.clear_multiple_devices_output()
 
         if switchCount > 0:
             self.listSwitch(args, False, switch=args.switch)
@@ -5729,7 +5729,7 @@ class AMDSMICommands():
 
                     self.logger.table_header += 'DEC%'.rjust(7)
 
-                if args.encoder or args.decoder) and not args.default_output:
+                if (args.encoder or args.decoder) and not args.default_output:
                     try:
                         vclock = amdsmi_interface.amdsmi_get_gpu_metrics_info(args.gpu)['current_vclk0']
                         monitor_values['vclock'] = vclock
