@@ -713,40 +713,6 @@ amdsmi_status_t amdsmi_get_switch_link_info(amdsmi_processor_handle processor_ha
 }
 
 amdsmi_status_t
-amdsmi_get_gpu_device_uuid(amdsmi_processor_handle processor_handle,
-                           unsigned int *uuid_length,
-                           char *uuid) {
-    AMDSMI_CHECK_INIT();
-
-    if (uuid_length == nullptr || uuid == nullptr || uuid_length == nullptr || *uuid_length < AMDSMI_GPU_UUID_SIZE) {
-        return AMDSMI_STATUS_INVAL;
-    }
-
-    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
-    amdsmi_status_t r = get_gpu_device_from_handle(processor_handle, &gpu_device);
-    if (r != AMDSMI_STATUS_SUCCESS)
-        return r;
-
-    amdsmi_status_t status = AMDSMI_STATUS_SUCCESS;
-    SMIGPUDEVICE_MUTEX(gpu_device->get_mutex())
-
-    amdsmi_asic_info_t asic_info = {};
-    const uint8_t fcn = 0xff;
-
-    status = amdsmi_get_gpu_asic_info(processor_handle, &asic_info);
-    if (status != AMDSMI_STATUS_SUCCESS) {
-        printf("Getting asic info failed. Return code: %d", status);
-        return status;
-    }
-
-    /* generate random UUID */
-    status = amdsmi_uuid_gen(uuid,
-                strtoull(asic_info.asic_serial, nullptr, 16),
-                (uint16_t)asic_info.device_id, fcn);
-    return status;
-}
-
-amdsmi_status_t
 amdsmi_get_gpu_enumeration_info(amdsmi_processor_handle processor_handle,
                                 amdsmi_enumeration_info_t *info){
 

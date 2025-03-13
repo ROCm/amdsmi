@@ -43,11 +43,10 @@
 #include "amd_smi/impl/amd_smi_lspci_commands.h"
 #include "rocm_smi/rocm_smi.h"
 #include "rocm_smi/rocm_smi_main.h"
+#include "rocm_smi/rocm_smi_utils.h"
 
 namespace amd {
 namespace smi {
-
-
 
 amdsmi_status_t AMDSmiNoDrmSwitch::init() {
 

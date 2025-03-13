@@ -108,7 +108,7 @@ static void clearCharBufferAndReinitialize(char buffer[], uint32_t len, std::str
         std::memcpy(buffer, newString.c_str(), copy_len);
     }
     buffer[copy_len] = '\0';
-  }
+}
 
 int openFileAndModifyBuffer(std::string path, char *buff, size_t sizeOfBuff,
                             bool trim_whitespace = true) {
@@ -517,6 +517,7 @@ amdsmi_status_t smi_amdgpu_get_ecc_error_count(amd::smi::AMDSmiGPUDevice* device
 
     return AMDSMI_STATUS_SUCCESS;
 }
+
 amdsmi_status_t smi_amdgpu_get_driver_version(amd::smi::AMDSmiGPUDevice* device, int *length, char *version) {
     SMIGPUDEVICE_MUTEX(device->get_mutex())
     amdsmi_status_t status = AMDSMI_STATUS_SUCCESS;
@@ -711,6 +712,8 @@ std::string smi_brcm_get_value_string(std::string filePath, std::string fileName
   }
 
   return temp;
+
+}
 
 // TODO(amdsmi_team): Do we want to include these functions in header?
 amdsmi_status_t smi_amdgpu_get_device_index(amdsmi_processor_handle processor_handle,
