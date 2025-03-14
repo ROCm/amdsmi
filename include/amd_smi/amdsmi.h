@@ -174,7 +174,7 @@ typedef enum {
  *
  * Refer to amd.com documentation for more detail:
  * https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/white-papers/amd-cdna-3-white-paper.pdf
- * 
+ *
  * @cond @tag{gpu_bm_linux} @tag{host} @tag{guest_windows} @endcond
  */
 #define AMDSMI_MAX_NUM_XCP 8
@@ -681,6 +681,19 @@ typedef union {
 } amdsmi_bdf_t;
 
 /**
+ * @brief Structure holds enumeration information
+ *
+ * @cond @tag{gpu_bm_linux} @tag{host} @endcond
+ */
+typedef struct {
+    uint32_t drm_render; // the render node under /sys/class/drm/renderD*
+    uint32_t drm_card;   // the graphic card device under /sys/class/drm/card*
+    uint32_t hsa_id;     // the HSA enumeration ID
+    uint32_t hip_id;     // the HIP enumeration ID
+    char hip_uuid[AMDSMI_MAX_STRING_LENGTH];  // the HIP unique identifer
+} amdsmi_enumeration_info_t;
+
+/**
  * @brief Card Form Factor
  *
  * @cond @tag{gpu_bm_linux} @tag{host} @endcond
@@ -812,6 +825,7 @@ typedef struct {
     uint64_t target_graphics_version;  //!< 0xFFFFFFFFFFFFFFFF if not supported
     uint32_t reserved[22];
 } amdsmi_asic_info_t;
+
 
 /**
  * @brief Structure holds kfd information
@@ -1965,7 +1979,7 @@ typedef struct {
  */
 typedef struct {
     uint32_t process_id;    //!< Process ID
-    uint32_t pasid;         //!< PASID
+    uint32_t pasid;         //!< PASID (Not working in ROCm 6.4+, deprecating in 7.0)
     uint64_t vram_usage;    //!< VRAM usage in MB
     uint64_t sdma_usage;    //!< SDMA usage in microseconds
     uint32_t cu_occupancy;  //!< Compute Unit usage in percent
@@ -2452,6 +2466,7 @@ amdsmi_status_t amdsmi_get_processor_handles(amdsmi_socket_handle socket_handle,
                                     uint32_t *processor_count,
                                     amdsmi_processor_handle* processor_handles);
 
+
 #ifdef ENABLE_ESMI_LIB
 /**
  *  @brief Get the list of the cpu core handles in a system.
@@ -2545,13 +2560,13 @@ amdsmi_get_gpu_device_bdf(amdsmi_processor_handle processor_handle, amdsmi_bdf_t
  *
  *  @ingroup tagProcDiscovery
  *
- *  @platform{gpu_bm_linux} @platform{host} @platform{guest_1vf}  @platform{guest_mvf}
+ *  @platform{gpu_bm_linux} @platform{host} @platform{guest_1vf} @platform{guest_mvf}
  *  @platform{guest_windows}
  *
  *  @param[in]      processor_handle Device which to query
  *
  *  @param[in,out]  uuid_length Length of the uuid string. As input, must be
- *                  equal or greater than SMI_GPU_UUID_SIZE and be allocated by
+ *                  equal or greater than AMDSMI_GPU_UUID_SIZE and be allocated by
  *                  user. As output it is the length of the uuid string.
  *
  *  @param[out]     uuid Pointer to string to store the UUID. Must be
@@ -2561,6 +2576,28 @@ amdsmi_get_gpu_device_bdf(amdsmi_processor_handle processor_handle, amdsmi_bdf_t
  */
 amdsmi_status_t
 amdsmi_get_gpu_device_uuid(amdsmi_processor_handle processor_handle, unsigned int *uuid_length, char *uuid);
+
+/**
+ *  @brief          Returns the Enumeration information for the device
+ *
+ *  @ingroup tagProcDiscovery
+ *
+ *  @platform{gpu_bm_linux} @platform{host} @platform{guest_1vf}  @platform{guest_mvf}
+ *  @platform{guest_windows}
+ *
+ *  @details        This function returns Enumeration information of the corresponding
+ *                  processor_handle. It will return the render number, card number,
+ *                  HSA ID, HIP ID, and the HIP UUID.
+ *
+ *  @param[in]      processor_handle Device which to query
+ *
+ *  @param[out]     info Reference to Enumeration information structure.
+ *                  Must be allocated by user.
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t
+amdsmi_get_gpu_enumeration_info(amdsmi_processor_handle processor_handle, amdsmi_enumeration_info_t *info);
 
 /** @} End tagProcDiscovery */
 
@@ -2750,7 +2787,7 @@ amdsmi_get_gpu_subsystem_name(amdsmi_processor_handle processor_handle, char *na
  *  @brief          Returns the virtualization mode for the target device.
  *
  *  @ingroup tagIdentQuery
- * 
+ *
  *  @platform{gpu_bm_linux}  @platform{host}
  *
  *  @details        The virtualization mode is detected and returned as an enum.
@@ -3198,7 +3235,7 @@ amdsmi_get_gpu_memory_total(amdsmi_processor_handle processor_handle, amdsmi_mem
 
 /**
  *  @brief Get the current memory usage
- * 
+ *
  *  @ingroup tagMemoryQuery
  *
  *  @platform{gpu_bm_linux}
@@ -3283,7 +3320,7 @@ amdsmi_get_gpu_bad_page_threshold(amdsmi_processor_handle processor_handle, uint
  *
  *  @details This call will verify the device @p processor_handle for the
  *  checksum of RAS EEPROM.
- * 
+ *
  *  @param[in] processor_handle a processor handle
  *
  *  @note This function requires root access
@@ -4471,6 +4508,10 @@ amdsmi_status_t amdsmi_get_lib_version(amdsmi_version_t *version);
  *  @brief Retrieve the error counts for a GPU block. It is not supported on virtual
  *  machine guest
  *
+ *  See [RAS Error Count sysfs Interface (AMDGPU RAS Support - Linux Kernel
+ *  documentation)](https://docs.kernel.org/gpu/amdgpu/ras.html#ras-error-count-sysfs-interface)
+ *  to learn how these error counts are accessed.
+ *
  *  @ingroup tagECCInfo
  *
  *  @platform{gpu_bm_linux}  @platform{host}
@@ -4498,6 +4539,10 @@ amdsmi_status_t amdsmi_get_gpu_ecc_count(amdsmi_processor_handle processor_handl
 
 /**
  *  @brief Retrieve the enabled ECC bit-mask. It is not supported on virtual machine guest
+ *
+ *  See [RAS Error Count sysfs Interface (AMDGPU RAS Support - Linux Kernel
+ *  documentation)](https://docs.kernel.org/gpu/amdgpu/ras.html#ras-error-count-sysfs-interface)
+ *  to learn how these error counts are accessed.
  *
  *  @ingroup tagECCInfo
  *
@@ -4532,6 +4577,10 @@ amdsmi_status_t amdsmi_get_gpu_ecc_enabled(amdsmi_processor_handle processor_han
  *                  uncorrectable and deferred) in the given GPU. It is not supported on
  *                  virtual machine guest
  *
+ *  See [RAS Error Count sysfs Interface (AMDGPU RAS Support - Linux Kernel
+ *  documentation)](https://docs.kernel.org/gpu/amdgpu/ras.html#ras-error-count-sysfs-interface)
+ *  to learn how these error counts are accessed.
+ *
  *  @ingroup tagECCInfo
  *
  *  @platform{gpu_bm_linux} @platform{host} @platform{guest_windows}
@@ -4558,6 +4607,10 @@ amdsmi_get_gpu_total_ecc_count(amdsmi_processor_handle processor_handle, amdsmi_
 /**
  *  @brief Retrieve the ECC status for a GPU block. It is not supported on virtual machine
  *  guest
+ *
+ *  See [RAS Error Count sysfs Interface (AMDGPU RAS Support - Linux Kernel
+ *  documentation)](https://docs.kernel.org/gpu/amdgpu/ras.html#ras-error-count-sysfs-interface)
+ *  to learn how these error counts are accessed.
  *
  *  @ingroup tagErrorQuery
  *
@@ -5326,7 +5379,8 @@ amdsmi_get_gpu_compute_partition(amdsmi_processor_handle processor_handle,
  *
  *  @details Given a processor handle @p processor_handle, a type of compute partition
  *  @p compute_partition, this function will attempt to update the selected
- *  device's compute partition setting.
+ *  device's compute partition setting. This function does not allow any concurrent operations.
+ *  Device must be idle and have no workloads when performing set partition operations.
  *
  *  @param[in] processor_handle Device which to query
  *
@@ -5400,7 +5454,8 @@ amdsmi_get_gpu_memory_partition(amdsmi_processor_handle processor_handle, char *
  *
  *  @details Given a processor handle @p processor_handle and a type of memory partition
  *  @p memory_partition, this function will attempt to update the selected
- *  device's memory partition setting.
+ *  device's memory partition setting. This function does not allow any concurrent operations.
+ *  Device must be idle and have no workloads when performing set partition operations.
  *
  *  @param[in] processor_handle Device which to query
  *
@@ -5703,6 +5758,7 @@ amdsmi_get_gpu_driver_info(amdsmi_processor_handle processor_handle, amdsmi_driv
  */
 amdsmi_status_t
 amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_info_t *info);
+
 
 /**
  *  @brief          Returns the KFD (Kernel Fusion Driver) information for the device
