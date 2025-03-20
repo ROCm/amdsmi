@@ -57,29 +57,3 @@ To contribute to the documentation, refer to
 
 Find ROCm licensing information on the
 {doc}`Licensing <rocm:about/license>` page.
-
-<style>
-#disclaimer {
-    font-size: 0.8rem;
-}
-</style>
-
-<div id="disclaimer">
-The information contained herein is for informational purposes only, and is
-subject to change without notice. While every precaution has been taken in the
-preparation of this document, it may contain technical inaccuracies, omissions
-and typographical errors, and AMD is under no obligation to update or otherwise
-correct this information. Advanced Micro Devices, Inc. makes no representations
-or warranties with respect to the accuracy or completeness of the contents of
-this document, and assumes no liability of any kind, including the implied
-warranties of noninfringement, merchantability or fitness for particular
-purposes, with respect to the operation or use of AMD hardware, software or
-other products described herein.
-
-AMD, the AMD Arrow logo, and combinations thereof are trademarks of Advanced
-Micro Devices, Inc. Other product names used in this publication are for
-identification purposes only and may be trademarks of their respective
-companies.
-
-Copyright (c) 2014-2024 Advanced Micro Devices, Inc. All rights reserved.
-</div>
