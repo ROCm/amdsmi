@@ -110,7 +110,12 @@ if __name__ == "__main__":
 
         sys.argv = [arg.lower() if arg.startswith('--') or not arg.startswith('-')
                     else arg for arg in sys.argv]
-        args = amd_smi_parser.parse_args(args=None if sys.argv[1:] else ['--help'])
+        if len(sys.argv) == 1:
+            args = amd_smi_parser.parse_args(args=['--help'])
+        elif sys.argv[1] in valid_commands:
+            args = amd_smi_parser.parse_args(args=None)
+        else:
+            raise amdsmi_cli_exceptions.AmdSmiInvalidSubcommandException(sys.argv[1],amd_smi_commands.logger.destination)
 
         # Handle command modifiers before subcommand execution
             # human readable is the default output format
