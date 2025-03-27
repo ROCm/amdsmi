@@ -18,12 +18,35 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
   - Increasing available JPEG engines to 40.  
   Current ASICs may not support all 40. These will be indicated as UINT16_MAX or N/A in CLI.
 
+### Changed
+
+- **Added Power Cap to amd-smi monitor**.  
+  - 'amd-smi monitor -p' will display the power cap along with power.
+    ```shell
+    $ amd-smi monitor -p
+    GPU  POWER  PWR_CAP
+      0  148 W    750 W
+      1  156 W    750 W
+      2  153 W    750 W
+      ...
+    ```
+
+- **Modified VRAM display for `amd-smi monitor -v`**.  
+  - Added free VRAM and VRAM percentage.
+
+    ```shell
+    $ amd-smi monitor -v
+    GPU  VRAM_USED   VRAM_FREE  VRAM_TOTAL    VRAM%
+      0     174 MB    16011 MB    16185 MB   0.01 %
+      1      78 MB      347 MB      425 MB   0.18 %
+      ...
+    ```
 
 ## amd_smi_lib for ROCm 6.4.1
 
 ### Added
 
-- **Added `amdsmi_get_power_info_v2()` with `sensor_ind`**.
+- N/A
 
 ### Changed
 
@@ -115,10 +138,7 @@ GPU_ID  MEMORY  ACCELERATOR_TYPE  ACCELERATOR_PROFILE_INDEX  PARTITION_ID
 
 ### Removed
 
-- **Removed `sensor_ind` in `amdsmi_get_power_info()` for backwards compatibility**.  
-  - This change breaks 6.4.0 C API change, but makes it backwards compatible with 6.3
-  - Python API still accepts `sensor_ind` as an optional argument
-  - Changed AMDSMI version from 25.2 to 25.3
+- N/A
 
 ### Optimized
 
@@ -314,8 +334,7 @@ Updated `amdsmi_get_gpu_metrics_info()` and structure `amdsmi_gpu_metrics_t` to 
 
 - **Removed initialization requirements for `amdsmi_get_lib_version()` and added `amdsmi_get_rocm_version()` to the python API & CLI**.  
 
-- **Added an additional argument `sensor_ind` to `amdsmi_get_power_info()`**.  
-  - This change breaks previous C API calls and will require a change
+- **Added `amdsmi_get_power_info_v2()` with `sensor_ind`**.
   - Python API now accepts `sensor_ind` as an optional argument, does not impact previous usage
 
 - **Depricated enum `AMDSMI_NORMAL_STRING_LENGTH` in favor of `AMDSMI_MAX_STRING_LENGTH`**.  
