@@ -780,14 +780,26 @@ int Device::openSysfsFileStream(DevInfoTypes type, T *fs, const char *str) {
   bool reg_file;
 
   int ret = isRegularFile(sysfs_path, &reg_file);
-  // fallback  file using kDevFallbackFile
-  if (ret != 0 && kDevFallbackFile.find(type) != kDevFallbackFile.end()) {
-    sysfs_path = path_;
-    sysfs_path += "/device/";
-    sysfs_path += kDevFallbackFile.at(type);
 
-    DBG_FILE_ERROR(sysfs_path, str);
-    ret = isRegularFile(sysfs_path, &reg_file);
+  if (ret != 0 || !reg_file) {
+    // Handle specific types if the file does not exist
+    if (kDevFallbackFile.find(type) != kDevFallbackFile.end()) {
+
+      sysfs_path = path_ + "/device/" + kDevFallbackFile.at(type);
+      DBG_FILE_ERROR(sysfs_path, str);
+
+      // Recheck the adjusted path
+      ret = isRegularFile(sysfs_path, &reg_file);
+      if (ret != 0 || !reg_file) {
+        ss << __PRETTY_FUNCTION__
+           << " | Adjusted file path also does not exist - SYSFS file ("
+           << sysfs_path 
+           << ") for DevInfoInfoType (" << get_type_string(type)
+           << "), returning " << std::to_string(ret);
+        LOG_ERROR(ss);
+        return ret;
+      }
+    }
   }
 
   if (ret != 0) {
@@ -798,6 +810,7 @@ int Device::openSysfsFileStream(DevInfoTypes type, T *fs, const char *str) {
     LOG_ERROR(ss);
     return ret;
   }
+
   if (!reg_file) {
     ss << __PRETTY_FUNCTION__
        << " | Issue: File is not a regular file - SYSFS file ("
@@ -813,7 +826,7 @@ int Device::openSysfsFileStream(DevInfoTypes type, T *fs, const char *str) {
   if (!fs->is_open()) {
     ss << __PRETTY_FUNCTION__
        << " | Issue: Could not open - SYSFS file (" << sysfs_path << ") for "
-       << "DevInfoInfoType (" << get_type_string(type) << "), "
+       << "DevInfoTypes (" << get_type_string(type) << "), "
        << ", returning " << std::to_string(errno) << " ("
        << std::strerror(errno) << ")";
     LOG_ERROR(ss);
@@ -822,7 +835,7 @@ int Device::openSysfsFileStream(DevInfoTypes type, T *fs, const char *str) {
 
   ss << __PRETTY_FUNCTION__ << " | Successfully opened SYSFS file ("
      << sysfs_path
-     << ") for DevInfoInfoType (" << get_type_string(type)
+     << ") for DevInfoTypes (" << get_type_string(type)
      << ")";
   LOG_INFO(ss);
   return 0;
