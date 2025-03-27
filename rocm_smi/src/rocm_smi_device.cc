@@ -736,6 +736,17 @@ std::string Device::get_sys_file_path_by_type(DevInfoTypes type) const {
   return sysfs_path;
 }
 
+// The fallback sysfs to handle backward compatibilities
+static const std::map<DevInfoTypes, std::string> kDevFallbackFile = {
+  {kDevErrCntGFX, "ras/aca_gfx"},
+  {kDevErrCntSDMA, "ras/aca_sdma"},
+  {kDevErrCntUMC, "ras/aca_umc"},
+  {kDevErrCntMMHUB, "ras/aca_mmhub"},
+  {kDevErrCntPCIEBIF, "ras/aca_pcie_bif"},
+  {kDevErrCntHDP, "ras/aca_hdp"},
+  {kDevErrCntXGMIWAFL, "ras/aca_xgmi_wafl"},
+};
+
 template <typename T>
 int Device::openSysfsFileStream(DevInfoTypes type, T *fs, const char *str) {
   auto sysfs_path = path_;
@@ -769,6 +780,16 @@ int Device::openSysfsFileStream(DevInfoTypes type, T *fs, const char *str) {
   bool reg_file;
 
   int ret = isRegularFile(sysfs_path, &reg_file);
+  // fallback  file using kDevFallbackFile
+  if (ret != 0 && kDevFallbackFile.find(type) != kDevFallbackFile.end()) {
+    sysfs_path = path_;
+    sysfs_path += "/device/";
+    sysfs_path += kDevFallbackFile.at(type);
+
+    DBG_FILE_ERROR(sysfs_path, str);
+    ret = isRegularFile(sysfs_path, &reg_file);
+  }
+
   if (ret != 0) {
     ss << __PRETTY_FUNCTION__ << " | Issue: File did not exist - SYSFS file ("
        << sysfs_path
