@@ -4,123 +4,6 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ***All information listed below is for reference and subject to change.***
 
-## amd_smi_lib for ROCm 6.4.1
-
-### Added
-
-- **Added `amdsmi_get_power_info_v2()` with `sensor_ind`**.
-
-### Changed
-
-- **Changed amd-smi partition --accelerator & `amdsmi_get_gpu_accelerator_partition_profile_config()` detect users running without root/sudo privledges**
-     - Updated  `amdsmi_get_gpu_accelerator_partition_profile_config()` to return `AMDSMI_STATUS_NO_PERM` immediately
-       if users run without root/sudo permissions.
-     - Updated `amd-smi partition --accelerator` to provide a warning for users without root/sudo permissions (see example below, ***output subject to change***).
-```shell
-$ amd-smi partition --accelerator
-
-ACCELERATOR_PARTITION_PROFILES:
-
-***************************************************************************
-** WARNING:                                                              **
-** ACCELERATOR_PARTITION_PROFILES requires sudo/root permissions to run. **
-** Please run the command with sudo permissions to get accurate results. **
-***************************************************************************
-
-GPU_ID  PROFILE_INDEX  MEMORY_PARTITION_CAPS  ACCELERATOR_TYPE  PARTITION_ID     NUM_PARTITIONS  NUM_RESOURCES  RESOURCE_INDEX  RESOURCE_TYPE  RESOURCE_INSTANCES  RESOURCES_SHARED
-N/A     N/A            N/A                    N/A               0                N/A             N/A            N/A             N/A            N/A                 N/A
-N/A     N/A            N/A                    N/A               0                N/A             N/A            N/A             N/A            N/A                 N/A
-N/A     N/A            N/A                    N/A               0                N/A             N/A            N/A             N/A            N/A                 N/A
-N/A     N/A            N/A                    N/A               0                N/A             N/A            N/A             N/A            N/A                 N/A
-N/A     N/A            N/A                    N/A               0                N/A             N/A            N/A             N/A            N/A                 N/A
-N/A     N/A            N/A                    N/A               0                N/A             N/A            N/A             N/A            N/A                 N/A
-N/A     N/A            N/A                    N/A               0                N/A             N/A            N/A             N/A            N/A                 N/A
-N/A     N/A            N/A                    N/A               0                N/A             N/A            N/A             N/A            N/A                 N/A
-
-ACCELERATOR_PARTITION_RESOURCES:
-RESOURCE_INDEX  RESOURCE_TYPE  RESOURCE_INSTANCES  RESOURCES_SHARED
-N/A             N/A            N/A                 N/A
-N/A             N/A            N/A                 N/A
-N/A             N/A            N/A                 N/A
-N/A             N/A            N/A                 N/A
-N/A             N/A            N/A                 N/A
-N/A             N/A            N/A                 N/A
-N/A             N/A            N/A                 N/A
-N/A             N/A            N/A                 N/A
-
-
-Legend:
-  * = Current mode
-```
-
-- **Changed `amd-smi partition --current`, `amd-smi partition --accelerator`, and `amdsmi_get_gpu_accelerator_partition_profile()` to display partition ID for each individual partition**
-    - Host will continue to display in the full array format, they do not display the individual partitions as Baremetal/Guest setups.
-    - Baremetal and Guest MI3x setups will change to
-reflect each individual partition ID, now provided in `partition_id[0]` location (as seen in other amd-smi CLI commands).  
-This change was needed for BM/Guest setups due to other related partition outputs seen in (`amd-smi list` and `amd-smi static --partition`) and individual logical partition devices displayed. ***See examples below for reference.***  
-
-Previous output:
-```shell
-$ amd-smi partition --current
-
-CURRENT_PARTITION:
-GPU_ID  MEMORY  ACCELERATOR_TYPE  ACCELERATOR_PROFILE_INDEX  PARTITION_ID
-0       NPS1    CPX               3                          0,1,2,3,4,5,6,7
-1       NPS1    CPX               3                          N/A
-2       NPS1    CPX               3                          N/A
-3       NPS1    CPX               3                          N/A
-4       NPS1    CPX               3                          N/A
-5       NPS1    CPX               3                          N/A
-6       NPS1    CPX               3                          N/A
-7       NPS1    CPX               3                          N/A
-8       NPS1    CPX               3                          0,1,2,3,4,5,6,7
-9       NPS1    CPX               3                          N/A
-10      NPS1    CPX               3                          N/A
-...
-```
-
-New output:
-```shell
-amd-smi partition --current
-CURRENT_PARTITION:
-GPU_ID  MEMORY  ACCELERATOR_TYPE  ACCELERATOR_PROFILE_INDEX  PARTITION_ID
-0       NPS1    CPX               3                          0
-1       NPS1    CPX               3                          1
-2       NPS1    CPX               3                          2
-3       NPS1    CPX               3                          3
-4       NPS1    CPX               3                          4
-5       NPS1    CPX               3                          5
-6       NPS1    CPX               3                          6
-7       NPS1    CPX               3                          7
-8       NPS1    CPX               3                          0
-9       NPS1    CPX               3                          1
-10      NPS1    CPX               3                          2
-...
-```
-
-### Removed
-
-- **Removed `sensor_ind` in `amdsmi_get_power_info()` for backwards compatibility**.  
-  - This change breaks 6.4.0 C API change, but makes it backwards compatible with 6.3
-  - Python API still accepts `sensor_ind` as an optional argument
-  - Changed AMDSMI version from 25.2 to 25.3
-
-### Optimized
-
-- N/A
-
-### Resolved issues
-
-- **Fixed `amd-smi static --partition` for guest systems with MIx ASICs being unable to run**
-
-### Upcoming changes
-
-- N/A
-
-### Known issues
-
-- N/A
-
 ## amd_smi_lib for ROCm 6.4.0
 
 ### Added
@@ -290,6 +173,8 @@ Updated `amdsmi_get_gpu_metrics_info()` and structure `amdsmi_gpu_metrics_t` to 
             DCLK1: N/A
     ```
 
+- **Added `amdsmi_get_power_info_v2()` with `sensor_ind`**.
+
 ### Changed
 
 - **AMDSMI Library Version number to reflect changes in backwards compatability**.  
@@ -456,6 +341,92 @@ Updated structure `amdsmi_vram_info_t`:
     ...
     ```
 
+- **Changed amd-smi partition --accelerator & `amdsmi_get_gpu_accelerator_partition_profile_config()` detect users running without root/sudo privledges**  
+     - Updated  `amdsmi_get_gpu_accelerator_partition_profile_config()` to return `AMDSMI_STATUS_NO_PERM` immediately
+       if users run without root/sudo permissions.
+     - Updated `amd-smi partition --accelerator` to provide a warning for users without root/sudo permissions (see example below, ***output subject to change***).
+```shell
+$ amd-smi partition --accelerator
+
+ACCELERATOR_PARTITION_PROFILES:
+
+***************************************************************************
+** WARNING:                                                              **
+** ACCELERATOR_PARTITION_PROFILES requires sudo/root permissions to run. **
+** Please run the command with sudo permissions to get accurate results. **
+***************************************************************************
+
+GPU_ID  PROFILE_INDEX  MEMORY_PARTITION_CAPS  ACCELERATOR_TYPE  PARTITION_ID     NUM_PARTITIONS  NUM_RESOURCES  RESOURCE_INDEX  RESOURCE_TYPE  RESOURCE_INSTANCES  RESOURCES_SHARED
+N/A     N/A            N/A                    N/A               0                N/A             N/A            N/A             N/A            N/A                 N/A
+N/A     N/A            N/A                    N/A               0                N/A             N/A            N/A             N/A            N/A                 N/A
+N/A     N/A            N/A                    N/A               0                N/A             N/A            N/A             N/A            N/A                 N/A
+N/A     N/A            N/A                    N/A               0                N/A             N/A            N/A             N/A            N/A                 N/A
+N/A     N/A            N/A                    N/A               0                N/A             N/A            N/A             N/A            N/A                 N/A
+N/A     N/A            N/A                    N/A               0                N/A             N/A            N/A             N/A            N/A                 N/A
+N/A     N/A            N/A                    N/A               0                N/A             N/A            N/A             N/A            N/A                 N/A
+N/A     N/A            N/A                    N/A               0                N/A             N/A            N/A             N/A            N/A                 N/A
+
+ACCELERATOR_PARTITION_RESOURCES:
+RESOURCE_INDEX  RESOURCE_TYPE  RESOURCE_INSTANCES  RESOURCES_SHARED
+N/A             N/A            N/A                 N/A
+N/A             N/A            N/A                 N/A
+N/A             N/A            N/A                 N/A
+N/A             N/A            N/A                 N/A
+N/A             N/A            N/A                 N/A
+N/A             N/A            N/A                 N/A
+N/A             N/A            N/A                 N/A
+N/A             N/A            N/A                 N/A
+
+
+Legend:
+  * = Current mode
+```
+
+- **Changed `amd-smi partition --current`, `amd-smi partition --accelerator`, and `amdsmi_get_gpu_accelerator_partition_profile()` to display partition ID for each individual partition**  
+    - Host will continue to display in the full array format, they do not display the individual partitions as Baremetal/Guest setups.
+    - Baremetal and Guest MI3x setups will change to
+reflect each individual partition ID, now provided in `partition_id[0]` location (as seen in other amd-smi CLI commands).  
+This change was needed for BM/Guest setups due to other related partition outputs seen in (`amd-smi list` and `amd-smi static --partition`) and individual logical partition devices displayed. ***See examples below for reference.***  
+
+Previous output:
+```shell
+$ amd-smi partition --current
+
+CURRENT_PARTITION:
+GPU_ID  MEMORY  ACCELERATOR_TYPE  ACCELERATOR_PROFILE_INDEX  PARTITION_ID
+0       NPS1    CPX               3                          0,1,2,3,4,5,6,7
+1       NPS1    CPX               3                          N/A
+2       NPS1    CPX               3                          N/A
+3       NPS1    CPX               3                          N/A
+4       NPS1    CPX               3                          N/A
+5       NPS1    CPX               3                          N/A
+6       NPS1    CPX               3                          N/A
+7       NPS1    CPX               3                          N/A
+8       NPS1    CPX               3                          0,1,2,3,4,5,6,7
+9       NPS1    CPX               3                          N/A
+10      NPS1    CPX               3                          N/A
+...
+```
+
+New output:
+```shell
+amd-smi partition --current
+CURRENT_PARTITION:
+GPU_ID  MEMORY  ACCELERATOR_TYPE  ACCELERATOR_PROFILE_INDEX  PARTITION_ID
+0       NPS1    CPX               3                          0
+1       NPS1    CPX               3                          1
+2       NPS1    CPX               3                          2
+3       NPS1    CPX               3                          3
+4       NPS1    CPX               3                          4
+5       NPS1    CPX               3                          5
+6       NPS1    CPX               3                          6
+7       NPS1    CPX               3                          7
+8       NPS1    CPX               3                          0
+9       NPS1    CPX               3                          1
+10      NPS1    CPX               3                          2
+...
+```
+
 ### Removed
 
 - **Removed `GFX_BUSY_ACC` from `amd-smi metric --usage`**.  
@@ -502,6 +473,11 @@ Updated structure `amdsmi_vram_info_t`:
               XCP_0: [0 %, 0 %, 0 %, 0 %]
   ...
   ```
+
+- **Removed `sensor_ind` in `amdsmi_get_power_info()` for backwards compatibility**.  
+  - This change breaks 6.4.0 C API change, but makes it backwards compatible with 6.3
+  - Python API still accepts `sensor_ind` as an optional argument
+  - Changed AMDSMI version from 25.2 to 25.3
 
 ### Optimized
 
@@ -558,6 +534,8 @@ Updated structure `amdsmi_vram_info_t`:
         TARGET_GRAPHICS_VERSION: gfx908
         TARGET_GRAPHICS_VERSION: gfx908
   ```
+
+- **Fixed `amd-smi static --partition` for guest systems with MIx ASICs being unable to run**  
 
 ### Upcoming changes
 
