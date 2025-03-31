@@ -567,6 +567,10 @@ Updated structure `amdsmi_vram_info_t`:
 
 ### Known issues
 
+- **`amd-smi partition --accelerator` and `amdsmi_get_gpu_accelerator_partition_profile_config()` do not properly detect users running without root/sudo privileges.**  
+    - **Planned Fix**: This issue is expected to be resolved in ROCm 6.4.1. Refer to the 6.4.1 changelog for more details.  
+    - **Impact**: Output is incorrect when run without sudo/admin privileges. Accurate partition configuration details require elevated permissions to access the necessary driver interfaces.
+
 - **AMD SMI only reports 63 GPU devices when setting CPX on all 8 GPUs**  
     When setting CPX as a partition mode, there is a DRM node limitation of 64.  
     This is a known limitation of the Linux kernel, not the driver. Other drivers, such as those using PCIe space (e.g., ast), may be occupying the necessary DRM nodes.  
