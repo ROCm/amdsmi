@@ -39,7 +39,7 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
     ```
 
 - **Added dynamic virtualization mode detection**.  
-  - Added new C and Python API `amdsmi_get_gpu_virtualization_mode_info`
+  - Added new C and Python API `amdsmi_get_gpu_virtualization_mode`
   - Added new C and Python enum `amdsmi_virtualization_mode_t`
 
 - **Added TVIOL_ACTIVE to `amd-smi monitor`**.  
