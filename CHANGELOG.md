@@ -173,6 +173,7 @@ Updated `amdsmi_get_gpu_metrics_info()` and structure `amdsmi_gpu_metrics_t` to 
             DCLK1: N/A
     ```
 
+
 ### Changed
 
 - **AMDSMI Library Version number to reflect changes in backwards compatability**.  
@@ -182,9 +183,8 @@ Updated `amdsmi_get_gpu_metrics_info()` and structure `amdsmi_gpu_metrics_t` to 
 
 - **Removed initialization requirements for `amdsmi_get_lib_version()` and added `amdsmi_get_rocm_version()` to the python API & CLI**.  
 
-- **Added an additional argument `sensor_ind` to `amdsmi_get_power_info()`**.  
-  - This change breaks previous C API calls and will require a change
-  - Python API now accepts `sensor_ind` as an optional argument, does not impact previous usage
+- **Added `amdsmi_get_power_info_v2()` with `sensor_ind`**.  
+  - Python API now accepts sensor_ind as an optional argument, does not impact previous usage
 
 - **Depricated enum `AMDSMI_NORMAL_STRING_LENGTH` in favor of `AMDSMI_MAX_STRING_LENGTH`**.  
 
@@ -288,7 +288,7 @@ Functions affected by struct change are:
     ```
 
 - **Updated API `amdsmi_get_violation_status()` structure and CLI `amdsmi_violation_status_t` to include GFX Clk below host limit**  
-Updated structure `amdsmi_violation_status_t`:  
+    Updated structure `amdsmi_violation_status_t`:  
 
     ```C
     typedef struct {
@@ -303,7 +303,7 @@ Updated structure `amdsmi_violation_status_t`:
     ```
 
 - **Updated API `amdsmi_get_gpu_vram_info()` structure and CLI `amd-smi static --vram`**  
-Updated structure `amdsmi_vram_info_t`:  
+    Updated structure `amdsmi_vram_info_t`:  
 
     ```C
     typedef struct {
@@ -318,7 +318,7 @@ Updated structure `amdsmi_vram_info_t`:
     amdsmi_status_t amdsmi_get_gpu_vram_info(amdsmi_processor_handle processor_handle, amdsmi_vram_info_t *info)
     ```
 
-  Example CLI output:
+    Example CLI output:
 
     ```shell
     $ amd-smi static --vram
@@ -339,17 +339,22 @@ Updated structure `amdsmi_vram_info_t`:
     ...
     ```
 
-- **Changed amd-smi partition --accelerator & `amdsmi_get_gpu_accelerator_partition_profile_config()` detect users running without root/sudo privledges**.  
-     - Updated  `amdsmi_get_gpu_accelerator_partition_profile_config()` to return `AMDSMI_STATUS_NO_PERM` immediately if users run without root/sudo permissions.
+- **Changed amd-smi partition --accelerator & `amdsmi_get_gpu_accelerator_partition_profile_config()` detect users running without root/sudo privledges**  
+     - Updated  `amdsmi_get_gpu_accelerator_partition_profile_config()` to return `AMDSMI_STATUS_NO_PERM` immediately
+       if users run without root/sudo permissions.
      - Updated `amd-smi partition --accelerator` to provide a warning for users without root/sudo permissions (see example below, ***output subject to change***).
+
     ```shell
     $ amd-smi partition --accelerator
+
     ACCELERATOR_PARTITION_PROFILES:
+
     ***************************************************************************
     ** WARNING:                                                              **
     ** ACCELERATOR_PARTITION_PROFILES requires sudo/root permissions to run. **
     ** Please run the command with sudo permissions to get accurate results. **
     ***************************************************************************
+
     GPU_ID  PROFILE_INDEX  MEMORY_PARTITION_CAPS  ACCELERATOR_TYPE  PARTITION_ID     NUM_PARTITIONS  NUM_RESOURCES  RESOURCE_INDEX  RESOURCE_TYPE  RESOURCE_INSTANCES  RESOURCES_SHARED
     N/A     N/A            N/A                    N/A               0                N/A             N/A            N/A             N/A            N/A                 N/A
     N/A     N/A            N/A                    N/A               0                N/A             N/A            N/A             N/A            N/A                 N/A
@@ -359,6 +364,7 @@ Updated structure `amdsmi_vram_info_t`:
     N/A     N/A            N/A                    N/A               0                N/A             N/A            N/A             N/A            N/A                 N/A
     N/A     N/A            N/A                    N/A               0                N/A             N/A            N/A             N/A            N/A                 N/A
     N/A     N/A            N/A                    N/A               0                N/A             N/A            N/A             N/A            N/A                 N/A
+
     ACCELERATOR_PARTITION_RESOURCES:
     RESOURCE_INDEX  RESOURCE_TYPE  RESOURCE_INSTANCES  RESOURCES_SHARED
     N/A             N/A            N/A                 N/A
@@ -369,16 +375,22 @@ Updated structure `amdsmi_vram_info_t`:
     N/A             N/A            N/A                 N/A
     N/A             N/A            N/A                 N/A
     N/A             N/A            N/A                 N/A
+
+
     Legend:
     * = Current mode
     ```
-- **Changed `amd-smi partition --current`, `amd-smi partition --accelerator`, and `amdsmi_get_gpu_accelerator_partition_profile()` to display partition ID for each individual partition**.  
+
+- **Changed `amd-smi partition --current`, `amd-smi partition --accelerator`, and `amdsmi_get_gpu_accelerator_partition_profile()` to display partition ID for each individual partition**  
     - Host will continue to display in the full array format, they do not display the individual partitions as Baremetal/Guest setups.
     - Baremetal and Guest MI3x setups will change to reflect each individual partition ID, now provided in `partition_id[0]` location (as seen in other amd-smi CLI commands).  
     - This change was needed for BM/Guest setups due to other related partition outputs seen in (`amd-smi list` and `amd-smi static --partition`) and individual logical partition devices displayed.    
+
     Previous output:
+
     ```shell
     $ amd-smi partition --current
+
     CURRENT_PARTITION:
     GPU_ID  MEMORY  ACCELERATOR_TYPE  ACCELERATOR_PROFILE_INDEX  PARTITION_ID
     0       NPS1    CPX               3                          0,1,2,3,4,5,6,7
@@ -394,7 +406,9 @@ Updated structure `amdsmi_vram_info_t`:
     10      NPS1    CPX               3                          N/A
     ...
     ```
+
     New output:
+
     ```shell
     amd-smi partition --current
     CURRENT_PARTITION:
@@ -515,6 +529,8 @@ Updated structure `amdsmi_vram_info_t`:
         TARGET_GRAPHICS_VERSION: gfx908
         TARGET_GRAPHICS_VERSION: gfx908
   ```
+
+- **Fixed `amd-smi static --partition` for guest systems with MIx ASICs being unable to run**  
 
 ### Upcoming changes
 
