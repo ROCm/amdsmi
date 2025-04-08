@@ -1699,7 +1699,7 @@ class AMDSMICommands():
                 gpu_metric_version_str = json.dumps(gpu_metric_version_info, indent=4)
                 logging.debug("GPU Metrics table Version for GPU %s | %s", gpu_id, gpu_metric_version_str)
             except amdsmi_exception.AmdSmiLibraryException as e:
-                logging.debug("Unable to load GPU Metrics table version for %s | %s", gpu_id, e.err_info)
+                logging.debug("Unable to load GPU Metrics table version for GPU %s | %s", gpu_id, e.err_info)
 
             try:
                 # Get GPU Metrics table
@@ -2027,7 +2027,7 @@ class AMDSMICommands():
                                 clocks[gfx_index]["clk_locked"] = "ENABLED"
                             else:
                                 clocks[gfx_index]["clk_locked"] = "DISABLED"
-                except KeyError as e:
+                except Exception as e:
                     logging.debug("Failed to get current_gfxclks for gpu %s | %s", gpu_id, e)
 
                 # Populate MEM clock value
@@ -2037,7 +2037,7 @@ class AMDSMICommands():
                         clocks["mem_0"]["clk"] = self.helpers.unit_format(self.logger,
                                                                           current_mem_clock,
                                                                           clock_unit)
-                except KeyError as e:
+                except Exception as e:
                     logging.debug("Failed to get current_uclk for gpu %s | %s", gpu_id, e)
 
                 # Populate VCLK clock values
@@ -2052,7 +2052,7 @@ class AMDSMICommands():
                         clocks[vclk_index]["clk"] = self.helpers.unit_format(self.logger,
                                                                              current_vclk_clock,
                                                                              clock_unit)
-                except KeyError as e:
+                except Exception as e:
                     logging.debug("Failed to get current_vclk0s for gpu %s | %s", gpu_id, e)
 
                 # Populate DCLK clock values
@@ -2067,7 +2067,7 @@ class AMDSMICommands():
                         clocks[dclk_index]["clk"] = self.helpers.unit_format(self.logger,
                                                                              current_dclk_clock,
                                                                              clock_unit)
-                except KeyError as e:
+                except Exception as e:
                     logging.debug("Failed to get current_dclk0s for gpu %s | %s", gpu_id, e)
 
                 # Populate FCLK clock value; fclk not present in gpu_metrics so use amdsmi_get_clk_freq
@@ -2087,7 +2087,7 @@ class AMDSMICommands():
                     clocks["socclk_0"]["clk"] = self.helpers.unit_format(self.logger,
                                                                          current_socclk_clock,
                                                                          clock_unit)
-                except KeyError as e:
+                except Exception as e:
                     logging.debug("Failed to get current_socclk for gpu %s | %s", gpu_id, e)
 
                 # Populate the max and min clock values from sysfs
@@ -6967,7 +6967,7 @@ class AMDSMICommands():
                             item_list = item.split(": ")
                             message_dict.update({item_list[0]: item_list[1]})
                     values_dict["message"] = message_dict
-                    commands.logger.store_output(device, 'values', values_dict)
+                    commands.logger.store_output(event['processor_handle'], 'values', values_dict)
                     commands.logger.print_output()
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.err_code != amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_DATA:

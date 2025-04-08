@@ -47,6 +47,10 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
       ...
     ```
 
+### Resolved issues
+
+- **Deduplicated GPU IDs when receiving events using the `amd-smi event` command**.  
+
 ## amd_smi_lib for ROCm 6.4.1
 
 ### Added
@@ -196,7 +200,7 @@ GPU_ID  MEMORY  ACCELERATOR_TYPE  ACCELERATOR_PROFILE_INDEX  PARTITION_ID
     ```
 
 - **Added dynamic virtualization mode detection**.  
-  - Added new C and Python API `amdsmi_get_gpu_virtualization_mode_info`
+  - Added new C and Python API `amdsmi_get_gpu_virtualization_mode`
   - Added new C and Python enum `amdsmi_virtualization_mode_t`
 
 - **Added TVIOL_ACTIVE to `amd-smi monitor`**.  
@@ -627,6 +631,9 @@ Updated structure `amdsmi_vram_info_t`:
     2) ***Update your OS' kernel***  
     3) ***Building and installing your own kernel***  
 
+- **ModuleNotFoundError: No module named 'more_itertools' issue on Azure Linux 3 and Mariner2.0**  
+ With the reintroduction of python3-wheel and python3-setuptools dependencies in the CMake of amdsmi, Azure Linux 3 and Mariner2.0 now require more_itertools to build the Python library successfully. 
+  - **Workaround:** Execute `sudo python3 -m pip install more_itertools` before installation to resolve this issue.
 ## amd_smi_lib for ROCm 6.3.1
 
 ### Added
