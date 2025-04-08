@@ -5810,39 +5810,56 @@ class AMDSMICommands():
                     self.logger.table_header += 'PCIE_REPLAY'.rjust(13)
                 if args.vram_usage and not args.default_output:
                     try:
-                        vram_usage = amdsmi_interface.amdsmi_get_gpu_vram_usage(args.gpu)
-                        monitor_values['vram_used'] = vram_usage['vram_used']
-                        monitor_values['vram_total'] = vram_usage['vram_total']
+                        vram_used = amdsmi_interface.amdsmi_get_gpu_memory_usage(args.gpu, amdsmi_interface.AmdSmiMemoryType.VRAM) // (1024*1024)
+                        vram_total = amdsmi_interface.amdsmi_get_gpu_memory_total(args.gpu, amdsmi_interface.AmdSmiMemoryType.VRAM) // (1024*1024)
+                        monitor_values['vram_used'] = vram_used
+                        monitor_values['vram_free'] = vram_total - vram_used
+                        monitor_values['vram_total'] = vram_total
+                        monitor_values['vram_percent'] = round ((vram_used / vram_total), 2)
+        
                         vram_usage_unit = "MB"
+                        vram_percent_unit = "%"
                         if self.logger.is_human_readable_format():
                             monitor_values['vram_used'] = f"{monitor_values['vram_used']} {vram_usage_unit}"
+                            monitor_values['vram_free'] = f"{monitor_values['vram_free']} {vram_usage_unit}"
                             monitor_values['vram_total'] = f"{monitor_values['vram_total']} {vram_usage_unit}"
+                            monitor_values['vram_percent'] = f"{monitor_values['vram_percent']} {vram_percent_unit}"
                         if self.logger.is_json_format():
                             monitor_values['vram_used'] = {"value" : monitor_values['vram_used'],
                                                            "unit" : vram_usage_unit}
+                            monitor_values['vram_free'] = {"value" : monitor_values['vram_free'],
+                                                           "unit" : vram_usage_unit}
                             monitor_values['vram_total'] = {"value" : monitor_values['vram_total'],
                                                             "unit" : vram_usage_unit}
+                            monitor_values['vram_percent'] = {"value" : monitor_values['vram_percent'],
+                                                              "unit" : vram_percent_unit}
                     except amdsmi_exception.AmdSmiLibraryException as e:
                         monitor_values['vram_used'] = "N/A"
+                        monitor_values['vram_free'] = "N/A"
                         monitor_values['vram_total'] = "N/A"
+                        monitor_values['vram_percent'] = "N/A"
                         logging.debug("Failed to get vram memory usage on gpu %s | %s", gpu_id, e.get_error_info())
-
+        
                     self.logger.table_header += 'VRAM_USED'.rjust(11)
+                    self.logger.table_header += 'VRAM_FREE'.rjust(12)
                     self.logger.table_header += 'VRAM_TOTAL'.rjust(12)
+                    self.logger.table_header += 'VRAM%'.rjust(9)
+        
                 if args.vram_usage and args.default_output:
                     try:
-                        vram_usage = amdsmi_interface.amdsmi_get_gpu_vram_usage(args.gpu)
+                        vram_used = amdsmi_interface.amdsmi_get_gpu_memory_usage(args.gpu, amdsmi_interface.AmdSmiMemoryType.VRAM) // (1024*1024)
+                        vram_total = amdsmi_interface.amdsmi_get_gpu_memory_total(args.gpu, amdsmi_interface.AmdSmiMemoryType.VRAM) // (1024*1024)
                         vram_usage_unit = "GB"
                         if self.logger.is_json_format():
-                            monitor_values['vram_used'] = {"value" : round(vram_usage['vram_used']/1024,1),
+                            monitor_values['vram_used'] = {"value" : round(vram_used/1024,1),
                                                            "unit" : vram_usage_unit}
-                            monitor_values['vram_total'] = {"value" : round(vram_usage['vram_total']/1024,1),
+                            monitor_values['vram_total'] = {"value" : round(vram_total/1024,1),
                                                             "unit" : vram_usage_unit}
                         elif self.logger.is_csv_format():
-                            monitor_values['vram_used'] = round(vram_usage['vram_used']/1024,1)
-                            monitor_values['vram_total'] = round(vram_usage['vram_total']/1024,1)
+                            monitor_values['vram_used'] = round(vram_used/1024,1)
+                            monitor_values['vram_total'] = round(vram_total/1024,1)
                         else:
-                            monitor_values['vram_usage'] = f"{vram_usage['vram_used']/1024:5.1f}/{vram_usage['vram_total']/1024:5.1f} {vram_usage_unit}".rjust(16,' ')
+                            monitor_values['vram_usage'] = f"{vram_used/1024:5.1f}/{vram_total/1024:5.1f} {vram_usage_unit}".rjust(16,' ')
                     except amdsmi_exception.AmdSmiLibraryException as e:
                         if self.logger.is_json_format():
                             monitor_values['vram_used'] = "N/A"
@@ -5852,40 +5869,6 @@ class AMDSMICommands():
                         logging.debug("Failed to get vram memory usage on gpu %s | %s", gpu_id, e.get_error_info())
         
                     self.logger.table_header += 'VRAM_USAGE'.rjust(16)
-                if args.vram_usage and not args.default_output:
-                    try:
-                      vram_usage = amdsmi_interface.amdsmi_get_gpu_vram_usage(args.gpu)
-                      monitor_values['vram_used'] = vram_usage['vram_used']
-                      monitor_values['vram_free'] = vram_usage['vram_total'] - vram_usage['vram_used']
-                      monitor_values['vram_total'] = vram_usage['vram_total']
-                      monitor_values['vram_percent'] = round ((vram_usage['vram_used'] / vram_usage['vram_total']), 2)
-                      vram_usage_unit = "MB"
-                      vram_percent_unit = "%"
-                      if self.logger.is_human_readable_format():
-                        monitor_values['vram_used'] = f"{monitor_values['vram_used']} {vram_usage_unit}"
-                        monitor_values['vram_free'] = f"{monitor_values['vram_free']} {vram_usage_unit}"
-                        monitor_values['vram_total'] = f"{monitor_values['vram_total']} {vram_usage_unit}"
-                        monitor_values['vram_percent'] = f"{monitor_values['vram_percent']} {vram_percent_unit}"
-                      if self.logger.is_json_format():
-                        monitor_values['vram_used'] = {"value" : monitor_values['vram_used'],
-                                         "unit" : vram_usage_unit}
-                        monitor_values['vram_free'] = {"value" : monitor_values['vram_free'],
-                                         "unit" : vram_usage_unit}
-                        monitor_values['vram_total'] = {"value" : monitor_values['vram_total'],
-                                        "unit" : vram_usage_unit}
-                        monitor_values['vram_percent'] = {"value" : monitor_values['vram_percent'],
-                                          "unit" : vram_percent_unit}
-                    except amdsmi_exception.AmdSmiLibraryException as e:
-                      monitor_values['vram_used'] = "N/A"
-                      monitor_values['vram_free'] = "N/A"
-                      monitor_values['vram_total'] = "N/A"
-                      monitor_values['vram_percent'] = "N/A"
-                      logging.debug("Failed to get vram memory usage on gpu %s | %s", gpu_id, e.get_error_info())
-
-                    self.logger.table_header += 'VRAM_USED'.rjust(11)
-                    self.logger.table_header += 'VRAM_FREE'.rjust(12)
-                    self.logger.table_header += 'VRAM_TOTAL'.rjust(12)
-                    self.logger.table_header += 'VRAM%'.rjust(9)
                 if args.pcie:
                     if pcie_info != "N/A":
                         pcie_bw_unit = 'Mb/s'
