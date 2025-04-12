@@ -4,6 +4,81 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ***All information listed below is for reference and subject to change.***
 
+## amd_smi_lib for ROCm 6.4.1
+
+### Added
+
+- **Added dumping CPER entries from RAS tool `amdsmi_get_gpu_cper_entries()` to Python & C APIs.**  
+  - CPER entries consist of `amdsmi_cper_hdr_t`
+
+    ```shell
+    typedef struct {
+        char                   signature[4];       /* "CPER" */
+        uint16_t               revision;
+        uint32_t               signature_end;      /* 0xFFFFFFFF */
+        uint16_t               sec_cnt;
+        amdsmi_cper_sev_t      error_severity;
+        //valid_bits_t          valid_bits;
+        //uint32_t              valid_mask;
+        amdsmi_cper_valid_bits_t cper_valid_bits;
+        uint32_t                record_length;     /* Total size of CPER Entry */
+        amdsmi_cper_timestamp_t timestamp;
+        char                    platform_id[16];
+        amdsmi_cper_guid_t      partition_id;      /* Reserved */
+        char                  creator_id[16];
+        amdsmi_cper_guid_t    notify_type;         /* CMC, MCE, can use amdsmi_cper_notifiy_type_t to decode*/
+        char                  record_id[8];        /* Unique CPER Entry ID */
+        uint32_t              flags;               /* Reserved */
+        uint64_t              persistence_info;    /* Reserved */
+        uint8_t               reserved[12];        /* Reserved */
+    } amdsmi_cper_hdr_t;
+    ```
+
+  - Dumping CPER entires is also enabled in the CLI interface via `sudo amd-smi ras --cper`
+
+    ```shell
+    $ sudo amd-smi ras --cper
+    Dumping CPER file header entries for GPU 0:
+    "0": {
+       "error_severity": "non_fatal_corrected",
+       "notify_type": "CMC",
+       "timestamp": "2025/04/08 18:23:44",
+       "signature": "CPER",
+       "revision": 256,
+       "signature_end": "0xffffffff",
+       "sec_cnt": 1,
+       "record_length": 472,
+       "platform_id": "0x1002:0x74A2",
+       "creator_id": "amdgpu",
+       "record_id": "5:1",
+       "flags": 0,
+       "persistence_info": 0
+       }
+    ```
+### Changed
+
+- N/A
+
+### Removed
+
+- N/A
+
+### Optimized
+
+- N/A
+
+### Resolved issues
+
+- N/A
+
+### Upcoming changes
+
+- N/A
+
+### Known issues
+
+- N/A
+
 ## amd_smi_lib for ROCm 6.4.0
 
 ### Added
