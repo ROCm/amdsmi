@@ -55,6 +55,7 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
        "persistence_info": 0
        }
     ```
+
 ### Changed
 
 - N/A
@@ -69,7 +70,102 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ### Resolved issues
 
-- N/A
+- **Fixed partition enumeration - `amd-smi list -e`, `amdsmi_get_gpu_enumeration_info()`'s `amdsmi_enumeration_info_t` `drm_card` and `drm_render` fields**  
+    Previously, partitions incorrectly reflected the primary node (1st GPU) and showed the DRM Render Minor as renderD128. Partition nodes mirrored renderD128's information, which was incorrect. See the "*Previous Outputs in CPX*" example below.
+
+    Device enumeration was updated to correctly map DRM Render Minor paths. See the "*Corrected Outputs in CPX*" example below.
+
+    These changes impact what information is readable/writable for the partition nodes.
+
+    ***Example: Previous Outputs in CPX***  
+
+    ```shell
+    $ amd-smi list -e                                                                    
+    GPU: 0
+        BDF: 0000:0c:00.0
+        UUID: <Redacted>
+        KFD_ID: 18421
+        NODE_ID: 2
+        PARTITION_ID: 0
+        RENDER: renderD128
+        CARD: card0
+        HSA_ID: 2
+        HIP_ID: 0
+        HIP_UUID: <Redacted>
+
+    GPU: 1
+        BDF: 0000:0c:00.1
+        UUID: <Redacted>
+        KFD_ID: 48116
+        NODE_ID: 3
+        PARTITION_ID: 1
+        RENDER: N/A
+        CARD: N/A
+        HSA_ID: 3
+        HIP_ID: 1
+        HIP_UUID: GPU-<Redacted>
+    ...
+    ```
+
+    ```shell
+    $ amd-smi monitor
+    GPU  POWER   GPU_T   MEM_T   GFX_CLK   GFX%   MEM%   ENC%   DEC%      VRAM_USAGE
+      0  201 W   46 °C   42 °C  2107 MHz    0 %    0 %    N/A    0 %    0.3/192.0 GB
+      1  201 W   46 °C   42 °C  2107 MHz    0 %    0 %    N/A    0 %    0.3/192.0 GB
+      2  201 W   46 °C   42 °C  2107 MHz    0 %    0 %    N/A    0 %    0.3/192.0 GB
+      3  201 W   46 °C   42 °C  2107 MHz    0 %    0 %    N/A    0 %    0.3/192.0 GB
+      4  201 W   46 °C   42 °C  2107 MHz    0 %    0 %    N/A    0 %    0.3/192.0 GB
+      5  201 W   46 °C   42 °C  2107 MHz    0 %    0 %    N/A    0 %    0.3/192.0 GB
+      6  201 W   46 °C   42 °C  2107 MHz    0 %    0 %    N/A    0 %    0.3/192.0 GB
+      7  201 W   46 °C   42 °C  2107 MHz    0 %    0 %    N/A    0 %    0.3/192.0 GB
+      8  210 W   46 °C   42 °C  2104 MHz    0 %    0 %    N/A    0 %    0.3/192.0 GB
+    ...
+    ```
+
+    ***Example: Corrected outputs in CPX***  
+
+    ```shell
+    $ amd-smi list -e
+    GPU: 0
+        BDF: 0000:0c:00.0
+        UUID: <Redacted>
+        KFD_ID: 18421
+        NODE_ID: 2
+        PARTITION_ID: 0
+        RENDER: renderD128
+        CARD: card0
+        HSA_ID: 2
+        HIP_ID: 0
+        HIP_UUID: GPU-<Redacted>
+
+    GPU: 1
+        BDF: 0000:0c:00.1
+        UUID: <Redacted>
+        KFD_ID: 48116
+        NODE_ID: 3
+        PARTITION_ID: 1
+        RENDER: renderD129
+        CARD: card1
+        HSA_ID: 3
+        HIP_ID: 1
+        HIP_UUID: GPU-<Redacted>
+    ...
+    ```
+
+    ```shell
+    $ amd-smi monitor
+    GPU  POWER   GPU_T   MEM_T   GFX_CLK   GFX%   MEM%   ENC%   DEC%      VRAM_USAGE
+      0  202 W   46 °C   42 °C  2107 MHz    0 %    0 %    N/A    0 %    0.3/192.0 GB
+      1    N/A     N/A     N/A       N/A    N/A    N/A    N/A    N/A    0.5/ 24.0 GB
+      2    N/A     N/A     N/A       N/A    N/A    N/A    N/A    N/A    0.5/ 24.0 GB
+      3    N/A     N/A     N/A       N/A    N/A    N/A    N/A    N/A    0.5/ 24.0 GB
+      4    N/A     N/A     N/A       N/A    N/A    N/A    N/A    N/A    0.5/ 24.0 GB
+      5    N/A     N/A     N/A       N/A    N/A    N/A    N/A    N/A    0.5/ 24.0 GB
+      6    N/A     N/A     N/A       N/A    N/A    N/A    N/A    N/A    0.5/ 24.0 GB
+      7    N/A     N/A     N/A       N/A    N/A    N/A    N/A    N/A    0.5/ 24.0 GB
+      8  210 W   46 °C   42 °C  2104 MHz    0 %    0 %    N/A    0 %    0.3/192.0 GB
+    ...
+    ```
 
 ### Upcoming changes
 
@@ -584,8 +680,10 @@ Functions affected by struct change are:
     Write                                               229.1 MB     229.1 MB     N/A          229.1 MB     229.1 MB     229.1 MB     229.1 MB     229.1 MB
     ...
     ```
-
+****
 ### Resolved issues
+
+- **Fixed `amd-smi static --partition` for guest systems with MIx ASICs being unable to run**
 
 - **Fixed `amdsmi_get_gpu_asic_info` and `amd-smi static --asic` not displaying graphics version properly for MI2x, MI1x or Navi 3x ASICs.**  
 
