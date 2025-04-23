@@ -52,6 +52,7 @@ amdsmi_status_t smi_amdgpu_get_driver_version(amd::smi::AMDSmiGPUDevice* device,
 amdsmi_status_t smi_amdgpu_get_pcie_speed_from_pcie_type(uint16_t pcie_type, uint32_t *pcie_speed);
 amdsmi_status_t smi_amdgpu_get_market_name_from_dev_id(amd::smi::AMDSmiGPUDevice* device, char *market_name);
 amdsmi_status_t smi_amdgpu_is_gpu_power_management_enabled(amd::smi::AMDSmiGPUDevice* device, bool *enabled);
+amdsmi_status_t smi_clear_char_and_reinitialize(char buffer[], uint32_t len, std::string newString);
 std::string smi_split_string(std::string str, char delim);
 std::string smi_amdgpu_get_status_string(amdsmi_status_t ret, bool fullStatus);
 
