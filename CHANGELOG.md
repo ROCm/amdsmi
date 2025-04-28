@@ -58,7 +58,16 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ### Changed
 
-- N/A
+- **Modified VRAM display for `amd-smi monitor -v`**.  
+  - Added free VRAM and VRAM percentage.
+
+    ```shell
+    $ amd-smi monitor -v
+    GPU  VRAM_USED   VRAM_FREE  VRAM_TOTAL    VRAM%
+      0     174 MB    16011 MB    16185 MB   0.01 %
+      1      78 MB      347 MB      425 MB   0.18 %
+      ...
+    ```
 
 ### Removed
 
