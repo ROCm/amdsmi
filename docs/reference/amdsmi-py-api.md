@@ -1160,16 +1160,16 @@ Example:
 
 ```python
 for device in devices:
-        entries, new_cursor = amdsmi_get_gpu_cper_entries(device, severity_mask, buffer_size, initial_cursor)
-        print("CPER entries for device", device)        
-        for key, entry in entries.items():
-            print("Entry", key)
-            print("  Error Severity:", entry.get("error_severity", "Unknown"))
-            print("  Notify Type:", entry.get("notify_type", "Unknown"))
-            print("  Timestamp:", entry.get("timestamp", ""))
-            print()       
-        print("New Cursor Position:", new_cursor)
-except AmdSmiException as e:
+    entries, new_cursor, cper_data = amdsmi_get_gpu_cper_entries(device, severity_mask, buffer_size, initial_cursor)
+    print("CPER entries for device", device)
+    for key, entry in entries.items():
+        print("Entry", key)
+        print("  Error Severity:", entry.get("error_severity", "Unknown"))
+        print("  Notify Type:", entry.get("notify_type", "Unknown"))
+        print("  Timestamp:", entry.get("timestamp", ""))
+        print()
+    print("New Cursor Position:", new_cursor)
+except AmdSmiException as e:****
     print(e)
 ```
 

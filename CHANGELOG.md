@@ -56,6 +56,9 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
        }
     ```
 
+- **Added `amdsmi_get_gpu_busy_percent` to the C API.**  
+  - This function retrieves the GPU busy percentage from the `gpu_busy_percent` sysfs file.
+
 ### Changed
 
 - **Modified VRAM display for `amd-smi monitor -v`**.  
@@ -75,7 +78,7 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ### Optimized
 
-- N/A
+- **Improved load times for CLI commands when the GPU has multiple partitions.**  
 
 ### Resolved issues
 

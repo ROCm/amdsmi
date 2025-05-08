@@ -58,10 +58,6 @@ class AMDSmiSystem {
 
     amdsmi_status_t get_cpu_model(uint32_t *cpu_model);
 
-    amdsmi_status_t clean_up_drm() { return drm_.cleanup();}
-
-    amdsmi_status_t init_drm() { return drm_.init();}
-
  private:
     AMDSmiSystem() : init_flag_(AMDSMI_INIT_AMD_GPUS) {}
 

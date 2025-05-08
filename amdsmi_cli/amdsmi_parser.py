@@ -1433,10 +1433,10 @@ class AMDSMIParser(argparse.ArgumentParser):
             "Supports filtering by severity, exporting to different formats, and continuous monitoring.\n"
             "This command accepts options only; no positional arguments are required."
         )
+        ras_optionals_title = "RAS Arguments"
 
         # Help text for RAS arguments
         cper_help = "Trigger CPER data retrieval"
-
         severity_choices = ["nonfatal-uncorrected", "fatal", "nonfatal-corrected", "all"]
         severity_choices_str = ", ".join(severity_choices)
         severity_help = f"Set the SEVERITY filters from the following:\n    {severity_choices_str}"
@@ -1445,6 +1445,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         follow_help = "Continuously monitor for new entries"
 
         ras_parser = subparsers.add_parser("ras", help=ras_help, description=ras_description)
+        ras_parser._optionals.title = ras_optionals_title
         ras_parser.formatter_class = lambda prog: AMDSMISubparserHelpFormatter(prog)
         ras_parser.set_defaults(func=func)
 
