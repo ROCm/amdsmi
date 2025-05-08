@@ -1243,16 +1243,6 @@ amdsmi_process_handle_t = ctypes.c_uint32
 class struct_amdsmi_proc_info_t(Structure):
     pass
 
-class struct_engine_usage_(Structure):
-    pass
-
-struct_engine_usage_._pack_ = 1 # source:False
-struct_engine_usage_._fields_ = [
-    ('gfx', ctypes.c_uint64),
-    ('enc', ctypes.c_uint64),
-    ('reserved', ctypes.c_uint32 * 12),
-]
-
 class struct_memory_usage_(Structure):
     pass
 
@@ -1262,6 +1252,16 @@ struct_memory_usage_._fields_ = [
     ('cpu_mem', ctypes.c_uint64),
     ('vram_mem', ctypes.c_uint64),
     ('reserved', ctypes.c_uint32 * 10),
+]
+
+class struct_engine_usage_(Structure):
+    pass
+
+struct_engine_usage_._pack_ = 1 # source:False
+struct_engine_usage_._fields_ = [
+    ('gfx', ctypes.c_uint64),
+    ('enc', ctypes.c_uint64),
+    ('reserved', ctypes.c_uint32 * 12),
 ]
 
 struct_amdsmi_proc_info_t._pack_ = 1 # source:False
@@ -2548,18 +2548,6 @@ struct_amdsmi_cper_timestamp_t._fields_ = [
 ]
 
 amdsmi_cper_timestamp_t = struct_amdsmi_cper_timestamp_t
-class struct_valid_bits_t(Structure):
-    pass
-
-struct_valid_bits_t._pack_ = 1 # source:False
-struct_valid_bits_t._fields_ = [
-    ('platform_id', ctypes.c_uint32, 1),
-    ('timestamp', ctypes.c_uint32, 1),
-    ('partition_id', ctypes.c_uint32, 1),
-    ('reserved', ctypes.c_uint32, 29),
-]
-
-valid_bits_t = struct_valid_bits_t
 class union_amdsmi_cper_valid_bits_t(Union):
     pass
 
@@ -3325,8 +3313,7 @@ __all__ = \
     'struct_engine_usage_', 'struct_fw_info_list_',
     'struct_memory_usage_', 'struct_nps_flags_', 'struct_numa_range_',
     'struct_pcie_metric_', 'struct_pcie_static_',
-    'struct_amdsmi_bdf_t', 'struct_valid_bits_',
-    'struct_valid_bits_t', 'uint32_t', 'uint64_t', 'uint8_t',
-    'union_amdsmi_bdf_t', 'union_amdsmi_cper_valid_bits_t',
-    'union_amdsmi_nps_caps_t', 'valid_bits_t']
+    'struct_amdsmi_bdf_t', 'struct_valid_bits_', 'uint32_t',
+    'uint64_t', 'uint8_t', 'union_amdsmi_bdf_t',
+    'union_amdsmi_cper_valid_bits_t', 'union_amdsmi_nps_caps_t']
 

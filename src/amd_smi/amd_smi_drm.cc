@@ -28,7 +28,6 @@
 #include <memory>
 #include <regex>
 #include "amd_smi/impl/amd_smi_drm.h"
-#include "amd_smi/impl/amdgpu_drm.h"
 #include "amd_smi/impl/amd_smi_common.h"
 #include "rocm_smi/rocm_smi.h"
 #include "rocm_smi/rocm_smi_main.h"
@@ -59,12 +58,7 @@ std::string AMDSmiDrm::find_file_in_folder(const std::string& folder,
 }
 
 amdsmi_status_t AMDSmiDrm::init() {
-    // A few RAII handler
-    using drm_version_ptr = std::unique_ptr<drmVersion,
-            decltype(&drmFreeVersion)>;
-    // using drm_device_ptr = std::unique_ptr(drmDevicePtr,
-    //         decltype(&drmFreeDevice));
-
+    std::ostringstream ss;
     int fd = -1;
 
 
@@ -73,35 +67,47 @@ amdsmi_status_t AMDSmiDrm::init() {
         return status;
     }
 
+    typedef int (*drmCommandWrite_t)(int fd, unsigned long drmCommandIndex,
+                                    void *data, unsigned long size);
+    drmCommandWrite_t drmCommandWrite = nullptr;
+
     // load symbol from libdrm
-    drm_cmd_write_ = nullptr;
-    status = lib_loader_.load_symbol(&drm_cmd_write_, "drmCommandWrite");
+    status = lib_loader_.load_symbol(reinterpret_cast<drmCommandWrite_t *>(&drmCommandWrite),
+                                     "drmCommandWrite");
     if (status != AMDSMI_STATUS_SUCCESS) {
         return status;
     }
 
-    using drmGetDeviceType = int(*)(int, drmDevicePtr*);   // drmGetDevice
-    using drmFreeDeviceType = void(*)(drmDevicePtr*);     // drmFreeDevice
+    typedef int (*drmGetDevice_t)(int fd, drmDevicePtr *device);  // drmGetDevice
+    typedef void (*drmFreeDevice_t)(drmDevicePtr *device);  // drmFreeDevice
 
-    drmGetDeviceType drm_get_device = nullptr;
-    drmFreeDeviceType drm_free_device = nullptr;
-    drm_get_version_ = nullptr;
-    drm_free_version_ = nullptr;
+    drmGetDevice_t drm_get_device = nullptr;
+    drmFreeDevice_t drm_free_device = nullptr;
 
-    status = lib_loader_.load_symbol(&drm_get_version_, "drmGetVersion");
+    // Define a function pointer for drmGetVersion
+    typedef struct _drmVersion* (*drmGetVersion_t)(int fd);  // drmGetVersion
+    drmGetVersion_t drm_get_version = nullptr;
+    typedef void (*drmFreeVersion_t)(drmVersionPtr version);  // drmFreeVersion
+    drmFreeVersion_t drm_free_version = nullptr;
+
+    status = lib_loader_.load_symbol(
+        reinterpret_cast<drmGetVersion_t *>(&drm_get_version), "drmGetVersion");
     if (status != AMDSMI_STATUS_SUCCESS) {
         return status;
     }
-    status = lib_loader_.load_symbol(&drm_free_version_, "drmFreeVersion");
+    status = lib_loader_.load_symbol(
+        reinterpret_cast<drmGetVersion_t *>(&drm_free_version), "drmFreeVersion");
     if (status != AMDSMI_STATUS_SUCCESS) {
         return status;
     }
 
-    status = lib_loader_.load_symbol(&drm_get_device, "drmGetDevice");
+    status = lib_loader_.load_symbol(
+        reinterpret_cast<drmGetDevice_t *>(&drm_get_device), "drmGetDevice");
     if (status != AMDSMI_STATUS_SUCCESS) {
         return status;
     }
-    status = lib_loader_.load_symbol(&drm_free_device, "drmFreeDevice");
+    status = lib_loader_.load_symbol(
+        reinterpret_cast<drmFreeDevice_t *>(&drm_free_device), "drmFreeDevice");
     if (status != AMDSMI_STATUS_SUCCESS) {
         return status;
     }
@@ -133,8 +139,7 @@ amdsmi_status_t AMDSmiDrm::init() {
 
         amdsmi_bdf_t bdf;
         if (fd >= 0) {
-            auto version = drm_version_ptr(
-                drm_get_version_(fd), drm_free_version_);
+            auto version = drm_get_version(fd);
             if (strcmp("amdgpu", version->name)) {  // only amdgpu
                 close(fd);
                 fd = -1;
@@ -144,6 +149,29 @@ amdsmi_status_t AMDSmiDrm::init() {
                 close(fd);
                 fd = -1;
             }
+            ss << __PRETTY_FUNCTION__ << " | "
+               << " render file name: " << name << "\n"
+               << "; fd: " << std::dec << fd << "\n"
+               << "; drm version->name: " << version->name << "\n"
+               << "; drm version->date: " << version->date << "\n"
+               << "; drm version_major.version_minor.version_patchlevel: "
+               << std::dec << version->version_major << "."
+               << version->version_minor << "."
+               << version->version_patchlevel << "\n"
+               << "; device->deviceinfo.pci->vendor_id: 0x"
+               << std::hex << std::setfill('0') << std::setw(4)
+               << static_cast<uint32_t>(device->deviceinfo.pci->vendor_id) << "\n"
+               << "; device->deviceinfo.pci->device_id: 0x"
+               << std::hex << std::setfill('0') << std::setw(4)
+               << static_cast<uint32_t>(device->deviceinfo.pci->device_id) << "\n"
+               << "; device->deviceinfo.pci->revision_id: 0x"
+               << std::hex << std::setfill('0') << std::setw(4)
+               << static_cast<uint32_t>(device->deviceinfo.pci->revision_id) << "\n"
+               << "; device->deviceinfo.pci->subdevice_id: 0x"
+               << std::hex << std::setfill('0') << std::setw(4)
+               << static_cast<uint32_t>(device->deviceinfo.pci->subdevice_id) << "\n";
+            LOG_INFO(ss);
+            drm_free_version(version);
         }
 
         drm_fds_.push_back(fd);
@@ -170,18 +198,20 @@ amdsmi_status_t AMDSmiDrm::init() {
         bdf.function_number = ((bdf_rocm & 0x7));
         bdf.device_number = ((bdf_rocm & 0xF8) >> 3);
         bdf.bus_number = ((bdf_rocm & 0xFF00) >> 8);
-        // TODO: This is throwing a compiler warning since bdf.domain_number is part of a struct
-        //       and is 48 bits long and throws a conversion warning
-        bdf.domain_number = ((bdf_rocm & 0xFFFFFFFF00000000) >> 32);
+        bdf.domain_number = static_cast<uint32_t>(((bdf_rocm & 0xFFFFFFFF00000000) >> 32));
         ss << __PRETTY_FUNCTION__ << " | " << "Received bdf: Domain = " << bdf.domain_number
            << "; Bus# = " << bdf.bus_number << "; Device# = "<< bdf.device_number
            << "; Function# = " << bdf.function_number;
         LOG_INFO(ss);
 
-        vendor_id = device->deviceinfo.pci->vendor_id;
+        bdf.domain_number = static_cast<uint64_t>(((bdf_rocm >> 32) & 0xFFFFFFFF));
+        bdf.bus_number = static_cast<uint64_t>(((bdf_rocm >> 8) & 0xFF));
+        bdf.device_number = static_cast<uint64_t>(((bdf_rocm >> 3) & 0x1F));
+        bdf.function_number = static_cast<uint64_t>((bdf_rocm & 0x7));
 
         drm_bdfs_.push_back(bdf);
         drm_free_device(&device);
+        close(fd);
     }
 
     // cannot find any valid fds.
@@ -204,100 +234,6 @@ amdsmi_status_t AMDSmiDrm::cleanup() {
     lib_loader_.unload();
     return AMDSMI_STATUS_SUCCESS;
 }
-
-amdsmi_status_t AMDSmiDrm::amdgpu_query_driver_name(int fd, std::string& driver_name) {
-    // RAII handler
-    using drm_version_ptr = std::unique_ptr<drmVersion,
-            decltype(&drmFreeVersion)>;
-    std::lock_guard<std::mutex> guard(drm_mutex_);
-    auto version = drm_version_ptr(
-                drm_get_version_(fd), drm_free_version_);
-    if (version == nullptr) return AMDSMI_STATUS_DRM_ERROR;
-    driver_name = version->name;
-    return AMDSMI_STATUS_SUCCESS;
-}
-
-amdsmi_status_t AMDSmiDrm::amdgpu_query_driver_date(int fd, std::string& driver_date) {
-    // RAII handler
-    using drm_version_ptr = std::unique_ptr<drmVersion,
-            decltype(&drmFreeVersion)>;
-    std::lock_guard<std::mutex> guard(drm_mutex_);
-    auto version = drm_version_ptr(
-                drm_get_version_(fd), drm_free_version_);
-    if (version == nullptr) return AMDSMI_STATUS_DRM_ERROR;
-    driver_date = version->date;
-    return AMDSMI_STATUS_SUCCESS;
-}
-
-amdsmi_status_t AMDSmiDrm::amdgpu_query_info(int fd, unsigned info_id,
-            unsigned size, void *value) {
-    if (drm_cmd_write_ == nullptr) return AMDSMI_STATUS_NOT_SUPPORTED;
-    std::lock_guard<std::mutex> guard(drm_mutex_);
-
-    struct drm_amdgpu_info request;
-    memset(&request, 0, sizeof(request));
-    request.return_pointer = (uintptr_t)value;
-    request.return_size = size;
-    request.query = info_id;
-    int status = drm_cmd_write_(fd, DRM_AMDGPU_INFO,
-            &request, sizeof(struct drm_amdgpu_info));
-    if (status == 0) return AMDSMI_STATUS_SUCCESS;
-    return AMDSMI_STATUS_DRM_ERROR;
-}
-
-amdsmi_status_t AMDSmiDrm::amdgpu_query_fw(int fd, unsigned info_id,
-        unsigned fw_type, unsigned size, void *value) {
-    if (drm_cmd_write_ == nullptr) return AMDSMI_STATUS_NOT_SUPPORTED;
-
-    std::lock_guard<std::mutex> guard(drm_mutex_);
-
-    struct drm_amdgpu_info request;
-    memset(&request, 0, sizeof(request));
-    request.return_pointer = (uintptr_t)value;
-    request.return_size = size;
-    request.query = info_id;
-    request.query_fw.fw_type = fw_type;
-    int status = drm_cmd_write_(fd, DRM_AMDGPU_INFO, &request,
-                    sizeof(struct drm_amdgpu_info));
-    if (status == 0) return AMDSMI_STATUS_SUCCESS;
-    return AMDSMI_STATUS_DRM_ERROR;
-}
-
-amdsmi_status_t AMDSmiDrm::amdgpu_query_hw_ip(int fd, unsigned info_id,
-        unsigned hw_ip_type, unsigned size, void *value) {
-    if (drm_cmd_write_ == nullptr) return AMDSMI_STATUS_NOT_SUPPORTED;
-
-    std::lock_guard<std::mutex> guard(drm_mutex_);
-
-    struct drm_amdgpu_info request;
-    memset(&request, 0, sizeof(request));
-    request.return_pointer = (uintptr_t)value;
-    request.return_size = size;
-    request.query = info_id;
-    request.query_hw_ip.type = hw_ip_type;
-    int status = drm_cmd_write_(fd, DRM_AMDGPU_INFO, &request,
-                sizeof(struct drm_amdgpu_info));
-    if (status == 0) return AMDSMI_STATUS_SUCCESS;
-    return AMDSMI_STATUS_DRM_ERROR;
-}
-
-amdsmi_status_t AMDSmiDrm::amdgpu_query_vbios(int fd, void *info) {
-    if (drm_cmd_write_ == nullptr) return AMDSMI_STATUS_NOT_SUPPORTED;
-
-    std::lock_guard<std::mutex> guard(drm_mutex_);
-
-    struct drm_amdgpu_info request;
-    memset(&request, 0, sizeof request);
-    request.return_pointer = (uint64_t) info;
-    request.return_size = sizeof(drm_amdgpu_info_vbios);
-    request.query = AMDGPU_INFO_VBIOS;
-    request.vbios_info.type = AMDGPU_INFO_VBIOS_INFO;
-    int status = drm_cmd_write_(fd, DRM_AMDGPU_INFO, &request,
-                    sizeof(struct drm_amdgpu_info));
-    if (status == 0) return AMDSMI_STATUS_SUCCESS;
-    return AMDSMI_STATUS_DRM_ERROR;
-}
-
 
 amdsmi_status_t AMDSmiDrm::get_drm_fd_by_index(uint32_t gpu_index, uint32_t *fd_info) const {
     if (gpu_index + 1 > drm_fds_.size()) return AMDSMI_STATUS_NOT_SUPPORTED;
@@ -337,7 +273,7 @@ std::vector<std::string>& AMDSmiDrm::get_drm_paths() {
 }
 
 bool AMDSmiDrm::check_if_drm_is_supported() {
-    return (drm_cmd_write_ != NULL && drm_bdfs_.size() >0) ? true : false;
+    return drm_bdfs_.size() > 0;
 }
 
 std::vector<amdsmi_bdf_t> AMDSmiDrm::get_bdfs() {
