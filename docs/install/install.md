@@ -13,10 +13,15 @@ and command line tool either as part of the
 
 (install_reqs)=
 ## Requirements
+
 The following are required to install and use the AMD SMI libraries and CLI
 tool.
 
 * Python 3.6.8+ (64-bit)
+  * prerequisite modules needed for RPM Installs:
+     * python3-wheel
+     * python3-setuptools
+
 * `amdgpu` driver must be loaded for [`amdsmi_init()`](#cpp_hello_amdsmi) to
   work.
 
