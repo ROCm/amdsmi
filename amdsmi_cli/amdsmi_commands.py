@@ -6364,6 +6364,17 @@ class AMDSMICommands():
                print("Press CTRL + C to stop.")
                self._cper_follow_prompted = True
 
+            partition_id = -1
+            try:
+                kfd_info = amdsmi_interface.amdsmi_get_gpu_kfd_info(args.gpu)
+                partition_id = kfd_info['current_partition_id']
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                logging.debug("Failed to get kfd info for gpu %s | %s", gpu_id, e.get_error_info())
+
+            if partition_id != 0:
+                logging.debug(f"Skipping gpu {gpu_id} on non zero partition {partition_id}")
+                return
+
             if args.folder and not getattr(self, "_cper_folder_prompted", False):
                 print(f"Dumping CPER file header entries in folder {args.folder}")
                 self._cper_folder_prompted = True
