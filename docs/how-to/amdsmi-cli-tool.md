@@ -27,7 +27,7 @@ Refer to the [installation instructions](../install/install.md).
 
 ## Get started
 
-The amd-smi command provides system management and monitoring capabilities for
+The `amd-smi` command provides system management and monitoring capabilities for
 AMD hardware. When run without arguments, it reports the version and platform
 detected:
 
@@ -808,6 +808,29 @@ Command Modifiers:
   --loglevel LEVEL            Set the logging level from the possible choices:
                                 DEBUG, INFO, WARNING, ERROR, CRITICAL
 ```
+
+## Interpreting the output
+
+When you run an `amd-smi` command, the tool presents detailed information
+across various categories, each containing specific fields and their current
+values.
+
+(cli-output-na)=
+### About N/A values
+
+`N/A` typically means that the data for that field is unavailable or irrelevant in
+the current context for your specific device and its software environment. The
+exact reason might vary depending on the field and the GPU. Depending on the context,
+you can intepret it to mean one of the following:
+
+- **Not applicable**: The feature or parameter doesn't apply to your specific
+  AMD hardware (for example, display-related clocks on a headless compute card)
+  or its current configuration (for example, partition details when the GPU is
+  not partitioned).
+
+- **Not available**: The information cannot be retrieved by the `amd-smi` tool at this time. This could be because:
+  - The hardware component does not report that specific metric.
+  - The currently installed `amdgpu` driver version doesn't support querying this particular piece of information through `amd-smi-lib`.
 
 (cli-ex-static)=
 ### Example output from amd-smi static
