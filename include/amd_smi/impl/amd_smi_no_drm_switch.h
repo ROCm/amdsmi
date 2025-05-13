@@ -29,7 +29,6 @@
 #define AMD_SMI_INCLUDE_IMPL_AMD_SMI_NO_DRM_SWITCH_H_
 
 #include <unistd.h>
-#include <xf86drm.h>
 #include <vector>
 #include <memory>
 #include <mutex>  // NOLINT
