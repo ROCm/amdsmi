@@ -60,6 +60,8 @@ class AMDSmiGPUDevice: public AMDSmiProcessor {
     pthread_mutex_t* get_mutex();
     uint32_t get_gpu_id() const;
     uint32_t get_gpu_fd() const;
+    uint32_t get_card_id();            // -e feature + we can get card_id for our internal functions
+    uint32_t get_drm_render_minor();   // -e feature + we can get card_id for our internal functions
     std::string& get_gpu_path();
     amdsmi_bdf_t  get_bdf();
     bool check_if_drm_is_supported() { return drm_.check_if_drm_is_supported(); }
@@ -69,21 +71,10 @@ class AMDSmiGPUDevice: public AMDSmiProcessor {
         return amdgpu_get_compute_process_list(ComputeProcessListType_t::kAllProcesses);
     }
 
-    amdsmi_status_t amdgpu_query_info(unsigned info_id,
-                    unsigned size, void *value) const;
-    amdsmi_status_t amdgpu_query_hw_ip(unsigned info_id, unsigned hw_ip_type,
-            unsigned size, void *value) const;
-    amdsmi_status_t amdgpu_query_fw(unsigned info_id, unsigned fw_type,
-            unsigned size, void *value) const;
-    amdsmi_status_t amdgpu_query_vbios(void *info) const;
-    amdsmi_status_t amdgpu_query_driver_name(std::string& name) const;
-    amdsmi_status_t amdgpu_query_driver_date(std::string& date) const;
     amdsmi_status_t amdgpu_query_cpu_affinity(std::string& cpu_affinity) const;
 
 // New methods for -e feature
-    std::string bdf_to_string() const;
-    uint32_t get_card_from_bdf() const;
-    uint32_t get_render_id() const;
+    std::string bdf_to_string() const;     // -e feature
 
  private:
     uint32_t gpu_id_;
@@ -92,6 +83,8 @@ class AMDSmiGPUDevice: public AMDSmiProcessor {
     amdsmi_bdf_t bdf_;
     uint32_t vendor_id_;
     AMDSmiDrm& drm_;
+    uint32_t card_index_;
+    uint32_t drm_render_minor_;
     GPUComputeProcessList_t compute_process_list_;
     int32_t get_compute_process_list_impl(GPUComputeProcessList_t& compute_process_list,
                                           ComputeProcessListType_t list_type);

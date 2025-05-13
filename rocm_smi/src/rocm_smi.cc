@@ -867,6 +867,9 @@ rsmi_topo_numa_affinity_get(uint32_t dv_ind, int32_t *numa_node) {
   DEVICE_MUTEX
   std::string str_val;
   ret = get_dev_value_str(amd::smi::kDevNumaNode, dv_ind, &str_val);
+  if (ret != RSMI_STATUS_SUCCESS){
+    return ret;
+  }
   *numa_node = std::stoi(str_val, nullptr);
 
   return ret;
@@ -980,12 +983,46 @@ rsmi_dev_id_get(uint32_t dv_ind, uint16_t *id) {
   rsmi_status_t ret;
   ss << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ss);
+  if (id == nullptr) {
+    return RSMI_STATUS_INVALID_ARGS;
+  }
   CHK_SUPPORT_NAME_ONLY(id)
+  // Set the device ID to max value
+  *id = std::numeric_limits<uint16_t>::max();
 
+  // Get the device ID from KGD
   ret = get_id(dv_ind, amd::smi::kDevDevID, id);
-  ss << __PRETTY_FUNCTION__ << " | ======= end ======="
-     << ", reporting " << amd::smi::getRSMIStatusString(ret);
   LOG_TRACE(ss);
+  ss << __PRETTY_FUNCTION__
+     << (ret == RSMI_STATUS_SUCCESS ?
+          " | No fall back needed retrieved from KGD" : " | fall back needed")
+     << " | Device #: " << std::to_string(dv_ind)
+     << " | Data: device_id = " << std::to_string(*id)
+     << " | ret = " << getRSMIStatusString(ret, false);
+  LOG_DEBUG(ss);
+  // If the device ID is not supported, use KFD's device ID
+  if (ret != RSMI_STATUS_SUCCESS) {
+    GET_DEV_AND_KFDNODE_FROM_INDX
+    uint32_t node_id;
+    uint64_t kfd_device_id;
+    int ret_kfd = kfd_node->get_node_id(&node_id);
+    ret_kfd = amd::smi::read_node_properties(node_id, "device_id", &kfd_device_id);
+    if (ret_kfd == 0) {
+      *id = static_cast<uint16_t>(kfd_device_id);
+      ret = RSMI_STATUS_SUCCESS;
+    } else {
+      *id = std::numeric_limits<uint16_t>::max();
+      ret = RSMI_STATUS_NOT_SUPPORTED;
+    }
+    ss << __PRETTY_FUNCTION__
+       << " | Issue: Could not read device from sysfs, falling back to KFD" << "\n"
+       << " ; Device #: " << std::to_string(dv_ind) << "\n"
+       << " ; ret_kfd: " << std::to_string(ret_kfd) << "\n"
+       << " ; node: " << std::to_string(node_id) << "\n"
+       << " ; Data: device_id (from KFD)= " << std::to_string(*id) << "\n"
+       << " ; ret = " << getRSMIStatusString(ret, false);
+    LOG_DEBUG(ss);
+  }
   return ret;
 }
 
@@ -1047,11 +1084,42 @@ rsmi_dev_subsystem_id_get(uint32_t dv_ind, uint16_t *id) {
 
 rsmi_status_t
 rsmi_dev_vendor_id_get(uint32_t dv_ind, uint16_t *id) {
+  TRY
   std::ostringstream ss;
   ss << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ss);
   CHK_SUPPORT_NAME_ONLY(id)
-  return get_id(dv_ind, amd::smi::kDevVendorID, id);
+  int ret_kfd = 0;
+  uint32_t node_id;
+  rsmi_status_t ret = get_id(dv_ind, amd::smi::kDevVendorID, id);
+  bool need_fallback = false;
+  if (ret != RSMI_STATUS_SUCCESS) {
+    need_fallback = true;
+  }
+  if (ret != RSMI_STATUS_SUCCESS) {
+    GET_DEV_AND_KFDNODE_FROM_INDX
+    uint64_t kfd_vendor_id;
+    ret_kfd = kfd_node->get_node_id(&node_id);
+    ret_kfd = amd::smi::read_node_properties(node_id, "vendor_id", &kfd_vendor_id);
+    if (ret_kfd == 0) {
+      *id = static_cast<uint16_t>(kfd_vendor_id);
+      ret = RSMI_STATUS_SUCCESS;
+    } else {
+      *id = std::numeric_limits<uint16_t>::max();
+      ret = RSMI_STATUS_NOT_SUPPORTED;
+    }
+  }
+  ss << __PRETTY_FUNCTION__
+     << (need_fallback ? " | Needed to fallback to use KFD to read vendor_id" :
+      " | Read through SYSFS to read vendor_id") << "\n"
+     << " ; Device #: " << std::to_string(dv_ind) << "\n"
+     << " ; ret_kfd: " << std::to_string(ret_kfd) << "\n"
+     << " ; node: " << std::to_string(node_id) << "\n"
+     << " ; Data: vendor_id: " << std::to_string(*id) << "\n"
+     << " ; ret = " << getRSMIStatusString(ret, false);
+  LOG_INFO(ss);
+  return ret;
+  CATCH
 }
 
 rsmi_status_t
@@ -2933,12 +3001,12 @@ rsmi_dev_vendor_name_get(uint32_t dv_ind, char *name, size_t len) {
   std::ostringstream ss;
   ss << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ss);
+  if (name == nullptr || len == 0) {
+    return RSMI_STATUS_INVALID_ARGS;
+  }
   CHK_SUPPORT_NAME_ONLY(name)
 
   assert(len > 0);
-  if (len == 0) {
-    return RSMI_STATUS_INVALID_ARGS;
-  }
 
   DEVICE_MUTEX
   ret = get_dev_name_from_id(dv_ind, name, len, NAME_STR_VENDOR);
@@ -3537,6 +3605,9 @@ rsmi_dev_gpu_reset(uint32_t dv_ind) {
 
   // Read amdgpu_gpu_recover to reset it
   ret = get_dev_value_int(amd::smi::kDevGpuReset, dv_ind, &status_code);
+  ss << __PRETTY_FUNCTION__ << " | ======= end ======= | returning "
+     << getRSMIStatusString(ret, false);
+  LOG_INFO(ss);
   return ret;
 
   CATCH
@@ -4591,11 +4662,47 @@ rsmi_dev_unique_id_get(uint32_t dv_ind, uint64_t *unique_id) {
   CHK_SUPPORT_NAME_ONLY(unique_id)
 
   DEVICE_MUTEX
+  if (unique_id == nullptr) {
+    return RSMI_STATUS_INVALID_ARGS;
+  }
+  *unique_id = std::numeric_limits<uint64_t>::max();
   ret = get_dev_value_int(amd::smi::kDevUniqueId, dv_ind, unique_id);
+
+  ss << __PRETTY_FUNCTION__
+     << (ret == RSMI_STATUS_SUCCESS ?
+      " | No fall back needed retrieved from KGD" : " | fall back needed")
+     << " | Device #: " << std::to_string(dv_ind)
+     << " | Data: unique_id = " << std::to_string(*unique_id)
+     << " | ret = " << getRSMIStatusString(ret, false);
+  LOG_DEBUG(ss);
+  // If the unique ID is not supported, use KFD's unique ID
+  if (ret != RSMI_STATUS_SUCCESS) {
+    GET_DEV_AND_KFDNODE_FROM_INDX
+    uint32_t node_id;
+    uint64_t kfd_unique_id;
+    int ret_kfd = kfd_node->get_node_id(&node_id);
+    ret_kfd = amd::smi::read_node_properties(node_id, "unique_id", &kfd_unique_id);
+    if (ret_kfd == 0) {
+      *unique_id = kfd_unique_id;
+      ret = RSMI_STATUS_SUCCESS;
+    } else {
+      *unique_id = std::numeric_limits<uint64_t>::max();
+      ret = RSMI_STATUS_NOT_SUPPORTED;
+    }
+    ss << __PRETTY_FUNCTION__
+       << " | Issue: Could not read unique_id from sysfs, falling back to KFD" << "\n"
+       << " ; Device #: " << std::to_string(dv_ind) << "\n"
+       << " ; ret_kfd: " << std::to_string(ret_kfd) << "\n"
+       << " ; node: " << std::to_string(node_id) << "\n"
+       << " ; Data: unique_id (from KFD)= " << std::to_string(*unique_id) << "\n"
+       << " ; ret = " << getRSMIStatusString(ret, false);
+    LOG_DEBUG(ss);
+  }
   return ret;
 
   CATCH
 }
+
 rsmi_status_t
 rsmi_dev_counter_create(uint32_t dv_ind, rsmi_event_type_t type,
                                            rsmi_event_handle_t *evnt_handle) {
@@ -6637,8 +6744,10 @@ rsmi_dev_partition_id_get(uint32_t dv_ind, uint32_t *partition_id) {
   std::string strCompPartition = "UNKNOWN";
   const uint32_t PARTITION_LEN = 10;
   char compute_partition[PARTITION_LEN];
+  compute_partition[0] = '\0';
   rsmi_status_t ret = rsmi_dev_compute_partition_get(dv_ind, compute_partition, PARTITION_LEN);
   if (ret == RSMI_STATUS_SUCCESS) {
+    strCompPartition.clear();
     strCompPartition = compute_partition;
   }
   uint64_t pci_id = UINT64_MAX;
@@ -6651,11 +6760,12 @@ rsmi_dev_partition_id_get(uint32_t dv_ind, uint32_t *partition_id) {
   bdf_sstream << std::hex << std::setfill('0') << std::setw(4)
   << ((pci_id >> 32) & 0xFFFFFFFF) << ":";
   bdf_sstream << std::hex << std::setfill('0') << std::setw(2) << ((pci_id >> 8) & 0xFF) << ":";
-  bdf_sstream << std::hex << std::setfill('0') << std::setw(2) << ((pci_id >> 3) & 0xF8) << ".";
+  bdf_sstream << std::hex << std::setfill('0') << std::setw(2) << ((pci_id >> 3) & 0x1F) << ".";
   bdf_sstream << std::hex << std::setfill('0') << +(pci_id & 0x7);
-  bdf_sstream << "\nPartition ID ((pci_id >> 28) & 0xf): " << std::dec
+  bdf_sstream << "\n[Option 1] Partition ID ((pci_id >> 28) & 0xf): " << std::dec
   << static_cast<int>((pci_id >> 28) & 0xf);
-  bdf_sstream << "\nPartition ID (pci_id & 0x7): " << std::dec << static_cast<int>(pci_id & 0x7);
+  bdf_sstream << "\n[Option 2] Partition ID (pci_id & 0x7): " << std::dec
+  << static_cast<int>(pci_id & 0x7);
   // std::cout << __PRETTY_FUNCTION__ << " BDF: " << bdf_sstream.str() << std::endl;
 
   /**
@@ -6673,15 +6783,18 @@ rsmi_dev_partition_id_get(uint32_t dv_ind, uint32_t *partition_id) {
    * bits [7:3] = Device
    * bits [2:0] = Function (partition id maybe in bits [2:0]) <-- Fallback for non SPX modes
    */
+
+  // If the partition_id is still not set (bits [31:28]), we will use the fallback
+  // in function bits. We will use bits [2:0] as the partition ID.
   if (*partition_id != UINT32_MAX && *partition_id == 0 &&
-     (strCompPartition == "DPX" || strCompPartition == "TPX"
-     || strCompPartition == "CPX" || strCompPartition == "QPX")) {
+     static_cast<uint32_t>(pci_id & 0x7) != 0) {
     *partition_id = static_cast<uint32_t>(pci_id & 0x7);
   }
   ss << __PRETTY_FUNCTION__
      << " | ======= end ======= "
      << " | Success"
      << " | Device #: " << dv_ind
+     << " | Compute Partition: " << strCompPartition
      << " | Type: partition_id"
      << " | Data: " << static_cast<int>(*partition_id)
      << " | Returning = "
@@ -7552,6 +7665,21 @@ rsmi_dev_metrics_log_get(uint32_t dv_ind)
   LOG_INFO(ostrstream);
 
   return status_code;
+  CATCH
+}
+
+rsmi_status_t rsmi_dev_device_identifiers_get(uint32_t dv_ind,
+                  rsmi_device_identifiers_t *smi_device_identifiers) {
+  TRY
+  std::ostringstream ss;
+  ss << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ss);
+  GET_DEV_FROM_INDX
+  if (smi_device_identifiers == nullptr) {
+    return RSMI_STATUS_INVALID_ARGS;
+  }
+  rsmi_status_t ret = RSMI_STATUS_NOT_SUPPORTED;
+  return ret = dev->get_smi_device_identifiers(dv_ind, smi_device_identifiers);
   CATCH
 }
 

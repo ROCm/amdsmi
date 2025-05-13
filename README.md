@@ -40,6 +40,12 @@ The following are required to install and use the AMD SMI library through its la
 
 * Python 3.6.8+ (64-bit)
 
+### Note: No module named more_itertools warning on Azure Linux 3
+During the driver installation process on Azure Linux 3, you might encounter the `ModuleNotFoundError: No module named 'more_itertools'` warning. This warning is a result of the reintroduction of `python3-wheel` and `python3-setuptools` dependencies in the CMake of AMD SMI, which requires `more_itertools` to build these Python libraries. This issue will be fixed in a future ROCm release. As a workaround, use the following command before installation:
+```
+sudo python3 -m pip install more_itertools 
+```
+
 ### Go API prerequisites
 
 * Go version 1.20 or greater
@@ -163,7 +169,7 @@ This section describes the prerequisites and steps to build AMD SMI from source.
 To build the AMD SMI library, the following components are required. Note that the software versions specified were used
 during development; earlier versions are not guaranteed to work.
 
-* CMake (v3.14.0 or later) -- `python3 -m pip install cmake`
+* CMake (v3.20.0 or later) -- `python3 -m pip install cmake`
 * g++ (v5.4.0 or later)
 * libdrm-dev (for Ubuntu and Debian)
 * libdrm-devel (for RPM-based distributions)

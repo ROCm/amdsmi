@@ -195,14 +195,15 @@ typedef enum {
 //! Year should follow the IP driver package version: 22.40/23.10 and similar
 #define AMDSMI_LIB_VERSION_YEAR 25  //!< To Be Deprecated
 
-//! Major version should be changed for every header change (adding/deleting APIs, changing names, fields of structures, etc.)
+//! Major version should be changed for every header change that breaks ABI
+//! Such as adding/deleting APIs, changing names, fields of structures, etc.
 #define AMDSMI_LIB_VERSION_MAJOR 25
 
 //! Minor version should be updated for each API change, but without changing headers
 #define AMDSMI_LIB_VERSION_MINOR 4
 
 //! Release version should be set to 0 as default and can be updated by the PMs for each CSP point release
-#define AMDSMI_LIB_VERSION_RELEASE 0
+#define AMDSMI_LIB_VERSION_RELEASE 2
 
 #define AMDSMI_LIB_VERSION_CREATE_STRING(MAJOR, MINOR, RELEASE) (#MAJOR "." #MINOR "." #RELEASE)
 #define AMDSMI_LIB_VERSION_EXPAND_PARTS(MAJOR_STR, MINOR_STR, RELEASE_STR) AMDSMI_LIB_VERSION_CREATE_STRING(MAJOR_STR, MINOR_STR, RELEASE_STR)
@@ -317,6 +318,7 @@ typedef enum {
     AMDSMI_STATUS_NO_SLOT = 33,             //!< No more free slot
     AMDSMI_STATUS_DRIVER_NOT_LOADED = 34,   //!< Processor driver not loaded
     // Data and size errors
+    AMDSMI_STATUS_MORE_DATA = 39,           //!< There is more data than the buffer size the user passed
     AMDSMI_STATUS_NO_DATA = 40,             //!< No data was found for a given input
     AMDSMI_STATUS_INSUFFICIENT_SIZE = 41,   //!< Not enough resources were available for the operation
     AMDSMI_STATUS_UNEXPECTED_SIZE = 42,     //!< An unexpected amount of data was read
@@ -688,7 +690,7 @@ typedef union {
 /**
  * @brief Structure holds enumeration information
  *
- * @cond @tag{gpu_bm_linux} @tag{host} @endcond
+ * @cond @tag{gpu_bm_linux} @tag{guest_windows} @tag{guest_1vf} @tag{guest_mvf} @endcond
  */
 typedef struct {
     uint32_t drm_render; // the render node under /sys/class/drm/renderD*
@@ -1430,6 +1432,39 @@ typedef enum  {
 } amdsmi_clk_limit_type_t;
 
 /**
+ * @brief Cper sev
+ *
+ * @cond @tag{gpu_bm_linux} @tag{host} @endcond
+ */
+typedef enum {
+    AMDSMI_CPER_SEV_NON_FATAL_UNCORRECTED = 0,
+    AMDSMI_CPER_SEV_FATAL                 = 1,
+    AMDSMI_CPER_SEV_NON_FATAL_CORRECTED   = 2,
+    AMDSMI_CPER_SEV_NUM                   = 3,
+    AMDSMI_CPER_SEV_UNUSED = 10,
+} amdsmi_cper_sev_t;
+
+/**
+ * @brief Cper notify
+ *
+ * @cond @tag{gpu_bm_linux} @endcond
+ */
+typedef enum {
+    AMDSMI_CPER_NOTIFY_TYPE_CMC = 0x450eBDD72DCE8BB1,
+    AMDSMI_CPER_NOTIFY_TYPE_CPE = 0x4a55D8434E292F96,
+    AMDSMI_CPER_NOTIFY_TYPE_MCE = 0x4cc5919CE8F56FFE,
+    AMDSMI_CPER_NOTIFY_TYPE_PCIE = 0x4dfc1A16CF93C01F,
+    AMDSMI_CPER_NOTIFY_TYPE_INIT = 0x454a9308CC5263E8,
+    AMDSMI_CPER_NOTIFY_TYPE_NMI = 0x42c9B7E65BAD89FF,
+    AMDSMI_CPER_NOTIFY_TYPE_BOOT = 0x409aAB403D61A466,
+    AMDSMI_CPER_NOTIFY_TYPE_DMAR = 0x4c27C6B3667DD791,
+    AMDSMI_CPER_NOTIFY_TYPE_SEA = 0x11E4BBE89A78788A,
+    AMDSMI_CPER_NOTIFY_TYPE_SEI = 0x4E87B0AE5C284C81,
+    AMDSMI_CPER_NOTIFY_TYPE_PEI = 0x4214520409A9D5AC,
+    AMDSMI_CPER_NOTIFY_TYPE_CXL_COMPONENT = 0x49A341DF69293BC9,
+} amdsmi_cper_notify_type_t;
+
+/**
  * @brief The current ECC state
  *
  * @cond @tag{gpu_bm_linux} @endcond
@@ -1725,11 +1760,11 @@ typedef struct {
      * @brief v1.6 additions
      * The max uint32_t will be used if that information is N/A
      */
-    uint32_t gfx_busy_inst[AMDSMI_MAX_NUM_XCC];       //!< Utilization Instantaneous in %
-    uint16_t jpeg_busy[AMDSMI_MAX_NUM_JPEG_ENG_V1];   //!< Utilization Instantaneous in % (UPDATED: to 40 in v1.8)
-    uint16_t vcn_busy[AMDSMI_MAX_NUM_VCN];            //!< Utilization Instantaneous in %
+    uint32_t gfx_busy_inst[AMDSMI_MAX_NUM_XCC];      //!< Utilization Instantaneous in %
+    uint16_t jpeg_busy[AMDSMI_MAX_NUM_JPEG_ENG_V1];  //!< Utilization Instantaneous in % (UPDATED: to 40 in v1.8)
+    uint16_t vcn_busy[AMDSMI_MAX_NUM_VCN];           //!< Utilization Instantaneous in %
 
-    uint64_t gfx_busy_acc[AMDSMI_MAX_NUM_XCC];   //!< Utilization Accumulated in %
+    uint64_t gfx_busy_acc[AMDSMI_MAX_NUM_XCC];       //!< Utilization Accumulated in %
 
    /**
     * @brief v1.7 additions
@@ -2653,8 +2688,7 @@ amdsmi_get_gpu_device_uuid(amdsmi_processor_handle processor_handle, unsigned in
  *
  *  @ingroup tagProcDiscovery
  *
- *  @platform{gpu_bm_linux} @platform{host} @platform{guest_1vf}  @platform{guest_mvf}
- *  @platform{guest_windows}
+ *  @platform{gpu_bm_linux} @platform{guest_1vf}  @platform{guest_mvf} @platform{guest_windows}
  *
  *  @details        This function returns Enumeration information of the corresponding
  *                  processor_handle. It will return the render number, card number,
@@ -3149,7 +3183,8 @@ amdsmi_get_energy_count(amdsmi_processor_handle processor_handle, uint64_t *ener
  *  @param[in] sensor_ind a 0-based sensor index. Normally, this will be 0.
  *  If a processor has more than one sensor, it could be greater than 0.
  *
- *  @param[in] cap a uint64_t that indicates the desired power cap
+ *  @param[in] cap a uint64_t that indicates the desired power cap.
+ *  The @p cap value must be greater than 0.
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
@@ -3390,6 +3425,7 @@ amdsmi_get_gpu_bad_page_info(amdsmi_processor_handle processor_handle, uint32_t 
  */
 amdsmi_status_t
 amdsmi_get_gpu_bad_page_threshold(amdsmi_processor_handle processor_handle, uint32_t *threshold);
+
 
 /**
  *  @brief Verify the checksum of RAS EEPROM. It is not supported on virtual
@@ -3742,6 +3778,25 @@ amdsmi_status_t amdsmi_set_gpu_fan_speed(amdsmi_processor_handle processor_handl
  *  performance.
  *  @{
  */
+
+/**
+ *  @brief Get GPU busy percent from gpu_busy_percent sysfs file
+ *
+ *  @ingroup tagClkPowerPerfQuery
+ *
+ *  @platform{gpu_bm_linux}
+ *
+ *  @details Given a processor handle @p processor_handle, this function returns GPU busy
+ *  percentage.
+ *
+ *  @param[in] processor_handle a processor handle
+ *
+ *  @param[in,out] gpu_busy_percent Direct output from the gpu_busy_percent sysfs file
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_get_gpu_busy_percent(amdsmi_processor_handle processor_handle,
+                                            uint32_t *gpu_busy_percent);
 
 /**
  *  @brief Get coarse grain utilization counter of the specified device
@@ -4676,6 +4731,99 @@ amdsmi_status_t amdsmi_get_gpu_ecc_enabled(amdsmi_processor_handle processor_han
 amdsmi_status_t
 amdsmi_get_gpu_total_ecc_count(amdsmi_processor_handle processor_handle, amdsmi_error_count_t *ec);
 
+#pragma pack(push, 1)
+
+/**
+ *  @brief Cper
+ *
+ *  @cond @tag{gpu_bm_linux} @tag{host} @endcond
+ */
+typedef struct {
+    unsigned char b[16];
+} amdsmi_cper_guid_t;
+
+typedef struct {
+    uint8_t seconds;
+    uint8_t minutes;
+    uint8_t hours;
+    uint8_t flag;
+    uint8_t day;
+    uint8_t month;
+    uint8_t year;
+    uint8_t century;
+} amdsmi_cper_timestamp_t;
+
+typedef union {
+    struct valid_bits_ {
+        uint32_t platform_id  : 1;
+        uint32_t timestamp    : 1;
+        uint32_t partition_id : 1;
+        uint32_t reserved     : 29;
+    } valid_bits;
+    uint32_t valid_mask;
+} amdsmi_cper_valid_bits_t;
+
+typedef struct {
+    char                  signature[4];       /* "CPER" */
+    uint16_t              revision;
+    uint32_t              signature_end;     /* 0xFFFFFFFF */
+    uint16_t              sec_cnt;
+    amdsmi_cper_sev_t     error_severity;
+    amdsmi_cper_valid_bits_t cper_valid_bits;
+    uint32_t                record_length;     /* Total size of CPER Entry */
+    amdsmi_cper_timestamp_t timestamp;
+    char                    platform_id[16];
+    amdsmi_cper_guid_t      partition_id;      /* Reserved */
+    char                  creator_id[16];
+    amdsmi_cper_guid_t    notify_type;       /* CMC, MCE, can use amdsmi_cper_notifiy_type_t to decode*/
+    char                  record_id[8];      /* Unique CPER Entry ID */
+    uint32_t              flags;            /* Reserved */
+    uint64_t              persistence_info; /* Reserved */
+    uint8_t               reserved[12];     /* Reserved */
+} amdsmi_cper_hdr_t;
+
+#pragma pack(pop)
+
+/**
+ * @brief Retrieve CPER entries cached in the driver.
+ *
+ * The user will pass buffers to hold the CPER data and CPER headers. The library will
+ * fill the buffer based on the severity_mask user passed. It will also parse the CPER header
+ * and stored in the cper_hdrs array. The user can use the cper_hdrs to get the timestamp and other header information.
+ * A cursor is also returned to the user, which can be used to get the next set of CPER entries.
+ *
+ * If there are more data than any of the buffers user pass, the library will return AMDSMI_STATUS_MORE_DATA.
+ * User can call the API again with the cursor returned at previous call to get more data.
+ * If the buffer size is too small to even hold one entry, the library
+ * will return AMDSMI_STATUS_OUT_OF_RESOURCES.
+ *
+ * Even if the API returns AMDSMI_STATUS_MORE_DATA, the 2nd call may still get the entry_count == 0 as the driver
+ * cache may not contain the serverity user is interested in. The API should return AMDSMI_STATUS_SUCCESS in this case
+ * so that user can ignore that call.
+ *
+ *  @ingroup tagECCInfo
+ *
+ *  @platform{gpu_bm_linux} @platform{host} @platform{guest_1vf}
+ *
+ * @param[in] processor_handle Handle to the processor for which CPER entries are to be retrieved.
+ * @param[in] severity_mask The severity mask of the entries to be retrieved.
+ * @param[in,out] cper_data Pointer to a buffer where the CPER data will be stored. User must allocate the buffer
+ *                and set the buf_size correctly.
+ * @param[in,out] buf_size Pointer to a variable that specifies the size of the cper_data.
+ *                         On return, it will contain the actual size of the data written to the cper_data.
+ * @param[in,out] cper_hdrs Array of the parsed headers of the cper_data. The user must allocate
+ *             the array of pointers to cper_hdr. The library will fill the array with the pointers to the parsed
+ *            headers. The underlying data is in the cper_data buffer and only pointer is stored in this array.
+ * @param[in,out] entry_count Pointer to a variable that specifies the array length of the cper_hdrs user allocated.
+ *              On return, it will contain the actual entries written to the cper_hdrs.
+ * @param[in,out] cursor Pointer to a variable that will contain the  cursor  for the next call.
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t
+amdsmi_get_gpu_cper_entries(amdsmi_processor_handle processor_handle, uint32_t severity_mask, char *cper_data,
+    uint64_t *buf_size, amdsmi_cper_hdr_t** cper_hdrs, uint64_t *entry_count, uint64_t *cursor);
+
 /** @} End tagECCInfo */
 
 /*****************************************************************************/
@@ -5603,8 +5751,8 @@ amdsmi_set_gpu_memory_partition_mode(amdsmi_processor_handle processor_handle,
 
 /**
  *  @brief Version 2.0: Returns gpu accelerator partition caps as currently configured in the system
- *  User must use admin/sudo privledges to run this API, or API will not be able to
- *  read resources.
+ *  User must use admin/sudo privledges to run this API, or API will not be able to read resources.
+ *  Otherwise, API will fill in the structure with as much information as possible.
  *
  *  @ingroup tagAcceleratorPartition
  *
@@ -5953,7 +6101,7 @@ amdsmi_status_t amdsmi_get_pcie_info(amdsmi_processor_handle processor_handle, a
  *  @brief Returns the 'xcd_counter' from the GPU metrics associated with the device
  *
  *  @ingroup tagAsicBoardInfo
- * 
+ *
  *  @platform{gpu_bm_linux}  @platform{guest_1vf}  @platform{guest_mvf}
  *
  *  @param[in] processor_handle Device which to query
@@ -6040,7 +6188,7 @@ amdsmi_get_gpu_activity(amdsmi_processor_handle processor_handle, amdsmi_engine_
  *
  *  @ingroup tagGPUMonitor
  *
- *  @platform{gpu_bm_linux} @platform{host} @platform{guest_windows}
+ *  @platform{gpu_bm_linux} @platform{guest_windows}
  *
  *  @note amdsmi_power_info_t::socket_power metric can rarely spike above the socket power limit in some cases
  *
@@ -6805,6 +6953,8 @@ amdsmi_status_t amdsmi_get_cpu_current_io_bandwidth(amdsmi_processor_handle proc
 amdsmi_status_t amdsmi_get_cpu_current_xgmi_bw(amdsmi_processor_handle processor_handle,
                                                amdsmi_link_id_bw_type_t link, uint32_t *xgmi_bw);
 
+/** @} tagBandwidthMon*/
+
 /*****************************************************************************/
 /** @defgroup tagHSMPMetricsTable HSMP Metrics Table
  *  @{
@@ -6894,6 +7044,8 @@ amdsmi_status_t amdsmi_get_cpu_model(uint32_t *cpu_model);
  /**
  *  @brief Retrieve the CPU processor model name based on the processor index.
  *
+ *  @ingroup tagAuxillary
+ *
  *  @platform{cpu_bm}
  *
  *  @details
@@ -6934,12 +7086,13 @@ amdsmi_status_t amdsmi_get_cpu_model_name(amdsmi_processor_handle processor_hand
  */
 amdsmi_status_t amdsmi_get_esmi_err_msg(amdsmi_status_t status, const char **status_string);
 
-#endif
-
 /** @} tagAuxillary */
+
+#endif
 
 #ifdef __cplusplus
 }
 #endif  // __cplusplus
 
 #endif  // __AMDSMI_H__
+

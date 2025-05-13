@@ -30,37 +30,36 @@ except ImportError as e:
     logging.debug(f"Unhandled import error: {e}")
     logging.debug("argcomplete module not found. Autocomplete will not work.")
 
-from typing import TYPE_CHECKING
-# only used for type checking
-# pyright trips up and cannot find amdsmi scripts without it
-if TYPE_CHECKING:
-    from amdsmi_commands import AMDSMICommands
-    from amdsmi_parser import AMDSMIParser
-    from amdsmi_logger import AMDSMILogger
-    import amdsmi_cli_exceptions
-    from amdsmi import amdsmi_interface
-    from amdsmi import amdsmi_exception
+# from typing import TYPE_CHECKING
+# # only used for type checking
+# # pyright trips up and cannot find amdsmi scripts without it
+# if TYPE_CHECKING:
+#     from amdsmi_commands import AMDSMICommands
+#     from amdsmi_parser import AMDSMIParser
+#     from amdsmi_logger import AMDSMILogger
+#     import amdsmi_cli_exceptions
+#     from amdsmi import amdsmi_interface
+#     from amdsmi import amdsmi_exception
+
 try:
+    from amdsmi_init import *
     from amdsmi_commands import AMDSMICommands
     from amdsmi_parser import AMDSMIParser
     from amdsmi_logger import AMDSMILogger
     import amdsmi_cli_exceptions
-    from amdsmi import amdsmi_interface
-    from amdsmi import amdsmi_exception
 except ImportError:
     current_path = os.path.dirname(os.path.abspath(__file__))
-    additional_path = f"{current_path}/../libexec/amdsmi_cli"
-    sys.path.append(additional_path)
+    cli_files_path = f"{current_path}/../libexec/amdsmi_cli"
+    sys.path.append(cli_files_path)
     try:
+        from amdsmi_init import *
         from amdsmi_commands import AMDSMICommands
         from amdsmi_parser import AMDSMIParser
         from amdsmi_logger import AMDSMILogger
         import amdsmi_cli_exceptions
-        from amdsmi import amdsmi_interface
-        from amdsmi import amdsmi_exception
     except ImportError as e:
         print(f"Unhandled import error: {e}")
-        print(f"Still couldn't import 'amdsmi related scripts'. Make sure it's installed in {additional_path}")
+        print(f"Unable to import amdsmi_cli files. Check {cli_files_path} if they are present.")
         sys.exit(1)
 
 def _print_error(e, destination):
@@ -94,18 +93,18 @@ if __name__ == "__main__":
                                     amd_smi_commands.set_value,
                                     amd_smi_commands.reset,
                                     amd_smi_commands.monitor,
-                                    amd_smi_commands.rocm_smi,
                                     amd_smi_commands.xgmi,
-                                    amd_smi_commands.partition)
+                                    amd_smi_commands.partition,
+                                    amd_smi_commands.ras)
     try:
         try:
             argcomplete.autocomplete(amd_smi_parser)
         except NameError:
             logging.debug("argcomplete module not found. Autocomplete will not work.")
 
-        valid_commands = ['version', 'list', 'static', 'firmware', 'bad-pages',
-                          'metric', 'process', 'profile', 'event', 'topology', 'set',
-                          'reset', 'monitor', 'xgmi', 'partition', '--help', '-h']
+        # Store possible subcommands & aliases for later errors
+        valid_commands = amd_smi_parser.possible_commands
+        valid_commands += ['--help', '-h']
 
         sys.argv = [arg.lower() if arg.startswith('--') or not arg.startswith('-')
                     else arg for arg in sys.argv]
@@ -117,11 +116,12 @@ if __name__ == "__main__":
             raise amdsmi_cli_exceptions.AmdSmiInvalidSubcommandException(sys.argv[1],amd_smi_commands.logger.destination)
 
         # Handle command modifiers before subcommand execution
-        if args.json:
+            # human readable is the default output format
+        if hasattr(args, 'json') and args.json:
             amd_smi_commands.logger.format = amd_smi_commands.logger.LoggerFormat.json.value
-        if args.csv:
+        if hasattr(args, 'csv') and args.csv:
             amd_smi_commands.logger.format = amd_smi_commands.logger.LoggerFormat.csv.value
-        if args.file:
+        if hasattr(args, 'file') and args.file:
             amd_smi_commands.logger.destination = args.file
 
         # Remove previous log handlers

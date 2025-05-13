@@ -42,6 +42,10 @@ class AMDSMILogger():
         self.secondary_table_header = ""
         self.warning_message = ""
         self.helpers = AMDSMIHelpers()
+        self._cper_exit_message = True
+        self.store_cpu_json_output = []
+        self.store_core_json_output = []
+        self.store_gpu_json_output = []
 
 
     class LoggerFormat(Enum):
@@ -76,6 +80,26 @@ class AMDSMILogger():
 
     def clear_multiple_devices_output(self):
         self.multiple_device_output.clear()
+
+
+    def cper_exit_message(self):
+        """ Store the cper exit message
+            params:
+                message (str) - message to store
+            return:
+                cper_exit_message (bool) - True if cper exit message is set
+        """
+        return self._cper_exit_message
+
+
+    def set_cper_exit_message(self, flag:bool):
+        """ Set the cper exit message
+            params:
+                flag (bool) - True if cper exit message is set
+            return:
+                Nothing
+        """
+        self._cper_exit_message = flag
 
 
     def _capitalize_keys(self, input_dict):
@@ -263,6 +287,27 @@ class AMDSMILogger():
         for key, value in capitalized_json.items():
             if key not in ["GPU", "CPU", "CORE","BRCM_NIC","BRCM_SWITCH"]:
                 tabbed_dictionary[key] = value
+            # Filter out N/A values under clock
+            if key == "CLOCK":
+                valid_clock_data = {}
+                if isinstance(value, dict):  # Ensure value is a dictionary
+                    for clock_key, clock_data in value.items():
+                        if isinstance(clock_data, dict):  # Ensure clock_data is a dictionary
+                            non_na = {
+                                clock_key: clock_value
+                                for clock_key, clock_value in clock_data.items()
+                                if clock_value != "N/A"
+                            }
+                            if non_na:
+                                valid_clock_data[clock_key] = non_na
+                        else:   # Handle single-tier clock_data
+                            valid_clock_data[clock_key] = clock_data
+                else:   # Handle non-dictionary clock data
+                    valid_clock_data = value
+                # Add a single "N/A" if valid_clock_data is empty
+                if not valid_clock_data:
+                    valid_clock_data = "N/A"
+                tabbed_dictionary[key] = valid_clock_data
 
         for key, value in tabbed_dictionary.items():
             del capitalized_json[key]
@@ -642,6 +687,17 @@ class AMDSMILogger():
             else:
                 with self.destination.open('a', encoding="utf-8") as output_file:
                     json.dump(json_output, output_file, indent=4)
+
+
+    def combine_arrays_to_json(self):
+        combined_json = {
+            "cpu_data": self.store_cpu_json_output,
+            "core_data": self.store_core_json_output,
+            "gpu_data": self.store_gpu_json_output
+        }
+        self.destination == 'stdout'
+        json_std_output = json.dumps(combined_json, indent=4)
+        print(json_std_output)
 
 
     def _print_csv_output(self, multiple_device_enabled=False, watching_output=False):
