@@ -812,8 +812,7 @@ Command Modifiers:
 (cli-ex-static)=
 ### Example output from amd-smi static
 
-To gain a sense of the AMD SMI CLI's output, the following block is sample
-output from the CLI tool:
+The following block is example output from the `amd-smi static` command without additional modifiers.
 
 ```bash
 ~$ amd-smi static
