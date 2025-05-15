@@ -540,6 +540,7 @@ typedef enum {
     AMDSMI_FW_ID_RLC_SRLS,
     AMDSMI_FW_ID_PM,
     AMDSMI_FW_ID_DMCU,
+    AMDSMI_FW_ID_PLDM_BUNDLE,
     AMDSMI_FW_ID__MAX
 } amdsmi_fw_block_t;
 

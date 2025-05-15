@@ -4,6 +4,37 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ***All information listed below is for reference and subject to change.***
 
+## amd_smi_lib for ROCm 6.4.2
+
+### Added
+
+- **Added new firmware PLDM_BUNDLE**.  
+  - `amd-smi firmware` can now show the PLDM Bundle on supported systems.  
+
+### Changed
+
+- N/A
+
+### Removed
+
+- N/A
+
+### Optimized
+
+- N/A
+
+### Resolved issues
+
+- N/A
+
+### Upcoming changes
+
+- N/A
+
+### Known issues
+
+- N/A
+
 ## amd_smi_lib for ROCm 6.4.1
 
 ### Added
