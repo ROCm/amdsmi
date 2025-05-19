@@ -150,7 +150,7 @@ typedef enum {
 #define AMDSMI_MAX_NUM_JPEG 32
 
 /**
- * @brief new for gpu metrics v1.8, document presents NUM_JPEG_ENG_V1
+ * @brief Introduced in gpu metrics v1.8, document presents NUM_JPEG_ENG_V1
  * but will change to AMDSMI_MAX_NUM_JPEG_ENG_V1 for continuity
  */
 #define AMDSMI_MAX_NUM_JPEG_ENG_V1 40
@@ -181,6 +181,11 @@ typedef enum {
  * @cond @tag{gpu_bm_linux} @tag{host} @tag{guest_windows} @endcond
  */
 #define AMDSMI_MAX_NUM_XCP 8
+
+/**
+ * @brief Max Number of AFIDs that will be inside one cper entry
+ */
+#define MAX_NUMBER_OF_AFIDS_PER_RECORD 12
 
 /* string format */
 #define AMDSMI_TIME_FORMAT "%02d:%02d:%02d.%03d"
@@ -1255,9 +1260,19 @@ typedef enum {
     AMDSMI_EVT_NOTIF_THERMAL_THROTTLE = 2,
     AMDSMI_EVT_NOTIF_GPU_PRE_RESET = 3,
     AMDSMI_EVT_NOTIF_GPU_POST_RESET = 4,
-    AMDSMI_EVT_NOTIF_RING_HANG = 5,
+    AMDSMI_EVT_NOTIF_RING_HANG = 5, // Ringhang now maps to AMDSMI_EVT_NOTIF_MIGRATE_START.
+                                          // Will be depreciated in 7.0
+    AMDSMI_EVT_NOTIF_MIGRATE_START = AMDSMI_EVT_NOTIF_RING_HANG,
+    AMDSMI_EVT_NOTIF_MIGRATE_END = 6,
+    AMDSMI_EVT_NOTIF_PAGE_FAULT_START = 7,
+    AMDSMI_EVT_NOTIF_PAGE_FAULT_END = 8,
+    AMDSMI_EVT_NOTIF_QUEUE_EVICTION = 9,
+    AMDSMI_EVT_NOTIF_QUEUE_RESTORE = 10,
+    AMDSMI_EVT_NOTIF_UNMAP_FROM_GPU = 11,
+    AMDSMI_EVT_NOTIF_PROCESS_START = 12,
+    AMDSMI_EVT_NOTIF_PROCESS_END = 13,
 
-    AMDSMI_EVT_NOTIF_LAST = AMDSMI_EVT_NOTIF_RING_HANG
+    AMDSMI_EVT_NOTIF_LAST = AMDSMI_EVT_NOTIF_PROCESS_END
 } amdsmi_evt_notification_type_t;
 
 /**
@@ -1271,7 +1286,7 @@ typedef enum {
  * @brief Maximum number of characters an event notification message will be
  * matches kfd message max size
  */
-#define MAX_EVENT_NOTIFICATION_MSG_SIZE 96
+#define MAX_EVENT_NOTIFICATION_MSG_SIZE 256
 
 /**
  * @brief Event notification data returned from event notification API
@@ -4825,6 +4840,32 @@ amdsmi_get_gpu_cper_entries(amdsmi_processor_handle processor_handle, uint32_t s
     uint64_t *buf_size, amdsmi_cper_hdr_t** cper_hdrs, uint64_t *entry_count, uint64_t *cursor);
 
 /** @} End tagECCInfo */
+
+/**
+ *  @brief Get the AFIDs from CPER buffer
+ *
+ *  @platform{gpu_bm_linux}  @platform{host}  @platform{guest_1vf}
+ *  @platform{guest_mvf} @platform{guest_windows}
+ *
+ *  @details A utility function which retrieves the AFIDs from the CPER record.
+ *
+ *  @param[in] cper_buffer a pointer to the buffer with one CPER record. The caller must make sure the whole CPER record is loaded into the buffer.
+ *
+ *  @param[in] buf_size is the size of the cper_buffer.
+ *
+ *  @param[out] afids a pointer to an array of uint64_t to which the AF IDs will be written
+ *
+ *  @param[in,out] num_afids As input, the value passed through this parameter is the number of
+ *  uint64_t that may be safely written to the memory pointed to by @p afids. This is the limit
+ *  on how many AF IDs will be written to @p afids. On return, @p num_afids will contain the
+ *  number of AF IDs written to @p afids, or the number of AF IDs that could have been written
+ *  if enough memory had been provided. It is suggest to pass MAX_NUMBER_OF_AFIDS_PER_RECORD for all
+ *  AF Ids.
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_get_afids_from_cper(
+            char* cper_buffer, uint32_t buf_size, uint64_t* afids, uint32_t* num_afids);
 
 /*****************************************************************************/
 /** @defgroup tagErrorQuery Error Queries

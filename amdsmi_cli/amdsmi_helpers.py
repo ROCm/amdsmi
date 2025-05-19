@@ -1397,7 +1397,7 @@ class AMDSMIHelpers():
             msg = (
                 "WARNING: User is missing the following required groups: %s. "
                 "Please add user to these groups."
-            ) % ", ".join(sorted(missing_groups))
+            ) % ", ".join(sodurted(missing_groups))
             print(msg)
             logging.warning(msg)
 
@@ -1435,7 +1435,7 @@ class AMDSMIHelpers():
                self._cper_warning_printed = True
 
             # Header
-            print(f"{'timestamp':<20} {'gpu_id':<6} {'severity':<10} {'file_name'}")
+            print(f"{'timestamp':<20} {'gpu_id':<7} {'severity':<12} {'file_name':<17}")
             self._cper_display_initialized = True
 
         for entry_index, entry in enumerate(entries.values()):
@@ -1457,7 +1457,7 @@ class AMDSMIHelpers():
 
             timestamp = entry.get("timestamp", "unknown")
             gpu_id = self.get_gpu_id_from_device_handle(device_handle)
-            print(f"{timestamp:<20} {gpu_id:<6} {prefix:<10} {cper_data_file}")
+            print(f"{timestamp:<20} {gpu_id:<7} {prefix:<12} {cper_data_file:<17}")
             self.increment_cper_count()
             time.sleep(1)
 
@@ -1475,7 +1475,7 @@ class AMDSMIHelpers():
                self._cper_warning_printed = True
 
             # Header
-            print(f"{'timestamp':<20} {'gpu_id':<6} {'severity':<10} {'file_name'}")
+            print(f"{'timestamp':<20} {'gpu_id':<7} {'severity':<12} {'file_name':<17}")
             self._cper_display_initialized = True
 
         # Loop through all entries in the dictionary.
@@ -1499,14 +1499,16 @@ class AMDSMIHelpers():
 
             timestamp = entry.get("timestamp", "unknown")
             gpu_id = self.get_gpu_id_from_device_handle(device_handle)
-            print(f"{timestamp:<20} {gpu_id:<6} {prefix:<10} {cper_data_file}")
+            print(f"{timestamp:<20} {gpu_id:<7} {prefix:<12} {cper_data_file:<17}")
             self.increment_cper_count()
 
 
     def dump_gpu_entries(self, folder, entries, cper_data, device_handle):
-        # Header
-        print(f"{'timestamp':<20} {'gpu_id':<6} {'severity':<10} {'file_name'}")
-        self._cper_display_initialized = True
+        # One‐time initialization: print warning & header only once
+        if not getattr(self, "_cper_display_initialized", False):
+           # Warning if no folder was specified elsewhere
+           print(f"{'timestamp':<20} {'gpu_id':<7} {'severity':<12} {'file_name':<17}")
+           self._cper_display_initialized = True
 
 
         if folder:
@@ -1539,7 +1541,7 @@ class AMDSMIHelpers():
                 #print header
                 timestamp = entry.get("timestamp", "unknown")
                 gpu_id = self.get_gpu_id_from_device_handle(device_handle)
-                print(f"{timestamp:<20} {gpu_id:<6} {prefix:<10} {cper_data_file}")
+                print(f"{timestamp:<20} {gpu_id:<7} {prefix:<12} {cper_data_file:<17}")
                 self.increment_cper_count()
                 
 
@@ -1560,9 +1562,11 @@ class AMDSMIHelpers():
 
 
     def dump_all_entries(self, folder, entries, cper_data, device_handle):
-        # Header
-        print(f"{'timestamp':<20} {'gpu_id':<6} {'severity':<10} {'file_name'}")
-        self._cper_display_initialized = True
+         # One‐time initialization: print warning & header only once
+        if not getattr(self, "_cper_display_initialized", False):
+           # Warning if no folder was specified elsewhere
+           print(f"{'timestamp':<20} {'gpu_id':<7} {'severity':<12} {'file_name':<17}")
+           self._cper_display_initialized = True
 
         
         if folder:
@@ -1595,7 +1599,7 @@ class AMDSMIHelpers():
                 #print header
                 timestamp = entry.get("timestamp", "unknown")
                 gpu_id = self.get_gpu_id_from_device_handle(device_handle)
-                print(f"{timestamp:<20} {gpu_id:<6} {prefix:<10} {cper_data_file}")
+                print(f"{timestamp:<20} {gpu_id:<7} {prefix:<12} {cper_data_file:<17}")
                 self.increment_cper_count()
 
                 try:
@@ -1612,9 +1616,11 @@ class AMDSMIHelpers():
 
 
     def dump_all_entries_follow(self, folder, entries, cper_data, device_handle):
-        # Header
-        print(f"{'timestamp':<20} {'gpu_id':<6} {'severity':<10} {'file_name'}")
-        self._cper_display_initialized = True
+         # One‐time initialization: print warning & header only once
+        if not getattr(self, "_cper_display_initialized", False):
+           # Warning if no folder was specified elsewhere
+           print(f"{'timestamp':<20} {'gpu_id':<7} {'severity':<12} {'file_name':<17}")
+           self._cper_display_initialized = True
 
 
         if folder:
@@ -1647,7 +1653,7 @@ class AMDSMIHelpers():
                 #print header
                 timestamp = entry.get("timestamp", "unknown")
                 gpu_id = self.get_gpu_id_from_device_handle(device_handle)
-                print(f"{timestamp:<20} {gpu_id:<6} {prefix:<10} {cper_data_file}")
+                print(f"{timestamp:<20} {gpu_id:<7} {prefix:<12} {cper_data_file:<17}")
                 self.increment_cper_count()
                 time.sleep(1)
 
@@ -1665,9 +1671,11 @@ class AMDSMIHelpers():
 
 
     def dump_gpu_entries_follow(self, folder, entries, cper_data, device_handle):
-        # Header
-        print(f"{'timestamp':<20} {'gpu_id':<6} {'severity':<10} {'file_name'}")
-        self._cper_display_initialized = True
+         # One‐time initialization: print warning & header only once
+        if not getattr(self, "_cper_display_initialized", False):
+           # Warning if no folder was specified elsewhere
+           print(f"{'timestamp':<20} {'gpu_id':<7} {'severity':<12} {'file_name':<17}")
+           self._cper_display_initialized = True
 
 
         if folder:
@@ -1700,7 +1708,7 @@ class AMDSMIHelpers():
                 #print header
                 timestamp = entry.get("timestamp", "unknown")
                 gpu_id = self.get_gpu_id_from_device_handle(device_handle)
-                print(f"{timestamp:<20} {gpu_id:<6} {prefix:<10} {cper_data_file}")
+                print(f"{timestamp:<20} {gpu_id:<7} {prefix:<12} {cper_data_file:<17}")
                 self.increment_cper_count()
                 time.sleep(1)
 
@@ -1715,3 +1723,35 @@ class AMDSMIHelpers():
         else:
             print(json.dumps(entries, indent=2,
                              default=lambda o: o.decode('utf-8') if isinstance(o, bytes) else o))
+
+
+    def hexdump_to_string(self, data: Union[bytes, List[int]]) -> str:
+        """
+        Convert binary data to a hexdump string.
+
+        Args:
+            data: bytes object or list of integer byte values (0–255).
+
+        Returns:
+           A multiline string, each line showing:
+           offset (in hex), hex bytes (16 per line), and printable ASCII.
+        """
+        # Normalize to list of ints
+        if isinstance(data, bytes):
+            data_ints = list(data)
+        else:
+            # allow list of ints or single-character strings
+            data_ints = [b if isinstance(b, int) else ord(b) for b in data]
+
+        lines: List[str] = []
+        size = len(data_ints)
+
+        for offset in range(0, size, 16):
+            chunk = data_ints[offset : offset + 16]
+            hex_values = " ".join(f"{b:02x}" for b in chunk)
+            # pad hex_values to 16*3-1 = 47 chars (two hex digits + space)
+            hex_values = hex_values.ljust(16 * 3 - 1)
+            ascii_values = "".join(chr(b) if 32 <= b <= 126 else "." for b in chunk)
+            lines.append(f"{offset:08x}  {hex_values}  |{ascii_values}|")
+
+        return "\n".join(lines)
