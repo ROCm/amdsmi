@@ -58,11 +58,11 @@ amdsmi_status_t AMDSmiNoDrmSwitch::init() {
         auto rocm_smi_device = devices[i];
         const std::string switch_host_folder = "/sys/class/scsi_host/host" + std::to_string(rocm_smi_device->index());
         std::string switch_dev_folder = switch_host_folder;
-        std::vector<char> buf(400);
+        std::vector<char> buf(512);
         ssize_t len;
 
         do {
-          buf.resize(buf.size() + 100);
+          buf.resize(buf.size() + 128);
           len = ::readlink(switch_dev_folder.c_str(), &(buf[0]), buf.size());
         } while (buf.size() == len);
 

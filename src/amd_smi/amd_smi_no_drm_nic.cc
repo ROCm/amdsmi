@@ -96,7 +96,7 @@ amdsmi_status_t AMDSmiNoDrmNIC::cleanup() {
 }
 
 amdsmi_status_t AMDSmiNoDrmNIC::amd_query_nic_temp(std::string hwmonPath,
-        amdsmi_nic_temperature_metric_t &info) {
+    amdsmi_brcm_nic_temperature_metric_t &info) {
  
   std::string crit_alarm = "temp1_crit_alarm";
   std::string emergency_alarm = "temp1_emergency_alarm";

@@ -1199,11 +1199,11 @@ struct_amdsmi_driver_info_t._fields_ = [
 ]
 
 amdsmi_driver_info_t = struct_amdsmi_driver_info_t
-class struct_amdsmi_nic_temperature_metric_t(Structure):
+class struct_amdsmi_brcm_nic_temperature_metric_t(Structure):
     pass
 
-struct_amdsmi_nic_temperature_metric_t._pack_ = 1 # source:False
-struct_amdsmi_nic_temperature_metric_t._fields_ = [
+struct_amdsmi_brcm_nic_temperature_metric_t._pack_ = 1 # source:False
+struct_amdsmi_brcm_nic_temperature_metric_t._fields_ = [
     ('nic_temp_crit_alarm', ctypes.c_uint32),
     ('nic_temp_emergency_alarm', ctypes.c_uint32),
     ('nic_temp_shutdown_alarm', ctypes.c_uint32),
@@ -1215,7 +1215,7 @@ struct_amdsmi_nic_temperature_metric_t._fields_ = [
     ('nic_temp_shutdown', ctypes.c_uint32),
 ]
 
-amdsmi_nic_temperature_metric_t = struct_amdsmi_nic_temperature_metric_t
+amdsmi_brcm_nic_temperature_metric_t = struct_amdsmi_brcm_nic_temperature_metric_t
 class struct_amdsmi_brcm_link_metric_t(Structure):
     pass
 
@@ -2848,7 +2848,7 @@ amdsmi_get_gpu_driver_info.restype = amdsmi_status_t
 amdsmi_get_gpu_driver_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_driver_info_t)]
 amdsmi_get_nic_temp_info = _libraries['libamd_smi.so'].amdsmi_get_nic_temp_info
 amdsmi_get_nic_temp_info.restype = amdsmi_status_t
-amdsmi_get_nic_temp_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_nic_temperature_metric_t)]
+amdsmi_get_nic_temp_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_brcm_nic_temperature_metric_t)]
 amdsmi_get_switch_link_info = _libraries['libamd_smi.so'].amdsmi_get_switch_link_info
 amdsmi_get_switch_link_info.restype = amdsmi_status_t
 amdsmi_get_switch_link_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_brcm_link_metric_t)]
@@ -3388,7 +3388,7 @@ __all__ = \
     'amdsmi_memory_partition_config_t',
     'amdsmi_memory_partition_type_t', 'amdsmi_memory_type_t',
     'amdsmi_mm_ip_t', 'amdsmi_name_value_t',
-    'amdsmi_nic_temperature_metric_t', 'amdsmi_nps_caps_t',
+    'amdsmi_brcm_nic_temperature_metric_t', 'amdsmi_nps_caps_t',
     'amdsmi_od_vddc_point_t', 'amdsmi_od_volt_curve_t',
     'amdsmi_od_volt_freq_data_t', 'amdsmi_p2p_capability_t',
     'amdsmi_pcie_bandwidth_t', 'amdsmi_pcie_info_t',
@@ -3461,7 +3461,7 @@ __all__ = \
     'struct_amdsmi_link_id_bw_type_t', 'struct_amdsmi_link_metrics_t',
     'struct_amdsmi_memory_partition_config_t',
     'struct_amdsmi_name_value_t',
-    'struct_amdsmi_nic_temperature_metric_t',
+    'struct_amdsmi_brcm_nic_temperature_metric_t',
     'struct_amdsmi_od_vddc_point_t', 'struct_amdsmi_od_volt_curve_t',
     'struct_amdsmi_od_volt_freq_data_t',
     'struct_amdsmi_p2p_capability_t',

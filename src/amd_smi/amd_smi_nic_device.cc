@@ -61,7 +61,7 @@ pthread_mutex_t* AMDSmiNICDevice::get_mutex() {
     return amd::smi::GetMutex(nic_id_);
 }
 
-amdsmi_status_t AMDSmiNICDevice::amd_query_nic_temp_info(amdsmi_nic_temperature_metric_t& info) const {
+amdsmi_status_t AMDSmiNICDevice::amd_query_nic_temp_info(amdsmi_brcm_nic_temperature_metric_t& info) const {
   amdsmi_status_t ret;
   std::string hwmonPath;
   ret = nodrm_.get_hwmon_path_by_index(nic_id_, &hwmonPath);

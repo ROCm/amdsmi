@@ -118,7 +118,7 @@ int main(int argc, char **argv) {
             amdsmi_bdf_t bdf = {};
 
             if (isNIC) {
-                amdsmi_nic_temperature_metric_t info;
+              amdsmi_brcm_nic_temperature_metric_t info;
                 ret = amdsmi_get_nic_temp_info(processor_handles[j], &info);
                 printf("nic_temp_crit: %d\n", info.nic_temp_crit);
                 printf("nic_temp_emergency: %d\n", info.nic_temp_emergency);

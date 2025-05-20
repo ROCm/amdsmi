@@ -422,7 +422,6 @@ RocmSMI::Initialize(uint64_t flags) {
     for (auto &device : nic_devices_) {
       if (ConstructBDFID(device->path(), &bdfid) != 0) {
         std::cerr << "Failed to construct BDFID." << std::endl;
-        ret = 1;
       } else if (device->bdfid() != UINT64_MAX && device->bdfid() != bdfid) {
         // handles secondary partitions - compute partition feature nodes
         ss << __PRETTY_FUNCTION__ << " | [before] device->path() = " << device->path()
@@ -471,7 +470,7 @@ RocmSMI::Initialize(uint64_t flags) {
 
   {
     /*
-     * Discover the BRCM NIC switches from the sysfs entry
+     * Discover the BRCM switches from the sysfs entry
      * Construct the BDF for the discovered switch devices 
      * Push SWITCH SMI Device object to switch_devices vector
     */
@@ -484,7 +483,6 @@ RocmSMI::Initialize(uint64_t flags) {
     for (auto &device : switch_devices_) {
       if (ConstructBDFID(device->path(), &bdfid) != 0) {
         std::cerr << "Failed to construct BDFID." << std::endl;
-        ret = 1;
       } else if (device->bdfid() != UINT64_MAX && device->bdfid() != bdfid) {
         // handles secondary partitions - compute partition feature nodes
         ss << __PRETTY_FUNCTION__ << " | [before] device->path() = " << device->path()
@@ -1280,11 +1278,11 @@ uint32_t RocmSMI::DiscoverBRCMnicDevices(void) {
 
   auto nic_dir = opendir(kPathNICRoot);
   if (nic_dir == nullptr) {
-    err_msg = "Failed to open hwmon root directory ";
+    err_msg = "Failed to open hwmon root directory, while DiscoverBRCMnicDevices and graceful exit.";
     err_msg += kPathNICRoot;
     err_msg += ".";
     perror(err_msg.c_str());
-    return 1;
+    return 0;
   }
 
   auto dentry = readdir(nic_dir);
@@ -1306,11 +1304,10 @@ uint32_t RocmSMI::DiscoverBRCMnicDevices(void) {
   LOG_DEBUG(ss);
 
   if (closedir(nic_dir)) {
-    err_msg = "Failed to close hw_mon root directory ";
+    err_msg = "Failed to close hw_mon root directory, while DiscoverBRCMnicDevices and graceful exit.";
     err_msg += kPathNICRoot;
     err_msg += ".";
     perror(err_msg.c_str());
-    return 1;
   }
   return 0;
 }
@@ -1326,11 +1323,11 @@ uint32_t RocmSMI::DiscoverBRCMswitchDevices(void) {
 
   auto scsi_host_dir = opendir(kPathSwitchRoot);
   if (scsi_host_dir == nullptr) {
-    err_msg = "Failed to open scsi_host root directory ";
+    err_msg = "Failed to open scsi_host root directory, while DiscoverBRCMswitchDevices and graceful exit.";
     err_msg += kPathSwitchRoot;
     err_msg += ".";
     perror(err_msg.c_str());
-    return 1;
+    return 0;
   }
 
   auto dentry = readdir(scsi_host_dir);
@@ -1367,7 +1364,7 @@ uint32_t RocmSMI::DiscoverBRCMswitchDevices(void) {
 
     // each identified switch node is a primary node for
     // potential matching unique ids
-    std::vector<char> buf(400);
+    std::vector<char> buf(512);
     ssize_t len;
 
     do {
@@ -1397,11 +1394,10 @@ uint32_t RocmSMI::DiscoverBRCMswitchDevices(void) {
   }
 
   if (closedir(scsi_host_dir)) {
-    err_msg = "Failed to close switch root directory ";
+    err_msg = "Failed to close switch root directory, while DiscoverBRCMswitchDevices and graceful exit.";
     err_msg += kPathSwitchRoot;
     err_msg += ".";
     perror(err_msg.c_str());
-    return 1;
   }
   return 0;
 }

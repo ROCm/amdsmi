@@ -56,7 +56,7 @@ class AMDSmiNICDevice: public AMDSmiProcessor {
     bool check_if_no_drm_is_supported() { return nodrm_.check_if_no_drm_is_supported(); }
     uint32_t get_vendor_id();
 
-    amdsmi_status_t amd_query_nic_temp_info(amdsmi_nic_temperature_metric_t& info) const;
+    amdsmi_status_t amd_query_nic_temp_info(amdsmi_brcm_nic_temperature_metric_t& info) const;
     amdsmi_status_t amd_query_nic_uuid(std::string& version) const;
     amdsmi_status_t amd_query_nic_numa_affinity(int32_t *numa_node) const;
     amdsmi_status_t amd_query_nic_cpu_affinity(std::string& cpu_affinity) const;

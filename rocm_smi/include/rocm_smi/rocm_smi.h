@@ -1531,7 +1531,33 @@ rsmi_status_t rsmi_driver_status(rsmi_driver_state_t* state);
  *  @retval ::RSMI_STATUS_SUCCESS is returned upon successful call.
  */
 rsmi_status_t rsmi_num_monitor_devices(uint32_t *num_devices);
+
+/**
+ *  @brief Get the number of brcm nic devices that have monitor information.
+ *
+ *  @details The number of devices brcm nic which have monitors is returned. Monitors
+ *  are referenced by the index which can be between 0 and @p num_devices - 1.
+ *
+ *  @param[inout] num_devices Caller provided pointer to uint32_t. Upon
+ *  successful call, the value num_devices will contain the number of brcm nic monitor
+ *  devices.
+ *
+ *  @retval ::RSMI_STATUS_SUCCESS is returned upon successful call.
+ */
 rsmi_status_t rsmi_num_nic_monitor_devices(uint32_t *num_devices);
+
+/**
+ *  @brief Get the number of brcm switch devices that have monitor information.
+ *
+ *  @details The number of devices brcm switch which have monitors is returned. Monitors
+ *  are referenced by the index which can be between 0 and @p num_devices - 1.
+ *
+ *  @param[inout] num_devices Caller provided pointer to uint32_t. Upon
+ *  successful call, the value num_devices will contain the number of brcm switch monitor
+ *  devices.
+ *
+ *  @retval ::RSMI_STATUS_SUCCESS is returned upon successful call.
+ */
 rsmi_status_t rsmi_num_switch_monitor_devices(uint32_t *num_devices);
 
 /**

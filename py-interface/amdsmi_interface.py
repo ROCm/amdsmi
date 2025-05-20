@@ -1964,7 +1964,7 @@ def amdsmi_get_nic_temp_info(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    power_measure = amdsmi_wrapper.struct_amdsmi_nic_temperature_metric_t()
+    power_measure = amdsmi_wrapper.amdsmi_brcm_nic_temperature_metric_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_nic_temp_info(
             processor_handle, ctypes.byref(power_measure)

@@ -77,7 +77,7 @@ char proc_id[SIZE] = "\0";
 } while (0)
 
 amdsmi_status_t 
-amdsmi_get_nic_temp_info(amdsmi_processor_handle processor_handle, amdsmi_nic_temperature_metric_t *info);
+amdsmi_get_nic_temp_info(amdsmi_processor_handle processor_handle, amdsmi_brcm_nic_temperature_metric_t *info);
 
 static const std::map<amdsmi_accelerator_partition_type_t, std::string> partition_types_map = {
   { AMDSMI_ACCELERATOR_PARTITION_SPX, "SPX" },
@@ -666,7 +666,7 @@ amdsmi_status_t amdsmi_get_nic_device_bdf(amdsmi_processor_handle processor_hand
 }
 
 amdsmi_status_t amdsmi_get_nic_temp_info(amdsmi_processor_handle processor_handle,
-                                         amdsmi_nic_temperature_metric_t *info) {
+                                         amdsmi_brcm_nic_temperature_metric_t *info) {
   AMDSMI_CHECK_INIT();
 
   if (info == NULL) {
