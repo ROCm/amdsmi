@@ -46,7 +46,7 @@ release = version_number
 
 html_theme = "rocm_docs_theme"
 html_theme_options = {"flavor": "rocm"}
-html_title = f"AMD SMI {version_number} documentation"
+html_title = f"AMD SMI 25.4.2 documentation"
 exclude_patterns = ["rocm-smi-lib"]
 suppress_warnings = ["etoc.toctree"]
 external_toc_path = "./sphinx/_toc.yml"
