@@ -23,6 +23,7 @@
 #include <limits.h>
 #include <sys/ioctl.h>
 #include <libdrm/amdgpu.h>
+#include <libdrm/drm.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdint.h>
@@ -32,8 +33,6 @@
 #include <sys/mman.h>
 #include <time.h>
 #include <unistd.h>
-#include <xf86drm.h>
-#include <xf86drmMode.h>
 #include <dirent.h>
 #include <sys/types.h>
 
@@ -97,7 +96,8 @@ std::string removeString(const std::string origStr,
   return modifiedStr;
 }
 
-static void clearCharBufferAndReinitialize(char buffer[], uint32_t len, std::string newString) {
+amdsmi_status_t smi_clear_char_and_reinitialize(char buffer[], uint32_t len,
+                                                    std::string newString) {
     char *begin = &buffer[0];
     char *end = &buffer[len];
     std::fill(begin, end, 0);
@@ -108,14 +108,15 @@ static void clearCharBufferAndReinitialize(char buffer[], uint32_t len, std::str
         std::memcpy(buffer, newString.c_str(), copy_len);
     }
     buffer[copy_len] = '\0';
-  }
+    return AMDSMI_STATUS_SUCCESS;
+}
 
 int openFileAndModifyBuffer(std::string path, char *buff, size_t sizeOfBuff,
                             bool trim_whitespace = true) {
     bool errorDiscovered = false;
     std::ifstream file(path, std::ifstream::in);
     std::string contents = {std::istreambuf_iterator<char>{file}, std::istreambuf_iterator<char>{}};
-    clearCharBufferAndReinitialize(buff, sizeOfBuff, contents);
+    smi_clear_char_and_reinitialize(buff, static_cast<uint32_t>(sizeOfBuff), contents);
     if (!file.is_open()) {
         errorDiscovered = true;
     } else {
@@ -453,21 +454,12 @@ amdsmi_status_t smi_amdgpu_get_bad_page_info(amd::smi::AMDSmiGPUDevice* device,
     return AMDSMI_STATUS_SUCCESS;
 }
 
-static uint32_t GetDeviceIndex(const std::string s) {
-  std::string t = s;
-  size_t tmp = t.find_last_not_of("0123456789");
-  t.erase(0, tmp+1);
-
-  assert(stoi(t) >= 0);
-  return static_cast<uint32_t>(stoi(t));
-}
-
 amdsmi_status_t smi_amdgpu_get_bad_page_threshold(amd::smi::AMDSmiGPUDevice* device,
         uint32_t *threshold) {
     SMIGPUDEVICE_MUTEX(device->get_mutex())
 
     //TODO: Accessing the node requires root privileges, and its interface may need to be exposed in another path
-    uint32_t index = GetDeviceIndex(device->get_gpu_path());
+    uint32_t index = device->get_card_id();
     std::string fullpath = "/sys/kernel/debug/dri/" + std::to_string(index) + std::string("/ras/bad_page_cnt_threshold");
     std::ifstream fs(fullpath.c_str());
 
@@ -489,7 +481,6 @@ amdsmi_status_t smi_amdgpu_get_bad_page_threshold(amd::smi::AMDSmiGPUDevice* dev
 amdsmi_status_t smi_amdgpu_validate_ras_eeprom(amd::smi::AMDSmiGPUDevice* device) {
     SMIGPUDEVICE_MUTEX(device->get_mutex())
 
-    //uint32_t index = GetDeviceIndex(device->get_gpu_path());
     //TODO: need to expose the corresponding interface to validate the checksum of ras eeprom table.
     //verify fail: return AMDSMI_STATUS_CORRUPTED_EEPROM
     return AMDSMI_STATUS_NOT_SUPPORTED;
@@ -572,21 +563,13 @@ amdsmi_status_t smi_amdgpu_get_pcie_speed_from_pcie_type(uint16_t pcie_type, uin
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t smi_amdgpu_get_market_name_from_dev_id(amd::smi::AMDSmiGPUDevice* device, char *market_name) {
+amdsmi_status_t smi_amdgpu_get_market_name_from_dev_id(amd::smi::AMDSmiGPUDevice* device,
+                                                        char *market_name) {
     if (market_name == nullptr || device == nullptr) {
         return AMDSMI_STATUS_ARG_PTR_NULL;
     }
 
     std::ostringstream ss;
-    // requires libdrm being active
-    if (!device->check_if_drm_is_supported()) {
-        ss << __PRETTY_FUNCTION__ << " | DRM is not supported";
-        LOG_ERROR(ss);
-        return AMDSMI_STATUS_NOT_SUPPORTED;
-    }
-
-    uint32_t major_version, minor_version;
-    amdgpu_device_handle device_handle = nullptr;
     std::string render_name = device->get_gpu_path();
     int fd = -1;
     std::string path = "/dev/dri/" + render_name;
@@ -602,7 +585,60 @@ amdsmi_status_t smi_amdgpu_get_market_name_from_dev_id(amd::smi::AMDSmiGPUDevice
     << render_name << "; path: " << path << "; fd: " << fd;
     LOG_DEBUG(ss);
 
+    amd::smi::AMDSmiLibraryLoader libdrm_amdgpu_;
+    amdsmi_status_t status = libdrm_amdgpu_.load("libdrm_amdgpu.so");
+    if (status != AMDSMI_STATUS_SUCCESS) {
+      close(fd);
+      libdrm_amdgpu_.AMDSmiLibraryLoader::unload();
+      return status;
+    }
+
+    // Function pointer typedefs
+    typedef int (*amdgpu_device_initialize_t)(int fd, uint32_t *major_version,
+                                              uint32_t *minor_version,
+                                              amdgpu_device_handle *device_handle);
+    typedef int (*amdgpu_device_deinitialize_t)(amdgpu_device_handle device_handle);
+    typedef const char* (*amdgpu_get_marketing_name_t)(amdgpu_device_handle device_handle);
+    amdgpu_device_initialize_t amdgpu_device_initialize = nullptr;
+    amdgpu_device_deinitialize_t amdgpu_device_deinitialize = nullptr;
+    amdgpu_get_marketing_name_t amdgpu_get_marketing_name = nullptr;
+
+    status = libdrm_amdgpu_.load_symbol(
+                          reinterpret_cast<amdgpu_device_initialize_t *>(&amdgpu_device_initialize),
+                          "amdgpu_device_initialize");
+    if (status != AMDSMI_STATUS_SUCCESS) {
+      close(fd);
+      libdrm_amdgpu_.AMDSmiLibraryLoader::unload();
+      return status;
+    }
+
+    amdgpu_device_handle device_handle = nullptr;
+    uint32_t major_version, minor_version;
     int ret = amdgpu_device_initialize(fd, &major_version, &minor_version, &device_handle);
+    if (ret != 0) {
+      close(fd);
+      libdrm_amdgpu_.AMDSmiLibraryLoader::unload();
+      return AMDSMI_STATUS_DRM_ERROR;
+    }
+
+    status = libdrm_amdgpu_.load_symbol(
+                            reinterpret_cast<amdgpu_get_marketing_name_t *>(
+                              &amdgpu_get_marketing_name), "amdgpu_get_marketing_name");
+    if (status != AMDSMI_STATUS_SUCCESS) {
+      close(fd);
+      libdrm_amdgpu_.AMDSmiLibraryLoader::unload();
+      return status;
+    }
+
+    status = libdrm_amdgpu_.load_symbol(reinterpret_cast<amdgpu_device_deinitialize_t *>(
+                                        &amdgpu_device_deinitialize), "amdgpu_device_deinitialize");
+    if (status != AMDSMI_STATUS_SUCCESS) {
+      close(fd);
+      libdrm_amdgpu_.AMDSmiLibraryLoader::unload();
+      return status;
+    }
+
+    ret = amdgpu_device_initialize(fd, &major_version, &minor_version, &device_handle);
     if (ret != 0) {
         std::string empty = "";
         std::strncpy(market_name, empty.c_str(), AMDSMI_256_LENGTH - 1);
@@ -618,11 +654,25 @@ amdsmi_status_t smi_amdgpu_get_market_name_from_dev_id(amd::smi::AMDSmiGPUDevice
         market_name[AMDSMI_256_LENGTH - 1] = '\0';
         amdgpu_device_deinitialize(device_handle);
         close(fd);
+        libdrm_amdgpu_.AMDSmiLibraryLoader::unload();
+        ss << __PRETTY_FUNCTION__ << " | path: " << path << "\n"
+           << " | fd: "<< std::dec << fd << "\n"
+           << " | Marketing Name: " << market_name << "\n"
+           << " | Returning: "
+           << smi_amdgpu_get_status_string(AMDSMI_STATUS_SUCCESS, false) << "\n";
+        LOG_INFO(ss);
         return AMDSMI_STATUS_SUCCESS;
     }
 
     amdgpu_device_deinitialize(device_handle);
     close(fd);
+    libdrm_amdgpu_.AMDSmiLibraryLoader::unload();
+    ss << __PRETTY_FUNCTION__ << " | path: " << path << "\n"
+       << " | fd: "<< std::dec << fd << "\n"
+       << " | Marketing Name: " << market_name << "\n"
+       << " | Returning: "
+       << smi_amdgpu_get_status_string(AMDSMI_STATUS_DRM_ERROR, false) << "\n";
+    LOG_INFO(ss);
     return AMDSMI_STATUS_DRM_ERROR;
 }
 
@@ -867,4 +917,250 @@ amdsmi_status_t smi_amdgpu_get_processor_handle_by_index(
      << "Could not find matching processor_handle for device_index: " << device_index << "\n";
   LOG_DEBUG(ss);
   return AMDSMI_STATUS_API_FAILED;
+}
+
+static std::vector<const amdsmi_cper_hdr_t *>
+amdsmi_get_gpu_cper_headers(const char *buffer, size_t buffer_sz) {
+
+    std::ostringstream ss;
+    ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__
+        << "[CPER] buffer_sz: " << buffer_sz;
+    LOG_DEBUG(ss);
+
+    std::vector<const amdsmi_cper_hdr_t *> headers;
+    if(!buffer) {
+        ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__
+            << "[CPER] buffer is null";
+        LOG_ERROR(ss);
+        return headers;
+    }
+    static constexpr char cper_signature[] = "CPER";
+    static constexpr size_t cper_signature_size = sizeof(cper_signature) - 1;
+    for(size_t data_idx = 0;
+        buffer_sz >= cper_signature_size &&
+        data_idx < buffer_sz - cper_signature_size;
+        ++data_idx) {
+
+        const amdsmi_cper_hdr_t *hdr = reinterpret_cast<const amdsmi_cper_hdr_t *>(
+            &buffer[data_idx]);
+        if(hdr->signature[0] != 'C' || hdr->signature[1] != 'P' ||
+            hdr->signature[2] != 'E' || hdr->signature[3] != 'R' ) {
+            continue;
+        }
+        if(hdr->signature_end != 0xFFFFFFFF) {
+            continue;
+        }
+        if(hdr->record_length > buffer_sz) {
+            continue;
+        }
+        ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__
+            << "[CPER] add header at data_idx: " << data_idx
+            << ", sig: " << hdr->signature[0] << hdr->signature[1] << hdr->signature[2] << hdr->signature[3];
+        LOG_DEBUG(ss);
+        headers.emplace_back(hdr);
+    }
+    return headers;
+}
+
+struct CperFileCtx {
+    amdsmi_status_t status = AMDSMI_STATUS_FILE_ERROR;
+    std::unique_ptr<char[]> buffer;
+    long file_size = 0;
+};
+
+static auto amdsmi_read_cper_file(const std::string &filepath) -> CperFileCtx {
+
+    std::ostringstream ss;
+
+    CperFileCtx ctx;
+    ctx.status = AMDSMI_STATUS_FILE_ERROR;
+    ctx.file_size = 0;
+
+    struct stat file_stats;
+    if (stat(filepath.c_str(), &file_stats) == 0) {
+        if (!S_ISREG(file_stats.st_mode)) {
+            ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ << "[CPER] file is not a regular file: "
+                << filepath << ", errno: " << errno << "): " << strerror(errno);
+            return ctx;
+        }
+    } else {
+        ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ << "[CPER] file does not exist: "
+            << filepath << ", errno: " << errno << "): " << strerror(errno);
+        ctx.status = AMDSMI_STATUS_NOT_SUPPORTED;
+        return ctx;
+    }
+
+    ctx.file_size = file_stats.st_size;
+    ctx.buffer = std::make_unique<char[]>(ctx.file_size);
+    int file = open(filepath.c_str(), O_RDONLY);
+    if (file == -1) {
+        ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ << "[CPER] failed to open file: "
+            << filepath << ", errno:()" << errno << "): " << strerror(errno);
+        LOG_ERROR(ss);
+        return ctx;
+    }
+    long bytes_read = read(file, ctx.buffer.get(), ctx.file_size);
+    if (bytes_read <= 0) {
+        ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__
+            << "[CPER] failed to read complete file, read only  "
+            << bytes_read << " of " << ctx.file_size << " bytes";
+        LOG_ERROR(ss);
+        return ctx;
+    }
+    close(file);
+
+    ctx.status = AMDSMI_STATUS_SUCCESS;
+    ctx.file_size = bytes_read;
+    return ctx;
+}
+
+amdsmi_status_t amdsmi_get_gpu_cper_entries_by_path(
+    const char *amdgpu_ring_cper_file,
+    uint32_t severity_mask,
+    char *cper_data,
+    uint64_t *buf_size,
+    amdsmi_cper_hdr_t **cper_hdrs,
+    uint64_t *entry_count,
+    uint64_t *cursor) {
+
+    std::ostringstream ss;
+    ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ << "[CPER] begin\n"
+        << ", amdgpu_ring_cper_file: " << amdgpu_ring_cper_file
+        << ", severity_mask: " << severity_mask;
+    LOG_DEBUG(ss);
+
+    if(!cper_data) {
+        ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ << "[CPER] cper_data should be a valid memory address\n";
+        LOG_ERROR(ss);
+        if(entry_count) {*entry_count = 0;}
+        if(buf_size) { *buf_size = 0; }
+        return AMDSMI_STATUS_OUT_OF_RESOURCES;
+    }
+    else if(!buf_size) {
+        ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ << "[CPER] buf_size should be a valid memory address";
+        LOG_ERROR(ss);
+        if(entry_count) {*entry_count = 0;}
+        return AMDSMI_STATUS_OUT_OF_RESOURCES;
+    }
+    else if(!entry_count) {
+        ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ << "[CPER] entry_count should be a valid memory address";
+        LOG_ERROR(ss);
+        *buf_size = 0;
+        return AMDSMI_STATUS_OUT_OF_RESOURCES;
+    }
+    else if(!*buf_size) {
+        ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ << "[CPER] buf_size should be greater than zero";
+        LOG_ERROR(ss);
+        *entry_count = 0;
+        return AMDSMI_STATUS_OUT_OF_RESOURCES;
+    }
+    else if(!*entry_count) {
+        ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ << "[CPER] entry_count should be greater than 0";
+        LOG_ERROR(ss);
+        *buf_size = 0;
+        return AMDSMI_STATUS_OUT_OF_RESOURCES;
+    }
+    else if(!cper_hdrs) {
+        ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ << "[CPER] cper_hdrs should be a valid memory address";
+        LOG_ERROR(ss);
+        *entry_count = 0;
+        *buf_size = 0;
+        return AMDSMI_STATUS_OUT_OF_RESOURCES;
+    }
+    else if(!cursor) {
+        ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ << "[CPER] cursor should be a valid memory address";
+        LOG_ERROR(ss);
+        *entry_count = 0;
+        *buf_size = 0;
+        return AMDSMI_STATUS_OUT_OF_RESOURCES;
+    }
+
+    auto ctx = amdsmi_read_cper_file(amdgpu_ring_cper_file);
+    if(ctx.status != AMDSMI_STATUS_SUCCESS) {
+        *entry_count = 0;
+        *buf_size = 0;
+        return ctx.status;
+    }
+
+    auto headers = amdsmi_get_gpu_cper_headers(ctx.buffer.get(), ctx.file_size);
+    ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ << "[CPER] num headers: " << headers.size();
+    LOG_DEBUG(ss);
+
+    uint64_t data_idx = 0;
+    uint64_t header_idx = 0;
+    size_t num_headers_copied = 0;
+    for(const amdsmi_cper_hdr_t *header: headers) {
+        if(((1 << header->error_severity) & severity_mask) !=
+            static_cast<uint32_t>(1 << header->error_severity)) {
+            ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ << "[CPER] cper header rejected with severity: 0x"
+                << std::hex << (1 << header->error_severity) << ", given severity_mask: 0x"
+                << std::hex << severity_mask << ", record_length:"
+                << std::dec << header->record_length;
+            LOG_DEBUG(ss);
+            continue;
+        }
+        else {
+            ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ << "[CPER] cper header accepted with severity: 0x"
+                << std::hex << (1 << header->error_severity) << ", given severity_mask: 0x"
+                << std::hex << severity_mask << ", record_length:"
+                << std::dec << header->record_length;
+            LOG_DEBUG(ss);
+        }
+        if((*buf_size - data_idx) < header->record_length ) {
+            ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ << "[CPER] buffer filled up without copying all cper entries, buf_size: " << std::dec << *buf_size;
+            LOG_ERROR(ss);
+            *entry_count = num_headers_copied;
+            *buf_size = data_idx;
+            return (data_idx == 0) ?
+                AMDSMI_STATUS_OUT_OF_RESOURCES :
+                AMDSMI_STATUS_MORE_DATA;
+        }
+        if(num_headers_copied == *entry_count) {
+            ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ << "[CPER] cper_hdrs filled up before finished with copying all header pointers, entry_count: " << std::dec << *entry_count;
+            LOG_ERROR(ss);
+            *entry_count = num_headers_copied;
+            *buf_size = data_idx;
+            return (data_idx == 0) ?
+                AMDSMI_STATUS_OUT_OF_RESOURCES :
+                AMDSMI_STATUS_MORE_DATA;
+        }
+        if(*cursor != header_idx) {
+            ++header_idx;
+            continue;
+        }
+        cper_hdrs[num_headers_copied] = reinterpret_cast<amdsmi_cper_hdr_t*>(&cper_data[data_idx]);
+        ++num_headers_copied;
+        *cursor = ++header_idx;
+        std::memcpy(
+            &cper_data[data_idx],
+            reinterpret_cast<const char*>(header),
+            header->record_length);
+        data_idx += header->record_length;
+   }
+   *entry_count = num_headers_copied;
+   *buf_size = data_idx;
+
+    ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__
+        << "[CPER] *entry_count: " << entry_count
+        << ", *cursor: " << cursor
+        << ", *buf_size: " << buf_size;
+
+    LOG_DEBUG(ss);
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+void amdsmi_wait_for_user_input(void) {
+  for (;;) {
+    std::cout << "\n\t**Press any key to continue**" << std::endl;
+    int input = std::cin.get();
+    if (input == EOF) {
+      std::cout << "EOF detected. Exiting." << std::endl;
+      return;
+    }
+    char input_char = static_cast<char>(input);
+    std::cout << "User entered: " << input_char << std::endl;
+    if (input_char == '\n') {
+      return;
+    }
+  }
 }

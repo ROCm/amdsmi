@@ -42,6 +42,7 @@ class AMDSMILogger():
         self.secondary_table_header = ""
         self.warning_message = ""
         self.helpers = AMDSMIHelpers()
+        self._cper_exit_message = True
 
 
     class LoggerFormat(Enum):
@@ -76,6 +77,26 @@ class AMDSMILogger():
 
     def clear_multiple_devices_output(self):
         self.multiple_device_output.clear()
+
+
+    def cper_exit_message(self):
+        """ Store the cper exit message
+            params:
+                message (str) - message to store
+            return:
+                cper_exit_message (bool) - True if cper exit message is set
+        """
+        return self._cper_exit_message
+
+
+    def set_cper_exit_message(self, flag:bool):
+        """ Set the cper exit message
+            params:
+                flag (bool) - True if cper exit message is set
+            return:
+                Nothing
+        """
+        self._cper_exit_message = flag
 
 
     def _capitalize_keys(self, input_dict):
@@ -136,11 +157,15 @@ class AMDSMILogger():
                 table_values += string_value.rjust(10)
             elif key in ('mem_clock', 'vram_used'):
                 table_values += string_value.rjust(11)
+            elif key in ('vram_total', 'vram_free'):
+                table_values += string_value.rjust(12)
+            elif key == 'vram_percent':
+                table_values += string_value.rjust(9)
             elif key in ('encoder', 'decoder'):
                 table_values += string_value.rjust(7)
             elif key in ('vclock', 'dclock'):
                 table_values += string_value.rjust(10)
-            elif key in ('single_bit_ecc', 'double_bit_ecc', 'pcie_bw', 'vram_total'):
+            elif key in ('single_bit_ecc', 'double_bit_ecc', 'pcie_bw'):
                 table_values += string_value.rjust(12)
             elif key in ('pcie_replay'):
                 table_values += string_value.rjust(13)

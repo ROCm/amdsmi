@@ -129,7 +129,7 @@ pub const AMDSMI_TIME_FORMAT: &[u8; 20] = b"%02d:%02d:%02d.%03d\0";
 pub const AMDSMI_DATE_FORMAT: &[u8; 35] = b"%04d-%02d-%02d:%02d:%02d:%02d.%03d\0";
 pub const AMDSMI_LIB_VERSION_YEAR: u32 = 25;
 pub const AMDSMI_LIB_VERSION_MAJOR: u32 = 25;
-pub const AMDSMI_LIB_VERSION_MINOR: u32 = 2;
+pub const AMDSMI_LIB_VERSION_MINOR: u32 = 4;
 pub const AMDSMI_LIB_VERSION_RELEASE: u32 = 0;
 pub const AMDSMI_MAX_NUM_FREQUENCIES: u32 = 33;
 pub const AMDSMI_MAX_FAN_SPEED: u32 = 255;
@@ -2554,6 +2554,12 @@ extern "C" {
         processor_handle: AmdsmiProcessorHandle,
         sensor_ind: u32,
         speed: u64,
+    ) -> AmdsmiStatusT;
+}
+extern "C" {
+    pub fn amdsmi_get_gpu_busy_percent(
+        processor_handle: AmdsmiProcessorHandle,
+        gpu_busy_percent: *mut u32,
     ) -> AmdsmiStatusT;
 }
 extern "C" {
