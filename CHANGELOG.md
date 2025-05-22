@@ -12,6 +12,10 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
   - Added new C and Python API `amdsmi_get_cpu_model_name`
   - Not sourced from esmi library.
 
+- **Added `amdsmi_get_cpu_affinity_with_scope()`**.
+
+### Added
+
 - **Added support for GPU metrics 1.8**.  
   - Added new fields for `amdsmi_gpu_xcp_metrics_t` including:  
     - Adding the following metrics to allow new calculations for violation status:
@@ -24,6 +28,8 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 - **Added bad page threshold count**.  
   - Added `amdsmi_get_gpu_bad_page_threshold` to Python API and CLI; root/sudo permissions required to display the count.
+
+- **Added new firmware PLDM**.  
 
 ### Changed
 

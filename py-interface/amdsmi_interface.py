@@ -199,6 +199,7 @@ class AmdSmiFwBlock(IntEnum):
     AMDSMI_FW_ID_RLC_SRLS = amdsmi_wrapper.AMDSMI_FW_ID_RLC_SRLS
     AMDSMI_FW_ID_PM = amdsmi_wrapper.AMDSMI_FW_ID_PM
     AMDSMI_FW_ID_DMCU = amdsmi_wrapper.AMDSMI_FW_ID_DMCU
+    AMDSMI_FW_ID_PLDM = amdsmi_wrapper.AMDSMI_FW_ID_PLDM
 
 
 class AmdSmiClkType(IntEnum):
@@ -522,6 +523,9 @@ class AmdSmiVramVendor(IntEnum):
     MICRON = amdsmi_wrapper.AMDSMI_VRAM_VENDOR_MICRON
     UNKNOWN = amdsmi_wrapper.AMDSMI_VRAM_VENDOR_UNKNOWN
 
+class AmdSmiAffinityScope(IntEnum):
+    NUMA_SCOPE = amdsmi_wrapper.AMDSMI_AFFINITY_SCOPE_NODE
+    SOCKET_SCOPE = amdsmi_wrapper.AMDSMI_AFFINITY_SCOPE_SOCKET
 
 class AmdSmiEventReader:
     def __init__(
@@ -1881,6 +1885,23 @@ def amdsmi_get_cpu_model_name(
     )
     return f"{cpu_info.model_name}"
 
+def amdsmi_get_cpu_cores_per_socket(sock_count: ctypes.c_uint32()):
+    cps = amdsmi_wrapper.amdsmi_sock_info_t()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpu_cores_per_socket(sock_count, cps)
+    )
+    return {"socket_id": cps.socket_id,
+            "cores_per_socket": cps.cores_per_socket
+           }
+
+def amdsmi_get_cpu_socket_count():
+    sock_count = ctypes.c_uint32()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpu_socket_count(ctypes.byref(sock_count))
+    )
+    return sock_count.value
+
 def amdsmi_init(flag=AmdSmiInitFlags.INIT_AMD_GPUS):
     if not isinstance(flag, AmdSmiInitFlags):
         raise AmdSmiParameterException(flag, AmdSmiInitFlags)
@@ -2075,6 +2096,35 @@ def amdsmi_get_gpu_enumeration_info(processor_handle: amdsmi_wrapper.amdsmi_proc
     }
 
     return enumeration_info
+
+def amdsmi_get_cpu_affinity_with_scope(
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    scope: AmdSmiAffinityScope
+) -> List[int]:
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    if not isinstance(scope, AmdSmiAffinityScope):
+        raise AmdSmiParameterException(scope, AmdSmiAffinityScope)
+
+    socket_count = amdsmi_get_cpu_socket_count()
+    sock_info = amdsmi_get_cpu_cores_per_socket(socket_count)
+    core_count = sock_info['cores_per_socket']
+
+    size = ctypes.c_uint32(0)
+    size = (socket_count * core_count)/ (ctypes.sizeof(ctypes.c_uint64) * 8)
+    size = int(math.ceil(size))
+    size = ctypes.c_uint32(size)
+    cpu_set = (ctypes.c_uint64 * size.value)()
+
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_cpu_affinity_with_scope(
+            processor_handle, size, cpu_set, scope)
+    )
+
+    return cpu_set
 
 def amdsmi_get_gpu_asic_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
@@ -2962,7 +3012,8 @@ def amdsmi_get_fw_info(
                      AmdSmiFwBlock.AMDSMI_FW_ID_TA_XGMI,
                      AmdSmiFwBlock.AMDSMI_FW_ID_UVD,
                      AmdSmiFwBlock.AMDSMI_FW_ID_VCE,
-                     AmdSmiFwBlock.AMDSMI_FW_ID_VCN]
+                     AmdSmiFwBlock.AMDSMI_FW_ID_VCN,
+                     AmdSmiFwBlock.AMDSMI_FW_ID_PLDM]
 
     # PM(AKA: SMC) firmware's hex value looks like 0x12345678
     # However, they are parsed as: int(0x12).int(0x34).int(0x56).int(0x78)

@@ -1021,8 +1021,24 @@ class AMDSMICommands():
                     numa_affinity = "N/A"
                     logging.debug("Failed to get numa affinity for gpu %s | %s", gpu_id, e.get_error_info())
 
+                try:
+                    cpu_set = amdsmi_interface.amdsmi_get_cpu_affinity_with_scope(args.gpu, amdsmi_interface.AmdSmiAffinityScope.NUMA_SCOPE)
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    cpu_set = []
+                    cpu_set.append(-1)
+                    logging.debug("Failed to get cpu affinity for gpu %s | %s", gpu_id, e.get_error_info())
+
+                try:
+                    cpusockets = amdsmi_interface.amdsmi_get_cpu_affinity_with_scope(args.gpu, amdsmi_interface.AmdSmiAffinityScope.SOCKET_SCOPE)
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    cpusockets = []
+                    cpusockets.append(-1)
+                    logging.debug("Failed to get socket affinity for gpu %s | %s", gpu_id, e.get_error_info())
+
                 static_dict['numa'] = {'node' : numa_node_number,
-                                        'affinity' : numa_affinity}
+                                        'affinity' : numa_affinity,
+                                        'CPU affinity' : [hex(cpus) for cpus in cpu_set],
+                                        'Socket affinity' : [socket for socket in set(cpusockets)]}
         if args.vram:
             vram_info_dict = {"type" : "N/A",
                               "vendor" : "N/A",
@@ -7628,20 +7644,17 @@ class AMDSMICommands():
                        break
                    elif args.follow and args.gpu:
                        self.helpers.dump_gpu_entries_follow(args.folder, entries, cper_data, args.gpu)
-                       break
                    elif args.follow and not args.gpu:
-                       self.helpers.dump_all_entries_follow(args.folder, entries, cper_data, args.gpu)
-                       break
+                       self.helpers.dump_all_entries_follow(args.folder, entries, cper_data, args.gpu)     
                 if args.follow:
-                    self.helpers.display_cper_files_generated_follow(entries, args.gpu)
-                    break
+                    self.helpers.display_cper_files_generated_follow(entries, args.gpu)  
                 else:
                     self.helpers.display_cper_files_generated(entries, args.gpu)
                     break
-                if len(entries) == 0 or not args.follow:
+                if len(entries) == 0 and not args.follow:
                     break
                 cursor = new_cursor
-                time.sleep(5)
+                time.sleep(1)
 
 
     def _event_thread(self, commands, i):
