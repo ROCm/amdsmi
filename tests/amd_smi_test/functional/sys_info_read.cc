@@ -222,20 +222,6 @@ void TestSysInfoRead::Run(void) {
         }
     }
 
-    // root_switch
-    amdsmi_bdf_t root_switch;
-    err = amdsmi_get_root_switch(processor_handles_[i], &root_switch);
-    if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
-        std::cout <<
-            "\t**amdsmi_get_root_switch() is not supported"
-            " on this machine" << std::endl;
-    } else {
-        CHK_ERR_ASRT(err)
-        IF_VERB(STANDARD) {
-            std::cout << "\t**ROOT_SWITCH: " << root_switch << std::endl;
-        }
-    }
-
     // vendor_id, unique_id, target_gfx_version
     amdsmi_asic_info_t asic_info = {};
     err = amdsmi_get_gpu_asic_info(processor_handles_[i], &asic_info);
