@@ -118,14 +118,6 @@ int main(int argc, char **argv) {
             amdsmi_bdf_t bdf = {};
 
             if (isNIC) {
-              amdsmi_brcm_nic_temperature_metric_t info;
-                ret = amdsmi_get_nic_temp_info(processor_handles[j], &info);
-                printf("nic_temp_crit: %d\n", info.nic_temp_crit);
-                printf("nic_temp_emergency: %d\n", info.nic_temp_emergency);
-                printf("nic_temp_input: %d\n", info.nic_temp_input);
-                printf("nic_temp_max: %d\n", info.nic_temp_max);
-                printf("nic_temp_shutdown: %d\n", info.nic_temp_shutdown);
-
                 ret = amdsmi_get_nic_device_bdf(processor_handles[j], &bdf);
             }
             else if (isGPU) {

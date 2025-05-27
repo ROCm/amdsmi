@@ -5918,7 +5918,7 @@ class AMDSMICommands():
 
                     #Read data
                     nic_id = self.helpers.get_nic_id_from_device_handle(args.nic)
-                    power_info = amdsmi_interface.amdsmi_get_nic_temp_info(args.nic)
+                    temperature_info = amdsmi_interface.amdsmi_get_nic_temp_info(args.nic)
 
                     if args.temperature:
                         #TODO: Key and the table header is same as of now. This needs to be fixed once the metric command is implemented
@@ -5926,9 +5926,9 @@ class AMDSMICommands():
                         #Additional Check for Bad Data
                         bad_data = False
 
-                        if power_info['NIC_TEMP_CRIT_ALARM'] == "N/A" \
-                        or power_info['NIC_TEMP_EMERGENCY_ALARM'] == "N/A" or power_info['NIC_TEMP_EMERGENCY_ALARM'] == "N/A" \
-                        or power_info['NIC_TEMP_SHUTDOWN_ALARM'] == "N/A" or power_info['NIC_TEMP_MAX_ALARM'] == "N/A":
+                        if temperature_info['NIC_TEMP_CRIT_ALARM'] == "N/A" \
+                        or temperature_info['NIC_TEMP_EMERGENCY_ALARM'] == "N/A" or temperature_info['NIC_TEMP_EMERGENCY_ALARM'] == "N/A" \
+                        or temperature_info['NIC_TEMP_SHUTDOWN_ALARM'] == "N/A" or temperature_info['NIC_TEMP_MAX_ALARM'] == "N/A":
                             if multiple_devices:
                                 return
                             else:
@@ -5937,35 +5937,35 @@ class AMDSMICommands():
                         if not bad_data:
                             #NIC_TEMP_CURRENT
                             try:
-                                monitor_values['NIC_TEMP_CURRENT'] = power_info['NIC_TEMP_CURRENT']
+                                monitor_values['NIC_TEMP_CURRENT'] = temperature_info['NIC_TEMP_CURRENT']
                             except amdsmi_exception.AmdSmiLibraryException as e:
                                 monitor_values['NIC_TEMP_CURRENT'] = "N/A"
                                 logging.debug("Failed to get NIC_TEMP_CURRENT on nic %s | %s", nic_id, e.get_error_info())
 
                             #NIC_TEMP_CRIT_ALARM
                             try:
-                                monitor_values['NIC_TEMP_CRIT_ALARM'] = power_info['NIC_TEMP_CRIT_ALARM']
+                                monitor_values['NIC_TEMP_CRIT_ALARM'] = temperature_info['NIC_TEMP_CRIT_ALARM']
                             except amdsmi_exception.AmdSmiLibraryException as e:
                                 monitor_values['NIC_TEMP_CRIT_ALARM'] = "N/A"
                                 logging.debug("Failed to get NIC_TEMP_CRIT_ALARM on nic %s | %s", nic_id, e.get_error_info())
 
                             #NIC_TEMP_EMERGENCY_ALARM
                             try:
-                                monitor_values['NIC_TEMP_EMERGENCY_ALARM'] = power_info['NIC_TEMP_EMERGENCY_ALARM']
+                                monitor_values['NIC_TEMP_EMERGENCY_ALARM'] = temperature_info['NIC_TEMP_EMERGENCY_ALARM']
                             except amdsmi_exception.AmdSmiLibraryException as e:
                                 monitor_values['NIC_TEMP_EMERGENCY_ALARM'] = "N/A"
                                 logging.debug("Failed to get NIC_TEMP_EMERGENCY_ALARM on nic %s | %s", nic_id, e.get_error_info())
 
                             #NIC_TEMP_SHUTDOWN_ALARM
                             try:
-                                monitor_values['NIC_TEMP_SHUTDOWN_ALARM'] = power_info['NIC_TEMP_SHUTDOWN_ALARM']
+                                monitor_values['NIC_TEMP_SHUTDOWN_ALARM'] = temperature_info['NIC_TEMP_SHUTDOWN_ALARM']
                             except amdsmi_exception.AmdSmiLibraryException as e:
                                 monitor_values['NIC_TEMP_SHUTDOWN_ALARM'] = "N/A"
                                 logging.debug("Failed to get NIC_TEMP_SHUTDOWN_ALARM on nic %s | %s", nic_id, e.get_error_info())
 
                             #NIC_TEMP_MAX_ALARM
                             try:
-                                monitor_values['NIC_TEMP_MAX_ALARM'] = power_info['NIC_TEMP_MAX_ALARM']
+                                monitor_values['NIC_TEMP_MAX_ALARM'] = temperature_info['NIC_TEMP_MAX_ALARM']
                             except amdsmi_exception.AmdSmiLibraryException as e:
                                 monitor_values['NIC_TEMP_MAX_ALARM'] = "N/A"
                                 logging.debug("Failed to get NIC_TEMP_MAX_ALARM on nic %s | %s", nic_id, e.get_error_info())

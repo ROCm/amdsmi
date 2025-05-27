@@ -2622,6 +2622,70 @@ amdsmi_status_t amdsmi_get_processor_handles(amdsmi_socket_handle socket_handle,
                                     uint32_t *processor_count,
                                     amdsmi_processor_handle* processor_handles);
 
+/**
+ * @brief Get the list of the NIC processor handles in a system.
+ *
+ * @ingroup tagProcDiscovery
+ *
+ * @platform{cpu_bm}
+ *
+ * @details This function retrieves the NIC processor handles of a socket.
+ * The @p socket_handle must be provided.
+ *
+ * @param[in] socket_handle The socket to query
+ *
+ * @param[in,out] processor_count As input, the value passed
+ * through this parameter is the number of ::amdsmi_processor_handle's that
+ * may be safely written to the memory pointed to by @p processor_handles. This is the
+ * limit on how many processor handles will be written to @p processor_handles. On return, @p
+ * processor_count will contain the number of processor handles written to @p processor_handles,
+ * or the number of processor handles that could have been written if enough memory had been
+ * provided.
+ * If @p processor_handles is NULL, as output, @p processor_count will contain
+ * how many processors are available to read.
+ *
+ * @param[in,out] processor_handles A pointer to a block of memory to which the
+ * ::amdsmi_processor_handle values will be written. This value may be NULL.
+ * In this case, this function can be used to query how many processors are
+ * available to read.
+ *
+ * @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_get_nic_processor_handles(amdsmi_socket_handle socket_handle,
+                                    uint32_t *processor_count,
+                                    amdsmi_processor_handle* processor_handles);
+/**
+ * @brief Get the list of the switch processor handles in a system.
+ *
+ * @ingroup tagProcDiscovery
+ *
+ * @platform{cpu_bm}
+ *
+ * @details This function retrieves the switch processor handles of a socket.
+ * The @p socket_handle must be provided.
+ *
+ * @param[in] socket_handle The socket to query
+ *
+ * @param[in,out] processor_count As input, the value passed
+ * through this parameter is the number of ::amdsmi_processor_handle's that
+ * may be safely written to the memory pointed to by @p processor_handles. This is the
+ * limit on how many processor handles will be written to @p processor_handles. On return, @p
+ * processor_count will contain the number of processor handles written to @p processor_handles,
+ * or the number of processor handles that could have been written if enough memory had been
+ * provided.
+ * If @p processor_handles is NULL, as output, @p processor_count will contain
+ * how many processors are available to read.
+ *
+ * @param[in,out] processor_handles A pointer to a block of memory to which the
+ * ::amdsmi_processor_handle values will be written. This value may be NULL.
+ * In this case, this function can be used to query how many processors are
+ * available to read.
+ *
+ * @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_get_switch_processor_handles(amdsmi_socket_handle socket_handle,
+                                    uint32_t *processor_count,
+                                    amdsmi_processor_handle* processor_handles);
 
 #ifdef ENABLE_ESMI_LIB
 /**

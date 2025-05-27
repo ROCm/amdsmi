@@ -865,13 +865,11 @@ def amdsmi_get_processor_handles() -> List[amdsmi_wrapper.amdsmi_processor_handl
 
     return devices
 
-#ENABLE_BRCM_DEVICES to get the Switch handles
 def get_switch_handles() -> List[amdsmi_wrapper.amdsmi_processor_handle]:
    
     switch_handles = []
     switch_type = amdsmi_wrapper.AMDSMI_PROCESSOR_TYPE_BRCM_SWITCH
     socket_handles = amdsmi_get_socket_handles()
-  
     
     for socket in socket_handles:
         switch_count = ctypes.c_uint32()
@@ -905,14 +903,11 @@ def get_switch_handles() -> List[amdsmi_wrapper.amdsmi_processor_handle]:
             
     return switch_handles
 
-#ENABLE_BRCM_DEVICES to get the nic handles
 def get_nic_handles() -> List[amdsmi_wrapper.amdsmi_processor_handle]:
    
     nic_handles = []
     nic_type = amdsmi_wrapper.AMDSMI_PROCESSOR_TYPE_BRCM_NIC
     socket_handles = amdsmi_get_socket_handles()
-
-  
     
     for socket in socket_handles:
         nic_count = ctypes.c_uint32()

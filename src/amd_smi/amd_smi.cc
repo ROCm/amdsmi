@@ -541,6 +541,74 @@ amdsmi_status_t amdsmi_get_processor_handles(amdsmi_socket_handle socket_handle,
     return AMDSMI_STATUS_SUCCESS;
 }
 
+amdsmi_status_t amdsmi_get_nic_processor_handles(amdsmi_socket_handle socket_handle,
+    uint32_t* processor_count,
+    amdsmi_processor_handle* processor_handles) {
+    AMDSMI_CHECK_INIT();
+
+    if (processor_count == nullptr) {
+        return AMDSMI_STATUS_INVAL;
+    }
+
+    // Get the socket object via socket handle.
+    amd::smi::AMDSmiSocket* socket = nullptr;
+    amdsmi_status_t r = amd::smi::AMDSmiSystem::getInstance()
+                    .handle_to_socket(socket_handle, &socket);
+    if (r != AMDSMI_STATUS_SUCCESS) return r;
+
+    std::vector<amd::smi::AMDSmiProcessor*>& processors = socket->get_processors(AMDSMI_PROCESSOR_TYPE_BRCM_NIC);
+    uint32_t processor_size = static_cast<uint32_t>(processors.size());
+    // Get the processor count only
+    if (processor_handles == nullptr) {
+        *processor_count = processor_size;
+        return AMDSMI_STATUS_SUCCESS;
+    }
+
+    // If the processor_handles can hold all processors, return all of them.
+    *processor_count = *processor_count >= processor_size ? processor_size : *processor_count;
+
+    // Copy the processor handles
+    for (uint32_t i = 0; i < *processor_count; i++) {
+        processor_handles[i] = reinterpret_cast<amdsmi_processor_handle>(processors[i]);
+    }
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_get_switch_processor_handles(amdsmi_socket_handle socket_handle,
+    uint32_t* processor_count,
+    amdsmi_processor_handle* processor_handles) {
+    AMDSMI_CHECK_INIT();
+
+    if (processor_count == nullptr) {
+        return AMDSMI_STATUS_INVAL;
+    }
+
+    // Get the socket object via socket handle.
+    amd::smi::AMDSmiSocket* socket = nullptr;
+    amdsmi_status_t r = amd::smi::AMDSmiSystem::getInstance()
+                    .handle_to_socket(socket_handle, &socket);
+    if (r != AMDSMI_STATUS_SUCCESS) return r;
+
+    std::vector<amd::smi::AMDSmiProcessor*>& processors = socket->get_processors(AMDSMI_PROCESSOR_TYPE_BRCM_SWITCH);
+    uint32_t processor_size = static_cast<uint32_t>(processors.size());
+    // Get the processor count only
+    if (processor_handles == nullptr) {
+        *processor_count = processor_size;
+        return AMDSMI_STATUS_SUCCESS;
+    }
+
+    // If the processor_handles can hold all processors, return all of them.
+    *processor_count = *processor_count >= processor_size ? processor_size : *processor_count;
+
+    // Copy the processor handles
+    for (uint32_t i = 0; i < *processor_count; i++) {
+        processor_handles[i] = reinterpret_cast<amdsmi_processor_handle>(processors[i]);
+    }
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
 #ifdef ENABLE_ESMI_LIB
 amdsmi_status_t amdsmi_get_processor_count_from_handles(amdsmi_processor_handle* processor_handles,
                                                         uint32_t* processor_count, uint32_t* nr_cpusockets,
