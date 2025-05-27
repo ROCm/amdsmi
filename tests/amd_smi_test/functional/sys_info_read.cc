@@ -157,9 +157,9 @@ void TestSysInfoRead::Run(void) {
     }
 
     // nic_topo_cpu_affinity
-    char cpu_aff_data[1024] = {};
-    unsigned int cpu_aff_length = sizeof(cpu_aff_data);
-    err = amdsmi_get_nic_topo_cpu_affinity(processor_handles_[i], &cpu_aff_length, cpu_aff_data);
+    char nic_cpu_aff_data[1024] = {};
+    unsigned int nic_cpu_aff_length = sizeof(cpu_aff_data);
+    err = amdsmi_get_nic_topo_cpu_affinity(processor_handles_[i], &nic_cpu_aff_length, nic_cpu_aff_data);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
         std::cout <<
             "\t**amdsmi_get_nic_topo_cpu_affinity() is not supported"
@@ -167,7 +167,7 @@ void TestSysInfoRead::Run(void) {
     } else {
         CHK_ERR_ASRT(err)
         IF_VERB(STANDARD) {
-            std::cout << "\t**CPU AFFINITY (NIC): " << cpu_aff_data << std::endl;
+            std::cout << "\t**CPU AFFINITY (NIC): " << nic_cpu_aff_data << std::endl;
         }
     }
 
@@ -232,10 +232,7 @@ void TestSysInfoRead::Run(void) {
     } else {
         CHK_ERR_ASRT(err)
         IF_VERB(STANDARD) {
-            std::cout << "\t**ROOT_SWITCH: "
-                      << std::hex << root_switch.bus
-                      << " " << root_switch.device
-                      << " " << root_switch.function << std::dec << std::endl;
+            std::cout << "\t**ROOT_SWITCH: " << root_switch << std::endl;
         }
     }
 
