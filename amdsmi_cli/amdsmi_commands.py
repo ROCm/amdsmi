@@ -6291,15 +6291,15 @@ class AMDSMICommands():
             else:
                 with self.logger.destination.open('a', encoding="utf-8") as output_file:
                     output_file.write(legend_output + '\n')
+    
 
-
-    def ras(self, args, multiple_devices=False, gpu=None, cper=None,
-            severity=None, folder=None, file_limit=None, follow=None):
+    def ras(self, args, multiple_devices=False, gpu=None, cper=None, afid=None,
+            severity=None, folder=None, file_limit=None, cper_file=None, follow=None):
         """
         Retrieve and process CPER (RAS) entries for a target GPU.
 
         Expected command (all options only):
-        amd-smi ras --cper --severity=nonfatal-uncorrected,fatal --folder <folder_name> --file_limit=1000 --follow
+        amd-smi ras --cper --severity=nonfatal-uncorrected,fatal --folder <folder_name> --file-limit=1000 --follow
 
         Since no timestamp is provided on the command line, the function starts from a default cursor of 0.
         The output file name is auto-generated using the timestamp from the CPER header data (converted from
@@ -6322,104 +6322,30 @@ class AMDSMICommands():
         if args.gpu == None:
             args.gpu = self.device_handles
 
+        if args.afid and args.cper_file:
+            self.helpers.pvtDumpAfids(args.cper_file)
+            return
+
         if not self.group_check_printed:
             self.helpers.check_required_groups()
             self.group_check_printed = True
 
-        handled_multiple_gpus, device_handle = self.helpers.handle_gpus(args, self.logger, self.ras)
-        if handled_multiple_gpus:
+        if not args.cper:
             return
 
-        args.gpu = device_handle
-
-        # Parse severity mask dynamically from the --severity option.
-        severity_mask = 0
-        # drop duplicates of args
-        logging.debug(args)
-        for sev in list(set(args.severity)):
-            if sev == "all":
-                # Set bits for NON_FATAL_UNCORRECTED (0), FATAL (1), and NON_FATAL_CORRECTED (2)
-                severity_mask |= ((1 << 0) | (1 << 1) | (1 << 2))
-            elif sev == "fatal":
-                # Set bit corresponding to AMDSMI_CPER_SEV_FATAL (which is 1)
-                severity_mask |= (1 << 1)
-            elif sev in ("nonfatal", "nonfatal-uncorrected"):
-                # Set bit corresponding to AMDSMI_CPER_SEV_NON_FATAL_UNCORRECTED (which is 0)
-                severity_mask |= (1 << 0)
-            elif sev in ("nonfatal-corrected", "corrected"):
-                # Set bit corresponding to AMDSMI_CPER_SEV_NON_FATAL_CORRECTED (which is 2)
-                severity_mask |= (1 << 2)
+        if not args.gpu:
+            return
         
-        if args.cper:
-            # Start from cursor 0 (no timestamp argument provided).
-            cursor = 0
-            buffer_size = 1048576
-            file_limit = int(args.file_limit) if args.file_limit else 1000
-            
-            # Main loop: continuously retrieve CPER entries if --follow is set.
-            gpu_id = self.helpers.get_gpu_id_from_device_handle(args.gpu)
+        if not isinstance(args.gpu, list):
+            args.gpu = [args.gpu]
 
-            # Print header only when dumping to a folder
-            if args.follow and not getattr(self, "_cper_follow_prompted", False):
-               print("Press CTRL + C to stop.")
-               self._cper_follow_prompted = True
-
-            partition_id = -1
-            try:
-                kfd_info = amdsmi_interface.amdsmi_get_gpu_kfd_info(args.gpu)
-                partition_id = kfd_info['current_partition_id']
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                logging.debug("Failed to get kfd info for gpu %s | %s", gpu_id, e.get_error_info())
-
-            if partition_id != 0:
-                logging.debug(f"Skipping gpu {gpu_id} on non zero partition {partition_id}")
-                return
-
-            if args.folder and not getattr(self, "_cper_folder_prompted", False):
-                print(f"Dumping CPER file header entries in folder {args.folder}")
-                self._cper_folder_prompted = True
-
-            self.logger.set_cper_exit_message(False)
-            self.stop = False
-
-            while True:
-                try:
-                    entries, new_cursor, cper_data = amdsmi_interface.amdsmi_get_gpu_cper_entries(
-                        args.gpu, severity_mask, buffer_size, cursor)
-                    logging.debug(f"cper_entries | entries: {entries}")
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
-                        raise PermissionError('Error opening CPER file. This command requires elevation') from e
-                    if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED or \
-                            e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_FILE_NOT_FOUND:
-                        raise FileNotFoundError('Error accessing CPER files. This command requires CPER to be enabled.') from e
-                    if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_FILE_ERROR:
-                        raise FileExistsError('Error opening CPER file. Unable to read CPER File') from e
-                    else:
-                        logging.debug(f"Error retrieving CPER entries: {e}")
-                        break
-                # Dump or display
-                if args.folder:
-                   if args.gpu and not args.follow:
-                       self.helpers.dump_gpu_entries(args.folder, entries, cper_data, args.gpu)
-                       break
-                   elif not args.gpu and not args.follow:
-                       self.helpers.dump_all_entries(args.folder, entries, cper_data, args.gpu)
-                       break
-                   elif args.follow and args.gpu:
-                       self.helpers.dump_gpu_entries_follow(args.folder, entries, cper_data, args.gpu)
-                   elif args.follow and not args.gpu:
-                       self.helpers.dump_all_entries_follow(args.folder, entries, cper_data, args.gpu)     
-                if args.follow:
-                    self.helpers.display_cper_files_generated_follow(entries, args.gpu)  
-                else:
-                    self.helpers.display_cper_files_generated(entries, args.gpu)
-                    break
-                if len(entries) == 0 and not args.follow:
-                    break
-                cursor = new_cursor
-                time.sleep(1)
-
+        args.cursor = [0] * len(args.gpu)
+        while True:
+            for idx, device_handle in enumerate(args.gpu):
+                self.helpers.ras_cper(args, device_handle, self.logger, idx)
+            if not args.follow:
+                break
+            time.sleep(1)
 
     def _event_thread(self, commands, i):
         devices = commands.device_handles

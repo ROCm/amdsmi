@@ -33,8 +33,11 @@ endif()
 
 # add package search paths
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${ROCM_DIR} ../../../)
-set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${ROCM_DIR}/lib ${ROCM_DIR}/lib64)
-
+set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${ROCM_DIR}/lib)
+if(NOT EXISTS ${ROCM_DIR}/lib64)
+    file(MAKE_DIRECTORY ${ROCM_DIR}/lib64)
+endif()
+set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${ROCM_DIR}/lib64)
 find_package(amd_smi CONFIG REQUIRED)
 
 message("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
