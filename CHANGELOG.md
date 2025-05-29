@@ -4,14 +4,94 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ***All information listed below is for reference and subject to change.***
 
+## amd_smi_lib for ROCm 6.4.2
+
+### Added
+
+- **Added Compute Unit Occupancy information per process**  
+  Measuring compute units are the best way currently to determine gfx usage on a per process basis  
+  - Added `CU_OCCUPANCY` to `amd-smi process` output.
+  - Added `CU%` to `amd-smi monitor -q`
+
+- **Added support to get GPU Board voltage**.  
+
+  ```console
+      $ amd-smi metric --voltage
+          GPU: 0
+              VOLTAGE:
+                  VDDBOARD: 52536 mV
+                  ...
+  ```
+
+- **Added new firmware PLDM**.  
+
+### Changed
+
+- N/A
+
+### Removed
+
+- **Renamed `amd-smi --partition`'s field `COMPUTE_PARTITION` to `ACCELERATOR_PARTITION`**.  
+  We are changing the field named `COMPUTE_PARTITION` to `ACCELERATOR_PARTITION`. Refer to example outputs provided below.  
+
+  API and associated struct naming will remain the same:
+  - `amdsmi_status_t amdsmi_get_gpu_compute_partition(amdsmi_processor_handle processor_handle, char *compute_partition, uint32_t len)`
+  - `amdsmi_status_t amdsmi_set_gpu_compute_partition(amdsmi_processor_handle processor_handle, amdsmi_compute_partition_type_t compute_partition)`  
+  - `amdsmi_status_t amdsmi_get_gpu_accelerator_partition_profile_config(amdsmi_processor_handle processor_handle, amdsmi_accelerator_partition_profile_config_t *profile_config)`  
+  - `amdsmi_status_t amdsmi_get_gpu_accelerator_partition_profile(amdsmi_processor_handle processor_handle, amdsmi_accelerator_partition_profile_t *profile, uint32_t *partition_id)`  
+  - `amdsmi_status_t amdsmi_set_gpu_accelerator_partition_profile(amdsmi_processor_handle processor_handle, uint32_t profile_index)`
+
+  Reason(s) for this change:
+  - Align with host AMD SMI's `static --partition` field naming
+  - Align with naming seen in `amd-smi partition`  
+
+  *Previous Output:*  
+
+  ```console
+  $ amd-smi static --partition
+    GPU: 0
+        PARTITION:
+            COMPUTE_PARTITION: SPX
+            MEMORY_PARTITION: NPS1
+            PARTITION_ID: 0
+  ```
+
+  *New Output:*  
+
+  ```console
+  $ amd-smi static --partition
+    GPU: 0
+        PARTITION:
+            ACCELERATOR_PARTITION: SPX
+            MEMORY_PARTITION: NPS1
+            PARTITION_ID: 0
+  ```
+
+### Optimized
+
+- N/A
+
+### Resolved issues
+
+- **Corrected VRAM memory calculation in `amdsmi_get_gpu_process_list`**.  
+  - Previously, the VRAM memory usage reported by `amdsmi_get_gpu_process_list` was inaccurate and calculated using KB vs KiB.
+
+### Upcoming changes
+
+- N/A
+
+### Known issues
+
+- N/A
+
 ## amd_smi_lib for ROCm 6.4.1
 
 ### Added
 
-- **Added dumping CPER entries from RAS tool `amdsmi_get_gpu_cper_entries()` to Python & C APIs.**  
+- **Added dumping CPER entries from RAS tool `amdsmi_get_gpu_cper_entries()` to Python & C APIs**.  
   - CPER entries consist of `amdsmi_cper_hdr_t`
 
-    ```shell
+    ```C
     typedef struct {
         char                   signature[4];       /* "CPER" */
         uint16_t               revision;
@@ -36,7 +116,7 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
   - Dumping CPER entires is also enabled in the CLI interface via `sudo amd-smi ras --cper`
 
-    ```shell
+    ```console
     $ sudo amd-smi ras --cper
     Dumping CPER file header entries for GPU 0:
     "0": {
@@ -56,7 +136,7 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
        }
     ```
 
-- **Added `amdsmi_get_gpu_busy_percent` to the C API.**  
+- **Added `amdsmi_get_gpu_busy_percent` to the C API**.  
   - This function retrieves the GPU busy percentage from the `gpu_busy_percent` sysfs file.
 
 ### Changed
@@ -64,7 +144,7 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 - **Modified VRAM display for `amd-smi monitor -v`**.  
   - Added free VRAM and VRAM percentage.
 
-    ```shell
+    ```console
     $ amd-smi monitor -v
     GPU  VRAM_USED   VRAM_FREE  VRAM_TOTAL    VRAM%
       0     174 MB    16011 MB    16185 MB   0.01 %
@@ -78,7 +158,7 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ### Optimized
 
-- **Improved load times for CLI commands when the GPU has multiple partitions.**  
+- **Improved load times for CLI commands when the GPU has multiple partitions**.  
 
 ### Resolved issues
 
@@ -91,7 +171,7 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
     ***Example: Previous Outputs in CPX***  
 
-    ```shell
+    ```console
     $ amd-smi list -e                                                                    
     GPU: 0
         BDF: 0000:0c:00.0
@@ -119,7 +199,7 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
     ...
     ```
 
-    ```shell
+    ```console
     $ amd-smi monitor
     GPU  POWER   GPU_T   MEM_T   GFX_CLK   GFX%   MEM%   ENC%   DEC%      VRAM_USAGE
       0  201 W   46 °C   42 °C  2107 MHz    0 %    0 %    N/A    0 %    0.3/192.0 GB
@@ -136,7 +216,7 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
     ***Example: Corrected outputs in CPX***  
 
-    ```shell
+    ```console
     $ amd-smi list -e
     GPU: 0
         BDF: 0000:0c:00.0
@@ -164,7 +244,7 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
     ...
     ```
 
-    ```shell
+    ```console
     $ amd-smi monitor
     GPU  POWER   GPU_T   MEM_T   GFX_CLK   GFX%   MEM%   ENC%   DEC%      VRAM_USAGE
       0  202 W   46 °C   42 °C  2107 MHz    0 %    0 %    N/A    0 %    0.3/192.0 GB
