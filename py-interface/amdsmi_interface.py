@@ -59,6 +59,8 @@ AMDSMI_MAX_ENGINES = 8
 AMDSMI_MAX_NUM_JPEG = 32
 AMDSMI_MAX_NUM_XCC = 8
 AMDSMI_MAX_NUM_XCP = 8
+# max num afids per cper record
+MAX_NUMBER_OF_AFIDS_PER_RECORD = 12
 
 # Max number of DPM policies
 AMDSMI_MAX_NUM_PM_POLICIES = 32
@@ -2348,6 +2350,59 @@ def amdsmi_get_gpu_cper_entries(processor_handle: amdsmi_wrapper.amdsmi_processo
 
     return entries, cur.value, cper_data
 
+def amdsmi_get_afids_from_cper(
+    cper_afid_data: Union[bytes, bytearray, List[Dict[str, Any]]]
+) -> Tuple[List[int], int]:
+    """
+    Extract AFIDs from one or more CPER blobs.
+
+    Args:
+        cper_afid_data: Either
+          - raw bytes or bytearray of a single CPER record, or
+          - a list of dicts each with keys "bytes" (List[int]) and "size" (int).
+
+    Returns:
+        Tuple[List[int], int]: A tuple containing:
+          - A list of extracted AFIDs.
+          - The total count of AFIDs.
+    """
+    # Normalize single blob into a list of records
+    if isinstance(cper_afid_data, (bytes, bytearray)):
+        cper_records = [{
+            "bytes": list(cper_afid_data),
+            "size": len(cper_afid_data)
+        }]
+    else:
+        cper_records = cper_afid_data
+
+    all_afids: List[int] = []
+
+    for record in cper_records:
+        raw_bytes = bytes(record["bytes"])
+        record_size = record["size"]
+
+        # Wrap as char*
+        buf = ctypes.create_string_buffer(raw_bytes, record_size)
+        buf_ptr = ctypes.cast(buf, ctypes.POINTER(ctypes.c_char))
+
+        afid_array = (ctypes.c_uint64 * MAX_NUMBER_OF_AFIDS_PER_RECORD)()
+        num_afids_ct = ctypes.c_uint32(MAX_NUMBER_OF_AFIDS_PER_RECORD)
+
+        # Call the wrapper function
+        status = amdsmi_wrapper.amdsmi_get_afids_from_cper(
+            buf_ptr,
+            ctypes.c_uint32(record_size),
+            afid_array,
+            ctypes.byref(num_afids_ct)
+        )
+        if status != amdsmi_wrapper.AMDSMI_STATUS_SUCCESS:
+            raise AmdSmiLibraryException(f"get_afids failed: {status}")
+
+        # Collect exactly the decoded AFIDs
+        count = num_afids_ct.value
+        all_afids.extend(afid_array[i] for i in range(count))
+
+    return all_afids, len(all_afids)
 
 def amdsmi_get_gpu_board_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
