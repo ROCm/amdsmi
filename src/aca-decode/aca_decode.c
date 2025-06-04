@@ -210,10 +210,6 @@ static void aca_decoder_get_error_info(const aca_decoder_t *decoder, aca_error_i
         service_error = info->error_type_ref;
     }
 
-    printf("Error Category: %s\n", info->category_ref);
-    printf("Error Type: %s\n", service_error);
-    printf("Error Severity: %s\n", info->severity_ref);
-
     info->afid = get_error_id(info->category_ref, service_error, info->severity_ref);
 }
 

@@ -722,6 +722,107 @@ Command Modifiers:
                                 DEBUG, INFO, WARNING, ERROR, CRITICAL
 ```
 
+(cmd-partition)=
+### amd-smi partition
+
+Displays partition information of the devices.
+
+```shell-session
+~$ amd-smi partition --help
+usage: amd-smi partition [-h] [-g GPU [GPU ...]] [-c] [-m] [-a] [--json | --csv]
+                         [--file FILE] [--loglevel LEVEL]
+
+If no GPU is specified, returns information for all GPUs on the system.
+If no partition argument is provided, all partition information will be displayed.
+
+Partition arguments:
+  -h, --help               show this help message and exit
+  -g, --gpu GPU [GPU ...]  Select a GPU ID, BDF, or UUID from the possible choices:
+                           ID: 0 | BDF: 0000:01:00.0 | UUID: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+                           ID: 1 | BDF: 0001:01:00.0 | UUID: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+                           ID: 2 | BDF: 0002:01:00.0 | UUID: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+                           ID: 3 | BDF: 0003:01:00.0 | UUID: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+                             all | Selects all devices
+  -c, --current            display the current partition information
+  -m, --memory             display the current memory partition mode and capabilities
+  -a, --accelerator        display accelerator partition information
+
+Command Modifiers:
+  --json                   Displays output in JSON format (human readable by default).
+  --csv                    Displays output in CSV format (human readable by default).
+  --file FILE              Saves output into a file on the provided path (stdout by default).
+  --loglevel LEVEL         Set the logging level from the possible choices:
+```
+
+(cmd-ras)=
+
+### amd-smi ras
+
+Displays RAS information of specified devices.
+
+```shell-session
+~$ amd-smi ras --help
+usage: amd-smi ras [-h] --cper [--severity SEVERITY [SEVERITY ...]] [--folder FOLDER]
+                   [--file-limit FILE_LIMIT] [--follow]
+                   [-g GPU [GPU ...] | -U CPU [CPU ...] | -O CORE [CORE ...]]
+                   [--json | --csv] [--file FILE] [--loglevel LEVEL]
+
+Retrieve and decode CPER (RAS) entries from the kernel driver.
+Supports filtering by severity, exporting to different formats, and continuous monitoring.
+This command accepts options only; no positional arguments are required.
+
+RAS arguments:
+  -h, --help                          show this help message and exit
+  --cper                              Trigger CPER data retrieval
+  --severity SEVERITY [SEVERITY ...]  Set the SEVERITY filters from the following:
+                                          nonfatal-uncorrected, fatal, nonfatal-corrected, all
+  --folder FOLDER                     Folder to dump CPER report files
+  --file-limit FILE_LIMIT             Maximum number of entries per output file
+  --follow                            Continuously monitor for new entries
+
+Device arguments:
+  -g, --gpu GPU [GPU ...]     Select a GPU ID, BDF, or UUID from the possible choices:
+                              ID: 0 | BDF: 0000:01:00.0 | UUID: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+                              ID: 1 | BDF: 0001:01:00.0 | UUID: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+                              ID: 2 | BDF: 0002:01:00.0 | UUID: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+                              ID: 3 | BDF: 0003:01:00.0 | UUID: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+                                all | Selects all devices
+  -U, --cpu CPU [CPU ...]     Select a CPU ID from the possible choices:
+                              ID: 0
+                              ID: 1
+                              ID: 2
+                              ID: 3
+                                all | Selects all devices
+  -O, --core CORE [CORE ...]  Select a Core ID from the possible choices:
+                              ID: 0 - 95
+                                all  | Selects all devices
+
+Command Modifiers:
+  --json                      Displays output in JSON format (human readable by default).
+  --csv                       Displays output in CSV format (human readable by default).
+  --file FILE                 Saves output into a file on the provided path (stdout by default).
+  --loglevel LEVEL            Set the logging level from the possible choices:
+                                DEBUG, INFO, WARNING, ERROR, CRITICAL
+```
+
+## Interpreting the output
+
+When you run an `amd-smi` command, the tool presents detailed information
+across various categories, each containing specific fields and their current
+values.
+
+(cli-output-na)=
+### About N/A values
+
+`N/A` typically indicates that the data for a specific field is either unavailable or irrelevant in the current context for your device and its software environment. The exact reason may vary depending on the field and the GPU. In general, you can interpret `N/A` to mean one of the following:
+
+**Not Applicable**: The feature or parameter does not apply to your specific AMD hardware or its current configuration. Examples include display-related clocks on a headless compute card and partition details when the GPU is not partitioned.
+
+**Not Available**: The information cannot be retrieved by the `amd-smi` tool at this time. This could be due to one of the following reasons:
+
+- The hardware component does not report the specific metric.
+- The currently installed `amdgpu` driver version does not support querying this particular piece of information through `amd-smi-lib`.
+
 (cli-ex-static)=
 ### Example output from amd-smi static
 
