@@ -6291,7 +6291,7 @@ class AMDSMICommands():
             else:
                 with self.logger.destination.open('a', encoding="utf-8") as output_file:
                     output_file.write(legend_output + '\n')
-    
+
 
     def ras(self, args, multiple_devices=False, gpu=None, cper=None, afid=None,
             severity=None, folder=None, file_limit=None, cper_file=None, follow=None):
