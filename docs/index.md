@@ -48,7 +48,7 @@ AMD SMI is the successor to <https://github.com/ROCm/rocm_smi_lib>.
 
 :::{grid-item-card} Tutorials
 * [AMD SMI examples (GitHub)](https://github.com/ROCm/amdsmi/tree/amd-staging/example)
-* [ROCm SMI examples (GitHub)]([https://github.com/ROCm/rocm_smi_lib/tree/amd-staging/example](https://github.com/ROCm/rocm_smi_lib/tree/amd-staging/rocm_smi/example))
+* [ROCm SMI examples (GitHub)](https://github.com/ROCm/rocm_smi_lib/tree/amd-staging/rocm_smi/example)
 :::
 ::::
 
