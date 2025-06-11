@@ -33,7 +33,6 @@ from typing import Any, Dict, List, Tuple, Union
 from . import amdsmi_wrapper
 from .amdsmi_exception import *
 
-
 ### Non Library Specific Constants ###
 class MaxUIntegerTypes(IntEnum):
     UINT8_T  = 0xFF
@@ -77,18 +76,12 @@ AMDSMI_NUM_VOLTAGE_CURVE_POINTS = 3
 
 # Max size definitions
 AMDSMI_MAX_MM_IP_COUNT = 8
-AMDSMI_MAX_DATE_LENGTH = 32
-AMDSMI_MAX_STRING_LENGTH = 64
+AMDSMI_MAX_STRING_LENGTH = 256
 AMDSMI_MAX_DEVICES = 32
-AMDSMI_MAX_NAME = 32
-AMDSMI_MAX_DRIVER_VERSION_LENGTH = 80
-AMDSMI_256_LENGTH = 256
 AMDSMI_MAX_CONTAINER_TYPE = 2
 AMDSMI_MAX_CACHE_TYPES = 10
 AMDSMI_MAX_NUM_XGMI_PHYSICAL_LINK = 64
 AMDSMI_GPU_UUID_SIZE = 38
-MAX_AMDSMI_NAME_LENGTH = 64
-MAX_EVENT_NOTIFICATION_MSG_SIZE = 256
 _AMDSMI_STRING_LENGTH = 80
 _AMDSMI_MAX_STRING_LENGTH=256
 
@@ -275,7 +268,6 @@ class AmdSmiEvtNotificationType(IntEnum):
     THERMAL_THROTTLE = amdsmi_wrapper.AMDSMI_EVT_NOTIF_THERMAL_THROTTLE
     GPU_PRE_RESET = amdsmi_wrapper.AMDSMI_EVT_NOTIF_GPU_PRE_RESET
     GPU_POST_RESET = amdsmi_wrapper.AMDSMI_EVT_NOTIF_GPU_POST_RESET
-    RING_HANG = amdsmi_wrapper.AMDSMI_EVT_NOTIF_RING_HANG
     MIGRATE_START = amdsmi_wrapper.AMDSMI_EVT_NOTIF_MIGRATE_START
     MIGRATE_END = amdsmi_wrapper.AMDSMI_EVT_NOTIF_MIGRATE_END
     PAGE_FAULT_START = amdsmi_wrapper.AMDSMI_EVT_NOTIF_PAGE_FAULT_END
@@ -317,6 +309,7 @@ class AmdSmiVoltageMetric(IntEnum):
 
 class AmdSmiVoltageType(IntEnum):
     VDDGFX = amdsmi_wrapper.AMDSMI_VOLT_TYPE_VDDGFX
+    VDDBOARD = amdsmi_wrapper.AMDSMI_VOLT_TYPE_VDDBOARD
     INVALID = amdsmi_wrapper.AMDSMI_VOLT_TYPE_INVALID
 
 class AmdSmiAcceleratorPartitionResourceType(IntEnum):
@@ -439,14 +432,6 @@ class AmdSmiMemoryPageStatus(IntEnum):
     UNRESERVABLE = amdsmi_wrapper.AMDSMI_MEM_PAGE_STATUS_UNRESERVABLE
 
 
-class AmdSmiIoLinkType(IntEnum):
-    UNDEFINED = amdsmi_wrapper.AMDSMI_IOLINK_TYPE_UNDEFINED
-    PCIEXPRESS = amdsmi_wrapper.AMDSMI_IOLINK_TYPE_PCIEXPRESS
-    XGMI = amdsmi_wrapper.AMDSMI_IOLINK_TYPE_XGMI
-    NUMIOLINKTYPES = amdsmi_wrapper.AMDSMI_IOLINK_TYPE_NUMIOLINKTYPES
-    SIZE = amdsmi_wrapper.AMDSMI_IOLINK_TYPE_SIZE
-
-
 class AmdSmiLinkType(IntEnum):
     AMDSMI_LINK_TYPE_INTERNAL = amdsmi_wrapper.AMDSMI_LINK_TYPE_INTERNAL
     AMDSMI_LINK_TYPE_XGMI = amdsmi_wrapper.AMDSMI_LINK_TYPE_XGMI
@@ -508,20 +493,6 @@ class AmdSmiVramType(IntEnum):
     GDDR6 = amdsmi_wrapper.AMDSMI_VRAM_TYPE_GDDR6
     GDDR7 = amdsmi_wrapper.AMDSMI_VRAM_TYPE_GDDR7
     MAX = amdsmi_wrapper.AMDSMI_VRAM_TYPE__MAX
-
-
-class AmdSmiVramVendor(IntEnum):
-    SAMSUNG = amdsmi_wrapper.AMDSMI_VRAM_VENDOR_SAMSUNG
-    INFINEON = amdsmi_wrapper.AMDSMI_VRAM_VENDOR_INFINEON
-    ELPIDA = amdsmi_wrapper.AMDSMI_VRAM_VENDOR_ELPIDA
-    ETRON = amdsmi_wrapper.AMDSMI_VRAM_VENDOR_ETRON
-    NANYA = amdsmi_wrapper.AMDSMI_VRAM_VENDOR_NANYA
-    HYNIX = amdsmi_wrapper.AMDSMI_VRAM_VENDOR_HYNIX
-    MOSEL = amdsmi_wrapper.AMDSMI_VRAM_VENDOR_MOSEL
-    WINBOND = amdsmi_wrapper.AMDSMI_VRAM_VENDOR_WINBOND
-    ESMT = amdsmi_wrapper.AMDSMI_VRAM_VENDOR_ESMT
-    MICRON = amdsmi_wrapper.AMDSMI_VRAM_VENDOR_MICRON
-    UNKNOWN = amdsmi_wrapper.AMDSMI_VRAM_VENDOR_UNKNOWN
 
 class AmdSmiAffinityScope(IntEnum):
     NUMA_SCOPE = amdsmi_wrapper.AMDSMI_AFFINITY_SCOPE_NODE
@@ -1023,7 +994,7 @@ def amdsmi_get_cpucore_handles() -> List[amdsmi_wrapper.amdsmi_processor_handle]
     return core_handles
 
 def amdsmi_get_cpu_hsmp_proto_ver(
-    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: "amdsmi_wrapper.amdsmi_processor_handle",
 ) -> int:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
@@ -2137,17 +2108,24 @@ def amdsmi_get_gpu_asic_info(
 
     market_name = _pad_hex_value(asic_info_struct.market_name.decode("utf-8"), 4)
     target_graphics_version = hex(asic_info_struct.target_graphics_version)[2:]
+    subsystem_id = _validate_if_max_uint(asic_info_struct.subsystem_id, MaxUIntegerTypes.UINT32_T)
+    subvendor_id = _validate_if_max_uint(asic_info_struct.subvendor_id, MaxUIntegerTypes.UINT32_T)
+    if subsystem_id is not "N/A":
+        subsystem_id = _pad_hex_value(hex(subsystem_id), 4)
+    if subvendor_id is not "N/A":
+        subvendor_id = _pad_hex_value(hex(subvendor_id), 4)
     asic_info = {
         "market_name": market_name,
         "vendor_id": asic_info_struct.vendor_id,
         "vendor_name": asic_info_struct.vendor_name.decode("utf-8"),
-        "subvendor_id": asic_info_struct.subvendor_id,
+        "subvendor_id": subvendor_id,
         "device_id": asic_info_struct.device_id,
         "rev_id": _pad_hex_value(hex(asic_info_struct.rev_id), 2),
         "asic_serial": asic_info_struct.asic_serial.decode("utf-8"),
-        "oam_id": asic_info_struct.oam_id,
-        "num_compute_units": asic_info_struct.num_of_compute_units,
-        "target_graphics_version": "gfx" + target_graphics_version
+        "oam_id": _validate_if_max_uint(asic_info_struct.oam_id, MaxUIntegerTypes.UINT32_T),
+        "num_compute_units": _validate_if_max_uint(asic_info_struct.num_of_compute_units, MaxUIntegerTypes.UINT32_T),
+        "target_graphics_version": "gfx" + target_graphics_version,
+        "subsystem_id": subsystem_id
     }
 
     string_values = ["market_name", "vendor_name"]
@@ -2155,7 +2133,7 @@ def amdsmi_get_gpu_asic_info(
         if not asic_info[value]:
             asic_info[value] = "N/A"
 
-    hex_values = ["vendor_id", "subvendor_id", "device_id"]
+    hex_values = ["vendor_id", "device_id"]
     for value in hex_values:
         if asic_info[value]:
             asic_info[value] = hex(asic_info[value])
@@ -2169,14 +2147,6 @@ def amdsmi_get_gpu_asic_info(
         asic_info["asic_serial"] = str.format("0x{:016X}", asic_serial_hex)
     else:
         asic_info["asic_serial"] = "N/A"
-
-    # Check for max value as a sign for not applicable
-    if asic_info["oam_id"] == 0xFFFF: # uint 16 max
-        asic_info["oam_id"] = "N/A"
-
-    # Check for max value as a sign for not applicable
-    if asic_info["num_compute_units"] == 0xFFFFFFFF: # uint 32 max
-        asic_info["num_compute_units"] = "N/A"
 
     # Remove commas from vendor name for clean output
     asic_info["vendor_name"] = asic_info["vendor_name"].replace(',', '')
@@ -2215,18 +2185,18 @@ def amdsmi_get_power_cap_info(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    power_info = amdsmi_wrapper.amdsmi_power_cap_info_t()
+    power_cap_info = amdsmi_wrapper.amdsmi_power_cap_info_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_power_cap_info(
-            processor_handle, ctypes.c_uint32(0), ctypes.byref(power_info)
+            processor_handle, ctypes.c_uint32(0), ctypes.byref(power_cap_info)
         )
     )
 
-    return {"power_cap": power_info.power_cap,
-            "default_power_cap": power_info.default_power_cap,
-            "dpm_cap": power_info.dpm_cap,
-            "min_power_cap": power_info.min_power_cap,
-            "max_power_cap": power_info.max_power_cap}
+    return {"power_cap": power_cap_info.power_cap,
+            "default_power_cap": power_cap_info.default_power_cap,
+            "dpm_cap": power_cap_info.dpm_cap,
+            "min_power_cap": power_cap_info.min_power_cap,
+            "max_power_cap": power_cap_info.max_power_cap}
 
 
 def amdsmi_get_gpu_pm_metrics_info(
@@ -2301,7 +2271,7 @@ def amdsmi_get_gpu_vram_info(
     )
     return {
         "vram_type": vram_info.vram_type,
-        "vram_vendor": vram_info.vram_vendor,
+        "vram_vendor": vram_info.vram_vendor.decode("utf-8"),
         "vram_size": vram_info.vram_size,
         "vram_bit_width": _validate_if_max_uint(vram_info.vram_bit_width, MaxUIntegerTypes.UINT32_T),
         "vram_max_bandwidth": _validate_if_max_uint(vram_info.vram_max_bandwidth, MaxUIntegerTypes.UINT64_T),
@@ -2476,10 +2446,9 @@ def amdsmi_get_clock_info(
     # logging.debug("amdsmi_interface.py | amdsmi_get_clock_info | clk_type = " + clk_type_str + " | return_dictionary = \n" + str(json.dumps(dict_ret, indent=4)))
     return dict_ret
 
-
 def amdsmi_get_gpu_bad_page_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
-) -> Union[list, str]:
+) -> List[Dict[str, Any]]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
@@ -2546,19 +2515,108 @@ def amdsmi_get_violation_status(
         "acc_vr_thrm": _validate_if_max_uint(violation_status.acc_vr_thrm, MaxUIntegerTypes.UINT64_T),
         "acc_hbm_thrm": _validate_if_max_uint(violation_status.acc_hbm_thrm, MaxUIntegerTypes.UINT64_T),
         "acc_gfx_clk_below_host_limit": _validate_if_max_uint(violation_status.acc_gfx_clk_below_host_limit, MaxUIntegerTypes.UINT64_T),
+        "acc_gfx_clk_below_host_limit_pwr": list(violation_status.acc_gfx_clk_below_host_limit_pwr),
+        "acc_gfx_clk_below_host_limit_thm": list(violation_status.acc_gfx_clk_below_host_limit_thm),
+        "acc_low_utilization": list(violation_status.acc_low_utilization),
+        "acc_gfx_clk_below_host_limit_total": list(violation_status.acc_gfx_clk_below_host_limit_total),
         "per_prochot_thrm": _validate_if_max_uint(violation_status.per_prochot_thrm, MaxUIntegerTypes.UINT64_T, isActivity=True),
         "per_ppt_pwr": _validate_if_max_uint(violation_status.per_ppt_pwr, MaxUIntegerTypes.UINT64_T, isActivity=True),          #PVIOL
         "per_socket_thrm": _validate_if_max_uint(violation_status.per_socket_thrm, MaxUIntegerTypes.UINT64_T, isActivity=True),  #TVIOL
         "per_vr_thrm": _validate_if_max_uint(violation_status.per_vr_thrm, MaxUIntegerTypes.UINT64_T, isActivity=True),
         "per_hbm_thrm": _validate_if_max_uint(violation_status.per_hbm_thrm, MaxUIntegerTypes.UINT64_T, isActivity=True),
         "per_gfx_clk_below_host_limit": _validate_if_max_uint(violation_status.per_gfx_clk_below_host_limit, MaxUIntegerTypes.UINT64_T, isActivity=True),
+        "per_gfx_clk_below_host_limit_pwr": list(violation_status.per_gfx_clk_below_host_limit_pwr),
+        "per_gfx_clk_below_host_limit_thm": list(violation_status.per_gfx_clk_below_host_limit_thm),
+        "per_low_utilization": list(violation_status.per_low_utilization),
+        "per_gfx_clk_below_host_limit_total": list(violation_status.per_gfx_clk_below_host_limit_total),
         "active_prochot_thrm": _validate_if_max_uint(violation_status.active_prochot_thrm, MaxUIntegerTypes.UINT8_T, isBool=True),
         "active_ppt_pwr": _validate_if_max_uint(violation_status.active_ppt_pwr, MaxUIntegerTypes.UINT8_T, isBool=True),         #PVIOL
         "active_socket_thrm": _validate_if_max_uint(violation_status.active_socket_thrm, MaxUIntegerTypes.UINT8_T, isBool=True), #TVIOL
         "active_vr_thrm": _validate_if_max_uint(violation_status.active_vr_thrm, MaxUIntegerTypes.UINT8_T, isBool=True),
         "active_hbm_thrm": _validate_if_max_uint(violation_status.active_hbm_thrm, MaxUIntegerTypes.UINT8_T, isBool=True),
         "active_gfx_clk_below_host_limit": _validate_if_max_uint(violation_status.active_gfx_clk_below_host_limit, MaxUIntegerTypes.UINT8_T, isBool=True),
+        "active_gfx_clk_below_host_limit_pwr": list(violation_status.active_gfx_clk_below_host_limit_pwr),
+        "active_gfx_clk_below_host_limit_thm": list(violation_status.active_gfx_clk_below_host_limit_thm),
+        "active_low_utilization": list(violation_status.active_low_utilization),
+        "active_gfx_clk_below_host_limit_total": list(violation_status.active_gfx_clk_below_host_limit_total),
     }
+
+    # Create 2d array with each XCD's stats
+    if 'acc_gfx_clk_below_host_limit_pwr' in dict_return:
+        for xcp_index, xcp_metrics in enumerate(dict_return['acc_gfx_clk_below_host_limit_pwr']):
+            xcp_detail = []
+            for val in xcp_metrics:
+                xcp_detail.append(_validate_if_max_uint(val, MaxUIntegerTypes.UINT64_T, isActivity=True))
+            dict_return['acc_gfx_clk_below_host_limit_pwr'][xcp_index] = xcp_detail
+    if 'acc_gfx_clk_below_host_limit_thm' in dict_return:
+        for xcp_index, xcp_metrics in enumerate(dict_return['acc_gfx_clk_below_host_limit_thm']):
+            xcp_detail = []
+            for val in xcp_metrics:
+                xcp_detail.append(_validate_if_max_uint(val, MaxUIntegerTypes.UINT64_T, isActivity=True))
+            dict_return['acc_gfx_clk_below_host_limit_thm'][xcp_index] = xcp_detail
+    if 'acc_low_utilization' in dict_return:
+        for xcp_index, xcp_metrics in enumerate(dict_return['acc_low_utilization']):
+            xcp_detail = []
+            for val in xcp_metrics:
+                xcp_detail.append(_validate_if_max_uint(val, MaxUIntegerTypes.UINT64_T, isActivity=True))
+            dict_return['acc_low_utilization'][xcp_index] = xcp_detail
+    if 'acc_gfx_clk_below_host_limit_total' in dict_return:
+        for xcp_index, xcp_metrics in enumerate(dict_return['acc_gfx_clk_below_host_limit_total']):
+            xcp_detail = []
+            for val in xcp_metrics:
+                xcp_detail.append(_validate_if_max_uint(val, MaxUIntegerTypes.UINT64_T, isActivity=True))
+            dict_return['acc_gfx_clk_below_host_limit_total'][xcp_index] = xcp_detail
+
+    if 'per_gfx_clk_below_host_limit_pwr' in dict_return:
+        for xcp_index, xcp_metrics in enumerate(dict_return['per_gfx_clk_below_host_limit_pwr']):
+            xcp_detail = []
+            for val in xcp_metrics:
+                xcp_detail.append(_validate_if_max_uint(val, MaxUIntegerTypes.UINT64_T, isActivity=True))
+            dict_return['per_gfx_clk_below_host_limit_pwr'][xcp_index] = xcp_detail
+    if 'per_gfx_clk_below_host_limit_thm' in dict_return:
+        for xcp_index, xcp_metrics in enumerate(dict_return['per_gfx_clk_below_host_limit_thm']):
+            xcp_detail = []
+            for val in xcp_metrics:
+                xcp_detail.append(_validate_if_max_uint(val, MaxUIntegerTypes.UINT64_T, isActivity=True))
+            dict_return['per_gfx_clk_below_host_limit_thm'][xcp_index] = xcp_detail
+    if 'per_low_utilization' in dict_return:
+        for xcp_index, xcp_metrics in enumerate(dict_return['per_low_utilization']):
+            xcp_detail = []
+            for val in xcp_metrics:
+                xcp_detail.append(_validate_if_max_uint(val, MaxUIntegerTypes.UINT64_T, isActivity=True))
+            dict_return['per_low_utilization'][xcp_index] = xcp_detail
+    if 'per_gfx_clk_below_host_limit_total' in dict_return:
+        for xcp_index, xcp_metrics in enumerate(dict_return['per_gfx_clk_below_host_limit_total']):
+            xcp_detail = []
+            for val in xcp_metrics:
+                xcp_detail.append(_validate_if_max_uint(val, MaxUIntegerTypes.UINT64_T, isActivity=True))
+            dict_return['per_gfx_clk_below_host_limit_total'][xcp_index] = xcp_detail
+
+    if 'active_gfx_clk_below_host_limit_pwr' in dict_return:
+        for xcp_index, xcp_metrics in enumerate(dict_return['active_gfx_clk_below_host_limit_pwr']):
+            xcp_detail = []
+            for val in xcp_metrics:
+                xcp_detail.append(_validate_if_max_uint(val, MaxUIntegerTypes.UINT8_T, isBool=True))
+            dict_return['active_gfx_clk_below_host_limit_pwr'][xcp_index] = xcp_detail
+    if 'active_gfx_clk_below_host_limit_thm' in dict_return:
+        for xcp_index, xcp_metrics in enumerate(dict_return['active_gfx_clk_below_host_limit_thm']):
+            xcp_detail = []
+            for val in xcp_metrics:
+                xcp_detail.append(_validate_if_max_uint(val, MaxUIntegerTypes.UINT8_T, isBool=True))
+            dict_return['active_gfx_clk_below_host_limit_thm'][xcp_index] = xcp_detail
+    if 'active_low_utilization' in dict_return:
+        for xcp_index, xcp_metrics in enumerate(dict_return['active_low_utilization']):
+            xcp_detail = []
+            for val in xcp_metrics:
+                xcp_detail.append(_validate_if_max_uint(val, MaxUIntegerTypes.UINT8_T, isBool=True))
+            dict_return['active_low_utilization'][xcp_index] = xcp_detail
+    if 'active_gfx_clk_below_host_limit_total' in dict_return:
+        for xcp_index, xcp_metrics in enumerate(dict_return['active_gfx_clk_below_host_limit_total']):
+            xcp_detail = []
+            for val in xcp_metrics:
+                xcp_detail.append(_validate_if_max_uint(val, MaxUIntegerTypes.UINT8_T, isBool=True))
+            dict_return['active_gfx_clk_below_host_limit_total'][xcp_index] = xcp_detail
+
     return dict_return
 
 def amdsmi_get_gpu_total_ecc_count(
@@ -2597,7 +2655,7 @@ def amdsmi_get_gpu_cper_entries(
     severity_mask: int,
     buffer_size: int = 4 * 1048576,
     cursor: int = 0
-) -> Tuple[List[Dict[str, Any]], int]:
+) -> Tuple[Dict[str, Any], int, List[Dict[str, Any]]]:
 
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
@@ -2711,9 +2769,12 @@ def amdsmi_get_afids_from_cper(
     all_afids: List[int] = []
 
     for record in cper_records:
-        raw_bytes = bytes(record["bytes"])
-        record_size = record["size"]
-
+        if isinstance(record, dict) and "bytes" in record and "size" in record:
+            raw_bytes = bytes(record["bytes"])
+            record_size = record["size"]
+        else:
+            raise AmdSmiParameterException(record, 
+                                           "dict with keys 'bytes' and 'size' or bytes/bytearray")
         # Wrap as char*
         buf = ctypes.create_string_buffer(raw_bytes, record_size)
         buf_ptr = ctypes.cast(buf, ctypes.POINTER(ctypes.c_char))
@@ -2729,7 +2790,7 @@ def amdsmi_get_afids_from_cper(
             ctypes.byref(num_afids_ct)
         )
         if status != amdsmi_wrapper.AMDSMI_STATUS_SUCCESS:
-            raise AmdSmiLibraryException(f"get_afids failed: {status}")
+            raise AmdSmiLibraryException(status)
 
         # Collect exactly the decoded AFIDs
         count = num_afids_ct.value
@@ -2859,6 +2920,7 @@ def amdsmi_get_gpu_process_list(
                 "cpu_mem": process_list[index].memory_usage.cpu_mem,
                 "vram_mem": process_list[index].memory_usage.vram_mem,
             },
+            "cu_occupancy": process_list[index].cu_occupancy
         })
 
     return result
@@ -2911,9 +2973,6 @@ def amdsmi_get_gpu_driver_info(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    length = ctypes.c_int()
-    length.value = AMDSMI_MAX_DRIVER_VERSION_LENGTH
-
     info = amdsmi_wrapper.amdsmi_driver_info_t()
     _check_res(
         amdsmi_wrapper.amdsmi_get_gpu_driver_info(
@@ -2934,31 +2993,29 @@ def amdsmi_get_gpu_driver_info(
     return driver_info
 
 
-# NOTE: this uses amdsmi_get_power_info_v2 under the hood because the C api
-# needs to be backwards compatible
 def amdsmi_get_power_info(
-    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
-    sensor_ind: int = 0
+    processor_handle: amdsmi_wrapper.amdsmi_processor_handle
 ) -> Dict[str, ctypes.c_uint32]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )
 
-    power_measure = amdsmi_wrapper.amdsmi_power_info_t()
+    power_info = amdsmi_wrapper.amdsmi_power_info_t()
     _check_res(
-        amdsmi_wrapper.amdsmi_get_power_info_v2(
-            processor_handle, sensor_ind, ctypes.byref(power_measure)
+        amdsmi_wrapper.amdsmi_get_power_info(
+            processor_handle, ctypes.byref(power_info)
         )
     )
 
     power_info_dict = {
-        "current_socket_power": power_measure.current_socket_power,
-        "average_socket_power": power_measure.average_socket_power,
-        "gfx_voltage": power_measure.gfx_voltage,
-        "soc_voltage": power_measure.soc_voltage,
-        "mem_voltage": power_measure.mem_voltage,
-        "power_limit" : power_measure.power_limit,
+        "socket_power": power_info.socket_power,
+        "current_socket_power": power_info.current_socket_power,
+        "average_socket_power": power_info.average_socket_power,
+        "gfx_voltage": power_info.gfx_voltage,
+        "soc_voltage": power_info.soc_voltage,
+        "mem_voltage": power_info.mem_voltage,
+        "power_limit" : power_info.power_limit,
     }
 
     for key, value in power_info_dict.items():
@@ -3045,9 +3102,9 @@ def amdsmi_get_fw_info(
             'fw_name': fw_name,
             'fw_version': fw_version_string.upper(),
         })
-    return {
-        'fw_list': firmwares
-    }
+    return_dict = {'fw_list': firmwares}
+    # logging.debug("amdsmi_interface.py | amdsmi_get_fw_info | return_dictionary = \n" + str(json.dumps(return_dict, indent=4)))
+    return return_dict
 
 
 def amdsmi_get_gpu_vram_usage(
@@ -3311,6 +3368,37 @@ def amdsmi_get_minmax_bandwidth_between_processors(
     return {"min_bandwidth": min_bandwidth.value, "max_bandwidth": max_bandwidth.value}
 
 
+def amdsmi_get_link_metrics(processor_handle: amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    link_metrics = amdsmi_wrapper.amdsmi_link_metrics_t()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_link_metrics(
+            processor_handle, ctypes.byref(link_metrics)
+        )
+    )
+
+    links = []
+    for i in range(AMDSMI_MAX_NUM_XGMI_LINKS):
+        link = link_metrics.links[i]
+        links.append({
+            "bdf": _format_bdf(link.bdf),
+            "link_type": link.link_type,
+            "read": link.read,
+            "write": link.write,
+        })
+
+    return {
+        "num_links": link_metrics.num_links,
+        "bit_rate": link_metrics.bit_rate,
+        "max_bandwidth": link_metrics.max_bandwidth,
+        "links": links
+    }
+
+
 def amdsmi_topo_get_link_type(
     processor_handle_src: amdsmi_wrapper.amdsmi_processor_handle,
     processor_handle_dst: amdsmi_wrapper.amdsmi_processor_handle,
@@ -3494,6 +3582,11 @@ def amdsmi_get_gpu_memory_partition_config(processor_handle: amdsmi_wrapper.amds
         mem_caps_list.append("NPS4")
     if config.partition_caps.nps_flags.nps8_cap == 1:
         mem_caps_list.append("NPS8")
+    if (config.partition_caps.nps_flags.nps1_cap == 0 and
+        config.partition_caps.nps_flags.nps2_cap == 0 and 
+        config.partition_caps.nps_flags.nps4_cap == 0 and 
+        config.partition_caps.nps_flags.nps8_cap == 0):
+        mem_caps_list.append("N/A")
 
     return_dict = {
         "partition_caps": mem_caps_list,
@@ -3601,6 +3694,11 @@ def amdsmi_get_gpu_accelerator_partition_profile(
                 mem_caps_list.append("NPS4")
             if profile.memory_caps.nps_flags.nps8_cap == 1:
                 mem_caps_list.append("NPS8")
+            if (profile.memory_caps.nps_flags.nps1_cap == 0 and
+                profile.memory_caps.nps_flags.nps2_cap == 0 and 
+                profile.memory_caps.nps_flags.nps4_cap == 0 and 
+                profile.memory_caps.nps_flags.nps8_cap == 0):
+                mem_caps_list.append("N/A")
             partition_profile_dict = {
                 "profile_type" : profile_type_ret,
                 "num_partitions" : profile.num_partitions,
@@ -3653,6 +3751,11 @@ def amdsmi_get_gpu_accelerator_partition_profile_config(processor_handle: amdsmi
             mem_caps_list.append("NPS4")
         if profile.memory_caps.nps_flags.nps8_cap == 1:
             mem_caps_list.append("NPS8")
+        if (profile.memory_caps.nps_flags.nps1_cap == 0 and
+            profile.memory_caps.nps_flags.nps2_cap == 0 and 
+            profile.memory_caps.nps_flags.nps4_cap == 0 and 
+            profile.memory_caps.nps_flags.nps8_cap == 0):
+            mem_caps_list.append("N/A")
 
         for r in range(config.num_resource_profiles):
             # logging.debug("\namdsmi_interface.py | amdsmi_get_gpu_accelerator_partition_profile_config | i = " + str(i) + "; r = " + str(r) + "; resource_idx = " + str(resource_idx))
@@ -5093,7 +5196,6 @@ def amdsmi_get_gpu_compute_process_info() -> List[Dict[str, int]]:
     return [
         {
             "process_id": proc.process_id,
-            "pasid": proc.pasid, # Not working in ROCm 6.4+, deprecating in 7.0
             "vram_usage": proc.vram_usage,
             "sdma_usage": proc.sdma_usage,
             "cu_occupancy": proc.cu_occupancy,
@@ -5115,7 +5217,6 @@ def amdsmi_get_gpu_compute_process_info_by_pid(pid: int) -> Dict[str, int]:
 
     return {
         "process_id": proc.process_id,
-        "pasid": proc.pasid, # Not working in ROCm 6.4+, deprecating in 7.0
         "vram_usage": proc.vram_usage,
         "sdma_usage": proc.sdma_usage,
         "cu_occupancy": proc.cu_occupancy,

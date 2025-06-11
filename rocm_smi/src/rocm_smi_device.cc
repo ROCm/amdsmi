@@ -69,6 +69,7 @@ static const char *kDevDevProdNameFName = "product_name";
 static const char *kDevDevProdNumFName = "product_number";
 static const char *kDevDevIDFName = "device";
 static const char* kDevXGMIPhysicalIDFName = "xgmi_physical_id";
+static const char *kDevXGMIPortNumFName = "xgmi_port_num";
 static const char *kDevDevRevIDFName = "revision";
 static const char *kDevVendorIDFName = "vendor";
 static const char *kDevBoardInfoFName = "board_info";
@@ -249,6 +250,7 @@ static const std::map<DevInfoTypes, const char *> kDevAttribNameMap = {
     {kDevDevProdNum, kDevDevProdNumFName},
     {kDevDevID, kDevDevIDFName},
     {kDevXGMIPhysicalID, kDevXGMIPhysicalIDFName},
+    {kDevXGMIPortNum, kDevXGMIPortNumFName},
     {kDevDevRevID, kDevDevRevIDFName},
     {kDevVendorID, kDevVendorIDFName},
     {kDevPCieVendorID, kDevPCieVendorIDFName},
@@ -420,6 +422,7 @@ Device::devInfoTypesStrings = {
   {kDevMemOverDriveLevel, "kDevMemOverDriveLevel"},
   {kDevDevID, "kDevDevID"},
   {kDevXGMIPhysicalID, "kDevXGMIPhysicalID"},
+  {kDevXGMIPortNum, "kDevXGMIPortNum"},
   {kDevDevRevID, "kDevDevRevID"},
   {kDevDevProdName, "kDevDevProdName"},
   {kDevBoardInfo, "kDevBoardInfo"},
@@ -521,6 +524,7 @@ static const std::map<const char *, dev_depends_t> kDevFuncDependsMap = {
   {"rsmi_dev_vram_vendor_get",           {{kDevVramVendorFName}, {}}},
   {"rsmi_dev_id_get",                    {{kDevDevIDFName}, {}}},
   {"rsmi_dev_xgmi_physical_id_get",      {{kDevXGMIPhysicalIDFName}, {}}},
+  {"rsmi_dev_xgmi_port_num_get",         {{kDevXGMIPortNumFName}, {}}},
   {"rsmi_dev_revision_get",              {{kDevDevRevIDFName}, {}}},
   {"rsmi_dev_vendor_id_get",             {{kDevVendorIDFName}, {}}},
   {"rsmi_dev_name_get",                  {{kDevVendorIDFName,
@@ -738,6 +742,10 @@ std::string Device::get_sys_file_path_by_type(DevInfoTypes type) const {
   sysfs_path += "/device/";
   sysfs_path += kDevAttribNameMap.at(type);
 
+  if (access(sysfs_path.c_str(), F_OK) != 0) {
+      sysfs_path.clear();
+  }
+
   return sysfs_path;
 }
 
@@ -798,7 +806,7 @@ int Device::openSysfsFileStream(DevInfoTypes type, T *fs, const char *str) {
       if (ret != 0 || !reg_file) {
         ss << __PRETTY_FUNCTION__
            << " | Adjusted file path also does not exist - SYSFS file ("
-           << sysfs_path 
+           << sysfs_path
            << ") for DevInfoInfoType (" << get_type_string(type)
            << "), returning " << std::to_string(ret);
         LOG_ERROR(ss);
@@ -857,8 +865,8 @@ int Device::readDebugInfoStr(DevInfoTypes type, std::string *retStr) {
   ret = openDebugFileStream(type, &fs);
   if (ret != 0) {
     ss << "Could not read debugInfoStr for DevInfoType ("
-     << get_type_string(type)<< "), returning "
-     << std::to_string(ret);
+       << get_type_string(type) << "), returning "
+       << std::to_string(ret);
     LOG_ERROR(ss);
     return ret;
   }
@@ -871,7 +879,7 @@ int Device::readDebugInfoStr(DevInfoTypes type, std::string *retStr) {
   fs.close();
 
   ss << "Successfully read debugInfoStr for DevInfoType ("
-     << get_type_string(type)<< "), retString= " << *retStr;
+     << get_type_string(type) << "), retString= " << *retStr;
   LOG_INFO(ss);
 
   return 0;
@@ -896,8 +904,8 @@ int Device::readDevInfoStr(DevInfoTypes type, std::string *retStr) {
   fs >> *retStr;
   fs.close();
   ss << __PRETTY_FUNCTION__
-     << "Successfully read device info string for DevInfoType (" <<
-            get_type_string(type) << "): " + *retStr
+     << "Successfully read device info string for DevInfoType ("
+     << get_type_string(type) << "): " + *retStr
      << " | "
      << (fs.is_open() ? " File stream is opened" : " File stream is closed")
      << " | " << (fs.bad() ? "[ERROR] Bad read operation" :
@@ -1070,7 +1078,6 @@ const char* Device::get_type_string(DevInfoTypes type) {
   }
 
   return "Unknown";
-
 }
 
 int Device::readDevInfoBinary(DevInfoTypes type, std::size_t b_size,
@@ -1194,6 +1201,7 @@ int Device::readDevInfo(DevInfoTypes type, uint64_t *val) {
     case kDevPCieVendorID:
     case kDevErrCntFeatures:
     case kDevXGMIPhysicalID:
+    case kDevXGMIPortNum:
     case kDevErrRASSchema:
     case kDevErrTableVersion:
       ret = readDevInfoStr(type, &tempStr);
@@ -1376,6 +1384,7 @@ int Device::readDevInfo(DevInfoTypes type, std::string *val) {
     case kDevMemoryPartition:
     case kDevNumaNode:
     case kDevXGMIPhysicalID:
+    case kDevXGMIPortNum:
     case kDevAvailableMemoryPartition:
     case kDevProcessIsolation:
     case kDevSupportedXcpConfigs:

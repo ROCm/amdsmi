@@ -22,12 +22,12 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <gtest/gtest.h>
 
 #include <iostream>
 #include <string>
 #include <limits>
 
-#include <gtest/gtest.h>
 #include "amd_smi/amdsmi.h"
 #include "sys_info_read.h"
 #include "../test_common.h"
@@ -70,7 +70,7 @@ void TestSysInfoRead::Run(void) {
   amdsmi_status_t err;
   uint64_t val_ui64;
   int32_t val_i32;
-  amdsmi_version_t ver = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, nullptr};
+  amdsmi_version_t ver = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, nullptr};
 
   TestBase::Run();
   if (setup_failed_) {
@@ -118,11 +118,18 @@ void TestSysInfoRead::Run(void) {
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
     err = amdsmi_get_gpu_topo_numa_affinity(processor_handles_[i], &val_i32);
-    CHK_ERR_ASRT(err)
-    IF_VERB(STANDARD) {
-      std::cout << "\t**NUMA NODE: 0x" << std::hex << val_i32;
-      std::cout << " (" << std::dec << val_i32 << ")" << std::endl;
+    if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
+      std::cout << "\t**amdsmi_get_gpu_topo_numa_affinity(): Not supported on this machine"
+                << std::endl;
+      ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
+    } else  {
+      CHK_ERR_ASRT(err)
+      IF_VERB(STANDARD) {
+        std::cout << "\t**NUMA NODE: 0x" << std::hex << val_i32;
+        std::cout << " (" << std::dec << val_i32 << ")" << std::endl;
+      }
     }
+
     // Verify api support checking functionality is working
     err = amdsmi_get_gpu_topo_numa_affinity(processor_handles_[i], nullptr);
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);

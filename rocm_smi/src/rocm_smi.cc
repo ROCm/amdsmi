@@ -274,6 +274,25 @@ static rsmi_status_t get_dev_value_str(amd::smi::DevInfoTypes type,
 
   return amd::smi::ErrnoToRsmiStatus(ret);
 }
+static rsmi_status_t read_dev_port_map_file(amd::smi::DevInfoTypes type, uint32_t dv_ind, std::string *val_str) {
+    assert(val_str != nullptr);
+    if (val_str == nullptr) {
+        return RSMI_STATUS_INVALID_ARGS;
+    }
+    GET_DEV_FROM_INDX
+    std::string file_path = dev->get_sys_file_path_by_type(type);
+    if (file_path.empty()) {
+        return RSMI_STATUS_FILE_ERROR;
+    }
+    std::ifstream infile(file_path);
+    if (!infile) {
+        return RSMI_STATUS_FILE_ERROR;
+    }
+    std::ostringstream ss;
+    ss << infile.rdbuf();
+    *val_str = ss.str();
+    return RSMI_STATUS_SUCCESS;
+}
 static rsmi_status_t get_dev_value_int(amd::smi::DevInfoTypes type,
                                          uint32_t dv_ind, uint64_t *val_int) {
   assert(val_int != nullptr);
@@ -325,10 +344,31 @@ static rsmi_status_t get_dev_mon_value(amd::smi::MonitorTypes type,
     return amd::smi::ErrnoToRsmiStatus(ret);
   }
 
+  if (val_str.empty()) {
+    std::ostringstream ss;
+    ss << __PRETTY_FUNCTION__
+    << " | ======= end ======= "
+    << " | Fail "
+    << " | Device #: " << dv_ind
+    << " | Type: " << monitorTypesToString.at(type)
+    << " | Cause: SYSFS read was empty"
+    << " | Returning = "
+    << getRSMIStatusString(RSMI_STATUS_UNEXPECTED_DATA) << " |";
+    LOG_INFO(ss);
+    return RSMI_STATUS_UNEXPECTED_DATA;
+  }
+
   if (!amd::smi::IsInteger(val_str)) {
     std::ostringstream ss;
-    ss << "Expected integer value from monitor, but got \"" << val_str << "\"";
-    LOG_ERROR(ss);
+    ss << __PRETTY_FUNCTION__
+    << " | ======= end ======= "
+    << " | Fail "
+    << " | Device #: " << dv_ind
+    << " | Type: " << monitorTypesToString.at(type)
+    << " | Cause: Expected integer value from monitor, but got "<< val_str
+    << " | Returning = "
+    << getRSMIStatusString(RSMI_STATUS_UNEXPECTED_DATA) << " |";
+    LOG_INFO(ss);
     return RSMI_STATUS_UNEXPECTED_DATA;
   }
 
@@ -355,10 +395,31 @@ static rsmi_status_t get_dev_mon_value(amd::smi::MonitorTypes type,
     return amd::smi::ErrnoToRsmiStatus(ret);
   }
 
+  if (val_str.empty()) {
+    std::ostringstream ss;
+    ss << __PRETTY_FUNCTION__
+    << " | ======= end ======= "
+    << " | Fail "
+    << " | Device #: " << dv_ind
+    << " | Type: " << monitorTypesToString.at(type)
+    << " | Cause: SYSFS read was empty"
+    << " | Returning = "
+    << getRSMIStatusString(RSMI_STATUS_UNEXPECTED_DATA) << " |";
+    LOG_INFO(ss);
+    return RSMI_STATUS_UNEXPECTED_DATA;
+  }
+
   if (!amd::smi::IsInteger(val_str)) {
     std::ostringstream ss;
-    ss << "Expected integer value from monitor, but got \"" << val_str << "\"";
-    LOG_ERROR(ss);
+    ss << __PRETTY_FUNCTION__
+    << " | ======= end ======= "
+    << " | Fail "
+    << " | Device #: " << dv_ind
+    << " | Type: " << monitorTypesToString.at(type)
+    << " | Cause: Expected integer value from monitor, but got "<< val_str
+    << " | Returning = "
+    << getRSMIStatusString(RSMI_STATUS_UNEXPECTED_DATA) << " |";
+    LOG_INFO(ss);
     return RSMI_STATUS_UNEXPECTED_DATA;
   }
 
@@ -713,13 +774,6 @@ rsmi_dev_ecc_count_get(uint32_t dv_ind, rsmi_gpu_block_t block,
   ret = GetDevValueVec(type, dv_ind, &val_vec);
   if (val_vec.size() < 2 ) ret = RSMI_STATUS_FILE_ERROR;
 
-  if (ret == RSMI_STATUS_FILE_ERROR) {
-    ss << __PRETTY_FUNCTION__ << " | ======= end ======="
-       << ", GetDevValueVec() ret was RSMI_STATUS_FILE_ERROR "
-       << "-> reporting RSMI_STATUS_NOT_SUPPORTED";
-    LOG_ERROR(ss);
-    return RSMI_STATUS_NOT_SUPPORTED;
-  }
   if (ret != RSMI_STATUS_SUCCESS) {
     ss << __PRETTY_FUNCTION__ << " | ======= end ======="
        << ", GetDevValueVec() ret was not RSMI_STATUS_SUCCESS"
@@ -862,12 +916,13 @@ rsmi_topo_numa_affinity_get(uint32_t dv_ind, int32_t *numa_node) {
   TRY
   rsmi_status_t ret;
 
-  CHK_SUPPORT_NAME_ONLY(numa_node)
-
   DEVICE_MUTEX
+  if (!numa_node) {
+    return RSMI_STATUS_INVALID_ARGS;
+  }
   std::string str_val;
   ret = get_dev_value_str(amd::smi::kDevNumaNode, dv_ind, &str_val);
-  if (ret != RSMI_STATUS_SUCCESS){
+  if (ret != RSMI_STATUS_SUCCESS) {
     return ret;
   }
   *numa_node = std::stoi(str_val, nullptr);
@@ -1043,6 +1098,43 @@ rsmi_dev_xgmi_physical_id_get(uint32_t dv_ind, uint16_t *id) {
 }
 
 rsmi_status_t
+rsmi_dev_xgmi_port_num_get(uint32_t dv_ind, uint32_t *count, uint16_t *link_to_dst_node) {
+  std::ostringstream ss;
+  rsmi_status_t ret;
+  ss << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ss);
+  CHK_SUPPORT_NAME_ONLY(link_to_dst_node)
+  *link_to_dst_node = std::numeric_limits<uint16_t>::max();
+
+  std::string s;
+  ret = read_dev_port_map_file(amd::smi::kDevXGMIPortNum, dv_ind, &s);
+
+  std::istringstream iss(s);
+  std::string line;
+  *count = 0;
+  while (std::getline(iss, line)) {
+      if (line.empty()) continue;
+      std::istringstream f(line);
+      std::string src_token, arrow, dst_token;
+      if (f >> src_token >> arrow >> dst_token) {
+          size_t src_colon = src_token.find(':');
+          size_t dst_colon = dst_token.find(':');
+          if (src_colon != std::string::npos && dst_colon != std::string::npos) {
+              uint16_t src_link = static_cast<uint16_t>(std::stoi(src_token.substr(src_colon + 1)));
+              uint16_t dst_node = static_cast<uint16_t>(std::stoi(dst_token.substr(0, dst_colon)));
+              link_to_dst_node[src_link] = dst_node;
+              (*count)++;
+          }
+      }
+  }
+
+  ss << __PRETTY_FUNCTION__ << " | ======= end ======="
+     << ", reporting " << amd::smi::getRSMIStatusString(ret);
+  LOG_TRACE(ss);
+  return ret;
+}
+
+rsmi_status_t
 rsmi_dev_revision_get(uint32_t dv_ind, uint16_t *revision) {
   std::ostringstream outss;
   rsmi_status_t ret;
@@ -1079,7 +1171,11 @@ rsmi_dev_subsystem_id_get(uint32_t dv_ind, uint16_t *id) {
   ss << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ss);
   CHK_SUPPORT_NAME_ONLY(id)
-  return get_id(dv_ind, amd::smi::kDevSubSysDevID, id);
+  auto ret = get_id(dv_ind, amd::smi::kDevSubSysDevID, id);
+  ss << __PRETTY_FUNCTION__ << " | ======= end ======="
+     << ", reporting " << amd::smi::getRSMIStatusString(ret, false);
+  LOG_INFO(ss);
+  return ret;
 }
 
 rsmi_status_t
@@ -1088,6 +1184,9 @@ rsmi_dev_vendor_id_get(uint32_t dv_ind, uint16_t *id) {
   std::ostringstream ss;
   ss << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ss);
+  if (!id) {
+    return RSMI_STATUS_INVALID_ARGS;
+  }
   CHK_SUPPORT_NAME_ONLY(id)
   int ret_kfd = 0;
   uint32_t node_id;
@@ -1162,8 +1261,11 @@ rsmi_dev_perf_level_get(uint32_t dv_ind, rsmi_dev_perf_level_t *perf) {
   ss << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ss);
 
-  CHK_SUPPORT_NAME_ONLY(perf)
   DEVICE_MUTEX
+  if (!perf) {
+    return RSMI_STATUS_INVALID_ARGS;
+  }
+  CHK_SUPPORT_NAME_ONLY(perf)
 
   rsmi_status_t ret = get_dev_value_str(amd::smi::kDevPerfLevel, dv_ind,
                                                                     &val_str);
@@ -2830,17 +2932,17 @@ rsmi_dev_name_get(uint32_t dv_ind, char *name, size_t len) {
   std::ostringstream ss;
   ss << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ss);
-  CHK_SUPPORT_NAME_ONLY(name)
 
-  if (len == 0) {
+  if (len == 0 || !name) {
     return RSMI_STATUS_INVALID_ARGS;
   }
+  CHK_SUPPORT_NAME_ONLY(name)
 
   DEVICE_MUTEX
 
   ret = get_dev_name_from_file(dv_ind, name, len);
 
-  if (ret || name[0] == '\0' || !isprint(name[0]) ) {
+  if (ret || name[0] == '\0' || !isprint(name[0])) {
     ret = get_dev_name_from_id(dv_ind, name, len, NAME_STR_DEVICE);
   }
 
@@ -3023,6 +3125,9 @@ rsmi_status_t rsmi_dev_pm_metrics_info_get(uint32_t dv_ind,
   CHK_SUPPORT_NAME_ONLY(num_of_metrics)
   std::string file_path = dev->
           get_sys_file_path_by_type(amd::smi::kDevPmMetrics);
+  if (file_path.empty()) {
+      return RSMI_STATUS_NOT_SUPPORTED;
+  }
 
   int ret = amd::smi::present_pmmetrics(
           file_path.c_str(), pm_metrics, num_of_metrics);
@@ -3041,6 +3146,9 @@ rsmi_status_t rsmi_dev_reg_table_info_get(uint32_t dv_ind,
   CHK_SUPPORT_NAME_ONLY(num_of_metrics)
   std::string file_path = dev->
           get_sys_file_path_by_type(amd::smi::kDevRegMetrics);
+  if (file_path.empty()) {
+      return RSMI_STATUS_NOT_SUPPORTED;
+  }
 
   int ret = amd::smi::present_reg_state(
           file_path.c_str(), reg_type, reg_metrics, num_of_metrics);
@@ -3863,6 +3971,9 @@ rsmi_dev_power_cap_get(uint32_t dv_ind, uint32_t sensor_ind, uint64_t *cap) {
   LOG_TRACE(ss);
 
   ++sensor_ind;  // power sysfs files have 1-based indices
+  if (!cap) {
+    return RSMI_STATUS_INVALID_ARGS;
+  }
   CHK_SUPPORT_SUBVAR_ONLY(cap, sensor_ind)
 
   rsmi_status_t ret;
@@ -3883,6 +3994,9 @@ rsmi_dev_power_cap_range_get(uint32_t dv_ind, uint32_t sensor_ind,
   LOG_TRACE(ss);
 
   ++sensor_ind;  // power sysfs files have 1-based indices
+  if (max == nullptr || min == nullptr) {
+    return RSMI_STATUS_INVALID_ARGS;
+  }
   CHK_SUPPORT_SUBVAR_ONLY((min == nullptr || max == nullptr ?nullptr : min),
                                                                    sensor_ind)
   rsmi_status_t ret;
@@ -4006,10 +4120,12 @@ rsmi_dev_memory_total_get(uint32_t dv_ind, rsmi_memory_type_t mem_type,
   }
 
   DEVICE_MUTEX
+  *total = 0;  // Initialize total to 0
+  // This is needed to avoid returning garbage value in case of failure
   ret = get_dev_value_int(mem_type_file, dv_ind, total);
 
-  // Fallback to KFD reported memory if VRAM total is 0
-  if (mem_type == RSMI_MEM_TYPE_VRAM && *total == 0) {
+  // Fallback to KFD reported memory if VRAM total is 0 or sysfs read fails
+  if (mem_type == RSMI_MEM_TYPE_VRAM && (*total == 0 || ret != RSMI_STATUS_SUCCESS)) {
     GET_DEV_AND_KFDNODE_FROM_INDX
     if (kfd_node->get_total_memory(total) == 0 && *total > 0) {
       ss << __PRETTY_FUNCTION__
@@ -4083,10 +4199,12 @@ rsmi_dev_memory_usage_get(uint32_t dv_ind, rsmi_memory_type_t mem_type,
   }
 
   DEVICE_MUTEX
+  *used = 0;  // Initialize used to 0
+  // This is needed to avoid returning garbage value in case of failure
   ret = get_dev_value_int(mem_type_file, dv_ind, used);
 
-  // Fallback to KFD reported memory if no VRAM
-  if (mem_type == RSMI_MEM_TYPE_VRAM && *used == 0) {
+  // Fallback to KFD reported memory if no VRAM or sysfs read fails
+  if (mem_type == RSMI_MEM_TYPE_VRAM && (*used == 0 || ret != RSMI_STATUS_SUCCESS)) {
     GET_DEV_AND_KFDNODE_FROM_INDX
     uint64_t total = 0;
     ret = get_dev_value_int(amd::smi::kDevMemTotVRAM, dv_ind, &total);
@@ -4252,6 +4370,11 @@ rsmi_status_string(rsmi_status_t status, const char **status_string) {
     case RSMI_STATUS_REFCOUNT_OVERFLOW:
       *status_string = "RSMI_STATUS_REFCOUNT_OVERFLOW: An internal reference "
                        "counter exceeded INT32_MAX";
+      break;
+
+    case RSMI_STATUS_DIRECTORY_NOT_FOUND:
+      *status_string = "RSMI_STATUS_DIRECTORY_NOT_FOUND: Error when a "
+                       "directory is not found, maps to ENOTDIR";
       break;
 
     case RSMI_STATUS_SETTING_UNAVAILABLE:
@@ -4660,10 +4783,8 @@ rsmi_dev_unique_id_get(uint32_t dv_ind, uint64_t *unique_id) {
   ss << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ss);
 
-  CHK_SUPPORT_NAME_ONLY(unique_id)
-
   DEVICE_MUTEX
-  if (unique_id == nullptr) {
+  if (!unique_id) {
     return RSMI_STATUS_INVALID_ARGS;
   }
   *unique_id = std::numeric_limits<uint64_t>::max();
@@ -7303,7 +7424,7 @@ rsmi_event_notification_get(int timeout_ms,
         // parse message based on event received
         switch (event){
           case RSMI_EVT_NOTIF_NONE:
-            strcpy(reinterpret_cast<char *>(&data_item->message), "Event type None received");
+            strncpy(reinterpret_cast<char *>(&data_item->message), "Event type None received", MAX_EVENT_NOTIFICATION_MSG_SIZE-1);
             break;
           case RSMI_EVT_NOTIF_VMFAULT:
           {
@@ -7316,7 +7437,7 @@ rsmi_event_notification_get(int timeout_ms,
             final_message << "PID: " << std::to_string(pid).c_str()
                           << "  task name: " << task_name;
 
-            strcpy(reinterpret_cast<char *>(&data_item->message), final_message.str().c_str());
+            strncpy(reinterpret_cast<char *>(&data_item->message), final_message.str().c_str(), MAX_EVENT_NOTIFICATION_MSG_SIZE-1);
           }
           break;
           case RSMI_EVT_NOTIF_THERMAL_THROTTLE:
@@ -7329,7 +7450,7 @@ rsmi_event_notification_get(int timeout_ms,
             final_message << "bitmask: 0x" << std::hex << bitmask
                           << "  counter: 0x" << std::hex << counter;
 
-            strcpy(reinterpret_cast<char *>(&data_item->message), final_message.str().c_str());
+            strncpy(reinterpret_cast<char *>(&data_item->message), final_message.str().c_str(), MAX_EVENT_NOTIFICATION_MSG_SIZE-1);
           }
           break;
           case RSMI_EVT_NOTIF_GPU_PRE_RESET:
@@ -7343,7 +7464,7 @@ rsmi_event_notification_get(int timeout_ms,
             final_message << "reset sequence number: " << std::to_string(reset_seq_num).c_str()
                           << "  reset cause: " << reset_cause;
 
-            strcpy(reinterpret_cast<char *>(&data_item->message), final_message.str().c_str());
+            strncpy(reinterpret_cast<char *>(&data_item->message), final_message.str().c_str(), MAX_EVENT_NOTIFICATION_MSG_SIZE-1);
           }
           break;
           case RSMI_EVT_NOTIF_GPU_POST_RESET:
@@ -7355,7 +7476,7 @@ rsmi_event_notification_get(int timeout_ms,
             std::stringstream final_message;
             final_message << "reset sequence number: " << std::to_string(reset_seq_num).c_str();
 
-            strcpy(reinterpret_cast<char *>(&data_item->message), final_message.str().c_str());
+            strncpy(reinterpret_cast<char *>(&data_item->message), final_message.str().c_str(), MAX_EVENT_NOTIFICATION_MSG_SIZE-1);
           }
           break;
           case RSMI_EVT_NOTIF_EVENT_MIGRATE_START:
@@ -7382,7 +7503,7 @@ rsmi_event_notification_get(int timeout_ms,
                           << "  preferred_loc: 0x" << std::hex << preferred_loc
                           << "  migrate_trigger: " << std::to_string(migrate_trigger).c_str();
 
-            strcpy(reinterpret_cast<char *>(&data_item->message), final_message.str().c_str());
+            strncpy(reinterpret_cast<char *>(&data_item->message), final_message.str().c_str(), MAX_EVENT_NOTIFICATION_MSG_SIZE-1);
           }
           break;
           case RSMI_EVT_NOTIF_EVENT_MIGRATE_END:
@@ -7407,7 +7528,7 @@ rsmi_event_notification_get(int timeout_ms,
                           << "  migrate_trigger: " << std::to_string(migrate_trigger).c_str()
                           << "  error_code: " << std::to_string(error_code).c_str();
 
-            strcpy(reinterpret_cast<char *>(&data_item->message), final_message.str().c_str());
+            strncpy(reinterpret_cast<char *>(&data_item->message), final_message.str().c_str(), MAX_EVENT_NOTIFICATION_MSG_SIZE-1);
           }
           break;
           case RSMI_EVT_NOTIF_EVENT_PAGE_FAULT_START:
@@ -7426,7 +7547,7 @@ rsmi_event_notification_get(int timeout_ms,
                           << "  node: 0x" << std::hex << node
                           << "  rw: " << rw;
 
-            strcpy(reinterpret_cast<char *>(&data_item->message), final_message.str().c_str());
+            strncpy(reinterpret_cast<char *>(&data_item->message), final_message.str().c_str(), MAX_EVENT_NOTIFICATION_MSG_SIZE-1);
           }
           break;
           case RSMI_EVT_NOTIF_EVENT_PAGE_FAULT_END:
@@ -7445,7 +7566,7 @@ rsmi_event_notification_get(int timeout_ms,
                           << "  node: 0x" << std::hex << node
                           << "  migrate_udpate: " << migrate_update;
 
-            strcpy(reinterpret_cast<char *>(&data_item->message), final_message.str().c_str());
+            strncpy(reinterpret_cast<char *>(&data_item->message), final_message.str().c_str(), MAX_EVENT_NOTIFICATION_MSG_SIZE-1);
           }
           break;
           case RSMI_EVT_NOTIF_EVENT_QUEUE_EVICTION:
@@ -7462,7 +7583,7 @@ rsmi_event_notification_get(int timeout_ms,
                           << "  node: 0x" << std::hex << node
                           << "  evict_trigger: " << std::to_string(evict_trigger).c_str();
 
-            strcpy(reinterpret_cast<char *>(&data_item->message), final_message.str().c_str());
+            strncpy(reinterpret_cast<char *>(&data_item->message), final_message.str().c_str(), MAX_EVENT_NOTIFICATION_MSG_SIZE-1);
           }
           break;
           case RSMI_EVT_NOTIF_EVENT_QUEUE_RESTORE:
@@ -7479,7 +7600,7 @@ rsmi_event_notification_get(int timeout_ms,
                           << "  node: 0x" << std::hex << node
                           << "  rescheduled: " << rescheduled;
 
-            strcpy(reinterpret_cast<char *>(&data_item->message), final_message.str().c_str());
+            strncpy(reinterpret_cast<char *>(&data_item->message), final_message.str().c_str(), MAX_EVENT_NOTIFICATION_MSG_SIZE-1);
           }
           break;
           case RSMI_EVT_NOTIF_EVENT_UNMAP_FROM_GPU:
@@ -7500,7 +7621,7 @@ rsmi_event_notification_get(int timeout_ms,
                           << "  node: 0x" << std::hex << node
                           << "  unmap_trigger: " << std::to_string(unmap_trigger).c_str();
 
-            strcpy(reinterpret_cast<char *>(&data_item->message), final_message.str().c_str());
+            strncpy(reinterpret_cast<char *>(&data_item->message), final_message.str().c_str(), MAX_EVENT_NOTIFICATION_MSG_SIZE-1);
           }
           break;
           case RSMI_EVT_NOTIF_EVENT_PROCESS_START:
@@ -7519,7 +7640,7 @@ rsmi_event_notification_get(int timeout_ms,
           }
           break;
           default:
-            strcpy(reinterpret_cast<char *>(&data_item->message), "Unknown event received");
+            strncpy(reinterpret_cast<char *>(&data_item->message), "Unknown event received", MAX_EVENT_NOTIFICATION_MSG_SIZE-1);
             break;
         }
         data_item->event = (rsmi_evt_notification_type_t)event;

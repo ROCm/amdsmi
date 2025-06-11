@@ -366,6 +366,7 @@ Field | Content
 `oam_id` | oam id
 `num_of_compute_units` | number of compute units on asic
 `target_graphics_version` | hardware graphics version
+`subsystem_id` |  subsystem id
 
 Exceptions that can be thrown by `amdsmi_get_gpu_asic_info` function:
 
@@ -459,12 +460,12 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            power_info = amdsmi_get_power_cap_info(device)
-            print(power_info['power_cap'])
-            print(power_info['dpm_cap'])
-            print(power_info['default_power_cap'])
-            print(power_info['min_power_cap'])
-            print(power_info['max_power_cap'])
+            power_cap_info = amdsmi_get_power_cap_info(device)
+            print(power_cap_info['power_cap'])
+            print(power_cap_info['dpm_cap'])
+            print(power_cap_info['default_power_cap'])
+            print(power_cap_info['min_power_cap'])
+            print(power_cap_info['max_power_cap'])
 except AmdSmiException as e:
     print(e)
 ```
@@ -506,6 +507,45 @@ try:
             print(vram_info['vram_vendor'])
             print(vram_info['vram_size'])
             print(vram_info['vram_bit_width'])
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_gpu_board_info
+
+Description: Returns board info for the given GPU
+
+Input parameters:
+
+* `processor_handle` device which to query
+
+Output:  Dictionary with fields correctable and uncorrectable
+
+Field | Description
+---|---
+`model_number` | Board serial number
+`product_serial` | Product serial
+`fru_id` | FRU ID
+`product_name` | Product name
+`manufacturer_name` | Manufacturer name
+
+Exceptions that can be thrown by `amdsmi_get_gpu_board_info` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiRetryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    device = amdsmi_get_processor_handle_from_bdf("0000:23.00.0")
+    board_info = amdsmi_get_gpu_board_info(device)
+    print(board_info["model_number"])
+    print(board_info["product_serial"])
+    print(board_info["fru_id"])
+    print(board_info["product_name"])
+    print(board_info["manufacturer_name"])
 except AmdSmiException as e:
     print(e)
 ```
@@ -696,18 +736,18 @@ It is not supported on virtual machine guest
 Input parameters:
 
 * `processor_handle` device which to query
-* `sensor_ind` optional argument that defaults to 0
 
 Output: Dictionary with fields
 
-Field | Description
----|---
-`current_socket_power` | current socket power
-`average_socket_power` | average socket power
-`gfx_voltage` | voltage gfx
-`soc_voltage` | voltage soc
-`mem_voltage` | voltage mem
-`power_limit` | power limit
+Field | Description | Units
+---|---|---
+`socket_power` | socket power; matches current or average socket power | W
+`current_socket_power` | current socket power; Mi300+ Series Cards | W
+`average_socket_power` | average socket power; Navi + Mi 200 and earlier Series cards | W
+`gfx_voltage` | voltage gfx | mV
+`soc_voltage` | voltage soc | mV
+`mem_voltage` | voltage mem | mV
+`power_limit` | power limit | W
 
 Exceptions that can be thrown by `amdsmi_get_power_info` function:
 
@@ -724,15 +764,13 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            power_measure = amdsmi_get_power_info(device)
-            # Example with using sensor_ind
-            #   power_measure = amdsmi_get_power_info(device, 0)
-            print(power_measure['current_socket_power'])
-            print(power_measure['average_socket_power'])
-            print(power_measure['gfx_voltage'])
-            print(power_measure['soc_voltage'])
-            print(power_measure['mem_voltage'])
-            print(power_measure['power_limit'])
+            power_info = amdsmi_get_power_info(device)
+            print(power_info['current_socket_power'])
+            print(power_info['average_socket_power'])
+            print(power_info['gfx_voltage'])
+            print(power_info['soc_voltage'])
+            print(power_info['mem_voltage'])
+            print(power_info['power_limit'])
 except AmdSmiException as e:
     print(e)
 ```
@@ -795,19 +833,31 @@ Field | Description
 `acc_socket_thrm` |  Current Accumulated Socket Thermal Count  #TVIOL
 `acc_vr_thrm` |  Current Accumulated Voltage Regulator Count
 `acc_hbm_thrm` |  Current Accumulated High Bandwidth Memory (HBM) Thermal Count
-`acc_gfx_clk_below_host_limit` |  Current Graphic Clock Below Host Limit Count
+`acc_gfx_clk_below_host_limit` |  Current Graphic Clock Below Host Limit Count. UPDATED in new driver 1.8: use new acc_gfx_clk_below_host_limit_pwr, acc_gfx_clk_below_host_limit_thm, acc_gfx_clk_below_host_limit_total values
+`acc_gfx_clk_below_host_limit_pwr` | 2D array with Accumulated GFX Clk Below Host Limit (Power) per XCP/XCC
+`acc_gfx_clk_below_host_limit_thm` | 2D array with Accumulated GFX Clk Below Host Limit (Thermal) per XCP/XCC
+`acc_low_utilization` | 2D array with Accumulated Low Utilization per XCP/XCC
+`acc_gfx_clk_below_host_limit_total` | 2D array with Accumulated GFX Clk Below Host Limit (Total) per XCP/XCC
 `per_prochot_thrm` |  Processor hot violation % (greater than 0% is a violation)
 `per_ppt_pwr` |  PVIOL Package Power Tracking (PPT) violation % (greater than 0% is a violation)
 `per_socket_thrm` |  TVIOL; Socket thermal violation % (greater than 0% is a violation)
 `per_vr_thrm` |  Voltage regulator violation % (greater than 0% is a violation)
 `per_hbm_thrm` |  High Bandwidth Memory (HBM) thermal violation % (greater than 0% is a violation)
-`per_gfx_clk_below_host_limit` |   Graphics clock below host limit violation % (greater than 0% is a violation)
+`per_gfx_clk_below_host_limit` |   Graphics clock below host limit violation % (greater than 0% is a violation). UPDATED in new driver 1.8: use new per_gfx_clk_below_host_limit_pwr, per_gfx_clk_below_host_limit_thm, per_gfx_clk_below_host_limit_total values
+`per_gfx_clk_below_host_limit_pwr` | 2D array with GFX Clk Below Host Limit Violation % (Power) per XCP/XCC
+`per_gfx_clk_below_host_limit_thm` | 2D array with GFX Clk Below Host Limit Violation % (Thermal) per XCP/XCC
+`per_low_utilization` | 2D array with Low Utilization Violation % per XCP/XCC
+`per_gfx_clk_below_host_limit_total` | 2D array with GFX Clk Below Host Limit Violation % (Total) per XCP/XCC
 `active_prochot_thrm` |  Processor hot violation; 1 = active 0 = not active
 `active_ppt_pwr` |  Package Power Tracking (PPT) violation; 1 = active 0 = not active
 `active_socket_thrm` |  Socket thermal violation; 1 = active 0 = not active
 `active_vr_thrm` |  Voltage regulator violation; 1 = active 0 = not active
 `active_hbm_thrm` |  High Bandwidth Memory (HBM) thermal violation; 1 = active 0 = not active
-`active_gfx_clk_below_host_limit` |  Graphics Clock Below Host Limit Violation; 1 = Active 0 = Not Active
+`active_gfx_clk_below_host_limit` |  Graphics Clock Below Host Limit Violation; 1 = Active 0 = Not Active. UPDATED in new driver 1.8: use new active_gfx_clk_below_host_limit_pwr, active_gfx_clk_below_host_limit_thm, active_gfx_clk_below_host_limit_total values
+`active_gfx_clk_below_host_limit_pwr` | 2D array with GFX Clk Below Host Limit Violation Active (Power) per XCP/XCC
+`active_gfx_clk_below_host_limit_thm` | 2D array with GFX Clk Below Host Limit Violation Active (Thermal) per XCP/XCC
+`active_low_utilization` | 2D array with Low Utilization Violation Active per XCP/XCC
+`active_gfx_clk_below_host_limit_total` | 2D array with GFX Clk Below Host Limit Violation Active (Total) per XCP/XCC
 
 Exceptions that can be thrown by `amdsmi_get_violation_status` function:
 
@@ -828,6 +878,10 @@ try:
     throttle_status['vr_thermal_accumulated'] = violation_status['acc_vr_thrm']
     throttle_status['hbm_thermal_accumulated'] = violation_status['acc_hbm_thrm']
     throttle_status['gfx_clk_below_host_limit_accumulated'] = violation_status['acc_gfx_clk_below_host_limit']
+    throttle_status['gfx_clk_below_host_limit_pwr_accumulated'] = violation_status['acc_gfx_clk_below_host_limit_pwr']
+    throttle_status['gfx_clk_below_host_limit_thm_accumulated'] = violation_status['acc_gfx_clk_below_host_limit_thm']
+    throttle_status['low_utilization_accumulated'] = violation_status['acc_low_utilization']
+    throttle_status['gfx_clk_below_host_limit_total_accumulated'] = violation_status['acc_gfx_clk_below_host_limit_total']
 
     throttle_status['prochot_violation_status'] = violation_status['active_prochot_thrm']
     throttle_status['ppt_violation_status'] = violation_status['active_ppt_pwr']
@@ -835,6 +889,10 @@ try:
     throttle_status['vr_thermal_violation_status'] = violation_status['active_vr_thrm']
     throttle_status['hbm_thermal_violation_status'] = violation_status['active_hbm_thrm']
     throttle_status['gfx_clk_below_host_limit_violation_status'] = violation_status['active_gfx_clk_below_host_limit']
+    throttle_status['gfx_clk_below_host_limit_pwr_violation_status'] = violation_status['active_gfx_clk_below_host_limit_pwr']
+    throttle_status['gfx_clk_below_host_limit_thm_violation_status'] = violation_status['active_gfx_clk_below_host_limit_thm']
+    throttle_status['low_utilization_violation_status'] = violation_status['active_low_utilization']
+    throttle_status['gfx_clk_below_host_limit_total_violation_status'] = violation_status['active_gfx_clk_below_host_limit_total']
 
     throttle_status['prochot_violation_activity'] = violation_status['per_prochot_thrm']
     throttle_status['ppt_violation_activity'] = violation_status['per_ppt_pwr']
@@ -842,6 +900,10 @@ try:
     throttle_status['vr_thermal_violation_activity'] = violation_status['per_vr_thrm']
     throttle_status['hbm_thermal_violation_activity'] = violation_status['per_hbm_thrm']
     throttle_status['gfx_clk_below_host_limit_violation_activity'] = violation_status['per_gfx_clk_below_host_limit']
+    throttle_status['gfx_clk_below_host_limit_pwr_violation_activity'] = violation_status['per_gfx_clk_below_host_limit_pwr']
+    throttle_status['gfx_clk_below_host_limit_thm_violation_activity'] = violation_status['per_gfx_clk_below_host_limit_thm']
+    throttle_status['low_utilization_violation_activity'] = violation_status['per_low_utilization']
+    throttle_status['gfx_clk_below_host_limit_total_violation_activity'] = violation_status['per_gfx_clk_below_host_limit_total']
 
 except AmdSmiException as e:
     print(e)
@@ -1068,7 +1130,6 @@ except AmdSmiException as e:
     print(e)
 ```
 
-
 ### amdsmi_get_gpu_process_list
 
 Description: Returns the list of processes running on the target GPU; Requires root level access to display root process names; otherwise will return "N/A"
@@ -1083,9 +1144,10 @@ Field | Description
 ---|---
 `name` | Name of process. If user does not have permission this will be "N/A"
 `pid` | Process ID
-`mem` | Process memory usage
+`mem` | Total memory usage by GPU during process in Bytes
 `engine_usage` | <table><thead><tr> <th> Subfield </th> <th> Description</th> </tr></thead><tbody><tr><td>`gfx`</td><td>GFX engine usage in ns</td></tr><tr><td>`enc`</td><td>Encode engine usage in ns</td></tr></tbody></table>
-`memory_usage` | <table><thead><tr> <th> Subfield </th> <th> Description</th> </tr></thead><tbody><tr><td>`gtt_mem`</td><td>GTT memory usage</td></tr><tr><td>`cpu_mem`</td><td>CPU memory usage</td></tr><tr><td>`vram_mem`</td><td>VRAM memory usage</td></tr> </tbody></table>
+`memory_usage` | <table><thead><tr> <th> Subfield </th> <th> Description</th> </tr></thead><tbody><tr><td>`gtt_mem`</td><td>GTT memory usage in Bytes</td></tr><tr><td>`cpu_mem`</td><td>CPU memory usage in Bytes</td></tr><tr><td>`vram_mem`</td><td>Process VRAM memory usage in Bytes</td></tr> </tbody></table>
+`cu_occupancy` | Number of Compute Units utilized
 
 Exceptions that can be thrown by `amdsmi_get_gpu_process_list` function:
 
@@ -1160,6 +1222,7 @@ except AmdSmiException as e:
 Description: Dump CPER entries for a given GPU in a file using from CPER header file from RAS tool.
 
 Input parameters:
+
 * `processor_handle` device which to query
 * `severity_mask`    the severity mask of the entries to be retrieved
 * `buffer_size`      pointer to a variable that specifies the size of the cper_data
@@ -1193,53 +1256,65 @@ Example:
 ```python
 for device in devices:
     entries, new_cursor, cper_data = amdsmi_get_gpu_cper_entries(device, severity_mask, buffer_size, initial_cursor)
-    print("CPER entries for device", device)        
+    print("CPER entries for device", device)
     for key, entry in entries.items():
         print("Entry", key)
         print("  Error Severity:", entry.get("error_severity", "Unknown"))
         print("  Notify Type:", entry.get("notify_type", "Unknown"))
         print("  Timestamp:", entry.get("timestamp", ""))
-        print()       
+        print()
     print("New Cursor Position:", new_cursor)
 except AmdSmiException as e:
     print(e)
 ```
 
-### amdsmi_get_gpu_board_info
+### amdsmi_get_afids_from_cper
 
-Description: Returns board info for the given GPU
+Description: Get the AFIDs from CPER buffer
 
 Input parameters:
 
 * `processor_handle` device which to query
+* `severity_mask`    the severity mask of the entries to be retrieved
+* `buffer_size`      pointer to a variable that specifies the size of the cper_data
+* `cursor`           pointer to a variable that will contain the  cursor  for the next call
 
-Output:  Dictionary with fields correctable and uncorrectable
+Output: Dictionary with fields, updated cursor, and a dictionary of the cper_data
 
 Field | Description
 ---|---
-`model_number` | Board serial number
-`product_serial` | Product serial
-`fru_id` | FRU ID
-`product_name` | Product name
-`manufacturer_name` | Manufacturer name
+`error_severity`   | The severity of the CPER error ex: `non_fatal_uncorrected`, `fatal`, `non_fatal_corrected`. |
+`notify_type`      | The notification type associated with the CPER entry. |
+`timestamp`        | The time when the CPER entry was recorded, formatted as `YYYY/MM/DD HH:MM:SS`. |
+`signature`        | A 4-byte signature identifying the entry, typically `CPER`. |
+`revision`         | The revision number of the CPER record format. |
+`signature_end`    | A marker value (typically `0xFFFFFFFF`) confirming the integrity of the signature. |
+`sec_cnt`          | The count of sections included in the CPER entry. |
+`record_length`    | The total length in bytes of the CPER entry. |
+`platform_id`      | A character array identifying the GPU or platform. |
+`creator_id`       | A character array indicating the creator of the CPER entry. |
+`record_id`        | A unique identifier for the CPER entry. |
+`flags`            | Reserved flags related to the CPER entry. |
+`persistence_info` | Reserved information related to persistence. |
 
-Exceptions that can be thrown by `amdsmi_get_gpu_board_info` function:
+Exceptions that can be thrown by `amdsmi_get_gpu_cper_entries` function:
 
 * `AmdSmiLibraryException`
-* `AmdSmiRetryException`
 * `AmdSmiParameterException`
 
 Example:
 
 ```python
-try:
-    device = amdsmi_get_processor_handle_from_bdf("0000:23.00.0")
-    board_info = amdsmi_get_gpu_board_info(device)
-    print(board_info["model_number"])
-    print(board_info["product_serial"])
-    print(board_info["fru_id"])
-    print(board_info["product_name"])
-    print(board_info["manufacturer_name"])
+for device in devices:
+    entries, new_cursor, cper_data = amdsmi_get_gpu_cper_entries(device, severity_mask, buffer_size, initial_cursor)
+    print("CPER entries for device", device)
+    for key, entry in entries.items():
+        print("Entry", key)
+        print("  Error Severity:", entry.get("error_severity", "Unknown"))
+        print("  Notify Type:", entry.get("notify_type", "Unknown"))
+        print("  Timestamp:", entry.get("timestamp", ""))
+        print()
+    print("New Cursor Position:", new_cursor)
 except AmdSmiException as e:
     print(e)
 ```
@@ -1341,9 +1416,17 @@ Event Type | Description
 ---|------
 `VMFAULT` | VM page fault
 `THERMAL_THROTTLE` | thermal throttle
-`GPU_PRE_RESET` | gpu pre reset
+`GPU_PRE_RESET` | gpu pre reset; this event includes a message which indicates the cause of the reset. They are as follows: `job hang`, `RAS error`, `MES hang`, `HWS hang`, `user trigger`, and `unknown`
 `GPU_POST_RESET` | gpu post reset
-`RING_HANG` | ring hang event
+`MIGRATE_START` | migrate start
+`MIGRATE_END` | migrate end
+`PAGE_FAULT_START` | page fault start
+`PAGE_FAULT_END` | page fault end
+`QUEUE_EVICTION` | queue eviction
+`QUEUE_RESTORE` | queue restore
+`UNMAP_FROM_GPU` | unmap from GPU
+`PROCESS_START` | KFD process start
+`PROCESS_END` | KFD process end
 
 #### read
 
@@ -2079,16 +2162,17 @@ machine guest
 
 Input parameters:
 
-* `processor_handle` handle for the given device
-* `sensor_type` part of device from which voltage should be obtained
-* `metric` enum indicated which voltage value should be retrieved
+Parameters | Description
+---|---
+`processor_handle` |  Handle for the given device
+`sensor_type` | <table><thead><tr><th> Possible Values </th><th> Description </th></tr></thead><tbody><tr><td>`AmdSmiVoltageType.VDDGFX`</td><td>Represents the voltage supplied to the GPU's graphics core.</td></tr><tr><td>`AmdSmiVoltageType.VDDBOARD`</td><td>Represents the voltage supplied to the entire GPU board, including auxiliary components. Intended for Mi300+</td></tr></tbody></table>
+`metric` | <table><thead><tr><th> Possible Values </th><th> Description </th></tr></thead><tbody><tr><td>`AmdSmiVoltageMetric.CURRENT`</td><td>Represents the current voltage value measured at the specified sensor.</td></tr><tr><td>`AmdSmiVoltageMetric.MAX`</td><td>Represents the maximum voltage value recorded at the specified sensor.</td></tr><tr><td>`AmdSmiVoltageMetric.MIN`</td><td>Represents the minimum voltage value recorded at the specified sensor.</td></tr><tr><td>`AmdSmiVoltageMetric.AVERAGE`</td><td>Represents the average voltage value calculated over a period of time at the specified sensor.</td></tr><tr><td>`AmdSmiVoltageMetric.MAX_CRIT`</td><td>Represents the critical maximum voltage value that should not be exceeded.</td></tr><tr><td>`AmdSmiVoltageMetric.MIN_CRIT`</td><td>Represents the critical minimum voltage value that should not be dropped below.</td></tr><tr><td>`AmdSmiVoltageMetric.LOWEST`</td><td>Represents the lowest voltage value recorded during the monitoring period.</td></tr><tr><td>`AmdSmiVoltageMetric.HIGHEST`</td><td>Represents the highest voltage value recorded during the monitoring period.</td></tr></tbody></table>
 
 Output: Voltage as integer in millivolts
 
 Exceptions that can be thrown by `amdsmi_get_gpu_volt_metric` function:
 
 * `AmdSmiLibraryException`
-* `AmdSmiRetryException`
 * `AmdSmiParameterException`
 
 Example:
@@ -2100,8 +2184,11 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            voltage =  amdsmi_get_gpu_volt_metric(device, AmdSmiVoltageType.VDDGFX,
-                        AmdSmiVoltageMetric.AVERAGE)
+            voltage = amdsmi_get_gpu_volt_metric(
+                device,
+                AmdSmiVoltageType.VDDBOARD,
+                AmdSmiVoltageMetric.AVERAGE
+            )
             print(voltage)
 except AmdSmiException as e:
     print(e)
@@ -2659,7 +2746,7 @@ except AmdSmiException as e:
 
 ### amdsmi_get_gpu_power_profile_presets
 
-Description:  Get the list of available preset power profiles and an indication of
+Description: Get the list of available preset power profiles and an indication of
 which profile is currently active. It is not supported on virtual machine guest
 
 Input parameters:
@@ -3378,7 +3465,7 @@ Output: List of python dicts each containing a process information
 Field | Description
 ---|---
 `process_id` | Process ID
-`pasid` | PASID (Not working in ROCm 6.4+, deprecating in 7.0)
+`pasid` | PASID (Not working in ROCm 6.4+, Deprecated in 7.0)
 `vram_usage` | VRAM usage
 `sdma_usage` | SDMA usage in microseconds
 `cu_occupancy` | Compute Unit usage in percents
@@ -3781,6 +3868,49 @@ try:
 except AmdSmiException as e:
     print(e)
 ```
+
+### amdsmi_get_link_metrics
+
+Description: Returns XGMI link metrics information for the given GPU.
+
+Input parameters:
+
+* `processor_handle` — The device handle for which to query link metrics.
+
+Output: Dictionary with fields
+
+Field | Description
+---|---
+`num_links` | Number of XGMI links reported
+`bit_rate` | XGMI link bit rate (in appropriate units, e.g., Gbps)
+`max_bandwidth` | Maximum XGMI bandwidth (in appropriate units, e.g., GB/s)
+`links` | List of dictionaries, one per XGMI link, each with:
+`bdf` | BDF string for the destination
+`link_type` | Link type
+`read` | Accumulated read data for this link (e.g., KB)
+`write` | Accumulated write data for this link (e.g., KB)
+
+Exceptions that can be thrown by `amdsmi_get_link_metrics` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            link_metrics = amdsmi_get_link_metrics(device)
+            print(link_metrics['bit_rate'])
+            print(link_metrics['max_bandwidth'])
+            for idx, link in enumerate(link_metrics['links']):
+                print(f"{idx}: {link['bdf']}, {link['link_type']}, {link['read']} KB, {link['write']} KB")
+except AmdSmiException as e:
+    print(e)
 
 ### amdsmi_topo_get_link_type
 
@@ -5307,56 +5437,6 @@ try:
     rocm_load_status, version_message = amdsmi_get_rocm_version()
     print(f"ROCm load status: {rocm_load_status}")
     print(f"ROCm version msg: {version_message}")
-except AmdSmiException as e:
-    print(e)
-```
-
-### amdsmi_get_afids_from_cper
-
-Description: Get the AFIDs from CPER buffer
-
-Input parameters:
-* `processor_handle` device which to query
-* `severity_mask`    the severity mask of the entries to be retrieved
-* `buffer_size`      pointer to a variable that specifies the size of the cper_data
-* `cursor`           pointer to a variable that will contain the  cursor  for the next call
-
-Output: Dictionary with fields, updated cursor, and a dictionary of the cper_data
-
-Field | Description
----|---
-`error_severity`   | The severity of the CPER error ex: `non_fatal_uncorrected`, `fatal`, `non_fatal_corrected`. |
-`notify_type`      | The notification type associated with the CPER entry. |
-`timestamp`        | The time when the CPER entry was recorded, formatted as `YYYY/MM/DD HH:MM:SS`. |
-`signature`        | A 4-byte signature identifying the entry, typically `CPER`. |
-`revision`         | The revision number of the CPER record format. |
-`signature_end`    | A marker value (typically `0xFFFFFFFF`) confirming the integrity of the signature. |
-`sec_cnt`          | The count of sections included in the CPER entry. |
-`record_length`    | The total length in bytes of the CPER entry. |
-`platform_id`      | A character array identifying the GPU or platform. |
-`creator_id`       | A character array indicating the creator of the CPER entry. |
-`record_id`        | A unique identifier for the CPER entry. |
-`flags`            | Reserved flags related to the CPER entry. |
-`persistence_info` | Reserved information related to persistence. |
-
-Exceptions that can be thrown by `amdsmi_get_gpu_cper_entries` function:
-
-* `AmdSmiLibraryException`
-* `AmdSmiParameterException`
-
-Example:
-
-```python
-for device in devices:
-    entries, new_cursor, cper_data = amdsmi_get_gpu_cper_entries(device, severity_mask, buffer_size, initial_cursor)
-    print("CPER entries for device", device)        
-    for key, entry in entries.items():
-        print("Entry", key)
-        print("  Error Severity:", entry.get("error_severity", "Unknown"))
-        print("  Notify Type:", entry.get("notify_type", "Unknown"))
-        print("  Timestamp:", entry.get("timestamp", ""))
-        print()       
-    print("New Cursor Position:", new_cursor)
 except AmdSmiException as e:
     print(e)
 ```

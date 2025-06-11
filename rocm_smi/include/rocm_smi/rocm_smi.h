@@ -108,6 +108,8 @@ typedef enum {
                                          //!< being used
   RSMI_STATUS_REFCOUNT_OVERFLOW,         //!< An internal reference counter
                                          //!< exceeded INT32_MAX
+  RSMI_STATUS_DIRECTORY_NOT_FOUND,       //!< Error when a directory is not 
+                                         //!< found, maps to ENOTDIR
   RSMI_STATUS_SETTING_UNAVAILABLE,       //!< Requested setting is unavailable
                                          //!< for the current device
   RSMI_STATUS_AMDGPU_RESTART_ERR,        //!< Could not successfully restart
@@ -338,21 +340,23 @@ typedef struct {
  * Event notification event types
  */
 typedef enum {
-  RSMI_EVT_NOTIF_NONE = KFD_SMI_EVENT_NONE,        //!< Unused
-  RSMI_EVT_NOTIF_VMFAULT = KFD_SMI_EVENT_VMFAULT,  //!< VM page fault
+  RSMI_EVT_NOTIF_NONE = KFD_SMI_EVENT_NONE,                                //!< Unused
+  RSMI_EVT_NOTIF_VMFAULT = KFD_SMI_EVENT_VMFAULT,                          //!< VM page fault
   RSMI_EVT_NOTIF_FIRST = RSMI_EVT_NOTIF_VMFAULT,
-  RSMI_EVT_NOTIF_THERMAL_THROTTLE = KFD_SMI_EVENT_THERMAL_THROTTLE,
-  RSMI_EVT_NOTIF_GPU_PRE_RESET = KFD_SMI_EVENT_GPU_PRE_RESET,
-  RSMI_EVT_NOTIF_GPU_POST_RESET = KFD_SMI_EVENT_GPU_POST_RESET,
-  RSMI_EVT_NOTIF_EVENT_MIGRATE_START = KFD_SMI_EVENT_MIGRATE_START,
-  RSMI_EVT_NOTIF_EVENT_MIGRATE_END = KFD_SMI_EVENT_MIGRATE_END,
-  RSMI_EVT_NOTIF_EVENT_PAGE_FAULT_START = KFD_SMI_EVENT_PAGE_FAULT_START,
-  RSMI_EVT_NOTIF_EVENT_PAGE_FAULT_END = KFD_SMI_EVENT_PAGE_FAULT_END,
-  RSMI_EVT_NOTIF_EVENT_QUEUE_EVICTION = KFD_SMI_EVENT_QUEUE_EVICTION,
-  RSMI_EVT_NOTIF_EVENT_QUEUE_RESTORE = KFD_SMI_EVENT_QUEUE_RESTORE,
-  RSMI_EVT_NOTIF_EVENT_UNMAP_FROM_GPU = KFD_SMI_EVENT_UNMAP_FROM_GPU,
-  RSMI_EVT_NOTIF_EVENT_PROCESS_START = KFD_SMI_EVENT_PROCESS_START,
-  RSMI_EVT_NOTIF_EVENT_PROCESS_END = KFD_SMI_EVENT_PROCESS_END,
+  RSMI_EVT_NOTIF_THERMAL_THROTTLE = KFD_SMI_EVENT_THERMAL_THROTTLE,        //!< thermal throttle
+  RSMI_EVT_NOTIF_GPU_PRE_RESET = KFD_SMI_EVENT_GPU_PRE_RESET,              //!< pre reset; event includes message indicating cause
+                                                                           //!< causes include job hang, RAS error,
+                                                                           //!< MES hang, HWS hang, user trigger, and unknown
+  RSMI_EVT_NOTIF_GPU_POST_RESET = KFD_SMI_EVENT_GPU_POST_RESET,            //!< post reset
+  RSMI_EVT_NOTIF_EVENT_MIGRATE_START = KFD_SMI_EVENT_MIGRATE_START,        //!< migrate start
+  RSMI_EVT_NOTIF_EVENT_MIGRATE_END = KFD_SMI_EVENT_MIGRATE_END,            //!< migrate end
+  RSMI_EVT_NOTIF_EVENT_PAGE_FAULT_START = KFD_SMI_EVENT_PAGE_FAULT_START,  //!< page fault start
+  RSMI_EVT_NOTIF_EVENT_PAGE_FAULT_END = KFD_SMI_EVENT_PAGE_FAULT_END,      //!< page fault end
+  RSMI_EVT_NOTIF_EVENT_QUEUE_EVICTION = KFD_SMI_EVENT_QUEUE_EVICTION,      //!< queue eviction
+  RSMI_EVT_NOTIF_EVENT_QUEUE_RESTORE = KFD_SMI_EVENT_QUEUE_RESTORE,        //!< queue restore
+  RSMI_EVT_NOTIF_EVENT_UNMAP_FROM_GPU = KFD_SMI_EVENT_UNMAP_FROM_GPU,      //!< unmap from GPU
+  RSMI_EVT_NOTIF_EVENT_PROCESS_START = KFD_SMI_EVENT_PROCESS_START,        //!< KFD process start
+  RSMI_EVT_NOTIF_EVENT_PROCESS_END = KFD_SMI_EVENT_PROCESS_END,            //!< KFD process end
   RSMI_EVT_NOTIF_EVENT_ALL_PROCESS = KFD_SMI_EVENT_ALL_PROCESS,
   RSMI_EVT_NOTIF_LAST = KFD_SMI_EVENT_ALL_PROCESS
 } rsmi_evt_notification_type_t;
@@ -572,9 +576,10 @@ typedef enum {
 typedef enum {
   RSMI_VOLT_TYPE_FIRST = 0,
 
-  RSMI_VOLT_TYPE_VDDGFX = RSMI_VOLT_TYPE_FIRST,  //!< Vddgfx GPU
-                                                 //!< voltage
-  RSMI_VOLT_TYPE_LAST = RSMI_VOLT_TYPE_VDDGFX,
+  RSMI_VOLT_TYPE_VDDGFX = RSMI_VOLT_TYPE_FIRST,  //!< Vddgfx GPU voltage
+  RSMI_VOLT_TYPE_VDDBOARD,                       //!< Voltage for VDDBOARD
+
+  RSMI_VOLT_TYPE_LAST = RSMI_VOLT_TYPE_VDDBOARD,
   RSMI_VOLT_TYPE_INVALID = 0xFFFFFFFF            //!< Invalid type
 } rsmi_voltage_type_t;
 
@@ -1403,7 +1408,6 @@ typedef struct {
  */
 typedef struct {
     uint32_t process_id;      //!< Process ID
-    uint32_t pasid;           //!< PASID: (Process Address Space ID) (Not working in ROCm 6.4+, deprecating in 7.0)
     uint64_t vram_usage;      //!< VRAM usage
     uint64_t sdma_usage;      //!< SDMA usage in microseconds
     uint32_t cu_occupancy;    //!< Compute Unit usage in percent
@@ -2019,6 +2023,26 @@ rsmi_status_t rsmi_dev_unique_id_get(uint32_t dv_ind, uint64_t *id);
  *
  */
 rsmi_status_t rsmi_dev_xgmi_physical_id_get(uint32_t dv_ind, uint16_t *id);
+
+/**
+ *  @brief Get the XGMI src_gpu to dest_gpu link_num based mapping for the device
+ *
+ *  @details Given a device index @p dv_ind, a pointer to a uint16_t to get the
+ *  count of XGMI links, and a pointer to a uint16_t array to which the dest_gpu's
+ *  order will be written
+ *
+ *  @param[in] dv_ind a device index
+ *
+ *  @param[inout] count a pointer to uint16_t to which the count of XGMI links
+ *  will be written
+ *
+ *  @param[inout] xgmi_dst_gpu_order a pointer to uint16_t array to which the
+ *  dest_gpu's order will be written
+ *
+ *  @retval ::RSMI_STATUS_SUCCESS is returned upon successful call.
+ *
+ */
+rsmi_status_t rsmi_dev_xgmi_port_num_get(uint32_t dv_ind, uint32_t *count, uint16_t *link_to_dst_gpu);
 
 /**
  *  @brief Get the GUID, also known as the GPU device id,
@@ -4636,7 +4660,7 @@ rsmi_is_P2P_accessible(uint32_t dv_ind_src, uint32_t dv_ind_dst,
  *  @platform{gpu_bm_linux} @platform{host} @platform{guest_1vf}  @platform{guest_mvf}
  *
  *  @details Given a source processor handle @p processor_handle_src and
- *  a destination processor handle @p processor_handle_dst, a pointer to an amdsmi_io_link_type_t @p type,
+ *  a destination processor handle @p processor_handle_dst, a pointer to an amdsmi_link_type_t @p type,
  *  and a pointer to rsmi_p2p_capability_t @p cap. This function will write the connection type,
  *  and io link capabilities between the device
  *  @p processor_handle_src and @p processor_handle_dst to the memory

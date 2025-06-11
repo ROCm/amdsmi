@@ -29,6 +29,7 @@
 #include <string>
 #include <utility>
 #include <functional>
+#include <memory>
 
 #include "amd_smi/amdsmi.h"
 #include "amd_smi/impl/amd_smi_gpu_device.h"
@@ -62,6 +63,24 @@ std::string smi_brcm_get_value_string(std::string filePath, std::string fileName
 
 amdsmi_status_t smi_clear_char_and_reinitialize(char buffer[], uint32_t len,
                                                     std::string newString);
+
+/**
+ * @brief Opens a file descriptor for the specified path with RAII semantics and caching.
+ *
+ * This function attempts to open a file descriptor (FD) for the given file path and flags.
+ * It maintains a cache of weak pointers to previously opened FDs, allowing for reuse of
+ * file descriptors if they are still valid. If a valid FD for the path exists in the cache,
+ * it is reused; otherwise, a new FD is opened. The returned FD is managed by a std::shared_ptr
+ * with a custom deleter that ensures the FD is properly closed when no longer in use.
+ *
+ * Thread safety is ensured via a static mutex.
+ *
+ * @param path The file system path to open.
+ * @param flags Flags to use when opening the file (as per open(2)).
+ * @return std::shared_ptr<int> Shared pointer managing the file descriptor, or nullptr on failure.
+ */
+std::shared_ptr<int> amdsmi_RAII_FD_handler(const std::string& path, int flags);
+
 /**
  * @brief Wait for user input, a debugging function to pause the program
  * 
@@ -181,18 +200,11 @@ constexpr T translate_umax_or_assign_value(U source_value, V target_value)
     return result;
 }
 
-/**
- *  @brief Iterates all entires in a directory .
- *
- *  @details Given a directory in const std::string & base_path, and a callback function
- *  entry_callback, this function will open the directory and iterate through all entires
- *  in that directory. For each entry it will call the entry_callback function with the 
- *  path of that entry 
- *
- *  @param[in] base_path the path of the directory to iterate in
- *
- *  @retval ::true if the iteration was successful
- *          ::false if the iteration failed
- */
-bool iterate_directory(const std::string &base_path, std::function<void(const std::string &)> entry_callback);
+template<typename A, typename T>
+void fill_2d_array(A& arr, T value) {
+    for (auto& row : arr) {
+        std::fill(std::begin(row), std::end(row), value);
+    }
+}
+
 #endif  // AMD_SMI_INCLUDE_AMD_SMI_UTILS_H_
