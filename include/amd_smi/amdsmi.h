@@ -285,7 +285,7 @@ typedef enum {
     AMDSMI_PROCESSOR_TYPE_NON_AMD_GPU,  //!< Non-AMD Graphics processor type
     AMDSMI_PROCESSOR_TYPE_NON_AMD_CPU,  //!< Non-AMD CPU processor type
     AMDSMI_PROCESSOR_TYPE_AMD_CPU_CORE, //!< AMD CPU-Core processor type
-    AMDSMI_PROCESSOR_TYPE_AMD_APU       //!< AMD Accelerated processor type (GPU and CPU)
+    AMDSMI_PROCESSOR_TYPE_AMD_APU,       //!< AMD Accelerated processor type (GPU and CPU)
     AMDSMI_PROCESSOR_TYPE_BRCM_NIC,     //!< BRCM NIC processor type
     AMDSMI_PROCESSOR_TYPE_BRCM_SWITCH   //!< BRCM SWITCH processor type
 } processor_type_t;
