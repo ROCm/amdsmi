@@ -44,6 +44,7 @@ set(ACA_SRC_DIR "aca-decode")
 set(ACA_INC_DIR "${PROJECT_SOURCE_DIR}/include/aca-decode")
 set(SRC_LIST
     ${SRC_LIST}
+    ${ACA_SRC_DIR}/aca_api.c
     ${ACA_SRC_DIR}/aca_decode.c
     ${ACA_SRC_DIR}/aca_fields.c
     ${ACA_SRC_DIR}/aca_tables.c
