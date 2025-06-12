@@ -741,8 +741,8 @@ Output: Dictionary with fields
 
 Field | Description
 ---|---
-`current_socket_power` | current socket power
-`average_socket_power` | average socket power
+`current_socket_power` | current socket power; Mi300+ Series Cards
+`average_socket_power` | average socket power; Navi + Mi 200 and earlier Series cards
 `gfx_voltage` | voltage gfx
 `soc_voltage` | voltage soc
 `mem_voltage` | voltage mem
@@ -1075,7 +1075,6 @@ except AmdSmiException as e:
     print(e)
 ```
 
-
 ### amdsmi_get_gpu_process_list
 
 Description: Returns the list of processes running on the target GPU; Requires root level access to display root process names; otherwise will return "N/A"
@@ -1090,9 +1089,10 @@ Field | Description
 ---|---
 `name` | Name of process. If user does not have permission this will be "N/A"
 `pid` | Process ID
-`mem` | Process memory usage
+`mem` | Process memory usage in Bytes
 `engine_usage` | <table><thead><tr> <th> Subfield </th> <th> Description</th> </tr></thead><tbody><tr><td>`gfx`</td><td>GFX engine usage in ns</td></tr><tr><td>`enc`</td><td>Encode engine usage in ns</td></tr></tbody></table>
-`memory_usage` | <table><thead><tr> <th> Subfield </th> <th> Description</th> </tr></thead><tbody><tr><td>`gtt_mem`</td><td>GTT memory usage</td></tr><tr><td>`cpu_mem`</td><td>CPU memory usage</td></tr><tr><td>`vram_mem`</td><td>VRAM memory usage</td></tr> </tbody></table>
+`memory_usage` | <table><thead><tr> <th> Subfield </th> <th> Description</th> </tr></thead><tbody><tr><td>`gtt_mem`</td><td>GTT memory usage in Bytes</td></tr><tr><td>`cpu_mem`</td><td>CPU memory usage in Bytes</td></tr><tr><td>`vram_mem`</td><td>VRAM memory usage in Bytes</td></tr> </tbody></table>
+`cu_occupancy` | Number of Compute Units utilized
 
 Exceptions that can be thrown by `amdsmi_get_gpu_process_list` function:
 
