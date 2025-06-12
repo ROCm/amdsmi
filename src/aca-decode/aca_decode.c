@@ -10,7 +10,6 @@
 #include "aca_decode.h"
 #include "aca_tables.h"
 #include "error_map.h"
-#include <stdio.h>
 #include <string.h>
 
 /**
@@ -19,7 +18,8 @@
  * @param[out] bank_name Pointer to a string containing the bank name
  * @return 0 on success, -1 on failure
  */
-static int aca_decoder_get_bank(const aca_decoder_t *decoder, const char **bank_name)
+static int
+aca_decoder_get_bank(const aca_decoder_t *decoder, const char **bank_name)
 {
     if (!decoder || !bank_name)
     {
@@ -108,7 +108,16 @@ static int get_service_error_type(const char *error_category, const char *error_
     {
         return -1;
     }
-
+    if (strcmp(error_type, "Bad Page Retirement Threshold") == 0)
+    {
+        *service_error_type = "Bad Page Retirement Threshold";
+        return 0;
+    }
+    if (strcmp(error_type, "RdCrcErr") == 0)
+    {
+        *service_error_type = "End-to-end CRC";
+        return 0;
+    }
     if ((strcmp(error_category, "HBM Errors") == 0) && (strcmp(error_severity, "Corrected") == 0))
     {
         *service_error_type = "All";
@@ -158,7 +167,17 @@ static void aca_decoder_get_error_info(const aca_decoder_t *decoder, aca_error_i
 {
     const char *bank;
     const char *error_type;
+    const char *instance_name;
     int result;
+    
+    info->raw_status = decoder->aca_status;
+    info->raw_addr = decoder->aca_addr;
+    info->raw_ipid = decoder->aca_ipid;
+    info->raw_synd = decoder->aca_synd;
+    
+    info->scrub = decoder->status.scrub;
+    info->error_code_ext = decoder->status.error_code_ext;
+
 
     result = aca_decoder_get_bank(decoder, &bank);
     if (result < 0)
@@ -167,7 +186,38 @@ static void aca_decoder_get_error_info(const aca_decoder_t *decoder, aca_error_i
     }
     info->bank_ref = bank;
 
-    info->severity_ref = get_error_severity(&decoder->status);
+    if (find_instance_name(bank, decoder->ipid.instance_id_lo, &instance_name) == 0)
+    {
+        info->instance_ref = instance_name;
+    }
+    else
+    {
+        info->instance_ref = "Decode Inapplicable";
+    }
+
+    // 0b1000 indicate error threshold has been exceeded, and is always fatal
+    if (decoder->flags & 0x8)
+    {
+        info->severity_ref = "Fatal";
+    }
+    else
+    {
+        info->severity_ref = get_error_severity(&decoder->status);
+    }
+
+    // Decode OAM and AID from instance_id_lo
+    oam_aid_map_t oam_aid = {0};
+    uint8_t instance_id_lo = decoder->ipid.instance_id_lo & 0xFF;  // Get lower 8 bits
+    if (find_oam_aid(instance_id_lo, &oam_aid) == 0)
+    {
+        info->oam = oam_aid.oam;
+        info->aid = oam_aid.aid;
+    }
+    else
+    {
+        info->oam = -1;  // Invalid value
+        info->aid = -1;  // Invalid value
+    }
 
     if (decoder->status.error_code_ext >= 0x3A && decoder->status.error_code_ext <= 0x3E)
     {
@@ -190,6 +240,11 @@ static void aca_decoder_get_error_info(const aca_decoder_t *decoder, aca_error_i
             info->error_type_ref = "UNKNOWN";
         }
     }
+    // 0b1000 indicate error threshold has been exceeded
+    else if (decoder->flags & 0x8)
+    {
+        info->error_type_ref = "Bad Page Retirement Threshold";
+    }
     else
     {
         if (find_error_type_by_bank(bank, decoder->status.error_code_ext, &error_type) == 0)
@@ -202,14 +257,22 @@ static void aca_decoder_get_error_info(const aca_decoder_t *decoder, aca_error_i
         }
     }
 
-    info->category_ref = get_error_category(bank, info->error_type_ref);
+    // 0b1000 indicate error threshold has been exceeded, and is always a HBM error
+    if (decoder->flags & 0x8)
+    {
+        info->category_ref = "HBM Errors";
+    }
+    else
+    {
+        info->category_ref = get_error_category(bank, info->error_type_ref);
+    }
 
     const char *service_error;
     if (get_service_error_type(info->category_ref, info->bank_ref, info->error_type_ref, info->severity_ref, &service_error) != 0)
     {
         service_error = info->error_type_ref;
     }
-
+    
     info->afid = get_error_id(info->category_ref, service_error, info->severity_ref);
 }
 
