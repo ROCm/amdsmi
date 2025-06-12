@@ -27,7 +27,12 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 - **Added new firmware PLDM_BUNDLE**.  
   - `amd-smi firmware` can now show the PLDM Bundle on supported systems.  
 
+- **Added `amd-smi ras --afid --cper-file <file_path>` to decode CPER records**  
+  - Python and C have added the `amdsmi_get_afids_from_cper()` to decode
+
 ### Changed
+
+- **Padded `asic_serial` in `amdsmi_get_asic_info` with 0s**.  
 
 - **Renamed fields `COMPUTE_PARTITION` to `ACCELERATOR_PARTITION` in CLI call `amd-smi --partition`**.  
   - We are changing the field named `COMPUTE_PARTITION` to `ACCELERATOR_PARTITION`.  
@@ -2703,4 +2708,3 @@ Now the information is displayed as a table by each GPU's BDF, which closer rese
 
 - **Fix for driver not initialized**.  
 If driver module is not loaded, user retrieve error reponse indicating amdgpu module is not loaded.
-
