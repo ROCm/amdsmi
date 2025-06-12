@@ -35,7 +35,7 @@ detected:
 ~$ amd-smi
 usage: amd-smi [-h]  ...
 
-AMD System Management Interface | Version: 25.4.0 | ROCm version: 6.4.0 | Platform: Linux Baremetal
+AMD System Management Interface | Version: 25.5.1 | ROCm version: 6.4.2 | Platform: Linux Baremetal
 
 options:
   -h, --help          show this help message and exit
@@ -311,6 +311,7 @@ Metric arguments:
   -P, --pcie                                Current PCIe speed, width, and replay count
   -e, --ecc                                 Total number of ECC errors
   -k, --ecc-blocks                          Number of ECC errors per block
+  -V, --voltage                             GPU voltage
   -f, --fan                                 Current fan speed
   -C, --voltage-curve                       Display voltage curve
   -o, --overdrive                           Current GPU clock overdrive and GPU memory clock overdrive level
