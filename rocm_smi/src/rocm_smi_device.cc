@@ -585,6 +585,9 @@ static const std::map<const char *, dev_depends_t> kDevFuncDependsMap = {
   {"rsmi_dev_memory_reserved_pages_get", {{kDevMemPageBadFName}, {}}},
   {"rsmi_topo_numa_affinity_get",        {{kDevNumaNodeFName}, {}}},
   {"rsmi_dev_gpu_metrics_info_get",      {{kDevGpuMetricsFName}, {}}},
+  {"rsmi_dev_energy_count_get",          {{kDevGpuMetricsFName}, {}}},
+  {"rsmi_dev_current_socket_power_get",  {{kDevGpuMetricsFName}, {}}},
+
   {"rsmi_dev_pm_metrics_info_get",       {{kDevPmMetricsFName}, {}}},
   {"rsmi_dev_reg_table_info_get",        {{kDevRegMetricsFName}, {}}},
   {"rsmi_dev_gpu_reset",                 {{kDevGpuResetFName}, {}}},
