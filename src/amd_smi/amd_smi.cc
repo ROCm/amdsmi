@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /*
  * Copyright (c) Advanced Micro Devices, Inc. All rights reserved.
  *
@@ -1713,7 +1714,7 @@ amdsmi_status_t amdsmi_get_fw_info(amdsmi_processor_handle processor_handle,
         { AMDSMI_FW_ID_UVD, RSMI_FW_BLOCK_UVD},
         { AMDSMI_FW_ID_VCE, RSMI_FW_BLOCK_VCE},
         { AMDSMI_FW_ID_VCN, RSMI_FW_BLOCK_VCN},
-        { AMDSMI_FW_ID_PLDM, RSMI_FW_BLOCK_PLDM},
+        { AMDSMI_FW_ID_PLDM_BUNDLE, RSMI_FW_BLOCK_PLDM_BUNDLE},
     };
 
     AMDSMI_CHECK_INIT();
