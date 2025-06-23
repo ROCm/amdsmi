@@ -198,10 +198,18 @@ class AMDSMICommands():
         # Handle No GPU passed
         if args.gpu == None:
             args.gpu = self.device_handles
-
+            
+        # Perform one-time group check. If it fails, record that fact
+        # but do NOT abort—just mark that UUID should be "N/A" later.
         if not self.group_check_printed:
-            self.helpers.check_required_groups()
-            self.group_check_printed = True
+           try:
+               self.helpers.check_required_groups()
+               self.group_in_groups = True
+           except Exception as e:
+               self.group_in_groups = False
+               # print the helper's error message exactly once:
+               print(f"{e}")
+           self.group_check_printed = True
 
         # Handle multiple GPUs
         handled_multiple_gpus, device_handle = self.helpers.handle_gpus(args, self.logger, self.list)
@@ -212,15 +220,20 @@ class AMDSMICommands():
 
         # Get gpu_id for logging
         gpu_id = self.helpers.get_gpu_id_from_device_handle(args.gpu)
-
+        # BDF should still be attempted regardless of group membership:
         try:
             bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(args.gpu)
         except amdsmi_exception.AmdSmiLibraryException as e:
             bdf = e.get_error_info()
-        try:
-            uuid = amdsmi_interface.amdsmi_get_gpu_device_uuid(args.gpu)
-        except amdsmi_exception.AmdSmiLibraryException as e:
-            uuid = e.get_error_info()
+
+        # Only fetch UUID if group check passed; otherwise force "N/A"
+        if getattr(self, "group_in_groups", False):
+            try:
+                uuid = amdsmi_interface.amdsmi_get_gpu_device_uuid(args.gpu)
+            except amdsmi_exception.AmdSmiLibraryException:
+                uuid = "N/A"
+        else:
+            uuid = "N/A"
 
         try:
             kfd_info = amdsmi_interface.amdsmi_get_gpu_kfd_info(args.gpu)

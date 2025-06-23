@@ -1070,8 +1070,7 @@ class AMDSMIHelpers():
         try:
             user_groups = {grp.getgrgid(gid).gr_name for gid in os.getgroups()}
         except Exception as e:
-            logging.warning("Unable to determine group memberships: %s", e)
-            return
+            raise RuntimeError(f"Unable to determine group memberships: {e}")
 
         missing_groups = required_groups - user_groups
         if missing_groups:
@@ -1345,7 +1344,7 @@ class AMDSMIHelpers():
                 severity_mask |= (1 << 0)
             elif sev in ("nonfatal-corrected", "corrected"):
                 # Set bit corresponding to AMDSMI_CPER_SEV_NON_FATAL_CORRECTED (which is 2)
-                severity_mask |= (1 << 2)               
+                severity_mask |= (1 << 2)
 
         buffer_size = 1048576
 
