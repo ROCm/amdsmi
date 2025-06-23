@@ -1078,8 +1078,7 @@ class AMDSMIHelpers():
                 "WARNING: User is missing the following required groups: %s. "
                 "Please add user to these groups."
             ) % ", ".join(sorted(missing_groups))
-            print(msg)
-            logging.warning(msg)
+            raise RuntimeError(msg)
 
     def _severity_as_string(self, error_severity, notify_type, for_filename):
         if error_severity == "non_fatal_uncorrected":
