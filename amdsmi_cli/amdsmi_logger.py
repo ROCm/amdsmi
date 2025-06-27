@@ -1074,7 +1074,11 @@ class AMDSMILogger():
         print("| Processes:                                                                   |")
         print("|  GPU        PID  Process Name          GTT_MEM  VRAM_MEM  MEM_USAGE     CU % |")
         print(default_line_5)
+<<<<<<< HEAD
         elevated_permission_error = False
+=======
+        elevated_permission = False
+>>>>>>> 982eef29 ([SWDEV-537852] Update process name help text)
         if len(output['processes']) != 0:
             for process in output['processes']:
                 gpu_id = str(process['gpu']).rjust(4)
