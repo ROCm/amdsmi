@@ -102,6 +102,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         super().__init__(
             formatter_class= lambda prog: AMDSMIParserHelpFormatter(prog),
             description=f"AMD System Management Interface | {version_string} | {rocm_version_string} | {platform_string}",
+            epilog="For detailed help on specific commands: amd-smi [command] -h",
             add_help=True,
             prog=program_name)
 

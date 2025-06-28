@@ -104,7 +104,7 @@ class AmdSmiInvalidCommandException(AmdSmiException):
         self.command = command
         self.output_format = outputformat
 
-        common_message = f"Command '{self.command}' is invalid. Run '--help' for more info."
+        common_message = f"Command '{self.command}' is invalid. Run 'amd-smi -h' for more info."
 
         if message:
             common_message = message
@@ -122,7 +122,7 @@ class AmdSmiInvalidParameterException(AmdSmiException):
         self.command = command
         self.output_format = outputformat
 
-        common_message = f"Parameter '{self.command}' is invalid. Run '--help' for more info."
+        common_message = f"Parameter '{self.command}' is invalid. Run 'amd-smi -h' for more info."
 
         self.json_message["error"] = common_message
         self.json_message["code"] = self.value
@@ -179,7 +179,7 @@ class AmdSmiInvalidParameterValueException(AmdSmiException):
         self.command = command
         self.output_format = outputformat
 
-        common_message = f"Value '{self.command}' is not of valid type or format. Run '--help' for more info."
+        common_message = f"Value '{self.command}' is not of valid type or format. Run 'amd-smi -h' for more info."
 
         self.json_message["error"] = common_message
         self.json_message["code"] = self.value
@@ -239,7 +239,7 @@ class AmdSmiRequiredCommandException(AmdSmiException):
         self.command = command
         self.output_format = outputformat
 
-        common_message = f"Command '{self.command}' requires a target argument. Run '--help' for more info."
+        common_message = f"Command '{self.command}' requires a target argument. Run 'amd-smi {self.command} -h' for more info."
 
         self.json_message["error"] = common_message
         self.json_message["code"] = self.value
@@ -254,7 +254,7 @@ class AmdSmiInvalidSubcommandException(AmdSmiException):
         self.command = command
         self.output_format = outputformat
 
-        common_message = f"AMD-SMI Command '{self.command}' is invalid. Must receive valid AMD-SMI Command first. Run '--help' for more info."
+        common_message = f"AMD-SMI Command '{self.command}' is invalid. Must receive valid AMD-SMI Command first. Run 'amd-smi -h' for more info."
 
         self.json_message["error"] = common_message
         self.json_message["code"] = self.value
