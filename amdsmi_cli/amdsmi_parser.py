@@ -341,6 +341,8 @@ class AMDSMIParser(argparse.ArgumentParser):
                     path.touch()
                     setattr(args, self.dest, path)
                 elif path.is_file():
+                    if getattr(args, 'overwrite', False):
+                        path.open('w').close()
                     path.touch()
                     setattr(args, self.dest, path)
                 else:
@@ -673,6 +675,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         logging_args.add_argument('--csv', action='store_true', required=False, help=csv_help)
 
         command_modifier_group.add_argument('--file', action=self._check_output_file_path(), type=str, required=False, help=file_help)
+        command_modifier_group.add_argument('-y', '--overwrite', action='store_true', required=False, help="Automatically overwrite the output file specified by --file if it already exists.")
         # Placing loglevel outside the subcommands so it can be used with any subcommand
         command_modifier_group.add_argument('--loglevel', action='store', type=str.upper, required=False, help=loglevel_help, default='ERROR', metavar='LEVEL',
                                             choices=loglevel_choices)
