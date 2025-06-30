@@ -1366,7 +1366,7 @@ class AMDSMIHelpers():
                 if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_FILE_ERROR:
                     raise FileExistsError('Error opening CPER file. Unable to read CPER File') from e
                 else:
-                    logging.debug(f"Error retrieving CPER entries: {e}")
+                    logging.debug(f"Cannot retrieve CPER entries: {e}")
                     break
             args.cursor[gpu_idx] = new_cursor
             if len(entries) == 0:

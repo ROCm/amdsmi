@@ -19,7 +19,7 @@
 
 import ctypes
 import json
-# import logging
+import logging
 import math
 import os
 import re
@@ -2284,10 +2284,11 @@ def amdsmi_get_gpu_cper_entries(processor_handle: amdsmi_wrapper.amdsmi_processo
     # Allocate a buffer for CPER data.
     buf = ctypes.create_string_buffer(buffer_size)
     buf_size = ctypes.c_uint64(buffer_size)
-    entry_count = ctypes.c_uint64(20)
+    num_cper_hdrs = 20
+    entry_count = ctypes.c_uint64(num_cper_hdrs)
     cur = ctypes.c_uint64(cursor)
     # Allocate a pointer for the CPER header array.
-    cper_hdrs_array = (ctypes.POINTER(amdsmi_wrapper.amdsmi_cper_hdr_t) * 20)()
+    cper_hdrs_array = (ctypes.POINTER(amdsmi_wrapper.amdsmi_cper_hdr_t) * num_cper_hdrs)()
     cper_hdrs = ctypes.cast(cper_hdrs_array, ctypes.POINTER(ctypes.POINTER(amdsmi_wrapper.amdsmi_cper_hdr_t)))
 
     # Call the underlying AMD-SMI API.
@@ -2300,7 +2301,9 @@ def amdsmi_get_gpu_cper_entries(processor_handle: amdsmi_wrapper.amdsmi_processo
         ctypes.byref(entry_count),
         ctypes.byref(cur)
     )
-    if ret != amdsmi_wrapper.AMDSMI_STATUS_SUCCESS:
+    if ret == amdsmi_wrapper.AMDSMI_STATUS_MORE_DATA:
+        logging.warning(f"There is more data available than the buffer size and entry count the user passed: {ret}")
+    elif ret != amdsmi_wrapper.AMDSMI_STATUS_SUCCESS:
         raise AmdSmiLibraryException(ret)
 
     entries = {}
