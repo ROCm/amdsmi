@@ -1224,7 +1224,7 @@ Input parameters:
 * `buffer_size`      pointer to a variable that specifies the size of the cper_data
 * `cursor`           pointer to a variable that will contain the  cursor  for the next call
 
-Output: Dictionary with fields, updated cursor, and a dictionary of the cper_data
+Output: Dictionary with fields, updated cursor, a dictionary of the cper_data, and API status code
 
 Field | Description
 ---|---
@@ -1251,7 +1251,7 @@ Example:
 
 ```python
 for device in devices:
-    entries, new_cursor, cper_data = amdsmi_get_gpu_cper_entries(device, severity_mask, buffer_size, initial_cursor)
+    entries, new_cursor, cper_data, status_code = amdsmi_get_gpu_cper_entries(device, severity_mask, buffer_size, initial_cursor)
     print("CPER entries for device", device)
     for key, entry in entries.items():
         print("Entry", key)

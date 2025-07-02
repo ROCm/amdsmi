@@ -19,7 +19,6 @@
 
 import ctypes
 import json
-import logging
 import math
 import os
 import re
@@ -2274,7 +2273,7 @@ def amdsmi_get_gpu_cper_entries(processor_handle: amdsmi_wrapper.amdsmi_processo
     severity_mask: int,
     buffer_size: int = 4*1048576,
     cursor: int = 0
-) -> Tuple[Dict[str, Any], int, List[Dict[str, Any]]]:
+) -> Tuple[Dict[str, Any], int, List[Dict[str, Any]], int]:
 
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
@@ -2292,7 +2291,7 @@ def amdsmi_get_gpu_cper_entries(processor_handle: amdsmi_wrapper.amdsmi_processo
     cper_hdrs = ctypes.cast(cper_hdrs_array, ctypes.POINTER(ctypes.POINTER(amdsmi_wrapper.amdsmi_cper_hdr_t)))
 
     # Call the underlying AMD-SMI API.
-    ret = amdsmi_wrapper.amdsmi_get_gpu_cper_entries(
+    status_code = amdsmi_wrapper.amdsmi_get_gpu_cper_entries(
         processor_handle,
         ctypes.c_uint32(severity_mask),
         buf,
@@ -2301,10 +2300,8 @@ def amdsmi_get_gpu_cper_entries(processor_handle: amdsmi_wrapper.amdsmi_processo
         ctypes.byref(entry_count),
         ctypes.byref(cur)
     )
-    if ret == amdsmi_wrapper.AMDSMI_STATUS_MORE_DATA:
-        logging.warning(f"There is more data available than the buffer size and entry count the user passed: {ret}")
-    elif ret != amdsmi_wrapper.AMDSMI_STATUS_SUCCESS:
-        raise AmdSmiLibraryException(ret)
+    if status_code != amdsmi_wrapper.AMDSMI_STATUS_SUCCESS and status_code != amdsmi_wrapper.AMDSMI_STATUS_MORE_DATA:
+        raise AmdSmiLibraryException(status_code)
 
     entries = {}
     cper_data = []
@@ -2351,7 +2348,7 @@ def amdsmi_get_gpu_cper_entries(processor_handle: amdsmi_wrapper.amdsmi_processo
         entries[i] = cper_entry.copy()
         offset += entry_ptr.contents.record_length  # Use the actual record length to advance the offset
 
-    return entries, cur.value, cper_data
+    return entries, cur.value, cper_data, status_code
 
 def amdsmi_get_afids_from_cper(
     cper_afid_data: Union[bytes, bytearray, List[Dict[str, Any]]]

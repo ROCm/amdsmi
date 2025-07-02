@@ -1354,7 +1354,7 @@ class AMDSMIHelpers():
 
         while True:
             try:
-                entries, new_cursor, cper_data = amdsmi_interface.amdsmi_get_gpu_cper_entries(
+                entries, new_cursor, cper_data, status_code = amdsmi_interface.amdsmi_get_gpu_cper_entries(
                     device_handle, severity_mask, buffer_size, args.cursor[gpu_idx])
                 logging.debug(f"cper_entries | entries: {entries}")
             except amdsmi_exception.AmdSmiLibraryException as e:
