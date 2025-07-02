@@ -1190,7 +1190,7 @@ class AMDSMICommands():
                 fw_list['fw_list'] = "N/A"
                 logging.debug("Failed to get firmware info for gpu %s | %s", gpu_id, e.get_error_info())
 
-            if not fw_list['fw_list']:
+            if not fw_list['fw_list'] and not self.logger.is_csv_format():
                 fw_list['fw_list'] = "N/A"
 
         multiple_devices_csv_override = False
