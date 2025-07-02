@@ -260,20 +260,30 @@ class AMDSMICommands():
         if args.e:
             try:
                 enumeration_info = amdsmi_interface.amdsmi_get_gpu_enumeration_info(args.gpu)
-            except:
-                enumeration_info = {"drm_render": "N/A",
-                                    "drm_card": "N/A",
-                                    "hip_id": "N/A",
-                                    "hip_uuid": "N/A",
-                                    "hsa_id": "N/A"}
+            except amdsmi_exception.AmdSmiLibraryException:
+                enumeration_info = {
+                    "drm_render": "N/A",
+                    "drm_card":   "N/A",
+                    "hsa_id":     "N/A",
+                    "hip_id":     "N/A",
+                    "hip_uuid":   "N/A",
+                }
+
+            # __Override__ hip_uuid if the group check failed
+            if not getattr(self, "group_in_groups", False):
+                enumeration_info["hip_uuid"] = "N/A"
+
+            # now store all the fields exactly once:
             if enumeration_info['drm_render'] == "N/A":
                 self.logger.store_output(args.gpu, 'render', enumeration_info['drm_render'])
             else:
-                self.logger.store_output(args.gpu, 'render', f"renderD{enumeration_info['drm_render']}")
+                self.logger.store_output(args.gpu, 'render',
+                                         f"renderD{enumeration_info['drm_render']}")
             if enumeration_info['drm_card'] == "N/A":
                 self.logger.store_output(args.gpu, 'card', enumeration_info['drm_card'])
             else:
-                self.logger.store_output(args.gpu, 'card', f"card{enumeration_info['drm_card']}")
+                self.logger.store_output(args.gpu, 'card',
+                                         f"card{enumeration_info['drm_card']}")
             self.logger.store_output(args.gpu, 'hsa_id', enumeration_info['hsa_id'])
             self.logger.store_output(args.gpu, 'hip_id', enumeration_info['hip_id'])
             self.logger.store_output(args.gpu, 'hip_uuid', enumeration_info['hip_uuid'])
