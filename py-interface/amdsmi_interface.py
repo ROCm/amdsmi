@@ -2300,7 +2300,7 @@ def amdsmi_get_gpu_cper_entries(processor_handle: amdsmi_wrapper.amdsmi_processo
         ctypes.byref(entry_count),
         ctypes.byref(cur)
     )
-    if status_code != amdsmi_wrapper.AMDSMI_STATUS_SUCCESS and status_code != amdsmi_wrapper.AMDSMI_STATUS_MORE_DATA:
+    if status_code not in {amdsmi_wrapper.AMDSMI_STATUS_SUCCESS, amdsmi_wrapper.AMDSMI_STATUS_MORE_DATA}:
         raise AmdSmiLibraryException(status_code)
 
     entries = {}
