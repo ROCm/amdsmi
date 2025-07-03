@@ -4276,6 +4276,44 @@ class AMDSMICommands():
             self.helpers.check_required_groups()
             self.group_check_printed = True
 
+        p2p_status_cache = {}
+
+        def get_cached_p2p_status(src_gpu, dest_gpu):
+            #Get P2P status with caching to avoid duplicate calls
+            src_gpu_id = self.helpers.get_gpu_id_from_device_handle(src_gpu)
+            dest_gpu_id = self.helpers.get_gpu_id_from_device_handle(dest_gpu)
+            key = (src_gpu_id, dest_gpu_id)
+
+            if key not in p2p_status_cache:
+                try:
+                    if src_gpu == dest_gpu:
+                        p2p_status_cache[key] = {"cap": {
+                            "is_iolink_coherent": -1,
+                            "is_iolink_atomics_32bit": -1,
+                            "is_iolink_atomics_64bit": -1,
+                            "is_iolink_dma": -1,
+                            "is_iolink_bi_directional": -1
+                        }}
+                    else:
+                        p2p_status_cache[key] = amdsmi_interface.amdsmi_topo_get_p2p_status(src_gpu, dest_gpu)
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    logging.debug("Failed to get link status for %s to %s | %s",
+                                src_gpu_id,
+                                dest_gpu_id,
+                                e.get_error_info())
+                    p2p_status_cache[key] ={
+                        "cap":
+                        {
+                            "is_iolink_coherent": -1,
+                            "is_iolink_atomics_32bit": -1,
+                            "is_iolink_atomics_64bit": -1,
+                            "is_iolink_dma": -1,
+                            "is_iolink_bi_directional": -1
+                        }
+                    }
+
+            return p2p_status_cache[key]
+
         # Populate the possible gpus
         topo_values = []
         for src_gpu_index, src_gpu in enumerate(args.gpu):
@@ -4351,7 +4389,7 @@ class AMDSMICommands():
 
                 if src_gpu != dest_gpu:
                     try:
-                        cap = amdsmi_interface.amdsmi_topo_get_p2p_status(src_gpu, dest_gpu)['cap']
+                        cap = get_cached_p2p_status(src_gpu, dest_gpu)['cap']
                         link_coherent = (
                             "C" if cap['is_iolink_coherent'] == 1 else
                             "NC" if cap['is_iolink_coherent'] == 0 else
@@ -4598,7 +4636,7 @@ class AMDSMICommands():
                     try:
                         link_type = amdsmi_interface.amdsmi_topo_get_link_type(src_gpu, dest_gpu)['type']
                         if isinstance(link_type, int):
-                            if link_type != 2:
+                            if link_type != amdsmi_interface.amdsmi_wrapper.AMDSMI_LINK_TYPE_XGMI:
                                 # non_xgmi = True
                                 src_gpu_link_type[dest_gpu_key] = "N/A"
                                 continue
@@ -4646,7 +4684,7 @@ class AMDSMICommands():
                         src_gpu_coherent[dest_gpu_key] = "SELF"
                         continue
                     try:
-                        iolink_coherent = amdsmi_interface.amdsmi_topo_get_p2p_status(src_gpu, dest_gpu)['cap']['is_iolink_coherent']
+                        iolink_coherent = get_cached_p2p_status(src_gpu, dest_gpu)['cap']['is_iolink_coherent']
                         src_gpu_coherent[dest_gpu_key] = "C" if iolink_coherent == 1 else "NC" if iolink_coherent == 0 else "N/A"
                     except amdsmi_exception.AmdSmiLibraryException as e:
                         src_gpu_coherent[dest_gpu_key] = "N/A"
@@ -4682,7 +4720,7 @@ class AMDSMICommands():
                         src_gpu_atomics[dest_gpu_key] = "SELF"
                         continue
                     try:
-                        cap = amdsmi_interface.amdsmi_topo_get_p2p_status(src_gpu, dest_gpu)['cap']
+                        cap = get_cached_p2p_status(src_gpu, dest_gpu)['cap']
                         src_gpu_atomics[dest_gpu_key] = (
                             "64,32" if cap['is_iolink_atomics_32bit'] == 1 and cap['is_iolink_atomics_64bit'] == 1 else
                             "32" if cap['is_iolink_atomics_32bit'] == 1 else
@@ -4723,7 +4761,7 @@ class AMDSMICommands():
                         src_gpu_dma[dest_gpu_key] = "SELF"
                         continue
                     try:
-                        iolink_dma = amdsmi_interface.amdsmi_topo_get_p2p_status(src_gpu, dest_gpu)['cap']['is_iolink_dma']
+                        iolink_dma = get_cached_p2p_status(src_gpu, dest_gpu)['cap']['is_iolink_dma']
                         src_gpu_dma[dest_gpu_key] = "T" if iolink_dma == 1 else "F" if iolink_dma == 0 else "N/A"
                     except amdsmi_exception.AmdSmiLibraryException as e:
                         src_gpu_dma[dest_gpu_key] = "N/A"
@@ -4759,7 +4797,7 @@ class AMDSMICommands():
                         src_gpu_bi_dir[dest_gpu_key] = "SELF"
                         continue
                     try:
-                        iolink_bi_dir = amdsmi_interface.amdsmi_topo_get_p2p_status(src_gpu, dest_gpu)['cap']['is_iolink_bi_directional']
+                        iolink_bi_dir = get_cached_p2p_status(src_gpu, dest_gpu)['cap']['is_iolink_bi_directional']
                         src_gpu_bi_dir[dest_gpu_key] = "T" if iolink_bi_dir == 1 else "F" if iolink_bi_dir == 0 else "N/A"
                     except amdsmi_exception.AmdSmiLibraryException as e:
                         src_gpu_bi_dir[dest_gpu_key] = "N/A"
@@ -7619,16 +7657,17 @@ class AMDSMICommands():
                 self.logger.combine_arrays_to_json()
             self.logger.clear_multiple_devices_output()
 
-            # print legend
-            legend_parts = [
-                "\n\nLegend:",
-                "  * = Current mode"]
-            legend_output = "\n".join(legend_parts)
-            if self.logger.destination == 'stdout':
-                print(legend_output)
-            else:
-                with self.logger.destination.open('a', encoding="utf-8") as output_file:
-                    output_file.write(legend_output + '\n')
+            if self.logger.is_human_readable_format():
+                # print legend
+                legend_parts = [
+                    "\n\nLegend:",
+                    "  * = Current mode"]
+                legend_output = "\n".join(legend_parts)
+                if self.logger.destination == 'stdout':
+                    print(legend_output)
+                else:
+                    with self.logger.destination.open('a', encoding="utf-8") as output_file:
+                        output_file.write(legend_output + '\n')
 
 
     def ras(self, args, multiple_devices=False, gpu=None, cper=None, afid=None,
@@ -7758,9 +7797,12 @@ class AMDSMICommands():
                 asic_info = amdsmi_interface.amdsmi_get_gpu_asic_info(processor)
                 market_name = asic_info['market_name']
                 oam_id = asic_info['oam_id']
+                # get num_cu now for use later
+                total_num_cu = float(asic_info['num_compute_units'])
             except amdsmi_exception.AmdSmiLibraryException as e:
                 market_name = "N/A"
                 oam_id = "N/A"
+                total_num_cu = "N/A"
             gpu_info_dict.update({"market_name": market_name})
             gpu_info_dict.update({"oam_id": oam_id})
 
@@ -7858,7 +7900,8 @@ class AMDSMICommands():
                     proc_info_dict['gtt'] = self.helpers.convert_bytes_to_readable(proc['memory_usage']['gtt_mem'])
                     proc_info_dict['vram'] = self.helpers.convert_bytes_to_readable(proc['memory_usage']['vram_mem'])
                     proc_info_dict['mem_usage'] = self.helpers.convert_bytes_to_readable(proc['mem'])
-                    proc_info_dict['cu_occupancy'] = str(proc['cu_occupancy'])
+                    num_cu = float(proc['cu_occupancy'])
+                    proc_info_dict['cu_occupancy'] = {"current_cu": num_cu, "total_num_cu": total_num_cu}
                     all_process_list.append(proc_info_dict)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 logging.debug("Failed to get process list for gpu %s | %s", gpu_id, e.get_error_info())

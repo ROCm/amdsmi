@@ -30,6 +30,7 @@ set(SRC_LIST
     "${SRC_DIR}/amd_smi_utils.cc"
     "${SRC_DIR}/amd_smi_lspci_commands.cc"
     "${SRC_DIR}/amd_smi_uuid.cc"
+    "${SRC_DIR}/scoped_fd.cc"
     "${SRC_DIR}/fdinfo.cc"
     "${CMN_SRC_LIST}")
 set(INC_LIST
@@ -46,6 +47,9 @@ set(INC_LIST
     "${INC_DIR}/impl/amd_smi_lib_loader.h"
     "${INC_DIR}/impl/amd_smi_socket.h"
     "${INC_DIR}/impl/amd_smi_system.h"
+    "${INC_DIR}/impl/amd_smi_utils.h"
+    "${INC_DIR}/impl/amd_smi_uuid.h"
+    "${INC_DIR}/impl/scoped_fd.h"
     "${PROJECT_SOURCE_DIR}/rocm_smi/include/rocm_smi/rocm_smi.h"
     "${PROJECT_SOURCE_DIR}/rocm_smi/include/rocm_smi/rocm_smi_utils.h")
 
@@ -121,9 +125,5 @@ install(
     COMPONENT dev)
 install(
     FILES ${PROJECT_SOURCE_DIR}/include/amd_smi/amd_smiConfig.h
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/amd_smi
-    COMPONENT dev)
-install(
-    FILES ${PROJECT_SOURCE_DIR}/rocm_smi/include/rocm_smi/kfd_ioctl.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/amd_smi
     COMPONENT dev)
