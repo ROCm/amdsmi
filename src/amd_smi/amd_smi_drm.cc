@@ -29,6 +29,7 @@
 #include <regex>
 #include "amd_smi/impl/amd_smi_drm.h"
 #include "amd_smi/impl/amd_smi_common.h"
+#include "amd_smi/impl/amd_smi_utils.h"
 #include "impl/scoped_fd.h"
 #include "rocm_smi/rocm_smi.h"
 #include "rocm_smi/rocm_smi_main.h"
