@@ -18,8 +18,6 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import ctypes
-import json
-# import logging
 import math
 import os
 import re
@@ -2274,7 +2272,7 @@ def amdsmi_get_gpu_cper_entries(processor_handle: amdsmi_wrapper.amdsmi_processo
     severity_mask: int,
     buffer_size: int = 4*1048576,
     cursor: int = 0
-) -> Tuple[Dict[str, Any], int, List[Dict[str, Any]]]:
+) -> Tuple[Dict[str, Any], int, List[Dict[str, Any]], int]:
 
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
@@ -2284,14 +2282,15 @@ def amdsmi_get_gpu_cper_entries(processor_handle: amdsmi_wrapper.amdsmi_processo
     # Allocate a buffer for CPER data.
     buf = ctypes.create_string_buffer(buffer_size)
     buf_size = ctypes.c_uint64(buffer_size)
-    entry_count = ctypes.c_uint64(20)
+    num_cper_hdrs = 20
+    entry_count = ctypes.c_uint64(num_cper_hdrs)
     cur = ctypes.c_uint64(cursor)
     # Allocate a pointer for the CPER header array.
-    cper_hdrs_array = (ctypes.POINTER(amdsmi_wrapper.amdsmi_cper_hdr_t) * 20)()
+    cper_hdrs_array = (ctypes.POINTER(amdsmi_wrapper.amdsmi_cper_hdr_t) * num_cper_hdrs)()
     cper_hdrs = ctypes.cast(cper_hdrs_array, ctypes.POINTER(ctypes.POINTER(amdsmi_wrapper.amdsmi_cper_hdr_t)))
 
     # Call the underlying AMD-SMI API.
-    ret = amdsmi_wrapper.amdsmi_get_gpu_cper_entries(
+    status_code = amdsmi_wrapper.amdsmi_get_gpu_cper_entries(
         processor_handle,
         ctypes.c_uint32(severity_mask),
         buf,
@@ -2300,8 +2299,8 @@ def amdsmi_get_gpu_cper_entries(processor_handle: amdsmi_wrapper.amdsmi_processo
         ctypes.byref(entry_count),
         ctypes.byref(cur)
     )
-    if ret != amdsmi_wrapper.AMDSMI_STATUS_SUCCESS:
-        raise AmdSmiLibraryException(ret)
+    if status_code not in {amdsmi_wrapper.AMDSMI_STATUS_SUCCESS, amdsmi_wrapper.AMDSMI_STATUS_MORE_DATA}:
+        raise AmdSmiLibraryException(status_code)
 
     entries = {}
     cper_data = []
@@ -2348,7 +2347,7 @@ def amdsmi_get_gpu_cper_entries(processor_handle: amdsmi_wrapper.amdsmi_processo
         entries[i] = cper_entry.copy()
         offset += entry_ptr.contents.record_length  # Use the actual record length to advance the offset
 
-    return entries, cur.value, cper_data
+    return entries, cur.value, cper_data, status_code
 
 def amdsmi_get_afids_from_cper(
     cper_afid_data: Union[bytes, bytearray, List[Dict[str, Any]]]
