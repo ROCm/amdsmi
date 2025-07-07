@@ -97,7 +97,8 @@ if __name__ == "__main__":
                                     amd_smi_commands.rocm_smi,
                                     amd_smi_commands.xgmi,
                                     amd_smi_commands.partition,
-                                    amd_smi_commands.ras)
+                                    amd_smi_commands.ras,
+                                    sys_argv=sys.argv)
     try:
         try:
             argcomplete.autocomplete(amd_smi_parser)

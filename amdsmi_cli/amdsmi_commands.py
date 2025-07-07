@@ -397,13 +397,27 @@ class AMDSMICommands():
         if args.clock == []:
             args.clock = True
 
-        # Store args that are applicable to the current platform
+        # Store args that are applicable to the current platform (default arguments)
         current_platform_args = ["asic", "bus", "vbios", "driver", "ras",
                                  "vram", "cache", "board", "process_isolation",
-                                 "clock", "partition"]
+                                 "clock"]
         current_platform_values = [args.asic, args.bus, args.vbios, args.driver, args.ras,
                                    args.vram, args.cache, args.board, args.process_isolation,
-                                   args.clock, args.partition]
+                                   args.clock]
+
+        # amd-smi static default arguments:
+        # Exclude args that are not applicable to the current platform,
+        # but allow output if argument is passed.
+        #
+        # Note: Partition is a special case, it is no longer an amd-smi static
+        # default argument.
+        # Reason: Reading current_compute_partition may momentarily wake the
+        #         GPU up. This is due to reading XCD registers, which is expected
+        #         behavior. Changing partitions is not a trivial operation,
+        #         current_compute_partition SYSFS controls this action.
+        if args.partition:
+            current_platform_args += ["partition"]
+            current_platform_values += [args.partition]
 
         if not self.group_check_printed:
             self.helpers.check_required_groups()
@@ -416,8 +430,8 @@ class AMDSMICommands():
                 args.soc_pstate = soc_pstate
             if xgmi_plpd:
                 args.xgmi_plpd = xgmi_plpd
-            current_platform_args += ["ras", "limit", "soc_pstate", "xgmi_plpd"]
-            current_platform_values += [args.ras, args.limit, args.soc_pstate, args.xgmi_plpd]
+            current_platform_args += ["limit", "soc_pstate", "xgmi_plpd"]
+            current_platform_values += [args.limit, args.soc_pstate, args.xgmi_plpd]
 
         if self.helpers.is_linux() and not self.helpers.is_virtual_os():
             if numa:
@@ -446,9 +460,12 @@ class AMDSMICommands():
         # Get gpu_id for logging
         gpu_id = self.helpers.get_gpu_id_from_device_handle(args.gpu)
 
+        logging.debug("=====================================================================")
         logging.debug(f"Static Arg information for GPU {gpu_id} on {self.helpers.os_info()}")
-        logging.debug(f"Applicable Args: {current_platform_args}")
-        logging.debug(f"Arg Values:      {current_platform_values}")
+        logging.debug(f"Function args:           {args}")
+        logging.debug(f"Current platform args:   {current_platform_args}")
+        logging.debug(f"Current platform values: {current_platform_values}")
+        logging.debug("=====================================================================")
 
         # Populate static dictionary for each enabled argument
         static_dict = {}
@@ -712,67 +729,62 @@ class AMDSMICommands():
                 static_dict['board'] = board_info
             except amdsmi_exception.AmdSmiLibraryException as e:
                 logging.debug("Failed to get board info for gpu %s | %s", gpu_id, e.get_error_info())
-        if 'ras' in current_platform_args:
-            if args.ras:
-                ras_dict = {"eeprom_version": "N/A",
-                            "parity_schema" : "N/A",
-                            "single_bit_schema" : "N/A",
-                            "double_bit_schema" : "N/A",
-                            "poison_schema" : "N/A",
-                            "ecc_block_state": "N/A"}
+        if args.ras:
+            ras_dict = {"eeprom_version": "N/A",
+                        "parity_schema" : "N/A",
+                        "single_bit_schema" : "N/A",
+                        "double_bit_schema" : "N/A",
+                        "poison_schema" : "N/A",
+                        "ecc_block_state": "N/A"}
 
-                try:
-                    ras_info = amdsmi_interface.amdsmi_get_gpu_ras_feature_info(args.gpu)
-                    for key, value in ras_info.items():
-                        if isinstance(value, int):
-                            if value == 65535:
-                                logging.debug(f"Failed to get ras {key} for gpu {gpu_id}")
-                                ras_info[key] = "N/A"
-                                continue
-                        if key != "eeprom_version":
-                            if value:
-                                ras_info[key] = "ENABLED"
-                            else:
-                                ras_info[key] = "DISABLED"
+            try:
+                ras_info = amdsmi_interface.amdsmi_get_gpu_ras_feature_info(args.gpu)
+                for key, value in ras_info.items():
+                    if isinstance(value, int):
+                        if value == 65535:
+                            logging.debug(f"Failed to get ras {key} for gpu {gpu_id}")
+                            ras_info[key] = "N/A"
+                            continue
+                    if key != "eeprom_version":
+                        if value:
+                            ras_info[key] = "ENABLED"
+                        else:
+                            ras_info[key] = "DISABLED"
 
-                    ras_dict.update(ras_info)
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    logging.debug("Failed to get ras info for gpu %s | %s", gpu_id, e.get_error_info())
+                ras_dict.update(ras_info)
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                logging.debug("Failed to get ras info for gpu %s | %s", gpu_id, e.get_error_info())
 
-                try:
-                    ras_states = amdsmi_interface.amdsmi_get_gpu_ras_block_features_enabled(args.gpu)
-                    ecc_block_state_dict = {}
-                    for state in ras_states:
-                        ecc_block_state_dict[state["block"]] = state["status"]
-                    ras_dict["ecc_block_state"] = ecc_block_state_dict
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    logging.debug("Failed to get ras block features for gpu %s | %s", gpu_id, e.get_error_info())
+            try:
+                ras_states = amdsmi_interface.amdsmi_get_gpu_ras_block_features_enabled(args.gpu)
+                ecc_block_state_dict = {}
+                for state in ras_states:
+                    ecc_block_state_dict[state["block"]] = state["status"]
+                ras_dict["ecc_block_state"] = ecc_block_state_dict
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                logging.debug("Failed to get ras block features for gpu %s | %s", gpu_id, e.get_error_info())
 
-                static_dict["ras"] = ras_dict
-        if 'partition' in current_platform_args:
-            if args.partition:
-                try:
-                    compute_partition = amdsmi_interface.amdsmi_get_gpu_compute_partition(args.gpu)
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    compute_partition = "N/A"
-                    logging.debug("Failed to get compute partition info for gpu %s | %s", gpu_id, e.get_error_info())
-
-                try:
-                    memory_partition = amdsmi_interface.amdsmi_get_gpu_memory_partition(args.gpu)
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    memory_partition = "N/A"
-                    logging.debug("Failed to get memory partition info for gpu %s | %s", gpu_id, e.get_error_info())
-
-                try:
-                    kfd_info = amdsmi_interface.amdsmi_get_gpu_kfd_info(args.gpu)
-                    partition_id = kfd_info['current_partition_id']
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    partition_id = "N/A"
-                    logging.debug("Failed to get partition ID for gpu %s | %s", gpu_id, e.get_error_info())
-
-                static_dict['partition'] = {"accelerator_partition": compute_partition,
-                                            "memory_partition": memory_partition,
-                                            "partition_id": partition_id}
+            static_dict["ras"] = ras_dict
+        if args.partition:
+            try:
+                compute_partition = amdsmi_interface.amdsmi_get_gpu_compute_partition(args.gpu)
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                compute_partition = "N/A"
+                logging.debug("Failed to get compute partition info for gpu %s | %s", gpu_id, e.get_error_info())
+            try:
+                memory_partition = amdsmi_interface.amdsmi_get_gpu_memory_partition(args.gpu)
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                memory_partition = "N/A"
+                logging.debug("Failed to get memory partition info for gpu %s | %s", gpu_id, e.get_error_info())
+            try:
+                kfd_info = amdsmi_interface.amdsmi_get_gpu_kfd_info(args.gpu)
+                partition_id = kfd_info['current_partition_id']
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                partition_id = "N/A"
+                logging.debug("Failed to get partition ID for gpu %s | %s", gpu_id, e.get_error_info())
+            static_dict['partition'] = {"accelerator_partition": compute_partition,
+                                        "memory_partition": memory_partition,
+                                        "partition_id": partition_id}
         if 'soc_pstate' in current_platform_args:
             if args.soc_pstate:
                 try:
@@ -791,16 +803,15 @@ class AMDSMICommands():
                     logging.debug("Failed to get xgmi_plpd info for gpu %s | %s", gpu_id, e.get_error_info())
 
                 static_dict['xgmi_plpd'] = policy_info
-        if 'process_isolation' in current_platform_args:
-            if args.process_isolation:
-                try:
-                    status = amdsmi_interface.amdsmi_get_gpu_process_isolation(args.gpu)
-                    status = "Enabled" if status else "Disabled"
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    status = "N/A"
-                    logging.debug("Failed to process isolation for gpu %s | %s", gpu_id, e.get_error_info())
+        if args.process_isolation:
+            try:
+                status = amdsmi_interface.amdsmi_get_gpu_process_isolation(args.gpu)
+                status = "Enabled" if status else "Disabled"
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                status = "N/A"
+                logging.debug("Failed to process isolation for gpu %s | %s", gpu_id, e.get_error_info())
 
-                static_dict['process_isolation'] = status
+            static_dict['process_isolation'] = status
         if 'numa' in current_platform_args:
             if args.numa:
                 try:
@@ -919,7 +930,6 @@ class AMDSMICommands():
                 logging.debug("Failed to get cache info for gpu %s | %s", gpu_id, e.get_error_info())
 
             static_dict['cache_info'] = cache_info_list
-
         # default to printing all clocks, if in current_platform_args; otherwise print specific clocks
         if 'clock' in current_platform_args and (args.clock == True or isinstance(args.clock, list)):
             original_clock_args = args.clock  #save original args.clock value, so we can reset for multiple devices
