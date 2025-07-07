@@ -204,9 +204,9 @@ class AMDSMICommands():
         if not self.group_check_printed:
            try:
                self.helpers.check_required_groups()
-               self.group_in_groups = True
+               group_in_groups = True
            except Exception as e:
-               self.group_in_groups = False
+               group_in_groups = False
                # print the helper's error message exactly once:
                print(f"{e}")
            self.group_check_printed = True
