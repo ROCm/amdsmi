@@ -201,15 +201,18 @@ class AMDSMICommands():
             
         # Perform one-time group check. If it fails, record that fact
         # but do NOT abort—just mark that UUID should be "N/A" later.
-        if not self.group_check_printed:
+        global _group_check_done, _group_in_groups
+        _group_check_done = False
+        _group_in_groups = False
+        if not _group_check_done:
            try:
                self.helpers.check_required_groups()
-               group_in_groups = True
+               _group_in_groups = True
            except Exception as e:
-               group_in_groups = False
+               _group_in_groups = False
                # print the helper's error message exactly once:
                print(f"{e}")
-           self.group_check_printed = True
+           _group_check_done = True
 
         # Handle multiple GPUs
         handled_multiple_gpus, device_handle = self.helpers.handle_gpus(args, self.logger, self.list)
@@ -222,7 +225,7 @@ class AMDSMICommands():
         gpu_id = self.helpers.get_gpu_id_from_device_handle(args.gpu)
 
         # Only fetch data if group check passed; otherwise force "N/A"
-        if getattr(self, "group_in_groups", False):
+        if  _group_in_groups:
             try:
                 bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(args.gpu)
             except amdsmi_exception.AmdSmiLibraryException as e:
@@ -270,9 +273,8 @@ class AMDSMICommands():
                 }
 
             # __Override__ hip_uuid if the group check failed
-            if not getattr(self, "group_in_groups", False):
-                enumeration_info["hip_uuid"] = "N/A"
-
+            if not _group_in_groups:
+               enumeration_info["hip_uuid"] = "N/A"
             # now store all the fields exactly once:
             if enumeration_info['drm_render'] == "N/A":
                 self.logger.store_output(args.gpu, 'render', enumeration_info['drm_render'])
@@ -287,6 +289,7 @@ class AMDSMICommands():
             self.logger.store_output(args.gpu, 'hsa_id', enumeration_info['hsa_id'])
             self.logger.store_output(args.gpu, 'hip_id', enumeration_info['hip_id'])
             self.logger.store_output(args.gpu, 'hip_uuid', enumeration_info['hip_uuid'])
+            
 
         if multiple_devices:
             self.logger.store_multiple_device_output()
