@@ -201,7 +201,6 @@ class AMDSMICommands():
             
         # Perform one-time group check. If it fails, record that fact
         # but do NOT abort—just mark that UUID should be "N/A" later.
-        global _group_check_done, _group_in_groups
         _group_check_done = False
         _group_in_groups = False
         if not _group_check_done:
