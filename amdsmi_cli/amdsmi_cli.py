@@ -30,17 +30,20 @@ except ImportError as e:
     logging.debug(f"Unhandled import error: {e}")
     logging.debug("argcomplete module not found. Autocomplete will not work.")
 
-from typing import TYPE_CHECKING
-# only used for type checking
-# pyright trips up and cannot find amdsmi scripts without it
-if TYPE_CHECKING:
-    from amdsmi_commands import AMDSMICommands
-    from amdsmi_parser import AMDSMIParser
-    from amdsmi_logger import AMDSMILogger
-    import amdsmi_cli_exceptions
-    from amdsmi import amdsmi_interface
-    from amdsmi import amdsmi_exception
+# from typing import TYPE_CHECKING
+# # only used for type checking
+# # pyright trips up and cannot find amdsmi scripts without it
+# if TYPE_CHECKING:
+#     from amdsmi_commands import AMDSMICommands
+#     from amdsmi_parser import AMDSMIParser
+#     from amdsmi_logger import AMDSMILogger
+#     import amdsmi_cli_exceptions
+#     from amdsmi import amdsmi_interface
+#     from amdsmi import amdsmi_exception
+
 try:
+    from amdsmi_init import *
+    from amdsmi_helpers import AMDSMIHelpers
     from amdsmi_commands import AMDSMICommands
     from amdsmi_parser import AMDSMIParser
     from amdsmi_logger import AMDSMILogger
@@ -52,6 +55,8 @@ except ImportError:
     additional_path = f"{current_path}/../libexec/amdsmi_cli"
     sys.path.append(additional_path)
     try:
+        from amdsmi_init import *
+        from amdsmi_helpers import AMDSMIHelpers
         from amdsmi_commands import AMDSMICommands
         from amdsmi_parser import AMDSMIParser
         from amdsmi_logger import AMDSMILogger
@@ -80,7 +85,8 @@ if __name__ == "__main__":
     else:
         sys.tracebacklimit = -1
 
-    amd_smi_commands = AMDSMICommands()
+    amd_smi_helpers = AMDSMIHelpers()
+    amd_smi_commands = AMDSMICommands(helpers=amd_smi_helpers)
     amd_smi_parser = AMDSMIParser(amd_smi_commands.version,
                                     amd_smi_commands.list,
                                     amd_smi_commands.static,
@@ -98,7 +104,8 @@ if __name__ == "__main__":
                                     amd_smi_commands.xgmi,
                                     amd_smi_commands.partition,
                                     amd_smi_commands.ras,
-                                    sys_argv=sys.argv)
+                                    sys_argv=sys.argv,
+                                    helpers=amd_smi_helpers)
     try:
         try:
             argcomplete.autocomplete(amd_smi_parser)
