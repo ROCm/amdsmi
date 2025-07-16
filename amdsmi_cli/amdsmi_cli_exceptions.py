@@ -116,13 +116,14 @@ class AmdSmiInvalidCommandException(AmdSmiException):
 
 
 class AmdSmiInvalidParameterException(AmdSmiException):
-    def __init__(self, command, outputformat: str):
+    def __init__(self, command, arg, outputformat: str):
         super().__init__()
         self.value = -2
         self.command = command
+        self.arg = arg
         self.output_format = outputformat
 
-        common_message = f"Parameter '{self.command}' is invalid. Run 'amd-smi -h' for more info."
+        common_message = f"Parameter '{self.arg}' is invalid. Run 'amd-smi {self.command} -h' for more info."
 
         self.json_message["error"] = common_message
         self.json_message["code"] = self.value
