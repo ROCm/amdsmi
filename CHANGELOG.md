@@ -4,6 +4,29 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ***All information listed below is for reference and subject to change.***
 
+## amd_smi_lib for ROCm 7.1.0
+
+### Added
+
+- **Added `amdsmi_get_gpu_revision()` to Python API**  
+  - This function retrieves the GPU revision ID. Available in `amdsmi_interface.py` as `amdsmi_get_gpu_revision()`.
+
+### Changed
+
+### Removed
+
+### Optimized
+
+### Resolved Issues
+
+### Upcoming Changes
+
+- N/A
+
+### Known Issues
+
+- N/A
+
 ## amd_smi_lib for ROCm 7.0.0
 
 ### Added
@@ -86,6 +109,10 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
   - The value is representative of the socket's power agnostic of the the GPU version.
 
 ### Changed
+
+- **Modified `amd-smi` CLI `monitor` and `metric` for violations**.  
+  - Disabled `amd-smi monitor --violation` on guests.  
+  - Modified `amd-smi metric -T/--throttle` to alias to `amd-smi metric -v/--violation`.
 
 - **Updated `amdsmi_get_clock_info` in `amdsmi_interface.py`**.  
   - The `clk_deep_sleep` field now returns the sleep integer value.  

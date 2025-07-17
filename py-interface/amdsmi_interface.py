@@ -3395,6 +3395,8 @@ def amdsmi_get_link_metrics(processor_handle: processor_handle):
         link = link_metrics.links[i]
         links.append({
             "bdf": _format_bdf(link.bdf),
+            "bit_rate": link.bit_rate,
+            "max_bandwidth": link.max_bandwidth,
             "link_type": link.link_type,
             "read": link.read,
             "write": link.write,
@@ -3402,8 +3404,6 @@ def amdsmi_get_link_metrics(processor_handle: processor_handle):
 
     return {
         "num_links": link_metrics.num_links,
-        "bit_rate": link_metrics.bit_rate,
-        "max_bandwidth": link_metrics.max_bandwidth,
         "links": links
     }
 
@@ -5436,3 +5436,32 @@ def amdsmi_get_rocm_version()-> Tuple[bool, str]:
         return False, "Could not find librocm-core.so"
     except Exception as e:
         return False, f"Unable to detect ROCm installation, Unknown Error: {e}"
+
+
+def amdsmi_get_gpu_revision(processor_handle: processor_handle) -> str:
+    """
+    Get the GPU revision for a given processor handle.
+
+    Parameters:
+        processor_handle (amdsmi_processor_handle): The processor handle for the GPU.
+
+    Returns:
+        str: The GPU revision as a string.
+
+    Raises:
+        AmdSmiParameterException: If the processor handle is invalid.
+        AmdSmiLibraryException: If the underlying library call fails.
+    """
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    revision = ctypes.c_uint16()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_revision(
+            processor_handle, ctypes.byref(revision)
+        )
+    )
+
+    return _pad_hex_value(hex(revision.value), 2)
