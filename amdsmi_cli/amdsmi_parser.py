@@ -252,7 +252,12 @@ class AMDSMIParser(argparse.ArgumentParser):
             # Checks the values
             def __call__(self, parser, args, values, option_string=None):
                 path = Path(values)
-                path.mkdir(parents=True, exist_ok=True)
+                try:
+                    path.mkdir(parents=True, exist_ok=True)
+                except OSError as e:
+                    raise amdsmi_cli_exceptions.AmdSmiInvalidFilePathException(path,
+                                                                               CheckOutputFilePath.outputformat,
+                                                                               f"Unable to make '{path}' a folder.")
                 if not path.exists():
                     raise amdsmi_cli_exceptions.AmdSmiInvalidFilePathException(path, CheckOutputFilePath.outputformat)
                 elif path.is_dir():
@@ -300,27 +305,26 @@ class AMDSMIParser(argparse.ArgumentParser):
     def _check_input_file_path(self):
         """ Argument action validator:
             Returns a path to a file from the input file path provided.
-            If the file doesn't exist or is empty raise error
+            If the file doesn't exist, is empty, or is invalid, raise an error.
         """
         class _CheckInputFilePath(argparse.Action):
             # Checks the values
+            outputformat=self.helpers.get_output_format()
             def __call__(self, parser, args, values, option_string=None):
                 path = Path(values)
-                if not path.exists():
-                    raise FileNotFoundError(
-                        errno.ENOENT, os.strerror(errno.ENOENT), values)
-
-                if path.is_dir():
-                    raise argparse.ArgumentTypeError(
-                        f"Invalid Path: {path} is directory when it needs to be a specific file")
-
-                if path.is_file():
-                    if os.stat(values).st_size == 0:
-                        raise argparse.ArgumentTypeError(f"Invalid Path: {path} Input file is empty")
-                    setattr(args, self.dest, path)
-                else:
-                    raise argparse.ArgumentTypeError(
-                        f"Invalid path:{path} Could not determine if value given is a valid path")
+                try:
+                    if not path.exists():
+                        raise FileNotFoundError(f"CPER file could not be read. Make sure the path '{path}' is correct.")
+                    if path.is_dir():
+                        raise IsADirectoryError(f"Invalid Path: {path} is a directory when it needs to be a specific file.")
+                    if path.is_file():
+                        if os.stat(values).st_size == 0:
+                            raise ValueError(f"Invalid Path: {path} Input file is empty.")
+                        setattr(args, self.dest, path)
+                    else:
+                        raise FileNotFoundError(f"Invalid Path: {path} Could not determine if the value given is a valid path.")
+                except Exception as root_cause:
+                    raise amdsmi_cli_exceptions.AmdSmiInvalidFilePathException(path, _CheckInputFilePath.outputformat) from root_cause
         return _CheckInputFilePath
 
 
@@ -831,6 +835,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         ecc_help = "Total number of ECC errors"
         ecc_blocks_help = "Number of ECC errors per block"
         pcie_help = "Current PCIe speed, width, and replay count"
+        voltage_help = "GPU voltage"
 
         # Help text for Arguments only on Linux Baremetal platforms
         fan_help = "Current fan speed"
@@ -902,6 +907,7 @@ class AMDSMIParser(argparse.ArgumentParser):
                 metric_parser.add_argument('-P', '--pcie', action='store_true', required=False, help=pcie_help)
                 metric_parser.add_argument('-e', '--ecc', action='store_true', required=False, help=ecc_help)
                 metric_parser.add_argument('-k', '--ecc-blocks', action='store_true', required=False, help=ecc_blocks_help)
+                metric_parser.add_argument('-V', '--voltage', action='store_true', required=False, help=voltage_help)
 
             # Options that only apply to Hypervisors and Baremetal Linux
             if self.helpers.is_hypervisor() or (self.helpers.is_baremetal() and self.helpers.is_linux()):
@@ -1422,7 +1428,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         Adds the 'ras' subcommand.
 
         Expected command:
-            amd-smi ras --cper --severity=nonfatal-uncorrected,fatal --folder <folder_name> --file_limit=1000 --follow
+            amd-smi ras --cper --severity=nonfatal-uncorrected,fatal --folder <folder_name> --file-limit=1000 --follow
 
         All parameters are provided via options; no positional arguments or optional --file/--gpu are used.
         """
@@ -1436,25 +1442,36 @@ class AMDSMIParser(argparse.ArgumentParser):
         ras_optionals_title = "RAS Arguments"
 
         # Help text for RAS arguments
-        cper_help = "Trigger CPER data retrieval"
+        cper_help = "Trigger current CPER data retrieval"
+        afid_help = "Generate an AFID (AMD Field ID) using a CPER record, which is similar to XID."
         severity_choices = ["nonfatal-uncorrected", "fatal", "nonfatal-corrected", "all"]
         severity_choices_str = ", ".join(severity_choices)
         severity_help = f"Set the SEVERITY filters from the following:\n    {severity_choices_str}"
-        folder_help = "Folder to dump CPER report files"
-        file_limit_help = "Maximum number of entries per output file"
-        follow_help = "Continuously monitor for new entries"
+        folder_help = "Folder to dump current CPER report files"
+        file_limit_help = "Maximum number of current CPER files in target folder\n    Older files beyond limit will be deleted"
+        cper_file_help = "Full path of a retrieved cper record file to generate the AFID"
+        follow_help = "Continuously monitor for new CPER entries"
 
         ras_parser = subparsers.add_parser("ras", help=ras_help, description=ras_description)
         ras_parser._optionals.title = ras_optionals_title
         ras_parser.formatter_class = lambda prog: AMDSMISubparserHelpFormatter(prog)
         ras_parser.set_defaults(func=func)
 
-        # Required flags and arguments:
-        ras_parser.add_argument("--cper", action="store_true", required=True, help=cper_help)
-        ras_parser.add_argument("--severity", type=str.lower, nargs='+', default=['all'], help=severity_help, choices=severity_choices, metavar='SEVERITY')
-        ras_parser.add_argument("--folder", type=str, action=self._check_folder_path(), default=False, help=folder_help)
-        ras_parser.add_argument("--file_limit", type=self._positive_int, action='store', default=1000, help=file_limit_help)
-        ras_parser.add_argument("--follow", action="store_true", default=False, help=follow_help)
+        # Create mutually exclusive command ras group (--cper or --afid)
+        ras_exclusive_group = ras_parser.add_mutually_exclusive_group(required=True)
+        ras_exclusive_group.add_argument("--cper", action="store_true", help=cper_help)
+        ras_exclusive_group.add_argument("--afid", action="store_true", help=afid_help)
+
+        # CPER Arguments remove defaults
+        cper_group = ras_parser.add_argument_group("CPER Arguments")
+        cper_group.add_argument("--severity", type=str.lower, nargs='+', default=['all'], help=severity_help, choices=severity_choices, metavar='SEVERITY')
+        cper_group.add_argument("--folder", type=str, action=self._check_folder_path(), help=folder_help)
+        cper_group.add_argument("--file-limit", type=self._positive_int, action='store', help=file_limit_help)
+        cper_group.add_argument("--follow", action="store_true", help=follow_help)
+
+        # AFID Arguments
+        afid_group = ras_parser.add_argument_group("AFID Arguments")
+        afid_group.add_argument("--cper-file", action=self._check_input_file_path(), metavar="CPER_FILE", help=cper_file_help)
 
         # Add common modifiers and device selection arguments.
         self._add_device_arguments(ras_parser, required=False)

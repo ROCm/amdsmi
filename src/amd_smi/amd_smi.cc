@@ -46,6 +46,7 @@
 #include "amd_smi/amdsmi.h"
 #include "amd_smi/impl/fdinfo.h"
 #include "amd_smi/impl/amd_smi_common.h"
+#include "amd_smi/impl/amd_smi_cper.h"
 #include "amd_smi/impl/amd_smi_system.h"
 #include "amd_smi/impl/amd_smi_socket.h"
 #include "amd_smi/impl/amd_smi_gpu_device.h"
@@ -671,12 +672,12 @@ amdsmi_get_gpu_enumeration_info(amdsmi_processor_handle processor_handle,
     uint64_t device_uuid = 0;
     std::string hip_uuid_str;
     status = rsmi_wrapper(rsmi_dev_unique_id_get, processor_handle, 0, &device_uuid);
-    ss_uuid << "GPU-" << std::hex << device_uuid;
+    ss_uuid << "GPU-" << std::hex << std::setw(16) << std::setfill('0') << device_uuid;
     hip_uuid_str = ss_uuid.str();
     smi_clear_char_and_reinitialize(info->hip_uuid, AMDSMI_MAX_STRING_LENGTH, hip_uuid_str);
 
     ss << "; device_uuid (dec): " << device_uuid << "\n"
-       << "; device_uuid (hex): 0x" << std::hex << device_uuid << std::dec << "\n"
+       << "; device_uuid (hex): 0x" << std::hex << std::setw(16) << std::setfill('0') << device_uuid << std::dec << "\n"
        << "; rsmi_dev_unique_id_get() status: "
        << smi_amdgpu_get_status_string(status, false) << "\n";
     LOG_INFO(ss);
@@ -888,8 +889,6 @@ amdsmi_status_t amdsmi_get_gpu_vram_usage(amdsmi_processor_handle processor_hand
         return r;
     }
 
-    struct drm_amdgpu_info_vram_gtt gtt;
-    uint64_t vram_used = 0;
     std::ostringstream ss;
 
     SMIGPUDEVICE_MUTEX(gpu_device->get_mutex());
@@ -946,35 +945,21 @@ amdsmi_status_t amdsmi_get_gpu_vram_usage(amdsmi_processor_handle processor_hand
        << " | drmCommandWrite symbol loaded successfully";
     LOG_INFO(ss);
 
-    // Get the device info
-    memset(&gtt, 0, sizeof(struct drm_amdgpu_info_vram_gtt));
-    struct drm_amdgpu_info request = {};
-    memset(&request, 0, sizeof(request));
-    request.return_pointer = reinterpret_cast<unsigned long long>(&gtt);
-    request.return_size = sizeof(struct drm_amdgpu_memory_info);
-    request.query = AMDGPU_INFO_VRAM_GTT;
-    auto drm_write = drmCommandWrite(drm_fd, DRM_AMDGPU_INFO, &request,
-                                     sizeof(struct drm_amdgpu_info));
-    if (drm_write != 0) {
-        close(drm_fd);
-        libdrm.unload();
-        ss << __PRETTY_FUNCTION__
-           << " | Issue - drm_write failed, drm_write (AMDGPU_INFO_VRAM_GTT): "
-           << std::dec << drm_write << "\n"
-           << "; Returning: " << smi_amdgpu_get_status_string(AMDSMI_STATUS_DRM_ERROR, false);
-        LOG_ERROR(ss);
-        return AMDSMI_STATUS_DRM_ERROR;
+
+    uint64_t total = 0;
+    r = rsmi_wrapper(rsmi_dev_memory_total_get, processor_handle, 0,
+                    RSMI_MEM_TYPE_VRAM, &total);
+    if (r == AMDSMI_STATUS_SUCCESS) {
+        vram_info->vram_total = static_cast<uint32_t>(total / (1024 * 1024));
     }
 
-    vram_info->vram_total = static_cast<uint32_t>(
-        gtt.vram_size / (1024 * 1024));
-
-
+    uint64_t vram_used = 0;
+    struct drm_amdgpu_info request = {};
     memset(&request, 0, sizeof(request));
     request.return_pointer = reinterpret_cast<unsigned long long>(&vram_used);
     request.return_size = sizeof(vram_used);
     request.query = AMDGPU_INFO_VRAM_USAGE;
-    drm_write = drmCommandWrite(drm_fd, DRM_AMDGPU_INFO, &request,
+    auto drm_write = drmCommandWrite(drm_fd, DRM_AMDGPU_INFO, &request,
                                 sizeof(struct drm_amdgpu_info));
     if (drm_write != 0) {
         close(drm_fd);
@@ -1394,8 +1379,9 @@ amdsmi_status_t amdsmi_get_fw_info(amdsmi_processor_handle processor_handle,
         { AMDSMI_FW_ID_TA_RAS, RSMI_FW_BLOCK_TA_RAS},
         { AMDSMI_FW_ID_TA_XGMI, RSMI_FW_BLOCK_TA_XGMI},
         { AMDSMI_FW_ID_UVD, RSMI_FW_BLOCK_UVD},
-        {AMDSMI_FW_ID_VCE, RSMI_FW_BLOCK_VCE},
-        { AMDSMI_FW_ID_VCN, RSMI_FW_BLOCK_VCN}
+        { AMDSMI_FW_ID_VCE, RSMI_FW_BLOCK_VCE},
+        { AMDSMI_FW_ID_VCN, RSMI_FW_BLOCK_VCN},
+        { AMDSMI_FW_ID_PLDM_BUNDLE, RSMI_FW_BLOCK_PLDM_BUNDLE},
     };
 
     AMDSMI_CHECK_INIT();
@@ -1519,11 +1505,11 @@ amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_i
     // Ensure asic_serial defaults to an unsupported value
     std::string max_uint64_str = "ffffffffffffffff";
     smi_clear_char_and_reinitialize(info->asic_serial, AMDSMI_MAX_STRING_LENGTH, max_uint64_str);
-    uint64_t dv_uid = 0;
-    status = rsmi_wrapper(rsmi_dev_unique_id_get, processor_handle, 0, &dv_uid);
+    uint64_t device_uuid = 0;
+    status = rsmi_wrapper(rsmi_dev_unique_id_get, processor_handle, 0, &device_uuid);
     if (status == AMDSMI_STATUS_SUCCESS) {
         ss.clear();
-        ss << std::hex << dv_uid;
+        ss << std::hex << std::setw(16) << std::setfill('0') << device_uuid;
         std::string asic_serial_str = ss.str();
         ss.clear();
         smi_clear_char_and_reinitialize(info->asic_serial, AMDSMI_MAX_STRING_LENGTH,
@@ -3947,6 +3933,65 @@ amdsmi_get_gpu_cper_entries(
         cper_hdrs,
         entry_count,
         cursor);
+}
+
+amdsmi_status_t amdsmi_get_afids_from_cper(
+            char* cper_buffer, uint32_t buf_size, uint64_t* afids, uint32_t* num_afids) {
+
+    AMDSMI_CHECK_INIT();
+
+    std::ostringstream ss;
+    ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ << "[AFIDS] begin\n";
+    LOG_DEBUG(ss);
+
+    if(!cper_buffer) {
+        ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ << "[AFIDS] cper_buffer should be a valid memory address\n";
+        LOG_ERROR(ss);
+        return AMDSMI_STATUS_INVAL;
+    }
+    else if(!buf_size) {
+        ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ << "[AFIDS] buf_size should be greater than 0\n";
+        LOG_ERROR(ss);
+        return AMDSMI_STATUS_INVAL;
+    }
+    else if(!afids) {
+        ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ << "[AFIDS] afids should be a valid memory address\n";
+        LOG_ERROR(ss);
+        return AMDSMI_STATUS_INVAL;
+    }
+    else if(!num_afids) {
+        ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ << "[AFIDS] num_afids should be a valid memory address\n";
+        LOG_ERROR(ss);
+        return AMDSMI_STATUS_INVAL;
+    }
+    else if(!*num_afids) {
+        ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ << "[AFIDS] num_afids should be greater than 0\n";
+        LOG_ERROR(ss);
+        return AMDSMI_STATUS_INVAL;
+    }
+
+    const amdsmi_cper_hdr_t *cper = reinterpret_cast<const amdsmi_cper_hdr_t *>(cper_buffer);
+    if(cper->record_length > buf_size) {
+        ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ << "[AFIDS] cper buffer size " << std::dec << buf_size << " is smaller than cper record length " << std::dec << cper->record_length << "\n";
+        LOG_ERROR(ss);
+        return AMDSMI_STATUS_UNEXPECTED_SIZE;
+    }
+    else if(cper->signature[0] != 'C' || cper->signature[1] != 'P' || 
+        cper->signature[2] != 'E' || cper->signature[3] != 'R') {
+        ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ << "[AFIDS] cper buffer does not have the correct signature\n";
+        LOG_ERROR(ss);
+        return AMDSMI_STATUS_UNEXPECTED_DATA;
+    }
+    uint32_t i = 0;
+    for(int afid: cper_decode(cper)) {
+        if(i < *num_afids) {
+            afids[i] = afid;
+        }
+        ++i;
+    }
+    *num_afids = i;
+
+    return AMDSMI_STATUS_SUCCESS;
 }
 
 amdsmi_status_t

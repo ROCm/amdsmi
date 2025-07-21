@@ -196,10 +196,10 @@ typedef enum {
 #define AMDSMI_LIB_VERSION_MAJOR 25
 
 //! Minor version should be updated for each API change, but without changing headers
-#define AMDSMI_LIB_VERSION_MINOR 4
+#define AMDSMI_LIB_VERSION_MINOR 5
 
 //! Release version should be set to 0 as default and can be updated by the PMs for each CSP point release
-#define AMDSMI_LIB_VERSION_RELEASE 0
+#define AMDSMI_LIB_VERSION_RELEASE 1
 
 #define AMDSMI_LIB_VERSION_CREATE_STRING(MAJOR, MINOR, RELEASE) (#MAJOR "." #MINOR "." #RELEASE)
 #define AMDSMI_LIB_VERSION_EXPAND_PARTS(MAJOR_STR, MINOR_STR, RELEASE_STR) AMDSMI_LIB_VERSION_CREATE_STRING(MAJOR_STR, MINOR_STR, RELEASE_STR)
@@ -540,6 +540,7 @@ typedef enum {
     AMDSMI_FW_ID_RLC_SRLS,
     AMDSMI_FW_ID_PM,
     AMDSMI_FW_ID_DMCU,
+    AMDSMI_FW_ID_PLDM_BUNDLE,
     AMDSMI_FW_ID__MAX
 } amdsmi_fw_block_t;
 
@@ -995,8 +996,8 @@ typedef struct {
  */
 typedef struct {
     uint64_t socket_power;          //!< Units in uW {@host}, Host only
-    uint32_t current_socket_power;  //!< Units in W {@linux_bm}, Linux only
-    uint32_t average_socket_power;  //!< Units in W {@linux_bm}, Linux only
+    uint32_t current_socket_power;  //!< Units in W {@linux_bm}, Linux only, Mi 300+ Series cards
+    uint32_t average_socket_power;  //!< Units in W {@linux_bm}, Linux only, Navi + Mi 200 and earlier Series cards
     uint32_t gfx_voltage;           //!< GFX voltage measurement in mV {@linux_bm} or V {@host}
     uint32_t soc_voltage;           //!< SOC voltage measurement in mV {@linux_bm} or V {@host}
     uint32_t mem_voltage;           //!< MEM voltage measurement in mV {@linux_bm} or V {@host}
@@ -1049,20 +1050,21 @@ typedef uint32_t amdsmi_process_handle_t;
 typedef struct {
     char name[AMDSMI_MAX_STRING_LENGTH];
     amdsmi_process_handle_t pid;
-    uint64_t mem;  //!< In bytes
+    uint64_t mem;  //!< In Bytes
     struct engine_usage_ {
         uint64_t gfx;  //!< In nano-secs
         uint64_t enc;  //!< In nano-secs
         uint32_t reserved[12];
     } engine_usage; //!< time the process spends using these engines in ns
     struct memory_usage_ {
-        uint64_t gtt_mem;   //!< In MB
-        uint64_t cpu_mem;   //!< In MB
-        uint64_t vram_mem;  //!< In MB
+        uint64_t gtt_mem;   //!< In Bytes
+        uint64_t cpu_mem;   //!< In Bytes
+        uint64_t vram_mem;  //!< In Bytes
         uint32_t reserved[10];
-    } memory_usage;  //!< in bytes
+    } memory_usage;  //!< In Bytes
     char container_name[AMDSMI_MAX_STRING_LENGTH];
-    uint32_t reserved[12];
+    uint32_t cu_occupancy;  //!< Num CUs utilized
+    uint32_t reserved[11];
 } amdsmi_proc_info_t;
 
 /**
@@ -1322,7 +1324,8 @@ typedef enum {
     AMDSMI_VOLT_TYPE_FIRST = 0,
 
     AMDSMI_VOLT_TYPE_VDDGFX = AMDSMI_VOLT_TYPE_FIRST,  //!< Vddgfx GPU voltage
-    AMDSMI_VOLT_TYPE_LAST = AMDSMI_VOLT_TYPE_VDDGFX,
+    AMDSMI_VOLT_TYPE_VDDBOARD,                        //!< Voltage for VDDBOARD
+    AMDSMI_VOLT_TYPE_LAST = AMDSMI_VOLT_TYPE_VDDBOARD,
     AMDSMI_VOLT_TYPE_INVALID = 0xFFFFFFFF              //!< Invalid type
 } amdsmi_voltage_type_t;
 
@@ -4728,6 +4731,33 @@ amdsmi_get_gpu_cper_entries(amdsmi_processor_handle processor_handle, uint32_t s
     uint64_t *buf_size, amdsmi_cper_hdr_t** cper_hdrs, uint64_t *entry_count, uint64_t *cursor);
 
 /** @} End tagECCInfo */
+
+#define MAX_NUMBER_OF_AFIDS_PER_RECORD 12
+/**
+ *  @brief Get the AFIDs from CPER buffer
+ *
+ *  @platform{gpu_bm_linux}  @platform{host}  @platform{guest_1vf}
+ *  @platform{guest_mvf} @platform{guest_windows}
+ *
+ *  @details A utility function which retrieves the AFIDs from the CPER record.
+ *
+ *  @param[in] cper_buffer a pointer to the buffer with one CPER record. The caller must make sure the whole CPER record is loaded into the buffer.
+ *
+ *  @param[in] buf_size is the size of the cper_buffer.
+ *
+ *  @param[out] afids a pointer to an array of uint64_t to which the AF IDs will be written
+ *
+ *  @param[in,out] num_afids As input, the value passed through this parameter is the number of
+ *  uint64_t that may be safely written to the memory pointed to by @p afids. This is the limit
+ *  on how many AF IDs will be written to @p afids. On return, @p num_afids will contain the
+ *  number of AF IDs written to @p afids, or the number of AF IDs that could have been written
+ *  if enough memory had been provided. It is suggest to pass MAX_NUMBER_OF_AFIDS_PER_RECORD for all
+ *  AF Ids.
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_get_afids_from_cper(
+            char* cper_buffer, uint32_t buf_size, uint64_t* afids, uint32_t* num_afids);
 
 /*****************************************************************************/
 /** @defgroup tagErrorQuery Error Queries

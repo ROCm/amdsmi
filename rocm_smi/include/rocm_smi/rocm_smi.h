@@ -570,9 +570,10 @@ typedef enum {
 typedef enum {
   RSMI_VOLT_TYPE_FIRST = 0,
 
-  RSMI_VOLT_TYPE_VDDGFX = RSMI_VOLT_TYPE_FIRST,  //!< Vddgfx GPU
-                                                 //!< voltage
-  RSMI_VOLT_TYPE_LAST = RSMI_VOLT_TYPE_VDDGFX,
+  RSMI_VOLT_TYPE_VDDGFX = RSMI_VOLT_TYPE_FIRST,  //!< Vddgfx GPU voltage
+  RSMI_VOLT_TYPE_VDDBOARD,                       //!< Voltage for VDDBOARD
+
+  RSMI_VOLT_TYPE_LAST = RSMI_VOLT_TYPE_VDDBOARD,
   RSMI_VOLT_TYPE_INVALID = 0xFFFFFFFF            //!< Invalid type
 } rsmi_voltage_type_t;
 
@@ -723,8 +724,8 @@ typedef enum {
   RSMI_FW_BLOCK_UVD,
   RSMI_FW_BLOCK_VCE,
   RSMI_FW_BLOCK_VCN,
-
-  RSMI_FW_BLOCK_LAST = RSMI_FW_BLOCK_VCN
+  RSMI_FW_BLOCK_PLDM_BUNDLE,
+  RSMI_FW_BLOCK_LAST = RSMI_FW_BLOCK_PLDM_BUNDLE
 } rsmi_fw_block_t;
 
 /**

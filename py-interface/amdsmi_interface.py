@@ -18,8 +18,6 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import ctypes
-import json
-# import logging
 import math
 import os
 import re
@@ -32,7 +30,6 @@ from typing import Any, Dict, List, Tuple, Union
 
 from . import amdsmi_wrapper
 from .amdsmi_exception import *
-
 
 ### Non Library Specific Constants ###
 class MaxUIntegerTypes(IntEnum):
@@ -59,6 +56,8 @@ AMDSMI_MAX_ENGINES = 8
 AMDSMI_MAX_NUM_JPEG = 32
 AMDSMI_MAX_NUM_XCC = 8
 AMDSMI_MAX_NUM_XCP = 8
+# max num afids per cper record
+MAX_NUMBER_OF_AFIDS_PER_RECORD = 12
 
 # Max number of DPM policies
 AMDSMI_MAX_NUM_PM_POLICIES = 32
@@ -195,6 +194,7 @@ class AmdSmiFwBlock(IntEnum):
     AMDSMI_FW_ID_RLC_SRLS = amdsmi_wrapper.AMDSMI_FW_ID_RLC_SRLS
     AMDSMI_FW_ID_PM = amdsmi_wrapper.AMDSMI_FW_ID_PM
     AMDSMI_FW_ID_DMCU = amdsmi_wrapper.AMDSMI_FW_ID_DMCU
+    AMDSMI_FW_ID_PLDM_BUNDLE = amdsmi_wrapper.AMDSMI_FW_ID_PLDM_BUNDLE
 
 
 class AmdSmiClkType(IntEnum):
@@ -303,6 +303,7 @@ class AmdSmiVoltageMetric(IntEnum):
 
 class AmdSmiVoltageType(IntEnum):
     VDDGFX = amdsmi_wrapper.AMDSMI_VOLT_TYPE_VDDGFX
+    VDDBOARD = amdsmi_wrapper.AMDSMI_VOLT_TYPE_VDDBOARD
     INVALID = amdsmi_wrapper.AMDSMI_VOLT_TYPE_INVALID
 
 class AmdSmiAcceleratorPartitionResourceType(IntEnum):
@@ -867,7 +868,7 @@ def amdsmi_get_cpucore_handles() -> List[amdsmi_wrapper.amdsmi_processor_handle]
     return core_handles
 
 def amdsmi_get_cpu_hsmp_proto_ver(
-    processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
+    processor_handle: "amdsmi_wrapper.amdsmi_processor_handle",
 ) -> int:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
@@ -2168,10 +2169,9 @@ def amdsmi_get_clock_info(
     # logging.debug("amdsmi_interface.py | amdsmi_get_clock_info | clk_type = " + clk_type_str + " | return_dictionary = \n" + str(json.dumps(dict_ret, indent=4)))
     return dict_ret
 
-
 def amdsmi_get_gpu_bad_page_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
-) -> Union[list, str]:
+) -> List[Dict[str, Any]]:
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
@@ -2272,7 +2272,7 @@ def amdsmi_get_gpu_cper_entries(processor_handle: amdsmi_wrapper.amdsmi_processo
     severity_mask: int,
     buffer_size: int = 4*1048576,
     cursor: int = 0
-) -> Tuple[List[Dict[str, Any]], int]:
+) -> Tuple[Dict[str, Any], int, List[Dict[str, Any]], int]:
 
     if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
         raise AmdSmiParameterException(
@@ -2282,14 +2282,15 @@ def amdsmi_get_gpu_cper_entries(processor_handle: amdsmi_wrapper.amdsmi_processo
     # Allocate a buffer for CPER data.
     buf = ctypes.create_string_buffer(buffer_size)
     buf_size = ctypes.c_uint64(buffer_size)
-    entry_count = ctypes.c_uint64(20)
+    num_cper_hdrs = 20
+    entry_count = ctypes.c_uint64(num_cper_hdrs)
     cur = ctypes.c_uint64(cursor)
     # Allocate a pointer for the CPER header array.
-    cper_hdrs_array = (ctypes.POINTER(amdsmi_wrapper.amdsmi_cper_hdr_t) * 20)()
+    cper_hdrs_array = (ctypes.POINTER(amdsmi_wrapper.amdsmi_cper_hdr_t) * num_cper_hdrs)()
     cper_hdrs = ctypes.cast(cper_hdrs_array, ctypes.POINTER(ctypes.POINTER(amdsmi_wrapper.amdsmi_cper_hdr_t)))
 
     # Call the underlying AMD-SMI API.
-    ret = amdsmi_wrapper.amdsmi_get_gpu_cper_entries(
+    status_code = amdsmi_wrapper.amdsmi_get_gpu_cper_entries(
         processor_handle,
         ctypes.c_uint32(severity_mask),
         buf,
@@ -2298,8 +2299,8 @@ def amdsmi_get_gpu_cper_entries(processor_handle: amdsmi_wrapper.amdsmi_processo
         ctypes.byref(entry_count),
         ctypes.byref(cur)
     )
-    if ret != amdsmi_wrapper.AMDSMI_STATUS_SUCCESS:
-        raise AmdSmiLibraryException(ret)
+    if status_code not in {amdsmi_wrapper.AMDSMI_STATUS_SUCCESS, amdsmi_wrapper.AMDSMI_STATUS_MORE_DATA}:
+        raise AmdSmiLibraryException(status_code)
 
     entries = {}
     cper_data = []
@@ -2346,8 +2347,64 @@ def amdsmi_get_gpu_cper_entries(processor_handle: amdsmi_wrapper.amdsmi_processo
         entries[i] = cper_entry.copy()
         offset += entry_ptr.contents.record_length  # Use the actual record length to advance the offset
 
-    return entries, cur.value, cper_data
+    return entries, cur.value, cper_data, status_code
 
+def amdsmi_get_afids_from_cper(
+    cper_afid_data: Union[bytes, bytearray, List[Dict[str, Any]]]
+) -> Tuple[List[int], int]:
+    """
+    Extract AFIDs from one or more CPER blobs.
+
+    Args:
+        cper_afid_data: Either
+          - raw bytes or bytearray of a single CPER record, or
+          - a list of dicts each with keys "bytes" (List[int]) and "size" (int).
+
+    Returns:
+        Tuple[List[int], int]: A tuple containing:
+          - A list of extracted AFIDs.
+          - The total count of AFIDs.
+    """
+    # Normalize single blob into a list of records
+    if isinstance(cper_afid_data, (bytes, bytearray)):
+        cper_records = [{
+            "bytes": list(cper_afid_data),
+            "size": len(cper_afid_data)
+        }]
+    else:
+        cper_records = cper_afid_data
+
+    all_afids: List[int] = []
+
+    for record in cper_records:
+        if isinstance(record, dict) and "bytes" in record and "size" in record:
+            raw_bytes = bytes(record["bytes"])
+            record_size = record["size"]
+        else:
+            raise AmdSmiParameterException(record, 
+                                           "dict with keys 'bytes' and 'size' or bytes/bytearray")
+        # Wrap as char*
+        buf = ctypes.create_string_buffer(raw_bytes, record_size)
+        buf_ptr = ctypes.cast(buf, ctypes.POINTER(ctypes.c_char))
+
+        afid_array = (ctypes.c_uint64 * MAX_NUMBER_OF_AFIDS_PER_RECORD)()
+        num_afids_ct = ctypes.c_uint32(MAX_NUMBER_OF_AFIDS_PER_RECORD)
+
+        # Call the wrapper function
+        status = amdsmi_wrapper.amdsmi_get_afids_from_cper(
+            buf_ptr,
+            ctypes.c_uint32(record_size),
+            afid_array,
+            ctypes.byref(num_afids_ct)
+        )
+        if status != amdsmi_wrapper.AMDSMI_STATUS_SUCCESS:
+            raise AmdSmiLibraryException(status)
+
+        # Collect exactly the decoded AFIDs
+        count = num_afids_ct.value
+        all_afids.extend(afid_array[i] for i in range(count))
+
+    return all_afids, len(all_afids)
 
 def amdsmi_get_gpu_board_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
@@ -2470,6 +2527,7 @@ def amdsmi_get_gpu_process_list(
                 "cpu_mem": process_list[index].memory_usage.cpu_mem,
                 "vram_mem": process_list[index].memory_usage.vram_mem,
             },
+            "cu_occupancy": _validate_if_max_uint(process_list[index].cu_occupancy, MaxUIntegerTypes.UINT32_T)
         })
 
     return result
@@ -2584,7 +2642,8 @@ def amdsmi_get_fw_info(
     # PM(AKA: SMC) firmware's hex value looks like 0x12345678
     # However, they are parsed as: int(0x12).int(0x34).int(0x56).int(0x78)
     # Which results in the following: 12.34.56.78
-    dec_format_fw = [AmdSmiFwBlock.AMDSMI_FW_ID_PM]
+    dec_format_fw = [AmdSmiFwBlock.AMDSMI_FW_ID_PM,
+                     AmdSmiFwBlock.AMDSMI_FW_ID_PLDM_BUNDLE]
 
     firmwares = []
     for i in range(0, fw_info.num_fw_info):

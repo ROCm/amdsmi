@@ -1985,6 +1985,7 @@ rsmi_dev_firmware_version_get(uint32_t dv_ind, rsmi_fw_block_t block,
     { RSMI_FW_BLOCK_UVD, amd::smi::kDevFwVersionUvd },
     { RSMI_FW_BLOCK_VCE, amd::smi::kDevFwVersionVce },
     { RSMI_FW_BLOCK_VCN, amd::smi::kDevFwVersionVcn },
+    { RSMI_FW_BLOCK_PLDM_BUNDLE, amd::smi::kDevFwVersionPldmBundle},
   };
 
   const auto & dev_type_it = kFWBlockTypeMap.find(block);
@@ -3939,8 +3940,8 @@ rsmi_dev_memory_total_get(uint32_t dv_ind, rsmi_memory_type_t mem_type,
   DEVICE_MUTEX
   ret = get_dev_value_int(mem_type_file, dv_ind, total);
 
-  // Fallback to KFD reported memory if VRAM total is 0
-  if (mem_type == RSMI_MEM_TYPE_VRAM && *total == 0) {
+  // Fallback to KFD reported memory if VRAM total is 0 or sysfs read fails
+  if (mem_type == RSMI_MEM_TYPE_VRAM && (*total == 0 || ret != RSMI_STATUS_SUCCESS)) {
     GET_DEV_AND_KFDNODE_FROM_INDX
     if (kfd_node->get_total_memory(total) == 0 && *total > 0) {
       ss << __PRETTY_FUNCTION__
@@ -4016,8 +4017,8 @@ rsmi_dev_memory_usage_get(uint32_t dv_ind, rsmi_memory_type_t mem_type,
   DEVICE_MUTEX
   ret = get_dev_value_int(mem_type_file, dv_ind, used);
 
-  // Fallback to KFD reported memory if no VRAM
-  if (mem_type == RSMI_MEM_TYPE_VRAM && *used == 0) {
+  // Fallback to KFD reported memory if no VRAM or sysfs read fails
+  if (mem_type == RSMI_MEM_TYPE_VRAM && (*used == 0 || ret != RSMI_STATUS_SUCCESS)) {
     GET_DEV_AND_KFDNODE_FROM_INDX
     uint64_t total = 0;
     ret = get_dev_value_int(amd::smi::kDevMemTotVRAM, dv_ind, &total);
@@ -6673,18 +6674,9 @@ rsmi_dev_partition_id_get(uint32_t dv_ind, uint32_t *partition_id) {
     return RSMI_STATUS_INVALID_ARGS;
   }
   DEVICE_MUTEX
-  std::string strCompPartition = "UNKNOWN";
-  const uint32_t PARTITION_LEN = 10;
-  char compute_partition[PARTITION_LEN];
-  compute_partition[0] = '\0';
-  rsmi_status_t ret = rsmi_dev_compute_partition_get(dv_ind, compute_partition, PARTITION_LEN);
-  if (ret == RSMI_STATUS_SUCCESS) {
-    strCompPartition.clear();
-    strCompPartition = compute_partition;
-  }
   uint64_t pci_id = UINT64_MAX;
   *partition_id = UINT32_MAX;
-  ret = rsmi_dev_pci_id_get(dv_ind, &pci_id);
+  rsmi_status_t ret = rsmi_dev_pci_id_get(dv_ind, &pci_id);
   if (ret == RSMI_STATUS_SUCCESS) {
     *partition_id = static_cast<uint32_t>((pci_id >> 28) & 0xf);
   }
@@ -6726,7 +6718,6 @@ rsmi_dev_partition_id_get(uint32_t dv_ind, uint32_t *partition_id) {
      << " | ======= end ======= "
      << " | Success"
      << " | Device #: " << dv_ind
-     << " | Compute Partition: " << strCompPartition
      << " | Type: partition_id"
      << " | Data: " << static_cast<int>(*partition_id)
      << " | Returning = "

@@ -582,7 +582,8 @@ amdsmi_fw_block_t__enumvalues = {
     76: 'AMDSMI_FW_ID_RLC_SRLS',
     77: 'AMDSMI_FW_ID_PM',
     78: 'AMDSMI_FW_ID_DMCU',
-    79: 'AMDSMI_FW_ID__MAX',
+    79: 'AMDSMI_FW_ID_PLDM_BUNDLE',
+    80: 'AMDSMI_FW_ID__MAX',
 }
 AMDSMI_FW_ID_SMU = 1
 AMDSMI_FW_ID_FIRST = 1
@@ -663,7 +664,8 @@ AMDSMI_FW_ID_RLC_SRLG = 75
 AMDSMI_FW_ID_RLC_SRLS = 76
 AMDSMI_FW_ID_PM = 77
 AMDSMI_FW_ID_DMCU = 78
-AMDSMI_FW_ID__MAX = 79
+AMDSMI_FW_ID_PLDM_BUNDLE = 79
+AMDSMI_FW_ID__MAX = 80
 amdsmi_fw_block_t = ctypes.c_uint32 # enum
 
 # values for enumeration 'amdsmi_vram_type_t'
@@ -985,7 +987,7 @@ struct_amdsmi_fw_info_t._pack_ = 1 # source:False
 struct_amdsmi_fw_info_t._fields_ = [
     ('num_fw_info', ctypes.c_ubyte),
     ('PADDING_0', ctypes.c_ubyte * 7),
-    ('fw_info_list', struct_fw_info_list_ * 79),
+    ('fw_info_list', struct_fw_info_list_ * 80),
     ('reserved', ctypes.c_uint32 * 7),
     ('PADDING_1', ctypes.c_ubyte * 4),
 ]
@@ -1273,7 +1275,8 @@ struct_amdsmi_proc_info_t._fields_ = [
     ('engine_usage', struct_engine_usage_),
     ('memory_usage', struct_memory_usage_),
     ('container_name', ctypes.c_char * 256),
-    ('reserved', ctypes.c_uint32 * 12),
+    ('cu_occupancy', ctypes.c_uint32),
+    ('reserved', ctypes.c_uint32 * 11),
 ]
 
 amdsmi_proc_info_t = struct_amdsmi_proc_info_t
@@ -1498,12 +1501,14 @@ amdsmi_voltage_metric_t = ctypes.c_uint32 # enum
 amdsmi_voltage_type_t__enumvalues = {
     0: 'AMDSMI_VOLT_TYPE_FIRST',
     0: 'AMDSMI_VOLT_TYPE_VDDGFX',
-    0: 'AMDSMI_VOLT_TYPE_LAST',
+    1: 'AMDSMI_VOLT_TYPE_VDDBOARD',
+    1: 'AMDSMI_VOLT_TYPE_LAST',
     4294967295: 'AMDSMI_VOLT_TYPE_INVALID',
 }
 AMDSMI_VOLT_TYPE_FIRST = 0
 AMDSMI_VOLT_TYPE_VDDGFX = 0
-AMDSMI_VOLT_TYPE_LAST = 0
+AMDSMI_VOLT_TYPE_VDDBOARD = 1
+AMDSMI_VOLT_TYPE_LAST = 1
 AMDSMI_VOLT_TYPE_INVALID = 4294967295
 amdsmi_voltage_type_t = ctypes.c_uint32 # enum
 
@@ -2596,6 +2601,9 @@ amdsmi_cper_hdr_t = struct_amdsmi_cper_hdr_t
 amdsmi_get_gpu_cper_entries = _libraries['libamd_smi.so'].amdsmi_get_gpu_cper_entries
 amdsmi_get_gpu_cper_entries.restype = amdsmi_status_t
 amdsmi_get_gpu_cper_entries.argtypes = [amdsmi_processor_handle, uint32_t, ctypes.POINTER(ctypes.c_char), ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(ctypes.POINTER(struct_amdsmi_cper_hdr_t)), ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(ctypes.c_uint64)]
+amdsmi_get_afids_from_cper = _libraries['libamd_smi.so'].amdsmi_get_afids_from_cper
+amdsmi_get_afids_from_cper.restype = amdsmi_status_t
+amdsmi_get_afids_from_cper.argtypes = [ctypes.POINTER(ctypes.c_char), uint32_t, ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(ctypes.c_uint32)]
 amdsmi_get_gpu_ecc_status = _libraries['libamd_smi.so'].amdsmi_get_gpu_ecc_status
 amdsmi_get_gpu_ecc_status.restype = amdsmi_status_t
 amdsmi_get_gpu_ecc_status.argtypes = [amdsmi_processor_handle, amdsmi_gpu_block_t, ctypes.POINTER(amdsmi_ras_err_state_t)]
@@ -2950,7 +2958,8 @@ __all__ = \
     'AMDSMI_FW_ID_ISP', 'AMDSMI_FW_ID_MC', 'AMDSMI_FW_ID_MES_KIQ',
     'AMDSMI_FW_ID_MES_STACK', 'AMDSMI_FW_ID_MES_THREAD1',
     'AMDSMI_FW_ID_MES_THREAD1_STACK', 'AMDSMI_FW_ID_MMSCH',
-    'AMDSMI_FW_ID_PM', 'AMDSMI_FW_ID_PPTABLE', 'AMDSMI_FW_ID_PSP_BL',
+    'AMDSMI_FW_ID_PLDM_BUNDLE', 'AMDSMI_FW_ID_PM',
+    'AMDSMI_FW_ID_PPTABLE', 'AMDSMI_FW_ID_PSP_BL',
     'AMDSMI_FW_ID_PSP_DBG', 'AMDSMI_FW_ID_PSP_INTF',
     'AMDSMI_FW_ID_PSP_KEYDB', 'AMDSMI_FW_ID_PSP_SOC',
     'AMDSMI_FW_ID_PSP_SOSDRV', 'AMDSMI_FW_ID_PSP_SPL',
@@ -3075,6 +3084,7 @@ __all__ = \
     'AMDSMI_VOLT_MAX_CRIT', 'AMDSMI_VOLT_MIN', 'AMDSMI_VOLT_MIN_CRIT',
     'AMDSMI_VOLT_TYPE_FIRST', 'AMDSMI_VOLT_TYPE_INVALID',
     'AMDSMI_VOLT_TYPE_LAST', 'AMDSMI_VOLT_TYPE_VDDGFX',
+    'AMDSMI_VOLT_TYPE_VDDBOARD',
     'AMDSMI_VRAM_TYPE_DDR2', 'AMDSMI_VRAM_TYPE_DDR3',
     'AMDSMI_VRAM_TYPE_DDR4', 'AMDSMI_VRAM_TYPE_GDDR1',
     'AMDSMI_VRAM_TYPE_GDDR2', 'AMDSMI_VRAM_TYPE_GDDR3',
@@ -3121,9 +3131,9 @@ __all__ = \
     'amdsmi_free_name_value_pairs', 'amdsmi_freq_ind_t',
     'amdsmi_freq_volt_region_t', 'amdsmi_frequencies_t',
     'amdsmi_frequency_range_t', 'amdsmi_fw_block_t',
-    'amdsmi_fw_info_t', 'amdsmi_get_clk_freq',
-    'amdsmi_get_clock_info', 'amdsmi_get_cpu_cclk_limit',
-    'amdsmi_get_cpu_core_boostlimit',
+    'amdsmi_fw_info_t', 'amdsmi_get_afids_from_cper',
+    'amdsmi_get_clk_freq', 'amdsmi_get_clock_info',
+    'amdsmi_get_cpu_cclk_limit', 'amdsmi_get_cpu_core_boostlimit',
     'amdsmi_get_cpu_core_current_freq_limit',
     'amdsmi_get_cpu_core_energy',
     'amdsmi_get_cpu_current_io_bandwidth',
