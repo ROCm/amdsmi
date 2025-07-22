@@ -74,7 +74,6 @@ jobs:
       - name: Install AMDSMI
         run: |
           cd $GITHUB_WORKSPACE/build
-          apt update
 
           RETRIES=3
           for i in $(seq 1 $RETRIES); do
@@ -160,7 +159,6 @@ jobs:
           done
 
           echo 'Installing for test on ${{ matrix.os }}'
-          apt update
 
           for i in $(seq 1 $RETRIES); do
             echo "Installation attempt $i for test on ${{ matrix.os }}..."
