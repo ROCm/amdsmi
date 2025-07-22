@@ -404,6 +404,15 @@ amdsmi_status_t AMDSmiSystem::populate_brcm_nic_devices() {
       bdf.domain_number = (bdfid >> 32) & 0xffffffff;
 
       AMDSmiProcessor* device = new AMDSmiNICDevice(i, bdf, no_drm_nic);
+
+      std::string nicPath;
+      if ( (no_drm_nic.get_device_path_by_index(i, &nicPath)) != AMDSMI_STATUS_SUCCESS) continue;
+      std::string driverPath = nicPath + "/driver";
+      std::string command = "readlink " + driverPath;
+      std::string getData;
+      if (smi_brcm_execute_cmd_get_data(command, &getData) != AMDSMI_STATUS_SUCCESS) continue;
+      if (getData.find("bnxt_en") == std::string::npos) continue;
+
       socket->add_processor(device);
       nic_processors_.insert(device);
     }

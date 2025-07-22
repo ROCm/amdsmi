@@ -1016,6 +1016,19 @@ typedef struct {
 } amdsmi_driver_info_t;
 
 /**
+ * @brief BRCM NIC Info
+ *
+ * @cond @tag{gpu_bm_linux} @tag{host} @endcond
+ */
+typedef struct {
+    amdsmi_bdf_t nic_bdf;
+    char nic_uuid[AMDSMI_MAX_STRING_LENGTH];
+    char nic_device_name[AMDSMI_MAX_STRING_LENGTH];
+    char nic_part_number[AMDSMI_MAX_STRING_LENGTH];
+    char nic_firmware_version[AMDSMI_MAX_STRING_LENGTH];
+}amdsmi_brcm_nic_info_t;
+
+/**
  * @brief BRCM NIC Temperature Info
  *
  * @cond @tag{gpu_bm_linux} @tag{host} @endcond
@@ -1033,6 +1046,118 @@ typedef struct {
 } amdsmi_brcm_nic_temperature_metric_t;
 
 /**
+ * @brief BRCM NIC Firmware Info
+ *
+ * @cond @tag{gpu_bm_linux} @tag{host} @endcond
+ */
+typedef struct {
+    char nic_fw_pkg_version[AMDSMI_MAX_STRING_LENGTH];
+    char nic_fw_efi_version[AMDSMI_MAX_STRING_LENGTH];
+    char nic_fw_version[AMDSMI_MAX_STRING_LENGTH];
+    char nic_fw_ncsi_version[AMDSMI_MAX_STRING_LENGTH];
+    char nic_fw_roce_version[AMDSMI_MAX_STRING_LENGTH];
+} amdsmi_brcm_nic_firmware_t;
+
+/**
+ * @brief BRCM NIC HWMON Power Info
+ *
+ * NIC HWMON power info includes:
+ * - nic_power_async:           Async power management
+ * - nic_power_control:         Power control
+ * - nic_power_runtime_active_time: Active runtime time in microseconds
+ * - nic_power_runtime_status:   Runtime status
+ * - nic_power_runtime_usage:   Runtime usage
+ * - nic_power_runtime_active_kids: Active children
+ * - nic_power_runtime_enabled:   Runtime enabled
+ * - nic_power_runtime_suspended_time: Suspended runtime time in
+ *                                    microseconds
+ *
+ * @cond @tag{gpu_bm_linux} @tag{host} @endcond
+ */
+typedef struct {
+    char nic_power_async[AMDSMI_MAX_STRING_LENGTH];
+    char nic_power_control[AMDSMI_MAX_STRING_LENGTH];
+    uint32_t nic_power_runtime_active_time;
+    char nic_power_runtime_status[AMDSMI_MAX_STRING_LENGTH];
+    uint32_t nic_power_runtime_usage;
+    uint32_t nic_power_runtime_active_kids;
+    char nic_power_runtime_enabled[AMDSMI_MAX_STRING_LENGTH];
+    uint32_t nic_power_runtime_suspended_time;
+} amdsmi_brcm_nic_hwmon_power_t;
+
+/**
+ * @brief BRCM NIC HWMON Device Info
+ *
+ * NIC HWMON device info includes:
+ * - nic_device_aer_dev_correctable: Correctable AER device
+ * - nic_device_aer_dev_fatal: Fatal AER device
+ * - nic_device_aer_dev_nonfatal: Non-fatal AER device
+ * - nic_device_ari_enabled: ARI enabled
+ * - nic_device_broken_parity_status: Broken parity status
+ * - nic_device_class: Device class
+ * - nic_device_config: Device config
+ * - nic_device_consistent_dma_mask_bits: Consistent DMA mask bits
+ *
+ * @cond @tag{gpu_bm_linux} @tag{host} @endcond
+ */
+typedef struct {
+    char nic_device_aer_dev_correctable[AMDSMI_MAX_STRING_LENGTH];
+    char nic_device_aer_dev_fatal[AMDSMI_MAX_STRING_LENGTH];
+    char nic_device_aer_dev_nonfatal[AMDSMI_MAX_STRING_LENGTH];
+    uint32_t nic_device_ari_enabled;
+    uint32_t nic_device_broken_parity_status;
+    char nic_device_class[AMDSMI_MAX_STRING_LENGTH];
+    char nic_device_config[AMDSMI_MAX_STRING_LENGTH];
+    uint32_t nic_device_consistent_dma_mask_bits;
+    char nic_device_current_link_speed[AMDSMI_MAX_STRING_LENGTH];
+    uint32_t nic_device_current_link_width;
+    uint32_t nic_device_d3cold_allowed;
+    char nic_device_device[AMDSMI_MAX_STRING_LENGTH];
+    uint32_t nic_device_dma_mask_bits;
+    char nic_device_driver_override[AMDSMI_MAX_STRING_LENGTH];
+    uint32_t nic_device_enable;
+    uint32_t nic_device_irq;
+    char nic_device_local_cpulist[AMDSMI_MAX_STRING_LENGTH];
+    char nic_device_local_cpus[AMDSMI_MAX_STRING_LENGTH];
+    char nic_device_max_link_speed[AMDSMI_MAX_STRING_LENGTH];
+    uint32_t nic_device_max_link_width;
+    char nic_device_modalias[AMDSMI_MAX_STRING_LENGTH];
+    uint32_t nic_device_msi_bus;
+    uint32_t nic_device_numa_node;
+    char nic_device_pools[AMDSMI_MAX_STRING_LENGTH];
+    char nic_device_power_state[AMDSMI_MAX_STRING_LENGTH];
+    char nic_device_reset_method[AMDSMI_MAX_STRING_LENGTH];
+    char nic_device_resource[AMDSMI_MAX_STRING_LENGTH];
+    char nic_device_revision[AMDSMI_MAX_STRING_LENGTH];
+    uint32_t nic_device_sriov_drivers_autoprobe;
+    uint32_t nic_device_sriov_numvfs;
+    uint32_t nic_device_sriov_offset;
+    uint32_t nic_device_sriov_stride;
+    uint32_t nic_device_sriov_totalvfs;
+    uint32_t nic_device_sriov_vf_device;
+    uint32_t nic_device_sriov_vf_total_msix;
+    char nic_device_subsystem_device[AMDSMI_MAX_STRING_LENGTH];
+    char nic_device_subsystem_vendor[AMDSMI_MAX_STRING_LENGTH];
+    char nic_device_uevent[AMDSMI_MAX_STRING_LENGTH];
+    char nic_device_vendor[AMDSMI_MAX_STRING_LENGTH];
+    char nic_device_vpd[AMDSMI_MAX_STRING_LENGTH];
+} amdsmi_brcm_nic_hwmon_device_t;
+
+/**
+ * @brief BRCM NIC METRIC Info
+ *
+ * @cond @tag{gpu_bm_linux} @tag{host} @endcond
+ */
+typedef struct{
+    amdsmi_brcm_nic_hwmon_power_t nic_power;
+    amdsmi_brcm_nic_temperature_metric_t nic_temperature;
+
+    char nic_device_aer_dev_correctable[AMDSMI_MAX_STRING_LENGTH];
+    char nic_device_aer_dev_fatal[AMDSMI_MAX_STRING_LENGTH];
+    char nic_device_aer_dev_nonfatal[AMDSMI_MAX_STRING_LENGTH];
+}amdsmi_brcm_nic_hwmon_metrics_t;
+
+/**
  * @brief BRCM Switch Link Info
  *
  * @cond @tag{brcm_switch_linux} @tag{host} @endcond
@@ -1042,7 +1167,71 @@ typedef struct {
     char max_link_speed[AMDSMI_MAX_STRING_LENGTH];
     char current_link_width[AMDSMI_MAX_STRING_LENGTH];
     char max_link_width[AMDSMI_MAX_STRING_LENGTH];
-} amdsmi_brcm_link_metric_t;
+} amdsmi_brcm_switch_link_metric_t;
+
+typedef struct {
+  char brcm_power_async[AMDSMI_MAX_STRING_LENGTH];
+  char brcm_power_control[AMDSMI_MAX_STRING_LENGTH];
+  char brcm_power_runtime_active_kids[AMDSMI_MAX_STRING_LENGTH];
+  char brcm_power_runtime_active_time[AMDSMI_MAX_STRING_LENGTH];
+  char brcm_power_runtime_enabled[AMDSMI_MAX_STRING_LENGTH];
+  char brcm_power_runtime_status[AMDSMI_MAX_STRING_LENGTH];
+  char brcm_power_runtime_suspended_time[AMDSMI_MAX_STRING_LENGTH];
+  char brcm_power_runtime_usage[AMDSMI_MAX_STRING_LENGTH];
+  char brcm_power_wakeup[AMDSMI_MAX_STRING_LENGTH];
+  char brcm_power_wakeup_abort_count[AMDSMI_MAX_STRING_LENGTH];
+  char brcm_power_wakeup_active[AMDSMI_MAX_STRING_LENGTH];
+  char brcm_power_wakeup_active_count[AMDSMI_MAX_STRING_LENGTH];
+  char brcm_power_wakeup_count[AMDSMI_MAX_STRING_LENGTH];
+  char brcm_power_wakeup_expire_count[AMDSMI_MAX_STRING_LENGTH];
+  char brcm_power_wakeup_last_time_ms[AMDSMI_MAX_STRING_LENGTH];
+  char brcm_power_wakeup_max_time_ms[AMDSMI_MAX_STRING_LENGTH];
+  char brcm_power_wakeup_total_time_ms[AMDSMI_MAX_STRING_LENGTH];
+}amdsmi_brcm_switch_power_metric_t;
+
+typedef struct {
+  char  brcm_device_aer_dev_correctable[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_aer_dev_fatal[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_aer_dev_nonfatal[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_ari_enabled[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_broken_parity_status[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_class[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_config[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_consistent_dma_mask_bits[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_current_link_speed[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_current_link_width[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_d3cold_allowed[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_device[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_dma_mask_bits[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_driver_override[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_enable[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_irq[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_local_cpulist[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_local_cpus[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_max_link_speed[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_max_link_width[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_modalias[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_msi_bus[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_numa_node[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_pools[AMDSMI_MAX_STRING_LENGTH];
+  amdsmi_brcm_switch_power_metric_t   brcm_device_power;
+  char  brcm_device_power_state[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_reset_method[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_resource[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_revision[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_subsystem_device[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_subsystem_vendor[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_uevent[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_vendor[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_vpd[AMDSMI_MAX_STRING_LENGTH];
+}amdsmi_brcm_switch_device_metric_t;
+
+typedef struct {
+  char  brcm_device_aer_dev_correctable[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_aer_dev_fatal[AMDSMI_MAX_STRING_LENGTH];
+  char  brcm_device_aer_dev_nonfatal[AMDSMI_MAX_STRING_LENGTH];
+  amdsmi_brcm_switch_power_metric_t brcm_power;
+} amdsmi_brcm_switch_metric_t;
 
 /**
  * @brief Board Information
@@ -6340,6 +6529,23 @@ amdsmi_get_gpu_driver_info(amdsmi_processor_handle processor_handle, amdsmi_driv
  */
 
 /**
+ * @brief          Returns the brcm nic's information
+ *
+ * @ingroup tagSoftwareVersion
+ *
+ * @platform{gpu_bm_linux} @platform{host} @platform{guest_1vf} @platform{guest_mvf}
+ *
+ * @param[in]      processor_handle Device which to query
+ *
+ * @param[out]     info Reference to nic information structure. Must be
+ *                 allocated by user.
+ *
+ * @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t
+amdsmi_get_nic_info(amdsmi_processor_handle processor_handle, amdsmi_brcm_nic_info_t *info);
+
+/**
  *  @brief          Returns the brcm nic's temperature information
  *
  *  @ingroup tagSoftwareVersion
@@ -6356,10 +6562,59 @@ amdsmi_get_gpu_driver_info(amdsmi_processor_handle processor_handle, amdsmi_driv
 amdsmi_status_t 
 amdsmi_get_nic_temp_info(amdsmi_processor_handle processor_handle, amdsmi_brcm_nic_temperature_metric_t *info);
 
-/*****************************************************************************/
-/** @defgroup tagSoftwareVersion     Software Version Information
- *  @{
+/**
+ * @brief          Returns the brcm nic's power information
+ *
+ * @ingroup tagSoftwareVersion
+ *
+ * @platform{gpu_bm_linux} @platform{host} @platform{guest_1vf} @platform{guest_mvf}
+ *
+ * @param[in]      processor_handle Device which to query
+ *
+ * @param[out]     info Reference to power information structure. Must be
+ *                 allocated by user.
+ *
+ * @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
+amdsmi_status_t
+amdsmi_get_nic_power_info(amdsmi_processor_handle processor_handle, amdsmi_brcm_nic_hwmon_power_t *info);
+
+/**
+ * @brief          Returns the brcm nic's device information
+ *
+ * @ingroup tagSoftwareVersion
+ *
+ * @platform{gpu_bm_linux} @platform{host} @platform{guest_1vf} @platform{guest_mvf}
+ *
+ * @param[in]      processor_handle Device which to query
+ *
+ * @param[out]     info Reference to device information structure. Must be
+ *                 allocated by user.
+ *
+ * @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+*/
+amdsmi_status_t 
+amdsmi_get_nic_device_info(amdsmi_processor_handle processor_handle, amdsmi_brcm_nic_hwmon_device_t *info);
+
+/**
+ * @brief          Returns the brcm nic's metrics information
+ *
+ * @ingroup tagSoftwareVersion
+ *
+ * @platform{gpu_bm_linux} @platform{host} @platform{guest_1vf} @platform{guest_mvf}
+ *
+ * @param[in]      processor_handle Device which to query
+ *
+ * @param[out]     metrics Reference to metrics information structure. Must be
+ *                 allocated by user.
+ *
+ * @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ *
+ * @details         This function returns the power, temperature, and device information
+ *                 for the given brcm nic.
+ */
+amdsmi_status_t 
+amdsmi_get_nic_metrics_info(amdsmi_processor_handle processor_handle, amdsmi_brcm_nic_hwmon_metrics_t *metrics);
 
 /**
  *  @brief          Returns the brcm switch's link information
@@ -6376,9 +6631,75 @@ amdsmi_get_nic_temp_info(amdsmi_processor_handle processor_handle, amdsmi_brcm_n
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
 amdsmi_status_t 
-amdsmi_get_switch_link_info(amdsmi_processor_handle processor_handle, amdsmi_brcm_link_metric_t *info);
+amdsmi_get_switch_link_info(amdsmi_processor_handle processor_handle, amdsmi_brcm_switch_link_metric_t *info);
 
-/** @} End tagSoftwareVersion */
+/**
+ * @brief          Returns the brcm switch's device information
+ *
+ * @ingroup tagSoftwareVersion
+ *
+ * @platform{gpu_bm_linux} @platform{host} @platform{guest_1vf} @platform{guest_mvf}
+ *
+ * @param[in]      processor_handle Device which to query
+ *
+ * @param[out]     info Reference to device information structure. Must be
+ *                  allocated by user.
+ *
+ * @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ *
+ * @details         This function returns the device information for the given brcm switch.
+ */
+amdsmi_status_t 
+amdsmi_get_switch_device_info(amdsmi_processor_handle processor_handle, amdsmi_brcm_switch_device_metric_t *info);
+
+/**
+ * @brief          Returns the brcm switch's power information
+ *
+ * @ingroup tagSoftwareVersion
+ *
+ * @platform{gpu_bm_linux} @platform{host} @platform{guest_1vf} @platform{guest_mvf}
+ *
+ * @param[in]      processor_handle Device which to query
+ *
+ * @param[out]     info Reference to power information structure. Must be
+ *                  allocated by user.
+ *
+ * @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ *
+ * @details         This function returns the power information for the given brcm switch.
+ */
+amdsmi_status_t 
+amdsmi_get_switch_power_info(amdsmi_processor_handle processor_handle, amdsmi_brcm_switch_power_metric_t *info);
+
+/**
+ * @brief          Returns the brcm switch's metrics information
+ *
+ * @ingroup tagSoftwareVersion
+ *
+ * @platform{gpu_bm_linux} @platform{host} @platform{guest_1vf} @platform{guest_mvf}
+ *
+ * @param[in]      processor_handle Device which to query
+ *
+ * @param[out]     info Reference to metrics information structure. Must be
+ *                  allocated by user.
+ *
+ * @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ *
+ * @details         This function returns the metrics information for the given brcm switch.
+ *
+ *                  Dexgen comment for developers:
+ *                      - This function is the same as the amdsmi_get_switch_link_info
+ *                        and amdsmi_get_switch_device_info and amdsmi_get_switch_power_info
+ *                        but it combines the info of all of them.
+ *                      - The structure of the info is the union of all of them.
+ *                      - The info is allocated by the user.
+ *                      - The info is filled by the function.
+ *
+ */
+amdsmi_status_t 
+amdsmi_get_switch_metrics_info(amdsmi_processor_handle processor_handle, amdsmi_brcm_switch_metric_t *info);
+
+/** @} End swversion */
 
 /*****************************************************************************/
 /** @defgroup tagAsicBoardInfo  ASIC & Board Static Information
@@ -6540,6 +6861,9 @@ amdsmi_status_t amdsmi_get_gpu_xcd_counter(amdsmi_processor_handle processor_han
  */
 amdsmi_status_t
 amdsmi_get_fw_info(amdsmi_processor_handle processor_handle, amdsmi_fw_info_t *info);
+
+amdsmi_status_t 
+amdsmi_get_nic_fw_info(amdsmi_processor_handle processor_handle, amdsmi_brcm_nic_firmware_t *info);
 
 /**
  *  @brief          Returns the static information for the vBIOS on the device.

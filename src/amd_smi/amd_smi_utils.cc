@@ -831,18 +831,36 @@ uint32_t smi_brcm_get_value_u32(std::string filePath, std::string fileName) {
 
 std::string smi_brcm_get_value_string(std::string filePath, std::string fileName) {
   
-  std::string temp;
+  std::stringstream temp;
   filePath += "/" + fileName;
   std::ifstream file(filePath.c_str(), std::ifstream::in);
   if (!file.is_open()) {
     return "N/A";
   }
   else {
-    getline(file, temp);
+    temp << file.rdbuf();
   }
 
-  return temp;
+  return temp.str();
+}
 
+amdsmi_status_t smi_brcm_execute_cmd_get_data(std::string command, std::string *data) {
+  std::string result;
+  char buffer[128];
+
+  // Open a pipe to execute the command
+  std::shared_ptr<FILE> pipe(popen(command.c_str(), "r"), pclose);
+  if (!pipe) {
+    return AMDSMI_STATUS_API_FAILED;
+  }
+
+  // Read the output of the command into the buffer
+  while (fgets(buffer, sizeof(buffer), pipe.get()) != nullptr) {
+    result += buffer;
+  }
+  *data = result;
+
+  return AMDSMI_STATUS_SUCCESS;
 }
 
 // TODO(amdsmi_team): Do we want to include these functions in header?

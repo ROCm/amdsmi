@@ -30,14 +30,7 @@
 
 #include "amd_smi/amdsmi.h"
 
-// Supported lspci -vv command keys
-enum lspciKeys {
-      switchSerialNumber,
-   };
-
-amdsmi_status_t get_lspci_device_data(std::string bdfStr, lspciKeys sub_key, std::string &version);
+amdsmi_status_t get_lspci_device_data(std::string bdfStr, std::string search_key, std::string &version);
 amdsmi_status_t get_lspci_root_switch(amdsmi_bdf_t devicehBdf, amdsmi_bdf_t *switchBdf);
-
-amdsmi_status_t smi_brcm_execute_cmd_get_data(std::string command, std::string *data);
 
 #endif //AMD_SMI_LSPCI_COMMANDS_H_

@@ -65,7 +65,6 @@
 #include "rocm_smi/rocm_smi_utils.h"
 #include "rocm_smi/rocm_smi_kfd.h"
 
-
 // a global instance of std::mutex to protect data passed during threads
 std::mutex myMutex;
 static bool initialized_lib = false;
@@ -78,9 +77,6 @@ char proc_id[SIZE] = "\0";
 		return AMDSMI_STATUS_NOT_INIT; \
 	} \
 } while (0)
-
-amdsmi_status_t 
-amdsmi_get_nic_temp_info(amdsmi_processor_handle processor_handle, amdsmi_brcm_nic_temperature_metric_t *info);
 
 static const std::map<amdsmi_accelerator_partition_type_t, std::string> partition_types_map = {
   { AMDSMI_ACCELERATOR_PARTITION_SPX, "SPX" },
@@ -740,6 +736,23 @@ amdsmi_status_t amdsmi_get_nic_device_bdf(amdsmi_processor_handle processor_hand
   return AMDSMI_STATUS_SUCCESS;
 }
 
+amdsmi_status_t
+amdsmi_get_nic_info(amdsmi_processor_handle processor_handle, amdsmi_brcm_nic_info_t *info) {
+  AMDSMI_CHECK_INIT();
+
+  if (info == NULL) {
+    return AMDSMI_STATUS_INVAL;
+  }
+
+  amd::smi::AMDSmiNICDevice *nic_device = nullptr;
+  amdsmi_status_t r = get_nic_device_from_handle(processor_handle, &nic_device);
+  if (r != AMDSMI_STATUS_SUCCESS) return r;
+
+  nic_device->amd_query_nic_info(*info);
+
+  return AMDSMI_STATUS_SUCCESS;
+}
+
 amdsmi_status_t amdsmi_get_nic_temp_info(amdsmi_processor_handle processor_handle,
                                          amdsmi_brcm_nic_temperature_metric_t *info) {
   AMDSMI_CHECK_INIT();
@@ -755,6 +768,79 @@ amdsmi_status_t amdsmi_get_nic_temp_info(amdsmi_processor_handle processor_handl
   nic_device->amd_query_nic_temp_info(*info);
 
   return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_get_nic_power_info(amdsmi_processor_handle processor_handle,
+    amdsmi_brcm_nic_hwmon_power_t *info) {
+    AMDSMI_CHECK_INIT();
+    if (info == NULL) {
+      return AMDSMI_STATUS_INVAL;
+    }
+    amd::smi::AMDSmiNICDevice *gpu_device = nullptr;
+    amdsmi_status_t r = get_nic_device_from_handle(processor_handle, &gpu_device);
+    if (r != AMDSMI_STATUS_SUCCESS) return r;
+
+    gpu_device->amd_query_nic_power_info(*info);
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_get_nic_device_info(amdsmi_processor_handle processor_handle,
+    amdsmi_brcm_nic_hwmon_device_t *info) {
+    AMDSMI_CHECK_INIT();
+    if (info == NULL) {
+      return AMDSMI_STATUS_INVAL;
+    }
+    amd::smi::AMDSmiNICDevice *gpu_device = nullptr;
+    amdsmi_status_t r = get_nic_device_from_handle(processor_handle, &gpu_device);
+    if (r != AMDSMI_STATUS_SUCCESS) return r;
+
+    gpu_device->amd_query_nic_device_info(*info);
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+ amdsmi_status_t amdsmi_get_nic_metrics_info(amdsmi_processor_handle processor_handle,
+    amdsmi_brcm_nic_hwmon_metrics_t *metrics) {
+    AMDSMI_CHECK_INIT();
+    if (metrics == NULL) {
+      return AMDSMI_STATUS_INVAL;
+    }
+
+    amdsmi_status_t ret;
+
+    amd::smi::AMDSmiNICDevice *nic_device = nullptr;
+    amdsmi_status_t r = get_nic_device_from_handle(processor_handle, &nic_device);
+    if (r != AMDSMI_STATUS_SUCCESS) return r;
+
+    // Fetch power metrics
+    ret = nic_device->amd_query_nic_power_info(metrics->nic_power);
+    if (ret != AMDSMI_STATUS_SUCCESS) {
+        printf("Failed to fetch NIC power metrics.\n");
+        return ret;
+    }
+
+    // Fetch temperature metrics
+    ret = nic_device->amd_query_nic_temp_info(metrics->nic_temperature);
+    if (ret != AMDSMI_STATUS_SUCCESS) {
+        printf("Failed to fetch NIC temperature metrics.\n");
+        return ret;
+    }
+
+    // Fetch the full device struct
+    amdsmi_brcm_nic_hwmon_device_t full_device;
+    ret = nic_device->amd_query_nic_device_info(full_device);
+    if (ret != AMDSMI_STATUS_SUCCESS) {
+        printf("Failed to fetch NIC device metrics.\n");
+        return ret;
+    }
+
+    // Copy only the 3 required fields into metrics
+    strncpy(metrics->nic_device_aer_dev_correctable, full_device.nic_device_aer_dev_correctable, AMDSMI_MAX_STRING_LENGTH);
+    strncpy(metrics->nic_device_aer_dev_fatal, full_device.nic_device_aer_dev_fatal, AMDSMI_MAX_STRING_LENGTH);
+    strncpy(metrics->nic_device_aer_dev_nonfatal, full_device.nic_device_aer_dev_nonfatal, AMDSMI_MAX_STRING_LENGTH);
+
+    return AMDSMI_STATUS_SUCCESS;
 }
 
 amdsmi_status_t amdsmi_get_switch_device_bdf(amdsmi_processor_handle processor_handle,
@@ -776,20 +862,89 @@ amdsmi_status_t amdsmi_get_switch_device_bdf(amdsmi_processor_handle processor_h
 }
 
 amdsmi_status_t amdsmi_get_switch_link_info(amdsmi_processor_handle processor_handle,
-                                            amdsmi_brcm_link_metric_t *info) {
-  AMDSMI_CHECK_INIT();
+    amdsmi_brcm_switch_link_metric_t *info) {
+    AMDSMI_CHECK_INIT();
 
-  if (info == NULL) {
-    return AMDSMI_STATUS_INVAL;
-  }
+    if (info == NULL) {
+        return AMDSMI_STATUS_INVAL;
+    }
 
-  amd::smi::AMDSmiSWITCHDevice *switch_device = nullptr;
-  amdsmi_status_t r = get_switch_device_from_handle(processor_handle, &switch_device);
-  if (r != AMDSMI_STATUS_SUCCESS) return r;
+    amd::smi::AMDSmiSWITCHDevice *switch_device = nullptr;
+    amdsmi_status_t r = get_switch_device_from_handle(processor_handle, &switch_device);
+    if (r != AMDSMI_STATUS_SUCCESS) return r;
 
-  switch_device->amd_query_switch_link_info(*info);
+    switch_device->amd_query_switch_link_info(*info);
 
-  return AMDSMI_STATUS_SUCCESS;
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_get_switch_power_info(amdsmi_processor_handle processor_handle,
+    amdsmi_brcm_switch_power_metric_t *info) {
+    AMDSMI_CHECK_INIT();
+
+    if (info == NULL) {
+        return AMDSMI_STATUS_INVAL;
+    }
+
+    amd::smi::AMDSmiSWITCHDevice *switch_device = nullptr;
+    amdsmi_status_t r = get_switch_device_from_handle(processor_handle, &switch_device);
+    if (r != AMDSMI_STATUS_SUCCESS) return r;
+
+    switch_device->amd_query_switch_power_info(*info);
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_get_switch_device_info(amdsmi_processor_handle processor_handle,
+    amdsmi_brcm_switch_device_metric_t *info) {
+    AMDSMI_CHECK_INIT();
+
+    if (info == NULL) {
+        return AMDSMI_STATUS_INVAL;
+    }
+    amdsmi_status_t ret;
+    ret = amdsmi_get_switch_power_info(processor_handle, &(info->brcm_device_power));
+    if (ret != AMDSMI_STATUS_SUCCESS) {
+        throw std::runtime_error("amdsmi_get_switch_device_info - Failed to fetch power metrics.\n");
+        return ret;
+    }
+
+    amd::smi::AMDSmiSWITCHDevice *switch_device = nullptr;
+    amdsmi_status_t r = get_switch_device_from_handle(processor_handle, &switch_device);
+    if (r != AMDSMI_STATUS_SUCCESS) return r;
+
+    switch_device->amd_query_switch_device_info(*info);
+
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t amdsmi_get_switch_metrics_info(amdsmi_processor_handle processor_handle, amdsmi_brcm_switch_metric_t *info){
+    AMDSMI_CHECK_INIT();
+
+    if (info == NULL) {
+        return AMDSMI_STATUS_INVAL;
+    }
+    amdsmi_status_t ret;
+    ret = amdsmi_get_switch_power_info(processor_handle, &(info->brcm_power));
+    if (ret != AMDSMI_STATUS_SUCCESS) {
+        throw std::runtime_error("amdsmi_get_switch_metrics_info - Failed to fetch power metrics.\n");
+        return ret;
+    }
+
+    // Fetch the full device struct
+    amdsmi_brcm_switch_device_metric_t full_device;
+    ret = amdsmi_get_switch_device_info(processor_handle, &full_device);
+    if (ret != AMDSMI_STATUS_SUCCESS) {
+        throw std::runtime_error("amdsmi_get_switch_metrics_info - Failed to fetch switch device.\n");
+        return ret;
+    }
+
+    // Copy only the 3 required fields into metrics
+    strncpy(info->brcm_device_aer_dev_correctable, full_device.brcm_device_aer_dev_correctable, AMDSMI_MAX_STRING_LENGTH);
+    strncpy(info->brcm_device_aer_dev_fatal, full_device.brcm_device_aer_dev_fatal, AMDSMI_MAX_STRING_LENGTH);
+    strncpy(info->brcm_device_aer_dev_nonfatal, full_device.brcm_device_aer_dev_nonfatal, AMDSMI_MAX_STRING_LENGTH);
+
+    return AMDSMI_STATUS_SUCCESS;
 }
 
 amdsmi_status_t
@@ -4808,7 +4963,19 @@ amdsmi_status_t amdsmi_get_switch_device_uuid(amdsmi_processor_handle processor_
   }
   sprintf(uuid, "%s", uuidStr.c_str());
   return status;
+}
   
+amdsmi_status_t amdsmi_get_nic_fw_info(amdsmi_processor_handle processor_handle, 
+    amdsmi_brcm_nic_firmware_t *info) {
+  AMDSMI_CHECK_INIT();
+  if (info == NULL) {
+    return AMDSMI_STATUS_INVAL;
+  }
+  amd::smi::AMDSmiNICDevice *nic_device = nullptr;
+  amdsmi_status_t r = get_nic_device_from_handle(processor_handle, &nic_device);
+  if (r != AMDSMI_STATUS_SUCCESS) return r;
+  nic_device->amd_query_nic_firmware_info(*info);
+  return AMDSMI_STATUS_SUCCESS;
 }
 
 amdsmi_status_t amdsmi_get_pcie_info(amdsmi_processor_handle processor_handle, amdsmi_pcie_info_t *info) {

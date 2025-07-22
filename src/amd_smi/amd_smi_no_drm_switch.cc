@@ -139,7 +139,7 @@ amdsmi_status_t AMDSmiNoDrmSwitch::cleanup() {
 }
 
 amdsmi_status_t AMDSmiNoDrmSwitch::amd_query_switch_link( std::string devicePath,
-        amdsmi_brcm_link_metric_t &info) {
+  amdsmi_brcm_switch_link_metric_t &info) {
  
   std::string current_speed = "current_link_speed";
   std::string max_speed = "max_link_speed";
@@ -150,12 +150,13 @@ amdsmi_status_t AMDSmiNoDrmSwitch::amd_query_switch_link( std::string devicePath
   sprintf(info.max_link_speed, "%s", smi_brcm_get_value_string(devicePath, max_speed).c_str());
   sprintf(info.current_link_width, "%s", smi_brcm_get_value_string(devicePath, current_width).c_str());
   sprintf(info.max_link_width, "%s", smi_brcm_get_value_string(devicePath, max_width).c_str());
-  
+
+  return AMDSMI_STATUS_SUCCESS;
 }
 
 amdsmi_status_t AMDSmiNoDrmSwitch::amd_query_switch_uuid(std::string bdfStr, std::string& serial) {
 
-  get_lspci_device_data(bdfStr, switchSerialNumber, serial);
+  get_lspci_device_data(bdfStr, "Device Serial Number ", serial);
 
   return AMDSMI_STATUS_SUCCESS;
 }
@@ -170,6 +171,126 @@ amdsmi_status_t AMDSmiNoDrmSwitch::amd_query_switch_numa_affinity(std::string de
 amdsmi_status_t AMDSmiNoDrmSwitch::amd_query_switch_cpu_affinity(std::string devicePath, std::string &cpu_affinity) {
   std::string cpuAffFile = "cpulistaffinity";
   cpu_affinity = smi_brcm_get_value_string(devicePath, cpuAffFile);
+  
+  return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t AMDSmiNoDrmSwitch::amd_query_switch_device( std::string devicePath,
+  amdsmi_brcm_switch_device_metric_t &info) {
+ 
+  std::string brcm_device_aer_dev_correctable      = "aer_dev_correctable";
+  std::string brcm_device_aer_dev_fatal            = "aer_dev_fatal";
+  std::string brcm_device_aer_dev_nonfatal         = "aer_dev_nonfatal";
+  std::string brcm_device_ari_enabled              = "ari_enabled";
+  std::string brcm_device_broken_parity_status     = "broken_parity_status";
+  std::string brcm_device_class                    = "class";
+  std::string brcm_device_config                   = "config";
+  std::string brcm_device_consistent_dma_mask_bits = "consistent_dma_mask_bits";
+  std::string brcm_device_current_link_speed       = "current_link_speed";
+  std::string brcm_device_current_link_width       = "current_link_width";
+  std::string brcm_device_d3cold_allowed           = "d3cold_allowed";
+  std::string brcm_device_device                   = "device";
+  std::string brcm_device_dma_mask_bits            = "dma_mask_bits";
+  std::string brcm_device_driver_override          = "driver_override";
+  std::string brcm_device_enable                   = "enable";
+  std::string brcm_device_irq                      = "irq";
+  std::string brcm_device_local_cpulist            = "local_cpulist";
+  std::string brcm_device_local_cpus               = "local_cpus";
+  std::string brcm_device_max_link_speed           = "max_link_speed";
+  std::string brcm_device_max_link_width           = "max_link_width";
+  std::string brcm_device_modalias                 = "modalias";
+  std::string brcm_device_msi_bus                  = "msi_bus";
+  std::string brcm_device_numa_node                = "numa_node";
+  std::string brcm_device_pools                    = "pools";
+  std::string brcm_device_power_state              = "power_state";
+  std::string brcm_device_remove                   = "remove";
+  std::string brcm_device_rescan                   = "rescan";
+  std::string brcm_device_reset                    = "reset";
+  std::string brcm_device_reset_method             = "reset_method";
+  std::string brcm_device_resource                 = "resource";
+  std::string brcm_device_resource0                = "resource0";
+  std::string brcm_device_resource0_wc             = "resource0_wc";
+  std::string brcm_device_revision                 = "revision";
+  std::string brcm_device_subsystem_device         = "subsystem_device";
+  std::string brcm_device_subsystem_vendor         = "subsystem_vendor";
+  std::string brcm_device_uevent                   = "uevent";
+  std::string brcm_device_vendor                   = "vendor";
+  
+  sprintf(info.brcm_device_aer_dev_correctable, "%s", smi_brcm_get_value_string(devicePath, brcm_device_aer_dev_correctable).c_str());
+  sprintf(info.brcm_device_aer_dev_fatal, "%s", smi_brcm_get_value_string(devicePath, brcm_device_aer_dev_fatal).c_str());
+  sprintf(info.brcm_device_aer_dev_nonfatal, "%s", smi_brcm_get_value_string(devicePath, brcm_device_aer_dev_nonfatal).c_str());
+  sprintf(info.brcm_device_ari_enabled, "%s", smi_brcm_get_value_string(devicePath, brcm_device_ari_enabled).c_str());
+  sprintf(info.brcm_device_broken_parity_status, "%s", smi_brcm_get_value_string(devicePath, brcm_device_broken_parity_status).c_str());
+  sprintf(info.brcm_device_class, "%s", smi_brcm_get_value_string(devicePath, brcm_device_class).c_str());
+  sprintf(info.brcm_device_config, "%s", smi_brcm_get_value_string(devicePath, brcm_device_config).c_str());
+  sprintf(info.brcm_device_consistent_dma_mask_bits, "%s", smi_brcm_get_value_string(devicePath, brcm_device_consistent_dma_mask_bits).c_str());
+  sprintf(info.brcm_device_current_link_speed, "%s", smi_brcm_get_value_string(devicePath, brcm_device_current_link_speed).c_str());
+  sprintf(info.brcm_device_current_link_width, "%s", smi_brcm_get_value_string(devicePath, brcm_device_current_link_width).c_str());
+  sprintf(info.brcm_device_d3cold_allowed, "%s", smi_brcm_get_value_string(devicePath, brcm_device_d3cold_allowed).c_str());
+  sprintf(info.brcm_device_device, "%s", smi_brcm_get_value_string(devicePath, brcm_device_device).c_str());
+  sprintf(info.brcm_device_dma_mask_bits, "%s", smi_brcm_get_value_string(devicePath, brcm_device_dma_mask_bits).c_str());
+  sprintf(info.brcm_device_driver_override, "%s", smi_brcm_get_value_string(devicePath, brcm_device_driver_override).c_str());
+  sprintf(info.brcm_device_enable, "%s", smi_brcm_get_value_string(devicePath, brcm_device_enable).c_str());
+  sprintf(info.brcm_device_irq, "%s", smi_brcm_get_value_string(devicePath, brcm_device_irq).c_str());
+  sprintf(info.brcm_device_local_cpulist, "%s", smi_brcm_get_value_string(devicePath, brcm_device_local_cpulist).c_str());
+  sprintf(info.brcm_device_local_cpus, "%s", smi_brcm_get_value_string(devicePath, brcm_device_local_cpus).c_str());
+  sprintf(info.brcm_device_max_link_speed, "%s", smi_brcm_get_value_string(devicePath, brcm_device_max_link_speed).c_str());
+  sprintf(info.brcm_device_max_link_width, "%s", smi_brcm_get_value_string(devicePath, brcm_device_max_link_width).c_str());
+  sprintf(info.brcm_device_modalias, "%s", smi_brcm_get_value_string(devicePath, brcm_device_modalias).c_str());
+  sprintf(info.brcm_device_msi_bus, "%s", smi_brcm_get_value_string(devicePath, brcm_device_msi_bus).c_str());
+  sprintf(info.brcm_device_numa_node, "%s", smi_brcm_get_value_string(devicePath, brcm_device_numa_node).c_str());
+  sprintf(info.brcm_device_pools, "%s", smi_brcm_get_value_string(devicePath, brcm_device_pools).c_str());
+  sprintf(info.brcm_device_power_state, "%s", smi_brcm_get_value_string(devicePath, brcm_device_power_state).c_str());
+  sprintf(info.brcm_device_reset_method, "%s", smi_brcm_get_value_string(devicePath, brcm_device_reset_method).c_str());
+  sprintf(info.brcm_device_resource, "%s", smi_brcm_get_value_string(devicePath, brcm_device_resource).c_str());
+  sprintf(info.brcm_device_revision, "%s", smi_brcm_get_value_string(devicePath, brcm_device_revision).c_str());
+  sprintf(info.brcm_device_subsystem_device, "%s", smi_brcm_get_value_string(devicePath, brcm_device_subsystem_device).c_str());
+  sprintf(info.brcm_device_subsystem_vendor, "%s", smi_brcm_get_value_string(devicePath, brcm_device_subsystem_vendor).c_str());
+  sprintf(info.brcm_device_uevent, "%s", smi_brcm_get_value_string(devicePath, brcm_device_uevent).c_str());
+  sprintf(info.brcm_device_vendor, "%s", smi_brcm_get_value_string(devicePath, brcm_device_vendor).c_str());
+
+  return AMDSMI_STATUS_SUCCESS;
+}
+
+amdsmi_status_t AMDSmiNoDrmSwitch::amd_query_switch_power( std::string devicePath,
+  amdsmi_brcm_switch_power_metric_t &info) {
+  
+  devicePath = devicePath+"/power";
+  std::string brcm_power_async                  = "async";
+  std::string brcm_power_control                = "control";
+  std::string brcm_power_runtime_active_kids    = "runtime_active_kids";
+  std::string brcm_power_runtime_active_time    = "runtime_active_time";
+  std::string brcm_power_runtime_enabled        = "runtime_enabled";
+  std::string brcm_power_runtime_status         = "runtime_status";
+  std::string brcm_power_runtime_suspended_time = "runtime_suspended_time";
+  std::string brcm_power_runtime_usage          = "runtime_usage";
+  std::string brcm_power_wakeup                 = "wakeup";
+  std::string brcm_power_wakeup_abort_count     = "wakeup_abort_count";
+  std::string brcm_power_wakeup_active          = "wakeup_active";
+  std::string brcm_power_wakeup_active_count    = "wakeup_active_count";
+  std::string brcm_power_wakeup_count           = "wakeup_count";
+  std::string brcm_power_wakeup_expire_count    = "wakeup_expire_count";
+  std::string brcm_power_wakeup_last_time_ms    = "wakeup_last_time_ms";
+  std::string brcm_power_wakeup_max_time_ms     = "wakeup_max_time_ms";
+  std::string brcm_power_wakeup_total_time_ms   = "wakeup_total_time_ms";
+  
+  sprintf(info.brcm_power_async, "%s", smi_brcm_get_value_string(devicePath, brcm_power_async).c_str());
+  sprintf(info.brcm_power_control, "%s", smi_brcm_get_value_string(devicePath, brcm_power_control).c_str());
+  sprintf(info.brcm_power_runtime_active_kids, "%s", smi_brcm_get_value_string(devicePath, brcm_power_runtime_active_kids).c_str());
+  sprintf(info.brcm_power_runtime_active_time, "%s", smi_brcm_get_value_string(devicePath, brcm_power_runtime_active_time).c_str());
+  sprintf(info.brcm_power_runtime_enabled, "%s", smi_brcm_get_value_string(devicePath, brcm_power_runtime_enabled).c_str());
+  sprintf(info.brcm_power_runtime_status, "%s", smi_brcm_get_value_string(devicePath, brcm_power_runtime_status).c_str());
+  sprintf(info.brcm_power_runtime_suspended_time, "%s", smi_brcm_get_value_string(devicePath, brcm_power_runtime_suspended_time).c_str());
+  sprintf(info.brcm_power_runtime_usage, "%s", smi_brcm_get_value_string(devicePath, brcm_power_runtime_usage).c_str());
+  sprintf(info.brcm_power_wakeup, "%s", smi_brcm_get_value_string(devicePath, brcm_power_wakeup).c_str());
+  sprintf(info.brcm_power_wakeup_abort_count, "%s", smi_brcm_get_value_string(devicePath, brcm_power_wakeup_abort_count).c_str());
+  sprintf(info.brcm_power_wakeup_active, "%s", smi_brcm_get_value_string(devicePath, brcm_power_wakeup_active).c_str());
+  sprintf(info.brcm_power_wakeup_active_count, "%s", smi_brcm_get_value_string(devicePath, brcm_power_wakeup_active_count).c_str());
+  sprintf(info.brcm_power_wakeup_count, "%s", smi_brcm_get_value_string(devicePath, brcm_power_wakeup_count).c_str());
+  sprintf(info.brcm_power_wakeup_expire_count, "%s", smi_brcm_get_value_string(devicePath, brcm_power_wakeup_expire_count).c_str());
+  sprintf(info.brcm_power_wakeup_last_time_ms, "%s", smi_brcm_get_value_string(devicePath, brcm_power_wakeup_last_time_ms).c_str());
+  sprintf(info.brcm_power_wakeup_max_time_ms, "%s", smi_brcm_get_value_string(devicePath, brcm_power_wakeup_max_time_ms).c_str());
+  sprintf(info.brcm_power_wakeup_total_time_ms, "%s", smi_brcm_get_value_string(devicePath, brcm_power_wakeup_total_time_ms).c_str());
   
   return AMDSMI_STATUS_SUCCESS;
 }

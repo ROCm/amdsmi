@@ -69,7 +69,7 @@ class AMDSMIParser(argparse.ArgumentParser):
     """
     def __init__(self, version, list, static, firmware, bad_pages, metric,
                  process, profile, event, topology, set_value, reset, monitor,
-                 xgmi, partition, ras, default, sys_argv=None, helpers=None):
+                 xgmi, partition, ras, dump, default, sys_argv=None, helpers=None):
 
         # Helper variables
         if helpers is None:
@@ -130,7 +130,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         # Store possible subcommands & aliases for later errors
         self.possible_commands = ['version', 'list', 'static', 'firmware', 'ucode', 'bad-pages',
                                   'metric', 'process', 'profile', 'event', 'topology', 'set',
-                                  'reset', 'monitor', 'dmon', 'xgmi', 'partition', 'ras', 'default']
+                                  'reset', 'monitor', 'dmon', 'xgmi', 'partition', 'ras', 'dump', 'default']
 
         # Add all subparsers
         if sys_argv is not None:
@@ -151,6 +151,7 @@ class AMDSMIParser(argparse.ArgumentParser):
                 self._add_xgmi_parser(self.subparsers, xgmi)
                 self._add_partition_parser(self.subparsers, partition)
                 self._add_ras_parser(self.subparsers, ras)
+                self._add_dump_parser(self.subparsers, dump)
             elif any(arg in sys_argv for arg in ['version']):
                 self._add_version_parser(self.subparsers, version)
             elif any(arg in sys_argv for arg in ['list']):
@@ -182,6 +183,8 @@ class AMDSMIParser(argparse.ArgumentParser):
                 self._add_partition_parser(self.subparsers, partition)
             elif any(arg in sys_argv for arg in ['ras']):
                 self._add_ras_parser(self.subparsers, ras)
+            elif any(arg in sys_argv for arg in ['dump']):
+                self._add_dump_parser(self.subparsers, dump)
             else:
                 # If no subcommand is given, add the default parser
                 self._add_default_parser(self.subparsers, default)
@@ -701,10 +704,11 @@ class AMDSMIParser(argparse.ArgumentParser):
             device_args.add_argument('-v', '--vf', action='store', nargs='+',
                                         help=vf_help, choices=self.vf_choices)
 
-    def _add_brcm_nic_device_arguments(self, subcommand_parser: argparse.ArgumentParser, required=False):
+    def _add_brcm_nic_device_arguments(self, subcommand_parser: argparse.ArgumentParser, nicMandatory=False, required=False):
         # Device arguments help text
         nic_help = f"Select a NIC ID, BDF, or UUID from the possible choices:\n{self.nic_choices_str}"
-
+        if nicMandatory:
+            nic_help = f"Select a NIC ID, BDF, or UUID from the possible choices:\n {self.nic_choices_str} Note: -nic, --brcm_nic is mandatory argument for this option.\n"
         # Mutually Exclusive Args within the subparser
         device_args = subcommand_parser.add_mutually_exclusive_group(required=required)
 
@@ -712,9 +716,11 @@ class AMDSMIParser(argparse.ArgumentParser):
             device_args.add_argument('-bn', '--nic', action=self._nic_select(self.nic_choices),
                                         nargs='+', help=nic_help)
 
-    def _add_brcm_switch_device_arguments(self, subcommand_parser: argparse.ArgumentParser, required=False):
+    def _add_brcm_switch_device_arguments(self, subcommand_parser: argparse.ArgumentParser, switchMandatory=False, required=False):
         # Device arguments help text
         switch_help = f"Select a SWITCH ID, BDF, or UUID from the possible choices:\n{self.switch_choices_str}"
+        if switchMandatory:
+            switch_help = f"Select a SWITCH ID, BDF, or UUID from the possible choices:\n{self.switch_choices_str} Note: -switch, --brcm_switch is mandatory argument for this option.\n"
 
         # Mutually Exclusive Args within the subparser
         device_args = subcommand_parser.add_mutually_exclusive_group(required=required)
@@ -932,6 +938,7 @@ class AMDSMIParser(argparse.ArgumentParser):
 
         # Optional arguments help text
         fw_list_help = "All FW list information"
+        nic_firmware_help = "BRCM NIC devices's Firmware attributes"
         err_records_help = "All error records information"
 
         # Create firmware subparser
@@ -942,6 +949,7 @@ class AMDSMIParser(argparse.ArgumentParser):
 
         # Optional Args
         firmware_parser.add_argument('-f', '--ucode-list', '--fw-list', dest='fw_list', action='store_true', required=False, help=fw_list_help, default=True)
+        firmware_parser.add_argument('-nic', '--brcm_nic', action='store_true', required=False, help=nic_firmware_help)
 
         # Options to only display on a Hypervisor
         if self.helpers.is_hypervisor():
@@ -949,6 +957,7 @@ class AMDSMIParser(argparse.ArgumentParser):
 
         # Add Universal Arguments
         self._add_device_arguments(firmware_parser, required=False)
+        self._add_brcm_nic_device_arguments(firmware_parser, nicMandatory=True, required=False)
         self._add_command_modifiers(firmware_parser)
 
 
@@ -1000,6 +1009,8 @@ class AMDSMIParser(argparse.ArgumentParser):
 
         # Help text for Arguments only Available on Linux Virtual OS and Baremetal platforms
         mem_usage_help = "Memory usage per block"
+        nic_metric_help = "Broadcom NIC's metrics attributes"
+        switch_metric_help = "Broadcom SWITCH's metrics attributes"
 
         # Help text for Arguments only on Hypervisor and Baremetal platforms
         power_help = "Current power usage"
@@ -1136,6 +1147,11 @@ class AMDSMIParser(argparse.ArgumentParser):
         # Add Universal Arguments & watch Args
         self._add_watch_arguments(metric_parser)
         self._add_device_arguments(metric_parser, required=False)
+        self._add_brcm_nic_device_arguments(metric_parser, nicMandatory=True, required=False)
+        metric_parser.add_argument('-nic', '--brcm_nic', action='store_true', required=False, help=nic_metric_help)
+        self._add_brcm_switch_device_arguments(metric_parser, switchMandatory=True, required=False)
+        metric_parser.add_argument('-switch', '--brcm_switch', action='store_true', required=False, help=switch_metric_help)
+
         self._add_command_modifiers(metric_parser)
 
 
@@ -1257,7 +1273,8 @@ class AMDSMIParser(argparse.ArgumentParser):
         # Add Universal Arguments
         self._add_command_modifiers(topology_parser)
         self._add_device_arguments(topology_parser, required=False)
-        self._add_brcm_nic_device_arguments(topology_parser, required=False)
+        self._add_brcm_nic_device_arguments(topology_parser, nicMandatory=True, required=False)
+        self._add_brcm_switch_device_arguments(topology_parser, switchMandatory=True, required=False)
 
         # Optional Args
         topology_parser.add_argument('-a', '--access', action='store_true', required=False, help=access_help)
@@ -1270,7 +1287,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         topology_parser.add_argument('-d', '--dma', action='store_true', required=False, help=dma_help)
         topology_parser.add_argument('-z', '--bi-dir', action='store_true', required=False, help=bi_dir_help)
         topology_parser.add_argument('-nic', '--nic_topo', action='store_true', required=False, help=nic_topo_help)
-        topology_parser.add_argument('-show_numa', '--show_numa', action='store_true', required=False, help=nic_shownuma_help)
+        topology_parser.add_argument('-nic_switch', '--nic_switch', action='store_true', required=False, help=nic_shownuma_help)
 
 
     def _add_set_value_parser(self, subparsers: argparse._SubParsersAction, func):
@@ -1468,13 +1485,6 @@ class AMDSMIParser(argparse.ArgumentParser):
         monitor_parser.formatter_class=lambda prog: AMDSMISubparserHelpFormatter(prog)
         monitor_parser.set_defaults(func=func)
 
-        # Add Universal Arguments
-        self._add_command_modifiers(monitor_parser)
-        self._add_device_arguments(monitor_parser, required=False)
-        self._add_brcm_nic_device_arguments(monitor_parser, required=False)
-        self._add_brcm_switch_device_arguments(monitor_parser, required=False)
-        self._add_watch_arguments(monitor_parser)
-
         # Add monitor arguments
         monitor_parser.add_argument('-p', '--power-usage', action='store_true', required=False, help=power_usage_help)
         monitor_parser.add_argument('-t', '--temperature', action='store_true', required=False, help=temperature_help)
@@ -1494,6 +1504,8 @@ class AMDSMIParser(argparse.ArgumentParser):
         # Add Universal Arguments & Watch Args
         self._add_watch_arguments(monitor_parser)
         self._add_device_arguments(monitor_parser, required=False)
+        self._add_brcm_nic_device_arguments(monitor_parser, nicMandatory=True, required=False)
+        self._add_brcm_switch_device_arguments(monitor_parser, switchMandatory=True, required=False)
         self._add_command_modifiers(monitor_parser)
 
 
@@ -1613,6 +1625,39 @@ class AMDSMIParser(argparse.ArgumentParser):
         self._add_device_arguments(ras_parser, required=False)
         self._add_command_modifiers(ras_parser)
 
+    def _add_dump_parser(self, subparsers: argparse._SubParsersAction, func):
+        """
+        Adds the 'dump' subcommand.
+
+        Expected command:
+            amd-smi dump
+
+        All parameters are provided via options; no positional arguments or optional --file are used.
+        """
+
+        # Subparser help text
+        dump_help = "Dump information about the discovered BRCM PCI devices"
+        dump_description = (
+            "The dump command is used to get information about the BRCM PCI devices and dump it to a file."
+            "\n If file name is not provided, the output will be dumped to default file 'dump.txt'.")
+        nic_dump_help = "Dump only BRCM Switch NIC Details"
+        switch_dump_help = "Dump only BRCM Switch devices Details"
+
+        dump_optionals_title = "Dump Arguments"
+                
+        # Create dump subparser
+        dump_parser = subparsers.add_parser('dump', help=dump_help, description=dump_description)
+        dump_parser._optionals.title = dump_optionals_title
+        dump_parser.formatter_class=lambda prog: AMDSMISubparserHelpFormatter(prog)
+        dump_parser.set_defaults(func=func)
+
+        dump_parser.add_argument('-nic', '--brcm_nic', action='store_true', required=False, help=nic_dump_help)
+        self._add_brcm_nic_device_arguments(dump_parser, nicMandatory=False, required=False)
+
+        dump_parser.add_argument('-switch', '--brcm_switch', action='store_true', required=False, help=switch_dump_help)
+        self._add_brcm_switch_device_arguments(dump_parser, switchMandatory=False, required=False)
+
+        self._add_command_modifiers(dump_parser)
 
     def error(self, message):
         outputformat = self.helpers.get_output_format()

@@ -55,10 +55,12 @@ class AMDSmiSWITCHDevice: public AMDSmiProcessor {
     amdsmi_bdf_t get_bdf();
     bool check_if_no_drm_is_supported() { return nodrm_.check_if_no_drm_is_supported(); }
 
-    amdsmi_status_t amd_query_switch_link_info(amdsmi_brcm_link_metric_t& info) const;
+    amdsmi_status_t amd_query_switch_link_info(amdsmi_brcm_switch_link_metric_t& info) const;
     amdsmi_status_t amd_query_switch_uuid(std::string& serial) const;
     amdsmi_status_t amd_query_switch_numa_affinity(int32_t *numa_node) const;
     amdsmi_status_t amd_query_switch_cpu_affinity(std::string& cpu_affinity) const;
+    amdsmi_status_t amd_query_switch_device_info(amdsmi_brcm_switch_device_metric_t& info) const;
+    amdsmi_status_t amd_query_switch_power_info(amdsmi_brcm_switch_power_metric_t& info) const;
 
  private:
     uint32_t switch_id_;

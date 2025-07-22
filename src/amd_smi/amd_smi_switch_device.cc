@@ -61,13 +61,31 @@ pthread_mutex_t* AMDSmiSWITCHDevice::get_mutex() {
     return amd::smi::GetMutex(switch_id_);
 }
 
-amdsmi_status_t AMDSmiSWITCHDevice::amd_query_switch_link_info(amdsmi_brcm_link_metric_t& info) const {
+amdsmi_status_t AMDSmiSWITCHDevice::amd_query_switch_link_info(amdsmi_brcm_switch_link_metric_t& info) const {
   amdsmi_status_t ret;
   std::string devicePath;
   ret = nodrm_.get_device_path_by_index(switch_id_, &devicePath);
   if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
 
   return nodrm_.amd_query_switch_link(devicePath, info);
+}
+
+amdsmi_status_t AMDSmiSWITCHDevice::amd_query_switch_power_info(amdsmi_brcm_switch_power_metric_t& info) const {
+  amdsmi_status_t ret;
+  std::string devicePath; //sys/bus/pci/devices/0000:9b:00.0
+  ret = nodrm_.get_device_path_by_index(switch_id_, &devicePath);
+  if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
+
+  return nodrm_.amd_query_switch_power(devicePath, info);
+}
+
+amdsmi_status_t AMDSmiSWITCHDevice::amd_query_switch_device_info(amdsmi_brcm_switch_device_metric_t& info) const {
+  amdsmi_status_t ret;
+  std::string devicePath;
+  ret = nodrm_.get_device_path_by_index(switch_id_, &devicePath);
+  if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
+
+  return nodrm_.amd_query_switch_device(devicePath, info);
 }
 
 amdsmi_status_t AMDSmiSWITCHDevice::amd_query_switch_uuid(std::string& serial) const {

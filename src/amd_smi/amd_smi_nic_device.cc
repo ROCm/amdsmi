@@ -61,6 +61,11 @@ pthread_mutex_t* AMDSmiNICDevice::get_mutex() {
     return amd::smi::GetMutex(nic_id_);
 }
 
+amdsmi_status_t AMDSmiNICDevice::amd_query_nic_info(amdsmi_brcm_nic_info_t& info) const {
+
+    return nodrm_.amd_query_nic_info(nic_id_, info);
+}
+
 amdsmi_status_t AMDSmiNICDevice::amd_query_nic_temp_info(amdsmi_brcm_nic_temperature_metric_t& info) const {
   amdsmi_status_t ret;
   std::string hwmonPath;
@@ -68,6 +73,22 @@ amdsmi_status_t AMDSmiNICDevice::amd_query_nic_temp_info(amdsmi_brcm_nic_tempera
   if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
 
   return nodrm_.amd_query_nic_temp(hwmonPath, info);
+}
+
+amdsmi_status_t AMDSmiNICDevice::amd_query_nic_power_info(amdsmi_brcm_nic_hwmon_power_t& info) const {
+    amdsmi_status_t ret;
+    std::string hwmonPath;
+    ret = nodrm_.get_hwmon_path_by_index(nic_id_, &hwmonPath);
+    if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
+    return nodrm_.amd_query_nic_power(hwmonPath, info);
+}
+
+amdsmi_status_t AMDSmiNICDevice::amd_query_nic_device_info(amdsmi_brcm_nic_hwmon_device_t& info) const {
+    amdsmi_status_t ret;
+    std::string hwmonPath;
+    ret = nodrm_.get_hwmon_path_by_index(nic_id_, &hwmonPath);
+    if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
+    return nodrm_.amd_query_nic_device(hwmonPath, info);
 }
 
 amdsmi_status_t AMDSmiNICDevice::amd_query_nic_uuid(std::string& version) const {
@@ -95,6 +116,19 @@ amdsmi_status_t AMDSmiNICDevice::amd_query_nic_cpu_affinity(std::string& cpu_aff
   domain_bus_sstream << "/sys/class/pci_bus/" << std::string(bdf_str);
 
   return nodrm_.amd_query_nic_cpu_affinity(domain_bus_sstream.str(), cpu_affinity);
+}
+
+amdsmi_status_t AMDSmiNICDevice::amd_query_nic_firmware_info(amdsmi_brcm_nic_firmware_t& info) const {
+    amdsmi_status_t ret;
+    amdsmi_bdf_t bdf = {};
+    ret = nodrm_.get_bdf_by_index(nic_id_, &bdf);
+
+    if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
+    char bdf_str[20];
+    sprintf(bdf_str, "%04lx:%02x:%02x.%d", bdf.domain_number, bdf.bus_number, bdf.device_number,
+            bdf.function_number);
+
+    return nodrm_.amd_query_nic_fw_info(std::string(bdf_str), info);
 }
 
 }  // namespace smi

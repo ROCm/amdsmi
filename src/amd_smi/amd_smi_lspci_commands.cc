@@ -28,134 +28,128 @@
 #include <fstream>
 #include <memory>
 #include <regex>
-
+#include <iomanip>
 
 #include "amd_smi/impl/amd_smi_lspci_commands.h"
+#include "amd_smi/impl/amd_smi_utils.h"
 
+amdsmi_status_t get_lspci_device_data(std::string bdfStr, std::string search_key, std::string& version) {
+    std::string lspci_data;
+    std::string command = "lspci -s " + bdfStr + " -vv | grep -i '" + search_key + "'";
 
-amdsmi_status_t smi_brcm_execute_cmd_get_data(std::string command, std::string *data) {
-    std::string result;
-    char buffer[128];
+    if (smi_brcm_execute_cmd_get_data(command, &lspci_data) != AMDSMI_STATUS_SUCCESS)
+      return AMDSMI_STATUS_NOT_SUPPORTED;
 
-    // Open a pipe to execute the command
-    std::shared_ptr<FILE> pipe(popen(command.c_str(), "r"), pclose);
-    if (!pipe) {
-        return AMDSMI_STATUS_API_FAILED;
+    int pos = lspci_data.find(search_key);
+    if (pos != std::string::npos) {
+        version = lspci_data.erase(0, lspci_data.find(search_key) + search_key.length());
+        if (!version.empty() && version[version.length() - 1] == '\n') {
+            version.erase(version.length() - 1);
+        }
     }
-
-    // Read the output of the command into the buffer
-    while (fgets(buffer, sizeof(buffer), pipe.get()) != nullptr) {
-        result += buffer;
-    }
-
-    *data = result;
+    else
+        version = "N/A";
 
     return AMDSMI_STATUS_SUCCESS;
 }
 
-// Supported lspci -vv command regex match
-static const std::map<lspciKeys, const char *> kLspciPatternMap = {
-      {switchSerialNumber, R"(Device Serial Number ([\w-]+))"},
-   };
-
-
-amdsmi_status_t get_lspci_device_data(std::string bdfStr, lspciKeys sub_key, std::string &version) {
-  std::string lspci_data;
-  std::string command = "lspci -s " + bdfStr + " -vv";
-
-  if(smi_brcm_execute_cmd_get_data(command, &lspci_data) != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
-
-  std::regex pattern(kLspciPatternMap.at(sub_key));
-  std::smatch match;
-
-  if(std::regex_search(lspci_data, match, pattern)) {
-    if (match.size() > 1) {
-      version = match[1].str();
-      return AMDSMI_STATUS_SUCCESS;
-    }
-  }
-
-  return AMDSMI_STATUS_API_FAILED;
-
-}
-
-
 amdsmi_status_t get_lspci_root_switch(amdsmi_bdf_t devicehBdf, amdsmi_bdf_t *switchBdf) {
 
-  amdsmi_status_t status = AMDSMI_STATUS_SUCCESS;
-  std::string lspci_data;
+    amdsmi_status_t status = AMDSMI_STATUS_SUCCESS;
+    std::string lspci_data;
 
-  status = smi_brcm_execute_cmd_get_data("lspci -tvv", &lspci_data);
-  std::istringstream lines(lspci_data);
+    status = smi_brcm_execute_cmd_get_data("lspci -tvv", &lspci_data);
+    std::istringstream lines(lspci_data);
 
-  std::string line, bus;
-  uint64_t bus_pos, dev_pos, fun_pos; 
-  std::vector<std::string> streamlines;
+    std::string line;
+    uint64_t bus_pos, dev_pos, fun_pos;
+
+    std::vector<amdsmi_bdf_t> switch_list;
+    amdsmi_bdf_t temp;
 
 
-  while (std::getline(lines, line)) { 
-    streamlines.push_back(line);
+    // Loop through and get the switch list
+    while (std::getline(lines, line)) {
 
-    std::stringstream ss;
-    ss << std::hex << devicehBdf.bus_number;
-    if ((line.rfind('[' + ss.str() + ']') != std::string::npos)  | (line.rfind("-[" + ss.str() + '-') != std::string::npos)) {
-      while (!streamlines.empty()) {
-        if ((streamlines.back()).find(R"(\-)") != std::string::npos) {
-        	//Switch tree entered  
-          //First find from end the end bus in a line
-          bus_pos = (streamlines.back()).rfind("]-");
-          if (bus_pos == std::string::npos){
-              streamlines.pop_back();
-              continue;
-          } 
+        if(line.find("LSI PCIe Switch management endpoint") != std::string::npos){
+            //get Bus
+            bus_pos = line.rfind(']----');
+            if (bus_pos == std::string::npos){
+            continue;
+            }
+            
+            //Get device
+            dev_pos = line.rfind('.');
+            if (dev_pos == std::string::npos){
+                continue;
+            }
 
-          //Now find from end the 2nd last bus on the line which could be the switch
-          bus_pos = (streamlines.back()).rfind("]-", bus_pos-2);
-          if (bus_pos == std::string::npos){
-              streamlines.pop_back();
-              continue;
-          }
-          bus = (streamlines.back()).substr(bus_pos - 2, 2);
+            //Get function
+            fun_pos = dev_pos + 1;
 
-          // Check if the bus address belongs to switch
-          status = smi_brcm_execute_cmd_get_data("lspci -s " + bus + ": " + "-tvv", &lspci_data);
+            //std::cout << line.substr(bus_pos - 6, 2) << ":" << line.substr(dev_pos - 2, 2) << ":" << line.substr(fun_pos - 2, 1) << std::endl;
 
-          if(lspci_data.find("LSI PCIe Switch management endpoint") != std::string::npos){
-              
-              //Get device
-              dev_pos = (streamlines.back()).find('.', bus_pos);
-              if (dev_pos == std::string::npos){
-                  streamlines.pop_back();
-                  continue;
-              }
-
-              //Get function
-              fun_pos = (streamlines.back()).find('-', dev_pos);
-              if (fun_pos == std::string::npos){
-                  streamlines.pop_back();
-                  continue;
-              }
-
-              try
-              {
-                  switchBdf->bus_number =  std::stoi(bus, NULL, 16);
-                  switchBdf->device_number =  std::stoi((streamlines.back()).substr(dev_pos - 2, 2), NULL, 16);
-                  switchBdf->function_number =  std::stoi((streamlines.back()).substr(fun_pos - 1, 1), NULL, 16);
-              } 
-              catch (const std::invalid_argument& e) {
-                  printf("Invalid input: Not a valid hexadecimal string");
-              }
-              catch (const std::out_of_range& e) {
-                  printf("Invalid input: Number out of range");
-              }
-              
-              break;
-          }
+            try
+            {
+                temp.bus_number =  std::stoi(line.substr(bus_pos - 6, 2), NULL, 16);
+                temp.device_number =  std::stoi(line.substr(dev_pos - 2, 2), NULL, 16);
+                temp.function_number =  std::stoi(line.substr(fun_pos - 2, 1), NULL, 16);
+            } 
+            catch (const std::invalid_argument& e) {
+                printf("Invalid input: Not a valid hexadecimal string\n");
+            }
+            catch (const std::out_of_range& e) {
+                printf("Invalid input: Number out of range\n");
+            }
+            
+            switch_list.push_back(temp);
         }
-        streamlines.pop_back();
-      }
     }
-  }
 
-  return status;
+    //Reset Stream
+    lines.clear();
+    lines.seekg(0, std::ios::beg);
+
+
+    for (const auto& d : switch_list){
+        //std::cout << "BDF" << std::hex << d.bus_number << ":" << d.device_number << ":" << d.function_number << std::endl;
+        uint64_t switch_bus_start, switch_bus_end = 0x0 ;
+        std::stringstream ss;
+        ss << std::hex << std::setw(2) << std::setfill('0') << d.bus_number;
+
+        while (std::getline(lines, line)) {
+
+            if ((line.rfind('-' + ss.str() + ']') != std::string::npos)) {
+                switch_bus_end = d.bus_number;
+                
+                bus_pos = line.rfind('-' + ss.str() + ']');
+                //std::cout << line.substr(bus_pos - 2, 2) << std::endl;
+                
+                try
+                {
+                    switch_bus_start = std::stoi(line.substr(bus_pos - 2, 2), NULL, 16);
+                } 
+                catch (const std::invalid_argument& e) {
+                    printf("Invalid input: Not a valid hexadecimal string\n");
+                }
+                catch (const std::out_of_range& e) {
+                    printf("Invalid input: Number out of range\n");
+                }
+
+                //std::cout << switch_bus_start << "-" << switch_bus_end << std::endl; 
+                break;
+            }
+            
+        }
+
+        if (devicehBdf.bus_number >= switch_bus_start  && devicehBdf.bus_number <= switch_bus_end){
+            switchBdf->bus_number = d.bus_number;
+            switchBdf->device_number = d.device_number;
+            switchBdf->function_number = d.function_number;
+            //std::cout << "Switch found" << std::endl;
+            break;
+        }
+    }
+
+      return status;
 }
