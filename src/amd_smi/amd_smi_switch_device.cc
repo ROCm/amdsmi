@@ -29,8 +29,7 @@
 #include "amd_smi/impl/amd_smi_switch_device.h"
 #include "rocm_smi/rocm_smi_utils.h"
 
-namespace amd {
-namespace smi {
+namespace amd::smi {
 
 uint32_t AMDSmiSWITCHDevice::get_switch_id() const {
     return switch_id_;
@@ -120,6 +119,5 @@ amdsmi_status_t AMDSmiSWITCHDevice::amd_query_switch_cpu_affinity(std::string& c
   return nodrm_.amd_query_switch_cpu_affinity(domain_bus_sstream.str(), cpu_affinity);
 }
 
-}  // namespace smi
-}  // namespace amd
+}  // namespace amd::smi
 

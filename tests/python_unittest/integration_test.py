@@ -319,7 +319,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
         self.assertGreaterEqual(len(processors), 1)
         self.assertLessEqual(len(processors), 32)
         for i in range(0, len(processors)):
-            bdf = amdsmi.amdsmi_get_nic_device_bdf(processors[i])
+            bdf = amdsmi.amdsmi_get_nic_info(processors[i])['bdf']
             print("\n\n###Test nic Processor {}, bdf: {}".format(i, bdf))
             print("\n###Test amdsmi_get_processor_handle_from_bdf \n")
             processor = amdsmi.amdsmi_get_processor_handle_from_bdf(bdf)

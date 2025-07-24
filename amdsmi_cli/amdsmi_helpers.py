@@ -386,10 +386,11 @@ class AMDSMIHelpers():
             max_padding = int(math.log10(len(device_handles))) + 1
           
             for nic_id, device_handle in enumerate(device_handles):
-                bdf = amdsmi_interface.amdsmi_get_nic_device_bdf(device_handle)
+                nic_info = amdsmi_interface.amdsmi_get_nic_info(device_handle)
+                bdf = nic_info['BDF']
               
                 #uuid="abc"
-                uuid = amdsmi_interface.amdsmi_get_nic_device_uuid(device_handle)
+                uuid = nic_info['UUID']
                
                 nic_choices[str(nic_id)] = {
                     "BDF": bdf,

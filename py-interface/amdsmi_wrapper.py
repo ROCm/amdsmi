@@ -3032,9 +3032,6 @@ amdsmi_stop_gpu_event_notification.argtypes = [amdsmi_processor_handle]
 amdsmi_get_gpu_device_bdf = _libraries['libamd_smi.so'].amdsmi_get_gpu_device_bdf
 amdsmi_get_gpu_device_bdf.restype = amdsmi_status_t
 amdsmi_get_gpu_device_bdf.argtypes = [amdsmi_processor_handle, ctypes.POINTER(union_amdsmi_bdf_t)]
-amdsmi_get_nic_device_bdf = _libraries['libamd_smi.so'].amdsmi_get_nic_device_bdf
-amdsmi_get_nic_device_bdf.restype = amdsmi_status_t
-amdsmi_get_nic_device_bdf.argtypes = [amdsmi_processor_handle, ctypes.POINTER(union_amdsmi_bdf_t)]
 amdsmi_get_switch_device_bdf = _libraries['libamd_smi.so'].amdsmi_get_switch_device_bdf
 amdsmi_get_switch_device_bdf.restype = amdsmi_status_t
 amdsmi_get_switch_device_bdf.argtypes = [amdsmi_processor_handle, ctypes.POINTER(union_amdsmi_bdf_t)]
@@ -3589,7 +3586,7 @@ __all__ = \
     'amdsmi_get_hsmp_metrics_table_version', 'amdsmi_get_lib_version',
     'amdsmi_get_link_metrics', 'amdsmi_get_link_topology_nearest',
     'amdsmi_get_minmax_bandwidth_between_processors',
-    'amdsmi_get_nic_device_bdf', 'amdsmi_get_nic_device_info',
+    'amdsmi_get_nic_device_info',
     'amdsmi_get_nic_device_uuid', 'amdsmi_get_nic_fw_info',
     'amdsmi_get_nic_gpu_topo_info', 'amdsmi_get_nic_info',
     'amdsmi_get_nic_metrics_info', 'amdsmi_get_nic_power_info',

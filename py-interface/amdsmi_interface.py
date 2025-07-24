@@ -1937,22 +1937,6 @@ def amdsmi_get_gpu_device_bdf_bdf(processor_handle: amdsmi_wrapper.amdsmi_proces
 
     return bdf_info
 
-def amdsmi_get_nic_device_bdf(processor_handle: amdsmi_wrapper.amdsmi_processor_handle) -> str:
-   
-    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
-        raise AmdSmiParameterException(
-            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
-
-        )
-
-    bdf_info = amdsmi_wrapper.amdsmi_bdf_t()
-    _check_res(
-        amdsmi_wrapper.amdsmi_get_nic_device_bdf(
-            processor_handle, ctypes.byref(bdf_info))
-    )
-
-    return _format_bdf(bdf_info)
-
 def amdsmi_get_nic_info(
     processor_handle: amdsmi_wrapper.amdsmi_processor_handle,
 ) -> Dict[str, Any]:

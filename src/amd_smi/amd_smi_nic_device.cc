@@ -29,8 +29,7 @@
 #include "amd_smi/impl/amd_smi_nic_device.h"
 #include "rocm_smi/rocm_smi_utils.h"
 
-namespace amd {
-namespace smi {
+namespace amd::smi {
 
 uint32_t AMDSmiNICDevice::get_nic_id() const {
     return nic_id_;
@@ -48,10 +47,23 @@ amdsmi_status_t AMDSmiNICDevice::get_no_drm_data() {
     amdsmi_status_t ret;
     std::string path;
     amdsmi_bdf_t bdf;
+    
     ret = nodrm_.get_device_path_by_index(nic_id_, &path);
-    if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
+    if (ret != AMDSMI_STATUS_SUCCESS) {
+        std::ostringstream ss;
+        ss << __PRETTY_FUNCTION__ << " | "
+           << "Failed to get device path for NIC #" << nic_id_ << ".";
+        LOG_DEBUG(ss);
+        return AMDSMI_STATUS_NOT_SUPPORTED;
+    }
     ret = nodrm_.get_bdf_by_index(nic_id_, &bdf);
-    if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
+    if (ret != AMDSMI_STATUS_SUCCESS) {
+        std::ostringstream ss;
+        ss << __PRETTY_FUNCTION__ << " | "
+           << "Failed to get BDF for NIC #" << nic_id_ << ".";
+        LOG_DEBUG(ss);
+        return AMDSMI_STATUS_NOT_SUPPORTED;
+    }
     path_ = path;
 
     return AMDSMI_STATUS_SUCCESS;
@@ -70,7 +82,13 @@ amdsmi_status_t AMDSmiNICDevice::amd_query_nic_temp_info(amdsmi_brcm_nic_tempera
   amdsmi_status_t ret;
   std::string hwmonPath;
   ret = nodrm_.get_hwmon_path_by_index(nic_id_, &hwmonPath);
-  if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
+    if (ret != AMDSMI_STATUS_SUCCESS) {
+        std::ostringstream ss;
+        ss << __PRETTY_FUNCTION__ << " | "
+           << "Failed to get hwmon path for NIC #" << nic_id_ << ".";
+        LOG_DEBUG(ss);
+        return AMDSMI_STATUS_NOT_SUPPORTED;
+    }
 
   return nodrm_.amd_query_nic_temp(hwmonPath, info);
 }
@@ -79,7 +97,14 @@ amdsmi_status_t AMDSmiNICDevice::amd_query_nic_power_info(amdsmi_brcm_nic_hwmon_
     amdsmi_status_t ret;
     std::string hwmonPath;
     ret = nodrm_.get_hwmon_path_by_index(nic_id_, &hwmonPath);
-    if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
+    if (ret != AMDSMI_STATUS_SUCCESS) {
+        std::ostringstream ss;
+        ss << __PRETTY_FUNCTION__ << " | "
+           << "Failed to get hwmon path for NIC #" << nic_id_ << ".";
+        LOG_DEBUG(ss);
+        return AMDSMI_STATUS_NOT_SUPPORTED;
+    }
+
     return nodrm_.amd_query_nic_power(hwmonPath, info);
 }
 
@@ -87,7 +112,13 @@ amdsmi_status_t AMDSmiNICDevice::amd_query_nic_device_info(amdsmi_brcm_nic_hwmon
     amdsmi_status_t ret;
     std::string hwmonPath;
     ret = nodrm_.get_hwmon_path_by_index(nic_id_, &hwmonPath);
-    if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
+    if (ret != AMDSMI_STATUS_SUCCESS) {
+        std::ostringstream ss;
+        ss << __PRETTY_FUNCTION__ << " | "
+           << "Failed to get hwmon path for NIC #" << nic_id_ << ".";
+        LOG_DEBUG(ss);
+        return AMDSMI_STATUS_NOT_SUPPORTED;
+    }
     return nodrm_.amd_query_nic_device(hwmonPath, info);
 }
 
@@ -95,7 +126,13 @@ amdsmi_status_t AMDSmiNICDevice::amd_query_nic_uuid(std::string& version) const 
   amdsmi_status_t ret;
   std::string devicePath;
   ret = nodrm_.get_device_path_by_index(nic_id_, &devicePath);
-  if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
+  if (ret != AMDSMI_STATUS_SUCCESS) {
+        std::ostringstream ss;
+        ss << __PRETTY_FUNCTION__ << " | "
+           << "Failed to get device path for NIC #" << nic_id_ << ".";
+        LOG_DEBUG(ss);
+        return AMDSMI_STATUS_NOT_SUPPORTED;
+    }
 
   return nodrm_.amd_query_nic_uuid(devicePath, version);
 }
@@ -104,7 +141,13 @@ amdsmi_status_t AMDSmiNICDevice::amd_query_nic_numa_affinity(int32_t *numa_node)
   amdsmi_status_t ret;
   std::string devicePath;
   ret = nodrm_.get_device_path_by_index(nic_id_, &devicePath);
-  if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
+  if (ret != AMDSMI_STATUS_SUCCESS) {
+        std::ostringstream ss;
+        ss << __PRETTY_FUNCTION__ << " | "
+           << "Failed to get device path for NIC #" << nic_id_ << ".";
+        LOG_DEBUG(ss);
+        return AMDSMI_STATUS_NOT_SUPPORTED;
+    }
 
   return nodrm_.amd_query_nic_numa_affinity(devicePath, numa_node);
 }
@@ -123,7 +166,13 @@ amdsmi_status_t AMDSmiNICDevice::amd_query_nic_firmware_info(amdsmi_brcm_nic_fir
     amdsmi_bdf_t bdf = {};
     ret = nodrm_.get_bdf_by_index(nic_id_, &bdf);
 
-    if (ret != AMDSMI_STATUS_SUCCESS) return AMDSMI_STATUS_NOT_SUPPORTED;
+    if (ret != AMDSMI_STATUS_SUCCESS) {
+        std::ostringstream ss;
+        ss << __PRETTY_FUNCTION__ << " | "
+           << "Failed to get BDF for NIC #" << nic_id_ << ".";
+        LOG_DEBUG(ss);
+        return AMDSMI_STATUS_NOT_SUPPORTED;
+    }
     char bdf_str[20];
     sprintf(bdf_str, "%04lx:%02x:%02x.%d", bdf.domain_number, bdf.bus_number, bdf.device_number,
             bdf.function_number);
@@ -131,6 +180,5 @@ amdsmi_status_t AMDSmiNICDevice::amd_query_nic_firmware_info(amdsmi_brcm_nic_fir
     return nodrm_.amd_query_nic_fw_info(std::string(bdf_str), info);
 }
 
-}  // namespace smi
-}  // namespace amd
+}  // namespace amd::smi
 

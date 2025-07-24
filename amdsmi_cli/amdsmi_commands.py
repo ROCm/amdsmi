@@ -4242,7 +4242,7 @@ class AMDSMICommands():
             # Loop through each NIC to get its BDF and corresponding GPU statuses
             for idx, dest_nic in enumerate(args.nic):
                 # Get NIC ID and BDF
-                nic_bdf = amdsmi_interface.amdsmi_get_nic_device_bdf(dest_nic)
+                nic_bdf = amdsmi_interface.amdsmi_get_nic_info(dest_nic)['BDF']
                 nic_id= self.helpers.get_nic_id_from_device_handle(dest_nic)
 
                 # List to store the GPU statuses for this NIC
@@ -4389,7 +4389,7 @@ class AMDSMICommands():
             if niccount > 0:
                 for nic_idx, nic_dest in enumerate(args.nic):
                     nic_id= self.helpers.get_nic_id_from_device_handle(nic_dest)
-                    nic_bdf = amdsmi_interface.amdsmi_get_nic_device_bdf(nic_dest)
+                    nic_bdf = amdsmi_interface.amdsmi_get_nic_info(nic_dest)['BDF']
                     CPU_Affinity=amdsmi_interface.amdsmi_get_nic_topo_cpu_affinity(nic_dest)
                     numa_node=amdsmi_interface.amdsmi_get_nic_topo_numa_affinity(nic_dest)
                     switch_bdf = amdsmi_interface.amdsmi_get_root_switch(amdsmi_interface.amdsmi_get_nic_device_bdf_bdf(nic_dest))
@@ -8072,7 +8072,7 @@ class AMDSMICommands():
         bdfs = []
         if isNICReq:
             for device in amdsmi_interface.get_nic_handles():
-                bdfs.append(amdsmi_interface.amdsmi_get_nic_device_bdf(device))
+                bdfs.append(amdsmi_interface.amdsmi_get_nic_info(device)['bdf'])
         if isSwitchReq:
             for device in amdsmi_interface.get_switch_handles():
                 bdfs.append(amdsmi_interface.amdsmi_get_switch_device_bdf(device))

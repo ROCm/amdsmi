@@ -43,11 +43,9 @@
 #include "rocm_smi/rocm_smi.h"
 #include "rocm_smi/rocm_smi_main.h"
 
-namespace amd {
-namespace smi {
+namespace amd::smi {
 
 amdsmi_status_t AMDSmiNoDrmNIC::init() {
-
     amd::smi::RocmSMI& smi = amd::smi::RocmSMI::getInstance();
     auto devices = smi.nic_devices();
 
@@ -95,13 +93,21 @@ amdsmi_status_t AMDSmiNoDrmNIC::init() {
 }
 
 amdsmi_status_t AMDSmiNoDrmNIC::cleanup() {
+    // Clear the vectors that hold the information about the NICs
     device_paths_.clear();
     hwmon_paths_.clear();
     no_drm_bdfs_.clear();
+    interfaces_.clear();
     return AMDSMI_STATUS_SUCCESS;
 }
 
 amdsmi_status_t AMDSmiNoDrmNIC::amd_query_nic_info(uint32_t nic_index, amdsmi_brcm_nic_info_t& info) {
+    // Retrieve information about a specific NIC.
+    //
+    // Parameters:
+    // - nic_index: The index of the NIC in the list of available NICs.
+    // - info: A reference to an object of type amdsmi_brcm_nic_info_t,
+    //   which will contain information about the NIC.
 
     amdsmi_status_t ret = AMDSMI_STATUS_SUCCESS;
     get_bdf_by_index(nic_index, &info.nic_bdf);
@@ -156,7 +162,7 @@ amdsmi_status_t AMDSmiNoDrmNIC::amd_query_nic_info(uint32_t nic_index, amdsmi_br
 
 amdsmi_status_t AMDSmiNoDrmNIC::amd_query_nic_temp(std::string hwmonPath,
       amdsmi_brcm_nic_temperature_metric_t &info) {
- 
+    // Get nic temperature info
     std::string crit_alarm = "temp1_crit_alarm";
     std::string emergency_alarm = "temp1_emergency_alarm";
     std::string shutdown_alarm = "temp1_shutdown_alarm";
@@ -168,20 +174,27 @@ amdsmi_status_t AMDSmiNoDrmNIC::amd_query_nic_temp(std::string hwmonPath,
     std::string nic_max = "temp1_max";
     std::string nic_shutdown = "temp1_shutdown";
   
-    info.nic_temp_crit_alarm = smi_brcm_get_value_u32(hwmonPath, crit_alarm);
-    info.nic_temp_emergency_alarm = smi_brcm_get_value_u32(hwmonPath, emergency_alarm);
-    info.nic_temp_shutdown_alarm = smi_brcm_get_value_u32(hwmonPath, shutdown_alarm);
-    info.nic_temp_max_alarm = smi_brcm_get_value_u32(hwmonPath, max_alarm);
-  
-    info.nic_temp_crit = smi_brcm_get_value_u32(hwmonPath, nic_crit);
-    info.nic_temp_emergency = smi_brcm_get_value_u32(hwmonPath, nic_emergency);
-    info.nic_temp_input = smi_brcm_get_value_u32(hwmonPath, nic_input);
-    info.nic_temp_max = smi_brcm_get_value_u32(hwmonPath, nic_max);
-    info.nic_temp_shutdown = smi_brcm_get_value_u32(hwmonPath, nic_shutdown);
+    try {
+        info.nic_temp_crit_alarm = smi_brcm_get_value_u32(hwmonPath, crit_alarm);
+        info.nic_temp_emergency_alarm = smi_brcm_get_value_u32(hwmonPath, emergency_alarm);
+      info.nic_temp_shutdown_alarm = smi_brcm_get_value_u32(hwmonPath, shutdown_alarm);
+      info.nic_temp_max_alarm = smi_brcm_get_value_u32(hwmonPath, max_alarm);
+    
+      info.nic_temp_crit = smi_brcm_get_value_u32(hwmonPath, nic_crit);
+      info.nic_temp_emergency = smi_brcm_get_value_u32(hwmonPath, nic_emergency);
+      info.nic_temp_input = smi_brcm_get_value_u32(hwmonPath, nic_input);
+      info.nic_temp_max = smi_brcm_get_value_u32(hwmonPath, nic_max);
+      info.nic_temp_shutdown = smi_brcm_get_value_u32(hwmonPath, nic_shutdown);
+    } catch (const std::exception& e) {
+        std::cerr << "AMDSmiNoDrmNIC::amd_query_nic_temp - An error occurred: " << e.what()
+                  << std::endl;
+    }
+    
     return AMDSMI_STATUS_SUCCESS;
 }
 
 amdsmi_status_t AMDSmiNoDrmNIC::amd_query_nic_power(std::string hwmonPath, amdsmi_brcm_nic_hwmon_power_t &info) {
+    // Get power metrics for a NIC
     try {
         hwmonPath = hwmonPath+"/power";
         std::string async = "async";
@@ -213,6 +226,7 @@ amdsmi_status_t AMDSmiNoDrmNIC::amd_query_nic_power(std::string hwmonPath, amdsm
 }
 
 amdsmi_status_t AMDSmiNoDrmNIC::amd_query_nic_device(std::string hwmonPath, amdsmi_brcm_nic_hwmon_device_t &info) {
+  
     try {
         hwmonPath = hwmonPath+"/device";
         std::string aer_dev_correctable = "aer_dev_correctable";
@@ -311,7 +325,12 @@ amdsmi_status_t AMDSmiNoDrmNIC::amd_query_nic_device(std::string hwmonPath, amds
 
 amdsmi_status_t AMDSmiNoDrmNIC::amd_query_nic_fw_info(std::string bdfStr, 
   amdsmi_brcm_nic_firmware_t &info) {
-
+    // Retrieve firmware version information from the NIC.
+    //
+    // Args:
+    //    bdfStr (std::string): Bus-Device-Function value of the NIC.
+    //    info (amdsmi_brcm_nic_firmware_t): Structure to hold the firmware
+    //                                        version information.
     std::string fw_pkg_version, fw_efi_version, fw_version, fw_ncsi_version, fw_roce_version;
     try {
       get_lspci_device_data(bdfStr, "V0] Vendor specific: ", fw_pkg_version);
@@ -340,42 +359,93 @@ amdsmi_status_t AMDSmiNoDrmNIC::amd_query_nic_fw_info(std::string bdfStr,
 }
 
 amdsmi_status_t AMDSmiNoDrmNIC::get_interface_name_by_index(uint32_t nic_index, std::string* interface_name) const {
-    if (nic_index + 1 > interfaces_.size()) return AMDSMI_STATUS_NOT_SUPPORTED;
+    // Retrieve the interface name for the given NIC index
+    if (nic_index + 1 > interfaces_.size()) {
+        std::ostringstream ss;
+        ss << __PRETTY_FUNCTION__ << " | "
+           << "Failed to get interface name for NIC #" << nic_index << ". Error " << AMDSMI_STATUS_NOT_SUPPORTED << ".";
+        LOG_DEBUG(ss);
+        return AMDSMI_STATUS_NOT_SUPPORTED;
+    }
+
     *interface_name = interfaces_[nic_index];
     return AMDSMI_STATUS_SUCCESS;
 }
 
 amdsmi_status_t AMDSmiNoDrmNIC::get_bdf_by_index(uint32_t nic_index, amdsmi_bdf_t *bdf_info) const {
-    if (nic_index + 1 > no_drm_bdfs_.size()) return AMDSMI_STATUS_NOT_SUPPORTED;
+    // Retrieve the BDF for the given NIC index
+    if (nic_index + 1 > no_drm_bdfs_.size()) {
+        std::ostringstream ss;
+        ss << __PRETTY_FUNCTION__ << " | "
+           << "Failed to get BDF for NIC #" << nic_index << ". Error " << AMDSMI_STATUS_NOT_SUPPORTED << ".";
+        LOG_DEBUG(ss);
+        return AMDSMI_STATUS_NOT_SUPPORTED;
+    }
     *bdf_info = no_drm_bdfs_[nic_index];
     return AMDSMI_STATUS_SUCCESS;
 }
 amdsmi_status_t AMDSmiNoDrmNIC::get_device_path_by_index(uint32_t nic_index, std::string *device_path) const {
-    if (nic_index + 1 > device_paths_.size()) return AMDSMI_STATUS_NOT_SUPPORTED;
+    // Retrieve the device path for the given NIC index
+    if (nic_index + 1 > device_paths_.size()) {
+        std::ostringstream ss;
+        ss << __PRETTY_FUNCTION__ << " | "
+           << "Failed to get device path for NIC #" << nic_index << ". Error " << AMDSMI_STATUS_NOT_SUPPORTED << ".";
+        LOG_DEBUG(ss);
+        return AMDSMI_STATUS_NOT_SUPPORTED;
+    }
     *device_path = device_paths_[nic_index];
     return AMDSMI_STATUS_SUCCESS;
 }
 
 amdsmi_status_t AMDSmiNoDrmNIC::get_hwmon_path_by_index(uint32_t nic_index, std::string *hwm_path) const {
-    if (nic_index + 1 > hwmon_paths_.size()) return AMDSMI_STATUS_NOT_SUPPORTED;
+    // Retrieve the hwmon path for the given NIC index
+    if (nic_index + 1 > hwmon_paths_.size()) {
+        std::ostringstream ss;
+        ss << __PRETTY_FUNCTION__ << " | "
+           << "Failed to get hwmon path for NIC #" << nic_index << ". Error " << AMDSMI_STATUS_NOT_SUPPORTED << ".";
+        LOG_DEBUG(ss);
+        return AMDSMI_STATUS_NOT_SUPPORTED;
+    }
     *hwm_path = hwmon_paths_[nic_index];
     return AMDSMI_STATUS_SUCCESS;
 }
 
-std::vector<std::string>& AMDSmiNoDrmNIC::get_device_paths() { return device_paths_; }
-std::vector<std::string> &AMDSmiNoDrmNIC::get_hwmon_paths() { return hwmon_paths_; }
-bool AMDSmiNoDrmNIC::check_if_no_drm_is_supported() { return true; }
-std::vector<amdsmi_bdf_t> AMDSmiNoDrmNIC::get_bdfs() { return no_drm_bdfs_; }
+std::vector<std::string>& AMDSmiNoDrmNIC::get_device_paths() { 
+    // Return reference to vector of device paths.
+    return device_paths_; 
+}
+std::vector<std::string>& AMDSmiNoDrmNIC::get_hwmon_paths() { 
+    // Return reference to vector of hwmon paths.
+    return hwmon_paths_; 
+}
+
+bool AMDSmiNoDrmNIC::check_if_no_drm_is_supported() {
+    // Return true if no-drm NIC is supported.
+    return true;
+}
+
+std::vector<amdsmi_bdf_t> AMDSmiNoDrmNIC::get_bdfs() {
+    // Return reference to vector of BDFs.
+    return no_drm_bdfs_;
+}
+
 
 amdsmi_status_t AMDSmiNoDrmNIC::amd_query_nic_uuid(std::string devicePath, std::string &version) {
+  // Get NIC MAC address
   std::string netPath = devicePath + "/net";
   auto net_node_dir = opendir(netPath.c_str());
-  if (net_node_dir == nullptr) {
+    if (net_node_dir == nullptr) {
+        std::ostringstream ss;
+        ss << __PRETTY_FUNCTION__ << " | "
+           << "Failed to open net node directory: " << netPath << ". Error " << AMDSMI_STATUS_FILE_ERROR << ".";
+        LOG_DEBUG(ss);
+
     return AMDSMI_STATUS_FILE_ERROR;
   }
   auto dentry = readdir(net_node_dir);
   std::string macPath;
   while ((dentry = readdir(net_node_dir)) != nullptr) {
+    // Skip "." and ".." directories
     if ((strcmp(dentry->d_name, ".") == 0) || (strcmp(dentry->d_name, "..") == 0)) {
       continue;
     }
@@ -388,6 +458,7 @@ amdsmi_status_t AMDSmiNoDrmNIC::amd_query_nic_uuid(std::string devicePath, std::
 }
 
 amdsmi_status_t AMDSmiNoDrmNIC::amd_query_nic_numa_affinity(std::string devicePath, int32_t *numa_node) {
+  // Get NIC NUMA affinity
   std::string numaFile = "numa_node";
   uint32_t numa = smi_brcm_get_value_u32(devicePath, numaFile);
   *numa_node = numa;
@@ -395,11 +466,11 @@ amdsmi_status_t AMDSmiNoDrmNIC::amd_query_nic_numa_affinity(std::string devicePa
 }
 
 amdsmi_status_t AMDSmiNoDrmNIC::amd_query_nic_cpu_affinity(std::string devicePath, std::string &cpu_affinity) {
+  // Get NIC CPU affinity
   std::string cpuAffFile = "cpulistaffinity";
   cpu_affinity = smi_brcm_get_value_string(devicePath, cpuAffFile);
   
   return AMDSMI_STATUS_SUCCESS;
 }
 
-}  // namespace smi
-}  // namespace amd
+}  // namespace amd::smi

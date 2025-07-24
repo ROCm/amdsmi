@@ -37,8 +37,14 @@ amdsmi_status_t get_lspci_device_data(std::string bdfStr, std::string search_key
     std::string lspci_data;
     std::string command = "lspci -s " + bdfStr + " -vv | grep -i '" + search_key + "'";
 
-    if (smi_brcm_execute_cmd_get_data(command, &lspci_data) != AMDSMI_STATUS_SUCCESS)
-      return AMDSMI_STATUS_NOT_SUPPORTED;
+    if (smi_brcm_execute_cmd_get_data(command, &lspci_data) != AMDSMI_STATUS_SUCCESS){
+        std::ostringstream ss;
+        ss << __PRETTY_FUNCTION__ << " | "
+           << "Failed to execute command: lspci -s " << bdfStr << " -vv | grep -i " << search_key << ".";
+        LOG_ERROR(ss);
+
+        return AMDSMI_STATUS_NOT_SUPPORTED;
+    }
 
     int pos = lspci_data.find(search_key);
     if (pos != std::string::npos) {
@@ -59,6 +65,15 @@ amdsmi_status_t get_lspci_root_switch(amdsmi_bdf_t devicehBdf, amdsmi_bdf_t *swi
     std::string lspci_data;
 
     status = smi_brcm_execute_cmd_get_data("lspci -tvv", &lspci_data);
+
+    if (status != AMDSMI_STATUS_SUCCESS) {
+        std::ostringstream ss;
+        ss << __PRETTY_FUNCTION__ << " | "
+           << "Failed to execute command: lspci -tvv.";
+        LOG_ERROR(ss);
+        return status;
+    }
+    
     std::istringstream lines(lspci_data);
 
     std::string line;
@@ -75,31 +90,43 @@ amdsmi_status_t get_lspci_root_switch(amdsmi_bdf_t devicehBdf, amdsmi_bdf_t *swi
             //get Bus
             bus_pos = line.rfind(']----');
             if (bus_pos == std::string::npos){
-            continue;
+                // Check if the Bus position is not found, then continue to the next line
+                continue;
             }
             
             //Get device
             dev_pos = line.rfind('.');
             if (dev_pos == std::string::npos){
+                // Check if the device position is not found, then continue to the next line
                 continue;
             }
 
             //Get function
             fun_pos = dev_pos + 1;
 
-            //std::cout << line.substr(bus_pos - 6, 2) << ":" << line.substr(dev_pos - 2, 2) << ":" << line.substr(fun_pos - 2, 1) << std::endl;
+            std::ostringstream ss;
+            ss << __PRETTY_FUNCTION__ << " | "
+               << "Found switch at " << line.substr(bus_pos - 6, 2) << ":"
+               << line.substr(dev_pos - 2, 2) << ":"
+               << line.substr(fun_pos - 2, 1);
+            LOG_DEBUG(ss);
 
             try
             {
+                // Parse the BDF
                 temp.bus_number =  std::stoi(line.substr(bus_pos - 6, 2), NULL, 16);
                 temp.device_number =  std::stoi(line.substr(dev_pos - 2, 2), NULL, 16);
                 temp.function_number =  std::stoi(line.substr(fun_pos - 2, 1), NULL, 16);
             } 
             catch (const std::invalid_argument& e) {
-                printf("Invalid input: Not a valid hexadecimal string\n");
+                std::ostringstream ss;
+                ss << __PRETTY_FUNCTION__ << " | " << "Invalid input: Not a valid hexadecimal string.";
+                LOG_ERROR(ss);
             }
             catch (const std::out_of_range& e) {
-                printf("Invalid input: Number out of range\n");
+                std::ostringstream ss;
+                ss << __PRETTY_FUNCTION__ << " | " << "Invalid input: Number out of range.";
+                LOG_ERROR(ss);
             }
             
             switch_list.push_back(temp);
@@ -130,13 +157,21 @@ amdsmi_status_t get_lspci_root_switch(amdsmi_bdf_t devicehBdf, amdsmi_bdf_t *swi
                     switch_bus_start = std::stoi(line.substr(bus_pos - 2, 2), NULL, 16);
                 } 
                 catch (const std::invalid_argument& e) {
-                    printf("Invalid input: Not a valid hexadecimal string\n");
+                    std::ostringstream ss;
+                    ss << __PRETTY_FUNCTION__ << " | " << "Invalid input: Not a valid hexadecimal string.";
+                    LOG_ERROR(ss);
                 }
                 catch (const std::out_of_range& e) {
-                    printf("Invalid input: Number out of range\n");
+                    std::ostringstream ss;
+                    ss << __PRETTY_FUNCTION__ << " | " << "Invalid input: Number out of range.";
+                    LOG_ERROR(ss);
+
                 }
 
-                //std::cout << switch_bus_start << "-" << switch_bus_end << std::endl; 
+                std::ostringstream sst;
+                sst << __PRETTY_FUNCTION__ << " | " << "Switch bus range: " << switch_bus_start << "-" << switch_bus_end;
+                LOG_DEBUG(sst);
+
                 break;
             }
             
@@ -146,10 +181,14 @@ amdsmi_status_t get_lspci_root_switch(amdsmi_bdf_t devicehBdf, amdsmi_bdf_t *swi
             switchBdf->bus_number = d.bus_number;
             switchBdf->device_number = d.device_number;
             switchBdf->function_number = d.function_number;
-            //std::cout << "Switch found" << std::endl;
+            std::ostringstream ss;
+            ss << __PRETTY_FUNCTION__ << " | " << "Found switch at BDF " << d.bus_number << ":" << d.device_number << ":" << d.function_number;
+            LOG_DEBUG(ss);
+                        
             break;
         }
     }
 
       return status;
+
 }

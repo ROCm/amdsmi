@@ -45,8 +45,7 @@
 #include "rocm_smi/rocm_smi_main.h"
 #include "rocm_smi/rocm_smi_utils.h"
 
-namespace amd {
-namespace smi {
+namespace amd::smi {
 
 amdsmi_status_t AMDSmiNoDrmSwitch::init() {
 
@@ -322,7 +321,5 @@ std::vector<amdsmi_bdf_t> AMDSmiNoDrmSwitch::get_bdfs() {
     return no_drm_bdfs_;
 }
 
-
-}  // namespace smi
-}  // namespace amd
+}  // namespace amd::smi
 

@@ -33,9 +33,9 @@
 #include <memory>
 #include <mutex>  // NOLINT
 #include "amd_smi/amdsmi.h"
+#include "rocm_smi/rocm_smi_logger.h"
 
-namespace amd {
-namespace smi {
+namespace amd::smi {
 
 class AMDSmiNoDrmNIC {
  public:
@@ -68,8 +68,6 @@ class AMDSmiNoDrmNIC {
     std::vector<amdsmi_bdf_t> no_drm_bdfs_;
 };
 
-
-}  // namespace smi
-}  // namespace amd
+}  // namespace amd::smi
 
 #endif  // AMD_SMI_INCLUDE_IMPL_AMD_SMI_NO_DRM_NIC_H_

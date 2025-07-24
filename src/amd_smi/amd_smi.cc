@@ -717,25 +717,6 @@ amdsmi_get_gpu_device_bdf(amdsmi_processor_handle processor_handle, amdsmi_bdf_t
 
     return AMDSMI_STATUS_SUCCESS;
 }
-
-amdsmi_status_t amdsmi_get_nic_device_bdf(amdsmi_processor_handle processor_handle,
-                                          amdsmi_bdf_t *bdf) {
-  AMDSMI_CHECK_INIT();
-  
-  if (bdf == NULL) {
-    return AMDSMI_STATUS_INVAL;
-  }
-
-  amd::smi::AMDSmiNICDevice *nic_device = nullptr;
-  amdsmi_status_t r = get_nic_device_from_handle(processor_handle, &nic_device);
-  if (r != AMDSMI_STATUS_SUCCESS) return r;
-
-  // get bdf from sysfs file
-  *bdf = nic_device->get_bdf();
-
-  return AMDSMI_STATUS_SUCCESS;
-}
-
 amdsmi_status_t
 amdsmi_get_nic_info(amdsmi_processor_handle processor_handle, amdsmi_brcm_nic_info_t *info) {
   AMDSMI_CHECK_INIT();

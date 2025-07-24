@@ -29,6 +29,7 @@
 #define AMD_SMI_LSPCI_COMMANDS_H_
 
 #include "amd_smi/amdsmi.h"
+#include "rocm_smi/rocm_smi_logger.h"
 
 amdsmi_status_t get_lspci_device_data(std::string bdfStr, std::string search_key, std::string &version);
 amdsmi_status_t get_lspci_root_switch(amdsmi_bdf_t devicehBdf, amdsmi_bdf_t *switchBdf);

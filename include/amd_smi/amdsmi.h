@@ -6377,23 +6377,6 @@ amdsmi_status_t
 amdsmi_get_gpu_device_bdf(amdsmi_processor_handle processor_handle, amdsmi_bdf_t *bdf);
 
 /**
- *  @brief Returns BDF of the given brcm nic device
- *
- *  @ingroup tagProcDiscovery
- *
- *  @platform{gpu_bm_linux} @platform{host} @platform{guest_1vf}  @platform{guest_mvf}
- *  @platform{guest_windows}
- *
- *  @param[in]      processor_handle brcm nic Device which to query
- *
- *  @param[out]     bdf Reference to BDF. Must be allocated by user.
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t 
-amdsmi_get_nic_device_bdf(amdsmi_processor_handle processor_handle, amdsmi_bdf_t *bdf);
-
-/**
  *  @brief Returns BDF of the given brcm switch device
  *
  *  @ingroup tagProcDiscovery

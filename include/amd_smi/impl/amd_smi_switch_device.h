@@ -34,8 +34,7 @@
 #include "shared_mutex.h"  // NOLINT
 #include "rocm_smi/rocm_smi_logger.h"
 
-namespace amd {
-namespace smi {
+namespace amd::smi {
 
 class AMDSmiSWITCHDevice: public AMDSmiProcessor {
  public:
@@ -69,8 +68,6 @@ class AMDSmiSWITCHDevice: public AMDSmiProcessor {
     AMDSmiNoDrmSwitch& nodrm_;
 };
 
-
-}  // namespace smi
-}  // namespace amd
+}  // namespace amd::smi
 
 #endif  // AMD_SMI_INCLUDE_IMPL_AMD_SMI_SWITCH_DEVICE_H_
