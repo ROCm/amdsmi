@@ -211,9 +211,8 @@ class AMDSMIParser(argparse.ArgumentParser):
 
     def _is_command_supported(self, user_input, acceptable_values, command_name):
         if acceptable_values == "N/A":
-            print(f"Command {command_name} requires elevation (sudo privileges required)")
             outputformat = self.helpers.get_output_format()
-            raise amdsmi_cli_exceptions.AmdSmiAMDSMIErrorException(outputformat, 10)
+            raise amdsmi_cli_exceptions.AmdSmiPermissionsException(command_name, outputformat)
         elif str(user_input).upper() not in acceptable_values:
             print(f"Valid inputs are {acceptable_values}")
             raise amdsmi_cli_exceptions.AmdSmiInvalidParameterValueException(str(user_input).upper(), self.helpers.get_output_format())
