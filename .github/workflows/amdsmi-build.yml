@@ -97,6 +97,11 @@ jobs:
               echo "Installation successful on attempt $i"
               ln -s /opt/rocm/bin/amd-smi /usr/local/bin
 
+              # Install Python Packages
+              pip install amdsmi
+              # echo "/opt/rocm/lib64" | tee /etc/ld.so.conf.d/rocm.conf
+              # ldconfig
+
               # Verify Installation
               echo 'Verifying installation:'
               amd-smi version
@@ -193,6 +198,12 @@ jobs:
             if apt install -y $BUILD_FOLDER/amd-smi-lib*99999-local_amd64.deb; then
               echo "Installation successful on attempt $i"
               ln -s /opt/rocm/bin/amd-smi /usr/local/bin
+
+              # Install Python Packages
+              pip install amdsmi
+              # echo "/opt/rocm/lib64" | tee /etc/ld.so.conf.d/rocm.conf
+              # ldconfig
+
               echo 'Install done for test on ${{ matrix.os }}'
               break
             else
@@ -479,6 +490,11 @@ jobs:
               echo "Installation successful on attempt $i"
               ln -s /opt/rocm/bin/amd-smi /usr/local/bin
 
+              # Install Python Packages
+              pip install amdsmi
+              # echo "/opt/rocm/lib64" | tee /etc/ld.so.conf.d/rocm.conf
+              # ldconfig
+
               echo 'Verifying installation:'
               amd-smi version
               python3 -m pip list | grep amd
@@ -511,6 +527,12 @@ jobs:
                 echo "Attempt $i: Installing AMDSMI package..."
                 if timeout 10m dnf install -y --skip-broken --disablerepo=* ./amd-smi-lib-*99999-local*.rpm; then
                   echo "AMDSMI package installed successfully."
+
+                  # Install Python Packages
+                  pip install amdsmi
+                  # echo "/opt/rocm/lib64" | tee /etc/ld.so.conf.d/rocm.conf
+                  # ldconfig
+
                   break
                 else
                   echo "Installation failed on attempt $i. Retrying..."
@@ -524,6 +546,11 @@ jobs:
               ;;
           esac
           ln -s /opt/rocm/bin/amd-smi /usr/local/bin
+
+          # Install Python Packages
+          pip install amdsmi
+          # echo "/opt/rocm/lib64" | tee /etc/ld.so.conf.d/rocm.conf
+          # ldconfig
 
           # Verify Installation
           echo 'Verifying installation:'
@@ -636,6 +663,12 @@ jobs:
             if timeout 10m dnf install -y --skip-broken --disablerepo=* $BUILD_FOLDER/amd-smi-lib-*99999-local*.rpm; then
               echo "Installation successful on attempt $i"
               ln -s /opt/rocm/bin/amd-smi /usr/local/bin
+
+              # Install Python Packages
+              pip install amdsmi
+              # echo "/opt/rocm/lib64" | tee /etc/ld.so.conf.d/rocm.conf
+              # ldconfig
+
               echo 'Install done for test on RHEL10/AlmaLinux8'
               break
             else
@@ -673,6 +706,12 @@ jobs:
                 echo "Attempt $i: Installing..."
                 if timeout 10m dnf install -y --skip-broken --disablerepo=* $BUILD_FOLDER/amd-smi-lib-*99999-local*.rpm; then
                   echo "Install successful."
+
+                  # Install Python Packages
+                  pip install amdsmi
+                  # echo "/opt/rocm/lib64" | tee /etc/ld.so.conf.d/rocm.conf
+                  # ldconfig
+
                   break
                 else
                   echo "Attempt $i failed. Retrying..."
