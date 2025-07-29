@@ -2132,18 +2132,15 @@ amdsmi_status_t amdsmi_get_link_metrics(amdsmi_processor_handle processor_handle
     if (link_metrics == nullptr)  return AMDSMI_STATUS_INVAL;
 
     amdsmi_gpu_metrics_t metric_info = {};
-    link_metrics->max_bandwidth = std::numeric_limits<uint32_t>::max();
+    for (unsigned int i = 0; i < AMDSMI_MAX_NUM_XGMI_LINKS; ++i) {
+        link_metrics->links[i].max_bandwidth = std::numeric_limits<uint32_t>::max();
+    }
 
     amdsmi_status_t status =  amdsmi_get_gpu_metrics_info(
             processor_handle, &metric_info);
     if (status != AMDSMI_STATUS_SUCCESS)
         return status;
     link_metrics->num_links = AMDSMI_MAX_NUM_XGMI_LINKS;
-
-    link_metrics->bit_rate = metric_info.xgmi_link_speed;
-    if ((metric_info.xgmi_link_speed != std::numeric_limits<uint16_t>::max()) &&
-        (metric_info.xgmi_link_width != std::numeric_limits<uint16_t>::max()))
-        link_metrics->max_bandwidth = metric_info.xgmi_link_speed * metric_info.xgmi_link_width;
 
     uint16_t link_to_dst_node[AMDSMI_MAX_NUM_XGMI_LINKS];
     std::fill_n(link_to_dst_node, AMDSMI_MAX_NUM_XGMI_LINKS, std::numeric_limits<uint16_t>::max());
@@ -2191,17 +2188,12 @@ amdsmi_status_t amdsmi_get_link_metrics(amdsmi_processor_handle processor_handle
         link_metrics->links[i].read = metric_info.xgmi_read_data_acc[i];
         link_metrics->links[i].write = metric_info.xgmi_write_data_acc[i];
         link_metrics->links[i].link_type = AMDSMI_LINK_TYPE_XGMI;
+        link_metrics->links[i].bit_rate = metric_info.xgmi_link_speed;
+        if ((metric_info.xgmi_link_speed != std::numeric_limits<uint16_t>::max()) &&
+            (metric_info.xgmi_link_width != std::numeric_limits<uint16_t>::max()))
+            link_metrics->links[i].max_bandwidth = metric_info.xgmi_link_speed * metric_info.xgmi_link_width;
     }
     return AMDSMI_STATUS_SUCCESS;
-}
-
-static void translated_link_type(amdsmi_link_type_t *type) {
-    // Convert type to match rocm-smi or amd-smi
-    if (*type == AMDSMI_LINK_TYPE_PCIE)
-        *type = AMDSMI_LINK_TYPE_XGMI;
-    else if (*type == AMDSMI_LINK_TYPE_XGMI)
-        *type = AMDSMI_LINK_TYPE_PCIE;
-    return;
 }
 
 amdsmi_status_t
@@ -2217,12 +2209,8 @@ amdsmi_topo_get_link_type(amdsmi_processor_handle processor_handle_src, amdsmi_p
     r = get_gpu_device_from_handle(processor_handle_dst, &dst_device);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
-    // Convert type to match rocm-smi
-    translated_link_type(type);
     auto rstatus = rsmi_topo_get_link_type(src_device->get_gpu_id(), dst_device->get_gpu_id(),
                 hops, reinterpret_cast<RSMI_IO_LINK_TYPE*>(type));
-    // Convert type to match amd-smi
-    translated_link_type(type);
     return amd::smi::rsmi_to_amdsmi_status(rstatus);
 }
 
@@ -2259,13 +2247,9 @@ amdsmi_topo_get_p2p_status(amdsmi_processor_handle processor_handle_src,
     r = get_gpu_device_from_handle(processor_handle_dst, &dst_device);
     if (r != AMDSMI_STATUS_SUCCESS)
         return r;
-    // Convert type to match rocm-smi
-    translated_link_type(type);
     auto rstatus = rsmi_topo_get_p2p_status(src_device->get_gpu_id(), dst_device->get_gpu_id(),
                 reinterpret_cast<RSMI_IO_LINK_TYPE*>(type),
                 reinterpret_cast<rsmi_p2p_capability_t*>(cap));
-    // Convert type to match amd-smi
-    translated_link_type(type);
     return amd::smi::rsmi_to_amdsmi_status(rstatus);
 }
 
