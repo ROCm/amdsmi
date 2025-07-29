@@ -530,27 +530,11 @@ rsmi_shut_down(void) {
     return RSMI_STATUS_INIT_ERROR;
   }
 
-  // Release any device mutexes that are being held
-#if DEBUG
-  int ret = 0;
-#endif
-  for (uint32_t i = 0; i < smi.devices().size(); ++i) {
-#if DEBUG
-    ret = pthread_mutex_unlock(smi.devices()[i]->mutex());
-    if (ret != EPERM) {  // We expect to get EPERM if the lock has already
-                         // been released
-      if (ret == 0) {
-        std::cout << "WARNING: Unlocked monitor_devices lock; " <<
-                    "it should have already been unlocked." << std::endl;
-      } else {
-      std::cout << "WARNING: pthread_mutex_unlock() returned " << ret <<
-                   " for device " << i << " in rsmi_shut_down()" << std::endl;
-      }
-    }
-#else
-    (void)pthread_mutex_unlock(smi.devices()[i]->mutex());
-#endif
-  }
+  // Skip device mutex cleanup during shutdown - device mutexes are per-operation,
+  // not held across the lifetime of the library. Any held mutexes should be
+  // released by their respective operations.
+  // Attempting to unlock all device mutexes unconditionally causes race conditions
+  // when multiple threads call rsmi_shut_down() concurrently.
 
   (void)smi.ref_count_dec();
 
@@ -7479,7 +7463,7 @@ rsmi_event_notification_get(int timeout_ms,
 
             sscanf(message, "%" PRId64 " -%d @%" PRIu32 "(%" PRIu32 ") %x->%x %x:%x %d\n", &ns, &pid, &start, &size, &from, &to, &prefetch_loc, &preferred_loc, &migrate_trigger);
             std::stringstream final_message;
-            final_message << "nd: " << std::to_string(ns).c_str() 
+            final_message << "nd: " << std::to_string(ns).c_str()
                           << "  pid: " << std::to_string(pid).c_str()
                           << "  start: 0x" << std::hex << start
                           << "  size: 0x" << std::hex << size
@@ -7505,7 +7489,7 @@ rsmi_event_notification_get(int timeout_ms,
 
             sscanf(message, "%" PRId64 " -%d @%" PRIu32 "(%" PRIu32 ") %x->%x %d %d\n", &ns, &pid, &start, &size, &from, &to, &migrate_trigger, &error_code);
             std::stringstream final_message;
-            final_message << "nd: " << std::to_string(ns).c_str() 
+            final_message << "nd: " << std::to_string(ns).c_str()
                           << "  pid: " << std::to_string(pid).c_str()
                           << "  start: 0x" << std::hex << start
                           << "  size: 0x" << std::hex << size
@@ -7841,4 +7825,3 @@ rsmi_test_refcount(uint64_t refcnt_type) {
 
   return static_cast<int32_t>(smi.ref_count());
 }
-

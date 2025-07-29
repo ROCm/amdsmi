@@ -715,8 +715,9 @@ Device::Device(std::string p, RocmSMI_env_vars const *e) :
   }
 }
 
-Device:: ~Device() {
-  shared_mutex_close(mutex_);
+Device::~Device() {
+  // Device mutexes are per-operation and should not be cleaned up here
+  // in a multi-threaded environment due to potential race conditions
 }
 
 template <typename T>

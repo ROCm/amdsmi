@@ -296,22 +296,36 @@ shared_mutex_t shared_mutex_init(const char *name, mode_t mode, bool retried) {
 }
 
 int shared_mutex_close(shared_mutex_t mutex) {
-  amd::smi::RocmSMI& smi = amd::smi::RocmSMI::getInstance();
+  if (mutex.ptr == nullptr) {
+    return 0;
+  }
+
+  const amd::smi::RocmSMI& smi = amd::smi::RocmSMI::getInstance();
   const bool is_thread_only = GetEnvVarUInteger(PROCESS_CROSS_PROCESS_ENV_VAR) != 1 ||
           smi.is_thread_only_mutex();
+
   if (is_thread_only) {
     delete mutex.ptr;
-  } else if (munmap(reinterpret_cast<void *>(mutex.ptr), sizeof(pthread_mutex_t))) {
-    perror("munmap");
-    return -1;
+  } else {
+    if (munmap(reinterpret_cast<void *>(mutex.ptr), sizeof(pthread_mutex_t)) != 0) {
+      perror("munmap");
+      return -1;
+    }
   }
   mutex.ptr = nullptr;
-  if (!is_thread_only && close(mutex.shm_fd)) {
-    perror("close");
-    return -1;
+
+  if (!is_thread_only && mutex.shm_fd > 0) {
+    if (close(mutex.shm_fd) != 0) {
+      perror("close");
+      return -1;
+    }
+    mutex.shm_fd = -1;
   }
-  mutex.shm_fd = 0;
-  free(mutex.name);
+
+  if (mutex.name != nullptr) {
+    free(mutex.name);
+    mutex.name = nullptr;
+  }
 
   return 0;
 }

@@ -178,6 +178,7 @@ amdsmi_status_t rsmi_wrapper(F && f,
 
 amdsmi_status_t
 amdsmi_init(uint64_t flags) {
+    std::lock_guard<std::mutex> guard(myMutex);
     if (initialized_lib) {
         return AMDSMI_STATUS_SUCCESS;
     }
@@ -191,6 +192,7 @@ amdsmi_init(uint64_t flags) {
 
 amdsmi_status_t
 amdsmi_shut_down() {
+    std::lock_guard<std::mutex> guard(myMutex);
     if (!initialized_lib)
         return AMDSMI_STATUS_SUCCESS;
     amdsmi_status_t status = amd::smi::AMDSmiSystem::getInstance().cleanup();
@@ -2339,7 +2341,7 @@ amdsmi_set_gpu_memory_partition(amdsmi_processor_handle processor_handle,
         return AMDSMI_STATUS_INVAL;
     }
     std::ostringstream ss;
-    std::lock_guard<std::mutex> g(myMutex);
+    std::lock_guard<std::mutex> guard(myMutex);
 
     const uint32_t k256 = 256;
     char current_partition[k256];
