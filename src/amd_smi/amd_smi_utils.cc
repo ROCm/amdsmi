@@ -838,7 +838,13 @@ std::string smi_brcm_get_value_string(std::string filePath, std::string fileName
     return "N/A";
   }
   else {
-    temp << file.rdbuf();
+    std::string line;
+    while (std::getline(file, line)) {
+      if (line.empty()) {
+        break;
+      }
+      temp << line;
+    }
   }
 
   return temp.str();

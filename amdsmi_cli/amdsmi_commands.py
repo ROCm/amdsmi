@@ -3598,72 +3598,60 @@ class AMDSMICommands():
             for arg in current_platform_args:
                 setattr(args, arg, True)
 
-        #Additional Check for Bad Data
+        # Add timestamp and store values for specified arguments
+        values_dict = {}
 
-        bad_data = False
+        if "switch_power" in current_platform_args:
+            if args.switch_power:                
+                power_dict = {}
+                sysfs_blocks = {"brcm_power_async": "", "brcm_power_control": "", "brcm_power_runtime_active_kids": "",
+                                "brcm_power_runtime_active_time": "", "brcm_power_runtime_enabled": "", "brcm_power_runtime_status": "",
+                                "brcm_power_runtime_suspended_time": "", "brcm_power_runtime_usage": "",
+                                "brcm_power_wakeup": "", "brcm_power_wakeup_abort_count": "", "brcm_power_wakeup_active": "",
+                                "brcm_power_wakeup_active_count": "", "brcm_power_wakeup_count": "", "brcm_power_wakeup_last_time_ms": "",
+                                "brcm_power_wakeup_max_time_ms": "", "brcm_power_wakeup_total_time_ms": ""}
 
-        if switch_metric_info['brcm_power_async'] == "N/A" or switch_metric_info['brcm_power_control'] == "N/A":
-            if multiple_devices:
-                return
-            else:
-                bad_data = True
+                for key in switch_metric_info.keys():
+                    if key in sysfs_blocks.keys():
+                        if isinstance(switch_metric_info[key], int):
+                            value = switch_metric_info[key]
+                        else:
+                            value = (switch_metric_info[key].split('\n')[0]).upper()
 
-        if not bad_data:
-            # Add timestamp and store values for specified arguments
-            values_dict = {}
+                        if value == "":
+                            value = "N/A"
+                        power_dict[key] = self.helpers.unit_format(self.logger,
+                                                                    value,
+                                                                    sysfs_blocks[key])
 
-            if "switch_power" in current_platform_args:
-                if args.switch_power:                
-                    power_dict = {}
-                    sysfs_blocks = {"brcm_power_async": "", "brcm_power_control": "", "brcm_power_runtime_active_kids": "",
-                                    "brcm_power_runtime_active_time": "", "brcm_power_runtime_enabled": "", "brcm_power_runtime_status": "",
-                                    "brcm_power_runtime_suspended_time": "", "brcm_power_runtime_usage": "",
-                                    "brcm_power_wakeup": "", "brcm_power_wakeup_abort_count": "", "brcm_power_wakeup_active": "",
-                                    "brcm_power_wakeup_active_count": "", "brcm_power_wakeup_count": "", "brcm_power_wakeup_last_time_ms": "",
-                                    "brcm_power_wakeup_max_time_ms": "", "brcm_power_wakeup_total_time_ms": ""}
+                values_dict["switch_power"] = power_dict
 
-                    for key in switch_metric_info.keys():
-                        if key in sysfs_blocks.keys():
-                            if isinstance(switch_metric_info[key], int):
-                                value = switch_metric_info[key]
-                            else:
-                                value = (switch_metric_info[key].split('\n')[0]).upper()
+        if "switch_errors" in current_platform_args:
+            if args.switch_errors:
+                
+                err_dict = {}
+                sysfs_blocks = ["brcm_device_aer_dev_correctable", "brcm_device_aer_dev_fatal", "brcm_device_aer_dev_nonfatal"]
 
-                            if value == "":
-                                value = "N/A"
-                            power_dict[key] = self.helpers.unit_format(self.logger,
-                                                                        value,
-                                                                        sysfs_blocks[key])
+                for key in switch_metric_info.keys():
+                    if key in sysfs_blocks:
+                        err_dict[key] = {}
 
-                    values_dict["switch_power"] = power_dict
+                        if switch_metric_info[key] == "N/A":
+                                continue
 
-            if "switch_errors" in current_platform_args:
-                if args.switch_errors:
-                    
-                    err_dict = {}
-                    sysfs_blocks = ["brcm_device_aer_dev_correctable", "brcm_device_aer_dev_fatal", "brcm_device_aer_dev_nonfatal"]
+                        content_list = switch_metric_info[key].split('\n')
+                        for content in content_list:
+                            if content != "":
+                                err_dict[key][content.split(' ')[0]] = content.split(' ')[1]
 
-                    for key in switch_metric_info.keys():
-                        if key in sysfs_blocks:
-                            err_dict[key] = {}
-
-                            if switch_metric_info[key] == "N/A":
-                                    continue
-
-                            content_list = switch_metric_info[key].split('\n')
-                            for content in content_list:
-                                if content != "":
-                                    err_dict[key][content.split(' ')[0]] = content.split(' ')[1]
-
-                    values_dict["switch_errors"] = err_dict
+                values_dict["switch_errors"] = err_dict
 
         #TODO: ADD "NA" conditions in interface file
         # Store timestamp first if watching_output is enabled
         if watching_output:
             self.logger.store_switch_output(args.switch, 'timestamp', int(time.time()))
 
-        if not bad_data:
-            self.logger.store_switch_output(args.switch, 'values', values_dict)
+        self.logger.store_switch_output(args.switch, 'values', values_dict)
 
         if multiple_devices:
             self.logger.store_multiple_device_output()
@@ -6307,106 +6295,91 @@ class AMDSMICommands():
                     temperature_info = amdsmi_interface.amdsmi_get_nic_temp_info(args.nic)
 
                     if args.temperature:
-                        #TODO: Key and the table header is same as of now. This needs to be fixed once the metric command is implemented
+                        #NIC_TEMP_CURRENT
+                        try:
+                            monitor_values['NIC_TEMP_CURRENT'] = temperature_info['NIC_TEMP_CURRENT']
+                        except amdsmi_exception.AmdSmiLibraryException as e:
+                            monitor_values['NIC_TEMP_CURRENT'] = "N/A"
+                            logging.debug("Failed to get NIC_TEMP_CURRENT on nic %s | %s", nic_id, e.get_error_info())
 
-                        #Additional Check for Bad Data
-                        bad_data = False
+                        #NIC_TEMP_CRIT_ALARM
+                        try:
+                            monitor_values['NIC_TEMP_CRIT_ALARM'] = temperature_info['NIC_TEMP_CRIT_ALARM']
+                        except amdsmi_exception.AmdSmiLibraryException as e:
+                            monitor_values['NIC_TEMP_CRIT_ALARM'] = "N/A"
+                            logging.debug("Failed to get NIC_TEMP_CRIT_ALARM on nic %s | %s", nic_id, e.get_error_info())
 
-                        if temperature_info['NIC_TEMP_CRIT_ALARM'] == "N/A" \
-                        or temperature_info['NIC_TEMP_EMERGENCY_ALARM'] == "N/A" or temperature_info['NIC_TEMP_EMERGENCY_ALARM'] == "N/A" \
-                        or temperature_info['NIC_TEMP_SHUTDOWN_ALARM'] == "N/A" or temperature_info['NIC_TEMP_MAX_ALARM'] == "N/A":
-                            if multiple_devices:
-                                return
-                            else:
-                                bad_data = True
+                        #NIC_TEMP_EMERGENCY_ALARM
+                        try:
+                            monitor_values['NIC_TEMP_EMERGENCY_ALARM'] = temperature_info['NIC_TEMP_EMERGENCY_ALARM']
+                        except amdsmi_exception.AmdSmiLibraryException as e:
+                            monitor_values['NIC_TEMP_EMERGENCY_ALARM'] = "N/A"
+                            logging.debug("Failed to get NIC_TEMP_EMERGENCY_ALARM on nic %s | %s", nic_id, e.get_error_info())
 
-                        if not bad_data:
-                            #NIC_TEMP_CURRENT
-                            try:
-                                monitor_values['NIC_TEMP_CURRENT'] = temperature_info['NIC_TEMP_CURRENT']
-                            except amdsmi_exception.AmdSmiLibraryException as e:
-                                monitor_values['NIC_TEMP_CURRENT'] = "N/A"
-                                logging.debug("Failed to get NIC_TEMP_CURRENT on nic %s | %s", nic_id, e.get_error_info())
+                        #NIC_TEMP_SHUTDOWN_ALARM
+                        try:
+                            monitor_values['NIC_TEMP_SHUTDOWN_ALARM'] = temperature_info['NIC_TEMP_SHUTDOWN_ALARM']
+                        except amdsmi_exception.AmdSmiLibraryException as e:
+                            monitor_values['NIC_TEMP_SHUTDOWN_ALARM'] = "N/A"
+                            logging.debug("Failed to get NIC_TEMP_SHUTDOWN_ALARM on nic %s | %s", nic_id, e.get_error_info())
 
-                            #NIC_TEMP_CRIT_ALARM
-                            try:
-                                monitor_values['NIC_TEMP_CRIT_ALARM'] = temperature_info['NIC_TEMP_CRIT_ALARM']
-                            except amdsmi_exception.AmdSmiLibraryException as e:
-                                monitor_values['NIC_TEMP_CRIT_ALARM'] = "N/A"
-                                logging.debug("Failed to get NIC_TEMP_CRIT_ALARM on nic %s | %s", nic_id, e.get_error_info())
+                        #NIC_TEMP_MAX_ALARM
+                        try:
+                            monitor_values['NIC_TEMP_MAX_ALARM'] = temperature_info['NIC_TEMP_MAX_ALARM']
+                        except amdsmi_exception.AmdSmiLibraryException as e:
+                            monitor_values['NIC_TEMP_MAX_ALARM'] = "N/A"
+                            logging.debug("Failed to get NIC_TEMP_MAX_ALARM on nic %s | %s", nic_id, e.get_error_info())
 
-                            #NIC_TEMP_EMERGENCY_ALARM
-                            try:
-                                monitor_values['NIC_TEMP_EMERGENCY_ALARM'] = temperature_info['NIC_TEMP_EMERGENCY_ALARM']
-                            except amdsmi_exception.AmdSmiLibraryException as e:
-                                monitor_values['NIC_TEMP_EMERGENCY_ALARM'] = "N/A"
-                                logging.debug("Failed to get NIC_TEMP_EMERGENCY_ALARM on nic %s | %s", nic_id, e.get_error_info())
+                        temp_unit_human_readable = ''
+                        temp_unit_json = ''
 
-                            #NIC_TEMP_SHUTDOWN_ALARM
-                            try:
-                                monitor_values['NIC_TEMP_SHUTDOWN_ALARM'] = temperature_info['NIC_TEMP_SHUTDOWN_ALARM']
-                            except amdsmi_exception.AmdSmiLibraryException as e:
-                                monitor_values['NIC_TEMP_SHUTDOWN_ALARM'] = "N/A"
-                                logging.debug("Failed to get NIC_TEMP_SHUTDOWN_ALARM on nic %s | %s", nic_id, e.get_error_info())
+                        temp_unit_human_readable_c = '\N{DEGREE SIGN}C'
+                        temp_unit_json_c = 'C'
 
-                            #NIC_TEMP_MAX_ALARM
-                            try:
-                                monitor_values['NIC_TEMP_MAX_ALARM'] = temperature_info['NIC_TEMP_MAX_ALARM']
-                            except amdsmi_exception.AmdSmiLibraryException as e:
-                                monitor_values['NIC_TEMP_MAX_ALARM'] = "N/A"
-                                logging.debug("Failed to get NIC_TEMP_MAX_ALARM on nic %s | %s", nic_id, e.get_error_info())
+                        #NIC_TEMP_CURRENT
+                        if monitor_values['NIC_TEMP_CURRENT'] != "N/A":
+                            if self.logger.is_human_readable_format():
+                                monitor_values['NIC_TEMP_CURRENT'] = f"{monitor_values['NIC_TEMP_CURRENT']} {temp_unit_human_readable_c}"
+                            if self.logger.is_json_format():
+                                monitor_values['NIC_TEMP_CURRENT'] = {"value" : monitor_values['NIC_TEMP_CURRENT'],
+                                                                        "unit" : temp_unit_json_c}
+                                
+                        #NIC_TEMP_CRIT_ALARM
+                        if monitor_values['NIC_TEMP_CRIT_ALARM'] != "N/A":
+                            if self.logger.is_human_readable_format():
+                                monitor_values['NIC_TEMP_CRIT_ALARM'] = f"{monitor_values['NIC_TEMP_CRIT_ALARM']} {temp_unit_human_readable}"
+                            if self.logger.is_json_format():
+                                monitor_values['NIC_TEMP_CRIT_ALARM'] = {"value" : monitor_values['NIC_TEMP_CRIT_ALARM'],
+                                                                        "unit" : temp_unit_json}
+                        #NIC_TEMP_EMERGENCY_ALARM
+                        if monitor_values['NIC_TEMP_EMERGENCY_ALARM'] != "N/A":
+                            if self.logger.is_human_readable_format():
+                                monitor_values['NIC_TEMP_EMERGENCY_ALARM'] = f"{monitor_values['NIC_TEMP_EMERGENCY_ALARM']} {temp_unit_human_readable}"
+                            if self.logger.is_json_format():
+                                monitor_values['NIC_TEMP_EMERGENCY_ALARM'] = {"value" : monitor_values['NIC_TEMP_EMERGENCY_ALARM'],
+                                                                        "unit" : temp_unit_json}
+                        #NIC_TEMP_SHUTDOWN_ALARM
+                        if monitor_values['NIC_TEMP_SHUTDOWN_ALARM'] != "N/A":
+                            if self.logger.is_human_readable_format():
+                                monitor_values['NIC_TEMP_SHUTDOWN_ALARM'] = f"{monitor_values['NIC_TEMP_SHUTDOWN_ALARM']} {temp_unit_human_readable}"
+                            if self.logger.is_json_format():
+                                monitor_values['NIC_TEMP_SHUTDOWN_ALARM'] = {"value" : monitor_values['NIC_TEMP_SHUTDOWN_ALARM'],
+                                                                        "unit" : temp_unit_json}
+                        #NIC_TEMP_MAX_ALARM
+                        if monitor_values['NIC_TEMP_MAX_ALARM'] != "N/A":
+                            if self.logger.is_human_readable_format():
+                                monitor_values['NIC_TEMP_MAX_ALARM'] = f"{monitor_values['NIC_TEMP_MAX_ALARM']} {temp_unit_human_readable}"
+                            if self.logger.is_json_format():
+                                monitor_values['NIC_TEMP_MAX_ALARM'] = {"value" : monitor_values['NIC_TEMP_MAX_ALARM'],
+                                                                        "unit" : temp_unit_json}
 
-                            temp_unit_human_readable = ''
-                            temp_unit_json = ''
+                        self.logger.table_header += 'NIC_TEMP_CURRENT'.rjust(21)
+                        self.logger.table_header += 'NIC_TEMP_CRIT_ALARM'.rjust(21)
+                        self.logger.table_header += 'NIC_TEMP_EMERGENCY_ALARM'.rjust(26)
+                        self.logger.table_header += 'NIC_TEMP_SHUTDOWN_ALARM'.rjust(25)
+                        self.logger.table_header += 'NIC_TEMP_MAX_ALARM'.rjust(20)
 
-                            temp_unit_human_readable_c = '\N{DEGREE SIGN}C'
-                            temp_unit_json_c = 'C'
-
-                            #NIC_TEMP_CURRENT
-                            if monitor_values['NIC_TEMP_CURRENT'] != "N/A":
-                                if self.logger.is_human_readable_format():
-                                    monitor_values['NIC_TEMP_CURRENT'] = f"{monitor_values['NIC_TEMP_CURRENT']} {temp_unit_human_readable_c}"
-                                if self.logger.is_json_format():
-                                    monitor_values['NIC_TEMP_CURRENT'] = {"value" : monitor_values['NIC_TEMP_CURRENT'],
-                                                                            "unit" : temp_unit_json_c}
-                                    
-                            #NIC_TEMP_CRIT_ALARM
-                            if monitor_values['NIC_TEMP_CRIT_ALARM'] != "N/A":
-                                if self.logger.is_human_readable_format():
-                                    monitor_values['NIC_TEMP_CRIT_ALARM'] = f"{monitor_values['NIC_TEMP_CRIT_ALARM']} {temp_unit_human_readable}"
-                                if self.logger.is_json_format():
-                                    monitor_values['NIC_TEMP_CRIT_ALARM'] = {"value" : monitor_values['NIC_TEMP_CRIT_ALARM'],
-                                                                            "unit" : temp_unit_json}
-                            #NIC_TEMP_EMERGENCY_ALARM
-                            if monitor_values['NIC_TEMP_EMERGENCY_ALARM'] != "N/A":
-                                if self.logger.is_human_readable_format():
-                                    monitor_values['NIC_TEMP_EMERGENCY_ALARM'] = f"{monitor_values['NIC_TEMP_EMERGENCY_ALARM']} {temp_unit_human_readable}"
-                                if self.logger.is_json_format():
-                                    monitor_values['NIC_TEMP_EMERGENCY_ALARM'] = {"value" : monitor_values['NIC_TEMP_EMERGENCY_ALARM'],
-                                                                            "unit" : temp_unit_json}
-                            #NIC_TEMP_SHUTDOWN_ALARM
-                            if monitor_values['NIC_TEMP_SHUTDOWN_ALARM'] != "N/A":
-                                if self.logger.is_human_readable_format():
-                                    monitor_values['NIC_TEMP_SHUTDOWN_ALARM'] = f"{monitor_values['NIC_TEMP_SHUTDOWN_ALARM']} {temp_unit_human_readable}"
-                                if self.logger.is_json_format():
-                                    monitor_values['NIC_TEMP_SHUTDOWN_ALARM'] = {"value" : monitor_values['NIC_TEMP_SHUTDOWN_ALARM'],
-                                                                            "unit" : temp_unit_json}
-                            #NIC_TEMP_MAX_ALARM
-                            if monitor_values['NIC_TEMP_MAX_ALARM'] != "N/A":
-                                if self.logger.is_human_readable_format():
-                                    monitor_values['NIC_TEMP_MAX_ALARM'] = f"{monitor_values['NIC_TEMP_MAX_ALARM']} {temp_unit_human_readable}"
-                                if self.logger.is_json_format():
-                                    monitor_values['NIC_TEMP_MAX_ALARM'] = {"value" : monitor_values['NIC_TEMP_MAX_ALARM'],
-                                                                            "unit" : temp_unit_json}
-
-                            self.logger.table_header += 'NIC_TEMP_CURRENT'.rjust(21)
-                            self.logger.table_header += 'NIC_TEMP_CRIT_ALARM'.rjust(21)
-                            self.logger.table_header += 'NIC_TEMP_EMERGENCY_ALARM'.rjust(26)
-                            self.logger.table_header += 'NIC_TEMP_SHUTDOWN_ALARM'.rjust(25)
-                            self.logger.table_header += 'NIC_TEMP_MAX_ALARM'.rjust(20)
-
-                        if not bad_data:
-                            self.logger.store_nic_output(args.nic, 'values', monitor_values)
+                        self.logger.store_nic_output(args.nic, 'values', monitor_values)
 
                     if multiple_devices:
                         self.logger.store_multiple_device_output()
