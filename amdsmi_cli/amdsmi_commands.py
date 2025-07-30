@@ -6695,7 +6695,10 @@ class AMDSMICommands():
                 market_name = asic_info['market_name']
                 oam_id = asic_info['oam_id']
                 # get num_cu now for use later
-                total_num_cu = float(asic_info['num_compute_units'])
+                try:
+                    total_num_cu = float(asic_info['num_compute_units']) if asic_info['num_compute_units'] != "N/A" else "N/A"
+                except (ValueError, TypeError):
+                    total_num_cu = "N/A"
             except amdsmi_exception.AmdSmiLibraryException as e:
                 market_name = "N/A"
                 oam_id = "N/A"
@@ -6797,8 +6800,16 @@ class AMDSMICommands():
                     proc_info_dict['gtt'] = self.helpers.convert_bytes_to_readable(proc['memory_usage']['gtt_mem'])
                     proc_info_dict['vram'] = self.helpers.convert_bytes_to_readable(proc['memory_usage']['vram_mem'])
                     proc_info_dict['mem_usage'] = self.helpers.convert_bytes_to_readable(proc['mem'])
-                    num_cu = float(proc['cu_occupancy'])
-                    proc_info_dict['cu_occupancy'] = {"current_cu": num_cu, "total_num_cu": total_num_cu}
+                    # Handle cu_occupancy conversion safely
+                    try:
+                        if proc['cu_occupancy'] != "N/A" and total_num_cu != "N/A":
+                            num_cu = float(proc['cu_occupancy'])
+                            proc_info_dict['cu_occupancy'] = {"current_cu": num_cu, "total_num_cu": total_num_cu}
+                        else:
+                            proc_info_dict['cu_occupancy'] = {"current_cu": "N/A", "total_num_cu": total_num_cu}
+                    except (ValueError, TypeError):
+                        proc_info_dict['cu_occupancy'] = {"current_cu": "N/A", "total_num_cu": total_num_cu}
+                    
                     all_process_list.append(proc_info_dict)
             except amdsmi_exception.AmdSmiLibraryException as e:
                 logging.debug("Failed to get process list for gpu %s | %s", gpu_id, e.get_error_info())
