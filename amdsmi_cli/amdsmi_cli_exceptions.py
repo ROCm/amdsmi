@@ -264,7 +264,7 @@ class AmdSmiInvalidSubcommandException(AmdSmiException):
         self.stdout_message = f"{common_message} Error code: {self.value}"
 
 
-class AmdSmiPermissionsException(AmdSmiException):
+class AmdSmiPermissionDeniedException(AmdSmiException):
     def __init__(self, command, outputformat: str):
         super().__init__()
         self.value = -11
