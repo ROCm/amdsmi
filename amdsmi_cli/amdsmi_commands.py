@@ -6018,6 +6018,7 @@ class AMDSMICommands():
                     "link_type" : "N/A",
                     "links" : []
                 }
+                xgmi_metrics_info = {"links": []}
 
                 try:
                     xgmi_metrics_info = amdsmi_interface.amdsmi_get_link_metrics(src_gpu)
