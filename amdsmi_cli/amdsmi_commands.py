@@ -6190,7 +6190,12 @@ class AMDSMICommands():
             self.logger.store_watch_output(multiple_device_enabled=False)
 
 
-        self.logger.print_output(multiple_device_enabled=True, watching_output=watching_output, tabular=True, dual_csv_output=dual_csv_output)
+        if args.violation:
+            # Print violation status for single gpu, which have different xcp information per 1 gpu
+            self.logger.print_output(multiple_device_enabled=True, watching_output=watching_output, tabular=True, dual_csv_output=dual_csv_output)
+        else:
+            # Print the output for single gpu, which currently does not have multiple xcp information
+            self.logger.print_output(multiple_device_enabled=False, watching_output=watching_output, tabular=True, dual_csv_output=dual_csv_output)
 
 
     def xgmi(self, args, multiple_devices=False, gpu=None, metric=None, xgmi_link_status=None):
