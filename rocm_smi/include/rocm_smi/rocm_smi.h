@@ -27,10 +27,10 @@
 extern "C" {
 #include <cstdint>
 #else
-#include <stdint.h>
+#include <cstdint>
 #endif  // __cplusplus
 
-#include <stddef.h>
+#include <cstddef>
 #include <stdbool.h>
 
 #include "rocm_smi/kfd_ioctl.h"
