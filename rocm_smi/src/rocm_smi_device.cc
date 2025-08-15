@@ -47,8 +47,7 @@
 #include "rocm_smi/rocm_smi_logger.h"
 #include "shared_mutex.h"  // NOLINT
 
-namespace amd {
-namespace smi {
+namespace amd::smi {
 
 // Debug root file path
 static const char *kPathDebugRootFName = "/sys/kernel/debug/dri/";
@@ -1986,5 +1985,4 @@ rsmi_status_t Device::get_smi_device_identifiers(uint32_t device_id,
 
 
 #undef RET_IF_NONZERO
-}  // namespace smi
-}  // namespace amd
+} // namespace amd::smi
