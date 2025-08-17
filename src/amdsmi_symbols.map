@@ -1,0 +1,21 @@
+AMDSMI_1.0 {
+  global:
+    # Export only amdsmi public API functions
+    amdsmi_*;
+    
+  local:
+    # Hide all internal symbols to prevent conflicts with torch's ROCm SMI
+    # This includes all amd::smi namespace symbols that conflict with torch
+    _ZN3amd3smi*;
+    _ZN*amd*smi*;
+    _ZNK*amd*smi*;
+    _ZTI*amd*smi*;
+    _ZTS*amd*smi*;
+    _ZTV*amd*smi*;
+    
+    # Hide ROCm SMI symbols
+    rsmi_*;
+    
+    # Hide all other internal symbols
+    *;
+};

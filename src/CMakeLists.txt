@@ -78,6 +78,16 @@ set(${AMD_SMI}_VERSION_BUILD "0")
 message("SOVERSION: ${SO_VERSION_STRING}")
 
 add_library(${AMD_SMI} ${SRC_LIST} ${INC_LIST})
+
+# Add symbol versioning and isolation to prevent conflicts with torch's ROCm SMI
+# This solves the double-free issue when both libraries are loaded
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set_target_properties(${AMD_SMI} PROPERTIES
+        LINK_FLAGS "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/amdsmi_symbols.map"
+        LINK_FLAGS_RELEASE "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/amdsmi_symbols.map"
+    )
+endif()
+
 target_link_libraries(${AMD_SMI} pthread rt dl ${DRM_LIBRARIES} ${AMDGPU_DRM_LIBRARIES})
 target_include_directories(${AMD_SMI} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/rocm_smi/include
                                               ${PROJECT_SOURCE_DIR}/common/shared_mutex ${ACA_INC_DIR})
