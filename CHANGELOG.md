@@ -4,6 +4,24 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ***All information listed below is for reference and subject to change.***
 
+## amd_smi_lib for ROCm 7.0.1
+
+### Added
+
+### Changed
+
+### Removed
+
+### Optimized
+
+### Resolved Issues
+
+- **Fixed `attribute error` on guest systems where violations addition cause CLI to break**.  
+
+### Upcoming Changes
+
+### Known Issues
+
 ## amd_smi_lib for ROCm 7.0.0
 
 ### Added
@@ -602,7 +620,11 @@ $ amd-smi
 
 ### Known issues
 
-- N/A
+- `amd-smi monitor` does not work on guest systems
+```shell
+$ amd-smi monitor
+AttributeError: 'Namespace' object has no attribute 'violation'
+```
 
 ## amd_smi_lib for ROCm 6.4.0
 
