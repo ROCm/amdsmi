@@ -19,6 +19,19 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ### Resolved Issues
 
+- Fixed `amd-smi monitor` errors on guest systems
+```shell
+$ amd-smi monitor
+AttributeError: 'Namespace' object has no attribute 'violation'
+```
+
+Now properly shows:
+```shell
+$ amd-smi monitor
+GPU  XCP  POWER   GPU_T   MEM_T   GFX_CLK   GFX%   MEM%   ENC%   DEC%      VRAM_USAGE
+  0    0   12 W   40 °C   44 °C     9 MHz    8 %    1 %    N/A    0 %    0.2/ 25.4 GB
+```
+
 ### Upcoming Changes
 
 - N/A
@@ -31,6 +44,9 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ### Added
 
+- **Added restarting (reloading) AMD GPU driver to both CLI and API calls**  
+  - Refer to [<i><b>Separated driver reload from `amdsmi_set_gpu_memory_partition()` / `amdsmi_set_gpu_memory_partition_mode()` and CLI (`sudo amd-smi set -M <NPS mode>`)</b></i>](#separate-driver-reload-anchor) section for more details.
+
 - **Added the Default command**.  
   - A default view has been added. The default view provides a snapshot of commonly requested information such as bdf, current partition mode, version information, and more. Users can access that information by simply typing `amd-smi` with no additional commands or arguments. Users may also obtain this information through laternate output formats such as json or csv by using the default command with the respective output format: `amd-smi default --json` or `amd-smi default --csv`.
 
@@ -38,6 +54,7 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 $ amd-smi
 +------------------------------------------------------------------------------+
 | AMD-SMI 26.0.0+eaa54ecc      amdgpu version: 6.12.12  ROCm version: 7.0.0    |
+| Platform: Linux Baremetal                                                    |
 |-------------------------------------+----------------------------------------|
 | BDF                        GPU-Name | Mem-Uti   Temp   UEC       Power-Usage |
 | GPU  HIP-ID  OAM-ID  Partition-Mode | GFX-Uti    Fan               Mem-Usage |
@@ -110,6 +127,16 @@ $ amd-smi
 
 ### Changed
 
+<a name="separate-driver-reload-anchor"></a>
+- **Separated driver reload from `amdsmi_set_gpu_memory_partition()` / `amdsmi_set_gpu_memory_partition_mode()` and CLI (`sudo amd-smi set -M <NPS mode>`)**  
+  - Providing new API (`amdsmi_gpu_driver_reload()`) and CLI (`sudo amd-smi reset -r` or `sudo amd-smi reset --reload-driver`) once user is ready to reload driver. We understand
+  the automatic reload could be at an inconvenient time. This is why we now provide this
+  functionality in separate API/CLI commands to use when the time is right.
+  - It is important to understand, the memory (NPS) partition change requires:
+    1) Memory partition change request (`amdsmi_set_gpu_memory_partition()` / `amdsmi_set_gpu_memory_partition_mode()`) or CLI (`sudo amd-smi set -M <NPS mode>`)
+    2) Driver reload (`amdsmi_gpu_driver_reload()` / `sudo amd-smi reset -r` or `sudo amd-smi reset --reload-driver`) \[\*\]
+  ***Driver reload requires all GPU activity on all devices to be stopped.***
+
 - **Modified `amd-smi` CLI `monitor` and `metric` for violations**.  
   - Disabled `amd-smi monitor --violation` on guests.  
   - Modified `amd-smi metric -T/--throttle` to alias to `amd-smi metric -v/--violation`.
@@ -150,9 +177,6 @@ $ amd-smi
   - `AMDSMI_EVT_NOTIF_PROCESS_START`
   - `AMDSMI_EVT_NOTIF_PROCESS_END`
 
-- **Updated `amdsmi_get_clock_info` in `amdsmi_interface.py`**.  
-  - The `clk_deep_sleep` field now returns the sleep integer value.  
-
 - **Added Power Cap to `amd-smi monitor`**.  
   - `amd-smi monitor -p` will display the power cap along with power.
 
@@ -167,6 +191,11 @@ $ amd-smi
 
 - **Updated `amdsmi_bdf_t` in `amdsmi.h`**.  
   - The `amdsmi_bdf_t` union was changed to have an identical unnamed struct for backwards compatiblity
+
+- **Updated `amdsmi_get_temp_metric` and `amdsmi_temperature_type_t` with new values**.  
+  - New values have added to `amdsmi_temperature_type_t` representing various baseboard and gpuboard temperature measures.
+  - `amdsmi_get_temp_metric` API has also been updated to be able to take in and return the respective values for the new
+  temperature types.
 
 ### Removed
 
@@ -343,9 +372,13 @@ $ amd-smi
 
 - **Removed duplicated GPU IDs when receiving events using the `amd-smi event` command**.  
 
+- **Fixed `amd-smi monitor` decoder utilization (`DEC%`) not showing up on MI3x ASICs**.
+
 ### Upcoming changes
 
-- N/A
+- **`amd-smi metric` will also display gpuboard and baseboard temperatures**.  
+  - This change is meant to follow the API change to amdsmi_get_temp_metric. If these measures are not available due
+  to hardware incompatibility, then they will simply not be displayed in the results when using the metric command.
 
 ### Known issues
 
@@ -612,7 +645,11 @@ $ amd-smi
 
 ### Known issues
 
-- N/A
+- `amd-smi monitor` does not work on guest systems
+```shell
+$ amd-smi monitor
+AttributeError: 'Namespace' object has no attribute 'violation'
+```
 
 ## amd_smi_lib for ROCm 6.4.0
 
@@ -786,7 +823,7 @@ Updated `amdsmi_get_gpu_metrics_info()` and structure `amdsmi_gpu_metrics_t` to 
 
 ### Changed
 
-- **AMDSMI Library Version number to reflect changes in backwards compatability**.  
+- **AMDSMI Library Version number to reflect changes in backwards compatibility**.  
   - Removed Year from AMDSMI Library version number.
   - Version changed from 25.2.0.0 (Year.Major.Minor.Patch) to 25.2.0 (Major.Minor.Patch)
   - Removed year in all version references
@@ -838,7 +875,7 @@ Functions affected by struct change are:
 - **Added violation status output for Graphics Clock Below Host Limit to our CLI: `amdsmi_get_violation_status()`, `amd-smi metric  --throttle`, and `amd-smi monitor --violation`**.  
   ***Only available for MI300+ ASICs.***  
   Users can retrieve violation status' through either our Python or C++ APIs.  
-  Additionally, we have added capability to view these outputs conviently through `amd-smi metric --throttle` and `amd-smi monitor --violation`.  
+  Additionally, we have added capability to view these outputs conveniently through `amd-smi metric --throttle` and `amd-smi monitor --violation`.  
   Example outputs are listed below (below is for reference, output is subject to change):
 
     ```console
@@ -949,7 +986,7 @@ Functions affected by struct change are:
     ...
     ```
 
-- **Changed amd-smi partition --accelerator & `amdsmi_get_gpu_accelerator_partition_profile_config()` detect users running without root/sudo privledges**  
+- **Changed amd-smi partition --accelerator & `amdsmi_get_gpu_accelerator_partition_profile_config()` detect users running without root/sudo permissions**  
   - Updated `amdsmi_get_gpu_accelerator_partition_profile_config()` to return `AMDSMI_STATUS_NO_PERM` immediately if users run without root/sudo permissions.
   - Updated `amd-smi partition --accelerator` to provide a warning for users without root/sudo permissions (see example below, ***output subject to change***).
 
