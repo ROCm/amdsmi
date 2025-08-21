@@ -1326,9 +1326,15 @@ struct_amdsmi_power_info_t._fields_ = [
     ('gfx_voltage', ctypes.c_uint32),
     ('soc_voltage', ctypes.c_uint32),
     ('mem_voltage', ctypes.c_uint32),
+    ('npu_power', ctypes.c_uint32),
+    ('apu_power', ctypes.c_uint32),
+    ('gfx_power', ctypes.c_uint32),
+    ('dGPU_power', ctypes.c_uint32),
+    ('all_core_power', ctypes.c_uint32),
+    ('system_power', ctypes.c_uint32),
     ('power_limit', ctypes.c_uint32),
     ('PADDING_0', ctypes.c_ubyte * 4),
-    ('reserved', ctypes.c_uint64 * 18),
+    ('reserved', ctypes.c_uint64 * 20),
 ]
 
 amdsmi_power_info_t = struct_amdsmi_power_info_t
@@ -2112,6 +2118,66 @@ struct_amdsmi_gpu_metrics_t._fields_ = [
     ('PADDING_5', ctypes.c_ubyte * 4),
     ('vram_max_bandwidth', ctypes.c_uint64),
     ('xgmi_link_status', ctypes.c_uint16 * 8),
+    # v2.0 additions
+    ('temperature_l3', ctypes.c_uint16 * 8),  # AMDSMI_MAX_NUM_L3_CACHES
+    ('average_cpu_power', ctypes.c_uint16),
+    ('average_soc_power', ctypes.c_uint16),
+    ('average_gfx_power', ctypes.c_uint32),  # expanded to 32 bit in v3
+    ('average_fclk_frequency', ctypes.c_uint16),
+    ('average_vclk_frequency', ctypes.c_uint16),
+    ('average_dclk_frequency', ctypes.c_uint16),
+    ('current_fclk', ctypes.c_uint16),
+    ('current_vclk', ctypes.c_uint16),
+    ('current_dclk', ctypes.c_uint16),
+    ('current_l3clk', ctypes.c_uint16 * 8),  # AMDSMI_MAX_NUM_L3_CACHES
+    # v2.3 additions
+    ('average_temperature_gfx', ctypes.c_uint16),
+    ('average_temperature_soc', ctypes.c_uint16),
+    ('average_temperature_core', ctypes.c_uint16 * 16),  # AMDSMI_MAX_NUM_CORES
+    ('average_temperature_l3', ctypes.c_uint16 * 8),  # AMDSMI_MAX_NUM_L3_CACHES
+    # v2.4 additions
+    ('average_cpu_voltage', ctypes.c_uint16),
+    ('average_soc_voltage', ctypes.c_uint16),
+    ('average_gfx_voltage', ctypes.c_uint16),
+    ('average_cpu_current', ctypes.c_uint16),
+    ('average_soc_current', ctypes.c_uint16),
+    ('average_gfx_current', ctypes.c_uint16),
+    # v3.0 additions
+    ('temperature_core', ctypes.c_uint16 * 16),  # AMDSMI_MAX_NUM_CORES
+    ('temperature_skin', ctypes.c_uint16),
+    ('average_npu_activity', ctypes.c_uint16 * 8),  # AMDSMI_MAX_NUM_NPU_COLUMNS
+    ('average_core_c0_activity', ctypes.c_uint16 * 16),  # AMDSMI_MAX_NUM_CORES
+    ('average_dram_reads', ctypes.c_uint16),
+    ('average_dram_writes', ctypes.c_uint16),
+    ('average_npu_reads', ctypes.c_uint16),
+    ('average_npu_writes', ctypes.c_uint16),
+    # v3.0 Power/Energy fields
+    ('average_npu_power', ctypes.c_uint16),
+    ('average_apu_power', ctypes.c_uint32),
+    ('average_dgpu_power', ctypes.c_uint32),
+    ('average_all_core_power', ctypes.c_uint32),
+    ('average_core_power', ctypes.c_uint16 * 16),  # AMDSMI_MAX_NUM_CORES
+    ('average_sys_power', ctypes.c_uint16),
+    ('stapm_power_limit', ctypes.c_uint16),
+    ('current_stapm_power_limit', ctypes.c_uint16),
+    # v3.0 Clock fields
+    ('average_vpeclk_frequency', ctypes.c_uint16),
+    ('average_ipuclk_frequency', ctypes.c_uint16),
+    ('average_mpipu_frequency', ctypes.c_uint16),
+    # v3.0 Current clocks
+    ('current_coreclk', ctypes.c_uint16 * 16),  # AMDSMI_MAX_NUM_CORES
+    ('current_core_maxfreq', ctypes.c_uint16),
+    ('current_gfx_maxfreq', ctypes.c_uint16),
+    # v3.0 Throttle Residency
+    ('throttle_residency_prochot', ctypes.c_uint32),
+    ('throttle_residency_spl', ctypes.c_uint32),
+    ('throttle_residency_fppt', ctypes.c_uint32),
+    ('throttle_residency_sppt', ctypes.c_uint32),
+    ('throttle_residency_thm_core', ctypes.c_uint32),
+    ('throttle_residency_thm_gfx', ctypes.c_uint32),
+    ('throttle_residency_thm_soc', ctypes.c_uint32),
+    # v3.0 Filter constant
+    ('m_time_filter_alphavalue', ctypes.c_uint32),
 ]
 
 amdsmi_gpu_metrics_t = struct_amdsmi_gpu_metrics_t
