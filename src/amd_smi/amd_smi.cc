@@ -4409,6 +4409,8 @@ amdsmi_get_power_info(amdsmi_processor_handle processor_handle, amdsmi_power_inf
     status = smi_amdgpu_get_power_cap(gpu_device, &power_limit);
     if (status == AMDSMI_STATUS_SUCCESS) {
         info->power_limit = power_limit;
+    } else if (status == AMDSMI_STATUS_NOT_SUPPORTED) {
+        status = AMDSMI_STATUS_SUCCESS;
     }
 
     return status;
