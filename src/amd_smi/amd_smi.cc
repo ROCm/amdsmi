@@ -4367,6 +4367,20 @@ amdsmi_get_gpu_process_list(amdsmi_processor_handle processor_handle, uint32_t *
             ? AMDSMI_STATUS_SUCCESS : AMDSMI_STATUS_OUT_OF_RESOURCES;
 }
 
+template<typename T>
+constexpr T init_max_uint_types()
+{
+  if constexpr ((std::is_same_v<T, std::uint8_t>)  ||
+                (std::is_same_v<T, std::uint16_t>) ||
+                (std::is_same_v<T, std::uint32_t>) ||
+                (std::is_same_v<T, std::uint64_t>)) {
+    return std::numeric_limits<T>::max();
+  }
+  else {
+    static_assert(is_dependent_false_v<T>, "Error: Type not supported...");
+  }
+}
+
 amdsmi_status_t
 amdsmi_get_power_info(amdsmi_processor_handle processor_handle, amdsmi_power_info_t *info) {
     AMDSMI_CHECK_INIT();
@@ -4381,27 +4395,32 @@ amdsmi_get_power_info(amdsmi_processor_handle processor_handle, amdsmi_power_inf
     if (status != AMDSMI_STATUS_SUCCESS)
         return status;
 
-    info->socket_power = 0xFFFF;
-    info->current_socket_power = 0xFFFF;
-    info->average_socket_power = 0xFFFF;
-    info->gfx_voltage = 0xFFFF;
-    info->soc_voltage = 0xFFFF;
-    info->mem_voltage = 0xFFFF;
-    info->power_limit = 0xFFFF;
+    info->socket_power = 0xFFFFFFFF;
+    info->current_socket_power = 0xFFFFFFFF;
+    info->average_socket_power = 0xFFFFFFFF;
+    info->gfx_voltage = 0xFFFFFFFF;
+    info->soc_voltage = 0xFFFFFFFF;
+    info->mem_voltage = 0xFFFFFFFF;
+    info->power_limit = 0xFFFFFFFF;
 
     amdsmi_gpu_metrics_t metrics = {};
     status = amdsmi_get_gpu_metrics_info(processor_handle, &metrics);
     if (status == AMDSMI_STATUS_SUCCESS) {
-        info->current_socket_power = metrics.current_socket_power;
-        info->average_socket_power = metrics.average_socket_power;
-        info->gfx_voltage = metrics.voltage_gfx;
-        info->soc_voltage = metrics.voltage_soc;
-        info->mem_voltage = metrics.voltage_mem;
+        if (metrics.current_socket_power != init_max_uint_types<decltype(metrics.current_socket_power)>())
+            info->current_socket_power = metrics.current_socket_power;
+        if (metrics.average_socket_power != init_max_uint_types<decltype(metrics.average_socket_power)>())
+            info->average_socket_power = metrics.average_socket_power;
+        if (metrics.voltage_gfx != init_max_uint_types<decltype(metrics.voltage_gfx)>())
+            info->gfx_voltage = metrics.voltage_gfx;
+        if (metrics.voltage_soc != init_max_uint_types<decltype(metrics.voltage_soc)>())
+            info->soc_voltage = metrics.voltage_soc;
+        if (metrics.voltage_mem != init_max_uint_types<decltype(metrics.voltage_mem)>())
+            info->mem_voltage = metrics.voltage_mem;
     }
 
-    if (metrics.current_socket_power != 0xFFFF) {
+    if (metrics.current_socket_power != init_max_uint_types<decltype(metrics.current_socket_power)>()) {
         info->socket_power = metrics.current_socket_power;
-    } else if (metrics.average_socket_power != 0xFFFF) {
+    } else if (metrics.average_socket_power != init_max_uint_types<decltype(metrics.average_socket_power)>()) {
         info->socket_power = metrics.average_socket_power;
     }
 

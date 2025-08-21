@@ -1320,12 +1320,12 @@ class struct_amdsmi_power_info_t(Structure):
 
 struct_amdsmi_power_info_t._pack_ = 1 # source:False
 struct_amdsmi_power_info_t._fields_ = [
-    ('socket_power', ctypes.c_uint64),
+    ('socket_power', ctypes.c_uint32),
     ('current_socket_power', ctypes.c_uint32),
     ('average_socket_power', ctypes.c_uint32),
-    ('gfx_voltage', ctypes.c_uint64),
-    ('soc_voltage', ctypes.c_uint64),
-    ('mem_voltage', ctypes.c_uint64),
+    ('gfx_voltage', ctypes.c_uint32),
+    ('soc_voltage', ctypes.c_uint32),
+    ('mem_voltage', ctypes.c_uint32),
     ('power_limit', ctypes.c_uint32),
     ('PADDING_0', ctypes.c_ubyte * 4),
     ('reserved', ctypes.c_uint64 * 18),
@@ -2045,7 +2045,9 @@ struct_amdsmi_gpu_metrics_t._fields_ = [
     ('average_gfx_activity', ctypes.c_uint16),
     ('average_umc_activity', ctypes.c_uint16),
     ('average_mm_activity', ctypes.c_uint16),
-    ('average_socket_power', ctypes.c_uint16),
+    ('PADDING_BEFORE_SOCKET_POWER', ctypes.c_ubyte * 2),
+    ('average_socket_power', ctypes.c_uint32),
+    ('PADDING_BEFORE_ENERGY', ctypes.c_ubyte * 4),
     ('energy_accumulator', ctypes.c_uint64),
     ('system_clock_counter', ctypes.c_uint64),
     ('average_gfxclk_frequency', ctypes.c_uint16),
