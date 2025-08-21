@@ -7095,7 +7095,10 @@ class AMDSMICommands():
                     current_power = gpu_metrics['current_socket_power']
                 else:
                     current_power = gpu_metrics['average_socket_power']
-                temperature = gpu_metrics['temperature_hotspot']
+                if gpu_metrics['temperature_hotspot'] != "N/A":
+                    temperature = gpu_metrics['temperature_hotspot']
+                else:
+                    temperature = gpu_metrics['temperature_edge']
             else:
                 mem_util = "N/A"
                 gfx_util = "N/A"
