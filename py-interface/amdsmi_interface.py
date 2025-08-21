@@ -4720,7 +4720,7 @@ def amdsmi_get_gpu_metrics_info(
         "average_gfx_activity": _validate_if_max_uint(gpu_metrics.average_gfx_activity, MaxUIntegerTypes.UINT16_T, isActivity=True),
         "average_umc_activity": _validate_if_max_uint(gpu_metrics.average_umc_activity, MaxUIntegerTypes.UINT16_T, isActivity=True),
         "average_mm_activity": _validate_if_max_uint(gpu_metrics.average_mm_activity, MaxUIntegerTypes.UINT16_T, isActivity=True),
-        "average_socket_power": _validate_if_max_uint(gpu_metrics.average_socket_power, MaxUIntegerTypes.UINT16_T),
+        "average_socket_power": _validate_if_max_uint(gpu_metrics.average_socket_power, MaxUIntegerTypes.UINT32_T),
         "energy_accumulator": _validate_if_max_uint(gpu_metrics.energy_accumulator, MaxUIntegerTypes.UINT64_T),
         "system_clock_counter": _validate_if_max_uint(gpu_metrics.system_clock_counter, MaxUIntegerTypes.UINT64_T),
         "average_gfxclk_frequency": _validate_if_max_uint(gpu_metrics.average_gfxclk_frequency, MaxUIntegerTypes.UINT16_T),
