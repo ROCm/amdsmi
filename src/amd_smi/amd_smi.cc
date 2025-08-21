@@ -4390,6 +4390,12 @@ amdsmi_get_power_info(amdsmi_processor_handle processor_handle, amdsmi_power_inf
     info->socket_power = 0xFFFFFFFF;
     info->current_socket_power = 0xFFFFFFFF;
     info->average_socket_power = 0xFFFFFFFF;
+    info->npu_power = 0xFFFF;
+    info->apu_power = 0xFFFFFFFF;
+    info->gfx_power = 0xFFFFFFFF;
+    info->dGPU_power = 0xFFFFFFFF;
+    info->all_core_power = 0xFFFFFFFF;
+    info->system_power = 0xFFFFFFFF;
     info->gfx_voltage = 0xFFFFFFFF;
     info->soc_voltage = 0xFFFFFFFF;
     info->mem_voltage = 0xFFFFFFFF;
@@ -4408,6 +4414,18 @@ amdsmi_get_power_info(amdsmi_processor_handle processor_handle, amdsmi_power_inf
             info->soc_voltage = metrics.voltage_soc;
         if (metrics.voltage_mem != init_max_uint_types<decltype(metrics.voltage_mem)>())
             info->mem_voltage = metrics.voltage_mem;
+        if (metrics.average_npu_power != init_max_uint_types<decltype(metrics.average_npu_power)>())
+            info->npu_power = metrics.average_npu_power;
+        if (metrics.average_apu_power != init_max_uint_types<decltype(metrics.average_apu_power)>())
+            info->apu_power = metrics.average_apu_power;
+        if (metrics.average_gfx_power != init_max_uint_types<decltype(metrics.average_gfx_power)>())
+            info->gfx_power = metrics.average_gfx_power;
+        if (metrics.average_dgpu_power != init_max_uint_types<decltype(metrics.average_dgpu_power)>())
+            info->dGPU_power = metrics.average_dgpu_power;
+        if (metrics.average_sys_power != init_max_uint_types<decltype(metrics.average_sys_power)>())
+            info->system_power = metrics.average_sys_power;
+        if (metrics.average_all_core_power != init_max_uint_types<decltype(metrics.average_all_core_power)>())
+            info->all_core_power = metrics.average_all_core_power;
     }
 
     if (metrics.current_socket_power != init_max_uint_types<decltype(metrics.current_socket_power)>()) {

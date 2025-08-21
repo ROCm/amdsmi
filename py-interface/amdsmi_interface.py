@@ -2903,6 +2903,12 @@ def amdsmi_get_power_info(
         "socket_power": power_info.socket_power,
         "current_socket_power": power_info.current_socket_power,
         "average_socket_power": power_info.average_socket_power,
+        "npu_power": power_info.npu_power,
+        "apu_power": power_info.apu_power,
+        "gfx_power": power_info.gfx_power,
+        "dGPU_power": power_info.dGPU_power,
+        "all_core_power": power_info.all_core_power,
+        "system_power": power_info.system_power,
         "gfx_voltage": power_info.gfx_voltage,
         "soc_voltage": power_info.soc_voltage,
         "mem_voltage": power_info.mem_voltage,
@@ -2910,7 +2916,7 @@ def amdsmi_get_power_info(
     }
 
     for key, value in power_info_dict.items():
-        if value == 0xFFFF:
+        if value == 0xFFFFFFFF:
             power_info_dict[key] = "N/A"
 
     return power_info_dict
