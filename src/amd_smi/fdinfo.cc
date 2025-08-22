@@ -21,12 +21,12 @@
  */
 
 #include <dirent.h>
-#include <cinttypes>
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
 
 #include <algorithm>
+#include <cinttypes>
 #include <cstdlib>
 #include <fstream>
 #include <vector>
@@ -202,8 +202,8 @@ amdsmi_status_t gpuvsmi_get_pid_info(const amdsmi_bdf_t &bdf, long int pid,
     std::string container_id;
     for (std::string line; getline(cgroup_info, line);) {
       if (line.find(container_type_name[i]) != std::string::npos) {
-        container_id = line.substr(line.find(container_type_name[i]) +
-                                   strlen(container_type_name[i]) + 1, 16);
+        container_id =
+            line.substr(line.find(container_type_name[i]) + strlen(container_type_name[i]) + 1, 16);
         strcpy(info.container_name, container_id.c_str());
         break;
       }

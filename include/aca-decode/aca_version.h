@@ -24,8 +24,7 @@
 #define ACA_VERSION_H
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /**
@@ -47,46 +46,45 @@ extern "C"
 /* Version String */
 #define ACA_VERSION_STRING "1.0.0"
 
-    /**
-     * @brief Structure containing version information
-     */
-    typedef struct
-    {
-        int major;          /**< Major version number */
-        int minor;          /**< Minor version number */
-        int patch;          /**< Patch version number */
-        const char *string; /**< Version string (e.g., "1.0.0") */
-    } aca_version_info_t;
+/**
+ * @brief Structure containing version information
+ */
+typedef struct {
+  int major;          /**< Major version number */
+  int minor;          /**< Minor version number */
+  int patch;          /**< Patch version number */
+  const char *string; /**< Version string (e.g., "1.0.0") */
+} aca_version_info_t;
 
-    /**
-     * @brief Get the major version number
-     * @return Major version number
-     */
-    int aca_get_version_major(void);
+/**
+ * @brief Get the major version number
+ * @return Major version number
+ */
+int aca_get_version_major(void);
 
-    /**
-     * @brief Get the minor version number
-     * @return Minor version number
-     */
-    int aca_get_version_minor(void);
+/**
+ * @brief Get the minor version number
+ * @return Minor version number
+ */
+int aca_get_version_minor(void);
 
-    /**
-     * @brief Get the patch version number
-     * @return Patch version number
-     */
-    int aca_get_version_patch(void);
+/**
+ * @brief Get the patch version number
+ * @return Patch version number
+ */
+int aca_get_version_patch(void);
 
-    /**
-     * @brief Get the version string
-     * @return Pointer to version string (e.g., "1.0.0")
-     */
-    const char *aca_get_version_string(void);
+/**
+ * @brief Get the version string
+ * @return Pointer to version string (e.g., "1.0.0")
+ */
+const char *aca_get_version_string(void);
 
-    /**
-     * @brief Get complete version information
-     * @return Structure containing all version information
-     */
-    aca_version_info_t aca_get_version_info(void);
+/**
+ * @brief Get complete version information
+ * @return Structure containing all version information
+ */
+aca_version_info_t aca_get_version_info(void);
 
 #ifdef __cplusplus
 }
