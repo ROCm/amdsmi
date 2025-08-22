@@ -22,6 +22,7 @@
  */
 
 #include "amdsmi_go_shim.h"
+#include "goamdsmi.h"
 
 #include <amd_smi/amdsmi.h>
 #include <stdint.h>

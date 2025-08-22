@@ -23,6 +23,10 @@
 #ifndef GPUVSMI_UUID_H_
 #define GPUVSMI_UUID_H_
 
+#include "amd_smi/amdsmi.h"
+
+#include <cstdint>
+
 /**
  *  \brief  Generates uuid for device with specified parameters
  *
