@@ -29,6 +29,7 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
+#include <vector>
 
 #include "amd_smi/amdsmi.h"
 
