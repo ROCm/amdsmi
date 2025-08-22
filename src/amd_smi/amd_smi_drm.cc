@@ -21,6 +21,8 @@
  */
 
 #include "amd_smi/impl/amd_smi_drm.h"
+#include "amd_smi/impl/scoped_fd.h"
+#include "amd_smi/impl/xf86drm.h"
 
 #include <dirent.h>
 #include <fcntl.h>

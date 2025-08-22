@@ -21,19 +21,20 @@
  */
 
 #include "amd_smi/impl/amd_smi_utils.h"
+#include "amd_smi/impl/scoped_fd.h"
 
 #include <dirent.h>
 #include <fcntl.h>
 #include <libdrm/amdgpu.h>
 #include <libdrm/drm.h>
-#include <limits.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <climits>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/types.h>
-#include <time.h>
+#include <ctime>
 #include <unistd.h>
 
 #include <algorithm>
@@ -43,14 +44,11 @@
 #include <iostream>
 #include <iterator>
 #include <memory>
-#include <random>
 #include <regex>
 #include <sstream>
 
-#include "amd_smi/impl/amd_smi_system.h"
 #include "rocm_smi/rocm_smi_logger.h"
 #include "rocm_smi/rocm_smi_utils.h"
-#include "shared_mutex.h"  // NOLINT
 
 std::string leftTrim(const std::string &s) {
   if (!s.empty()) {
