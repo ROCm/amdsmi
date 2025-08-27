@@ -4,7 +4,7 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ***All information listed below is for reference and subject to change.***
 
-## amd_smi_lib for ROCm 7.0.1
+## amd_smi_lib for ROCm 7.0.2
 
 ### Added
 
@@ -12,11 +12,17 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ### Removed
 
+- **Fixed gpuboard and baseboard temperatures enums in amdsmi Python Library**.  
+  - AmdSmiTemperatureType had issues with referencing the right attribute, so we removed the following duplicate enums:
+    - `AmdSmiTemperatureType.GPUBOARD_NODE_FIRST`
+    - `AmdSmiTemperatureType.GPUBOARD_VR_FIRST`
+    - `AmdSmiTemperatureType.BASEBOARD_FIRST`
+
 ### Optimized
 
 ### Resolved Issues
 
-- **Fixed `attribute error` on guest systems where violations addition cause CLI to break**.  
+- **Fixed `attribute error` in `amd-smi monitor` on Linux Guest systems where violations argument caused CLI to break**.  
 
 ### Upcoming Changes
 
@@ -357,7 +363,7 @@ $ amd-smi
 
 ### Known issues
 
-- N/A
+- **`amd-smi monitor` on Linux Guest systems triggers an `attribute error`**.  
 
 ## amd_smi_lib for ROCm 6.4.2
 
