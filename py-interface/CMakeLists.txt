@@ -71,8 +71,11 @@ add_custom_target(python_wrapper DEPENDS amdsmi_wrapper.py)
 
 # hard-linking instead of copying avoids unnecessarry regeneration of packaged files
 add_custom_command(
-    OUTPUT ${PY_PACKAGE_DIR}/__init__.py ${PY_PACKAGE_DIR}/amdsmi_exception.py ${PY_PACKAGE_DIR}/amdsmi_interface.py
-           ${PY_PACKAGE_DIR}/README.md ${PY_PACKAGE_DIR}/LICENSE
+    OUTPUT ${PY_PACKAGE_DIR}/__init__.py
+           ${PY_PACKAGE_DIR}/amdsmi_exception.py
+           ${PY_PACKAGE_DIR}/amdsmi_interface.py
+           ${PY_PACKAGE_DIR}/README.md
+           ${PY_PACKAGE_DIR}/LICENSE
     DEPENDS python_wrapper
     COMMAND ln -Pf ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py ${PY_PACKAGE_DIR}/
     COMMAND ln -Pf ${CMAKE_CURRENT_SOURCE_DIR}/amdsmi_exception.py ${PY_PACKAGE_DIR}/
@@ -81,8 +84,8 @@ add_custom_command(
     COMMAND ln -Pf ${PROJECT_SOURCE_DIR}/LICENSE ${PY_PACKAGE_DIR}/)
 
 # copy libamd_smi.so to allow for a self-contained python package
-add_custom_command(OUTPUT ${PY_PACKAGE_DIR}/libamd_smi.so DEPENDS ${PROJECT_BINARY_DIR}/src/libamd_smi.so
-                   COMMAND cp "${PROJECT_BINARY_DIR}/src/libamd_smi.so" ${PY_PACKAGE_DIR}/)
+add_custom_command(OUTPUT ${PY_PACKAGE_DIR}/libamd_smi_python.so DEPENDS ${PROJECT_BINARY_DIR}/src/libamd_smi.so
+                   COMMAND cp "${PROJECT_BINARY_DIR}/src/libamd_smi.so" "${PY_PACKAGE_DIR}/libamd_smi_python.so")
 
 add_custom_target(
     python_package ALL
@@ -94,11 +97,13 @@ add_custom_target(
             ${PY_PACKAGE_DIR}/amdsmi_interface.py
             ${PY_PACKAGE_DIR}/README.md
             ${PY_PACKAGE_DIR}/LICENSE
-            ${PY_PACKAGE_DIR}/libamd_smi.so)
+            ${PY_PACKAGE_DIR}/libamd_smi_python.so)
 
 install(
     FILES ${CMAKE_CURRENT_BINARY_DIR}/${PY_BUILD_DIR}/pyproject.toml
-          ${CMAKE_CURRENT_BINARY_DIR}/${PY_BUILD_DIR}/setup.py ${CMAKE_CURRENT_BINARY_DIR}/${PY_PACKAGE_DIR}/_version.py
+          ${CMAKE_CURRENT_BINARY_DIR}/${PY_BUILD_DIR}/setup.py
+          ${CMAKE_CURRENT_BINARY_DIR}/${PY_PACKAGE_DIR}/_version.py
+
     DESTINATION ${PY_WRAPPER_INSTALL_DIR}
     COMPONENT dev)
 

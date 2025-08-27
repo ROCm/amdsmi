@@ -30,17 +30,6 @@ except ImportError as e:
     logging.debug(f"Unhandled import error: {e}")
     logging.debug("argcomplete module not found. Autocomplete will not work.")
 
-# from typing import TYPE_CHECKING
-# # only used for type checking
-# # pyright trips up and cannot find amdsmi scripts without it
-# if TYPE_CHECKING:
-#     from amdsmi_commands import AMDSMICommands
-#     from amdsmi_parser import AMDSMIParser
-#     from amdsmi_logger import AMDSMILogger
-#     import amdsmi_cli_exceptions
-#     from amdsmi import amdsmi_interface
-#     from amdsmi import amdsmi_exception
-
 # Set the environment variable for GPU metrics cache duration
 cache_ms = os.environ.setdefault("AMDSMI_GPU_METRICS_CACHE_MS", "100")
 logging.debug("AMDSMI_GPU_METRICS_CACHE_MS = %sms", cache_ms)
