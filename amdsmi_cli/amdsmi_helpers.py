@@ -1430,7 +1430,7 @@ class AMDSMIHelpers():
                 "  • Alternatively, run this command with sudo/admin privileges",
                 ""
             ])
-            print("\n".join(lines))
+            print("\n".join(lines), file=sys.stderr)
             return False
 
         return True
