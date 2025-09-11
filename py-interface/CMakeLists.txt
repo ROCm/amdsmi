@@ -29,6 +29,10 @@ if(BUILD_WRAPPER)
     endif()
 endif()
 
+# copy libamd_smi.so to allow for a self-contained python package
+add_custom_command(OUTPUT ${PY_PACKAGE_DIR}/libamd_smi_python.so DEPENDS ${PROJECT_BINARY_DIR}/src/libamd_smi.so
+                   COMMAND cp "${PROJECT_BINARY_DIR}/src/libamd_smi.so" "${PY_PACKAGE_DIR}/libamd_smi_python.so")
+
 if(NOT GOOD_CLANG_FOUND)
     # keep old wrapper because no clang found
     message(
@@ -54,10 +58,10 @@ else()
     add_custom_command(
         OUTPUT amdsmi.h ${CMAKE_CURRENT_SOURCE_DIR}/amdsmi_wrapper.py amdsmi_wrapper.py
                ${PY_PACKAGE_DIR}/amdsmi_wrapper.py
-        DEPENDS ${AMD_SMI} python_pre_reqs generator.py ${PROJECT_SOURCE_DIR}/include/amd_smi/amdsmi.h
+        DEPENDS ${AMD_SMI} python_pre_reqs generator.py ${PROJECT_SOURCE_DIR}/include/amd_smi/amdsmi.h ${PY_PACKAGE_DIR}/libamd_smi_python.so
         COMMAND cp ${PROJECT_SOURCE_DIR}/include/amd_smi/amdsmi.h ./
         COMMAND ${Python3_EXECUTABLE} generator.py "$<$<BOOL:${ENABLE_ESMI_LIB}>:-e -DENABLE_ESMI_LIB>" -i amdsmi.h -l
-                ${PROJECT_BINARY_DIR}/src/libamd_smi.so -o ${CMAKE_CURRENT_SOURCE_DIR}/amdsmi_wrapper.py
+                ${PROJECT_BINARY_DIR}/src/libamd_smi_python.so -o ${CMAKE_CURRENT_SOURCE_DIR}/amdsmi_wrapper.py
         COMMAND mkdir -p ${PY_PACKAGE_DIR}
         COMMAND ln -Pf ${CMAKE_CURRENT_SOURCE_DIR}/amdsmi_wrapper.py ${PY_PACKAGE_DIR}/)
 endif()
@@ -82,10 +86,6 @@ add_custom_command(
     COMMAND ln -Pf ${CMAKE_CURRENT_SOURCE_DIR}/amdsmi_interface.py ${PY_PACKAGE_DIR}/
     COMMAND ln -Pf ${CMAKE_CURRENT_SOURCE_DIR}/README.md ${PY_PACKAGE_DIR}/
     COMMAND ln -Pf ${PROJECT_SOURCE_DIR}/LICENSE ${PY_PACKAGE_DIR}/)
-
-# copy libamd_smi.so to allow for a self-contained python package
-add_custom_command(OUTPUT ${PY_PACKAGE_DIR}/libamd_smi_python.so DEPENDS ${PROJECT_BINARY_DIR}/src/libamd_smi.so
-                   COMMAND cp "${PROJECT_BINARY_DIR}/src/libamd_smi.so" "${PY_PACKAGE_DIR}/libamd_smi_python.so")
 
 add_custom_target(
     python_package ALL

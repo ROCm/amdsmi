@@ -182,23 +182,16 @@ def main():
         new_line = f"""from pathlib import Path
 # {library_name} can be located in several different places.
 # Look for it with below priority:
-# 1. ROCM_HOME/ROCM_PATH environment variables
-#    - ROCM_HOME/lib
-#    - ROCM_PATH/lib (usually set to /opt/rocm/)
-# 2. Decided by the linker
+# 1. Decided by the linker
 #    - LD_LIBRARY_PATH env var
 #    - defined path in /etc/ld.so.conf.d/
-# 3. Relative to amdsmi_wrapper.py
+# 2. Relative to amdsmi_wrapper.py
 #    - parent directory
 #    - current directory
 def find_smi_library():
     err = OSError("Could not load {library_name}")
     possible_locations = []
     # 1.
-    rocm_path = os.getenv("ROCM_HOME", os.getenv("ROCM_PATH"))
-    if rocm_path:
-        possible_locations.append(os.path.join(rocm_path, "lib/{library_name}"))
-    # 2.
     possible_locations.append("{library_name}")
     # 3.
     libamd_smi_parent_dir = Path(__file__).resolve().parent / "{library_name}"
@@ -217,13 +210,12 @@ def find_smi_library():
 
 try:
     _libraries['{library_name}'], location = find_smi_library()
-    #print(f"found smi lib in [", location, "]")
 except OSError as e:
     print(e)
-    print("Unable to find {library_name} library try installing amd-smi-lib from your package manager")
+    print("Unable to find {library_name}. Please make sure you using amd-smi package from pypi.")
 
 #Add support for amdsmi_free_name_value_pairs
-amdsmi_free_name_value_pairs = _libraries['libamd_smi_python.so'].amdsmi_free_name_value_pairs
+amdsmi_free_name_value_pairs = _libraries[{library_name}].amdsmi_free_name_value_pairs
 amdsmi_free_name_value_pairs.restype = None
 amdsmi_free_name_value_pairs.argtypes = [ctypes.POINTER(None)]"""
     else:
