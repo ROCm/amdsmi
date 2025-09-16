@@ -69,10 +69,14 @@ class AMDSMIParser(argparse.ArgumentParser):
     """
     def __init__(self, version, list, static, firmware, bad_pages, metric,
                  process, profile, event, topology, set_value, reset, monitor,
-                 xgmi, partition, ras, default, sys_argv=None):
+                 xgmi, partition, ras, default, sys_argv=None, helpers=None):
 
         # Helper variables
-        self.helpers = AMDSMIHelpers()
+        if helpers is None:
+            # If helpers is not provided, create a new instance
+            self.helpers = AMDSMIHelpers()
+        else:
+            self.helpers = helpers
 
         # Get choices based on driver initialized
         if self.helpers.is_amdgpu_initialized():
@@ -157,8 +161,9 @@ class AMDSMIParser(argparse.ArgumentParser):
                 self._add_event_parser(self.subparsers, event)
             elif any(arg in sys_argv for arg in ['topology']):
                 self._add_topology_parser(self.subparsers, topology)
-            elif any(arg in sys_argv for arg in ['set', 'reset']):
+            elif any(arg in sys_argv for arg in ['set']):
                 self._add_set_value_parser(self.subparsers, set_value)
+            elif any(arg in sys_argv for arg in ['reset']):
                 self._add_reset_parser(self.subparsers, reset)
             elif any(arg in sys_argv for arg in ['monitor', 'dmon']):
                 self._add_monitor_parser(self.subparsers, monitor)
@@ -213,7 +218,7 @@ class AMDSMIParser(argparse.ArgumentParser):
     def _is_command_supported(self, user_input, acceptable_values, command_name):
         if acceptable_values == "N/A":
             outputformat = self.helpers.get_output_format()
-            raise amdsmi_cli_exceptions.AmdSmiPermissionsException(command_name, outputformat)
+            raise amdsmi_cli_exceptions.AmdSmiPermissionDeniedException(command_name, outputformat)
         elif str(user_input).upper() not in acceptable_values:
             print(f"Valid inputs are {acceptable_values}")
             raise amdsmi_cli_exceptions.AmdSmiInvalidParameterValueException(sys.argv[1], str(user_input).upper(), self.helpers.get_output_format())
@@ -548,6 +553,17 @@ class AMDSMIParser(argparse.ArgumentParser):
                 setattr(args, self.dest, values)
         return _PromptSpecWarning
 
+    @staticmethod
+    def _custom_ceil(x):
+        """ Custom ceiling function to round up float values to the nearest integer.
+            This is used to ensure that fan speed percentages are rounded up correctly.
+        """
+        if x == int(x):  # If x is already an integer
+            return int(x)
+        elif x > 0:  # For positive numbers, floor division + 1
+            return int(x) + 1
+        else:  # For negative numbers, floor division directly gives the ceiling
+            return int(x)
 
     def _validate_fan_speed(self):
         """ Validate fan speed input"""
@@ -560,7 +576,9 @@ class AMDSMIParser(argparse.ArgumentParser):
                     if '%' in values:
                         try:
                             amdsmi_helpers.confirm_out_of_spec_warning()
-                            values = int(int(values[:-1]) / 100 * 255)
+                            # Convert percentage to fan speed level 
+                            values = (int(values[:-1]) / 100) * 255
+                            values = AMDSMIParser._custom_ceil(values) # Round up (Ceiling)
                             setattr(args, self.dest, values)
                         except ValueError as e:
                             raise argparse.ArgumentError(self, f"Invalid argument: '{values}' needs to be 0-100%")
@@ -996,7 +1014,8 @@ class AMDSMIParser(argparse.ArgumentParser):
                 metric_parser.add_argument('-l', '--perf-level', action='store_true', required=False, help=perf_level_help)
                 metric_parser.add_argument('-x', '--xgmi-err', action='store_true', required=False, help=xgmi_err_help)
                 metric_parser.add_argument('-E', '--energy', action='store_true', required=False, help=energy_help)
-                metric_parser.add_argument('-T', '--throttle', action='store_true', required=False, help=throttle_help)
+                metric_parser.add_argument('-v', '--violation', dest='throttle', action='store_true', required=False, help=throttle_help)
+                metric_parser.add_argument('-T', '--throttle', dest='throttle', action='store_true', required=False, help=argparse.SUPPRESS)
 
             # Options to only display to Hypervisors
             if self.helpers.is_hypervisor():
@@ -1304,6 +1323,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         reset_perf_det_help = "Disable performance determinism"
         reset_power_cap_help = "Reset power capacity limit to max capable"
         reset_gpu_clean_local_data_help = "Clean up local data in LDS/GPRs on a per partition basis"
+        reset_gpu_driver_help = "Reset (reload) AMD GPU driver"
 
         # Create reset subparser
         reset_parser = subparsers.add_parser('reset', help=reset_help, description=reset_subcommand_help)
@@ -1323,6 +1343,7 @@ class AMDSMIParser(argparse.ArgumentParser):
             reset_exclusive_group.add_argument('-x', '--xgmierr', action='store_true', required=False, help=reset_xgmierr_help)
             reset_exclusive_group.add_argument('-d', '--perf-determinism', action='store_true', required=False, help=reset_perf_det_help)
             reset_exclusive_group.add_argument('-o', '--power-cap', action='store_true', required=False, help=reset_power_cap_help)
+            reset_exclusive_group.add_argument('-r', '--reload-driver', action='store_true', required=False, help=reset_gpu_driver_help)
 
         # Add Baremetal and Virtual OS reset arguments
         reset_exclusive_group.add_argument('-l', '--clean-local-data', action='store_true', required=False, help=reset_gpu_clean_local_data_help)
@@ -1379,7 +1400,8 @@ class AMDSMIParser(argparse.ArgumentParser):
         monitor_parser.add_argument('-v', '--vram-usage', action='store_true', required=False, help=mem_usage_help)
         monitor_parser.add_argument('-r', '--pcie', action='store_true', required=False, help=pcie_bandwidth_help)
         monitor_parser.add_argument('-q', '--process', action='store_true', required=False, help=process_help)
-        monitor_parser.add_argument('-V', '--violation', action='store_true', required=False, help=violation_help)
+        if not self.helpers.is_virtual_os():
+            monitor_parser.add_argument('-V', '--violation', action='store_true', required=False, help=violation_help)
 
         # Add Universal Arguments & Watch Args
         self._add_watch_arguments(monitor_parser)
