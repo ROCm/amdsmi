@@ -4387,13 +4387,13 @@ amdsmi_get_power_info(amdsmi_processor_handle processor_handle, amdsmi_power_inf
     if (status != AMDSMI_STATUS_SUCCESS)
         return status;
 
-    info->socket_power = 0xFFFFFFFF;
-    info->current_socket_power = 0xFFFFFFFF;
-    info->average_socket_power = 0xFFFFFFFF;
-    info->gfx_voltage = 0xFFFFFFFF;
-    info->soc_voltage = 0xFFFFFFFF;
-    info->mem_voltage = 0xFFFFFFFF;
-    info->power_limit = 0xFFFFFFFF;
+    info->socket_power = init_max_uint_types<decltype(info->socket_power)>();
+    info->current_socket_power = init_max_uint_types<decltype(info->current_socket_power)>();
+    info->average_socket_power = init_max_uint_types<decltype(info->average_socket_power)>();
+    info->gfx_voltage = init_max_uint_types<decltype(info->gfx_voltage)>();
+    info->soc_voltage = init_max_uint_types<decltype(info->soc_voltage)>();
+    info->mem_voltage = init_max_uint_types<decltype(info->mem_voltage)>();
+    info->power_limit = init_max_uint_types<decltype(info->power_limit)>();
 
     amdsmi_gpu_metrics_t metrics = {};
     status = amdsmi_get_gpu_metrics_info(processor_handle, &metrics);
