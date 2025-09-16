@@ -1326,7 +1326,8 @@ struct_amdsmi_power_info_t._fields_ = [
     ('gfx_voltage', ctypes.c_uint64),
     ('soc_voltage', ctypes.c_uint64),
     ('mem_voltage', ctypes.c_uint64),
-    ('power_limit', ctypes.c_uint64),
+    ('power_limit', ctypes.c_uint32),
+    ('PADDING_0', ctypes.c_ubyte * 4),
     ('reserved', ctypes.c_uint64 * 18),
 ]
 
