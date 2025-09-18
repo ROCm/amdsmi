@@ -37,6 +37,9 @@ python/build/
 test_*.py
 simple_*.py
 
+# Generated Python version files
+amdsmi_cli/_version.py
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
