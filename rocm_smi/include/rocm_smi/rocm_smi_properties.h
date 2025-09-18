@@ -27,6 +27,7 @@
 
 #include <cstdint>
 #include <map>
+#include <string>
 
 
 namespace amd::smi {

@@ -1,0 +1,146 @@
+# Copyright (c) Advanced Micro Devices, Inc. All rights reserved.
+
+[build-system]
+requires = [
+    "setuptools>=77.0.3",
+    "wheel",
+    "nanobind>=2.0.0",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "amdsmi"
+version = "26.1.0"
+authors = [
+    {name = "AMD", email = "amd-smi.support@amd.com"},
+]
+description = "AMDSMI Python Library - AMD GPU Monitoring Library"
+readme = {file = "README.md", content-type = "text/markdown"}
+license = {text = "MIT"}
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: C++",
+    "Topic :: System :: Hardware",
+    "Topic :: System :: Monitoring",
+]
+dependencies = [
+    "nanobind>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "pytest-cov",
+    "black",
+    "isort",
+    "flake8",
+    "mypy",
+    "sphinx",
+    "sphinx-rtd-theme",
+]
+test = [
+    "pytest>=6.0",
+    "pytest-cov",
+]
+docs = [
+    "sphinx",
+    "sphinx-rtd-theme",
+    "myst-parser",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/ROCm/amdsmi"
+"Bug Reports" = "https://github.com/ROCm/amdsmi/issues"
+"Source" = "https://github.com/ROCm/amdsmi"
+"Documentation" = "https://rocm.docs.amd.com/projects/amdsmi/en/latest/"
+
+
+[tool.setuptools.packages.find]
+where = ["python"]
+
+[tool.setuptools.package-data]
+amdsmi = ["*.so", "*.pyd", "*.dll"]
+
+[tool.black]
+line-length = 88
+target-version = ["py38", "py39", "py310", "py311", "py312"]
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # Build artifacts
+  build
+  | dist
+  | \.egg-info
+
+  # Generated files
+  | _amdsmi_impl\.cpp
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["amdsmi"]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "amdsmi._amdsmi_impl",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests/python"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--verbose",
+    "--tb=short",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "gpu: marks tests that require GPU hardware",
+]
+
+[tool.coverage.run]
+source = ["amdsmi"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
