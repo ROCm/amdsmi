@@ -58,6 +58,11 @@ if(ENABLE_ESMI_LIB)
 endif()
 # VERSION_* variables should be set by get_version_from_tag
 message("Package version: ${PKG_VERSION_STR}")
+# There is variable scoping problem where we lost values set in parent CMakeLists
+# setting them back
+set(${AMD_SMI_LIBS_TARGET}_VERSION_MAJOR "${CPACK_PACKAGE_VERSION_MAJOR}")
+set(${AMD_SMI_LIBS_TARGET}_VERSION_MINOR "${CPACK_PACKAGE_VERSION_MINOR}")
+set(${AMD_SMI_LIBS_TARGET}_VERSION_PATCH "${CPACK_PACKAGE_VERSION_PATCH}")
 
 # Debian package specific variables
 # Set a default value for the package version
