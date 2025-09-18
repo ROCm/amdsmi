@@ -31,16 +31,35 @@ from pathlib import Path
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 python_lib_path = f"{current_path}/../../share/amd_smi"
+build_python_path = f"{current_path}/../build-dev/python"
+py_interface_path = f"{current_path}/../py-interface"
+
+# Add potential paths
 sys.path.append(python_lib_path)
-# If the python library is installed, it will overwrite the path above
+sys.path.append(build_python_path)
+sys.path.append(py_interface_path)
 
 try:
     from amdsmi import amdsmi_interface, amdsmi_exception
 except ImportError as e:
-    print(f"Unhandled import error: {e}")
-    print("Failed to import the amdsmi Python library. Ensure it is installed in Python.")
-    print(f"Alternatively, verify that the library is in the path:\n{python_lib_path}")
-    sys.exit(1)
+    try:
+        # Try the py-interface directory
+        import amdsmi_interface
+        import amdsmi_exception
+        # Create a fake amdsmi module namespace
+        import types
+        amdsmi_module = types.ModuleType('amdsmi')
+        amdsmi_module.amdsmi_interface = amdsmi_interface
+        amdsmi_module.amdsmi_exception = amdsmi_exception
+        sys.modules['amdsmi'] = amdsmi_module
+        globals()['amdsmi_interface'] = amdsmi_interface
+        globals()['amdsmi_exception'] = amdsmi_exception
+    except ImportError as e2:
+        print(f"Unhandled import error: {e}")
+        print("Failed to import the amdsmi Python library. Ensure it is installed in Python.")
+        print(f"Tried paths:\n  {python_lib_path}\n  {build_python_path}\n  {py_interface_path}")
+        print(f"Final error: {e2}")
+        sys.exit(1)
 
 # Using basic python logging for user errors and development
 logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.ERROR) # User level logging

@@ -159,8 +159,11 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/ROCm/amdsmi",
 
-    packages=find_namespace_packages(where="python"),
-    package_dir={"": "python"},
+    packages=find_namespace_packages(where="python") + ["amdsmi_cli"],
+    package_dir={"": "python", "amdsmi_cli": "amdsmi_cli"},
+
+    # Install CLI script
+    scripts=["scripts/amd-smi"],
 
     # Extension modules (will be built by CMake)
     ext_modules=[Extension("amdsmi._amdsmi_impl", [])],

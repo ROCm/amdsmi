@@ -53,27 +53,132 @@ def run_command(cmd, *, cwd=None, env=None, check=True):
         raise
 
 
+class EnvInfo:
+    """Environment information and validation like shortfin."""
+
+    def __init__(self, args):
+        self.cmake = self.find_cmake_and_validate()
+        self.python = self.find_python_and_validate()
+        self.compiler = self.find_compiler_and_validate(args)
+        self.validate_dependencies()
+
+    def find_cmake_and_validate(self):
+        """Find CMake executable and validate version."""
+        cmake = shutil.which("cmake")
+        if not cmake:
+            print("ERROR: cmake not found. Please install CMake 3.25+")
+            print("  Ubuntu/Debian: sudo apt-get install cmake")
+            print("  RHEL/Fedora: sudo yum install cmake")
+            sys.exit(1)
+
+        # Check version
+        try:
+            result = subprocess.run([cmake, "--version"], capture_output=True, text=True)
+            version_line = result.stdout.split('\n')[0]
+            # Extract version number
+            import re
+            match = re.search(r'cmake version (\d+)\.(\d+)\.(\d+)', version_line)
+            if match:
+                major, minor, patch = int(match.group(1)), int(match.group(2)), int(match.group(3))
+                print(f"✓ Found CMake {major}.{minor}.{patch}")
+                if major < 3 or (major == 3 and minor < 25):
+                    print(f"ERROR: CMake {major}.{minor}.{patch} is too old. Need 3.25+")
+                    sys.exit(1)
+                elif major == 3 and minor < 29:
+                    print(f"  WARNING: CMake 3.29+ recommended for full feature support")
+        except Exception as e:
+            print(f"WARNING: Could not check CMake version: {e}")
+
+        return cmake
+
+    def find_python_and_validate(self):
+        """Find Python and validate version."""
+        python = sys.executable
+        version = sys.version_info
+        print(f"✓ Found Python {version.major}.{version.minor}.{version.micro}")
+
+        if version.major < 3 or (version.major == 3 and version.minor < 8):
+            print(f"ERROR: Python {version.major}.{version.minor} is too old. Need 3.8+")
+            sys.exit(1)
+
+        return python
+
+    def find_compiler_and_validate(self, args):
+        """Find and validate compiler."""
+        if args.system_compiler:
+            print("✓ Using system default compiler")
+            return None, None
+
+        # Prefer clang/clang++ if available
+        cc, cxx = None, None
+        if shutil.which("clang") and shutil.which("clang++"):
+            cc, cxx = "clang", "clang++"
+            # Check clang version
+            try:
+                result = subprocess.run([cc, "--version"], capture_output=True, text=True)
+                version_line = result.stdout.split('\n')[0]
+                import re
+                match = re.search(r'clang version (\d+)', version_line)
+                if match:
+                    version = int(match.group(1))
+                    print(f"✓ Found Clang {version}")
+            except Exception:
+                print("✓ Found Clang (version unknown)")
+        elif shutil.which("gcc") and shutil.which("g++"):
+            cc, cxx = "gcc", "g++"
+            # Check gcc version
+            try:
+                result = subprocess.run([cc, "--version"], capture_output=True, text=True)
+                version_line = result.stdout.split('\n')[0]
+                import re
+                match = re.search(r'gcc.*?(\d+)\.(\d+)', version_line)
+                if match:
+                    major, minor = int(match.group(1)), int(match.group(2))
+                    print(f"✓ Found GCC {major}.{minor}")
+            except Exception:
+                print("✓ Found GCC (version unknown)")
+        else:
+            print("WARNING: No C/C++ compiler found (clang or gcc)")
+            print("  The build will use CMake's default compiler detection")
+
+        return cc, cxx
+
+    def validate_dependencies(self):
+        """Validate required dependencies."""
+        print("\nChecking dependencies:")
+
+        # Check for libdrm
+        if shutil.which("pkg-config"):
+            result = subprocess.run(
+                ["pkg-config", "--exists", "libdrm"],
+                capture_output=True
+            )
+            if result.returncode == 0:
+                print("✓ Found libdrm")
+            else:
+                print("WARNING: libdrm not found. GPU functionality may be limited")
+                print("  Ubuntu/Debian: sudo apt-get install libdrm-dev")
+                print("  RHEL/Fedora: sudo yum install libdrm-devel")
+
+        # Check for pthread
+        print("✓ pthread support (standard on Linux)")
+
+        # Check for nanobind
+        try:
+            import nanobind
+            print(f"✓ Found nanobind {nanobind.__version__}")
+        except ImportError:
+            print("✓ nanobind will be installed during build")
+
+        print()
+
+
 def find_cmake():
-    """Find CMake executable."""
+    """Find CMake executable (legacy function for compatibility)."""
     cmake = shutil.which("cmake")
     if not cmake:
-        print("ERROR: cmake not found. Please install CMake 3.29+")
+        print("ERROR: cmake not found. Please install CMake 3.25+")
         sys.exit(1)
-
-    # Check version
-    try:
-        result = subprocess.run([cmake, "--version"], capture_output=True, text=True)
-        version_line = result.stdout.split('\n')[0]
-        # Extract version number
-        import re
-        match = re.search(r'cmake version (\d+)\.(\d+)', version_line)
-        if match:
-            major, minor = int(match.group(1)), int(match.group(2))
-            if major < 3 or (major == 3 and minor < 29):
-                print(f"WARNING: CMake {major}.{minor} found, but 3.29+ recommended")
-    except Exception:
-        print("WARNING: Could not check CMake version")
-
     return cmake
 
 
@@ -86,18 +191,9 @@ def setup_build_dir(build_dir: Path, source_dir: Path):
         build_dir.mkdir(parents=True)
 
 
-def detect_compiler():
-    """Detect preferred compiler."""
-    # Prefer clang/clang++ if available
-    if shutil.which("clang") and shutil.which("clang++"):
-        return "clang", "clang++"
-    elif shutil.which("gcc") and shutil.which("g++"):
-        return "gcc", "g++"
-    else:
-        return None, None
 
 
-def cmake_configure(source_dir: Path, build_dir: Path, args):
+def cmake_configure(source_dir: Path, build_dir: Path, args, cc=None, cxx=None):
     """Configure CMake build."""
     cmake = find_cmake()
 
@@ -112,7 +208,6 @@ def cmake_configure(source_dir: Path, build_dir: Path, args):
     ]
 
     # Compiler selection
-    cc, cxx = detect_compiler()
     if cc and cxx and not args.system_compiler:
         cmake_args.extend([
             f"-DCMAKE_C_COMPILER={cc}",
@@ -298,11 +393,17 @@ Examples:
     source_dir = Path(__file__).parent.resolve()
     build_dir = source_dir / args.build_dir
 
-    print(f"AMDSMI Development Build Script")
+    print(f"{'='*60}")
+    print(f"AMDSMI Development Build Script v{get_version()}")
+    print(f"{'='*60}")
     print(f"Source: {source_dir}")
     print(f"Build:  {build_dir}")
     print(f"Type:   {args.build_type}")
-    print()
+    print(f"{'='*60}\n")
+
+    # Validate environment (shortfin-style)
+    env_info = EnvInfo(args)
+    cc, cxx = env_info.compiler
 
     # Clean if requested
     if args.clean and build_dir.exists():
@@ -311,7 +412,7 @@ Examples:
 
     # Setup and configure
     setup_build_dir(build_dir, source_dir)
-    cmake_configure(source_dir, build_dir, args)
+    cmake_configure(source_dir, build_dir, args, cc, cxx)
 
     if args.configure_only:
         print("Configuration complete (--configure-only specified)")
