@@ -58,6 +58,8 @@ amdsmi_cc_component(
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/amd_smi/impl/amd_smi_lib_loader.h
   COMPONENTS
     core
+  DEPS
+    rocm_smi64
 )
 
 # Assemble the main library

@@ -10,10 +10,17 @@ set(ROCM_SMI "rocm_smi")
 set(ROCM_SMI_COMPONENT "lib${ROCM_SMI}")
 set(ROCM_SMI_TARGET "${ROCM_SMI}64")
 
+# Define source files
+file(GLOB CMN_SRC_LIST src/*.cc)
+file(GLOB CMN_INC_LIST include/rocm_smi/*.h)
+# Add shared_mutex source
+list(APPEND CMN_SRC_LIST ${PROJECT_SOURCE_DIR}/third_party/shared_mutex/shared_mutex.cc)
+
 # Used by ESMI
 set(SMI_SRC_LIST ${CMN_SRC_LIST})
 
 ## Include common cmake modules
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_modules")
 include(utils)
 
 ################# Determine the library version #########################
@@ -22,22 +29,16 @@ set(SO_VERSION_GIT_TAG_PREFIX "rsmi_so_ver")
 # VERSION_* variables should be set by get_version_from_tag
 message("Package version: ${PKG_VERSION_STR}")
 
-# Debian package specific variables
-# Set a default value for the package version
-get_version_from_tag("1.0.0.0" ${SO_VERSION_GIT_TAG_PREFIX} GIT)
-
-# VERSION_* variables should be set by get_version_from_tag
-if(${ROCM_PATCH_VERSION})
-    set(VERSION_PATCH ${ROCM_PATCH_VERSION})
-    set(SO_VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
-else()
-    set(SO_VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}")
-endif()
-set(${ROCM_SMI}_VERSION_MAJOR "${CPACK_PACKAGE_VERSION_MAJOR}")
-set(${ROCM_SMI}_VERSION_MINOR "${CPACK_PACKAGE_VERSION_MINOR}")
-set(${ROCM_SMI}_VERSION_PATCH "${CPACK_PACKAGE_VERSION_PATCH}")
+# Set simple version values for ROCm SMI
+set(VERSION_MAJOR "6")
+set(VERSION_MINOR "1")
+set(VERSION_PATCH "0")
+set(SO_VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+set(${ROCM_SMI}_VERSION_MAJOR "6")
+set(${ROCM_SMI}_VERSION_MINOR "1")
+set(${ROCM_SMI}_VERSION_PATCH "0")
 set(${ROCM_SMI}_VERSION_BUILD "0")
-set(${ROCM_SMI}_VERSION_HASH "${PKG_VERSION_HASH}")
+set(${ROCM_SMI}_VERSION_HASH "")
 message("SOVERSION: ${SO_VERSION_STRING}")
 
 # Create a configure file to get version info from within library
@@ -46,8 +47,10 @@ configure_file("src/${ROCM_SMI_TARGET}Config.in"
 
 add_library(${ROCM_SMI_TARGET} ${CMN_SRC_LIST} ${CMN_INC_LIST})
 target_link_libraries(${ROCM_SMI_TARGET} PRIVATE pthread rt dl)
+# Add compiler flags to reduce warning strictness for ROCm SMI legacy code
+target_compile_options(${ROCM_SMI_TARGET} PRIVATE -Wno-write-strings -Wno-unused-result -Wno-error)
 target_include_directories(${ROCM_SMI_TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
-                                                      ${PROJECT_SOURCE_DIR}/common/shared_mutex)
+                                                      ${PROJECT_SOURCE_DIR}/third_party/shared_mutex)
 
 # use the target_include_directories() command to specify the include directories for the target
 target_include_directories(${ROCM_SMI_TARGET} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"

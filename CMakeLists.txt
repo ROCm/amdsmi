@@ -77,6 +77,9 @@ pkg_check_modules(DRM REQUIRED libdrm)
 find_library(RT_LIB rt)
 find_library(DL_LIB dl)
 
+# Build ROCm SMI library (required by AMDSMI)
+add_subdirectory(rocm_smi)
+
 # Create components for different parts of the library
 add_subdirectory(src)
 

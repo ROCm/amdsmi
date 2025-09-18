@@ -4,6 +4,7 @@
 #include <amd_smi/amdsmi.h>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -51,6 +52,29 @@ NB_MODULE(_amdsmi_impl, m) {
     m.def("shut_down", [check_status]() {
         check_status(amdsmi_shut_down());
     }, "Shutdown AMDSMI library");
+
+    // Processor count function
+    m.def("get_processor_count", [check_status]() -> uint32_t {
+        uint32_t socket_count = 0;
+        check_status(amdsmi_get_socket_handles(&socket_count, nullptr));
+
+        if (socket_count == 0) {
+            return 0;
+        }
+
+        std::vector<amdsmi_socket_handle> sockets(socket_count);
+        check_status(amdsmi_get_socket_handles(&socket_count, sockets.data()));
+
+        uint32_t total_processor_count = 0;
+        for (uint32_t i = 0; i < socket_count; i++) {
+            uint32_t processor_count = 0;
+            // Get processor count for this socket
+            check_status(amdsmi_get_processor_handles(sockets[i], &processor_count, nullptr));
+            total_processor_count += processor_count;
+        }
+
+        return total_processor_count;
+    }, "Get total processor count");
 
     // Simple test function - just return a constant
     m.def("get_socket_count", []() -> uint32_t {
