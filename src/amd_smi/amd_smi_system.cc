@@ -31,6 +31,7 @@
 #include "amd_smi/impl/amd_smi_nic_device.h"
 #include "amd_smi/impl/amd_smi_switch_device.h"
 #include "amd_smi/impl/amd_smi_common.h"
+#include "amd_smi/impl/amd_smi_utils.h"
 #include "rocm_smi/rocm_smi.h"
 #include <map>
 #include <algorithm>
