@@ -24,6 +24,30 @@ file(READ ${CMAKE_CURRENT_SOURCE_DIR}/version.json VERSION_JSON_STRING)
 string(JSON PACKAGE_VERSION GET ${VERSION_JSON_STRING} package-version)
 string(REGEX MATCH "(0|[1-9][0-9]*)(\.(0|[1-9][0-9]*))*" BASE_VERSION ${PACKAGE_VERSION})
 
+# Parse version components for header generation
+string(REPLACE "." ";" VERSION_LIST ${PACKAGE_VERSION})
+list(GET VERSION_LIST 0 AMDSMI_LIB_VERSION_MAJOR)
+list(GET VERSION_LIST 1 AMDSMI_LIB_VERSION_MINOR)
+list(LENGTH VERSION_LIST VERSION_LIST_LENGTH)
+if(VERSION_LIST_LENGTH GREATER 2)
+    list(GET VERSION_LIST 2 AMDSMI_LIB_VERSION_RELEASE)
+else()
+    set(AMDSMI_LIB_VERSION_RELEASE 0)
+endif()
+
+# Set version string for template substitution
+set(amd_smi_lib_VERSION_STRING ${PACKAGE_VERSION})
+
+# Generate VERSION file for Python setuptools dynamic versioning
+file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/VERSION ${PACKAGE_VERSION})
+
+# Generate amdsmi.h from template with dynamic version
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/amd_smi/amdsmi.h.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/amd_smi/amdsmi.h
+    @ONLY
+)
+
 project(
   "amdsmi"
   VERSION ${BASE_VERSION}
@@ -86,6 +110,7 @@ add_subdirectory(src)
 # Build Python bindings if requested
 if(AMDSMI_BUILD_PYTHON_BINDINGS)
   add_subdirectory(python)
+  add_subdirectory(amdsmi_cli)
 endif()
 
 # Build tests if requested

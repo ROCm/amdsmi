@@ -10,7 +10,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "amdsmi"
-version = "26.1.0"
+dynamic = ["version"]
 authors = [
     {name = "AMD", email = "amd-smi.support@amd.com"},
 ]
@@ -69,6 +69,9 @@ where = ["python"]
 
 [tool.setuptools.package-data]
 amdsmi = ["*.so", "*.pyd", "*.dll"]
+
+[tool.setuptools.dynamic]
+version = {file = "VERSION"}
 
 [tool.black]
 line-length = 88

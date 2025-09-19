@@ -63,3 +63,4 @@ esmi_ib_library/
 !.clangd
 !.cmake-format
 !.pre-commit-config.yaml
+VERSION

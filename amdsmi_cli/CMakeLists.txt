@@ -2,9 +2,10 @@ message("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
 message("                     CMake AMDSMI CLI Install                      ")
 message("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
 
+include(GNUInstallDirs)
+
 # Set CLI Build Directory
-set(PY_PACKAGE_DIR "amdsmi_cli")
-set(PY_CLI_INSTALL_DIR "${CMAKE_INSTALL_LIBEXECDIR}" CACHE STRING "CLI tool installation directory")
+set(PY_PACKAGE_DIR ".")
 
 # populate version string
 configure_file(_version.py.in ${PY_PACKAGE_DIR}/_version.py @ONLY)
@@ -22,7 +23,6 @@ add_custom_command(
            ${PY_PACKAGE_DIR}/BDF.py
            ${PY_PACKAGE_DIR}/README.md
            ${PY_PACKAGE_DIR}/Release_Notes.md
-    DEPENDS amdsmi_cli
     COMMAND mkdir -p ${PY_PACKAGE_DIR}/
     COMMAND ln -Pf ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py ${PY_PACKAGE_DIR}/
     COMMAND ln -Pf ${CMAKE_CURRENT_SOURCE_DIR}/amdsmi_cli.py ${PY_PACKAGE_DIR}/
@@ -39,8 +39,7 @@ add_custom_command(
 # The CLI requires the python amdsmi wrapper to be installed
 add_custom_target(
     amdsmi_cli ALL
-    DEPENDS python_package
-            ${PY_PACKAGE_DIR}/__init__.py
+    DEPENDS ${PY_PACKAGE_DIR}/__init__.py
             ${PY_PACKAGE_DIR}/_version.py
             ${PY_PACKAGE_DIR}/amdsmi_cli.py
             ${PY_PACKAGE_DIR}/amdsmi_commands.py
@@ -55,12 +54,12 @@ add_custom_target(
 
 install(
     DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${PY_PACKAGE_DIR}
-    DESTINATION ${PY_CLI_INSTALL_DIR}
+    DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}
     COMPONENT dev)
 
 install(
     PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${PY_PACKAGE_DIR}/amdsmi_cli.py
-    DESTINATION ${PY_CLI_INSTALL_DIR}/${PY_PACKAGE_DIR}
+    DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/${PY_PACKAGE_DIR}
     COMPONENT dev)
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
@@ -71,10 +70,10 @@ add_custom_target(
     DEPENDS amdsmi_cli
     BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/bin/amd-smi
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    COMMAND ${CMAKE_COMMAND} -E create_symlink ../${PY_CLI_INSTALL_DIR}/${PY_PACKAGE_DIR}/amdsmi_cli.py
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ../${CMAKE_INSTALL_LIBEXECDIR}/${PY_PACKAGE_DIR}/amdsmi_cli.py
             ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/amd-smi)
 
 install(
-    FILES ${CMAKE_CURRENT_BINARY_DIR}/bin/amd-smi
+    FILES ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_INSTALL_BINDIR}/amd-smi
     DESTINATION ${CMAKE_INSTALL_BINDIR}
     COMPONENT dev)

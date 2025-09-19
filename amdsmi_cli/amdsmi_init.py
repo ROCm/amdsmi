@@ -42,8 +42,16 @@ sys.path.append(py_interface_path)
 try:
     from amdsmi import amdsmi_interface, amdsmi_exception
 except ImportError as e:
+    current_path = os.path.dirname(os.path.abspath(__file__))
+    python_lib_path = f"{current_path}/../../share/amd_smi"
+    py_interface_path = f"{current_path}/../py-interface"
+
+    # Add fallback paths
+    sys.path.append(python_lib_path)
+    sys.path.append(py_interface_path)
+
     try:
-        # Try the py-interface directory
+        # Try the py-interface directory as fallback
         import amdsmi_interface
         import amdsmi_exception
         # Create a fake amdsmi module namespace
@@ -57,7 +65,7 @@ except ImportError as e:
     except ImportError as e2:
         print(f"Unhandled import error: {e}")
         print("Failed to import the amdsmi Python library. Ensure it is installed in Python.")
-        print(f"Tried paths:\n  {python_lib_path}\n  {build_python_path}\n  {py_interface_path}")
+        print(f"Tried paths:\n  {python_lib_path}\n  {py_interface_path}")
         print(f"Final error: {e2}")
         sys.exit(1)
 
