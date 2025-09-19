@@ -224,7 +224,6 @@ class AmdSmiTemperatureType(IntEnum):
     PLX = amdsmi_wrapper.AMDSMI_TEMPERATURE_TYPE_PLX
 
     # GPU Board Node temperature
-    GPUBOARD_NODE_FIRST = amdsmi_wrapper.AMDSMI_TEMPERATURE_TYPE_GPUBOARD_NODE_FIRST
     GPUBOARD_NODE_RETIMER_X = amdsmi_wrapper.AMDSMI_TEMPERATURE_TYPE_GPUBOARD_NODE_RETIMER_X  # Retimer X temperature
     GPUBOARD_NODE_OAM_X_IBC = amdsmi_wrapper.AMDSMI_TEMPERATURE_TYPE_GPUBOARD_NODE_OAM_X_IBC         # OAM X IBC temperature
     GPUBOARD_NODE_OAM_X_IBC_2 = amdsmi_wrapper.AMDSMI_TEMPERATURE_TYPE_GPUBOARD_NODE_OAM_X_IBC_2       # OAM X IBC 2 temperature
@@ -234,7 +233,6 @@ class AmdSmiTemperatureType(IntEnum):
     GPUBOARD_NODE_LAST = amdsmi_wrapper.AMDSMI_TEMPERATURE_TYPE_GPUBOARD_NODE_LAST
 
     # GPU Board VR (Voltage Regulator) temperature 
-    GPUBOARD_VR_FIRST = amdsmi_wrapper.AMDSMI_TEMPERATURE_TYPE_GPUBOARD_VR_FIRST
     GPUBOARD_VDDCR_VDD0 = amdsmi_wrapper.AMDSMI_TEMPERATURE_TYPE_GPUBOARD_VDDCR_VDD0        # VDDCR VDD0 voltage regulator temperature
     GPUBOARD_VDDCR_VDD1 = amdsmi_wrapper.AMDSMI_TEMPERATURE_TYPE_GPUBOARD_VDDCR_VDD1        # VDDCR VDD1 voltage regulator temperature
     GPUBOARD_VDDCR_VDD2 = amdsmi_wrapper.AMDSMI_TEMPERATURE_TYPE_GPUBOARD_VDDCR_VDD2        # VDDCR VDD2 voltage regulator temperature
@@ -251,7 +249,6 @@ class AmdSmiTemperatureType(IntEnum):
     GPUBOARD_VR_LAST = amdsmi_wrapper.AMDSMI_TEMPERATURE_TYPE_GPUBOARD_VR_LAST
 
     # Baseboard System temperature 
-    BASEBOARD_FIRST = amdsmi_wrapper.AMDSMI_TEMPERATURE_TYPE_BASEBOARD_FIRST
     BASEBOARD_UBB_FPGA = amdsmi_wrapper.AMDSMI_TEMPERATURE_TYPE_BASEBOARD_UBB_FPGA       # UBB FPGA temperature
     BASEBOARD_UBB_FRONT = amdsmi_wrapper.AMDSMI_TEMPERATURE_TYPE_BASEBOARD_UBB_FRONT         # UBB front temperature
     BASEBOARD_UBB_BACK = amdsmi_wrapper.AMDSMI_TEMPERATURE_TYPE_BASEBOARD_UBB_BACK          # UBB back temperature
@@ -2437,7 +2434,7 @@ def amdsmi_get_gpu_pm_metrics_info(
 
     _check_res(
         amdsmi_wrapper.amdsmi_get_gpu_pm_metrics_info(
-            processor_handle, POINTER(pm_metrics), ctypes.byref(num_mets)
+            processor_handle, pm_metrics, ctypes.byref(num_mets)
         )
     )
 
@@ -2466,7 +2463,7 @@ def amdsmi_get_gpu_reg_table_info(
 
     _check_res(
         amdsmi_wrapper.amdsmi_get_gpu_reg_table_info(
-            processor_handle, reg_type, POINTER(reg_metrics), ctypes.byref(num_regs)
+            processor_handle, reg_type, reg_metrics, ctypes.byref(num_regs)
         )
     )
 

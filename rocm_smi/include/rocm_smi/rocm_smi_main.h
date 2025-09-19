@@ -29,7 +29,6 @@
 #include <set>
 #include <string>
 #include <cstdint>
-#include <unordered_map>
 #include <map>
 #include <mutex>  // NOLINT
 #include <utility>
@@ -42,8 +41,7 @@
 #include "rocm_smi/rocm_smi_power_mon.h"
 #include "rocm_smi/rocm_smi_common.h"
 
-namespace amd {
-namespace smi {
+namespace amd::smi {
 
 class RocmSMI {
  public:
@@ -118,11 +116,10 @@ class RocmSMI {
       io_link_map_;
     std::map<uint32_t, uint32_t> dev_ind_to_node_ind_map_;
     void AddToDeviceList(std::string dev_name, uint64_t bdfid = 0);
-
     void AddToNICDeviceList(std::string dev_name, uint64_t bdfid = 0, uint32_t card_indx=0);
     void AddToSWITCHDeviceList(std::string dev_name, uint64_t bdfid = 0);
 
-    typedef struct {
+    typedef struct rsmi_device_enumeration_t {
       uint32_t card_index = std::numeric_limits<uint32_t>::max();
       std::string dev_name = "";
       std::string drm_render_path = "";
@@ -148,7 +145,6 @@ class RocmSMI {
                           // by bootstrap_mutex_
 };
 
-}  // namespace smi
-}  // namespace amd
+} // namespace amd::smi
 
 #endif  // INCLUDE_ROCM_SMI_ROCM_SMI_MAIN_H_

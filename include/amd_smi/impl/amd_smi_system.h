@@ -25,7 +25,6 @@
 
 #include <vector>
 #include <set>
-#include <map>
 #include "amd_smi/amdsmi.h"
 #include "amd_smi/impl/amd_smi_socket.h"
 #include "amd_smi/impl/amd_smi_processor.h"
@@ -33,8 +32,7 @@
 #include "amd_smi/impl/amd_smi_no_drm_nic.h"
 #include "amd_smi/impl/amd_smi_no_drm_switch.h"
 
-namespace amd {
-namespace smi {
+namespace amd::smi {
 
 // Singleton: Only one system in an application
 class AMDSmiSystem {
@@ -89,7 +87,6 @@ class AMDSmiSystem {
     std::set<AMDSmiProcessor*> nic_processors_;  // Track valid nic processors
     std::set<AMDSmiProcessor*> switch_processors_;  // Track valid switch processors
 };
-}  // namespace smi
-}  // namespace amd
+} // namespace amd::smi
 
 #endif  // AMD_SMI_INCLUDE_AMD_SMI_SYSTEM_H_

@@ -2043,7 +2043,7 @@ amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_i
     }
 
     // If vendor name is empty and the vendor id is 0x1002, set vendor name to AMD vendor string
-    if ((info->vendor_name != NULL && info->vendor_name[0] == '\0') && info->vendor_id == 0x1002) {
+    if ((info->vendor_name[0] == '\0') && info->vendor_id == 0x1002) {
         std::string amd_name = "Advanced Micro Devices Inc. [AMD/ATI]";
         smi_clear_char_and_reinitialize(info->vendor_name, AMDSMI_MAX_STRING_LENGTH, amd_name);
     }
@@ -3757,14 +3757,6 @@ amdsmi_status_t
 amdsmi_set_power_cap(amdsmi_processor_handle processor_handle,
             uint32_t sensor_ind, uint64_t cap) {
 
-    // Bare Metal and passthrough only feature
-    amdsmi_virtualization_mode_t virt_mode;
-    if (amdsmi_get_gpu_virtualization_mode(processor_handle, &virt_mode) == AMDSMI_STATUS_SUCCESS) {
-        if (virt_mode == AMDSMI_VIRTUALIZATION_MODE_GUEST) {
-        return AMDSMI_STATUS_NOT_SUPPORTED;
-        }
-    }
-                
     return rsmi_wrapper(rsmi_dev_power_cap_set, processor_handle, 0,
             sensor_ind, cap);
 }
@@ -5386,8 +5378,8 @@ amdsmi_get_link_topology_nearest(amdsmi_processor_handle processor_handle,
     }
 
 
-    uint32_t device_counter(AMDSMI_MAX_DEVICES);
-    amdsmi_processor_handle device_list[AMDSMI_MAX_DEVICES];
+    uint32_t device_counter(AMDSMI_MAX_DEVICES * AMDSMI_MAX_NUM_XCP);
+    amdsmi_processor_handle device_list[AMDSMI_MAX_DEVICES * AMDSMI_MAX_NUM_XCP];
     for (auto socket_idx = uint32_t(0); socket_idx < socket_counter; ++socket_idx) {
         if (auto api_status = amdsmi_get_processor_handles(socket_list[socket_idx], &device_counter, device_list);
             (api_status != amdsmi_status_t::AMDSMI_STATUS_SUCCESS)) {
@@ -5435,14 +5427,14 @@ amdsmi_get_link_topology_nearest(amdsmi_processor_handle processor_handle,
     /*
      *  Note: The link topology table is sorted by the number of hops and link weight.
      */
-    topology_nearest_info->processor_list[AMDSMI_MAX_DEVICES] = {nullptr};
+    topology_nearest_info->processor_list[AMDSMI_MAX_DEVICES * AMDSMI_MAX_NUM_XCP] = {nullptr};
     topology_nearest_info->count = static_cast<uint32_t>(link_topology_order.size());
     auto topology_nearest_counter = uint32_t(0);
     while (!link_topology_order.empty()) {
         auto link_info = link_topology_order.top();
         link_topology_order.pop();
 
-        if (topology_nearest_counter < AMDSMI_MAX_DEVICES) {
+        if (topology_nearest_counter < (AMDSMI_MAX_DEVICES * AMDSMI_MAX_NUM_XCP)) {
             topology_nearest_info->processor_list[topology_nearest_counter++] = link_info.target_processor_handle;
         }
     }
@@ -6888,6 +6880,8 @@ amdsmi_status_t amdsmi_get_cpu_handles(uint32_t *cpu_count,
                                                       nullptr, &cpu_per_soc);
         if (status != AMDSMI_STATUS_SUCCESS)
             return status;
+        if (cpu_per_soc == 0)
+            continue;
 
         // Allocate the memory for the cpus
         std::vector<amdsmi_processor_handle> plist(cpu_per_soc);

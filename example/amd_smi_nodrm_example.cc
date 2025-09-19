@@ -21,11 +21,10 @@
  */
 
 #include <pwd.h>
-#include <inttypes.h>
+#include <cinttypes>
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <bitset>
 #include <cassert>
 #include <cstdint>
 #include <cstring>
@@ -335,8 +334,8 @@ int main() {
             // Get nearest GPUs
             const char *topology_link_type_str[] = {
                 "AMDSMI_LINK_TYPE_INTERNAL",
-                "AMDSMI_LINK_TYPE_XGMI",
                 "AMDSMI_LINK_TYPE_PCIE",
+                "AMDSMI_LINK_TYPE_XGMI",
                 "AMDSMI_LINK_TYPE_NOT_APPLICABLE",
                 "AMDSMI_LINK_TYPE_UNKNOWN",
             };

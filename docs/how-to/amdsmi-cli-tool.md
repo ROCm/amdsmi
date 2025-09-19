@@ -1078,3 +1078,103 @@ GPU: 0
                 LEVEL 0: 45 MHz
 ...
 ```
+
+### Listing CPER entries using amd-smi
+
+This example code shows how to list CPER entries for all GPUs into files
+
+```bash
+~$  sudo amd-smi ras --cper --severity all --folder /tmp/cper_dump/
+timestamp            gpu_id  severity             file_name         list of afids
+2000/06/27 10:45:13  0       FATAL                fatal-1.cper      30
+2000/06/27 10:45:13  1       FATAL                fatal-2.cper      30
+2000/06/27 10:45:13  2       FATAL                fatal-3.cper      30
+2000/06/27 10:45:13  3       FATAL                fatal-4.cper      30
+2000/06/27 10:45:13  4       FATAL                fatal-5.cper      30
+2000/06/27 10:45:13  5       FATAL                fatal-6.cper      30
+2000/06/27 10:45:13  6       FATAL                fatal-7.cper      30
+2000/06/27 10:45:13  7       FATAL                fatal-8.cper      30
+```
+
+This example code shows how to list CPER entries for a given GPU into files
+
+```bash
+~$  sudo amd-smi ras --cper --severity all --folder /tmp/cper_dump/ --gpu 1
+timestamp            gpu_id  severity             file_name         list of afids
+2000/06/27 10:45:13  1       FATAL                fatal-1.cper      30
+```
+
+This example code shows how to list CPER entries and their JSON data for a given GPU into files
+
+```bash
+~$  sudo amd-smi ras --cper --severity all --folder /tmp/cper_dump/ --gpu 1 --json
+timestamp            gpu_id  severity             file_name         list of afids
+2000/06/27 10:45:13  1       FATAL                fatal-1.cper      30
+~$ ls -alh /tmp/cper_dump/
+total 12K
+drwxr-xr-x 2 root root   46 Sep 16 21:12 .
+drwxrwxrwt 1 root root 4.0K Sep 16 18:03 ..
+-rw-r--r-- 1 root root  376 Sep 16 21:12 fatal-1.cper
+-rw-r--r-- 1 root root  347 Sep 16 21:12 fatal-1.json
+~$ cat /tmp/cper_dump/fatal-1.json
+{
+  "error_severity": "fatal",
+  "notify_type": "MCE",
+  "timestamp": "2000/06/27 10:45:13",
+  "signature": "CPER",
+  "revision": 256,
+  "signature_end": "0xffffffff",
+  "sec_cnt": 1,
+  "record_length": 376,
+  "platform_id": "111102-G40307-0C",
+  "creator_id": "136c692517001839",
+  "record_id": "f0000031",
+  "flags": 0,
+  "persistence_info": 0
+}
+```
+
+This example code shows how to continuously list CPER entries without exiting
+
+```bash
+~$  sudo amd-smi ras --cper --follow --severity all --folder /tmp/cper_dump
+Press CTRL + C to stop.
+timestamp            gpu_id  severity             file_name         list of afids
+2000/06/27 10:45:13  0       FATAL                fatal-1.cper      30
+2000/06/27 10:45:13  1       FATAL                fatal-2.cper      30
+2000/06/27 10:45:13  2       FATAL                fatal-3.cper      30
+2000/06/27 10:45:13  3       FATAL                fatal-4.cper      30
+2000/06/27 10:45:13  4       FATAL                fatal-5.cper      30
+2000/06/27 10:45:13  5       FATAL                fatal-6.cper      30
+2000/06/27 10:45:13  6       FATAL                fatal-7.cper      30
+2000/06/27 10:45:13  7       FATAL                fatal-8.cper      30
+...
+```
+
+This example code shows how to list CPER entries with a limited number of entries
+
+```bash
+~$  sudo amd-smi ras --cper --severity all --folder /tmp/cper_dump  --file-limit 5
+timestamp            gpu_id  severity             file_name         list of afids
+2000/06/27 10:45:13  0       FATAL                fatal-1.cper      30
+2000/06/27 10:45:13  1       FATAL                fatal-2.cper      30
+2000/06/27 10:45:13  2       FATAL                fatal-3.cper      30
+2000/06/27 10:45:13  3       FATAL                fatal-4.cper      30
+2000/06/27 10:45:13  4       FATAL                fatal-5.cper      30
+```
+
+This example code shows how to list a specific severity of CPER entries only
+
+```bash
+~$  sudo amd-smi ras --cper --severity fatal --folder /tmp/cper_dump/
+timestamp            gpu_id  severity             file_name         list of afids
+2000/06/27 10:45:13  0       FATAL                fatal-1.cper      30
+```
+
+This example code shows how to dump AFID errors in a CPER file
+
+```bash
+~$  sudo amd-smi ras --afid --cper-file /tmp/cper_dump/fatal-1.cper
+```
+
+Refer to amd_smi_cper_example.py & amd_smi_afid_example.py for API examples

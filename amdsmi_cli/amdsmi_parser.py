@@ -49,7 +49,7 @@ class AMDSMIParserHelpFormatter(argparse.HelpFormatter):
 # Custom Help Formatter for not duplicating the metavar in the subparsers
 class AMDSMISubparserHelpFormatter(argparse.RawTextHelpFormatter):
     def __init__(self, prog):
-        super().__init__(prog, indent_increment=2, max_help_position=24, width=90)
+        super().__init__(prog, indent_increment=2, max_help_position=80, width=90)
         self._action_max_length = 20
 
     def _format_action_invocation(self, action):
@@ -1039,6 +1039,8 @@ class AMDSMIParser(argparse.ArgumentParser):
         ecc_blocks_help = "Number of ECC errors per block"
         pcie_help = "Current PCIe speed, width, and replay count"
         voltage_help = "GPU voltage"
+        base_board_help = "base_board temperatures"
+        gpu_board_help = "gpu_board temperatures"
 
         # Help text for Arguments only on Linux Baremetal platforms
         fan_help = "Current fan speed"
@@ -1105,6 +1107,8 @@ class AMDSMIParser(argparse.ArgumentParser):
                 metric_parser.add_argument('-e', '--ecc', action='store_true', required=False, help=ecc_help)
                 metric_parser.add_argument('-k', '--ecc-blocks', action='store_true', required=False, help=ecc_blocks_help)
                 metric_parser.add_argument('-V', '--voltage', action='store_true', required=False, help=voltage_help)
+                metric_parser.add_argument('-b', '--base-board', action='store_true', required=False, help=base_board_help, default=False)
+                metric_parser.add_argument('-G', '--gpu-board', action='store_true', required=False, help=gpu_board_help, default=False)
 
             # Options that only apply to Hypervisors and Baremetal Linux
             if self.helpers.is_hypervisor() or (self.helpers.is_baremetal() and self.helpers.is_linux()):
@@ -1386,7 +1390,7 @@ class AMDSMIParser(argparse.ArgumentParser):
                                                        required=False, help=set_compute_partition_help, metavar=('TYPE/INDEX'))
                 set_value_exclusive_group.add_argument('-M', '--memory-partition', action='store', choices=self.helpers.get_memory_partition_types(), type=str.upper, required=False, help=set_memory_partition_help, metavar='PARTITION')
             # Power cap is enabled on guest, maintain order
-            set_value_exclusive_group.add_argument('-o', '--power-cap', action='store', type=lambda value: self._not_negative_int(value, '--power-cap'), required=False, help=set_power_cap_help, metavar='WATTS')
+            set_value_exclusive_group.add_argument('-o', '--power-cap', action='store', type=lambda value: self._positive_int(value, '--power-cap'), required=False, help=set_power_cap_help, metavar='WATTS')
             if self.helpers.is_baremetal():
                 set_value_exclusive_group.add_argument('-p', '--soc-pstate', action='store', required=False, type=lambda value: self._not_negative_int(value, '--soc-pstate'), help=set_soc_pstate_help, metavar='POLICY_ID')
                 set_value_exclusive_group.add_argument('-x', '--xgmi-plpd', action='store', required=False, type=lambda value: self._not_negative_int(value, '--xgmi-plpd'), help=set_xgmi_plpd_help, metavar='POLICY_ID')
