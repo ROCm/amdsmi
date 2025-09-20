@@ -5966,6 +5966,9 @@ class AMDSMICommands():
 
             self.logger.table_header += 'PCIE_BW'.rjust(12)
 
+        # initialize dual_csv_format; applicable to process only
+        dual_csv_output = False
+
         # Store process list seperately
         if args.process:
             # Populate initial processes
@@ -6205,8 +6208,6 @@ class AMDSMICommands():
         # Store typical output for all commands (XCP data will be handled separately, eg. violation status)
         if not args.violation:
             self.logger.store_output(args.gpu, 'values', monitor_values)
-        # intialize dual_csv_format; applicable to process only
-        dual_csv_output = False
 
         # Now handling the single gpu case only
         if multiple_devices:
