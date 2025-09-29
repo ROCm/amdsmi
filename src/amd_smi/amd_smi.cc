@@ -45,6 +45,7 @@
 #include <functional>
 #include <exception>
 
+#include "config/amd_smi_config.h"
 #include "amd_smi/amdsmi.h"
 #include "amd_smi/impl/fdinfo.h"
 #include "amd_smi/impl/amd_smi_common.h"
@@ -1277,11 +1278,11 @@ amdsmi_status_t amdsmi_get_gpu_vram_usage(amdsmi_processor_handle processor_hand
     }
 
     amd::smi::AMDSmiLibraryLoader libdrm;
-    amdsmi_status_t status = libdrm.load("libdrm.so.2");
+    amdsmi_status_t status = libdrm.load(LIBDRM_AMDGPU_SONAME);
     if (status != AMDSMI_STATUS_SUCCESS) {
         libdrm.unload();
         ss << __PRETTY_FUNCTION__
-           << " | Failed to load libdrm.so.2: " << strerror(errno)
+           << " | Failed to load " LIBDRM_AMDGPU_SONAME ": " << strerror(errno)
            << "; Returning: " << smi_amdgpu_get_status_string(status, false);
         LOG_ERROR(ss);
         return status;
@@ -2083,11 +2084,11 @@ amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_i
     }
 
     amd::smi::AMDSmiLibraryLoader libdrm;
-    status = libdrm.load("libdrm.so.2");
+    status = libdrm.load(LIBDRM_AMDGPU_SONAME);
     if (status != AMDSMI_STATUS_SUCCESS) {
         libdrm.unload();
         ss << __PRETTY_FUNCTION__
-           << " | Failed to load libdrm.so.2: " << strerror(errno)
+           << " | Failed to load " LIBDRM_AMDGPU_SONAME ": " << strerror(errno)
            << "; Returning: " << smi_amdgpu_get_status_string(status, false);
         LOG_ERROR(ss);
         return status;
@@ -2306,11 +2307,11 @@ amdsmi_status_t amdsmi_get_gpu_vram_info(
     }
 
     amd::smi::AMDSmiLibraryLoader libdrm;
-    amdsmi_status_t status = libdrm.load("libdrm.so.2");
+    amdsmi_status_t status = libdrm.load(LIBDRM_AMDGPU_SONAME);
     if (status != AMDSMI_STATUS_SUCCESS) {
         libdrm.unload();
         ss << __PRETTY_FUNCTION__
-           << " | Failed to load libdrm.so.2: " << strerror(errno)
+           << " | Failed to load " LIBDRM_AMDGPU_SONAME ": " << strerror(errno)
            << "; Returning: " << smi_amdgpu_get_status_string(status, false);
         LOG_ERROR(ss);
         return status;
@@ -4390,11 +4391,11 @@ amdsmi_get_gpu_vbios_info(amdsmi_processor_handle processor_handle, amdsmi_vbios
     }
 
     amd::smi::AMDSmiLibraryLoader libdrm;
-    status = libdrm.load("libdrm.so.2");
+    status = libdrm.load(LIBDRM_AMDGPU_SONAME);
     if (status != AMDSMI_STATUS_SUCCESS) {
         libdrm.unload();
         ss << __PRETTY_FUNCTION__
-           << " | Failed to load libdrm.so.2: " << strerror(errno)
+           << " | Failed to load " LIBDRM_AMDGPU_SONAME ": " << strerror(errno)
            << "; Returning: " << smi_amdgpu_get_status_string(status, false);
         LOG_ERROR(ss);
         return status;
@@ -4441,28 +4442,42 @@ amdsmi_get_gpu_vbios_info(amdsmi_processor_handle processor_handle, amdsmi_vbios
         info->build_date[AMDSMI_MAX_STRING_LENGTH - 1] = '\0';
         strncpy(info->part_number, reinterpret_cast<char *>(vbios.vbios_pn),
                 AMDSMI_MAX_STRING_LENGTH);
+        // Navi devices still interpret vbios version from drm vbios_ver_str
         strncpy(info->version, reinterpret_cast<char *>(vbios.vbios_ver_str),
                 AMDSMI_MAX_STRING_LENGTH);
     } else {
-        // get vbios version string from rocm_smi
+        // get sysfs vbios_version string which is known as the part number
         char vbios_version[AMDSMI_MAX_STRING_LENGTH];
         status = rsmi_wrapper(rsmi_dev_vbios_version_get, processor_handle, 0,
-                vbios_version,
-                AMDSMI_MAX_STRING_LENGTH);
+                              vbios_version, AMDSMI_MAX_STRING_LENGTH);
 
-        // ignore the errors so that it can populate as many fields as possible.
+        // fail if cannot get vbios version from sysfs
         if (status == AMDSMI_STATUS_SUCCESS) {
-            strncpy(info->version,
-                vbios_version, AMDSMI_MAX_STRING_LENGTH);
+            strncpy(info->part_number, vbios_version, AMDSMI_MAX_STRING_LENGTH);
         }
     }
     libdrm.unload();
+
+    // get vbios build string from rocm_smi which translates to ifwi version
+    char vbios_build_number[AMDSMI_MAX_STRING_LENGTH];
+    amdsmi_status_t build_status;
+    build_status = rsmi_wrapper(rsmi_dev_vbios_build_number_get, processor_handle, 0,
+                                vbios_build_number, AMDSMI_MAX_STRING_LENGTH);
+
+    // Continue if sysfs doesn't exist
+    if (build_status == AMDSMI_STATUS_SUCCESS) {
+        // This device has an ifwi version so swap the version and boot_firmware
+        strncpy(info->boot_firmware, info->version, AMDSMI_MAX_STRING_LENGTH);
+        strncpy(info->version, vbios_build_number, AMDSMI_MAX_STRING_LENGTH);
+    }
+
     ss << __PRETTY_FUNCTION__
        << " | drmCommandWrite returned: " << strerror(errno) << "\n"
        << " | vbios name: " << info->name << "\n"
        << " | vbios build date: " << info->build_date << "\n"
        << " | vbios part number: " << info->part_number << "\n"
        << " | vbios version: " << info->version << "\n"
+       << " | vbios boot_firmware: " << info->boot_firmware<< "\n"
        << " | Returning: " << smi_amdgpu_get_status_string(status, false);
     LOG_INFO(ss);
     return status;
@@ -4952,11 +4967,11 @@ amdsmi_status_t amdsmi_get_gpu_driver_info(amdsmi_processor_handle processor_han
         return AMDSMI_STATUS_FILE_ERROR;
     }
     amd::smi::AMDSmiLibraryLoader libdrm;
-    status = libdrm.load("libdrm.so.2");
+    status = libdrm.load(LIBDRM_AMDGPU_SONAME);
     if (status != AMDSMI_STATUS_SUCCESS) {
         libdrm.unload();
         ss << __PRETTY_FUNCTION__
-           << " | Failed to load libdrm.so.2"
+           << " | Failed to load " LIBDRM_AMDGPU_SONAME ": " << strerror(errno)
            << "; Returning: " << smi_amdgpu_get_status_string(status, false);
         LOG_ERROR(ss);
         return status;
@@ -5490,11 +5505,11 @@ amdsmi_get_gpu_virtualization_mode(amdsmi_processor_handle processor_handle,
     }
 
     amd::smi::AMDSmiLibraryLoader libdrm;
-    status = libdrm.load("libdrm.so.2");
+    status = libdrm.load(LIBDRM_AMDGPU_SONAME);
     if (status != AMDSMI_STATUS_SUCCESS) {
         libdrm.unload();
         ss << __PRETTY_FUNCTION__
-           << " | Failed to load libdrm.so.2"
+           << " | Failed to load " LIBDRM_AMDGPU_SONAME ": " << strerror(errno)
            << "; Returning: " << smi_amdgpu_get_status_string(status, false);
         LOG_ERROR(ss);
         return status;

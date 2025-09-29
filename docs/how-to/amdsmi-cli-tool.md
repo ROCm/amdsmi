@@ -35,7 +35,7 @@ detected:
 ~$ amd-smi
 usage: amd-smi [-h]  ...
 
-AMD System Management Interface | Version: 26.0.0 | ROCm version: 7.0.0 | Platform: Linux Baremetal
+AMD System Management Interface | Version: 26.1.0 | ROCm version: 7.1.0 | Platform: Linux Baremetal
 
 options:
   -h, --help          show this help message and exit
@@ -48,7 +48,7 @@ AMD-SMI Commands:
     firmware (ucode)  Gets firmware information about the specified GPU
     bad-pages         Gets bad page information about the specified GPU
     metric            Gets metric/performance information about the specified GPU
-    process           Lists general process information running on the specified GPU
+    process           Lists compute process information running on the specified GPU
     event             Displays event information for the given GPU
     topology          Displays topology information of the devices
     set               Set options for devices
@@ -159,7 +159,7 @@ Static Arguments:
   -h, --help               show this help message and exit
   -a, --asic               All asic information
   -b, --bus                All bus information
-  -V, --vbios              All video bios information (if available)
+  -I, --ifwi               All video bios\IFWI information (if available)
   -d, --driver             Displays driver version
   -v, --vram               All vram information
   -c, --cache              All cache information
@@ -391,7 +391,7 @@ Command Modifiers:
 (cmd-process)=
 ### amd-smi process
 
-Lists general process information running on the specified GPU.
+Lists compute process information running on the specified GPU.
 
 ```shell-session
 ~$ amd-smi process --help
@@ -811,8 +811,6 @@ Command Modifiers:
   --loglevel LEVEL         Set the logging level from the possible choices:
 ```
 
-(cmd-ras)=
-
 ### amd-smi ras
 
 Displays RAS information of specified devices.
@@ -915,7 +913,7 @@ GPU: 0
         MAX_PCIE_SPEED: 32 GT/s
         PCIE_INTERFACE_VERSION: Gen 5
         SLOT_TYPE: PCIE
-    VBIOS:
+    IFWI:
         NAME: N/A
         BUILD_DATE: N/A
         PART_NUMBER: N/A
@@ -1177,4 +1175,8 @@ This example code shows how to dump AFID errors in a CPER file
 ~$  sudo amd-smi ras --afid --cper-file /tmp/cper_dump/fatal-1.cper
 ```
 
-Refer to amd_smi_cper_example.py & amd_smi_afid_example.py for API examples
+Refer to
+[amd_smi_cper_example.py](https://github.com/ROCm/amdsmi/blob/amd-mainline/example/amd_smi_cper_example.py)
+and
+[amd_smi_afid_example.py](https://github.com/ROCm/amdsmi/blob/amd-mainline/example/amd_smi_afid_example.py)
+for API examples.

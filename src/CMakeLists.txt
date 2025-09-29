@@ -68,35 +68,30 @@ endif()
 # VERSION_* variables should be set by get_version_from_tag
 message("Package version: ${PKG_VERSION_STR}")
 
-# Debian package specific variables
-# Set a default value for the package version
-get_version_from_tag("${${AMD_SMI_LIBS_TARGET}_VERSION_MAJOR}.${${AMD_SMI_LIBS_TARGET}_VERSION_MINOR}.0.0"
-                     ${SO_VERSION_GIT_TAG_PREFIX} GIT)
-
-# VERSION_* variables should be set by get_version_from_tag
-if(${ROCM_PATCH_VERSION})
-    set(VERSION_PATCH ${ROCM_PATCH_VERSION})
-    set(SO_VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
-else()
-    set(SO_VERSION_STRING "${VERSION_MAJOR}.${VERSION_MINOR}")
-endif()
-set(${AMD_SMI}_VERSION_MAJOR "${VERSION_MAJOR}")
-set(${AMD_SMI}_VERSION_MINOR "${VERSION_MINOR}")
-set(${AMD_SMI}_VERSION_PATCH "0")
-set(${AMD_SMI}_VERSION_BUILD "0")
+set(SO_VERSION_STRING "${MAJOR}.${MINOR}.${RELEASE}")
 message("SOVERSION: ${SO_VERSION_STRING}")
 
 add_library(${AMD_SMI} ${SRC_LIST} ${INC_LIST})
-target_link_libraries(${AMD_SMI} pthread rt dl ${DRM_LIBRARIES} ${AMDGPU_DRM_LIBRARIES})
-target_include_directories(${AMD_SMI} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/rocm_smi/include
-                                              ${PROJECT_SOURCE_DIR}/common/shared_mutex ${ACA_INC_DIR})
+target_link_libraries(${AMD_SMI} PRIVATE
+    rt
+    Threads::Threads
+    ${CMAKE_DL_LIBS}
+)
+target_include_directories(${AMD_SMI} PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR} 
+    ${PROJECT_SOURCE_DIR}/rocm_smi/include
+    ${PROJECT_SOURCE_DIR}/common/shared_mutex 
+    ${ACA_INC_DIR}
+    ${DRM_INCLUDE_DIRS}
+    ${DRM_AMDGPU_INCLUDE_DIRS}                                          
+)
 
 # use the target_include_directories() command to specify the include directories for the target
 target_include_directories(${AMD_SMI} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
                                              "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
 
 ## Set the VERSION and SOVERSION values
-set_property(TARGET ${AMD_SMI} PROPERTY SOVERSION "${VERSION_MAJOR}")
+set_property(TARGET ${AMD_SMI} PROPERTY SOVERSION "${MAJOR}")
 set_property(TARGET ${AMD_SMI} PROPERTY VERSION "${SO_VERSION_STRING}")
 
 ## If the library is a release, strip the target library

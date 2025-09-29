@@ -867,7 +867,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         # Optional arguments help text
         asic_help = "All asic information"
         bus_help = "All bus information"
-        vbios_help = "All video bios information (if available)"
+        vbios_help = "All video bios/IFWI information (if available)"
         limit_help = "All limit metric values (i.e. power and thermal limits)"
         driver_help = "Displays driver version"
         vram_help = "All vram information"
@@ -909,7 +909,9 @@ class AMDSMIParser(argparse.ArgumentParser):
         if self.helpers.is_amdgpu_initialized():
             static_parser.add_argument('-a', '--asic', action='store_true', required=False, help=asic_help)
             static_parser.add_argument('-b', '--bus', action='store_true', required=False, help=bus_help)
-            static_parser.add_argument('-V', '--vbios', action='store_true', required=False, help=vbios_help)
+            # Accept vbios args without displaying them
+            static_parser.add_argument('-V', '--vbios', dest='vbios', action='store_true', required=False, help=argparse.SUPPRESS)
+            static_parser.add_argument('-I', '--ifwi', dest='vbios', action='store_true', required=False, help=vbios_help)
             static_parser.add_argument('-d', '--driver', action='store_true', required=False, help=driver_help)
             static_parser.add_argument('-v', '--vram', action='store_true', required=False, help=vram_help)
             static_parser.add_argument('-c', '--cache', action='store_true', required=False, help=cache_help)
@@ -1189,7 +1191,7 @@ class AMDSMIParser(argparse.ArgumentParser):
             return
 
         # Subparser help text
-        process_help = "Lists general process information running on the specified GPU"
+        process_help = "Lists compute process information running on the specified GPU"
         process_subcommand_help = f"{self.description}\n\nIf no GPU is specified, returns information for all GPUs on the system.\
                                 \nIf no process argument is provided, all process information will be displayed."
         process_optionals_title = "Process arguments"
@@ -1197,8 +1199,8 @@ class AMDSMIParser(argparse.ArgumentParser):
         # Optional Arguments help text
         general_help = "pid, process name, memory usage"
         engine_help = "All engine usages"
-        pid_help = "Gets all process information about the specified process based on Process ID"
-        name_help = "Gets all process information about the specified process based on Process Name.\
+        pid_help = "Gets compute process GPU information about the specified process based on Process ID"
+        name_help = "Gets compute process GPU information about the specified process based on Process Name.\
                     \nIf multiple processes have the same name, information is returned for all of them.\
                     \nProcess Name may require elevated permissions."
 
