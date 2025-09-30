@@ -95,7 +95,7 @@ include(GNUInstallDirs)
 option(BUILD_TESTS "Build test suite" OFF)
 option(ENABLE_ASAN_PACKAGING "" OFF)
 option(ENABLE_ESMI_LIB "Build ESMI Library" ON)
-option(ENABLE_BRCM_SMI "Build BRCM SMI Library" ON)
+option(ENABLE_BRCM_SMI "Build BRCM SMI Library" OFF)
 option(BUILD_EXAMPLES "Build examples" OFF)
 
 # If amdsmi is built as a static library, it should support being embedded in other programs. The setting below essentially enables the -fPIC flag.
