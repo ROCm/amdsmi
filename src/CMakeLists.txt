@@ -19,16 +19,11 @@ set(SRC_LIST
     "${SRC_DIR}/amd_smi_cper.cc"
     "${SRC_DIR}/amd_smi_common.cc"
     "${SRC_DIR}/amd_smi_drm.cc"
-    "${SRC_DIR}/amd_smi_nic_device.cc"
-    "${SRC_DIR}/amd_smi_no_drm_nic.cc"
-    "${SRC_DIR}/amd_smi_switch_device.cc"
-    "${SRC_DIR}/amd_smi_no_drm_switch.cc"
     "${SRC_DIR}/amd_smi_gpu_device.cc"
     "${SRC_DIR}/amd_smi_lib_loader.cc"
     "${SRC_DIR}/amd_smi_socket.cc"
     "${SRC_DIR}/amd_smi_system.cc"
     "${SRC_DIR}/amd_smi_utils.cc"
-    "${SRC_DIR}/amd_smi_lspci_commands.cc"
     "${SRC_DIR}/amd_smi_uuid.cc"
     "${SRC_DIR}/scoped_fd.cc"
     "${SRC_DIR}/fdinfo.cc"
@@ -39,10 +34,6 @@ set(INC_LIST
     "${INC_DIR}/impl/amd_smi_cper.h"
     "${INC_DIR}/impl/amd_smi_processor.h"
     "${INC_DIR}/impl/amd_smi_drm.h"
-    "${INC_DIR}/impl/amd_smi_nic_device.h"
-    "${INC_DIR}/impl/amd_smi_no_drm_nic.h"
-    "${INC_DIR}/impl/amd_smi_switch_device.h"
-    "${INC_DIR}/impl/amd_smi_no_drm_switch.h"
     "${INC_DIR}/impl/amd_smi_gpu_device.h"
     "${INC_DIR}/impl/amd_smi_lib_loader.h"
     "${INC_DIR}/impl/amd_smi_socket.h"
@@ -85,6 +76,13 @@ target_include_directories(${AMD_SMI} PRIVATE
     ${DRM_INCLUDE_DIRS}
     ${DRM_AMDGPU_INCLUDE_DIRS}                                          
 )
+
+# Add BRCM SMI support if enabled
+if(ENABLE_BRCM_SMI)
+    target_compile_definitions(${AMD_SMI} PRIVATE ENABLE_BRCM_SMI=1)
+    target_include_directories(${AMD_SMI} PRIVATE ${PROJECT_SOURCE_DIR}/brcm-smi/include)
+    message(STATUS "BRCM SMI compile definition and include directory added to ${AMD_SMI}")
+endif()
 
 # use the target_include_directories() command to specify the include directories for the target
 target_include_directories(${AMD_SMI} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"

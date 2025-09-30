@@ -1537,8 +1537,6 @@ class AMDSMIParser(argparse.ArgumentParser):
         # Add Universal Arguments & Watch Args
         self._add_watch_arguments(monitor_parser)
         self._add_device_arguments(monitor_parser, required=False)
-        self._add_brcm_nic_device_arguments(monitor_parser, nicMandatory=True, required=False)
-        self._add_brcm_switch_device_arguments(monitor_parser, switchMandatory=True, required=False)
         self._add_command_modifiers(monitor_parser)
 
 

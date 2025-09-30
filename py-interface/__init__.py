@@ -289,6 +289,9 @@ from .amdsmi_interface import AmdSmiVirtualizationMode
 from .amdsmi_interface import AmdSmiVramType
 from .amdsmi_interface import AmdSmiAffinityScope
 
+# BRCM SMI Interface
+from . import brcmsmi_interface
+
 # Exceptions
 from .amdsmi_exception import AmdSmiLibraryException
 from .amdsmi_exception import AmdSmiRetryException

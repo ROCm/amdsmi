@@ -95,6 +95,7 @@ include(GNUInstallDirs)
 option(BUILD_TESTS "Build test suite" OFF)
 option(ENABLE_ASAN_PACKAGING "" OFF)
 option(ENABLE_ESMI_LIB "Build ESMI Library" ON)
+option(ENABLE_BRCM_SMI "Build BRCM SMI Library" ON)
 option(BUILD_EXAMPLES "Build examples" OFF)
 
 # If amdsmi is built as a static library, it should support being embedded in other programs. The setting below essentially enables the -fPIC flag.
@@ -278,6 +279,36 @@ set(CMN_INC_LIST
     "${ROCM_INC_DIR}/rocm_smi_board_temp.h")
 
 add_subdirectory("rocm_smi")
+
+# Conditionally include BRCM SMI sources before building the main library
+if(ENABLE_BRCM_SMI)
+    message(STATUS "BRCM SMI Library enabled")
+    add_compile_definitions(ENABLE_BRCM_SMI=1)
+    
+    # Add BRCM SMI sources to the common source list
+    set(BRCM_SMI_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/brcm-smi/src")
+    list(APPEND CMN_SRC_LIST 
+        "${BRCM_SMI_SRC_DIR}/brcm_smi.cc"
+        "${BRCM_SMI_SRC_DIR}/brcm_smi_discovery.cc"
+        "${BRCM_SMI_SRC_DIR}/brcm_smi_device.cc"
+        "${BRCM_SMI_SRC_DIR}/brcm_smi_utils.cc"
+        "${BRCM_SMI_SRC_DIR}/brcm_smi_nic_device.cc"
+        "${BRCM_SMI_SRC_DIR}/brcm_smi_switch_device.cc"
+        "${BRCM_SMI_SRC_DIR}/brcm_smi_no_drm_nic.cc"
+        "${BRCM_SMI_SRC_DIR}/brcm_smi_no_drm_switch.cc"
+        "${BRCM_SMI_SRC_DIR}/brcm_smi_lspci_commands.cc"
+        "${BRCM_SMI_SRC_DIR}/brcm_smi_socket.cc"
+        "${BRCM_SMI_SRC_DIR}/brcm_smi_processor.cc"
+        "${BRCM_SMI_SRC_DIR}/brcm_smi_system.cc"
+    )
+    message(STATUS "BRCM SMI sources added to main library")
+    
+    # Include BRCM SMI headers
+    include_directories("${CMAKE_CURRENT_SOURCE_DIR}/brcm-smi/include")
+    
+    add_subdirectory("brcm-smi")
+endif()
+
 add_subdirectory("src")
 
 if(BUILD_TESTS)

@@ -275,8 +275,6 @@ processor_type_t__enumvalues = {
     4: 'AMDSMI_PROCESSOR_TYPE_NON_AMD_CPU',
     5: 'AMDSMI_PROCESSOR_TYPE_AMD_CPU_CORE',
     6: 'AMDSMI_PROCESSOR_TYPE_AMD_APU',
-    7: 'AMDSMI_PROCESSOR_TYPE_BRCM_NIC',
-    8: 'AMDSMI_PROCESSOR_TYPE_BRCM_SWITCH',
 }
 AMDSMI_PROCESSOR_TYPE_UNKNOWN = 0
 AMDSMI_PROCESSOR_TYPE_AMD_GPU = 1
@@ -285,8 +283,6 @@ AMDSMI_PROCESSOR_TYPE_NON_AMD_GPU = 3
 AMDSMI_PROCESSOR_TYPE_NON_AMD_CPU = 4
 AMDSMI_PROCESSOR_TYPE_AMD_CPU_CORE = 5
 AMDSMI_PROCESSOR_TYPE_AMD_APU = 6
-AMDSMI_PROCESSOR_TYPE_BRCM_NIC = 7
-AMDSMI_PROCESSOR_TYPE_BRCM_SWITCH = 8
 processor_type_t = ctypes.c_uint32 # enum
 
 # values for enumeration 'amdsmi_status_t'
@@ -1308,217 +1304,6 @@ struct_amdsmi_driver_info_t._fields_ = [
 ]
 
 amdsmi_driver_info_t = struct_amdsmi_driver_info_t
-class struct_amdsmi_brcm_nic_info_t(Structure):
-    pass
-
-struct_amdsmi_brcm_nic_info_t._pack_ = 1 # source:False
-struct_amdsmi_brcm_nic_info_t._fields_ = [
-    ('nic_bdf', amdsmi_bdf_t),
-    ('nic_uuid', ctypes.c_char * 256),
-    ('nic_device_name', ctypes.c_char * 256),
-    ('nic_part_number', ctypes.c_char * 256),
-    ('nic_firmware_version', ctypes.c_char * 256),
-]
-
-amdsmi_brcm_nic_info_t = struct_amdsmi_brcm_nic_info_t
-class struct_amdsmi_brcm_nic_temperature_metric_t(Structure):
-    pass
-
-struct_amdsmi_brcm_nic_temperature_metric_t._pack_ = 1 # source:False
-struct_amdsmi_brcm_nic_temperature_metric_t._fields_ = [
-    ('nic_temp_crit_alarm', ctypes.c_uint32),
-    ('nic_temp_emergency_alarm', ctypes.c_uint32),
-    ('nic_temp_shutdown_alarm', ctypes.c_uint32),
-    ('nic_temp_max_alarm', ctypes.c_uint32),
-    ('nic_temp_crit', ctypes.c_uint32),
-    ('nic_temp_emergency', ctypes.c_uint32),
-    ('nic_temp_input', ctypes.c_uint32),
-    ('nic_temp_max', ctypes.c_uint32),
-    ('nic_temp_shutdown', ctypes.c_uint32),
-]
-
-amdsmi_brcm_nic_temperature_metric_t = struct_amdsmi_brcm_nic_temperature_metric_t
-class struct_amdsmi_brcm_nic_firmware_t(Structure):
-    pass
-
-struct_amdsmi_brcm_nic_firmware_t._pack_ = 1 # source:False
-struct_amdsmi_brcm_nic_firmware_t._fields_ = [
-    ('nic_fw_pkg_version', ctypes.c_char * 256),
-    ('nic_fw_efi_version', ctypes.c_char * 256),
-    ('nic_fw_version', ctypes.c_char * 256),
-    ('nic_fw_ncsi_version', ctypes.c_char * 256),
-    ('nic_fw_roce_version', ctypes.c_char * 256),
-]
-
-amdsmi_brcm_nic_firmware_t = struct_amdsmi_brcm_nic_firmware_t
-class struct_amdsmi_brcm_nic_hwmon_power_t(Structure):
-    pass
-
-struct_amdsmi_brcm_nic_hwmon_power_t._pack_ = 1 # source:False
-struct_amdsmi_brcm_nic_hwmon_power_t._fields_ = [
-    ('nic_power_async', ctypes.c_char * 256),
-    ('nic_power_control', ctypes.c_char * 256),
-    ('nic_power_runtime_active_time', ctypes.c_uint32),
-    ('nic_power_runtime_status', ctypes.c_char * 256),
-    ('nic_power_runtime_usage', ctypes.c_uint32),
-    ('nic_power_runtime_active_kids', ctypes.c_uint32),
-    ('nic_power_runtime_enabled', ctypes.c_char * 256),
-    ('nic_power_runtime_suspended_time', ctypes.c_uint32),
-]
-
-amdsmi_brcm_nic_hwmon_power_t = struct_amdsmi_brcm_nic_hwmon_power_t
-class struct_amdsmi_brcm_nic_hwmon_device_t(Structure):
-    pass
-
-struct_amdsmi_brcm_nic_hwmon_device_t._pack_ = 1 # source:False
-struct_amdsmi_brcm_nic_hwmon_device_t._fields_ = [
-    ('nic_device_aer_dev_correctable', ctypes.c_char * 256),
-    ('nic_device_aer_dev_fatal', ctypes.c_char * 256),
-    ('nic_device_aer_dev_nonfatal', ctypes.c_char * 256),
-    ('nic_device_ari_enabled', ctypes.c_uint32),
-    ('nic_device_broken_parity_status', ctypes.c_uint32),
-    ('nic_device_class', ctypes.c_char * 256),
-    ('nic_device_config', ctypes.c_char * 256),
-    ('nic_device_consistent_dma_mask_bits', ctypes.c_uint32),
-    ('nic_device_current_link_speed', ctypes.c_char * 256),
-    ('nic_device_current_link_width', ctypes.c_uint32),
-    ('nic_device_d3cold_allowed', ctypes.c_uint32),
-    ('nic_device_device', ctypes.c_char * 256),
-    ('nic_device_dma_mask_bits', ctypes.c_uint32),
-    ('nic_device_driver_override', ctypes.c_char * 256),
-    ('nic_device_enable', ctypes.c_uint32),
-    ('nic_device_irq', ctypes.c_uint32),
-    ('nic_device_local_cpulist', ctypes.c_char * 256),
-    ('nic_device_local_cpus', ctypes.c_char * 256),
-    ('nic_device_max_link_speed', ctypes.c_char * 256),
-    ('nic_device_max_link_width', ctypes.c_uint32),
-    ('nic_device_modalias', ctypes.c_char * 256),
-    ('nic_device_msi_bus', ctypes.c_uint32),
-    ('nic_device_numa_node', ctypes.c_uint32),
-    ('nic_device_pools', ctypes.c_char * 256),
-    ('nic_device_power_state', ctypes.c_char * 256),
-    ('nic_device_reset_method', ctypes.c_char * 256),
-    ('nic_device_resource', ctypes.c_char * 256),
-    ('nic_device_revision', ctypes.c_char * 256),
-    ('nic_device_sriov_drivers_autoprobe', ctypes.c_uint32),
-    ('nic_device_sriov_numvfs', ctypes.c_uint32),
-    ('nic_device_sriov_offset', ctypes.c_uint32),
-    ('nic_device_sriov_stride', ctypes.c_uint32),
-    ('nic_device_sriov_totalvfs', ctypes.c_uint32),
-    ('nic_device_sriov_vf_device', ctypes.c_uint32),
-    ('nic_device_sriov_vf_total_msix', ctypes.c_uint32),
-    ('nic_device_subsystem_device', ctypes.c_char * 256),
-    ('nic_device_subsystem_vendor', ctypes.c_char * 256),
-    ('nic_device_uevent', ctypes.c_char * 256),
-    ('nic_device_vendor', ctypes.c_char * 256),
-    ('nic_device_vpd', ctypes.c_char * 256),
-]
-
-amdsmi_brcm_nic_hwmon_device_t = struct_amdsmi_brcm_nic_hwmon_device_t
-class struct_amdsmi_brcm_nic_hwmon_metrics_t(Structure):
-    pass
-
-struct_amdsmi_brcm_nic_hwmon_metrics_t._pack_ = 1 # source:False
-struct_amdsmi_brcm_nic_hwmon_metrics_t._fields_ = [
-    ('nic_power', amdsmi_brcm_nic_hwmon_power_t),
-    ('nic_temperature', amdsmi_brcm_nic_temperature_metric_t),
-    ('nic_device_aer_dev_correctable', ctypes.c_char * 256),
-    ('nic_device_aer_dev_fatal', ctypes.c_char * 256),
-    ('nic_device_aer_dev_nonfatal', ctypes.c_char * 256),
-]
-
-amdsmi_brcm_nic_hwmon_metrics_t = struct_amdsmi_brcm_nic_hwmon_metrics_t
-class struct_amdsmi_brcm_switch_link_metric_t(Structure):
-    pass
-
-struct_amdsmi_brcm_switch_link_metric_t._pack_ = 1 # source:False
-struct_amdsmi_brcm_switch_link_metric_t._fields_ = [
-    ('current_link_speed', ctypes.c_char * 256),
-    ('max_link_speed', ctypes.c_char * 256),
-    ('current_link_width', ctypes.c_char * 256),
-    ('max_link_width', ctypes.c_char * 256),
-]
-
-amdsmi_brcm_switch_link_metric_t = struct_amdsmi_brcm_switch_link_metric_t
-class struct_amdsmi_brcm_switch_power_metric_t(Structure):
-    pass
-
-struct_amdsmi_brcm_switch_power_metric_t._pack_ = 1 # source:False
-struct_amdsmi_brcm_switch_power_metric_t._fields_ = [
-    ('brcm_power_async', ctypes.c_char * 256),
-    ('brcm_power_control', ctypes.c_char * 256),
-    ('brcm_power_runtime_active_kids', ctypes.c_char * 256),
-    ('brcm_power_runtime_active_time', ctypes.c_char * 256),
-    ('brcm_power_runtime_enabled', ctypes.c_char * 256),
-    ('brcm_power_runtime_status', ctypes.c_char * 256),
-    ('brcm_power_runtime_suspended_time', ctypes.c_char * 256),
-    ('brcm_power_runtime_usage', ctypes.c_char * 256),
-    ('brcm_power_wakeup', ctypes.c_char * 256),
-    ('brcm_power_wakeup_abort_count', ctypes.c_char * 256),
-    ('brcm_power_wakeup_active', ctypes.c_char * 256),
-    ('brcm_power_wakeup_active_count', ctypes.c_char * 256),
-    ('brcm_power_wakeup_count', ctypes.c_char * 256),
-    ('brcm_power_wakeup_expire_count', ctypes.c_char * 256),
-    ('brcm_power_wakeup_last_time_ms', ctypes.c_char * 256),
-    ('brcm_power_wakeup_max_time_ms', ctypes.c_char * 256),
-    ('brcm_power_wakeup_total_time_ms', ctypes.c_char * 256),
-]
-
-amdsmi_brcm_switch_power_metric_t = struct_amdsmi_brcm_switch_power_metric_t
-class struct_amdsmi_brcm_switch_device_metric_t(Structure):
-    pass
-
-struct_amdsmi_brcm_switch_device_metric_t._pack_ = 1 # source:False
-struct_amdsmi_brcm_switch_device_metric_t._fields_ = [
-    ('brcm_device_aer_dev_correctable', ctypes.c_char * 256),
-    ('brcm_device_aer_dev_fatal', ctypes.c_char * 256),
-    ('brcm_device_aer_dev_nonfatal', ctypes.c_char * 256),
-    ('brcm_device_ari_enabled', ctypes.c_char * 256),
-    ('brcm_device_broken_parity_status', ctypes.c_char * 256),
-    ('brcm_device_class', ctypes.c_char * 256),
-    ('brcm_device_config', ctypes.c_char * 256),
-    ('brcm_device_consistent_dma_mask_bits', ctypes.c_char * 256),
-    ('brcm_device_current_link_speed', ctypes.c_char * 256),
-    ('brcm_device_current_link_width', ctypes.c_char * 256),
-    ('brcm_device_d3cold_allowed', ctypes.c_char * 256),
-    ('brcm_device_device', ctypes.c_char * 256),
-    ('brcm_device_dma_mask_bits', ctypes.c_char * 256),
-    ('brcm_device_driver_override', ctypes.c_char * 256),
-    ('brcm_device_enable', ctypes.c_char * 256),
-    ('brcm_device_irq', ctypes.c_char * 256),
-    ('brcm_device_local_cpulist', ctypes.c_char * 256),
-    ('brcm_device_local_cpus', ctypes.c_char * 256),
-    ('brcm_device_max_link_speed', ctypes.c_char * 256),
-    ('brcm_device_max_link_width', ctypes.c_char * 256),
-    ('brcm_device_modalias', ctypes.c_char * 256),
-    ('brcm_device_msi_bus', ctypes.c_char * 256),
-    ('brcm_device_numa_node', ctypes.c_char * 256),
-    ('brcm_device_pools', ctypes.c_char * 256),
-    ('brcm_device_power', amdsmi_brcm_switch_power_metric_t),
-    ('brcm_device_power_state', ctypes.c_char * 256),
-    ('brcm_device_reset_method', ctypes.c_char * 256),
-    ('brcm_device_resource', ctypes.c_char * 256),
-    ('brcm_device_revision', ctypes.c_char * 256),
-    ('brcm_device_subsystem_device', ctypes.c_char * 256),
-    ('brcm_device_subsystem_vendor', ctypes.c_char * 256),
-    ('brcm_device_uevent', ctypes.c_char * 256),
-    ('brcm_device_vendor', ctypes.c_char * 256),
-    ('brcm_device_vpd', ctypes.c_char * 256),
-]
-
-amdsmi_brcm_switch_device_metric_t = struct_amdsmi_brcm_switch_device_metric_t
-class struct_amdsmi_brcm_switch_metric_t(Structure):
-    pass
-
-struct_amdsmi_brcm_switch_metric_t._pack_ = 1 # source:False
-struct_amdsmi_brcm_switch_metric_t._fields_ = [
-    ('brcm_device_aer_dev_correctable', ctypes.c_char * 256),
-    ('brcm_device_aer_dev_fatal', ctypes.c_char * 256),
-    ('brcm_device_aer_dev_nonfatal', ctypes.c_char * 256),
-    ('brcm_power', amdsmi_brcm_switch_power_metric_t),
-]
-
-amdsmi_brcm_switch_metric_t = struct_amdsmi_brcm_switch_metric_t
 class struct_amdsmi_board_info_t(Structure):
     pass
 
@@ -2681,12 +2466,6 @@ amdsmi_get_processor_handles_by_type.argtypes = [amdsmi_socket_handle, processor
 amdsmi_get_processor_handles = _libraries['libamd_smi.so'].amdsmi_get_processor_handles
 amdsmi_get_processor_handles.restype = amdsmi_status_t
 amdsmi_get_processor_handles.argtypes = [amdsmi_socket_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.POINTER(None))]
-amdsmi_get_nic_processor_handles = _libraries['libamd_smi.so'].amdsmi_get_nic_processor_handles
-amdsmi_get_nic_processor_handles.restype = amdsmi_status_t
-amdsmi_get_nic_processor_handles.argtypes = [amdsmi_socket_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.POINTER(None))]
-amdsmi_get_switch_processor_handles = _libraries['libamd_smi.so'].amdsmi_get_switch_processor_handles
-amdsmi_get_switch_processor_handles.restype = amdsmi_status_t
-amdsmi_get_switch_processor_handles.argtypes = [amdsmi_socket_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.POINTER(None))]
 amdsmi_get_cpucore_handles = _libraries['libamd_smi.so'].amdsmi_get_cpucore_handles
 amdsmi_get_cpucore_handles.restype = amdsmi_status_t
 amdsmi_get_cpucore_handles.argtypes = [ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.POINTER(None))]
@@ -2739,27 +2518,6 @@ amdsmi_get_gpu_bdf_id.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes
 amdsmi_get_gpu_topo_numa_affinity = _libraries['libamd_smi.so'].amdsmi_get_gpu_topo_numa_affinity
 amdsmi_get_gpu_topo_numa_affinity.restype = amdsmi_status_t
 amdsmi_get_gpu_topo_numa_affinity.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_int32)]
-amdsmi_get_gpu_topo_cpu_affinity = _libraries['libamd_smi.so'].amdsmi_get_gpu_topo_cpu_affinity
-amdsmi_get_gpu_topo_cpu_affinity.restype = amdsmi_status_t
-amdsmi_get_gpu_topo_cpu_affinity.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_char)]
-amdsmi_get_nic_topo_numa_affinity = _libraries['libamd_smi.so'].amdsmi_get_nic_topo_numa_affinity
-amdsmi_get_nic_topo_numa_affinity.restype = amdsmi_status_t
-amdsmi_get_nic_topo_numa_affinity.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_int32)]
-amdsmi_get_nic_topo_cpu_affinity = _libraries['libamd_smi.so'].amdsmi_get_nic_topo_cpu_affinity
-amdsmi_get_nic_topo_cpu_affinity.restype = amdsmi_status_t
-amdsmi_get_nic_topo_cpu_affinity.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_char)]
-amdsmi_get_switch_topo_numa_affinity = _libraries['libamd_smi.so'].amdsmi_get_switch_topo_numa_affinity
-amdsmi_get_switch_topo_numa_affinity.restype = amdsmi_status_t
-amdsmi_get_switch_topo_numa_affinity.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_int32)]
-amdsmi_get_switch_topo_cpu_affinity = _libraries['libamd_smi.so'].amdsmi_get_switch_topo_cpu_affinity
-amdsmi_get_switch_topo_cpu_affinity.restype = amdsmi_status_t
-amdsmi_get_switch_topo_cpu_affinity.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_char)]
-amdsmi_get_nic_gpu_topo_info = _libraries['libamd_smi.so'].amdsmi_get_nic_gpu_topo_info
-amdsmi_get_nic_gpu_topo_info.restype = amdsmi_status_t
-amdsmi_get_nic_gpu_topo_info.argtypes = [amdsmi_processor_handle, amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_char)]
-amdsmi_get_root_switch = _libraries['libamd_smi.so'].amdsmi_get_root_switch
-amdsmi_get_root_switch.restype = amdsmi_status_t
-amdsmi_get_root_switch.argtypes = [amdsmi_bdf_t, ctypes.POINTER(union_amdsmi_bdf_t)]
 amdsmi_get_gpu_pci_throughput = _libraries['libamd_smi.so'].amdsmi_get_gpu_pci_throughput
 amdsmi_get_gpu_pci_throughput.restype = amdsmi_status_t
 amdsmi_get_gpu_pci_throughput.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(ctypes.c_uint64), ctypes.POINTER(ctypes.c_uint64)]
@@ -3128,48 +2886,9 @@ amdsmi_stop_gpu_event_notification.argtypes = [amdsmi_processor_handle]
 amdsmi_get_gpu_device_bdf = _libraries['libamd_smi.so'].amdsmi_get_gpu_device_bdf
 amdsmi_get_gpu_device_bdf.restype = amdsmi_status_t
 amdsmi_get_gpu_device_bdf.argtypes = [amdsmi_processor_handle, ctypes.POINTER(union_amdsmi_bdf_t)]
-amdsmi_get_switch_device_bdf = _libraries['libamd_smi.so'].amdsmi_get_switch_device_bdf
-amdsmi_get_switch_device_bdf.restype = amdsmi_status_t
-amdsmi_get_switch_device_bdf.argtypes = [amdsmi_processor_handle, ctypes.POINTER(union_amdsmi_bdf_t)]
-amdsmi_get_gpu_device_uuid = _libraries['libamd_smi.so'].amdsmi_get_gpu_device_uuid
-amdsmi_get_gpu_device_uuid.restype = amdsmi_status_t
-amdsmi_get_gpu_device_uuid.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_char)]
-amdsmi_get_nic_device_uuid = _libraries['libamd_smi.so'].amdsmi_get_nic_device_uuid
-amdsmi_get_nic_device_uuid.restype = amdsmi_status_t
-amdsmi_get_nic_device_uuid.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_char)]
-amdsmi_get_switch_device_uuid = _libraries['libamd_smi.so'].amdsmi_get_switch_device_uuid
-amdsmi_get_switch_device_uuid.restype = amdsmi_status_t
-amdsmi_get_switch_device_uuid.argtypes = [amdsmi_processor_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.c_char)]
 amdsmi_get_gpu_driver_info = _libraries['libamd_smi.so'].amdsmi_get_gpu_driver_info
 amdsmi_get_gpu_driver_info.restype = amdsmi_status_t
 amdsmi_get_gpu_driver_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_driver_info_t)]
-amdsmi_get_nic_info = _libraries['libamd_smi.so'].amdsmi_get_nic_info
-amdsmi_get_nic_info.restype = amdsmi_status_t
-amdsmi_get_nic_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_brcm_nic_info_t)]
-amdsmi_get_nic_temp_info = _libraries['libamd_smi.so'].amdsmi_get_nic_temp_info
-amdsmi_get_nic_temp_info.restype = amdsmi_status_t
-amdsmi_get_nic_temp_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_brcm_nic_temperature_metric_t)]
-amdsmi_get_nic_power_info = _libraries['libamd_smi.so'].amdsmi_get_nic_power_info
-amdsmi_get_nic_power_info.restype = amdsmi_status_t
-amdsmi_get_nic_power_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_brcm_nic_hwmon_power_t)]
-amdsmi_get_nic_device_info = _libraries['libamd_smi.so'].amdsmi_get_nic_device_info
-amdsmi_get_nic_device_info.restype = amdsmi_status_t
-amdsmi_get_nic_device_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_brcm_nic_hwmon_device_t)]
-amdsmi_get_nic_metrics_info = _libraries['libamd_smi.so'].amdsmi_get_nic_metrics_info
-amdsmi_get_nic_metrics_info.restype = amdsmi_status_t
-amdsmi_get_nic_metrics_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_brcm_nic_hwmon_metrics_t)]
-amdsmi_get_switch_link_info = _libraries['libamd_smi.so'].amdsmi_get_switch_link_info
-amdsmi_get_switch_link_info.restype = amdsmi_status_t
-amdsmi_get_switch_link_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_brcm_switch_link_metric_t)]
-amdsmi_get_switch_device_info = _libraries['libamd_smi.so'].amdsmi_get_switch_device_info
-amdsmi_get_switch_device_info.restype = amdsmi_status_t
-amdsmi_get_switch_device_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_brcm_switch_device_metric_t)]
-amdsmi_get_switch_power_info = _libraries['libamd_smi.so'].amdsmi_get_switch_power_info
-amdsmi_get_switch_power_info.restype = amdsmi_status_t
-amdsmi_get_switch_power_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_brcm_switch_power_metric_t)]
-amdsmi_get_switch_metrics_info = _libraries['libamd_smi.so'].amdsmi_get_switch_metrics_info
-amdsmi_get_switch_metrics_info.restype = amdsmi_status_t
-amdsmi_get_switch_metrics_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_brcm_switch_metric_t)]
 amdsmi_get_gpu_asic_info = _libraries['libamd_smi.so'].amdsmi_get_gpu_asic_info
 amdsmi_get_gpu_asic_info.restype = amdsmi_status_t
 amdsmi_get_gpu_asic_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_asic_info_t)]
@@ -3194,9 +2913,6 @@ amdsmi_get_gpu_xcd_counter.argtypes = [amdsmi_processor_handle, ctypes.POINTER(c
 amdsmi_get_fw_info = _libraries['libamd_smi.so'].amdsmi_get_fw_info
 amdsmi_get_fw_info.restype = amdsmi_status_t
 amdsmi_get_fw_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_fw_info_t)]
-amdsmi_get_nic_fw_info = _libraries['libamd_smi.so'].amdsmi_get_nic_fw_info
-amdsmi_get_nic_fw_info.restype = amdsmi_status_t
-amdsmi_get_nic_fw_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_brcm_nic_firmware_t)]
 amdsmi_get_gpu_vbios_info = _libraries['libamd_smi.so'].amdsmi_get_gpu_vbios_info
 amdsmi_get_gpu_vbios_info.restype = amdsmi_status_t
 amdsmi_get_gpu_vbios_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_vbios_info_t)]
@@ -3492,8 +3208,7 @@ __all__ = \
     'AMDSMI_MM__MAX', 'AMDSMI_PROCESSOR_TYPE_AMD_APU',
     'AMDSMI_PROCESSOR_TYPE_AMD_CPU',
     'AMDSMI_PROCESSOR_TYPE_AMD_CPU_CORE',
-    'AMDSMI_PROCESSOR_TYPE_AMD_GPU', 'AMDSMI_PROCESSOR_TYPE_BRCM_NIC',
-    'AMDSMI_PROCESSOR_TYPE_BRCM_SWITCH',
+    'AMDSMI_PROCESSOR_TYPE_AMD_GPU',
     'AMDSMI_PROCESSOR_TYPE_NON_AMD_CPU',
     'AMDSMI_PROCESSOR_TYPE_NON_AMD_GPU',
     'AMDSMI_PROCESSOR_TYPE_UNKNOWN',
@@ -3623,31 +3338,22 @@ __all__ = \
     'AMDSMI_XGMI_STATUS_MULTIPLE_ERRORS',
     'AMDSMI_XGMI_STATUS_NO_ERRORS', 'CLK_LIMIT_MAX', 'CLK_LIMIT_MIN',
     'RD_BW0', 'WR_BW0', 'amd_metrics_table_header_t',
-    'amdsmi_brcm_nic_info_t',
     'amdsmi_accelerator_partition_profile_config_t',
     'amdsmi_accelerator_partition_profile_t',
     'amdsmi_accelerator_partition_resource_profile_t',
     'amdsmi_accelerator_partition_resource_type_t',
     'amdsmi_accelerator_partition_type_t', 'amdsmi_affinity_scope_t',
     'amdsmi_asic_info_t', 'amdsmi_bdf_t', 'amdsmi_bit_field_t',
-    'amdsmi_board_info_t', 'amdsmi_brcm_nic_firmware_t',
-    'amdsmi_brcm_nic_hwmon_device_t',
-    'amdsmi_brcm_nic_hwmon_metrics_t',
-    'amdsmi_brcm_nic_hwmon_power_t',
-    'amdsmi_brcm_nic_temperature_metric_t',
-    'amdsmi_brcm_switch_device_metric_t',
-    'amdsmi_brcm_switch_link_metric_t', 'amdsmi_brcm_switch_metric_t',
-    'amdsmi_brcm_switch_power_metric_t',
-    'amdsmi_cache_property_type_t', 'amdsmi_card_form_factor_t',
-    'amdsmi_clean_gpu_local_data', 'amdsmi_clk_info_t',
-    'amdsmi_clk_limit_type_t', 'amdsmi_clk_type_t',
-    'amdsmi_compute_partition_type_t', 'amdsmi_container_types_t',
-    'amdsmi_counter_command_t', 'amdsmi_counter_value_t',
-    'amdsmi_cper_guid_t', 'amdsmi_cper_hdr_t',
-    'amdsmi_cper_notify_type_t', 'amdsmi_cper_sev_t',
-    'amdsmi_cper_timestamp_t', 'amdsmi_cper_valid_bits_t',
-    'amdsmi_cpu_apb_disable', 'amdsmi_cpu_apb_enable',
-    'amdsmi_cpu_info_t', 'amdsmi_cpu_util_t',
+    'amdsmi_board_info_t', 'amdsmi_cache_property_type_t',
+    'amdsmi_card_form_factor_t', 'amdsmi_clean_gpu_local_data',
+    'amdsmi_clk_info_t', 'amdsmi_clk_limit_type_t',
+    'amdsmi_clk_type_t', 'amdsmi_compute_partition_type_t',
+    'amdsmi_container_types_t', 'amdsmi_counter_command_t',
+    'amdsmi_counter_value_t', 'amdsmi_cper_guid_t',
+    'amdsmi_cper_hdr_t', 'amdsmi_cper_notify_type_t',
+    'amdsmi_cper_sev_t', 'amdsmi_cper_timestamp_t',
+    'amdsmi_cper_valid_bits_t', 'amdsmi_cpu_apb_disable',
+    'amdsmi_cpu_apb_enable', 'amdsmi_cpu_info_t', 'amdsmi_cpu_util_t',
     'amdsmi_cpusocket_handle', 'amdsmi_ddr_bw_metrics_t',
     'amdsmi_dev_perf_level_t', 'amdsmi_dimm_power_t',
     'amdsmi_dimm_thermal_t', 'amdsmi_dpm_level_t',
@@ -3737,27 +3443,15 @@ __all__ = \
     'amdsmi_get_hsmp_metrics_table_version', 'amdsmi_get_lib_version',
     'amdsmi_get_link_metrics', 'amdsmi_get_link_topology_nearest',
     'amdsmi_get_minmax_bandwidth_between_processors',
-    'amdsmi_get_nic_device_info',
-    'amdsmi_get_nic_device_uuid', 'amdsmi_get_nic_fw_info',
-    'amdsmi_get_nic_gpu_topo_info', 'amdsmi_get_nic_info',
-    'amdsmi_get_nic_metrics_info', 'amdsmi_get_nic_power_info',
-    'amdsmi_get_nic_processor_handles', 'amdsmi_get_nic_temp_info',
-    'amdsmi_get_nic_topo_cpu_affinity',
-    'amdsmi_get_nic_topo_numa_affinity', 'amdsmi_get_pcie_info',
-    'amdsmi_get_power_cap_info', 'amdsmi_get_power_info',
+    'amdsmi_get_pcie_info', 'amdsmi_get_power_cap_info',
+    'amdsmi_get_power_info',
     'amdsmi_get_processor_count_from_handles',
     'amdsmi_get_processor_handle_from_bdf',
     'amdsmi_get_processor_handles',
     'amdsmi_get_processor_handles_by_type',
     'amdsmi_get_processor_info', 'amdsmi_get_processor_type',
-    'amdsmi_get_root_switch', 'amdsmi_get_soc_pstate',
-    'amdsmi_get_socket_handles', 'amdsmi_get_socket_info',
-    'amdsmi_get_switch_device_bdf', 'amdsmi_get_switch_device_info',
-    'amdsmi_get_switch_device_uuid', 'amdsmi_get_switch_link_info',
-    'amdsmi_get_switch_metrics_info', 'amdsmi_get_switch_power_info',
-    'amdsmi_get_switch_processor_handles',
-    'amdsmi_get_switch_topo_cpu_affinity',
-    'amdsmi_get_switch_topo_numa_affinity', 'amdsmi_get_temp_metric',
+    'amdsmi_get_soc_pstate', 'amdsmi_get_socket_handles',
+    'amdsmi_get_socket_info', 'amdsmi_get_temp_metric',
     'amdsmi_get_threads_per_core', 'amdsmi_get_utilization_count',
     'amdsmi_get_violation_status', 'amdsmi_get_xgmi_info',
     'amdsmi_get_xgmi_plpd', 'amdsmi_gpu_block_t',
@@ -3776,8 +3470,7 @@ __all__ = \
     'amdsmi_link_type_t', 'amdsmi_memory_page_status_t',
     'amdsmi_memory_partition_config_t',
     'amdsmi_memory_partition_type_t', 'amdsmi_memory_type_t',
-    'amdsmi_mm_ip_t', 'amdsmi_name_value_t',
-    'amdsmi_brcm_nic_temperature_metric_t', 'amdsmi_nps_caps_t',
+    'amdsmi_mm_ip_t', 'amdsmi_name_value_t', 'amdsmi_nps_caps_t',
     'amdsmi_od_vddc_point_t', 'amdsmi_od_volt_curve_t',
     'amdsmi_od_volt_freq_data_t', 'amdsmi_p2p_capability_t',
     'amdsmi_pcie_bandwidth_t', 'amdsmi_pcie_info_t',
@@ -3826,20 +3519,10 @@ __all__ = \
     'amdsmi_xgmi_link_status_t', 'amdsmi_xgmi_link_status_type_t',
     'amdsmi_xgmi_status_t', 'processor_type_t', 'size_t',
     'struct__links', 'struct_amd_metrics_table_header_t',
-    'struct_amdsmi_brcm_nic_info_t',
     'struct_amdsmi_accelerator_partition_profile_config_t',
     'struct_amdsmi_accelerator_partition_profile_t',
     'struct_amdsmi_accelerator_partition_resource_profile_t',
     'struct_amdsmi_asic_info_t', 'struct_amdsmi_board_info_t',
-    'struct_amdsmi_brcm_nic_firmware_t',
-    'struct_amdsmi_brcm_nic_hwmon_device_t',
-    'struct_amdsmi_brcm_nic_hwmon_metrics_t',
-    'struct_amdsmi_brcm_nic_hwmon_power_t',
-    'struct_amdsmi_brcm_nic_temperature_metric_t',
-    'struct_amdsmi_brcm_switch_device_metric_t',
-    'struct_amdsmi_brcm_switch_link_metric_t',
-    'struct_amdsmi_brcm_switch_metric_t',
-    'struct_amdsmi_brcm_switch_power_metric_t',
     'struct_amdsmi_clk_info_t', 'struct_amdsmi_counter_value_t',
     'struct_amdsmi_cper_guid_t', 'struct_amdsmi_cper_hdr_t',
     'struct_amdsmi_cper_timestamp_t', 'struct_amdsmi_cpu_info_t',
@@ -3858,9 +3541,8 @@ __all__ = \
     'struct_amdsmi_hsmp_metrics_table_t', 'struct_amdsmi_kfd_info_t',
     'struct_amdsmi_link_id_bw_type_t', 'struct_amdsmi_link_metrics_t',
     'struct_amdsmi_memory_partition_config_t',
-    'struct_amdsmi_name_value_t',
-    'struct_amdsmi_brcm_nic_temperature_metric_t',
-    'struct_amdsmi_od_vddc_point_t', 'struct_amdsmi_od_volt_curve_t',
+    'struct_amdsmi_name_value_t', 'struct_amdsmi_od_vddc_point_t',
+    'struct_amdsmi_od_volt_curve_t',
     'struct_amdsmi_od_volt_freq_data_t',
     'struct_amdsmi_p2p_capability_t',
     'struct_amdsmi_pcie_bandwidth_t', 'struct_amdsmi_pcie_info_t',
@@ -3883,4 +3565,96 @@ __all__ = \
     'struct_amdsmi_bdf_t', 'struct_valid_bits_', 'uint32_t',
     'uint64_t', 'uint8_t', 'union_amdsmi_bdf_t',
     'union_amdsmi_cper_valid_bits_t', 'union_amdsmi_nps_caps_t']
+
+
+#==============================================================================
+# BRCM SMI Integration Structures and Functions
+#==============================================================================
+
+# BRCM SMI discovery result structure
+class amdsmi_brcm_discovery_result_t(ctypes.Structure):
+    _fields_ = [
+        ('nic_count', ctypes.c_uint32),
+        ('switch_count', ctypes.c_uint32),
+        ('total_count', ctypes.c_uint32),
+    ]
+
+# BRCM SMI processor types
+AMDSMI_BRCM_PROCESSOR_TYPE_NIC = 0
+AMDSMI_BRCM_PROCESSOR_TYPE_SWITCH = 1
+
+# BRCM SMI handle types
+amdsmi_brcm_processor_handle = ctypes.c_void_p
+amdsmi_brcm_socket_handle = ctypes.c_void_p
+amdsmi_brcm_processor_type_t = ctypes.c_int
+
+# Function declarations (only available when ENABLE_BRCM_SMI is set)
+# Check if BRCM SMI support is available
+BRCM_SMI_AVAILABLE = False
+
+try:
+    # Core System Functions
+    amdsmi_brcm_init = _libraries['libamd_smi.so'].amdsmi_brcm_init
+    amdsmi_brcm_init.restype = amdsmi_status_t
+    amdsmi_brcm_init.argtypes = [ctypes.c_uint64]
+
+    amdsmi_brcm_shutdown = _libraries['libamd_smi.so'].amdsmi_brcm_shutdown
+    amdsmi_brcm_shutdown.restype = amdsmi_status_t
+    amdsmi_brcm_shutdown.argtypes = []
+
+    amdsmi_brcm_discover_devices = _libraries['libamd_smi.so'].amdsmi_brcm_discover_devices
+    amdsmi_brcm_discover_devices.restype = amdsmi_status_t
+    amdsmi_brcm_discover_devices.argtypes = [ctypes.POINTER(amdsmi_brcm_discovery_result_t)]
+
+    # Handle Management Functions
+    amdsmi_get_brcm_socket_handles = _libraries['libamd_smi.so'].amdsmi_get_brcm_socket_handles
+    amdsmi_get_brcm_socket_handles.restype = amdsmi_status_t
+    amdsmi_get_brcm_socket_handles.argtypes = [ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(amdsmi_brcm_socket_handle)]
+
+    amdsmi_get_brcm_socket_info = _libraries['libamd_smi.so'].amdsmi_get_brcm_socket_info
+    amdsmi_get_brcm_socket_info.restype = amdsmi_status_t
+    amdsmi_get_brcm_socket_info.argtypes = [amdsmi_brcm_socket_handle, ctypes.c_size_t, ctypes.c_char_p]
+
+    amdsmi_get_brcm_nic_processor_handles = _libraries['libamd_smi.so'].amdsmi_get_brcm_nic_processor_handles
+    amdsmi_get_brcm_nic_processor_handles.restype = amdsmi_status_t
+    amdsmi_get_brcm_nic_processor_handles.argtypes = [amdsmi_brcm_socket_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.POINTER(amdsmi_brcm_processor_handle))]
+
+    amdsmi_get_brcm_switch_processor_handles = _libraries['libamd_smi.so'].amdsmi_get_brcm_switch_processor_handles
+    amdsmi_get_brcm_switch_processor_handles.restype = amdsmi_status_t
+    amdsmi_get_brcm_switch_processor_handles.argtypes = [amdsmi_brcm_socket_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.POINTER(amdsmi_brcm_processor_handle))]
+
+    amdsmi_get_brcm_processor_type = _libraries['libamd_smi.so'].amdsmi_get_brcm_processor_type
+    amdsmi_get_brcm_processor_type.restype = amdsmi_status_t
+    amdsmi_get_brcm_processor_type.argtypes = [amdsmi_brcm_processor_handle, ctypes.POINTER(amdsmi_brcm_processor_type_t)]
+
+    # Compatibility Functions
+    amdsmi_get_brcm_processor_handles = _libraries['libamd_smi.so'].amdsmi_get_brcm_processor_handles
+    amdsmi_get_brcm_processor_handles.restype = amdsmi_status_t
+    amdsmi_get_brcm_processor_handles.argtypes = [ctypes.c_uint32, amdsmi_brcm_processor_type_t, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(amdsmi_brcm_processor_handle)]
+
+    amdsmi_get_brcm_processor_handles_by_type = _libraries['libamd_smi.so'].amdsmi_get_brcm_processor_handles_by_type
+    amdsmi_get_brcm_processor_handles_by_type.restype = amdsmi_status_t
+    amdsmi_get_brcm_processor_handles_by_type.argtypes = [amdsmi_brcm_socket_handle, amdsmi_brcm_processor_type_t, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(amdsmi_brcm_processor_handle)]
+
+    # BRCM SMI getString Method
+    amdsmi_brcm_getString = _libraries['libamd_smi.so'].amdsmi_brcm_getString
+    amdsmi_brcm_getString.restype = amdsmi_status_t
+    amdsmi_brcm_getString.argtypes = [amdsmi_brcm_processor_handle, ctypes.c_char_p, ctypes.c_size_t, ctypes.c_char_p]
+
+    # If we reach here, all BRCM SMI functions are available
+    BRCM_SMI_AVAILABLE = True
+
+except AttributeError:
+    # BRCM SMI functions are not available (ENABLE_BRCM_SMI not set during build)
+    BRCM_SMI_AVAILABLE = False
+
+
+def is_brcm_smi_supported():
+    """
+    Check if BRCM SMI support is available in the current build.
+    
+    Returns:
+        bool: True if BRCM SMI functions are available, False otherwise
+    """
+    return BRCM_SMI_AVAILABLE
 

@@ -29,8 +29,6 @@
 #include "amd_smi/impl/amd_smi_socket.h"
 #include "amd_smi/impl/amd_smi_processor.h"
 #include "amd_smi/impl/amd_smi_drm.h"
-#include "amd_smi/impl/amd_smi_no_drm_nic.h"
-#include "amd_smi/impl/amd_smi_no_drm_switch.h"
 
 namespace amd::smi {
 
@@ -76,16 +74,10 @@ class AMDSmiSystem {
     amdsmi_status_t get_gpu_socket_id(uint32_t index, std::string& socketid);
     amdsmi_status_t populate_amd_gpu_devices();
     amdsmi_status_t populate_amd_cpus();
-    amdsmi_status_t populate_brcm_nic_devices();
-    amdsmi_status_t populate_brcm_switch_devices();
     uint64_t init_flag_;
     AMDSmiDrm drm_;
-    AMDSmiNoDrmNIC no_drm_nic;
-    AMDSmiNoDrmSwitch no_drm_switch;
     std::vector<AMDSmiSocket*> sockets_;
     std::set<AMDSmiProcessor*> processors_;     // Track valid processors
-    std::set<AMDSmiProcessor*> nic_processors_;  // Track valid nic processors
-    std::set<AMDSmiProcessor*> switch_processors_;  // Track valid switch processors
 };
 } // namespace amd::smi
 

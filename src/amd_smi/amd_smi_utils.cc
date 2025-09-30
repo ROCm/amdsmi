@@ -811,62 +811,6 @@ std::string smi_amdgpu_get_status_string(amdsmi_status_t ret, bool fullStatus = 
   return std::string(err_str);
 }
 
-uint32_t smi_brcm_get_value_u32(std::string filePath, std::string fileName) {
-
-  filePath += "/" + fileName;
-  std::ifstream file(filePath.c_str(), std::ifstream::in);
-  if (!file.is_open()) {
-    return 0xFFFF;
-  }
-  else {
-    std::string line;
-    getline(file, line);
-    return static_cast<uint32_t>(stoi(line));
-  }
-
-  return AMDSMI_STATUS_SUCCESS;
-}
-
-std::string smi_brcm_get_value_string(std::string filePath, std::string fileName) {
-  
-  std::stringstream temp;
-  filePath += "/" + fileName;
-  std::ifstream file(filePath.c_str(), std::ifstream::in);
-  if (!file.is_open()) {
-    return "N/A";
-  }
-  else {
-    std::string line;
-    while (std::getline(file, line)) {
-      if (line.empty()) {
-        break;
-      }
-      temp << line;
-    }
-  }
-
-  return temp.str();
-}
-
-amdsmi_status_t smi_brcm_execute_cmd_get_data(std::string command, std::string *data) {
-  std::string result;
-  char buffer[128];
-
-  // Open a pipe to execute the command
-  std::shared_ptr<FILE> pipe(popen(command.c_str(), "r"), pclose);
-  if (!pipe) {
-    return AMDSMI_STATUS_API_FAILED;
-  }
-
-  // Read the output of the command into the buffer
-  while (fgets(buffer, sizeof(buffer), pipe.get()) != nullptr) {
-    result += buffer;
-  }
-  *data = result;
-
-  return AMDSMI_STATUS_SUCCESS;
-}
-
 // TODO(amdsmi_team): Do we want to include these functions in header?
 amdsmi_status_t smi_amdgpu_get_device_index(amdsmi_processor_handle processor_handle,
                                             uint32_t *device_index) {
@@ -1044,6 +988,32 @@ amdsmi_status_t smi_amdgpu_get_processor_handle_by_index(
   LOG_DEBUG(ss);
   return AMDSMI_STATUS_API_FAILED;
 }
+
+std::string smi_brcm_get_value_string(std::string filePath, std::string fileName) {
+  
+    std::stringstream temp;
+    filePath += "/" + fileName;
+    std::ifstream file(filePath.c_str(), std::ifstream::in);
+    if (!file.is_open()) {
+      return "N/A";
+    }
+    else {
+      std::string line;
+      int counter = 0;
+      while (std::getline(file, line)) {
+        if (line.empty()) {
+          break;
+        }
+        counter ++;
+        if (counter >= 2) {
+          temp << "\n";
+        }
+        temp << line;
+      }
+    }
+  
+    return temp.str();
+  }
 
 struct CperFileCtx {
     amdsmi_status_t status = AMDSMI_STATUS_FILE_ERROR;

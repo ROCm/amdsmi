@@ -61,3 +61,41 @@ if(ENABLE_ESMI_LIB)
     target_link_libraries(${ESMI_SAMPLE_EXE} amd_smi)
     target_compile_definitions(${ESMI_SAMPLE_EXE} PUBLIC ENABLE_ESMI_LIB)
 endif()
+
+# BRCM SMI Examples - only build when BRCM SMI is enabled
+if(ENABLE_BRCM_SMI)
+    message(STATUS "Building BRCM SMI examples")
+    
+    # BRCM SMI Basic Discovery Example
+    set(BRCM_DISCOVERY_EXAMPLE_EXE "brcm_smi_discovery_ex")
+    add_executable(${BRCM_DISCOVERY_EXAMPLE_EXE} "brcm_smi_discovery_example.cc")
+    target_link_libraries(${BRCM_DISCOVERY_EXAMPLE_EXE} amd_smi)
+    target_compile_definitions(${BRCM_DISCOVERY_EXAMPLE_EXE} PUBLIC ENABLE_BRCM_SMI)
+    
+    # BRCM SMI NIC Monitoring Example
+    set(BRCM_NIC_EXAMPLE_EXE "brcm_smi_nic_ex")
+    add_executable(${BRCM_NIC_EXAMPLE_EXE} "brcm_smi_nic_example.cc")
+    target_link_libraries(${BRCM_NIC_EXAMPLE_EXE} amd_smi)
+    target_compile_definitions(${BRCM_NIC_EXAMPLE_EXE} PUBLIC ENABLE_BRCM_SMI)
+    
+    # BRCM SMI Switch Management Example
+    set(BRCM_SWITCH_EXAMPLE_EXE "brcm_smi_switch_ex")
+    add_executable(${BRCM_SWITCH_EXAMPLE_EXE} "brcm_smi_switch_example.cc")
+    target_link_libraries(${BRCM_SWITCH_EXAMPLE_EXE} amd_smi)
+    target_compile_definitions(${BRCM_SWITCH_EXAMPLE_EXE} PUBLIC ENABLE_BRCM_SMI)
+    
+    # BRCM SMI Unified AMD SMI Integration Example
+    set(BRCM_UNIFIED_EXAMPLE_EXE "brcm_smi_unified_ex")
+    add_executable(${BRCM_UNIFIED_EXAMPLE_EXE} "brcm_smi_unified_example.cc")
+    target_link_libraries(${BRCM_UNIFIED_EXAMPLE_EXE} amd_smi)
+    target_compile_definitions(${BRCM_UNIFIED_EXAMPLE_EXE} PUBLIC ENABLE_BRCM_SMI)
+    
+    message(STATUS "BRCM SMI examples configured:")
+    message(STATUS "  - ${BRCM_DISCOVERY_EXAMPLE_EXE}: Basic device discovery")
+    message(STATUS "  - ${BRCM_NIC_EXAMPLE_EXE}: NIC device monitoring")
+    message(STATUS "  - ${BRCM_SWITCH_EXAMPLE_EXE}: Switch device management")
+    message(STATUS "  - ${BRCM_UNIFIED_EXAMPLE_EXE}: Unified AMD SMI integration")
+else()
+    message(STATUS "BRCM SMI examples disabled (ENABLE_BRCM_SMI=OFF)")
+    message(STATUS "To build BRCM SMI examples, configure with -DENABLE_BRCM_SMI=ON")
+endif()
