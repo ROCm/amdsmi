@@ -5407,8 +5407,9 @@ def amdsmi_get_brcm_socket_handles() -> List[c_void_p]:
         List[c_void_p]: List of BRCM socket handles
 
     Raises:
-        AmdSmiLibraryException: If getting socket handles fails
+        AmdSmiLibraryException: If getting socket handles fails or BRCM SMI support not available
     """
+    _check_brcm_smi_support()
     socket_count = ctypes.c_uint32()
     
     # First call to get the count
@@ -5437,8 +5438,9 @@ def amdsmi_get_brcm_socket_info(socket_handle: c_void_p) -> str:
 
     Raises:
         AmdSmiParameterException: If socket handle is invalid
-        AmdSmiLibraryException: If getting socket info fails
+        AmdSmiLibraryException: If getting socket info fails or BRCM SMI support not available
     """
+    _check_brcm_smi_support()
     if not isinstance(socket_handle, c_void_p):
         raise AmdSmiParameterException(socket_handle, c_void_p)
     
@@ -5461,8 +5463,9 @@ def amdsmi_get_brcm_nic_processor_handles(socket_handle: c_void_p) -> List[c_voi
 
     Raises:
         AmdSmiParameterException: If socket handle is invalid
-        AmdSmiLibraryException: If getting processor handles fails
+        AmdSmiLibraryException: If getting processor handles fails or BRCM SMI support not available
     """
+    _check_brcm_smi_support()
     # Convert socket_handle to c_void_p if it's an integer
     if not isinstance(socket_handle, c_void_p):
         if isinstance(socket_handle, int):
@@ -5495,8 +5498,9 @@ def amdsmi_get_brcm_switch_processor_handles(socket_handle: c_void_p) -> List[c_
 
     Raises:
         AmdSmiParameterException: If socket handle is invalid
-        AmdSmiLibraryException: If getting processor handles fails
+        AmdSmiLibraryException: If getting processor handles fails or BRCM SMI support not available
     """
+    _check_brcm_smi_support()
     # Convert socket_handle to c_void_p if it's an integer
     if not isinstance(socket_handle, c_void_p):
         if isinstance(socket_handle, int):

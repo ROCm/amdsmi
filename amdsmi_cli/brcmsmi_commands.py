@@ -2,6 +2,11 @@
 #
 # Copyright (C) Advanced Micro Devices. All rights reserved.
 #
+#  Developed by:
+#            Broadcom Inc
+#
+#            www.broadcom.com
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
 # the Software without restriction, including without limitation the rights to
@@ -31,7 +36,15 @@ import logging
 import os
 import contextlib
 import subprocess
-from amdsmi import amdsmi_exception, amdsmi_interface, brcmsmi_interface
+from amdsmi import amdsmi_exception, amdsmi_interface
+
+# Try to import brcmsmi_interface, but handle gracefully if not available
+try:
+    from amdsmi import brcmsmi_interface
+    BRCM_SMI_AVAILABLE = True
+except ImportError:
+    brcmsmi_interface = None
+    BRCM_SMI_AVAILABLE = False
 
 class BRCMSMICommands:
     """
@@ -148,7 +161,10 @@ class BRCMSMICommands:
             firmware_version = info_dict.get('nic_firmware_version', 'N/A')
             
             # Get BDF using dedicated BDF function
-            bdf = brcmsmi_interface.amdsmi_get_brcm_nic_device_bdf(args.nic)
+            if BRCM_SMI_AVAILABLE and brcmsmi_interface:
+                bdf = brcmsmi_interface.amdsmi_get_brcm_nic_device_bdf(args.nic)
+            else:
+                bdf = "N/A"
             
             # Get UUID separately
             uuid = amdsmi_interface.amdsmi_brcm_getString(args.nic, "get_nic_device_uuid", 1024)
@@ -211,7 +227,10 @@ class BRCMSMICommands:
         
         try:
             # Get Switch BDF using dedicated BDF function
-            bdf = brcmsmi_interface.amdsmi_get_brcm_switch_device_bdf(args.switch)
+            if BRCM_SMI_AVAILABLE and brcmsmi_interface:
+                bdf = brcmsmi_interface.amdsmi_get_brcm_switch_device_bdf(args.switch)
+            else:
+                bdf = "N/A"
             
             # Get UUID separately
             uuid = amdsmi_interface.amdsmi_brcm_getString(args.switch, "get_switch_device_uuid", 1024)
@@ -821,7 +840,10 @@ class BRCMSMICommands:
             for device in devices:
                 try:
                     # Get NIC BDF using dedicated BDF function
-                    bdf = brcmsmi_interface.amdsmi_get_brcm_nic_device_bdf(device)
+                    if BRCM_SMI_AVAILABLE and brcmsmi_interface:
+                        bdf = brcmsmi_interface.amdsmi_get_brcm_nic_device_bdf(device)
+                    else:
+                        bdf = "N/A"
                     if bdf and bdf != 'N/A':
                         bdfs.append(bdf)
                 except Exception as e:
@@ -832,7 +854,10 @@ class BRCMSMICommands:
             for device in devices:
                 try:
                     # Get Switch BDF using dedicated BDF function
-                    bdf = brcmsmi_interface.amdsmi_get_brcm_switch_device_bdf(device)
+                    if BRCM_SMI_AVAILABLE and brcmsmi_interface:
+                        bdf = brcmsmi_interface.amdsmi_get_brcm_switch_device_bdf(device)
+                    else:
+                        bdf = "N/A"
                     if bdf and bdf != 'N/A':
                         bdfs.append(bdf)
                 except Exception as e:

@@ -37,7 +37,15 @@ from typing import List, Set, Union
 # Import amdsmi library
 from amdsmi_init import *
 from BDF import BDF
-from amdsmi import amdsmi_exception, amdsmi_interface, brcmsmi_interface
+from amdsmi import amdsmi_exception, amdsmi_interface
+
+# Try to import brcmsmi_interface, but handle gracefully if not available
+try:
+    from amdsmi import brcmsmi_interface
+    BRCM_SMI_AVAILABLE = True
+except ImportError:
+    brcmsmi_interface = None
+    BRCM_SMI_AVAILABLE = False
 
 class AMDSMIHelpers():
     """Helper functions that aren't apart of the AMDSMI API
@@ -377,6 +385,11 @@ class AMDSMIHelpers():
         nic_choices_str = ""
         device_handles = []
 
+        # Check if BRCM SMI is available before trying to use BRCM functions
+        if not amdsmi_interface.is_brcm_smi_supported():
+            logging.info('BRCM SMI not available, returning empty NIC choices')
+            return nic_choices, nic_choices_str
+
         try:
             # Get BRCM NIC handles using the correct BRCM interface
             try:
@@ -407,7 +420,10 @@ class AMDSMIHelpers():
             for nic_id, device_handle in enumerate(device_handles):
                 try:
                     # Get NIC BDF using dedicated BDF function
-                    bdf = brcmsmi_interface.amdsmi_get_brcm_nic_device_bdf(device_handle)
+                    if BRCM_SMI_AVAILABLE and brcmsmi_interface:
+                        bdf = brcmsmi_interface.amdsmi_get_brcm_nic_device_bdf(device_handle)
+                    else:
+                        bdf = 'N/A'
                 except Exception as e:
                     bdf = 'N/A'
                     logging.debug("Failed to get BDF for NIC %s | %s", nic_id, str(e))
@@ -444,6 +460,11 @@ class AMDSMIHelpers():
         switch_choices_str = ""
         device_handles = []
 
+        # Check if BRCM SMI is available before trying to use BRCM functions
+        if not amdsmi_interface.is_brcm_smi_supported():
+            logging.info('BRCM SMI not available, returning empty Switch choices')
+            return switch_choices, switch_choices_str
+
         try:
             # Get BRCM Switch handles using the correct BRCM interface
             try:
@@ -474,7 +495,10 @@ class AMDSMIHelpers():
             for switch_id, device_handle in enumerate(device_handles):
                 try:
                     # Get Switch BDF using dedicated BDF function
-                    bdf = brcmsmi_interface.amdsmi_get_brcm_switch_device_bdf(device_handle)
+                    if BRCM_SMI_AVAILABLE and brcmsmi_interface:
+                        bdf = brcmsmi_interface.amdsmi_get_brcm_switch_device_bdf(device_handle)
+                    else:
+                        bdf = 'N/A'
                 except Exception as e:
                     bdf = 'N/A'
                     logging.debug("Failed to get BDF for Switch %s | %s", switch_id, str(e))
@@ -1396,8 +1420,18 @@ class AMDSMIHelpers():
 
 
     def convert_bytes_to_readable(self, bytes_input, format_length=None):
+        # Handle non-numeric inputs gracefully
         if isinstance(bytes_input, str):
             return "N/A"
+        if bytes_input is None:
+            return "N/A"
+        
+        # Try to convert to numeric if possible
+        try:
+            bytes_input = float(bytes_input)
+        except (ValueError, TypeError):
+            return "N/A"
+            
         for unit in ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB"]:
             if abs(bytes_input) < 1024:
                 if format_length is not None:

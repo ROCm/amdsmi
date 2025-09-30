@@ -62,6 +62,10 @@
 #include "functional/computepartition_read_write.h"
 #include "functional/gpu_cache_read.h"
 
+#ifdef ENABLE_BRCM_SMI
+#include "functional/brcm_smi_read.h"
+#endif
+
 static AMDSMITstGlobals *sRSMIGlvalues = nullptr;
 
 static void SetFlags(TestBase *test) {
@@ -279,6 +283,13 @@ TEST(amdsmitstReadOnly, TestGPUCacheRead) {
   TestGPUCacheRead tst;
   RunGenericTest(&tst);
 }
+
+#ifdef ENABLE_BRCM_SMI
+TEST(amdsmitstReadOnly, TestBrcmSmiRead) {
+  TestBrcmSmiRead tst;
+  RunGenericTest(&tst);
+}
+#endif
 /*
 TEST(amdsmitstReadOnly, TestConcurrentInit) {
   TestConcurrentInit tst;

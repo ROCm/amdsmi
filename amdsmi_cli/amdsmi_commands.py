@@ -100,7 +100,11 @@ class AMDSMICommands():
                 logging.error('Unable to detect any GPU devices, check amdgpu version and module status (sudo modprobe amdgpu)')
                 exit_flag = True
             try:
-                self.device_handles_gpus= amdsmi_interface.get_gpu_handles()
+                # Use get_gpu_handles() when BRCM SMI is enabled, otherwise use amdsmi_get_processor_handles()
+                if amdsmi_interface.is_brcm_smi_supported():
+                    self.device_handles_gpus = amdsmi_interface.get_gpu_handles()
+                else:
+                    self.device_handles_gpus = amdsmi_interface.amdsmi_get_processor_handles()
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.err_code in (amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NOT_INIT,
                                 amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_DRIVER_NOT_LOADED):

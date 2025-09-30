@@ -121,6 +121,29 @@ def amdsmi_cli_init():
             else:
                 raise e
         logging.debug("amd_hsmp driver initialized successfully, but amdgpu initstate was not live")
+    else:
+        # No AMD drivers found, try to initialize anyway (might work with BRCM SMI only)
+        logging.debug("No AMD drivers found, attempting initialization with INIT_ALL_PROCESSORS")
+        try:
+            amdsmi_interface.amdsmi_init(init_flag)
+        except (amdsmi_interface.AmdSmiLibraryException, amdsmi_interface.AmdSmiParameterException) as e:
+            # Handle various error codes that might occur on systems without AMD hardware
+            if e.err_code in (amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NOT_INIT,
+                              amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_DRIVER_NOT_LOADED,
+                              amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_UNKNOWN_ERROR,
+                              amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_INIT_ERROR,
+                              amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NOT_FOUND):
+                logging.error("No AMD drivers found and initialization failed - this system may not have AMD hardware")
+                sys.exit(-1)
+            else:
+                # For any other unexpected errors, provide more detailed information
+                logging.error(f"AMD SMI initialization failed with error code {e.err_code}: {e.get_error_info()}")
+                sys.exit(-1)
+        except Exception as e:
+            # Catch any other unexpected exceptions
+            logging.error(f"Unexpected error during AMD SMI initialization: {e}")
+            sys.exit(-1)
+        logging.debug("AMDSMI initialized successfully without AMD drivers (possibly BRCM SMI only)")
 
     logging.debug(f"AMDSMI initialized with atleast one driver successfully | init flag: {init_flag}")
 

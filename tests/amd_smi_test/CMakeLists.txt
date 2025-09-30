@@ -52,6 +52,13 @@ include_directories(${TEST} ${CMAKE_CURRENT_SOURCE_DIR}/.. ${ROCM_INC_DIR}/..)
 add_executable(${TEST} ${tstSources} ${functionalSources})
 target_link_libraries(${TEST} ${AMD_SMI} GTest::gtest_main c stdc++ pthread)
 
+# Add BRCM SMI support if enabled
+if(ENABLE_BRCM_SMI)
+    target_compile_definitions(${TEST} PRIVATE ENABLE_BRCM_SMI=1)
+    target_include_directories(${TEST} PRIVATE ${PROJECT_SOURCE_DIR}/brcm-smi/include)
+    message(STATUS "BRCM SMI compile definition and include directory added to ${TEST}")
+endif()
+
 # Install tests
 install(
     TARGETS ${TEST}

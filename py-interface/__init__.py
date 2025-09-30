@@ -249,6 +249,10 @@ from .amdsmi_interface import amdsmi_get_gpu_pm_metrics_info
 # # Virtualization Mode Detection
 from .amdsmi_interface import amdsmi_get_gpu_virtualization_mode
 
+# GPU handle functions (conditional on BRCM SMI support)
+from .amdsmi_interface import get_gpu_handles
+from .amdsmi_interface import is_brcm_smi_supported
+
 # # Functions where library initialization is not needed
 # # Version information
 from .amdsmi_interface import amdsmi_get_lib_version
@@ -290,7 +294,7 @@ from .amdsmi_interface import AmdSmiVramType
 from .amdsmi_interface import AmdSmiAffinityScope
 
 # BRCM SMI Interface
-from . import brcmsmi_interface
+@BRCM_SMI_IMPORT@
 
 # Exceptions
 from .amdsmi_exception import AmdSmiLibraryException

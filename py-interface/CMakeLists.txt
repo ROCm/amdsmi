@@ -69,17 +69,38 @@ configure_file(setup.py.in ${PY_BUILD_DIR}/setup.py @ONLY)
 
 add_custom_target(python_wrapper DEPENDS amdsmi_wrapper.py)
 
+# Define core Python files that are always included
+set(PY_CORE_FILES
+    ${PY_PACKAGE_DIR}/__init__.py
+    ${PY_PACKAGE_DIR}/amdsmi_exception.py
+    ${PY_PACKAGE_DIR}/amdsmi_interface.py
+    ${PY_PACKAGE_DIR}/README.md
+    ${PY_PACKAGE_DIR}/LICENSE
+)
+
+# Define BRCM SMI files that are conditionally included
+set(PY_BRCM_FILES)
+set(PY_BRCM_COMMANDS)
+if(ENABLE_BRCM_SMI)
+    list(APPEND PY_BRCM_FILES ${PY_PACKAGE_DIR}/brcmsmi_interface.py)
+    list(APPEND PY_BRCM_COMMANDS COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/brcmsmi_interface.py ${PY_PACKAGE_DIR}/)
+    set(BRCM_SMI_IMPORT "from . import brcmsmi_interface")
+    message(STATUS "BRCM SMI Python interface will be included in package")
+else()
+    set(BRCM_SMI_IMPORT "# BRCM SMI interface not available (ENABLE_BRCM_SMI=OFF)")
+    message(STATUS "BRCM SMI Python interface will be excluded from package (ENABLE_BRCM_SMI=OFF)")
+endif()
+
 # hard-linking instead of copying avoids unnecessarry regeneration of packaged files
 add_custom_command(
-    OUTPUT ${PY_PACKAGE_DIR}/__init__.py ${PY_PACKAGE_DIR}/amdsmi_exception.py ${PY_PACKAGE_DIR}/amdsmi_interface.py
-           ${PY_PACKAGE_DIR}/README.md ${PY_PACKAGE_DIR}/LICENSE
+    OUTPUT ${PY_CORE_FILES} ${PY_BRCM_FILES}
     DEPENDS python_wrapper
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py ${PY_PACKAGE_DIR}/
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/amdsmi_exception.py ${PY_PACKAGE_DIR}/
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/amdsmi_interface.py ${PY_PACKAGE_DIR}/
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/brcmsmi_interface.py ${PY_PACKAGE_DIR}/
+    ${PY_BRCM_COMMANDS}
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/README.md ${PY_PACKAGE_DIR}/
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PROJECT_SOURCE_DIR}/LICENSE ${PY_PACKAGE_DIR}/)
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PROJECT_SOURCE_DIR}/LICENSE ${PY_PACKAGE_DIR}/
+    COMMAND ${CMAKE_COMMAND} -DBRCM_SMI_IMPORT="${BRCM_SMI_IMPORT}" -DINPUT_FILE=${CMAKE_CURRENT_SOURCE_DIR}/__init__.py.in -DOUTPUT_FILE=${PY_PACKAGE_DIR}/__init__.py -P ${CMAKE_CURRENT_SOURCE_DIR}/configure_init.cmake)
 
 # copy libamd_smi.so to allow for a self-contained python package
 add_custom_command(OUTPUT ${PY_PACKAGE_DIR}/libamd_smi.so DEPENDS ${PROJECT_BINARY_DIR}/src/libamd_smi.so
@@ -90,12 +111,8 @@ add_custom_target(
     DEPENDS ${PY_BUILD_DIR}/pyproject.toml
             ${PY_BUILD_DIR}/setup.py
             ${PY_PACKAGE_DIR}/_version.py
-            ${PY_PACKAGE_DIR}/__init__.py
-            ${PY_PACKAGE_DIR}/amdsmi_exception.py
-            ${PY_PACKAGE_DIR}/amdsmi_interface.py
-            ${PY_PACKAGE_DIR}/brcmsmi_interface.py
-            ${PY_PACKAGE_DIR}/README.md
-            ${PY_PACKAGE_DIR}/LICENSE
+            ${PY_CORE_FILES}
+            ${PY_BRCM_FILES}
             ${PY_PACKAGE_DIR}/libamd_smi.so)
 
 install(
