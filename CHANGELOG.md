@@ -193,6 +193,9 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ### Resolved Issues
 
+- **Fixed event monitoring segfaults causing RDC to crash**.  
+  - Adds mutex locking around access to device event notification file pointer
+
 - **Fixed an issue where using `amd-smi ras --folder <folder_name>` was forcing the created folder's name to be lowercase**.  
   - This fix also allows all string input options to be case insensitive.
 
