@@ -189,7 +189,8 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ### Optimized
 
-- N/A
+- **Changed sourcing of BDF to from drm to kfd**.  
+  - Non sudo privliged users were unable to see the BDF due to logical errors.
 
 ### Resolved Issues
 
