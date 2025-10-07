@@ -7119,7 +7119,7 @@ class AMDSMICommands():
                         output_file.write(legend_output + '\n')
 
 
-    def ras(self, args, multiple_devices=False, gpu=None, cper=None, afid=None,
+    def ras(self, args, multiple_devices=False, gpu=None, cper=None, afid=None, decode=None,
             severity=None, folder=None, file_limit=None, cper_file=None, follow=None):
         """
         Retrieve and process CPER (RAS) entries for a target GPU.
@@ -7139,6 +7139,8 @@ class AMDSMICommands():
             args.cper = cper
         if afid:
             args.afid = afid
+        if decode:
+            args.decode = decode
         if severity:
             args.severity = severity
         if folder:
@@ -7155,6 +7157,18 @@ class AMDSMICommands():
         if args.afid:
             if args.cper_file:
                 afids = self.helpers.pvtDumpAfids(args.cper_file)
+                print(' '.join(map(str, afids)))
+                return
+            else:
+                command = " ".join(sys.argv[1:])
+                message = f"Command '{command}' requires '--cper-file'. Run '--help' for more info."
+                raise AmdSmiInvalidCommandException(command,
+                                                    self.logger.format,
+                                                    message)
+
+        if args.decode:
+            if args.cper_file:
+                afids = self.helpers.pvtDumpCper(args.cper_file)
                 print(' '.join(map(str, afids)))
                 return
             else:

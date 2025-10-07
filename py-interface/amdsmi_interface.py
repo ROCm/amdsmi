@@ -2686,13 +2686,13 @@ def notifyTypeToString(notify_type_b):
     return "".join(guid[::-1])
 
 def amdsmi_get_gpu_cper_entries(
-    processor_handle: processor_handle_t,
+    processor_handle: Union[amdsmi_wrapper.amdsmi_processor_handle, str],
     severity_mask: int,
     buffer_size: int = 4 * 1048576,
     cursor: int = 0
 ) -> Tuple[Dict[str, Any], int, List[Dict[str, Any]], int]:
 
-    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle) and not isinstance(processor_handle, str):
         raise AmdSmiParameterException(
             processor_handle, amdsmi_wrapper.amdsmi_processor_handle
         )

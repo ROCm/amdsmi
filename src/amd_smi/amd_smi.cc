@@ -4321,6 +4321,8 @@ amdsmi_get_gpu_cper_entries(
         std::to_string(gpu_device->get_card_id()) +
         "/amdgpu_ring_cper";
 
+    printf("@@@ path: %s\n", path.c_str());
+
 
     return amdsmi_get_gpu_cper_entries_by_path(
         path.c_str(),
