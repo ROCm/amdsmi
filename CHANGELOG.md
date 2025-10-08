@@ -193,6 +193,9 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ### Resolved Issues
 
+- **Fixed a CPER record count mismatch issue when using the `amd-smi ras --cper --file-limit`**.  
+  - Fixed deletion calculation to use files_to_delete = len(folder_files) - file_limit for exact file count management
+
 - **Fixed event monitoring segfaults causing RDC to crash**.  
   - Adds mutex locking around access to device event notification file pointer
 
@@ -201,7 +204,6 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 - **Fixed certain output in `amd-smi monitor` when GPUs are partitioned**.  
   - Fixes amd-smi monitor such as: `amd-smi monitor -Vqt`, `amd-smi monitor -g 0 -Vqt -w 1`, `amd-smi monitor -Vqt --file /tmp/test1`, etc. Those such commands will now be able to display as normal in partitioned GPU scenarios.
-
 
 ### Upcoming Changes
 
