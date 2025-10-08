@@ -192,6 +192,8 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 - **Changed sourcing of BDF to from drm to kfd**.  
   - Non sudo privliged users were unable to see the BDF due to logical errors.
 
+- **Optimized the way `amd-smi process` validates which proccesses are running on a GPU**.  
+
 ### Resolved Issues
 
 - **Fixed a CPER record count mismatch issue when using the `amd-smi ras --cper --file-limit`**.  
