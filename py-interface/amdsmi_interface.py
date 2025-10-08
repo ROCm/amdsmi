@@ -5315,7 +5315,10 @@ def amdsmi_get_rocm_version()-> Tuple[bool, str]:
 
         for librocm_core_file_path in possible_locations:
             try:
-                librocm_core = ctypes.CDLL(librocm_core_file_path)
+                # Use RTLD_NODELETE to prevent the library from being unloaded at exit.
+                # This prevents double-free errors when used with PyTorch/HIP which share
+                # underlying ROCm resources. See: https://bugs.python.org/issue34309
+                librocm_core = ctypes.CDLL(librocm_core_file_path, mode=ctypes.RTLD_GLOBAL | os.RTLD_NODELETE)
                 VerErrors = ctypes.c_uint32
                 get_rocm_core_version = librocm_core.getROCmVersion
                 get_rocm_core_version.restype = VerErrors

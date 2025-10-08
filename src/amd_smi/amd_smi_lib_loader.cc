@@ -42,7 +42,10 @@ amdsmi_status_t AMDSmiLibraryLoader::load(const char* filename) {
     // dlopen(filename, RTLD_NOLOAD) == null only IFF library is not loaded
     void* isLibOpen = dlopen(filename, RTLD_NOLOAD);
     if (isLibOpen == nullptr) {
-      libHandler_ = dlopen(filename, RTLD_LAZY);
+      // Use RTLD_NODELETE to prevent the library from being unloaded.
+      // This prevents double-free errors when used with PyTorch/HIP which share
+      // underlying ROCm/DRM resources.
+      libHandler_ = dlopen(filename, RTLD_LAZY | RTLD_NODELETE);
       if (!libHandler_) {
           char* error = dlerror();
           std::cerr << "Fail to open " << filename <<": " << error
@@ -57,11 +60,17 @@ amdsmi_status_t AMDSmiLibraryLoader::load(const char* filename) {
 
 amdsmi_status_t AMDSmiLibraryLoader::unload() {
         std::lock_guard<std::mutex> guard(library_mutex_);
-        if (libHandler_) {
-            dlclose(libHandler_);
-            libHandler_ = nullptr;
-            library_loaded_ = false;
-        }
+        // Do not call dlclose() to prevent double-free errors when used with
+        // PyTorch/HIP which share underlying ROCm/DRM resources.
+        // The library was loaded with RTLD_NODELETE anyway, so dlclose wouldn't
+        // actually unload it.
+        // if (libHandler_) {
+        //     dlclose(libHandler_);
+        //     libHandler_ = nullptr;
+        //     library_loaded_ = false;
+        // }
+        libHandler_ = nullptr;
+        library_loaded_ = false;
         return AMDSMI_STATUS_SUCCESS;
 }
 

@@ -193,7 +193,10 @@ def find_smi_library():
 
     for location in possible_locations:
         try:
-            lib = ctypes.CDLL(location)
+            # Use RTLD_NODELETE to prevent the library from being unloaded at exit.
+            # This prevents double-free errors when used with PyTorch/HIP which share
+            # underlying ROCm resources. See: https://bugs.python.org/issue34309
+            lib = ctypes.CDLL(location, mode=ctypes.RTLD_GLOBAL | os.RTLD_NODELETE)
             return lib, location
         except OSError as e:
             err = e
