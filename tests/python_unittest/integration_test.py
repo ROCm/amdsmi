@@ -19,7 +19,22 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+'''
+In integration testing, what is specifically tested:
+1. Module Interfaces: The primary focus is on the connections and data exchange points
+   (interfaces) between individual software modules or components.
+2. Data Flow: How data is passed between modules, ensuring it is formatted correctly and
+   transferred without loss or corruption.
+3. System Logic: The integrated logic across multiple modules is checked to confirm that
+   the combined functionality aligns with requirements and produces the expected outcomes.
+4. External Dependencies: Interactions with external systems like databases, file servers,
+   or other applications (via APIs) are tested to ensure seamless operation.
+5. Cohesion: Whether the various integrated units function as a single, cohesive unit to
+   achieve a broader system goal
+'''
+
 import json
+import inspect
 import multiprocessing
 import os
 import sys
@@ -37,9 +52,68 @@ try:
 except ImportError:
     raise ImportError(f"Could not import the 'amdsmi' module from '{amdsmi_cli_path}'")
 
+# same as unit_test
+not_supported_error_codes = \
+[
+    ( '2', 'AMDSMI_STATUS_NOT_SUPPORTED'),
+    ( '3', 'AMDSMI_STATUS_NOT_YET_IMPLEMENTED'),
+    ('49', 'AMDSMI_STATUS_NO_HSMP_MSG_SUP')
+]
+
+# same as unit_test
+error_map = \
+{
+    '0': 'AMDSMI_STATUS_SUCCESS',
+    '1': 'AMDSMI_STATUS_INVAL',
+    '2': 'AMDSMI_STATUS_NOT_SUPPORTED',
+    '3': 'AMDSMI_STATUS_NOT_YET_IMPLEMENTED',
+    '4': 'AMDSMI_STATUS_FAIL_LOAD_MODULE',
+    '5': 'AMDSMI_STATUS_FAIL_LOAD_SYMBOL',
+    '6': 'AMDSMI_STATUS_DRM_ERROR',
+    '7': 'AMDSMI_STATUS_API_FAILED',
+    '8': 'AMDSMI_STATUS_TIMEOUT',
+    '9': 'AMDSMI_STATUS_RETRY',
+    '10': 'AMDSMI_STATUS_NO_PERM',
+    '11': 'AMDSMI_STATUS_INTERRUPT',
+    '12': 'AMDSMI_STATUS_IO',
+    '13': 'AMDSMI_STATUS_ADDRESS_FAULT',
+    '14': 'AMDSMI_STATUS_FILE_ERROR',
+    '15': 'AMDSMI_STATUS_OUT_OF_RESOURCES',
+    '16': 'AMDSMI_STATUS_INTERNAL_EXCEPTION',
+    '17': 'AMDSMI_STATUS_INPUT_OUT_OF_BOUNDS',
+    '18': 'AMDSMI_STATUS_INIT_ERROR',
+    '19': 'AMDSMI_STATUS_REFCOUNT_OVERFLOW',
+    '30': 'AMDSMI_STATUS_BUSY',
+    '31': 'AMDSMI_STATUS_NOT_FOUND',
+    '32': 'AMDSMI_STATUS_NOT_INIT',
+    '33': 'AMDSMI_STATUS_NO_SLOT',
+    '34': 'AMDSMI_STATUS_DRIVER_NOT_LOADED',
+    '39': 'AMDSMI_STATUS_MORE_DATA',
+    '40': 'AMDSMI_STATUS_NO_DATA',
+    '41': 'AMDSMI_STATUS_INSUFFICIENT_SIZE',
+    '42': 'AMDSMI_STATUS_UNEXPECTED_SIZE',
+    '43': 'AMDSMI_STATUS_UNEXPECTED_DATA',
+    '44': 'AMDSMI_STATUS_NON_AMD_CPU',
+    '45': 'AMDSMI_STATUS_NO_ENERGY_DRV',
+    '46': 'AMDSMI_STATUS_NO_MSR_DRV',
+    '47': 'AMDSMI_STATUS_NO_HSMP_DRV',
+    '48': 'AMDSMI_STATUS_NO_HSMP_SUP',
+    '49': 'AMDSMI_STATUS_NO_HSMP_MSG_SUP',
+    '50': 'AMDSMI_STATUS_HSMP_TIMEOUT',
+    '51': 'AMDSMI_STATUS_NO_DRV',
+    '52': 'AMDSMI_STATUS_FILE_NOT_FOUND',
+    '53': 'AMDSMI_STATUS_ARG_PTR_NULL',
+    '54': 'AMDSMI_STATUS_AMDGPU_RESTART_ERR',
+    '55': 'AMDSMI_STATUS_SETTING_UNAVAILABLE',
+    '56': 'AMDSMI_STATUS_CORRUPTED_EEPROM',
+    '0xFFFFFFFE': 'AMDSMI_STATUS_MAP_ERROR',
+    '0xFFFFFFFF': 'AMDSMI_STATUS_UNKNOWN_ERROR'
+}
+
 class TestAmdSmiInit(unittest.TestCase):
     
     def test_init(self):
+        self._print_func_name('')
         amdsmi.amdsmi_init()
         amdsmi.amdsmi_shut_down()
 
@@ -48,36 +122,108 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.verbose = verbose
-        self.max_num_physical_devices = amdsmi.amdsmi_interface.AMDSMI_MAX_NUM_XCP * amdsmi.amdsmi_interface.AMDSMI_MAX_DEVICES
         global has_info_printed
-        if self.verbose and has_info_printed is False:
-            # Execute the following to print the asic and board info once per test run
+        if verbose and has_info_printed is False:
+            # Execute the following to print the asic and board info once
+            # per test run
             has_info_printed = True
             self.setUp()
-            processors = amdsmi.amdsmi_get_processor_handles()
-            self.assertGreaterEqual(len(processors), 1)
-            self.assertLessEqual(len(processors), self.max_num_physical_devices)
-            for i in range(0, len(processors)):
+            for i, gpu in enumerate(self.processors):
+                # Print asic info
+                msg = f'asic info(gpu={i})'
                 try:
-                    # Print asic info
-                    msg = f'asic info(gpu={i})'
-                    ret = amdsmi.amdsmi_get_gpu_asic_info(processors[i])
-                    print(msg)
-                    print(json.dumps(ret, sort_keys=False, indent=4), flush=True)
+                    ret = amdsmi.amdsmi_get_gpu_asic_info(gpu)
+                    self._print(msg, ret)
                 except amdsmi.AmdSmiLibraryException as e:
                     raise e
-            for i in range(0, len(processors)):
+            for i, gpu in enumerate(self.processors):
+                # Print board info
+                msg = f'board info(gpu={i})'
                 try:
-                    # Print board info
-                    msg = f'board info(gpu={i})'
-                    ret = amdsmi.amdsmi_get_gpu_board_info(processors[i])
-                    print(msg)
-                    print(json.dumps(ret, sort_keys=False, indent=4), flush=True)
+                    ret = amdsmi.amdsmi_get_gpu_board_info(gpu)
+                    self._print(msg, ret)
                 except amdsmi.AmdSmiLibraryException as e:
                     raise e
             self.tearDown()
         return
+
+    # Same as unit_test
+    max_num_physical_devices = amdsmi.amdsmi_interface.AMDSMI_MAX_NUM_XCP * amdsmi.amdsmi_interface.AMDSMI_MAX_DEVICES
+    PASS = 'AMDSMI_STATUS_SUCCESS'
+    FAIL = 'AMDSMI_STATUS_INVAL'
+
+    # Same as unit_test
+    # Tests marked wtih either of these flags will be skipped
+    # and need to be implemented later.
+    TODO_SKIP_FAIL = True
+    TODO_SKIP_NOT_COMPLETE = True
+
+    # Same as unit_test
+    def _print(self, msg, data=None):
+        if verbose == 2:
+            if data is None:
+                print(msg, flush=True)
+            elif any(data in value for value in not_supported_error_codes):
+                print(f'{msg} {data}', flush=True)
+            else:
+                if isinstance(data, str) and data in error_map.values():
+                    print(msg, end='')
+                else:
+                    print(msg)
+                if isinstance(data, str) or isinstance(data, int):
+                    print(data)
+                else:
+                    print(json.dumps(data, sort_keys=False, indent=4), flush=True)
+        return
+
+    # Same as unit_test
+    def _print_func_name(self, msg):
+        if verbose == 2:
+            stk = inspect.stack()
+            if stk[1].function == '_callSetUp':
+                return
+            print(msg, flush=True)
+            print(f'## {stk[1].function}()', flush=True)
+        return
+
+    # Same as unit_test
+    def get_error_code(self, e):
+        error_code = e.get_error_code()
+        return error_map[error_code]
+
+    # Same as unit_test
+    def _check_ret(self, msg, _e, expected_code=None, printit=True):
+        error_code_int = int(_e.get_error_code())
+        error_code = str(error_code_int)
+        if error_code in error_map:
+            error_code_name = error_map[error_code]
+        else:
+            error_code_name = 'UNKNOWN_ERROR'
+
+        # Check for when there are multiple passing conditions
+        if isinstance(expected_code, list):
+            for ec in expected_code:
+                rc = self._check_ret(msg, _e, ec, False)  # Do not print msg, otherwise multiple msgs printed
+                if not rc:
+                    rc = self._check_ret(msg, _e, ec) # Call check again so msg is printed
+                    return rc
+
+            # No expected results found
+            print(f'{msg}\nTest FAILED with expected results {expected_code} but received {error_code_name}', flush=True)
+            return True
+
+        # Check for single passing condition
+        if any(error_code in value for value in not_supported_error_codes):
+            if verbose == 2 and printit:
+                print(f'{msg}\nTest SKIPPED with result {error_code_name}', flush=True)
+        elif error_code_name == expected_code:
+            if verbose == 2 and printit:
+                print(f'{msg}\nTest PASSED with expected result {expected_code}', flush=True)
+        else:
+            if verbose == 2 and printit:
+                print(f'{msg}\nTest FAILED with expected result {expected_code} but received {error_code_name}', flush=True)
+            return True
+        return False
 
     def _check_exception(self, e):
         error_code = e.get_error_code()
@@ -88,9 +234,15 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
             raise e
 
     def setUp(self):
+        # Called before each test by unittest framework
+        self.raise_exception = None
         amdsmi.amdsmi_init()
+        self.processors = amdsmi.amdsmi_get_processor_handles()
+        self.assertGreaterEqual(len(self.processors), 1)
+        self.assertLessEqual(len(self.processors), self.max_num_physical_devices)
 
     def tearDown(self):
+        # Called after each test by unittest framework
         amdsmi.amdsmi_shut_down()
 
     def _print_vbios_info(self, vbios_info):
@@ -105,53 +257,38 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
         return
 
     def test_asic_kfd_info(self):
-        processors = amdsmi.amdsmi_get_processor_handles()
-        self.assertGreaterEqual(len(processors), 1)
-        self.assertLessEqual(len(processors), self.max_num_physical_devices)
-        for i in range(0, len(processors)):
-            bdf = amdsmi.amdsmi_get_gpu_device_bdf(processors[i])
-            print("\n\n###Test Processor {}, bdf: {}".format(i, bdf))
+        self._print_func_name('')
+        for i, gpu in enumerate(self.processors):
+            msg = f'### amdsmi_get_gpu_device_bdf(gpu={i})'
             try:
-                print("\n###Test amdsmi_get_gpu_asic_info \n")
-                asic_info = amdsmi.amdsmi_get_gpu_asic_info(processors[i])
+                bdf = amdsmi.amdsmi_get_gpu_device_bdf(gpu)
+                self._print(msg, bdf)
             except amdsmi.AmdSmiLibraryException as e:
-                self._check_exception(e)
-                continue
-            print("  asic_info['market_name'] is: {}".format(
-                asic_info['market_name']))
-            print("  asic_info['vendor_id'] is: {}".format(
-                asic_info['vendor_id']))
-            print("  asic_info['vendor_name'] is: {}".format(
-                asic_info['vendor_name']))
-            print("  asic_info['device_id'] is: {}".format(
-                asic_info['device_id']))
-            print("  asic_info['rev_id'] is: {}".format(
-                asic_info['rev_id']))
-            print("  asic_info['subsystem_id'] is: {}".format(
-                asic_info['subsystem_id']))
-            print("  asic_info['asic_serial'] is: {}".format(
-                asic_info['asic_serial']))
-            print("  asic_info['oam_id'] is: {}".format(
-                asic_info['oam_id']))
-            print("  asic_info['target_graphics_version'] is: {}".format(
-                asic_info['target_graphics_version']))
-            print("  asic_info['num_compute_units'] is: {}".format(
-                asic_info['num_compute_units']))
+                if self._check_ret(msg, e, self.PASS):
+                    self.raise_exception = e
+
+            msg = f'### amdsmi_get_gpu_asic_info(gpu={i})'
             try:
-                print("\n###Test amdsmi_get_gpu_kfd_info \n")
-                kfd_info = amdsmi.amdsmi_get_gpu_kfd_info(processors[i])
+                asic_info = amdsmi.amdsmi_get_gpu_asic_info(gpu)
+                self._print(msg, asic_info)
             except amdsmi.AmdSmiLibraryException as e:
-                self._check_exception(e)
-                continue
-            print("  kfd_info['kfd_id'] is: {}".format(
-                kfd_info['kfd_id']))
-            print("  kfd_info['node_id'] is: {}".format(
-                kfd_info['node_id']))
-            print("  kfd_info['current_partition_id'] is: {}\n".format(
-                kfd_info['current_partition_id']))
-        print("\n")
+                if self._check_ret(msg, e, self.PASS):
+                    self.raise_exception = e
+
+            msg = f'### amdsmi_get_gpu_kfd_info(gpu={i})'
+            try:
+                kfd_info = amdsmi.amdsmi_get_gpu_kfd_info(gpu)
+                self._print(msg, kfd_info)
+            except amdsmi.AmdSmiLibraryException as e:
+                if self._check_ret(msg, e, self.PASS):
+                    self.raise_exception = e
+        if self.raise_exception:
+            raise self.raise_exception
+        return
+
     # amdsmi_get_vram_info should be supported on all ASICs
     def test_get_vram_info(self):
+        self._print_func_name('')
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
         self.assertLessEqual(len(processors), self.max_num_physical_devices)
@@ -197,6 +334,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
     
     # amdsmi_get_gpu_xcd_counter should be supported on all ASICs
     def test_get_xcd_counter(self):
+        self._print_func_name('')
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
         self.assertLessEqual(len(processors), self.max_num_physical_devices)
@@ -214,6 +352,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
 
     # amdsmi_get_gpu_bad_page_info is not supported in Navi2x, Navi3x
     def test_bad_page_info(self):
+        self._print_func_name('')
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
         self.assertLessEqual(len(processors), self.max_num_physical_devices)
@@ -241,6 +380,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
         print("\n")
 
     def test_gpu_cache_info(self):
+        self._print_func_name('')
         print("\n\n###Test amdsmi_interface.amdsmi_get_gpu_cache_info")
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
@@ -266,6 +406,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
                 self.assertIsInstance(cache_info, dict)
 
     def test_get_gpu_compute_partition(self):
+        self._print_func_name('')
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreater(len(processors), 0)
         for i in range(0, len(processors)):
@@ -281,6 +422,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
         print("\n")
 
     def test_bdf_device_id(self):
+        self._print_func_name('')
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
         self.assertLessEqual(len(processors), self.max_num_physical_devices)
@@ -306,6 +448,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
         print("\n")
 
     def test_board_info(self):
+        self._print_func_name('')
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
         self.assertLessEqual(len(processors), self.max_num_physical_devices)
@@ -331,6 +474,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
         print("\n")
 
     def test_clock_frequency(self):
+        self._print_func_name('')
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
         self.assertLessEqual(len(processors), self.max_num_physical_devices)
@@ -365,6 +509,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
 
     # amdsmi_get_clk_freq with AmdSmiClkType.DCEF is not supported in MI210, MI300A
     def test_clock_frequency_DCEF(self):
+        self._print_func_name('')
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
         self.assertLessEqual(len(processors), self.max_num_physical_devices)
@@ -387,6 +532,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
         
 
     def test_clock_info(self):
+        self._print_func_name('')
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
         self.assertLessEqual(len(processors), self.max_num_physical_devices)
@@ -427,6 +573,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
 
     # AmdSmiClkType.VCLK0 and DCLK0 are not supported in MI210
     def test_clock_info_vclk0_dclk0(self):
+        self._print_func_name('')
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
         self.assertLessEqual(len(processors), self.max_num_physical_devices)
@@ -465,6 +612,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
 
     # AmdSmiClkType.VCLK1 and DCLK1 are not supported in MI210, MI300A, MI300X
     def test_clock_info_vclk1_dclk1(self):
+        self._print_func_name('')
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
         self.assertLessEqual(len(processors), self.max_num_physical_devices)
@@ -502,6 +650,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
         
 
     def test_driver_info(self):
+        self._print_func_name('')
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
         self.assertLessEqual(len(processors), self.max_num_physical_devices)
@@ -520,6 +669,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
 
     # amdsmi_get_gpu_ecc_count is not supported in Navi2x, Navi3x, MI210, MI300A
     def test_ecc_count_block(self):
+        self._print_func_name('')
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
         self.assertLessEqual(len(processors), self.max_num_physical_devices)
@@ -570,6 +720,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
         
 
     def test_ecc_count_total(self):
+        self._print_func_name('')
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
         self.assertLessEqual(len(processors), self.max_num_physical_devices)
@@ -595,6 +746,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
         
 
     def test_fw_info(self):
+        self._print_func_name('')
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
         self.assertLessEqual(len(processors), self.max_num_physical_devices)
@@ -620,6 +772,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
 
 
     def test_gpu_activity(self):
+        self._print_func_name('')
 
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
@@ -643,6 +796,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
         
 
     def test_memory_usage(self):
+        self._print_func_name('')
 
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
@@ -665,6 +819,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
         
 
     def test_pcie_info(self):
+        self._print_func_name('')
 
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
@@ -708,6 +863,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
         
 
     def test_power_info(self):
+        self._print_func_name('')
 
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
@@ -755,6 +911,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
         
 
     def test_process_list(self):
+        self._print_func_name('')
 
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
@@ -772,6 +929,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
         print("\n")
 
     def test_processor_type(self):
+        self._print_func_name('')
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
         self.assertLessEqual(len(processors), self.max_num_physical_devices)
@@ -793,6 +951,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
 
     # amdsmi_get_gpu_ras_block_features_enabled is not supported in Navi2x, Navi3x
     def test_ras_block_features_enabled(self):
+        self._print_func_name('')
 
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
@@ -813,6 +972,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
 
     # amdsmi_get_gpu_ras_feature_info is not supported in Navi2x, Navi3x
     def test_ras_feature_info(self):
+        self._print_func_name('')
 
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
@@ -836,6 +996,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
         
 
     def test_socket_info(self):
+        self._print_func_name('')
 
         try:
             print("\n\n###Test amdsmi_get_socket_handles")
@@ -856,6 +1017,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
         
 
     def test_temperature_metric(self):
+        self._print_func_name('')
 
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
@@ -899,6 +1061,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
 
     # AmdSmiTemperatureType.EDGE is not supported in MI300A, MI300X
     def test_temperature_metric_edge(self):
+        self._print_func_name('')
 
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
@@ -927,6 +1090,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
         
 
     def test_temperature_metric_plx(self):
+        self._print_func_name('')
 
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
@@ -956,6 +1120,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
 
     # AmdSmiTemperatureType.HBM_0, HBM_1, HBM_2, HBM_3 are not supported in Navi2x, Navi3x, MI210, MI300A
     def test_temperature_metric_hbm(self):
+        self._print_func_name('')
 
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
@@ -991,6 +1156,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
         
 
     def test_utilization_count(self):
+        self._print_func_name('')
 
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
@@ -1040,6 +1206,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
         print("\n")
 
     def test_vbios_info(self):
+        self._print_func_name('')
 
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
@@ -1057,6 +1224,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
         print("\n")
 
     def test_vendor_name(self):
+        self._print_func_name('')
 
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
@@ -1075,6 +1243,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
 
     # @unittest.SkipTest
     def test_accelerator_partition_profile(self):
+        self._print_func_name('')
 
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
@@ -1104,6 +1273,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
     # Requires sudo (to see full resource/config detail).
     # Should only be supported on MI300+ ASICs
     def test_accelerator_partition_profile_config(self):
+        self._print_func_name('')
 
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
@@ -1137,6 +1307,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
     # amdsmi_get_violation_status is only supported on MI300+ ASICs
     # We should expect a not supported status for Navi / MI100 / MI2x ASICs
     def test_get_violation_status(self):
+        self._print_func_name('')
 
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
@@ -1198,6 +1369,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
     
     # Add test for amdsmi_get_gpu_reg_table_info
     def test_gpu_reg_table_info(self):
+        self._print_func_name('')
 
         print("\n\n###Test amdsmi_get_gpu_reg_table_info")
         processors = amdsmi.amdsmi_get_processor_handles()
@@ -1215,6 +1387,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
         
     
     def test_get_gpu_revision(self):
+        self._print_func_name('')
 
         processors = amdsmi.amdsmi_get_processor_handles()
         self.assertGreaterEqual(len(processors), 1)
@@ -1234,6 +1407,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
     
     # Add test for amdsmi_get_gpu_pm_metrics_info
     def test_gpu_pm_metrics_info(self):
+        self._print_func_name('')
 
         print("\n\n###Test amdsmi_get_gpu_pm_metrics_info")
         processors = amdsmi.amdsmi_get_processor_handles()
@@ -1251,6 +1425,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
         
 
     def test_walkthrough(self):
+        self._print_func_name('')
         print("\n\n#######################################################################")
         print("========> test_walkthrough start <========\n")
         self.test_asic_kfd_info()
