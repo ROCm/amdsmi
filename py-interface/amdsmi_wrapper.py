@@ -165,6 +165,24 @@ def char_pointer_cast(string, encoding='utf-8'):
 
 _libraries = {}
 from pathlib import Path
+
+# Preload PyTorch's rocm_smi library if it exists to prevent double-free errors
+# PyTorch bundles its own librocm_smi64.so which can conflict during cleanup
+def _preload_pytorch_rocm_libs():
+    try:
+        import sys
+        pytorch_rocm_lib = Path(sys.prefix) / "lib" / f"python{sys.version_info.major}.{sys.version_info.minor}" / "site-packages" / "_rocm_sdk_core" / "lib" / "librocm_smi64.so.1"
+        if pytorch_rocm_lib.exists():
+            # Load with RTLD_NODELETE to prevent cleanup conflicts
+            try:
+                ctypes.CDLL(str(pytorch_rocm_lib), mode=ctypes.RTLD_GLOBAL | os.RTLD_NODELETE)
+            except:
+                pass  # Silently ignore if loading fails
+    except:
+        pass  # Silently ignore any errors
+
+_preload_pytorch_rocm_libs()
+
 # libamd_smi.so can be located in several different places.
 # Look for it with below priority:
 # 1. ROCM_HOME/ROCM_PATH environment variables
