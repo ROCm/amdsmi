@@ -1413,7 +1413,9 @@ class AMDSMIHelpers():
         for entry_index, entry in enumerate(entries.values()):
             # Assume 'entry' is a dictionary with keys: "error_severity" and "notify_type".
             timestamp = entry.get("timestamp", "unknown")
-            gpu_id = self.get_gpu_id_from_device_handle(device_handle)
+            gpu_id = '-'
+            if not isinstance(device_handle, Path):
+                gpu_id = self.get_gpu_id_from_device_handle(device_handle)
             prefix = self._severity_as_string(entry.get("error_severity", "Unknown"),
                                               entry.get("notify_type", "Unknown"),
                                               False)
@@ -1495,7 +1497,9 @@ class AMDSMIHelpers():
             
                 # Collect data for printing
                 timestamp = entry.get("timestamp", "unknown")
-                gpu_id = self.get_gpu_id_from_device_handle(device_handle)
+                gpu_id = '-'
+                if not isinstance(device_handle, Path):
+                    gpu_id = self.get_gpu_id_from_device_handle(device_handle)
                 severity = self._severity_as_string(error_severity, notify_type, False)
                 output_rows[cper_path] = [timestamp, gpu_id, severity, cper_name]
                 self.increment_cper_count()
@@ -1594,38 +1598,6 @@ class AMDSMIHelpers():
 
         return "\n".join(lines)
 
-    def pvtDumpCper(self, cper_file):
-        # 1) Fetch the CPER “file” and ensure we have raw bytes
-        raw_data = cper_file
-        if hasattr(raw_data, "read"):
-            # fetch_cper_file returned a file‐object
-            raw = raw_data.read()
-        elif isinstance(raw_data, Path):
-            # Path: read the bytes directly
-            raw = raw_data.read_bytes()
-        elif isinstance(raw_data, str):
-            # fetch_cper_file returned a filename
-            with open(raw_data, "rb") as f:
-                    raw = f.read()
-        else:
-            # assume it's already bytes
-            raw = raw_data
-        self.binary_to_hexdump_string(raw)
-        try:
-            afids, num_afids = amdsmi_interface.amdsmi_get_afids_from_cper(raw)
-            return afids
-        except amdsmi_exception.AmdSmiLibraryException as e:
-            if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_INVAL:
-                raise ValueError("Invalid CPER file inputs") from e
-            elif e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_UNEXPECTED_SIZE:
-                raise ValueError("Invalid CPER file data size") from e
-            elif e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_UNEXPECTED_DATA:
-                raise ValueError("Unexpected data in CPER file") from e
-            elif e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED:
-                raise NotImplementedError("AFID decoding not supported") from e
-            else:
-                raise ValueError("Unexpected Error getting afids from CPER file") from e
-
     def pvtDumpAfids(self, cper_file):
         # 1) Fetch the CPER “file” and ensure we have raw bytes
         raw_data = cper_file
@@ -1717,14 +1689,16 @@ class AMDSMIHelpers():
 
         buffer_size = 1048576
 
-        gpu_id = self.get_gpu_id_from_device_handle(device_handle)
-        if args.follow and not getattr(self, "_cper_follow_prompted", False):
-            print("Press CTRL + C to stop.")
-            self._cper_follow_prompted = True
-
-        primary_partition = self.is_primary_partition(device_handle, gpu_id)
-        if not primary_partition:
-            return
+        if args.decode and args.cper_file:
+            device_handle = args.cper_file
+        else:
+            gpu_id = self.get_gpu_id_from_device_handle(device_handle)
+            if args.follow and not getattr(self, "_cper_follow_prompted", False):
+                print("Press CTRL + C to stop.")
+                self._cper_follow_prompted = True
+            primary_partition = self.is_primary_partition(device_handle, gpu_id)
+            if not primary_partition:
+                return
 
         if args.folder and not getattr(self, "_cper_folder_prompted", False):
             self._cper_folder_prompted = True
@@ -1733,6 +1707,7 @@ class AMDSMIHelpers():
         self.stop = False
 
         num_entries = 0
+        entries = {}
         while True:
             try:
                 entries, new_cursor, cper_data, status_code = amdsmi_interface.amdsmi_get_gpu_cper_entries(
