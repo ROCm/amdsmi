@@ -1539,6 +1539,28 @@ class AMDSMIHelpers():
                 ))
             except Exception as e:
                 logging.debug(f"Failed to dump entries as JSON: {e}")
+    
+    def dump_cper_entries_as_json(self, entries, cper_data, device_handle):
+        """
+        Return the CPER entries as a formatted JSON string and print it.
+        Parameters largely mirror dump_cper_entries so that callers can reuse the same argument list.
+        Unused arguments (cper_data, device_handle) are retained for API symmetry.
+        Returns:
+        str: The JSON representation of the CPER entries, or an empty string on failure.
+        """
+        # Explicitly touch unused parameters to avoid lint warnings in static analyzers.
+        _ = cper_data, device_handle
+        try:
+            entries_json = json.dumps(
+                entries,
+                indent=2,
+                default=lambda o: o.decode("utf-8") if isinstance(o, bytes) else o,
+            )
+            print(entries_json)
+            return entries_json
+        except Exception as e:
+            logging.debug(f"Failed to serialize CPER entries as JSON: {e}")
+            return ""
 
     def write_binary(self, data, size, filepath):
         """
@@ -1728,6 +1750,13 @@ class AMDSMIHelpers():
             args.cursor[gpu_idx] = new_cursor
             if len(entries) == 0:
                 break
+            if args.decode and args.cper_file and not args.folder:
+                afids = self.pvtDumpAfids(args.cper_file)
+                afids_str = ' '.join(map(str, afids))
+                print("AFIDS: " + afids_str)
+                self.dump_cper_entries_as_json(entries, cper_data, device_handle)
+            if args.decode and args.cper_file and args.folder:
+                self.dump_cper_entries(args.folder, entries, cper_data, device_handle, args.file_limit)
             if args.folder:
                 self.dump_cper_entries(args.folder, entries, cper_data, device_handle, args.file_limit)
             else:
