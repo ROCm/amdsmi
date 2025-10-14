@@ -1540,16 +1540,14 @@ class AMDSMIHelpers():
             except Exception as e:
                 logging.debug(f"Failed to dump entries as JSON: {e}")
     
-    def dump_cper_entries_as_json(self, entries, cper_data, device_handle):
+    def dump_cper_entries_as_json(self, entries, _cper_data, _device_handle):
         """
         Return the CPER entries as a formatted JSON string and print it.
         Parameters largely mirror dump_cper_entries so that callers can reuse the same argument list.
-        Unused arguments (cper_data, device_handle) are retained for API symmetry.
+        Unused arguments (_cper_data, _device_handle) are retained for API symmetry.
         Returns:
         str: The JSON representation of the CPER entries, or an empty string on failure.
         """
-        # Explicitly touch unused parameters to avoid lint warnings in static analyzers.
-        _ = cper_data, device_handle
         try:
             entries_json = json.dumps(
                 entries,
