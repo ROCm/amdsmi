@@ -1751,7 +1751,6 @@ class AMDSMIHelpers():
             if args.decode and args.cper_file and not args.folder:
                 afids = self.pvtDumpAfids(args.cper_file)
                 afids_str = ' '.join(map(str, afids))
-                print("AFIDS: " + afids_str)
                 self.dump_cper_entries_as_json(entries, cper_data, device_handle)
             if args.decode and args.cper_file and args.folder:
                 self.dump_cper_entries(args.folder, entries, cper_data, device_handle, args.file_limit)
