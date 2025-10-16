@@ -78,6 +78,7 @@ void TestPerfLevelReadWrite::Run(void) {
   for (uint32_t dv_ind = 0; dv_ind < num_monitor_devs(); ++dv_ind) {
     PrintDeviceHeader(processor_handles_[dv_ind]);
 
+    std::cout << "### amdsmi_get_gpu_perf_level()" << std::endl;
     ret = amdsmi_get_gpu_perf_level(processor_handles_[dv_ind], &orig_pfl);
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
       IF_VERB(STANDARD) {
@@ -103,6 +104,7 @@ void TestPerfLevelReadWrite::Run(void) {
             GetPerfLevelStr(static_cast<amdsmi_dev_perf_level_t>(pfl_i)) <<
                                                             " ..." << std::endl;
       }
+      std::cout << "### amdsmi_set_gpu_perf_level()" << std::endl;
       ret =  amdsmi_set_gpu_perf_level(processor_handles_[dv_ind],
                                      static_cast<amdsmi_dev_perf_level_t>(pfl_i));
       if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
@@ -110,6 +112,7 @@ void TestPerfLevelReadWrite::Run(void) {
                   << " returned AMDSMI_STATUS_NOT_SUPPORTED"  << std::endl;
       } else {
           CHK_ERR_ASRT(ret)
+          std::cout << "### amdsmi_get_gpu_perf_level()" << std::endl;
           ret = amdsmi_get_gpu_perf_level(processor_handles_[dv_ind], &pfl);
           CHK_ERR_ASRT(ret)
           IF_VERB(STANDARD) {
@@ -122,6 +125,7 @@ void TestPerfLevelReadWrite::Run(void) {
       std::cout << "Reset Perf level to " << GetPerfLevelStr(orig_pfl) <<
                                                             " ..." << std::endl;
     }
+    std::cout << "### amdsmi_set_gpu_perf_level()" << std::endl;
     ret =  amdsmi_set_gpu_perf_level(processor_handles_[dv_ind], orig_pfl);
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
       IF_VERB(STANDARD) {
@@ -130,6 +134,7 @@ void TestPerfLevelReadWrite::Run(void) {
       continue;
     }
     CHK_ERR_ASRT(ret)
+    std::cout << "### amdsmi_get_gpu_perf_level()" << std::endl;
     ret = amdsmi_get_gpu_perf_level(processor_handles_[dv_ind], &pfl);
     CHK_ERR_ASRT(ret)
 

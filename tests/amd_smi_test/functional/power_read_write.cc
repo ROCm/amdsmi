@@ -95,12 +95,14 @@ void TestPowerReadWrite::Run(void) {
   for (uint32_t dv_ind = 0; dv_ind < num_monitor_devs(); ++dv_ind) {
     PrintDeviceHeader(processor_handles_[dv_ind]);
 
+    std::cout << "### amdsmi_get_gpu_power_profile_presets()" << std::endl;
     ret =  amdsmi_get_gpu_power_profile_presets(processor_handles_[dv_ind], 0, &status);
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
       std::cout << "The power profile presets settings is not supported. "
                 << std::endl;
 
       // Verify api support checking functionality is working
+      std::cout << "### amdsmi_get_gpu_power_profile_presets()" << std::endl;
       ret = amdsmi_get_gpu_power_profile_presets(processor_handles_[dv_ind], 0, nullptr);
       ASSERT_EQ(ret, AMDSMI_STATUS_NOT_SUPPORTED);
       continue;
@@ -108,6 +110,7 @@ void TestPowerReadWrite::Run(void) {
     CHK_ERR_ASRT(ret)
 
     // Verify api support checking functionality is working
+    std::cout << "### amdsmi_get_gpu_power_profile_presets()" << std::endl;
     ret =  amdsmi_get_gpu_power_profile_presets(processor_handles_[dv_ind], 0, nullptr);
     ASSERT_EQ(ret, AMDSMI_STATUS_INVAL);
 
@@ -149,23 +152,28 @@ void TestPowerReadWrite::Run(void) {
       return;
     }
 
+    std::cout << "### amdsmi_set_gpu_power_profile()" << std::endl;
     ret =  amdsmi_set_gpu_power_profile(processor_handles_[dv_ind], 0, new_prof);
     CHK_ERR_ASRT(ret)
 
     amdsmi_dev_perf_level_t pfl;
+    std::cout << "### amdsmi_get_gpu_perf_level()" << std::endl;
     ret = amdsmi_get_gpu_perf_level(processor_handles_[dv_ind], &pfl);
     CHK_ERR_ASRT(ret)
     ASSERT_EQ(pfl, AMDSMI_DEV_PERF_LEVEL_MANUAL);
 
+    std::cout << "### amdsmi_get_gpu_power_profile_presets()" << std::endl;
     ret =  amdsmi_get_gpu_power_profile_presets(processor_handles_[dv_ind], 0, &status);
     CHK_ERR_ASRT(ret)
 
     ASSERT_EQ(status.current, new_prof);
 
     // Reset the state of perf level and power profile after testing
+    std::cout << "### amdsmi_set_gpu_perf_level()" << std::endl;
     ret =  amdsmi_set_gpu_perf_level(processor_handles_[dv_ind], AMDSMI_DEV_PERF_LEVEL_AUTO);
     CHK_ERR_ASRT(ret);
 
+    std::cout << "### amdsmi_set_gpu_power_profile()" << std::endl;
     ret =  amdsmi_set_gpu_power_profile(processor_handles_[dv_ind], 0, orig_profile);
     CHK_ERR_ASRT(ret);
   }

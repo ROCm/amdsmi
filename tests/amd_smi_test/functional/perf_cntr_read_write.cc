@@ -88,6 +88,7 @@ void TestPerfCntrReadWrite::CountEvents(amdsmi_processor_handle dv_ind,
   amdsmi_event_handle_t evt_handle;
   amdsmi_status_t ret;
 
+  std::cout << "### amdsmi_gpu_create_counter()" << std::endl;
   ret = amdsmi_gpu_create_counter(dv_ind,
                        static_cast<amdsmi_event_type_t>(evnt), &evt_handle);
   CHK_ERR_ASRT(ret)
@@ -95,10 +96,12 @@ void TestPerfCntrReadWrite::CountEvents(amdsmi_processor_handle dv_ind,
   // Note that amdsmi_gpu_create_counter() should never return
   // AMDSMI_STATUS_NOT_SUPPORTED. It will return AMDSMI_STATUS_OUT_OF_RESOURCES
   // if it is unable to create a counter.
+  std::cout << "### amdsmi_gpu_create_counter()" << std::endl;
   ret = amdsmi_gpu_create_counter(dv_ind,
                        static_cast<amdsmi_event_type_t>(evnt), nullptr);
   ASSERT_EQ(ret, AMDSMI_STATUS_INVAL);
 
+  std::cout << "### amdsmi_gpu_control_counter()" << std::endl;
   ret = amdsmi_gpu_control_counter(evt_handle, AMDSMI_CNTR_CMD_START, nullptr);
   if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
      std::cout << "amdsmi_gpu_control_counter() returned "
@@ -109,6 +112,7 @@ void TestPerfCntrReadWrite::CountEvents(amdsmi_processor_handle dv_ind,
   }
   sleep(sleep_sec);
 
+  std::cout << "### amdsmi_gpu_read_counter()" << std::endl;
   ret = amdsmi_gpu_read_counter(evt_handle, val);
   CHK_ERR_ASRT(ret)
 
@@ -119,6 +123,7 @@ void TestPerfCntrReadWrite::CountEvents(amdsmi_processor_handle dv_ind,
     std::cout << "\t\t\tEvents/Second Running: " <<
             static_cast<float>(val->value)/static_cast<float>(val->time_running) << std::endl;
   }
+  std::cout << "### amdsmi_gpu_destroy_counter()" << std::endl;
   ret = amdsmi_gpu_destroy_counter(evt_handle);
   CHK_ERR_ASRT(ret)
 }
@@ -175,6 +180,7 @@ TestPerfCntrReadWrite::testEventsIndividually(amdsmi_processor_handle dv_ind) {
     std::cout << "****************************" << std::endl;
   }
   for (PerfCntrEvtGrp grp : s_event_groups) {
+    std::cout << "### amdsmi_gpu_counter_group_supported()" << std::endl;
     ret = amdsmi_gpu_counter_group_supported(dv_ind, grp.group());
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
       continue;
@@ -221,6 +227,7 @@ TestPerfCntrReadWrite::testEventsSimultaneously(amdsmi_processor_handle dv_ind) 
    * handling 1 event at a time.
    */
   for (PerfCntrEvtGrp grp : s_event_groups) {
+    std::cout << "### amdsmi_gpu_counter_group_supported()" << std::endl;
     ret = amdsmi_gpu_counter_group_supported(dv_ind, grp.group());
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
       IF_VERB(STANDARD) {
@@ -234,6 +241,7 @@ TestPerfCntrReadWrite::testEventsSimultaneously(amdsmi_processor_handle dv_ind) 
       std::cout << "Testing Event Group " << grp.name() << std::endl;
     }
 
+    std::cout << "### amdsmi_get_gpu_available_counters()" << std::endl;
     ret =  amdsmi_get_gpu_available_counters(dv_ind, grp.group(),
                                                              &avail_counters);
     IF_VERB(STANDARD) {
@@ -267,6 +275,7 @@ TestPerfCntrReadWrite::testEventsSimultaneously(amdsmi_processor_handle dv_ind) 
           std::cout << "\tEvent Type " << tmp << std::endl;
         }
 
+        std::cout << "### amdsmi_gpu_create_counter()" << std::endl;
         ret = amdsmi_gpu_create_counter(dv_ind,
                      static_cast<amdsmi_event_type_t>(tmp), &evt_handle.get()[j]);
         CHK_ERR_ASRT(ret)
@@ -280,10 +289,12 @@ TestPerfCntrReadWrite::testEventsSimultaneously(amdsmi_processor_handle dv_ind) 
       for (j = 0; j < num_created; ++j) {
         tmp = static_cast<amdsmi_event_type_t>(evnt + j);
 
+        std::cout << "### amdsmi_gpu_control_counter()" << std::endl;
         ret = amdsmi_gpu_control_counter(evt_handle.get()[j], AMDSMI_CNTR_CMD_START,
                                                                      nullptr);
         CHK_ERR_ASRT(ret)
 
+        std::cout << "### amdsmi_get_gpu_available_counters()" << std::endl;
         ret =  amdsmi_get_gpu_available_counters(dv_ind, grp.group(),
                                                                   &tmp_cntrs);
         CHK_ERR_ASRT(ret)
@@ -298,6 +309,7 @@ TestPerfCntrReadWrite::testEventsSimultaneously(amdsmi_processor_handle dv_ind) 
       for (j = 0; j < num_created; ++j) {
         tmp = static_cast<amdsmi_event_type_t>(evnt + j);
 
+        std::cout << "### amdsmi_gpu_read_counter()" << std::endl;
         ret = amdsmi_gpu_read_counter(evt_handle.get()[j], &val);
         CHK_ERR_ASRT(ret)
 
@@ -310,6 +322,7 @@ TestPerfCntrReadWrite::testEventsSimultaneously(amdsmi_processor_handle dv_ind) 
         }
       }
       for (j = 0; j < num_created; ++j) {
+        std::cout << "### amdsmi_gpu_destroy_counter()" << std::endl;
         ret = amdsmi_gpu_destroy_counter(evt_handle.get()[j]);
         CHK_ERR_ASRT(ret)
       }

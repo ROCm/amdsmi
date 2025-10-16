@@ -81,6 +81,7 @@ void TestPowerCapReadWrite::SetCheckPowerCap(std::string msg, uint32_t dv_ind, u
       std::cout << "[Before Set]  Setting new cap to " << new_cap << "..." << std::endl;
     }
     start = clock();
+    std::cout << "### amdsmi_set_power_cap()" << std::endl;
     ret =  amdsmi_set_power_cap(processor_handles_[dv_ind], 0, new_cap);
     end = clock();
     cpu_time_used = (static_cast<double>(end - start)) * 1000000UL / CLOCKS_PER_SEC;
@@ -98,6 +99,7 @@ void TestPowerCapReadWrite::SetCheckPowerCap(std::string msg, uint32_t dv_ind, u
         return;
     }
 
+    std::cout << "### amdsmi_get_power_cap_info()" << std::endl;
     ret = amdsmi_get_power_cap_info(processor_handles_[dv_ind], 0, &info);
     CHK_ERR_ASRT(ret)
 
@@ -135,9 +137,11 @@ void TestPowerCapReadWrite::Run(void) {
 
     amdsmi_power_cap_info_t info;
     // Verify api support checking functionality is working
+    std::cout << "### amdsmi_get_power_cap_info()" << std::endl;
     ret = amdsmi_get_power_cap_info(processor_handles_[dv_ind], 0, nullptr);
     ASSERT_EQ(ret, AMDSMI_STATUS_INVAL);
 
+    std::cout << "### amdsmi_get_power_cap_info()" << std::endl;
     ret = amdsmi_get_power_cap_info(processor_handles_[dv_ind], 0, &info);
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
       std::cout << "\t**amdsmi_get_power_cap_info(): Not supported on this machine" << std::endl;
@@ -257,9 +261,11 @@ void TestPowerCapReadWrite::Run(void) {
       std::cout << "[Before Set] Default Power Cap (default_cap): "
                 << default_cap << "..." << std::endl;
     }
+    std::cout << "### amdsmi_set_power_cap()" << std::endl;
     ret =  amdsmi_set_power_cap(processor_handles_[dv_ind], 0, default_cap);
     CHK_ERR_ASRT(ret)
 
+    std::cout << "### amdsmi_get_power_cap_info()" << std::endl;
     ret = amdsmi_get_power_cap_info(processor_handles_[dv_ind], 0, &info);
     CHK_ERR_ASRT(ret)
     curr_cap = info.power_cap;
@@ -281,9 +287,11 @@ void TestPowerCapReadWrite::Run(void) {
       std::cout << "[Before Reset] Original Power Cap (orig_cap): "
                 << orig_cap << "..." << std::endl;
     }
+    std::cout << "### amdsmi_set_power_cap()" << std::endl;
     ret =  amdsmi_set_power_cap(processor_handles_[dv_ind], 0, orig_cap);
     CHK_ERR_ASRT(ret)
 
+    std::cout << "### amdsmi_get_power_cap_info()" << std::endl;
     ret = amdsmi_get_power_cap_info(processor_handles_[dv_ind], 0, &info);
     CHK_ERR_ASRT(ret)
     curr_cap = info.power_cap;

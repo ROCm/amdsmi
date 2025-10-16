@@ -102,6 +102,7 @@ void TestMemUtilRead::Run(void) {
 
       for (uint32_t mem_type = AMDSMI_MEM_TYPE_FIRST;
                                    mem_type <= AMDSMI_MEM_TYPE_LAST; ++mem_type) {
+        std::cout << "### amdsmi_get_gpu_memory_total()" << std::endl;
         err = amdsmi_get_gpu_memory_total(processor_handles_[i],
                              static_cast<amdsmi_memory_type_t>(mem_type), &total);
         smi_amdgpu_get_status_string(err, false);
@@ -115,6 +116,7 @@ void TestMemUtilRead::Run(void) {
           continue;
         }
 
+        std::cout << "### amdsmi_get_gpu_memory_usage()" << std::endl;
         err = amdsmi_get_gpu_memory_usage(processor_handles_[i],
                              static_cast<amdsmi_memory_type_t>(mem_type), &usage);
         input_str =

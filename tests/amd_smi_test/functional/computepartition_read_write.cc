@@ -227,6 +227,7 @@ static void checkPartitionIdChanges(amdsmi_processor_handle* const processor_han
   } else if (current_partition == "CPX") {
     uint16_t num_xcd;
 
+    std::cout << "### amdsmi_get_gpu_xcd_counter()" << std::endl;
     auto ret = amdsmi_get_gpu_xcd_counter(curr_processor_handles[dev_id], &num_xcd);
     if (ret == AMDSMI_STATUS_SUCCESS) {
       max_loop = static_cast<uint32_t>(num_xcd);
@@ -274,6 +275,7 @@ static void checkPartitionIdChanges(amdsmi_processor_handle* const processor_han
       break;
     }
     amdsmi_kfd_info_t kfd_info;
+    std::cout << "### amdsmi_get_gpu_kfd_info()" << std::endl;
     amdsmi_status_t ret = amdsmi_get_gpu_kfd_info(curr_processor_handles[i], &kfd_info);
     if (isVerbose) {
       std::cout << "\t**Checking Partition ID | Device: " << std::to_string(i)
@@ -388,6 +390,7 @@ void TestComputePartitionReadWrite::Run(void) {
   bool isVerbose = (this->verbosity() &&
         this->verbosity() >= (this->TestBase::VERBOSE_STANDARD)) ? true: false;
   // Confirm system supports compute partition, before executing wait
+  std::cout << "### amdsmi_get_gpu_compute_partition()" << std::endl;
   ret = amdsmi_get_gpu_compute_partition(0, orig_char_computePartition, k255Len);
   if (ret == AMDSMI_STATUS_SUCCESS) {
     system_wait(15);
@@ -407,6 +410,7 @@ void TestComputePartitionReadWrite::Run(void) {
     }
     PrintDeviceHeader(processor_handles_[dv_ind]);
 
+    std::cout << "### amdsmi_get_gpu_compute_partition()" << std::endl;
     ret = amdsmi_get_gpu_compute_partition(processor_handles_[dv_ind], orig_char_computePartition,
                                             k255Len);
     EXPECT_TRUE(ret == AMDSMI_STATUS_SUCCESS
@@ -463,6 +467,7 @@ void TestComputePartitionReadWrite::Run(void) {
         break;
       }
 
+      std::cout << "### amdsmi_get_gpu_compute_partition()" << std::endl;
       ret = amdsmi_get_gpu_compute_partition(processor_handles_[dv_ind],
                                             current_char_computePartition,
                                             k255Len);
@@ -523,6 +528,7 @@ void TestComputePartitionReadWrite::Run(void) {
     PrintDeviceHeader(processor_handles_[dv_ind]);
     amdsmi_accelerator_partition_profile_t profile = {};
     uint32_t partition_id[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+    std::cout << "### amdsmi_get_gpu_accelerator_partition_profile()" << std::endl;
     ret = amdsmi_get_gpu_accelerator_partition_profile(processor_handles_[dv_ind],
                                                         &profile, &partition_id[0]);
     std::string nps_caps_str = "";
@@ -589,6 +595,7 @@ void TestComputePartitionReadWrite::Run(void) {
         case AMDSMI_ACCELERATOR_PARTITION_CPX: {
           uint16_t num_xcd;
           uint32_t max_xcps = 0;
+          std::cout << "### amdsmi_get_gpu_xcd_counter()" << std::endl;
           ret = amdsmi_get_gpu_xcd_counter(processor_handles_[primary_index], &num_xcd);
           if (ret == AMDSMI_STATUS_SUCCESS) {
             max_xcps = static_cast<uint32_t>(num_xcd);
@@ -635,6 +642,7 @@ void TestComputePartitionReadWrite::Run(void) {
     EXPECT_TRUE(ret == AMDSMI_STATUS_SUCCESS
                 || ret == AMDSMI_STATUS_NOT_SUPPORTED);
     amdsmi_accelerator_partition_profile_config_t profile_config = {};
+    std::cout << "### amdsmi_get_gpu_accelerator_partition_profile_config()" << std::endl;
     ret = amdsmi_get_gpu_accelerator_partition_profile_config(processor_handles_[dv_ind],
                                                               &profile_config);
     IF_VERB(STANDARD) {
@@ -956,6 +964,7 @@ void TestComputePartitionReadWrite::Run(void) {
 
 
     PrintDeviceHeader(p_handle);
+    std::cout << "### amdsmi_get_gpu_compute_partition()" << std::endl;
     ret = amdsmi_get_gpu_compute_partition(p_handle, orig_char_computePartition,
                                             k255Len);
     EXPECT_TRUE(ret == AMDSMI_STATUS_SUCCESS
@@ -1022,6 +1031,7 @@ void TestComputePartitionReadWrite::Run(void) {
         break;
       }
 
+      std::cout << "### amdsmi_get_gpu_compute_partition()" << std::endl;
       ret = amdsmi_get_gpu_compute_partition(p_handle2,
                                             current_char_computePartition,
                                             k255Len);

@@ -66,6 +66,7 @@ void TestVersionRead::Run(void) {
     return;
   }
 
+  std::cout << "### amdsmi_get_lib_version()" << std::endl;
   err = amdsmi_get_lib_version(&ver);
   CHK_ERR_ASRT(err)
 

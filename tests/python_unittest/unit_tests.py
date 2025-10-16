@@ -375,13 +375,6 @@ class TestAmdSmiPython(unittest.TestCase):
         ('WR_BW0', amdsmi.amdsmi_interface.amdsmi_wrapper.WR_BW0, PASS)
     ]
 
-    event_groups = \
-    [
-        ('XGMI', amdsmi.AmdSmiEventGroup.XGMI, PASS),
-        ('XGMI_DATA_OUT', amdsmi.AmdSmiEventGroup.XGMI_DATA_OUT, PASS),
-        ('GRP_INVALID', amdsmi.AmdSmiEventGroup.GRP_INVALID, FAIL)
-    ]
-
     gpu_blocks = \
     [
         ('INVALID', amdsmi.AmdSmiGpuBlock.INVALID, FAIL),
@@ -438,6 +431,7 @@ class TestAmdSmiPython(unittest.TestCase):
     voltage_types = \
     [
         ('VDDGFX', amdsmi.AmdSmiVoltageType.VDDGFX, PASS),
+        ('VDDBOARD', amdsmi.AmdSmiVoltageType.VDDBOARD, PASS),
         ('INVALID', amdsmi.AmdSmiVoltageType.INVALID, FAIL)
     ]
 
@@ -490,7 +484,15 @@ class TestAmdSmiPython(unittest.TestCase):
         ('FINE_GRAIN_MEM_ACTIVITY', amdsmi.AmdSmiUtilizationCounterType.FINE_GRAIN_MEM_ACTIVITY, PASS),
         ('FINE_DECODER_ACTIVITY', amdsmi.AmdSmiUtilizationCounterType.FINE_DECODER_ACTIVITY, PASS),
         ('UTILIZATION_COUNTER_FIRST', amdsmi.AmdSmiUtilizationCounterType.UTILIZATION_COUNTER_FIRST, PASS),
-        ('UTILIZATION_COUNTER_LAST', amdsmi.AmdSmiUtilizationCounterType.UTILIZATION_COUNTER_LAST, PASS)
+        ('UTILIZATION_COUNTER_LAST', amdsmi.AmdSmiUtilizationCounterType.UTILIZATION_COUNTER_LAST, PASS),
+        ('UTILIZATION_COUNTER_BAD', 100, FAIL)
+    ]
+
+    event_groups = \
+    [
+        ('XGMI', amdsmi.AmdSmiEventGroup.XGMI, PASS),
+        ('XGMI_DATA_OUT', amdsmi.AmdSmiEventGroup.XGMI_DATA_OUT, PASS),
+        ('GRP_INVALID', amdsmi.AmdSmiEventGroup.GRP_INVALID, FAIL)
     ]
 
     event_types = \
@@ -586,12 +588,16 @@ class TestAmdSmiPython(unittest.TestCase):
         return error_map[error_code]
 
     def _check_ret(self, msg, _e, expected_code=None, printit=True):
-        error_code_int = int(_e.get_error_code())
-        error_code = str(error_code_int)
-        if error_code in error_map:
-            error_code_name = error_map[error_code]
+        if hasattr(_e, 'get_error_code'):
+            error_code_int = int(_e.get_error_code())
+            error_code = str(error_code_int)
+            if error_code in error_map:
+                error_code_name = error_map[error_code]
+            else:
+                error_code_name = 'UNKNOWN_ERROR'
         else:
-            error_code_name = 'UNKNOWN_ERROR'
+            error_code = str(_e).split(':')[0]
+            error_code_name = 'AMDSMI_STATUS_INVAL'
 
         # Check for when there are multiple passing conditions
         if isinstance(expected_code, list):
@@ -651,7 +657,7 @@ class TestAmdSmiPython(unittest.TestCase):
             else:
                 data = func()
             self._print(msg, data)
-        except amdsmi.AmdSmiLibraryException as e:
+        except (amdsmi.AmdSmiLibraryException, amdsmi.AmdSmiParameterException) as e:
             if self._check_ret(msg, e, self.PASS):
                 self.raise_exception = e
         if self.raise_exception:
@@ -696,7 +702,7 @@ class TestAmdSmiPython(unittest.TestCase):
                 else:
                     data = func(gpu)
                 self._print(msg, data)
-            except amdsmi.AmdSmiLibraryException as e:
+            except (amdsmi.AmdSmiLibraryException, amdsmi.AmdSmiParameterException) as e:
                 if self._check_ret(msg, e, self.PASS):
                     self.raise_exception = e
         if self.raise_exception:
@@ -737,7 +743,7 @@ class TestAmdSmiPython(unittest.TestCase):
                     else:
                         data = func(gpu, value1)
                     self._print(msg, data)
-                except amdsmi.AmdSmiLibraryException as e:
+                except (amdsmi.AmdSmiLibraryException, amdsmi.AmdSmiParameterException) as e:
                     if not value1_cond == self.PASS:
                         if self._check_ret(msg, e, value1_cond):
                             self.raise_exception = e
@@ -786,7 +792,7 @@ class TestAmdSmiPython(unittest.TestCase):
                         else:
                             data = func(gpu, value1, value2)
                         self._print(msg, data)
-                    except amdsmi.AmdSmiLibraryException as e:
+                    except (amdsmi.AmdSmiLibraryException, amdsmi.AmdSmiParameterException) as e:
                         if not value1_cond == self.PASS:
                             if self._check_ret(msg, e, value1_cond):
                                 self.raise_exception = e
@@ -832,7 +838,7 @@ class TestAmdSmiPython(unittest.TestCase):
                     else:
                         data = func(gpu_i, gpu_j)
                     self._print(msg, data)
-                except amdsmi.AmdSmiLibraryException as e:
+                except (amdsmi.AmdSmiLibraryException, amdsmi.AmdSmiParameterException) as e:
                     if i == j:
                         if self._check_ret(msg, e, self.FAIL):
                             self.raise_exception = e
@@ -1523,8 +1529,9 @@ class TestAmdSmiPython(unittest.TestCase):
 
     def test_get_utilization_count(self):
         self._print_func_name('')
-        if self.TODO_SKIP_FAIL:
-            self.skipTest("Skipping test_get_utilization_count as it fails (MI350X, AMDSMI_STATUS_UNEXPECTED_DATA).")
+        if False:
+            if self.TODO_SKIP_FAIL:
+                self.skipTest("Skipping test_get_utilization_count as it fails (MI350X, AMDSMI_STATUS_UNEXPECTED_DATA).")
         self.RunFunc2(amdsmi_get_utilization_count=amdsmi.amdsmi_get_utilization_count, utilization_counter_type=self.utilization_counter_types)
         return
 

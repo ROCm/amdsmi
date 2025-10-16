@@ -73,6 +73,7 @@ void TestOverdriveRead::Run(void) {
   for (uint32_t i = 0; i < num_monitor_devs(); ++i) {
     PrintDeviceHeader(processor_handles_[i]);
 
+    std::cout << "### amdsmi_get_gpu_overdrive_level()" << std::endl;
     err = amdsmi_get_gpu_overdrive_level(processor_handles_[i], &val_ui32);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       IF_VERB(STANDARD) {
@@ -84,6 +85,7 @@ void TestOverdriveRead::Run(void) {
     IF_VERB(STANDARD) {
     std::cout << "\t**OverDrive Level:" << val_ui32 << std::endl;
     // Verify api support checking functionality is working
+    std::cout << "### amdsmi_get_gpu_overdrive_level()" << std::endl;
     err = amdsmi_get_gpu_overdrive_level(processor_handles_[i], nullptr);
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
     }

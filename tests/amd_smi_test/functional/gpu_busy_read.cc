@@ -76,6 +76,7 @@ void TestGPUBusyRead::Run(void) {
     for (uint32_t i = 0; i < num_monitor_devs(); ++i) {
       PrintDeviceHeader(processor_handles_[i]);
 
+      std::cout << "### amdsmi_get_gpu_busy_percent()" << std::endl;
       err = amdsmi_get_gpu_busy_percent(processor_handles_[i], &val_ui32);
       if (err != AMDSMI_STATUS_SUCCESS) {
         if (err == AMDSMI_STATUS_FILE_ERROR || err == AMDSMI_STATUS_NOT_SUPPORTED) {

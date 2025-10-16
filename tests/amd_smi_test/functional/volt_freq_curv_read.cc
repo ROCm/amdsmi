@@ -132,6 +132,7 @@ void TestVoltCurvRead::Run(void) {
   for (uint32_t i = 0; i < num_monitor_devs(); ++i) {
     PrintDeviceHeader(processor_handles_[i]);
 
+    std::cout << "### amdsmi_get_gpu_od_volt_info()" << std::endl;
     err =  amdsmi_get_gpu_od_volt_info(processor_handles_[i], &odv);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED
           || err == AMDSMI_STATUS_NOT_YET_IMPLEMENTED) {
@@ -143,17 +144,20 @@ void TestVoltCurvRead::Run(void) {
       }
       // Verify api support checking functionality is working
       if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
+        std::cout << "### amdsmi_get_gpu_od_volt_info()" << std::endl;
         err =  amdsmi_get_gpu_od_volt_info(processor_handles_[i], nullptr);
         ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
       }
     } else {
       // Verify api support checking functionality is working
+      std::cout << "### amdsmi_get_gpu_od_volt_info()" << std::endl;
       err =  amdsmi_get_gpu_od_volt_info(processor_handles_[i], nullptr);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
     }
 
     if (err == AMDSMI_STATUS_SUCCESS) {
       std::cout << "\t**Frequency-voltage curve data:" << std::endl;
+      std::cout << "### amdsmi_mdsmi_od_volt_freq_data_t()" << std::endl;
       print_amdsmi_od_volt_freq_data_t(&odv);
 
       amdsmi_freq_volt_region_t *regions{};
@@ -162,6 +166,7 @@ void TestVoltCurvRead::Run(void) {
       ASSERT_NE(regions, nullptr);
 
       num_regions = odv.num_regions;
+      std::cout << "### amdsmi_get_gpu_od_volt_curve_regions()" << std::endl;
       err =  amdsmi_get_gpu_od_volt_curve_regions(processor_handles_[i],
                                                   &num_regions, regions);
 

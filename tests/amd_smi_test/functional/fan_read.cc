@@ -76,6 +76,7 @@ void TestFanRead::Run(void) {
       IF_VERB(STANDARD) {
         std::cout << "\t**Current Fan Speed: ";
       }
+      std::cout << "### amdsmi_get_gpu_fan_speed()" << std::endl;
       err = amdsmi_get_gpu_fan_speed(processor_handles_[i], 0, &val_i64);
       if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
           IF_VERB(STANDARD) {
@@ -83,6 +84,7 @@ void TestFanRead::Run(void) {
                                "Not supported on this machine" << std::endl;
           }
           // Verify api support checking functionality is working
+          std::cout << "### amdsmi_get_gpu_fan_speed()" << std::endl;
           err = amdsmi_get_gpu_fan_speed(processor_handles_[i], 0, nullptr);
           ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
           return;
@@ -92,9 +94,11 @@ void TestFanRead::Run(void) {
 
 
       // Verify api support checking functionality is working
+      std::cout << "### amdsmi_get_gpu_fan_speed()" << std::endl;
       err = amdsmi_get_gpu_fan_speed(processor_handles_[i], 0, nullptr);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
+      std::cout << "### amdsmi_get_gpu_fan_speed_max()" << std::endl;
       err = amdsmi_get_gpu_fan_speed_max(processor_handles_[i], 0, &val_ui64);
       CHK_ERR_ASRT(err)
       IF_VERB(STANDARD) {
@@ -102,12 +106,14 @@ void TestFanRead::Run(void) {
         std::cout << "% ("<< val_i64 << "/" << val_ui64 << ")" << std::endl;
       }
       // Verify api support checking functionality is working
+      std::cout << "### amdsmi_get_gpu_fan_speed_max()" << std::endl;
       err = amdsmi_get_gpu_fan_speed_max(processor_handles_[i], 0, nullptr);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
       IF_VERB(STANDARD) {
         std::cout << "\t**Current fan RPMs: ";
       }
+      std::cout << "### amdsmi_get_gpu_fan_rpms()" << std::endl;
       err = amdsmi_get_gpu_fan_rpms(processor_handles_[i], 0, &val_i64);
       CHK_ERR_ASRT(err)
       IF_VERB(STANDARD) {
@@ -115,6 +121,7 @@ void TestFanRead::Run(void) {
       }
 
       // Verify api support checking functionality is working
+      std::cout << "### amdsmi_get_gpu_fan_rpms()" << std::endl;
       err = amdsmi_get_gpu_fan_rpms(processor_handles_[i], 0, nullptr);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
     }

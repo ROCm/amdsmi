@@ -74,6 +74,7 @@ void TestPerfLevelRead::Run(void) {
   for (uint32_t i = 0; i < num_monitor_devs(); ++i) {
     PrintDeviceHeader(processor_handles_[i]);
 
+    std::cout << "### amdsmi_get_gpu_perf_level()" << std::endl;
     err = amdsmi_get_gpu_perf_level(processor_handles_[i], &pfl);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       std::cout << "\t**Performance Level: Not Supported" << std::endl;
@@ -86,6 +87,7 @@ void TestPerfLevelRead::Run(void) {
       }
     }
     // Verify api support checking functionality is working
+    std::cout << "### amdsmi_get_gpu_perf_level()" << std::endl;
     err = amdsmi_get_gpu_perf_level(processor_handles_[i], nullptr);
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
   }

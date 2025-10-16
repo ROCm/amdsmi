@@ -75,6 +75,7 @@ void TestFanReadWrite::Run(void) {
   for (uint32_t dv_ind = 0; dv_ind < num_monitor_devs(); ++dv_ind) {
     PrintDeviceHeader(processor_handles_[dv_ind]);
 
+    std::cout << "### amdsmi_get_gpu_fan_speed()" << std::endl;
     ret = amdsmi_get_gpu_fan_speed(processor_handles_[dv_ind], 0, &orig_speed);
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
        IF_VERB(STANDARD) {
@@ -95,6 +96,7 @@ void TestFanReadWrite::Run(void) {
       return;
     }
 
+    std::cout << "### amdsmi_get_gpu_fan_speed_max()" << std::endl;
     ret = amdsmi_get_gpu_fan_speed_max(processor_handles_[dv_ind], 0, &max_speed);
     CHK_ERR_ASRT(ret)
 
@@ -111,6 +113,7 @@ void TestFanReadWrite::Run(void) {
       std::cout << "Setting fan speed to " << new_speed << std::endl;
     }
 
+    std::cout << "### amdsmi_set_gpu_fan_speed()" << std::endl;
     ret = amdsmi_set_gpu_fan_speed(processor_handles_[dv_ind], 0, new_speed);
 
     // When you can read fan speed, it is not always can set fan speed.
@@ -122,6 +125,7 @@ void TestFanReadWrite::Run(void) {
 
     sleep(4);
 
+    std::cout << "### amdsmi_get_gpu_fan_speed()" << std::endl;
     ret = amdsmi_get_gpu_fan_speed(processor_handles_[dv_ind], 0, &cur_speed);
     CHK_ERR_ASRT(ret)
 
@@ -145,11 +149,13 @@ void TestFanReadWrite::Run(void) {
       std::cout << "Resetting fan control to auto..." << std::endl;
     }
 
+    std::cout << "### amdsmi_reset_gpu_fan()" << std::endl;
     ret = amdsmi_reset_gpu_fan(processor_handles_[dv_ind], 0);
     CHK_ERR_ASRT(ret)
 
     sleep(3);
 
+    std::cout << "### amdsmi_get_gpu_fan_speed()" << std::endl;
     ret = amdsmi_get_gpu_fan_speed(processor_handles_[dv_ind], 0, &cur_speed);
     CHK_ERR_ASRT(ret)
 

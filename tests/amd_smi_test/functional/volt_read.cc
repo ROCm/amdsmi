@@ -79,6 +79,7 @@ void TestVoltRead::Run(void) {
 
     auto print_volt_metric = [&](amdsmi_voltage_metric_t met,
                                                         std::string label) {
+      std::cout << "### amdsmi_get_gpu_volt_metric()" << std::endl;
       err =  amdsmi_get_gpu_volt_metric(processor_handles_[i], type, met, &val_i64);
 
       if (err != AMDSMI_STATUS_SUCCESS) {
@@ -88,6 +89,7 @@ void TestVoltRead::Run(void) {
                                "Not supported on this machine" << std::endl;
 
             // Verify api support checking functionality is working
+            std::cout << "### amdsmi_get_gpu_volt_metric()" << std::endl;
             err =  amdsmi_get_gpu_volt_metric(processor_handles_[i], type, met, nullptr);
             ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
             return;
@@ -97,6 +99,7 @@ void TestVoltRead::Run(void) {
         }
       }
       // Verify api support checking functionality is working
+      std::cout << "### amdsmi_get_gpu_volt_metric()" << std::endl;
       err =  amdsmi_get_gpu_volt_metric(processor_handles_[i], type, met, nullptr);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 

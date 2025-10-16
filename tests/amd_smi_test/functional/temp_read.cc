@@ -138,6 +138,7 @@ void TestTempRead::Run(void) {
 
       auto print_temp_metric = [&](amdsmi_temperature_metric_t met,
                                                           std::string label) {
+        std::cout << "### amdsmi_get_temp_metric()" << std::endl;
         err =  amdsmi_get_temp_metric(processor_handles_[i], static_cast<amdsmi_temperature_type_t>(type), met, &val_i64);
 
         if (err != AMDSMI_STATUS_SUCCESS) {
@@ -148,6 +149,7 @@ void TestTempRead::Run(void) {
             }
 
             // Verify api support checking functionality is working
+            std::cout << "### amdsmi_get_temp_metric()" << std::endl;
             err =  amdsmi_get_temp_metric(processor_handles_[i],  static_cast<amdsmi_temperature_type_t>(type), met, nullptr);
             ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
             return;
@@ -156,6 +158,7 @@ void TestTempRead::Run(void) {
           }
         }
         // Verify api support checking functionality is working
+        std::cout << "### amdsmi_get_temp_metric()" << std::endl;
         err =  amdsmi_get_temp_metric(processor_handles_[i],  static_cast<amdsmi_temperature_type_t>(type), met, nullptr);
         ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
