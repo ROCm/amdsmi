@@ -1865,7 +1865,22 @@ class TestAmdSmiPythonBDF(unittest.TestCase):
         if raise_exception:
             raise raise_exception
 
+    def test_get_gpu_partition_metrics_info(self):
+        raise_exception = None
 
+        processors = amdsmi.amdsmi_get_processor_handles()
+        self.assertGreaterEqual(len(processors), 1)
+        self.assertLessEqual(len(processors), 32)
+        for i in range(0, len(processors)):
+            try:
+                msg = f'gpu({i}): '
+                ret = amdsmi.amdsmi_get_gpu_partition_metrics_info(processors[i])
+                self._print(msg, ret)
+            except amdsmi.AmdSmiLibraryException as e:
+                if self._check_ret(msg, e, self.PASS):
+                    raise_exception = e
+        if raise_exception:
+            raise raise_exception
 
     def test_get_gpu_od_volt_curve_regions(self):
         raise_exception = None
