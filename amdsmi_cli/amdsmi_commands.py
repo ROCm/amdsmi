@@ -904,16 +904,24 @@ class AMDSMICommands():
                     logging.debug("Failed to get cpu affinity for gpu %s | %s", gpu_id, e.get_error_info())
 
                 try:
-                    cpusockets = amdsmi_interface.amdsmi_get_cpu_affinity_with_scope(args.gpu, amdsmi_interface.AmdSmiAffinityScope.SOCKET_SCOPE)
-                    cpusockets = {f'socket_{i}': socket for i, socket in enumerate(set(cpusockets))}
+                    socket_set = amdsmi_interface.amdsmi_get_cpu_affinity_with_scope(args.gpu, amdsmi_interface.AmdSmiAffinityScope.SOCKET_SCOPE)
+                    socket_set = [f"{cpus:016X}" for cpus in socket_set]
+                    socket_set = {f'cpu_list_{i}': f"{cpus}" for i, cpus in enumerate(socket_set)}
+                    socket_bitmask_ranges = self.helpers.get_bitmask_ranges(socket_set)
+                    socket_affinity = {}
+                    for key in socket_set:
+                        socket_affinity[key] = {
+                            "bitmask": socket_set[key],
+                            "cpu_cores_affinity": socket_bitmask_ranges.get(key, "N/A")
+                        }
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    cpusockets = {}
+                    socket_affinity = "N/A"
                     logging.debug("Failed to get socket affinity for gpu %s | %s", gpu_id, e.get_error_info())
 
                 static_dict['numa'] = { 'node' : numa_node_number,
                                         'affinity' : numa_affinity,
                                         'cpu_affinity' : cpu_affinity,
-                                        'socket_affinity' : cpusockets if cpusockets else "N/A"}
+                                        'socket_affinity' : socket_affinity}
         if args.vram:
             vram_info_dict = {"type" : "N/A",
                               "vendor" : "N/A",
@@ -1632,6 +1640,7 @@ class AMDSMICommands():
         # Add timestamp and store values for specified arguments
         values_dict = {}
 
+        is_partition_metrics = False  # True if we get the metrics from xcp_metrics file (amdsmi_get_gpu_partition_metrics_info)
         #get metric info only once per gpu, this will speed up data output
         try:
             # Get GPU Metrics table
@@ -1640,19 +1649,10 @@ class AMDSMICommands():
             logging.debug("#3 - Unable to load GPU Metrics table for %s | %s", gpu_id, e.get_error_info())
             gpu_metric = amdsmi_interface._NA_amdsmi_get_gpu_metrics_info()
 
-        # Workaround for XCP (partition) metrics not providing num_partition in v1.0
-        # Confirmed with driver team that we can default to 1 if num_partition is not defined.
-        # Pending partitions exist, ie. partition_id > 0. See logic below.
-        try:
-            partition_id = amdsmi_interface.amdsmi_get_gpu_kfd_info(args.gpu)['current_partition_id']
-        except amdsmi_exception.AmdSmiLibraryException as e:
-            logging.debug("Failed to get current partition id for gpu %s | %s", gpu_id, e.get_error_info())
-            partition_id = "N/A"
-
-        num_partition = gpu_metric['num_partition']
-        if num_partition == "N/A":
-            num_partition = 1  # Workaround for XCP metrics not providing num_partition in v1.0
-            logging.debug(f"num_partition is N/A and partition_id: {partition_id} (greater > 0).\nModified num_partition: {num_partition} to adjust for XCP metrics.")
+        # Workaround for XCP (partition) metrics not providing num_partition in v1.9+/v1.1+
+        # Provides original formatting for earlier metric versions
+        partition_metric_info = self.helpers._get_metric_version_and_partition_info(gpu_metric, is_partition_metrics, gpu_id, args.gpu)
+        num_partition = partition_metric_info['num_partition']
 
         if self.logger.is_json_format():
             values_dict['gpu'] = int(gpu_id)
@@ -2679,7 +2679,7 @@ class AMDSMICommands():
                                     value[k][index] = self.helpers.unit_format(self.logger, activity, activity_unit)
                                 value[k] = '[' + ", ".join(value[k]) + ']'
                         elif value != "N/A":
-                            value = self.helpers.unit_format(self.logger, value, activity_unit)
+                            throttle_status[key] = self.helpers.unit_format(self.logger, value, activity_unit)
                     if self.logger.is_json_format():
                         if isinstance(value, (list, dict)):
                             for k, v in value.items():
@@ -3089,7 +3089,6 @@ class AMDSMICommands():
             return # Skip printing when there are multiple devices
         if not self.logger.is_json_format():
             self.logger.print_output(multiple_device_enabled=multiple_devices_csv_override)
-
 
     def metric(self, args, multiple_devices=False, watching_output=False, gpu=None,
                 usage=None, watch=None, watch_time=None, iterations=None, power=None,
@@ -5710,6 +5709,7 @@ class AMDSMICommands():
             except amdsmi_exception.AmdSmiLibraryException as e:
                 logging.debug("#5 - Unable to load GPU Metrics table for %s | %s", gpu_id, e.get_error_info())
 
+        is_partition_metrics = False  # True if we get the metrics from xcp_metrics file (amdsmi_get_gpu_partition_metrics_info)
         #get metric info only once per gpu, this will speed up data output
         try:
             # Get GPU Metrics table
@@ -5721,25 +5721,15 @@ class AMDSMICommands():
             gpu_metrics_info = amdsmi_interface._NA_amdsmi_get_gpu_metrics_info()
             logging.debug("Unable to load GPU Metrics table for %s | %s", gpu_id, e.get_error_info())
 
-        # Workaround for XCP (partition) metrics not providing num_partition in v1.0
-        # Confirmed with driver team that we can default to 1 if num_partition is not defined.
-        # Pending partitions exist, ie. partition_id > 0. See logic below.
-        try:
-            partition_id = amdsmi_interface.amdsmi_get_gpu_kfd_info(args.gpu)['current_partition_id']
-        except amdsmi_exception.AmdSmiLibraryException as e:
-            logging.debug("Failed to get current partition id for gpu %s | %s", gpu_id, e.get_error_info())
-            partition_id = "N/A"
+        # Workaround for XCP (partition) metrics not providing num_partition in v1.9+/v1.1+
+        # Provides original formatting for earlier metric versions
+        partition_metric_info = self.helpers._get_metric_version_and_partition_info(gpu_metrics_info, is_partition_metrics, gpu_id, args.gpu)
+        partition_id = partition_metric_info['partition_id']
+        num_partition = partition_metric_info['num_partition']
 
-        num_partition = gpu_metrics_info['num_partition']
-        if num_partition == "N/A":
-            num_partition = partition_id
-
-        num_xcp = num_partition  # used later for XCP metrics
+        # Update logger for XCP display (only if applicable)
         self.logger.table_header += 'XCP'.rjust(5, ' ')
-        self.logger.store_output(args.gpu, 'xcp', partition_id)  # Starting with partition_id.
-                                                                 # Outputs which have xcp details
-                                                                 # will update this value via num_xcp.
-                                                                 # This value will help map to primary device.
+        self.logger.store_output(args.gpu, 'xcp', partition_id)  # Store partition_id initially; can be updated via num_xcp
 
         # Store the pcie_bw values due to possible increase in bandwidth due to repeated gpu_metrics calls
         if args.pcie:
@@ -5979,7 +5969,7 @@ class AMDSMICommands():
                                                            "unit" : freq_unit}
             except (KeyError, amdsmi_exception.AmdSmiLibraryException) as e:
                 monitor_values['dclock'] = "N/A"
-                logging.debug("Failed to get vclock on gpu %s | %s", gpu_id, e)
+                logging.debug("Failed to get dclock on gpu %s | %s", gpu_id, e)
 
             self.logger.table_header += 'DCLOCK'.rjust(10)
 
@@ -6322,7 +6312,7 @@ class AMDSMICommands():
                     self.logger.store_multiple_device_output()
                     current_xcp += 1
             else:
-                self.logger.store_output(args.gpu, 'xcp', num_xcp)
+                self.logger.store_output(args.gpu, 'xcp', partition_id)
                 self.logger.store_output(args.gpu, 'values', monitor_values)
 
         # Store typical output for all commands (XCP data will be handled separately, eg. violation status)

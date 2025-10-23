@@ -1253,6 +1253,19 @@ class TestAmdSmiPython(unittest.TestCase):
         self.RunFunc1(amdsmi_get_gpu_metrics_info=amdsmi.amdsmi_get_gpu_metrics_info)
         return
 
+    def test_get_gpu_partition_metrics_info(self):
+        self._print_func_name('')
+        for i, gpu in enumerate(self.processors):
+            try:
+                msg = f'gpu({i}): '
+                ret = amdsmi.amdsmi_get_gpu_partition_metrics_info(gpu)
+                self._print(msg, ret)
+            except amdsmi.AmdSmiLibraryException as e:
+                if self._check_ret(msg, e, self.PASS):
+                    self.raise_exception = e
+        if self.raise_exception:
+            raise self.raise_exception
+
     def test_get_gpu_od_volt_curve_regions(self):
         self._print_func_name('')
         #TODO num_region = 10
