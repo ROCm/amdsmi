@@ -86,6 +86,7 @@ AMDSMI_MAX_NUM_XGMI_PHYSICAL_LINK = 64
 AMDSMI_GPU_UUID_SIZE = 38
 _AMDSMI_STRING_LENGTH = 80
 
+
 class AmdSmiStatus(IntEnum):
     SUCCESS             = amdsmi_wrapper.AMDSMI_STATUS_SUCCESS
     INVAL               = amdsmi_wrapper.AMDSMI_STATUS_INVAL
@@ -3388,7 +3389,7 @@ def amdsmi_topo_get_p2p_status(
     )
 
     return {
-        'type' : type,
+        'type' : type_32.value,
         'cap': {
             'is_iolink_coherent': cap.is_iolink_coherent,
             'is_iolink_atomics_32bit': cap.is_iolink_atomics_32bit,
