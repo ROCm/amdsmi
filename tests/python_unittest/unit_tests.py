@@ -1,24 +1,23 @@
 #!/usr/bin/env python3
 #
-# Copyright (c) Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) Advanced Micro Devices. All rights reserved.
 #
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to
+# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+# the Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 '''
 In Unit Testing, what is specifically tested within these units includes:
@@ -173,26 +172,26 @@ class TestAmdSmiPythonBDF(unittest.TestCase):
         # expect retry error to raise SmiRetryException
         with self.assertRaises(amdsmi.AmdSmiRetryException) as retry_test:
             amdsmi.amdsmi_interface._check_res(
-                (lambda: amdsmi.amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_RETRY)())
+                (lambda: amdsmi.amdsmi_wrapper.AMDSMI_STATUS_RETRY)())
         # except retry error to have AMDSMI_STATUS_RETRY error code
         self.assertEqual(retry_test.exception.get_error_code(),
-                         amdsmi.amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_RETRY)
+                         amdsmi.amdsmi_wrapper.AMDSMI_STATUS_RETRY)
 
         # expect timeout error to raise SmiTimeoutException
         with self.assertRaises(amdsmi.AmdSmiTimeoutException) as timeout_test:
             amdsmi.amdsmi_interface._check_res(
-                (lambda: amdsmi.amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_TIMEOUT)())
+                (lambda: amdsmi.amdsmi_wrapper.AMDSMI_STATUS_TIMEOUT)())
         # except timeout error to have AMDSMI_STATUS_RETRY error code
         self.assertEqual(timeout_test.exception.get_error_code(),
-                         amdsmi.amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_TIMEOUT)
+                         amdsmi.amdsmi_wrapper.AMDSMI_STATUS_TIMEOUT)
 
         # expect invalid args error to raise AmdSmiLibraryException
         with self.assertRaises(amdsmi.AmdSmiLibraryException) as inval_test:
             amdsmi.amdsmi_interface._check_res(
-                (lambda: amdsmi.amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_INVAL)())
+                (lambda: amdsmi.amdsmi_wrapper.AMDSMI_STATUS_INVAL)())
         # expect invalid args error to have AMDSMI_STATUS_INVAL error code
         self.assertEqual(inval_test.exception.get_error_code(),
-                         amdsmi.amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_INVAL)
+                         amdsmi.amdsmi_wrapper.AMDSMI_STATUS_INVAL)
 
 class TestAmdSmiPython(unittest.TestCase):
     def __init__(self, *args, **kwargs):
