@@ -4,6 +4,56 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ***All information listed below is for reference and subject to change.***
 
+## amd_smi_lib for ROCm 7.1.1
+
+### Added
+
+- **Add caching for repeated ASIC information calls**.  
+  - Adding cache to `amdsmi_get_gpu_asic_info` in order to improve performance by avoiding redundant hardware queries.
+  - The cache stores ASIC info for each GPU device with a configurable duration, defaulting to 10 seconds.
+    - Use environment variable `AMDSMI_ASIC_INFO_CACHE_MS` for cache duration configuration for `amdsmi_get_gpu_asic_info` API calls
+
+- **Add support for GPU partition metrics**.  
+  - Provides support for xcp_metrics v1.0 and extends support for v1.1 (dynamic metrics)
+  - Add `amdsmi_get_gpu_partition_metrics_info`, which provides per XCP (partition) metrics.
+
+- **Added support for displaying newer VRAM memory types in `amd-smi static --vram`**.
+  - The `amdsmi_get_gpu_vram_info()` API now supports detecting DDR5, LPDDR4, LPDDR5, and HBM3E memory types.
+
+### Changed
+
+- **Updated `amd-smi static --numa` socket affinity data structure**.  
+  - Updated to display CPU affinity information in both hexadecimal bitmask format and expanded CPU core ranges, replaced the previous simplified socket enumeration approach.
+
+### Removed
+
+- N/A
+
+### Optimized
+
+- N/A
+
+### Resolved Issues
+
+- **Fixed incorrect topology weight calculations**.  
+  - Out of bound writes caused corruption in the weights field
+
+- **Fixed `amd-smi event` not respecting linux timeout command**.  
+
+- **Fixed an issue where `amdsmi_get_power_info` returned `AMDSMI_STATUS_API_FAILED`**.  
+  - VMs were incorrectly reporting `AMDSMI_STATUS_API_FAILED` when unable to get the power cap within the `amdsmi_get_power_info`
+  - The API now returns `N/A` or `UINT_MAX` for values that cannot be retrieved, instead of failing entirely
+
+- **Fixed output for `amd-smi xgmi -l --json`**.  
+
+### Upcoming Changes
+
+- N/A
+
+### Known Issues
+
+- N/A
+
 ## amd_smi_lib for ROCm 7.1.0
 
 ### Added
