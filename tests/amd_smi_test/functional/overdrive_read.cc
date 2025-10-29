@@ -28,6 +28,7 @@
 #include <gtest/gtest.h>
 #include "amd_smi/amdsmi.h"
 #include "overdrive_read.h"
+#include "../test_common.h"
 
 TestOverdriveRead::TestOverdriveRead() : TestBase() {
   set_title("AMDSMI Overdrive Read Test");
@@ -75,6 +76,7 @@ void TestOverdriveRead::Run(void) {
 
     std::cout << "### amdsmi_get_gpu_overdrive_level()" << std::endl;
     err = amdsmi_get_gpu_overdrive_level(processor_handles_[i], &val_ui32);
+    DISPLAY_SUPPORT_STATUS(err);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       IF_VERB(STANDARD) {
         std::cout << "\t** Not supported on this machine" << std::endl;
@@ -87,6 +89,7 @@ void TestOverdriveRead::Run(void) {
     // Verify api support checking functionality is working
     std::cout << "### amdsmi_get_gpu_overdrive_level()" << std::endl;
     err = amdsmi_get_gpu_overdrive_level(processor_handles_[i], nullptr);
+    DISPLAY_SUPPORT_STATUS(err);
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
     }
   }

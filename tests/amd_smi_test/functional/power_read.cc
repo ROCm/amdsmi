@@ -29,6 +29,7 @@
 
 #include "amd_smi/amdsmi.h"
 #include "power_read.h"
+#include "../test_common.h"
 
 TestPowerRead::TestPowerRead() : TestBase() {
   set_title("AMDSMI Power Read Test");
@@ -77,6 +78,7 @@ void TestPowerRead::Run(void) {
       amdsmi_power_cap_info_t info;
       std::cout << "### amdsmi_get_power_cap_info()" << std::endl;
       err = amdsmi_get_power_cap_info(processor_handles_[i], 0, &info);
+      DISPLAY_SUPPORT_STATUS(err);
       if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
         std::cout << "\t**Power Cap not supported on this device." << std::endl;
         ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);

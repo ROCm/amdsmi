@@ -27,6 +27,7 @@
 #include <gtest/gtest.h>
 #include "amd_smi/amdsmi.h"
 #include "fan_read_write.h"
+#include "../test_common.h"
 
 TestFanReadWrite::TestFanReadWrite() : TestBase() {
   set_title("AMDSMI Fan Read/Write Test");
@@ -77,6 +78,7 @@ void TestFanReadWrite::Run(void) {
 
     std::cout << "### amdsmi_get_gpu_fan_speed()" << std::endl;
     ret = amdsmi_get_gpu_fan_speed(processor_handles_[dv_ind], 0, &orig_speed);
+    DISPLAY_SUPPORT_STATUS(ret);
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
        IF_VERB(STANDARD) {
           std::cout << "\t**" <<  ": " <<
@@ -98,6 +100,7 @@ void TestFanReadWrite::Run(void) {
 
     std::cout << "### amdsmi_get_gpu_fan_speed_max()" << std::endl;
     ret = amdsmi_get_gpu_fan_speed_max(processor_handles_[dv_ind], 0, &max_speed);
+    DISPLAY_SUPPORT_STATUS(ret);
     CHK_ERR_ASRT(ret)
 
     new_speed = static_cast<int64_t>(1.1F * static_cast<float>(orig_speed));
@@ -115,6 +118,7 @@ void TestFanReadWrite::Run(void) {
 
     std::cout << "### amdsmi_set_gpu_fan_speed()" << std::endl;
     ret = amdsmi_set_gpu_fan_speed(processor_handles_[dv_ind], 0, new_speed);
+    DISPLAY_SUPPORT_STATUS(ret);
 
     // When you can read fan speed, it is not always can set fan speed.
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
@@ -127,6 +131,7 @@ void TestFanReadWrite::Run(void) {
 
     std::cout << "### amdsmi_get_gpu_fan_speed()" << std::endl;
     ret = amdsmi_get_gpu_fan_speed(processor_handles_[dv_ind], 0, &cur_speed);
+    DISPLAY_SUPPORT_STATUS(ret);
     CHK_ERR_ASRT(ret)
 
     IF_VERB(STANDARD) {
@@ -151,12 +156,14 @@ void TestFanReadWrite::Run(void) {
 
     std::cout << "### amdsmi_reset_gpu_fan()" << std::endl;
     ret = amdsmi_reset_gpu_fan(processor_handles_[dv_ind], 0);
+    DISPLAY_SUPPORT_STATUS(ret);
     CHK_ERR_ASRT(ret)
 
     sleep(3);
 
     std::cout << "### amdsmi_get_gpu_fan_speed()" << std::endl;
     ret = amdsmi_get_gpu_fan_speed(processor_handles_[dv_ind], 0, &cur_speed);
+    DISPLAY_SUPPORT_STATUS(ret);
     CHK_ERR_ASRT(ret)
 
     IF_VERB(STANDARD) {

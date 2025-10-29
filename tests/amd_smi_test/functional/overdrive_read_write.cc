@@ -27,6 +27,7 @@
 #include <gtest/gtest.h>
 #include "amd_smi/amdsmi.h"
 #include "overdrive_read_write.h"
+#include "../test_common.h"
 
 TestOverdriveReadWrite::TestOverdriveReadWrite() : TestBase() {
   set_title("AMDSMI Overdrive Read/Write Test");
@@ -76,7 +77,8 @@ void TestOverdriveReadWrite::Run(void) {
       std::cout << "Set Overdrive level to 0%..." << std::endl;
     }
     std::cout << "### amdsmi_set_gpu_overdrive_level()" << std::endl;
-    ret =  amdsmi_set_gpu_overdrive_level(processor_handles_[dv_ind], 0);
+    ret = amdsmi_set_gpu_overdrive_level(processor_handles_[dv_ind], 0);
+    DISPLAY_SUPPORT_STATUS(ret);
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
       IF_VERB(STANDARD) {
         std::cout << "\t** Not supported on this machine" << std::endl;
@@ -89,19 +91,23 @@ void TestOverdriveReadWrite::Run(void) {
     }
     std::cout << "### amdsmi_set_gpu_overdrive_level()" << std::endl;
     ret =  amdsmi_set_gpu_overdrive_level(processor_handles_[dv_ind], 10);
+    DISPLAY_SUPPORT_STATUS(ret);
     CHK_ERR_ASRT(ret)
     std::cout << "### amdsmi_get_gpu_overdrive_level()" << std::endl;
     ret = amdsmi_get_gpu_overdrive_level(processor_handles_[dv_ind], &val);
+    DISPLAY_SUPPORT_STATUS(ret);
     CHK_ERR_ASRT(ret)
     IF_VERB(STANDARD) {
       std::cout << "\t**New OverDrive Level:" << val << std::endl;
       std::cout << "Reset Overdrive level to 0%..." << std::endl;
     }
     std::cout << "### amdsmi_set_gpu_overdrive_level()" << std::endl;
-    ret =  amdsmi_set_gpu_overdrive_level(processor_handles_[dv_ind], 0);
+    ret = amdsmi_set_gpu_overdrive_level(processor_handles_[dv_ind], 0);
+    DISPLAY_SUPPORT_STATUS(ret);
     CHK_ERR_ASRT(ret)
     std::cout << "### amdsmi_get_gpu_overdrive_level()" << std::endl;
     ret = amdsmi_get_gpu_overdrive_level(processor_handles_[dv_ind], &val);
+    DISPLAY_SUPPORT_STATUS(ret);
     CHK_ERR_ASRT(ret)
     IF_VERB(STANDARD) {
       std::cout << "\t**New OverDrive Level:" << val << std::endl;

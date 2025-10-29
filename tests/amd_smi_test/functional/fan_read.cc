@@ -27,6 +27,7 @@
 #include <gtest/gtest.h>
 #include "amd_smi/amdsmi.h"
 #include "fan_read.h"
+#include "../test_common.h"
 
 TestFanRead::TestFanRead() : TestBase() {
   set_title("AMDSMI Fan Read Test");
@@ -78,6 +79,7 @@ void TestFanRead::Run(void) {
       }
       std::cout << "### amdsmi_get_gpu_fan_speed()" << std::endl;
       err = amdsmi_get_gpu_fan_speed(processor_handles_[i], 0, &val_i64);
+      DISPLAY_SUPPORT_STATUS(err);
       if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
           IF_VERB(STANDARD) {
             std::cout << "\t**" <<  ": " <<
@@ -86,6 +88,7 @@ void TestFanRead::Run(void) {
           // Verify api support checking functionality is working
           std::cout << "### amdsmi_get_gpu_fan_speed()" << std::endl;
           err = amdsmi_get_gpu_fan_speed(processor_handles_[i], 0, nullptr);
+          DISPLAY_SUPPORT_STATUS(err);
           ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
           return;
       } else {
@@ -96,10 +99,12 @@ void TestFanRead::Run(void) {
       // Verify api support checking functionality is working
       std::cout << "### amdsmi_get_gpu_fan_speed()" << std::endl;
       err = amdsmi_get_gpu_fan_speed(processor_handles_[i], 0, nullptr);
+      DISPLAY_SUPPORT_STATUS(err);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
       std::cout << "### amdsmi_get_gpu_fan_speed_max()" << std::endl;
       err = amdsmi_get_gpu_fan_speed_max(processor_handles_[i], 0, &val_ui64);
+      DISPLAY_SUPPORT_STATUS(err);
       CHK_ERR_ASRT(err)
       IF_VERB(STANDARD) {
         std::cout << static_cast<float>(val_i64)/static_cast<float>(val_ui64)*100;
@@ -108,6 +113,7 @@ void TestFanRead::Run(void) {
       // Verify api support checking functionality is working
       std::cout << "### amdsmi_get_gpu_fan_speed_max()" << std::endl;
       err = amdsmi_get_gpu_fan_speed_max(processor_handles_[i], 0, nullptr);
+      DISPLAY_SUPPORT_STATUS(err);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
       IF_VERB(STANDARD) {
@@ -115,6 +121,7 @@ void TestFanRead::Run(void) {
       }
       std::cout << "### amdsmi_get_gpu_fan_rpms()" << std::endl;
       err = amdsmi_get_gpu_fan_rpms(processor_handles_[i], 0, &val_i64);
+      DISPLAY_SUPPORT_STATUS(err);
       CHK_ERR_ASRT(err)
       IF_VERB(STANDARD) {
         std::cout << val_i64 << std::endl;
@@ -123,6 +130,7 @@ void TestFanRead::Run(void) {
       // Verify api support checking functionality is working
       std::cout << "### amdsmi_get_gpu_fan_rpms()" << std::endl;
       err = amdsmi_get_gpu_fan_rpms(processor_handles_[i], 0, nullptr);
+      DISPLAY_SUPPORT_STATUS(err);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
     }
   }

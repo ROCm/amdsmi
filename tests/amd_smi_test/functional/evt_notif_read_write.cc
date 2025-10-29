@@ -28,6 +28,7 @@
 #include "amd_smi/amdsmi.h"
 #include "evt_notif_read_write.h"
 #include "../test_utils.h"
+#include "../test_common.h"
 
 TestEvtNotifReadWrite::TestEvtNotifReadWrite() : TestBase() {
   set_title("AMDSMI Event Notification Read/Write Test");
@@ -85,6 +86,7 @@ void TestEvtNotifReadWrite::Run(void) {
   for (dv_ind = 0; dv_ind < num_monitor_devs(); ++dv_ind) {
     std::cout << "### amdsmi_init_gpu_event_notification()" << std::endl;
     ret = amdsmi_init_gpu_event_notification(processor_handles_[dv_ind]);
+    DISPLAY_SUPPORT_STATUS(ret);
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
       IF_VERB(STANDARD) {
         std::cout <<
@@ -96,6 +98,7 @@ void TestEvtNotifReadWrite::Run(void) {
     ASSERT_EQ(ret, AMDSMI_STATUS_SUCCESS);
     std::cout << "### amdsmi_set_gpu_event_notification_mask()" << std::endl;
     ret =  amdsmi_set_gpu_event_notification_mask(processor_handles_[dv_ind], mask);
+    DISPLAY_SUPPORT_STATUS(ret);
     ASSERT_EQ(ret, AMDSMI_STATUS_SUCCESS);
   }
 
@@ -105,6 +108,7 @@ void TestEvtNotifReadWrite::Run(void) {
 
   std::cout << "### amdsmi_get_gpu_event_notification()" << std::endl;
   ret =  amdsmi_get_gpu_event_notification(10000, &num_elem, data);
+  DISPLAY_SUPPORT_STATUS(ret);
   if (ret == AMDSMI_STATUS_SUCCESS || ret == AMDSMI_STATUS_INSUFFICIENT_SIZE) {
     EXPECT_LE(num_elem, 10) <<
             "Expected the number of elements found to be <= buffer size (10)";
@@ -140,6 +144,7 @@ void TestEvtNotifReadWrite::Run(void) {
   if (read_again) {
     std::cout << "### amdsmi_get_gpu_event_notification()" << std::endl;
     ret =  amdsmi_get_gpu_event_notification(10000, &num_elem, data);
+    DISPLAY_SUPPORT_STATUS(ret);
     if (ret == AMDSMI_STATUS_SUCCESS || ret == AMDSMI_STATUS_INSUFFICIENT_SIZE) {
       EXPECT_LE(num_elem, 10) <<
               "Expected the number of elements found to be <= buffer size (10)";
@@ -171,6 +176,7 @@ void TestEvtNotifReadWrite::Run(void) {
   for (uint32_t dv_ind = 0; dv_ind < num_monitor_devs(); ++dv_ind) {
     std::cout << "### amdsmi_stop_gpu_event_notification()" << std::endl;
     ret = amdsmi_stop_gpu_event_notification(processor_handles_[dv_ind]);
+    DISPLAY_SUPPORT_STATUS(ret);
     ASSERT_EQ(ret, AMDSMI_STATUS_SUCCESS);
   }
 }

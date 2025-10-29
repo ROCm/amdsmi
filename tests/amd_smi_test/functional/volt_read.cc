@@ -81,6 +81,7 @@ void TestVoltRead::Run(void) {
                                                         std::string label) {
       std::cout << "### amdsmi_get_gpu_volt_metric()" << std::endl;
       err =  amdsmi_get_gpu_volt_metric(processor_handles_[i], type, met, &val_i64);
+      DISPLAY_SUPPORT_STATUS(err);
 
       if (err != AMDSMI_STATUS_SUCCESS) {
         if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
@@ -91,6 +92,7 @@ void TestVoltRead::Run(void) {
             // Verify api support checking functionality is working
             std::cout << "### amdsmi_get_gpu_volt_metric()" << std::endl;
             err =  amdsmi_get_gpu_volt_metric(processor_handles_[i], type, met, nullptr);
+            DISPLAY_SUPPORT_STATUS(err);
             ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
             return;
           }
@@ -101,6 +103,7 @@ void TestVoltRead::Run(void) {
       // Verify api support checking functionality is working
       std::cout << "### amdsmi_get_gpu_volt_metric()" << std::endl;
       err =  amdsmi_get_gpu_volt_metric(processor_handles_[i], type, met, nullptr);
+      DISPLAY_SUPPORT_STATUS(err);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
       IF_VERB(STANDARD) {

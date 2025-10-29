@@ -78,6 +78,7 @@ void TestPerfDeterminism::Run(void) {
     PrintDeviceHeader(processor_handles_[i]);
     std::cout << "### amdsmi_get_gpu_od_volt_info()" << std::endl;
     err =  amdsmi_get_gpu_od_volt_info(processor_handles_[i], &odv);
+    DISPLAY_SUPPORT_STATUS(err);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       IF_VERB(STANDARD) {
         std::cout << "\t** Not supported on this machine\n";
@@ -95,6 +96,7 @@ void TestPerfDeterminism::Run(void) {
 
     std::cout << "### amdsmi_set_gpu_perf_determinism_mode()" << std::endl;
     err = amdsmi_set_gpu_perf_determinism_mode(processor_handles_[i], clkvalue);
+    DISPLAY_SUPPORT_STATUS(err);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       IF_VERB(STANDARD) {
         std::cout << "\t**Not supported on this machine" << std::endl;
@@ -103,6 +105,7 @@ void TestPerfDeterminism::Run(void) {
     } else {
       std::cout << "### amdsmi_get_gpu_perf_level()" << std::endl;
       ret = amdsmi_get_gpu_perf_level(processor_handles_[i], &pfl);
+      DISPLAY_SUPPORT_STATUS(ret);
       CHK_ERR_ASRT(ret)
       IF_VERB(STANDARD) {
           std::cout << "\t**New Perf Level:" <<  GetPerfLevelStr(pfl) <<
@@ -113,9 +116,11 @@ void TestPerfDeterminism::Run(void) {
       std::cout << "\t**Resetting performance determinism" << std::endl;
       std::cout << "### amdsmi_set_gpu_perf_level()" << std::endl;
       err =  amdsmi_set_gpu_perf_level(processor_handles_[i], AMDSMI_DEV_PERF_LEVEL_AUTO);;
+      DISPLAY_SUPPORT_STATUS(err);
       CHK_ERR_ASRT(err)
       std::cout << "### amdsmi_get_gpu_perf_level()" << std::endl;
       ret = amdsmi_get_gpu_perf_level(processor_handles_[i], &pfl);
+      DISPLAY_SUPPORT_STATUS(err);
       CHK_ERR_ASRT(ret)
       IF_VERB(STANDARD) {
           std::cout << "\t**New Perf Level:" <<  GetPerfLevelStr(pfl) <<

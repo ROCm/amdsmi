@@ -28,6 +28,7 @@
 #include <gtest/gtest.h>
 #include "amd_smi/amdsmi.h"
 #include "metrics_counter_read.h"
+#include "../test_common.h"
 
 
 TestMetricsCounterRead::TestMetricsCounterRead() : TestBase() {
@@ -82,6 +83,7 @@ void TestMetricsCounterRead::Run(void) {
     float counter_resolution;
     std::cout << "### amdsmi_get_energy_count()" << std::endl;
     err = amdsmi_get_energy_count(processor_handles_[i], &energy_accumulator, &counter_resolution, &timestamp);
+    DISPLAY_SUPPORT_STATUS(err);
     if (err != AMDSMI_STATUS_SUCCESS) {
       if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
         IF_VERB(STANDARD) {
@@ -105,6 +107,7 @@ void TestMetricsCounterRead::Run(void) {
     // Verify api support checking functionality is working
     std::cout << "### amdsmi_get_energy_count()" << std::endl;
     err = amdsmi_get_energy_count(processor_handles_[i], nullptr, nullptr, nullptr);
+    DISPLAY_SUPPORT_STATUS(err);
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
     // Coarse Grain counters
@@ -117,6 +120,7 @@ void TestMetricsCounterRead::Run(void) {
     std::cout << "### amdsmi_get_utilization_count()" << std::endl;
     err = amdsmi_get_utilization_count(processor_handles_[i], utilization_counters,
                     kUTILIZATION_COUNTERS, &timestamp);
+    DISPLAY_SUPPORT_STATUS(err);
     if (err != AMDSMI_STATUS_SUCCESS) {
       if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
         IF_VERB(STANDARD) {
@@ -163,6 +167,7 @@ void TestMetricsCounterRead::Run(void) {
     std::cout << "### amdsmi_get_utilization_count()" << std::endl;
     err = amdsmi_get_utilization_count(processor_handles_[i], utilization_counters,
                     kUTILIZATION_COUNTERS, &timestamp);
+    DISPLAY_SUPPORT_STATUS(err);
     if (err != AMDSMI_STATUS_SUCCESS) {
       if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
         IF_VERB(STANDARD) {
@@ -206,6 +211,7 @@ void TestMetricsCounterRead::Run(void) {
     std::cout << "### amdsmi_get_utilization_count()" << std::endl;
     err = amdsmi_get_utilization_count(processor_handles_[i], nullptr,
                     1 , nullptr);
+    DISPLAY_SUPPORT_STATUS(err);
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
   }  // end for
 }

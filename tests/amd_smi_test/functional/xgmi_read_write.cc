@@ -27,6 +27,7 @@
 #include <gtest/gtest.h>
 #include "amd_smi/amdsmi.h"
 #include "xgmi_read_write.h"
+#include "../test_common.h"
 
 TestXGMIReadWrite::TestXGMIReadWrite() : TestBase() {
   set_title("AMDSMI XGMI Read/Write Test");
@@ -79,6 +80,7 @@ void TestXGMIReadWrite::Run(void) {
     amdsmi_xgmi_info_t info;
     std::cout << "### amdsmi_get_xgmi_info()" << std::endl;
     err = amdsmi_get_xgmi_info(device, &info);
+    DISPLAY_SUPPORT_STATUS(err);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
         std::cout <<
             "\t**amdsmi_dev_xgmi_hive_id_get() is not supported"
@@ -94,6 +96,7 @@ void TestXGMIReadWrite::Run(void) {
 
     std::cout << "### amdsmi_gpu_xgmi_error_status()" << std::endl;
     err = amdsmi_gpu_xgmi_error_status(device, &err_stat);
+    DISPLAY_SUPPORT_STATUS(err);
 
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       IF_VERB(STANDARD) {
@@ -103,6 +106,7 @@ void TestXGMIReadWrite::Run(void) {
       // Verify api support checking functionality is working
       std::cout << "### amdsmi_gpu_xgmi_error_status()" << std::endl;
       err = amdsmi_gpu_xgmi_error_status(device, nullptr);
+      DISPLAY_SUPPORT_STATUS(err);
       ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
 
       continue;
@@ -115,12 +119,14 @@ void TestXGMIReadWrite::Run(void) {
     // Verify api support checking functionality is working
     std::cout << "### amdsmi_gpu_xgmi_error_status()" << std::endl;
     err = amdsmi_gpu_xgmi_error_status(device, nullptr);
+    DISPLAY_SUPPORT_STATUS(err);
     ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
     // TODO(cfree) We need to find a way to generate xgmi errors so this
     // test won't be meaningless
     std::cout << "### amdsmi_reset_gpu_xgmi_error()" << std::endl;
     err = amdsmi_reset_gpu_xgmi_error(device);
+    DISPLAY_SUPPORT_STATUS(err);
     CHK_ERR_ASRT(err)
     IF_VERB(STANDARD) {
       std::cout << "\t**Successfully reset XGMI Error Status: " << std::endl;

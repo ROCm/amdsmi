@@ -101,12 +101,14 @@ void TestFrequenciesRead::Run(void) {
       auto freq_output = [&](amdsmi_clk_type_t t, const char *name) {
         std::cout << "### amdsmi_get_clk_freq()" << std::endl;
         err =  amdsmi_get_clk_freq(processor_handles_[i], t, &f);
+        DISPLAY_SUPPORT_STATUS(err);
         if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
           std::cout << "\t**Get " << name <<
                                ": Not supported on this machine" << std::endl;
           // Verify api support checking functionality is working
           std::cout << "### amdsmi_get_clk_freq()" << std::endl;
           err =  amdsmi_get_clk_freq(processor_handles_[i], t, nullptr);
+          DISPLAY_SUPPORT_STATUS(err);
           ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
           return;
         }
@@ -132,6 +134,7 @@ void TestFrequenciesRead::Run(void) {
           // Verify api support checking functionality is working
           std::cout << "### amdsmi_get_clk_freq()" << std::endl;
           err =  amdsmi_get_clk_freq(processor_handles_[i], t, nullptr);
+          DISPLAY_SUPPORT_STATUS(err);
           ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
         }
       };
@@ -146,12 +149,14 @@ void TestFrequenciesRead::Run(void) {
 
       std::cout << "### amdsmi_get_gpu_pci_bandwidth()" << std::endl;
       err = amdsmi_get_gpu_pci_bandwidth(processor_handles_[i], &b);
+      DISPLAY_SUPPORT_STATUS(err);
       if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
         std::cout << "\t**Get PCIE Bandwidth: Not supported on this machine"
                                                               << std::endl;
         // Verify api support checking functionality is working
         std::cout << "### amdsmi_get_gpu_pci_bandwidth()" << std::endl;
         err = amdsmi_get_gpu_pci_bandwidth(processor_handles_[i], nullptr);
+        DISPLAY_SUPPORT_STATUS(err);
         ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
       } else if (err == AMDSMI_STATUS_NOT_YET_IMPLEMENTED) {
           std::cout << "\t**Get PCIE Bandwidth "
@@ -166,13 +171,15 @@ void TestFrequenciesRead::Run(void) {
           // NOTE:  We expect AMDSMI_STATUS_NOT_SUPPORTED, if rsmi_pcie_bandwidth_t* is NULL
           std::cout << "### amdsmi_get_gpu_pci_bandwidth()" << std::endl;
           err = amdsmi_get_gpu_pci_bandwidth(processor_handles_[i], nullptr);
+          DISPLAY_SUPPORT_STATUS(err);
           if (err != amdsmi_status_t::AMDSMI_STATUS_NOT_SUPPORTED) {
               ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
           }
           else {
               auto status_string("");
               std::cout << "### amdsmi_status_code_to_string()" << std::endl;
-              amdsmi_status_code_to_string(err, &status_string);
+              auto ret = amdsmi_status_code_to_string(err, &status_string);
+              DISPLAY_SUPPORT_STATUS(ret);
               std::cout << "\t\t** amdsmi_get_gpu_pci_bandwidth(): " << status_string << "\n";
           }
         }

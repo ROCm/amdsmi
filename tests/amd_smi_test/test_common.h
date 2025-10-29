@@ -61,12 +61,26 @@ void DumpMonitorInfo(const TestBase *test);
   } \
 }
 
+static amdsmi_status_t notSupportedErrorCodes[] = {
+    AMDSMI_STATUS_NOT_SUPPORTED,
+    AMDSMI_STATUS_NOT_YET_IMPLEMENTED,
+    AMDSMI_STATUS_NO_HSMP_MSG_SUP};
+#define DISPLAY_SUPPORT_STATUS(RET) { \
+  auto it = std::find(std::begin(notSupportedErrorCodes),std::end(notSupportedErrorCodes), (RET)); \
+  if (it != std::end(notSupportedErrorCodes)) { \
+    const char *err_str; \
+    amdsmi_status_code_to_string((RET), &err_str); \
+    std::cout << "API RETURNED " << err_str << std::endl; \
+  } \
+}
+
 #define CHK_ERR_RET(RET) { \
   DISPLAY_AMDSMI_ERR(RET) \
   if ((RET) != AMDSMI_STATUS_SUCCESS) { \
     return (RET); \
   } \
 }
+
 #define CHK_AMDSMI_PERM_ERR(RET) { \
     if ((RET) == AMDSMI_STATUS_NO_PERM) { \
       std::cout << "This command requires root access." << std::endl; \

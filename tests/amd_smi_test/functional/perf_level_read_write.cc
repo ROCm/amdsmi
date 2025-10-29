@@ -80,6 +80,7 @@ void TestPerfLevelReadWrite::Run(void) {
 
     std::cout << "### amdsmi_get_gpu_perf_level()" << std::endl;
     ret = amdsmi_get_gpu_perf_level(processor_handles_[dv_ind], &orig_pfl);
+    DISPLAY_SUPPORT_STATUS(ret);
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
       IF_VERB(STANDARD) {
         std::cout << "\t**amdsmi_get_gpu_perf_level(): Not supported on this machine" << std::endl;
@@ -107,6 +108,7 @@ void TestPerfLevelReadWrite::Run(void) {
       std::cout << "### amdsmi_set_gpu_perf_level()" << std::endl;
       ret =  amdsmi_set_gpu_perf_level(processor_handles_[dv_ind],
                                      static_cast<amdsmi_dev_perf_level_t>(pfl_i));
+      DISPLAY_SUPPORT_STATUS(ret);
       if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
           std::cout << "\t**" << GetPerfLevelStr(static_cast<amdsmi_dev_perf_level_t>(pfl_i))
                   << " returned AMDSMI_STATUS_NOT_SUPPORTED"  << std::endl;
@@ -114,6 +116,7 @@ void TestPerfLevelReadWrite::Run(void) {
           CHK_ERR_ASRT(ret)
           std::cout << "### amdsmi_get_gpu_perf_level()" << std::endl;
           ret = amdsmi_get_gpu_perf_level(processor_handles_[dv_ind], &pfl);
+          DISPLAY_SUPPORT_STATUS(ret);
           CHK_ERR_ASRT(ret)
           IF_VERB(STANDARD) {
               std::cout << "\t**New Perf Level:" << GetPerfLevelStr(pfl) <<
@@ -127,6 +130,7 @@ void TestPerfLevelReadWrite::Run(void) {
     }
     std::cout << "### amdsmi_set_gpu_perf_level()" << std::endl;
     ret =  amdsmi_set_gpu_perf_level(processor_handles_[dv_ind], orig_pfl);
+    DISPLAY_SUPPORT_STATUS(ret);
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
       IF_VERB(STANDARD) {
         std::cout << "\t** Not supported on this machine" << std::endl;
@@ -136,6 +140,7 @@ void TestPerfLevelReadWrite::Run(void) {
     CHK_ERR_ASRT(ret)
     std::cout << "### amdsmi_get_gpu_perf_level()" << std::endl;
     ret = amdsmi_get_gpu_perf_level(processor_handles_[dv_ind], &pfl);
+    DISPLAY_SUPPORT_STATUS(ret);
     CHK_ERR_ASRT(ret)
 
     IF_VERB(STANDARD) {

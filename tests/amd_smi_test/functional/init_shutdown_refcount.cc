@@ -30,6 +30,7 @@
 #include "init_shutdown_refcount.h"
 #include <gtest/gtest.h>
 #include "amd_smi/amdsmi.h"
+#include "../test_common.h"
 
 extern int32_t
 rsmi_test_refcount(uint64_t refcnt_type);
@@ -49,6 +50,7 @@ static void* AMDSMIInitFunction(void* args) {
   rand_sleep_mod(100);
   std::cout << "### amdsmi_INIT_AMD_GPUS()" << std::endl;
   status = amdsmi_init(AMDSMI_INIT_AMD_GPUS);
+  DISPLAY_SUPPORT_STATUS(status);
   EXPECT_EQ(AMDSMI_STATUS_SUCCESS, status);
   pthread_exit(nullptr);
   return nullptr;
@@ -61,6 +63,7 @@ static void* AMDSMIShutDownFunction(void* args) {
   rand_sleep_mod(100);
   std::cout << "### amdsmi_shut_down()" << std::endl;
   status = amdsmi_shut_down();
+  DISPLAY_SUPPORT_STATUS(status);
   EXPECT_EQ(AMDSMI_STATUS_SUCCESS, status);
   pthread_exit(nullptr);
   return nullptr;
@@ -73,12 +76,14 @@ static void *AMDSMIInitShutDownFunction(void* args) {
   rand_sleep_mod(100);
   std::cout << "### amdsmi_INIT_AMD_GPUS()" << std::endl;
   status = amdsmi_init(AMDSMI_INIT_AMD_GPUS);
+  DISPLAY_SUPPORT_STATUS(status);
   EXPECT_EQ(AMDSMI_STATUS_SUCCESS, status);
 
   rand_sleep_mod(100);
 
   std::cout << "### amdsmi_shut_down()" << std::endl;
   status = amdsmi_shut_down();
+  DISPLAY_SUPPORT_STATUS(status);
   EXPECT_EQ(AMDSMI_STATUS_SUCCESS, status);
   pthread_exit(nullptr);
   return nullptr;
@@ -156,11 +161,13 @@ void TestConcurrentInit::Run(void) {
   for (int Id = 0; Id < NumOfThreads; ++Id) {
     std::cout << "### amdsmi_shut_down()" << std::endl;
     amdsmi_status_t err = amdsmi_shut_down();
+    DISPLAY_SUPPORT_STATUS(err);
     ASSERT_EQ(AMDSMI_STATUS_SUCCESS, err) << "An amdsmi_init was missed.";
   }
 
   std::cout << "### amdsmi_shut_down()" << std::endl;
   amdsmi_status_t err = amdsmi_shut_down();
+  DISPLAY_SUPPORT_STATUS(err);
   ASSERT_EQ(AMDSMI_STATUS_INIT_ERROR, err) <<
                 "amdsmi_init reference count was too high.";
 
@@ -177,6 +184,7 @@ void TestConcurrentInit::Run(void) {
   for (int Id = 0; Id < NumOfThreads; ++Id) {
     std::cout << "### amdsmi_init()" << std::endl;
     amdsmi_status_t err = amdsmi_init(AMDSMI_INIT_AMD_GPUS);
+    DISPLAY_SUPPORT_STATUS(err);
     ASSERT_EQ(AMDSMI_STATUS_SUCCESS, err);
   }
 

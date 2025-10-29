@@ -105,6 +105,7 @@ void TestMemUtilRead::Run(void) {
         std::cout << "### amdsmi_get_gpu_memory_total()" << std::endl;
         err = amdsmi_get_gpu_memory_total(processor_handles_[i],
                              static_cast<amdsmi_memory_type_t>(mem_type), &total);
+        DISPLAY_SUPPORT_STATUS(err);
         smi_amdgpu_get_status_string(err, false);
         std::string mem_type_str =
           kDevMemoryTypeNameMap.at(static_cast<amdsmi_memory_type_t>(mem_type));
@@ -119,6 +120,7 @@ void TestMemUtilRead::Run(void) {
         std::cout << "### amdsmi_get_gpu_memory_usage()" << std::endl;
         err = amdsmi_get_gpu_memory_usage(processor_handles_[i],
                              static_cast<amdsmi_memory_type_t>(mem_type), &usage);
+        DISPLAY_SUPPORT_STATUS(err);
         input_str =
           "amdsmi_get_gpu_memory_usage(" + mem_type_str + "): "
           + smi_amdgpu_get_status_string(err, false);

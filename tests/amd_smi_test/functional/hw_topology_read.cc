@@ -30,6 +30,7 @@
 #include <gtest/gtest.h>
 #include "amd_smi/amdsmi.h"
 #include "hw_topology_read.h"
+#include "../test_common.h"
 
 typedef struct {
   std::string type;
@@ -93,6 +94,7 @@ void TestHWTopologyRead::Run(void) {
     amdsmi_processor_handle dev_handle = processor_handles_[dv_ind];
     std::cout << "### amdsmi_topo_get_numa_node_number()" << std::endl;
     err = amdsmi_topo_get_numa_node_number(dev_handle, &numa_numbers[dv_ind]);
+    DISPLAY_SUPPORT_STATUS(err);
     if (err != AMDSMI_STATUS_SUCCESS) {
       if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
         IF_VERB(STANDARD) {
@@ -122,6 +124,7 @@ void TestHWTopologyRead::Run(void) {
         err = amdsmi_topo_get_link_type(processor_handles_[dv_ind_src],
                 processor_handles_[dv_ind_dst],
                 &gpu_links[dv_ind_src][dv_ind_dst].hops, &type);
+        DISPLAY_SUPPORT_STATUS(err);
         if (err != AMDSMI_STATUS_SUCCESS) {
           if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
             IF_VERB(STANDARD) {
@@ -154,6 +157,7 @@ void TestHWTopologyRead::Run(void) {
         err = amdsmi_topo_get_p2p_status(processor_handles_[dv_ind_src],
                 processor_handles_[dv_ind_dst],
                 &type, &gpu_links[dv_ind_src][dv_ind_dst].cap);
+        DISPLAY_SUPPORT_STATUS(err);
         if (err != AMDSMI_STATUS_SUCCESS) {
           if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
             IF_VERB(STANDARD) {
@@ -182,6 +186,7 @@ void TestHWTopologyRead::Run(void) {
         err = amdsmi_topo_get_link_weight(processor_handles_[dv_ind_src],
                     processor_handles_[dv_ind_dst],
                                    &gpu_links[dv_ind_src][dv_ind_dst].weight);
+        DISPLAY_SUPPORT_STATUS(err);
         if (err != AMDSMI_STATUS_SUCCESS) {
           if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
             IF_VERB(STANDARD) {
@@ -198,6 +203,7 @@ void TestHWTopologyRead::Run(void) {
         err = amdsmi_is_P2P_accessible(processor_handles_[dv_ind_src],
                     processor_handles_[dv_ind_dst],
                     &gpu_links[dv_ind_src][dv_ind_dst].accessible);
+        DISPLAY_SUPPORT_STATUS(err);
         if (err != AMDSMI_STATUS_SUCCESS) {
           if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
             IF_VERB(STANDARD) {

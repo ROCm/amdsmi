@@ -26,11 +26,14 @@ import os
 import sys
 import unittest
 
-sys.path.append("/opt/rocm/libexec/amdsmi_cli/")
+amdsmi_path = os.environ.get('AMDSMI_PATH', '/opt/rocm/share/amd_smi')
+if not os.path.exists(amdsmi_path):
+    raise FileNotFoundError(f'AMDSMI_PATH "{amdsmi_path}" does not exist. Please set the correct path in your environment.')
+sys.path.append(amdsmi_path)
 try:
     import amdsmi
-except ImportError as exc:
-    raise ImportError("Could not import /opt/rocm/libexec/amdsmi_cli/amdsmi_cli.py") from exc
+except ImportError:
+    raise ImportError(f'Could not import the "amdsmi" module from "{amdsmi_path}"')
 
 
 class Common(unittest.TestCase):
@@ -430,7 +433,7 @@ class Common(unittest.TestCase):
                 error_code_name = self.error_map[error_code]
         return (error_code, error_code_name)
 
-    def check_ret(self, msg, exc, expected_code=None, printit=True):
+    def check_ret(self, msg, exc, expected_code=None):
         if hasattr(exc, 'get_error_code'):
             error_code, error_code_name = self.get_error_code(exc)
         else:
@@ -450,18 +453,18 @@ class Common(unittest.TestCase):
             return True
 
         # Check for single passing condition
+        status_msg = ''
+        status_ret = False
         if any(error_code in value for value in self.not_supported_error_codes):
-            if self.verbose == 2 and printit:
-                print(f'{msg}\nTest SKIPPED with result {error_code_name}', flush=True)
+            status_msg = f'API RETURNED {error_code_name}'
         elif error_code_name == expected_code:
-            if self.verbose == 2 and printit:
-                print(f'{msg}\nTest PASSED with expected result {expected_code}', flush=True)
+            status_msg = f'Test PASSED with expected result {expected_code}'
         elif error_code_name != self.PASS and expected_code == self.ANY_FAIL:
-            if self.verbose == 2 and printit:
-                print(f'{msg}\nTest PASSED with expected result {expected_code} and received {error_code_name}', flush=True)
+            status_msg = f'Test PASSED with expected result {expected_code} and received {error_code_name}'
         else:
-            if self.verbose == 2 and printit:
-                print(f'{msg}\nTest FAILED with expected result {expected_code} but received {error_code_name}', flush=True)
-            return True
-        return False
+            status_msg = f'Test FAILED with expected result {expected_code} but received {error_code_name}'
+            status_ret = True
+        if self.verbose == 2:
+            print(f'{msg}\n{status_msg}', flush=True)
+        return status_ret
 

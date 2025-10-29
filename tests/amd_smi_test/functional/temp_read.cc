@@ -29,6 +29,7 @@
 #include <gtest/gtest.h>
 #include "amd_smi/amdsmi.h"
 #include "temp_read.h"
+#include "../test_common.h"
 
 
 static const std::map<uint32_t, std::string> kTempSensorNameMap = {
@@ -140,6 +141,7 @@ void TestTempRead::Run(void) {
                                                           std::string label) {
         std::cout << "### amdsmi_get_temp_metric()" << std::endl;
         err =  amdsmi_get_temp_metric(processor_handles_[i], static_cast<amdsmi_temperature_type_t>(type), met, &val_i64);
+        DISPLAY_SUPPORT_STATUS(err);
 
         if (err != AMDSMI_STATUS_SUCCESS) {
           if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
@@ -151,6 +153,7 @@ void TestTempRead::Run(void) {
             // Verify api support checking functionality is working
             std::cout << "### amdsmi_get_temp_metric()" << std::endl;
             err =  amdsmi_get_temp_metric(processor_handles_[i],  static_cast<amdsmi_temperature_type_t>(type), met, nullptr);
+            DISPLAY_SUPPORT_STATUS(err);
             ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
             return;
           } else {
@@ -160,6 +163,7 @@ void TestTempRead::Run(void) {
         // Verify api support checking functionality is working
         std::cout << "### amdsmi_get_temp_metric()" << std::endl;
         err =  amdsmi_get_temp_metric(processor_handles_[i],  static_cast<amdsmi_temperature_type_t>(type), met, nullptr);
+        DISPLAY_SUPPORT_STATUS(err);
         ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
 
         IF_VERB(STANDARD) {

@@ -28,6 +28,7 @@
 #include <gtest/gtest.h>
 #include "amd_smi/amdsmi.h"
 #include "mem_page_info_read.h"
+#include "../test_common.h"
 
 TestMemPageInfoRead::TestMemPageInfoRead() : TestBase() {
   set_title("AMDSMI Memory Page Info Test");
@@ -75,6 +76,7 @@ void TestMemPageInfoRead::Run(void) {
 
     std::cout << "### amdsmi_get_gpu_memory_reserved_pages()" << std::endl;
     err = amdsmi_get_gpu_memory_reserved_pages(processor_handles_[i], &num_pages, nullptr);
+    DISPLAY_SUPPORT_STATUS(err);
 
     if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
       std::cout <<
@@ -84,6 +86,7 @@ void TestMemPageInfoRead::Run(void) {
       // Verify api support checking functionality is working
       std::cout << "### amdsmi_get_gpu_memory_reserved_pages()" << std::endl;
       err = amdsmi_get_gpu_memory_reserved_pages(processor_handles_[i], nullptr, nullptr);
+      DISPLAY_SUPPORT_STATUS(err);
       ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
 
       continue;
@@ -96,6 +99,7 @@ void TestMemPageInfoRead::Run(void) {
       // Verify api support checking functionality is working
       std::cout << "### amdsmi_get_gpu_memory_reserved_pages()" << std::endl;
       err = amdsmi_get_gpu_memory_reserved_pages(processor_handles_[i], nullptr, nullptr);
+      DISPLAY_SUPPORT_STATUS(err);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
     }
 
@@ -106,6 +110,7 @@ void TestMemPageInfoRead::Run(void) {
 
       std::cout << "### amdsmi_get_gpu_memory_reserved_pages()" << std::endl;
       err = amdsmi_get_gpu_memory_reserved_pages(processor_handles_[i], &num_pages, records);
+      DISPLAY_SUPPORT_STATUS(err);
       if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
         std::cout << "\t**Getting Memory Page Retirement Status not "
                                      "supported for this device" << std::endl;

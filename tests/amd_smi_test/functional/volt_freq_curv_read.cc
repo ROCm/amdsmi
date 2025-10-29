@@ -28,6 +28,7 @@
 #include <gtest/gtest.h>
 #include "amd_smi/amdsmi.h"
 #include "volt_freq_curv_read.h"
+#include "../test_common.h"
 
 TestVoltCurvRead::TestVoltCurvRead() : TestBase() {
   set_title("AMDSMI Voltage-Frequency Curve Read Test");
@@ -133,7 +134,8 @@ void TestVoltCurvRead::Run(void) {
     PrintDeviceHeader(processor_handles_[i]);
 
     std::cout << "### amdsmi_get_gpu_od_volt_info()" << std::endl;
-    err =  amdsmi_get_gpu_od_volt_info(processor_handles_[i], &odv);
+    err = amdsmi_get_gpu_od_volt_info(processor_handles_[i], &odv);
+    DISPLAY_SUPPORT_STATUS(err);
     if (err == AMDSMI_STATUS_NOT_SUPPORTED
           || err == AMDSMI_STATUS_NOT_YET_IMPLEMENTED) {
       //TODO add perf_level tests
@@ -145,19 +147,20 @@ void TestVoltCurvRead::Run(void) {
       // Verify api support checking functionality is working
       if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
         std::cout << "### amdsmi_get_gpu_od_volt_info()" << std::endl;
-        err =  amdsmi_get_gpu_od_volt_info(processor_handles_[i], nullptr);
+        err = amdsmi_get_gpu_od_volt_info(processor_handles_[i], nullptr);
+        DISPLAY_SUPPORT_STATUS(err);
         ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
       }
     } else {
       // Verify api support checking functionality is working
       std::cout << "### amdsmi_get_gpu_od_volt_info()" << std::endl;
-      err =  amdsmi_get_gpu_od_volt_info(processor_handles_[i], nullptr);
+      err = amdsmi_get_gpu_od_volt_info(processor_handles_[i], nullptr);
+      DISPLAY_SUPPORT_STATUS(err);
       ASSERT_EQ(err, AMDSMI_STATUS_INVAL);
     }
 
     if (err == AMDSMI_STATUS_SUCCESS) {
       std::cout << "\t**Frequency-voltage curve data:" << std::endl;
-      std::cout << "### amdsmi_mdsmi_od_volt_freq_data_t()" << std::endl;
       print_amdsmi_od_volt_freq_data_t(&odv);
 
       amdsmi_freq_volt_region_t *regions{};
@@ -169,6 +172,7 @@ void TestVoltCurvRead::Run(void) {
       std::cout << "### amdsmi_get_gpu_od_volt_curve_regions()" << std::endl;
       err =  amdsmi_get_gpu_od_volt_curve_regions(processor_handles_[i],
                                                   &num_regions, regions);
+      DISPLAY_SUPPORT_STATUS(err);
 
       IF_VERB(STANDARD) {
         std::cout << "\t**amdsmi_get_gpu_od_volt_curve_regions("

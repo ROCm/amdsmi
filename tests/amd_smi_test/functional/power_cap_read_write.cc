@@ -82,7 +82,8 @@ void TestPowerCapReadWrite::SetCheckPowerCap(std::string msg, uint32_t dv_ind, u
     }
     start = clock();
     std::cout << "### amdsmi_set_power_cap()" << std::endl;
-    ret =  amdsmi_set_power_cap(processor_handles_[dv_ind], 0, new_cap);
+    ret = amdsmi_set_power_cap(processor_handles_[dv_ind], 0, new_cap);
+    DISPLAY_SUPPORT_STATUS(ret);
     end = clock();
     cpu_time_used = (static_cast<double>(end - start)) * 1000000UL / CLOCKS_PER_SEC;
 
@@ -101,6 +102,7 @@ void TestPowerCapReadWrite::SetCheckPowerCap(std::string msg, uint32_t dv_ind, u
 
     std::cout << "### amdsmi_get_power_cap_info()" << std::endl;
     ret = amdsmi_get_power_cap_info(processor_handles_[dv_ind], 0, &info);
+    DISPLAY_SUPPORT_STATUS(ret);
     CHK_ERR_ASRT(ret)
 
     curr_cap = info.power_cap;
@@ -139,10 +141,12 @@ void TestPowerCapReadWrite::Run(void) {
     // Verify api support checking functionality is working
     std::cout << "### amdsmi_get_power_cap_info()" << std::endl;
     ret = amdsmi_get_power_cap_info(processor_handles_[dv_ind], 0, nullptr);
+    DISPLAY_SUPPORT_STATUS(ret);
     ASSERT_EQ(ret, AMDSMI_STATUS_INVAL);
 
     std::cout << "### amdsmi_get_power_cap_info()" << std::endl;
     ret = amdsmi_get_power_cap_info(processor_handles_[dv_ind], 0, &info);
+    DISPLAY_SUPPORT_STATUS(ret);
     if (ret == AMDSMI_STATUS_NOT_SUPPORTED) {
       std::cout << "\t**amdsmi_get_power_cap_info(): Not supported on this machine" << std::endl;
       ASSERT_EQ(ret, AMDSMI_STATUS_NOT_SUPPORTED);
@@ -262,7 +266,8 @@ void TestPowerCapReadWrite::Run(void) {
                 << default_cap << "..." << std::endl;
     }
     std::cout << "### amdsmi_set_power_cap()" << std::endl;
-    ret =  amdsmi_set_power_cap(processor_handles_[dv_ind], 0, default_cap);
+    ret = amdsmi_set_power_cap(processor_handles_[dv_ind], 0, default_cap);
+    DISPLAY_SUPPORT_STATUS(ret);
     CHK_ERR_ASRT(ret)
 
     std::cout << "### amdsmi_get_power_cap_info()" << std::endl;
