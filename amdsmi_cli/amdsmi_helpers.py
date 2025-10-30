@@ -1748,12 +1748,13 @@ class AMDSMIHelpers():
             args.cursor[gpu_idx] = new_cursor
             if len(entries) == 0:
                 break
-            if args.decode and args.cper_file and not args.folder:
-                afids = self.pvtDumpAfids(args.cper_file)
-                afids_str = ' '.join(map(str, afids))
-                self.dump_cper_entries_as_json(entries, cper_data, device_handle)
-            if args.decode and args.cper_file and args.folder:
-                self.dump_cper_entries(args.folder, entries, cper_data, device_handle, args.file_limit)
+            if args.decode and args.cper_file:
+                if args.folder:
+                    self.dump_cper_entries(args.folder, entries, cper_data, device_handle, args.file_limit)
+                else:
+                    afids = self.pvtDumpAfids(args.cper_file)
+                    afids_str = ' '.join(map(str, afids))
+                    self.dump_cper_entries_as_json(entries, cper_data, device_handle)
             if args.folder:
                 self.dump_cper_entries(args.folder, entries, cper_data, device_handle, args.file_limit)
             else:

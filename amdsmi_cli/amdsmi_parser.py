@@ -1511,7 +1511,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         # Help text for RAS arguments
         cper_help = "Trigger current CPER data retrieval"
         afid_help = "Generate an AFID (AMD Field ID) given a CPER record file"
-        decode_help = "Decode out‑of‑band CPER files captured by or collected from other systems"
+        decode_help = "Decode out-of-band CPER files captured by or collected from other systems"
         severity_choices = ["nonfatal-uncorrected", "fatal", "nonfatal-corrected", "all"]
         severity_choices_str = ", ".join(severity_choices)
         severity_help = f"Set the SEVERITY filters from the following:\n    {severity_choices_str}"
