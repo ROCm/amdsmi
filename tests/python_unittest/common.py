@@ -433,7 +433,7 @@ class Common(unittest.TestCase):
                 error_code_name = self.error_map[error_code]
         return (error_code, error_code_name)
 
-    def check_ret(self, msg, exc, expected_code=None):
+    def check_ret(self, msg, exc, expected_code=None, printIt=True):
         if hasattr(exc, 'get_error_code'):
             error_code, error_code_name = self.get_error_code(exc)
         else:
@@ -464,7 +464,7 @@ class Common(unittest.TestCase):
         else:
             status_msg = f'Test FAILED with expected result {expected_code} but received {error_code_name}'
             status_ret = True
-        if self.verbose == 2:
+        if self.verbose == 2 and printIt:
             print(f'{msg}\n{status_msg}', flush=True)
         return status_ret
 
