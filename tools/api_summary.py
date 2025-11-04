@@ -20,10 +20,6 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-# This script is used to quickly debug and check amdsmi Python APIs.
-# This is not meant to serve best practices for development.
-# Run this post install with python3 -i quick_start.py
-
 import argparse
 import datetime
 import os
