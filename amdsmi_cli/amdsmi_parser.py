@@ -1540,7 +1540,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         # AFID Arguments
         afid_group = ras_parser.add_argument_group("AFID Arguments")
         afid_group.add_argument("--cper-file", action=self._check_cper_file_path(), metavar="CPER_FILE", help=cper_file_help)
-        cper_group.add_argument("--decode", action="store_true", help=decode_help)
+        afid_group.add_argument("--decode", action="store_true", help=decode_help)
 
         # Add common modifiers and device selection arguments.
         self._add_device_arguments(ras_parser, required=False)
