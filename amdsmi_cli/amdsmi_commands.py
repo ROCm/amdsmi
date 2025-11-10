@@ -7151,16 +7151,16 @@ class AMDSMICommands():
             args.cper_file = cper_file
         if follow:
             args.follow = follow
-        if args.decode and args.cper_file:
-            args.cursor = [0]
-            self.helpers.ras_cper(args, None, self.logger, 0)
-            return
         if args.gpu == None:
             args.gpu = self.device_handles
 
         if args.afid:
             if args.cper_file:
-                afids = self.helpers.pvtDumpAfids(args.cper_file)
+                if args.decode:
+                    args.cursor = [0]
+                    self.helpers.ras_cper(args, None, self.logger, 0)
+                    return
+                afids = self.helpers.cper_dump_afids(args.cper_file)
                 print(' '.join(map(str, afids)))
                 return
             else:

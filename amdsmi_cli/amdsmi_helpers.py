@@ -1425,7 +1425,7 @@ class AMDSMIHelpers():
                                                 entry.get("notify_type", "Unknown"),
                                                 True)
                 cper_data_file = f"{prefix}_{self.get_cper_count() + 1}.cper"
-                afids = self.pvtDumpAfids(cper_data_file)
+                afids = self.cper_dump_afids(cper_data_file)
                 afids_str = ' '.join(map(str, afids))
                 output += f" {cper_data_file:<17} {afids_str}"
 
@@ -1522,7 +1522,7 @@ class AMDSMIHelpers():
             for cper_path, row in output_rows.items():
                 timestamp, gpu_id, severity, fname = row
                 try:
-                    afids = self.pvtDumpAfids(cper_path)
+                    afids = self.cper_dump_afids(cper_path)
                     afids_str = ' '.join(map(str, afids))
                 except Exception as e:
                     afids_str = "Error fetching AFIDs"
@@ -1618,7 +1618,7 @@ class AMDSMIHelpers():
 
         return "\n".join(lines)
 
-    def pvtDumpAfids(self, cper_file):
+    def cper_dump_afids(self, cper_file):
         # 1) Fetch the CPER “file” and ensure we have raw bytes
         raw_data = cper_file
         if hasattr(raw_data, "read"):
@@ -1752,7 +1752,7 @@ class AMDSMIHelpers():
                 if args.folder:
                     self.dump_cper_entries(args.folder, entries, cper_data, device_handle, args.file_limit)
                 else:
-                    afids = self.pvtDumpAfids(args.cper_file)
+                    afids = self.cper_dump_afids(args.cper_file)
                     afids_str = ' '.join(map(str, afids))
                     self.dump_cper_entries_as_json(entries, cper_data, device_handle)
             if args.folder:

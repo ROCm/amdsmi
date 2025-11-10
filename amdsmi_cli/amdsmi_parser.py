@@ -1525,11 +1525,10 @@ class AMDSMIParser(argparse.ArgumentParser):
         ras_parser.formatter_class = lambda prog: AMDSMISubparserHelpFormatter(prog)
         ras_parser.set_defaults(func=func)
 
-        # Create mutually exclusive command ras group (--cper or --afid or --decode)
+        # Create mutually exclusive command ras group (--cper or --afid)
         ras_exclusive_group = ras_parser.add_mutually_exclusive_group(required=True)
         ras_exclusive_group.add_argument("--cper", action="store_true", help=cper_help)
         ras_exclusive_group.add_argument("--afid", action="store_true", help=afid_help)
-        ras_exclusive_group.add_argument("--decode", action="store_true", help=decode_help)
 
         # CPER Arguments remove defaults
         cper_group = ras_parser.add_argument_group("CPER Arguments")
@@ -1541,6 +1540,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         # AFID Arguments
         afid_group = ras_parser.add_argument_group("AFID Arguments")
         afid_group.add_argument("--cper-file", action=self._check_cper_file_path(), metavar="CPER_FILE", help=cper_file_help)
+        cper_group.add_argument("--decode", action="store_true", help=decode_help)
 
         # Add common modifiers and device selection arguments.
         self._add_device_arguments(ras_parser, required=False)
