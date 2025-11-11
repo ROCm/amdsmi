@@ -1751,10 +1751,12 @@ class AMDSMIHelpers():
             if args.decode and args.cper_file:
                 if args.folder:
                     self.dump_cper_entries(args.folder, entries, cper_data, device_handle, args.file_limit)
-                else:
-                    afids = self.cper_dump_afids(args.cper_file)
-                    afids_str = ' '.join(map(str, afids))
+                afids = self.cper_dump_afids(args.cper_file)
+                afids_str = ' '.join(map(str, afids))
+                if args.json:
                     self.dump_cper_entries_as_json(entries, cper_data, device_handle)
+                else:
+                    print(' '.join(map(str, afids)))
             if args.folder:
                 self.dump_cper_entries(args.folder, entries, cper_data, device_handle, args.file_limit)
             else:
