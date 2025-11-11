@@ -25,12 +25,13 @@
 
 #ifdef __cplusplus
 extern "C" {
-#include <cstdint>
-#else
 #include <stdint.h>
+#include <stddef.h>
+#else
+#include <cstdint>
+#include <cstddef>
 #endif  // __cplusplus
 
-#include <stddef.h>
 #include <stdbool.h>
 
 #include "rocm_smi/kfd_ioctl.h"
@@ -533,6 +534,7 @@ typedef enum {
   RSMI_TEMP_TYPE_HBM_2,                        //!< HBM temperature instance 2
   RSMI_TEMP_TYPE_HBM_3,                        //!< HBM temperature instance 3
   RSMI_TEMP_TYPE_PLX,                          //!< PLX temperature
+  RSMI_TEMP_TYPE_GENERAL_LAST = RSMI_TEMP_TYPE_PLX,
 
 
   // GPU Board Node temperature
@@ -543,6 +545,7 @@ typedef enum {
   RSMI_TEMP_TYPE_GPUBOARD_NODE_OAM_X_VDD18_VR,    //!< OAM X VDD 1.8V voltage regulator temperature
   RSMI_TEMP_TYPE_GPUBOARD_NODE_OAM_X_04_HBM_B_VR, //!< OAM X 0.4V HBM B voltage regulator temperature
   RSMI_TEMP_TYPE_GPUBOARD_NODE_OAM_X_04_HBM_D_VR, //!< OAM X 0.4V HBM D voltage regulator temperature
+  RSMI_TEMP_TYPE_GPUBOARD_NODE_LAST = RSMI_TEMP_TYPE_GPUBOARD_NODE_OAM_X_04_HBM_D_VR,
 
   // GPU Board VR (Voltage Regulator) temperature
   RSMI_TEMP_TYPE_GPUBOARD_VR_FIRST = 150,
@@ -559,7 +562,7 @@ typedef enum {
   RSMI_TEMP_TYPE_GPUBOARD_VDDCR_11_HBM_D,    //!< VDDCR 1.1V HBM D voltage regulator temperature
   RSMI_TEMP_TYPE_GPUBOARD_VDD_USR,           //!< VDD USR voltage regulator temperature
   RSMI_TEMP_TYPE_GPUBOARD_VDDIO_11_E32,      //!< VDDIO 1.1V E32 voltage regulator temperature
-  RSMI_TEMP_TYPE_GPUBOARD_LAST = 199,
+  RSMI_TEMP_TYPE_GPUBOARD_LAST = RSMI_TEMP_TYPE_GPUBOARD_VDDIO_11_E32,
 
   // Baseboard System temperature
   RSMI_TEMP_TYPE_BASEBOARD_FIRST = 200,
@@ -586,7 +589,7 @@ typedef enum {
   RSMI_TEMP_TYPE_BASEBOARD_OAM_4_5_6_7_3V3_VR, //!< OAM 4-5-6-7 3.3V voltage regulator temperature
   RSMI_TEMP_TYPE_BASEBOARD_IBC_HSC,           //!< IBC HSC temperature
   RSMI_TEMP_TYPE_BASEBOARD_IBC,               //!< IBC temperature
-  RSMI_TEMP_TYPE_BASEBOARD_LAST = 249,
+  RSMI_TEMP_TYPE_BASEBOARD_LAST = RSMI_TEMP_TYPE_BASEBOARD_IBC,
 
   RSMI_TEMP_TYPE_LAST = RSMI_TEMP_TYPE_BASEBOARD_LAST,    //!< Last of per GPU temperature types
 
@@ -3919,6 +3922,35 @@ rsmi_version_str_get(rsmi_sw_component_t component, char *ver_str,
  */
 rsmi_status_t
 rsmi_dev_vbios_version_get(uint32_t dv_ind, char *vbios, uint32_t len);
+
+/**
+ *  @brief Get the VBIOS Build string
+ *
+ *  @details Given a device ID @p dv_ind, and a pointer to a char buffer,
+ *  @p vbios, this function will write the VBIOS Build string (up to @p len
+ *  characters) for device @p dv_ind to @p vbios. The caller must ensure that
+ *  it is safe to write at least @p len characters to @p vbios.
+ *
+ *  @param[in] dv_ind a device index
+ *
+ *  @param[inout] vbios_build_number A pointer to a buffer of char's to which the VBIOS
+ *  Build will be written
+ *  If this parameter is nullptr, this function will return
+ *  ::RSMI_STATUS_INVALID_ARGS if the function is supported with the provided,
+ *  arguments and ::RSMI_STATUS_NOT_SUPPORTED if it is not supported with the
+ *  provided arguments.
+ *
+ *  @param[in] len The number of char's pointed to by @p vbios which can safely
+ *  be written to by this function.
+ *
+ *  @retval ::RSMI_STATUS_SUCCESS call was successful
+ *  @retval ::RSMI_STATUS_NOT_SUPPORTED installed software or hardware does not
+ *  support this function with the given arguments
+ *  @retval ::RSMI_STATUS_INVALID_ARGS the provided arguments are not valid
+ *
+ */
+rsmi_status_t
+rsmi_dev_vbios_build_number_get(uint32_t dv_ind, char *vbios_build_number, uint32_t len);
 
 /**
  *  @brief Get the firmware versions for a device

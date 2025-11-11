@@ -32,13 +32,11 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
-#include <iterator>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <sstream>
 #include <string>
-#include <type_traits>
 #include <vector>
 
 #include "rocm_smi/rocm_smi_main.h"
@@ -49,8 +47,7 @@
 #include "rocm_smi/rocm_smi_logger.h"
 #include "shared_mutex.h"  // NOLINT
 
-namespace amd {
-namespace smi {
+namespace amd::smi {
 
 // Debug root file path
 static const char *kPathDebugRootFName = "/sys/kernel/debug/dri/";
@@ -89,6 +86,7 @@ static const char *kDevPowerProfileModeFName = "pp_power_profile_mode";
 static const char *kDevPowerODVoltageFName = "pp_od_clk_voltage";
 static const char *kDevUsageFName = "gpu_busy_percent";
 static const char *kDevVBiosVerFName = "vbios_version";
+static const char *kDevVBiosBuildFName = "vbios_build";
 static const char *kDevPCIEThruPutFName = "pcie_bw";
 static const char *kDevErrCntSDMAFName = "ras/sdma_err_count";
 static const char *kDevErrCntUMCFName = "ras/umc_err_count";
@@ -271,6 +269,7 @@ static const std::map<DevInfoTypes, const char *> kDevAttribNameMap = {
     {kDevUsage, kDevUsageFName},
     {kDevPowerODVoltage, kDevPowerODVoltageFName},
     {kDevVBiosVer, kDevVBiosVerFName},
+    {kDevVBiosBuild, kDevVBiosBuildFName},
     {kDevPCIEThruPut, kDevPCIEThruPutFName},
     {kDevErrCntSDMA, kDevErrCntSDMAFName},
     {kDevErrCntUMC, kDevErrCntUMCFName},
@@ -447,6 +446,7 @@ Device::devInfoTypesStrings = {
   {kDevUsage, "kDevUsage"},
   {kDevPowerODVoltage, "kDevPowerODVoltage"},
   {kDevVBiosVer, "kDevVBiosVer"},
+  {kDevVBiosBuild, "kDevVBiosBuild"},
   {kDevPCIEThruPut, "kDevPCIEThruPut"},
   {kDevErrCntSDMA, "kDevErrCntSDMA"},
   {kDevErrCntUMC, "kDevErrCntUMC"},
@@ -572,20 +572,21 @@ static const std::map<const char *, dev_depends_t> kDevFuncDependsMap = {
   {"rsmi_dev_soc_pstate_get",            {{kDevSocPstateFName}, {}}},
   {"rsmi_dev_xgmi_plpd_set",             {{kDevXgmiPlpdFName}, {}}},
   {"rsmi_dev_xgmi_plpd_get",             {{kDevXgmiPlpdFName}, {}}},
-  {"rsmi_dev_process_isolation_set",             {{kDevProcessIsolationFName}, {}}},
-  {"rsmi_dev_process_isolation_get",             {{kDevProcessIsolationFName}, {}}},
-  {"rsmi_dev_gpu_shader_clean",            {{kDevShaderCleanFName}, {}}},
+  {"rsmi_dev_process_isolation_set",     {{kDevProcessIsolationFName}, {}}},
+  {"rsmi_dev_process_isolation_get",     {{kDevProcessIsolationFName}, {}}},
+  {"rsmi_dev_gpu_shader_clean",          {{kDevShaderCleanFName}, {}}},
   {"rsmi_perf_determinism_mode_set",     {{kDevPerfLevelFName,
                                            kDevPowerODVoltageFName}, {}}},
   {"rsmi_dev_overdrive_level_set",       {{kDevOverDriveLevelFName}, {}}},
   {"rsmi_dev_vbios_version_get",         {{kDevVBiosVerFName}, {}}},
+  {"rsmi_dev_vbios_build_number_get",    {{kDevVBiosBuildFName}, {}}}, 
   {"rsmi_dev_od_volt_info_get",          {{kDevPowerODVoltageFName}, {}}},
   {"rsmi_dev_od_volt_info_set",          {{kDevPowerODVoltageFName,
                                            kDevPerfLevelFName},  {}}},
   {"rsmi_dev_od_volt_curve_regions_get", {{kDevPowerODVoltageFName}, {}}},
   {"rsmi_dev_ecc_enabled_get",           {{kDevErrCntFeaturesFName}, {}}},
   {"rsmi_dev_ecc_status_get",            {{kDevErrCntFeaturesFName}, {}}},
-  {"rsmi_ras_feature_info_get",           {{kDevErrRASSchemaFName,
+  {"rsmi_ras_feature_info_get",          {{kDevErrRASSchemaFName,
                                            kDevErrTableVersionFName}, {}}},
   {"rsmi_dev_counter_group_supported",   {{}, {}}},
   {"rsmi_dev_counter_create",            {{}, {}}},
@@ -1475,6 +1476,7 @@ int Device::readDevInfo(DevInfoTypes type, std::string *val) {
     case kDevPCieVendorID:
     case kDevVramVendor:
     case kDevVBiosVer:
+    case kDevVBiosBuild:
     case kDevPCIEThruPut:
     case kDevSerialNumber:
     case kDevAvailableComputePartition:
@@ -1800,7 +1802,7 @@ rsmi_status_t Device::isRestartInProgress(bool *isRestartInProgress,
   if ((success == true) && (!out.empty())) {
     isSystemAMDGPUModuleLive = containsString(out, "live");
   }
-  if (isAMDGPUModuleLive) {
+  if (*isAMDGPUModuleLive) {
     deviceRestartInProgress = false;
   }
   *isRestartInProgress = deviceRestartInProgress;
@@ -1869,7 +1871,7 @@ rsmi_status_t storeParameter<rsmi_compute_partition_type_t>(uint32_t dv_ind) {
 template <>
 rsmi_status_t storeParameter<rsmi_memory_partition_type_t>(uint32_t dv_ind) {
   rsmi_status_t returnStatus = RSMI_STATUS_SUCCESS;
-  uint32_t kDatalength = 128;
+  const uint32_t kDatalength = 128;
   char data[kDatalength];
   bool doesFileExist;
   std::tie(doesFileExist, std::ignore) = readTmpFile(dv_ind, "boot",
@@ -1994,5 +1996,4 @@ rsmi_status_t Device::get_smi_device_identifiers(uint32_t device_id,
 
 
 #undef RET_IF_NONZERO
-}  // namespace smi
-}  // namespace amd
+} // namespace amd::smi

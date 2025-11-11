@@ -28,7 +28,7 @@ jobs:
         os: [Ubuntu20, Ubuntu22, Debian10]
     container:
       image: ${{ vars[format('{0}_DOCKER_IMAGE', matrix.os)] }}
-      options: --privileged --cap-add=SYS_MODULE -v /lib/modules:/lib/modules
+      options: --rm --privileged --device=/dev/kfd --device=/dev/dri --group-add video --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --shm-size=64G --cap-add=SYS_MODULE -v /lib/modules:/lib/modules
 
     steps:
       - uses: actions/checkout@v4
@@ -86,6 +86,9 @@ jobs:
       - name: Install AMDSMI
         run: |
           cd $GITHUB_WORKSPACE/build
+          if [ "${{ matrix.os }}" != "Debian10" ]; then
+            apt update
+          fi
 
           RETRIES=3
           for i in $(seq 1 $RETRIES); do
@@ -111,6 +114,7 @@ jobs:
               sleep $((2 * i))
             fi
           done
+          echo "Build completed on ${{ matrix.os }}"
 
       - name: Uninstall
         if: always()
@@ -133,12 +137,12 @@ jobs:
       - ${{ vars.RUNNER_TYPE }}
     continue-on-error: true
     strategy:
-      max-parallel: 1 # Need to tests to run one-at-a-time to avoid conflicts with driver reloads
+      max-parallel: 10
       matrix:
         os: [Ubuntu20, Ubuntu22, Debian10]
     container:
       image: ${{ vars[format('{0}_DOCKER_IMAGE', matrix.os)] }}
-      options: --privileged --cap-add=SYS_MODULE -v /lib/modules:/lib/modules
+      options: --rm --privileged --device=/dev/kfd --device=/dev/dri --group-add video --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --shm-size=64G --cap-add=SYS_MODULE -v /lib/modules:/lib/modules
 
     steps:
       - uses: actions/checkout@v4
@@ -184,7 +188,6 @@ jobs:
           done
 
           echo 'Installing for test on ${{ matrix.os }}'
-
           for i in $(seq 1 $RETRIES); do
             echo "Installation attempt $i for test on ${{ matrix.os }}..."
             if apt install -y $BUILD_FOLDER/amd-smi-lib*99999-local_amd64.deb; then
@@ -253,7 +256,7 @@ jobs:
           echo 'Running AMDSMI tests'
           cd /opt/rocm/share/amd_smi/tests
           source amdsmitst.exclude
-          
+
           AMDSMI_RETRIES=3
           for attempt in $(seq 1 $AMDSMI_RETRIES); do
             echo "AMDSMI test attempt $attempt for ${{ matrix.os }}..."
@@ -367,7 +370,7 @@ jobs:
           - AlmaLinux8
     container:
       image: ${{ vars[format('{0}_DOCKER_IMAGE', matrix.os)] }}
-      options: --privileged --cap-add=SYS_MODULE -v /lib/modules:/lib/modules
+      options: --rm --privileged --device=/dev/kfd --device=/dev/dri --group-add video --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --shm-size=64G --cap-add=SYS_MODULE -v /lib/modules:/lib/modules
 
     steps:
       - uses: actions/checkout@v4
@@ -558,7 +561,7 @@ jobs:
       - ${{ vars.RUNNER_TYPE }}
     continue-on-error: true
     strategy:
-      max-parallel: 1 # Need to tests to run one-at-a-time to avoid conflicts with driver reloads
+      max-parallel: 10
       matrix:
         os:
           - SLES
@@ -569,7 +572,7 @@ jobs:
           - AlmaLinux8
     container:
       image: ${{ vars[format('{0}_DOCKER_IMAGE', matrix.os)] }}
-      options: --privileged --cap-add=SYS_MODULE -v /lib/modules:/lib/modules
+      options: --rm --privileged --device=/dev/kfd --device=/dev/dri --group-add video --cap-add=SYS_PTRACE --security-opt seccomp=unconfined --shm-size=64G --cap-add=SYS_MODULE -v /lib/modules:/lib/modules
 
     steps:
       - uses: actions/checkout@v4
@@ -736,7 +739,7 @@ jobs:
           echo 'Running AMDSMI tests'
           cd /opt/rocm/share/amd_smi/tests
           source amdsmitst.exclude
-          
+
           AMDSMI_RETRIES=3
           for attempt in $(seq 1 $AMDSMI_RETRIES); do
             echo "AMDSMI test attempt $attempt for ${{ matrix.os }}..."

@@ -25,20 +25,16 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
-#include <fstream>
 #include <iostream>
-#include <map>
 #include <regex>  // NOLINT
 #include <string>
-#include <vector>
 
 #include "rocm_smi/rocm_smi_monitor.h"
 #include "rocm_smi/rocm_smi_utils.h"
 #include "rocm_smi/rocm_smi_exception.h"
 #include "rocm_smi/rocm_smi_logger.h"
 
-namespace amd {
-namespace smi {
+namespace amd::smi {
 
 struct MonitorNameEntry {
     MonitorTypes type;
@@ -345,9 +341,14 @@ Monitor::setTempSensorLabelMap(void) {
        {static_cast<rsmi_temperature_type_t>(t), RSMI_TEMP_TYPE_INVALID});
   }
   for (uint32_t i = 1; i <= RSMI_TEMP_TYPE_LAST + 1; ++i) {
-    ret = add_temp_sensor_entry(i);
-    if (ret) {
-      return ret;
+    if ((i <= RSMI_TEMP_TYPE_GENERAL_LAST) ||
+        (i >= RSMI_TEMP_TYPE_GPUBOARD_NODE_FIRST && i <= RSMI_TEMP_TYPE_GPUBOARD_NODE_LAST) ||
+        (i >= RSMI_TEMP_TYPE_GPUBOARD_VR_FIRST && i <= RSMI_TEMP_TYPE_GPUBOARD_LAST) ||
+        (i >= RSMI_TEMP_TYPE_BASEBOARD_FIRST && i <= RSMI_TEMP_TYPE_BASEBOARD_LAST)) {
+          ret = add_temp_sensor_entry(i);
+          if (ret) {
+            return ret;
+          }
     }
   }
   return 0;
@@ -396,7 +397,9 @@ Monitor::setVoltSensorLabelMap(void) {
 static int get_supported_sensors(std::string dir_path, std::string fn_reg_ex,
                                               std::vector<uint64_t> *sensors) {
   auto hwmon_dir = opendir(dir_path.c_str());
-  assert(hwmon_dir != nullptr);
+  if (!hwmon_dir) {
+    return errno ? errno : 1;
+  }
   assert(sensors != nullptr);
 
   sensors->clear();
@@ -640,5 +643,4 @@ void Monitor::fillSupportedFuncs(SupportedFuncMap *supported_funcs) {
   }
 }
 
-}  // namespace smi
-}  // namespace amd
+} // namespace amd::smi

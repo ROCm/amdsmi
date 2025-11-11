@@ -4,6 +4,218 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ***All information listed below is for reference and subject to change.***
 
+## amd_smi_lib for ROCm 7.1.0
+
+### Added
+
+- **Added `GPU LINK PORT STATUS` table to `amd-smi xgmi` command**.  
+  - The `amd-smi xgmi -s` or `amd-smi xgmi --source-status` will show `GPU LINK PORT STATUS` table.  
+
+- **Added `amdsmi_get_gpu_revision()` to Python API**  
+  - This function retrieves the GPU revision ID. Available in `amdsmi_interface.py` as `amdsmi_get_gpu_revision()`.
+
+- **Added gpuboard and baseboard temperatures to `amd-smi metric` command**.  
+  - The metric command has been updated with various gpuboard and baseboard temperatures in degrees Celsius. Users can access these
+  values through the `-G/--gpuboard` or `-b/--baseboard` options or obtain all of them as normal using the `amd-smi metric` command without
+  any options. If the hardware does not support gpuboard or baseboard temperatures, then the values will be hidden from the default `metric` view.
+
+  ```console
+  $ amd-smi metric -b
+  GPU: 0
+      BASEBOARD:
+          TEMPERATURE:
+              FIRST: 78
+              UBB_FRONT: 55
+              UBB_BACK: 49
+              UBB_OAM7: 86
+              UBB_IBC: 94
+              UBB_UFPGA: 49
+              UBB_OAM1: 78
+              OAM_0_1_HSC: 54
+              OAM_2_3_HSC: 32
+              OAM_4_5_HSC: 14
+              OAM_6_7_HSC: 85
+              UBB_FPGA_0V72_VR: 43
+              UBB_FPGA_3V3_VR: 41
+              RETIMER_0_1_2_3_1V2_VR: 64
+              RETIMER_4_5_6_7_1V2_VR: 56
+              RETIMER_0_1_0V9_VR: 74
+              RETIMER_4_5_0V9_VR: 34
+              RETIMER_2_3_0V9_VR: 85
+              RETIMER_6_7_0V9_VR: 92
+              OAM_0_1_2_3_3V3_VR: 29
+              OAM_4_5_6_7_3V3_VR: 13
+              IBC_HSC: 41
+              IBC: 43
+
+  $ amd-smi metric -G
+  GPU: 0
+      GPUBOARD:
+          TEMPERATURE:
+              NODE_RETIMER_X: 43
+              NODE_OAM_X_IBC: 24
+              NODE_OAM_X_IBC_2: 56
+              NODE_OAM_X_VDD18_VR: 34
+              NODE_OAM_X_04_HBM_B_VR: 53
+              NODE_OAM_X_04_HBM_D_VR: 47
+              VR_FIRST: 58
+              VDDCR_VDD1: 78
+              VDDCR_VDD2: 35
+              VDDCR_VDD3: 73
+              VDDCR_SOC_A: 12
+              VDDCR_SOC_C: 57
+              VDDCR_SOCIO_A: 39
+              VDDCR_SOCIO_C: 75
+              VDD_085_HBM: 64
+              VDDCR_11_HBM_B: 92
+              VDDCR_11_HBM_D: 87
+              VDD_USR: 46
+              VDDIO_11_E32: 98
+
+  $ amd-smi metric
+  GPU: 0
+      USAGE:
+          GFX_ACTIVITY: 0 %
+          UMC_ACTIVITY: 0 %
+          ...
+      POWER:
+          SOCKET_POWER: 140 W
+          GFX_VOLTAGE: N/A
+          ...
+      CLOCK:
+          GFX_0:
+              CLK: 132 MHz
+              MIN_CLK: 500 MHz
+          ...
+      TEMPERATURE:
+          EDGE: N/A
+          HOTSPOT: 37 °C
+          ...
+      PCIE:
+          WIDTH: 16
+          SPEED: 32 GT/s
+          ...
+      GPUBOARD:
+          TEMPERATURE:
+              NODE_RETIMER_X: 43
+              NODE_OAM_X_IBC: 24
+              ...
+      BASEBOARD:
+          TEMPERATURE:
+              UBB_FPGA: 78
+              UBB_FRONT: 55
+              ...
+      ECC:
+          TOTAL_CORRECTABLE_COUNT: 0
+          TOTAL_UNCORRECTABLE_COUNT: 0
+          ...
+      ECC_BLOCKS:
+          UMC:
+              CORRECTABLE_COUNT: 0
+              UNCORRECTABLE_COUNT: 0
+          ...
+      FAN:
+          SPEED: N/A
+          MAX: N/A
+          ...
+      VOLTAGE_CURVE:
+          POINT_0_FREQUENCY: N/A
+          POINT_0_VOLTAGE: N/A
+          ...
+      OVERDRIVE: N/A
+      MEM_OVERDRIVE: N/A
+      PERF_LEVEL: AMDSMI_DEV_PERF_LEVEL_AUTO
+      XGMI_ERR: N/A
+      VOLTAGE:
+          VDDBOARD: N/A
+      ENERGY:
+          TOTAL_ENERGY_CONSUMPTION: 14292727.274 J
+      MEM_USAGE:
+          TOTAL_VRAM: 196592 MB
+          USED_VRAM: 283 MB
+          ...
+      THROTTLE:
+          ACCUMULATION_COUNTER: 100936627
+          PROCHOT_ACCUMULATED: 0
+          ...
+  ```
+
+### Changed
+
+- **Changed struct amdsmi_topology_nearest_t member processor_list**.  
+  - Member size changed, processor_list[AMDSMI_MAX_DEVICES * AMDSMI_MAX_NUM_XCP]
+
+- **Changed `amd-smi reset --profile` behavior so that it would not also reset the performance level**.  
+  - These settings are completely independent now so there is no longer any need to reset them together. Therefore the reset behavior for performance level has been removed from resetting the profile. Users can still reset the performance level as they normally would using `amd-smi reset --perf-determinism`.  
+
+- **Setting power cap is now available in Linux Guest**.  
+  - Users can now use `amd-smi set --power-cap` as usual but now in Linux Guest systems.
+
+- **Changed `amd-smi static --vbios` to `amd-smi static --ifwi`**.  
+  - VBIOS naming is replaced with IFWI (Integrated Firmware Image) for improved clarity and consistency.
+  - Mi300+ series devices now use a new version format with enhanced build information.
+  - Legacy command `amd-smi static --vbios` remains functional for backward compatibility, but displays updated IFWI heading.
+  - The Python, C & Rust API for `amdsmi_get_gpu_vbios_version()` will now have a new field called `boot_firmware` which will return the legacy vbios version number which is also known as the Unified BootLoader Version (UBL version)
+
+  **Legacy format (Non IFWI systems):**
+
+  ```shell
+  $ amd-smi static --ifwi
+  GPU: 0
+      IFWI:
+          NAME: XXXXXXXXXXXXXXXXXX
+          BUILD_DATE: 2020/10/29 13:30
+          PART_NUMBER: 113-XXXXXXXX-111
+          VERSION: 000.000.000.000.000000 (Legacy format)
+  ...
+  ```
+
+  **New format (Mi300+ series and IFWI systems):**
+
+  ```shell
+  $ amd-smi static --ifwi
+  GPU: 0
+      IFWI:
+          NAME: XXXXXXXXXXXXXXXXXX
+          BUILD_DATE: 2020/10/29 13:30
+          PART_NUMBER: 113-XXXXXXXX-111
+          VERSION: 00111111 (New format)
+  ...
+  ```
+
+### Removed
+
+- N/A
+
+### Optimized
+
+- **Changed sourcing of BDF to from drm to kfd**.  
+  - Non sudo privliged users were unable to see the BDF due to logical errors.
+
+- **Optimized the way `amd-smi process` validates which proccesses are running on a GPU**.  
+
+### Resolved Issues
+
+- **Fixed a CPER record count mismatch issue when using the `amd-smi ras --cper --file-limit`**.  
+  - Fixed deletion calculation to use files_to_delete = len(folder_files) - file_limit for exact file count management
+
+- **Fixed event monitoring segfaults causing RDC to crash**.  
+  - Adds mutex locking around access to device event notification file pointer
+
+- **Fixed an issue where using `amd-smi ras --folder <folder_name>` was forcing the created folder's name to be lowercase**.  
+  - This fix also allows all string input options to be case insensitive.
+
+- **Fixed certain output in `amd-smi monitor` when GPUs are partitioned**.  
+  - Fixes amd-smi monitor such as: `amd-smi monitor -Vqt`, `amd-smi monitor -g 0 -Vqt -w 1`, `amd-smi monitor -Vqt --file /tmp/test1`, etc. Those such commands will now be able to display as normal in partitioned GPU scenarios.
+
+### Upcoming Changes
+
+- N/A
+
+### Known Issues
+
+- N/A
+
 ## amd_smi_lib for ROCm 7.0.2
 
 ### Added
@@ -45,12 +257,6 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 ### Resolved issues
 
 - **Fixed `attribute error` in `amd-smi monitor` on Linux Guest systems where violations argument caused CLI to break**.  
-
-- **Fixed certain output in `amd-smi monitor` when GPUs are partitioned**.  
-  - Fixes amd-smi monitor such as: `amd-smi monitor -Vqt`, `amd-smi monitor -g 0 -Vqt -w 1`, `amd-smi monitor -Vqt --file /tmp/test1`, etc. Those such commands will now be able to display as normal in partitioned GPU scenarios.
-
-- **Fixed an issue where using `amd-smi ras --folder <folder_name>` was forcing the created folder's name to be lowercase**.  
-  - This fix also allows all string input options to be case insensitive.
 
 - **Added KFD Fallback for process detection**.  
   - Some processes were not being detected by AMD SMI despite making use of KFD resources. This fix ensures that all KFD processes will be detected.
@@ -188,18 +394,16 @@ $ amd-smi
       - `acc_low_utilization`, `per_low_utilization`, `active_low_utilization`
   - Python API and CLI now report these expanded fields.
   - Example outputs:
-    ```<span style="font-size:0.8em">console
+
+    ```console
     $ amd-smi monitor -V
     GPU  XCP  PVIOL  TVIOL  TVIOL_ACTIVE  PHOT_TVIOL  VR_TVIOL  HBM_TVIOL  GFX_CLKVIOL                                              GFXCLK_PVIOL                                              GFXCLK_TVIOL                                          GFXCLK_TOTALVIOL                                              LOW_UTILVIOL
       0    0    0 %    0 %         False         0 %       0 %        0 %          N/A                  [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %]                  [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %]  [100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %]  [100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %]
       1    0    0 %    0 %         False         0 %       0 %        0 %          N/A                  [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %]                  [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %]  [100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %]  [100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %]
-      2    0    0 %    0 %         False         0 %       0 %        0 %          N/A                  [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %]                  [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %]  [100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %]  [100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %]
-      3    0    0 %    0 %         False         0 %       0 %        0 %          N/A                  [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %]                  [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %]  [100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %]  [100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %]
-      4    0    0 %    0 %         False         0 %       0 %        0 %          N/A                  [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %]                  [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %]  [100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %]  [100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %]
-      5    0    0 %    0 %         False         0 %       0 %        0 %          N/A                  [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %]                  [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %]  [100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %]  [100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %]
-      6    0    0 %    0 %         False         0 %       0 %        0 %          N/A                  [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %]                  [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %]  [100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %]  [100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %]
-      7    0    0 %    0 %         False         0 %       0 %        0 %          N/A                  [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %]                  [0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %, 0 %]  [100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %]  [100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %, 100 %]
+      ...
+    ```
 
+    ```console
     $ sudo amd-smi set -C DPX > /dev/null
 
     $ amd-smi monitor -V
@@ -211,8 +415,6 @@ $ amd-smi
       2    1    N/A    N/A           N/A         N/A       N/A        N/A          N/A                  [0 %, 0 %, 0 %, 0 %, N/A, N/A, N/A, N/A]                  [0 %, 0 %, 0 %, 0 %, N/A, N/A, N/A, N/A]          [100 %, 100 %, 100 %, 100 %, N/A, N/A, N/A, N/A]          [100 %, 100 %, 100 %, 100 %, N/A, N/A, N/A, N/A]
     ...
     ```
-    </span>
-    </br>  
 
     ```console
     $ amd-smi metric -v -g 0
@@ -559,7 +761,9 @@ $ amd-smi
 
 ### Upcoming changes
 
-- N/A
+- **`amd-smi metric` will also display gpuboard and baseboard temperatures**.  
+  - This change is meant to follow the API change to amdsmi_get_temp_metric. If these measures are not available due
+  to hardware incompatibility, then they will simply not be displayed in the results when using the metric command.
 
 ### Known issues
 

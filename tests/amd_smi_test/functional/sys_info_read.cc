@@ -30,8 +30,6 @@
 
 #include "amd_smi/amdsmi.h"
 #include "sys_info_read.h"
-#include "../test_common.h"
-#include "../test_utils.h"
 
 TestSysInfoRead::TestSysInfoRead() : TestBase() {
   set_title("AMDSMI System Info Read Test");
@@ -81,8 +79,8 @@ void TestSysInfoRead::Run(void) {
   for (uint32_t i = 0; i < num_monitor_devs(); ++i) {
     PrintDeviceHeader(processor_handles_[i]);
 
-    amdsmi_vbios_info_t info;
-    err = amdsmi_get_gpu_vbios_info(processor_handles_[i], &info);
+    amdsmi_vbios_info_t vbios_info;
+    err = amdsmi_get_gpu_vbios_info(processor_handles_[i], &vbios_info);
 
     if (err != AMDSMI_STATUS_SUCCESS) {
       if ((err == AMDSMI_STATUS_FILE_ERROR) || (err == AMDSMI_STATUS_NOT_SUPPORTED)) {
@@ -103,7 +101,7 @@ void TestSysInfoRead::Run(void) {
     } else {
       IF_VERB(STANDARD) {
         std::cout << "\t**VBIOS Version: "
-                << info.version << std::endl;
+                << vbios_info.version << std::endl;
       }
     }
 

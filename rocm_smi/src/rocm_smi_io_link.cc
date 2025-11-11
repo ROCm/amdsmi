@@ -27,11 +27,7 @@
 #include <cassert>
 #include <cstdint>
 #include <fstream>
-#include <iostream>
-#include <memory>
-#include <sstream>
 #include <string>
-#include <unordered_set>
 
 #include "rocm_smi/rocm_smi_utils.h"
 #include "rocm_smi/rocm_smi_io_link.h"
@@ -45,8 +41,7 @@
 #define CRAT_IOLINK_FLAGS_BI_DIRECTIONAL          (1 << 31)
 #define CRAT_IOLINK_FLAGS_RESERVED_MASK           0x7fffffe0
 
-namespace amd {
-namespace smi {
+namespace amd::smi {
 
 static const char *kKFDNodesPathRoot = "/sys/class/kfd/kfd/topology/nodes";
 static const char *kKFDLinkPath[] = {"io_links", "p2p_links"};
@@ -201,7 +196,10 @@ static int DiscoverLinks(std::map<std::pair<uint32_t, uint32_t>,
     std::string link_path_root = LinkPathRoot(node_indx, directory);
 
     auto io_link_dir = opendir(link_path_root.c_str());
-    assert(io_link_dir != nullptr);
+
+    if (!io_link_dir) {
+      return errno ? errno : 1;
+    }
 
     auto dentry_io_link = readdir(io_link_dir);
     while (dentry_io_link != nullptr) {
@@ -269,7 +267,10 @@ static int DiscoverLinksPerNode(uint32_t node_indx, std::map<uint32_t,
   std::string link_path_root = LinkPathRoot(node_indx, directory);
 
   auto io_link_dir = opendir(link_path_root.c_str());
-  assert(io_link_dir != nullptr);
+
+  if (!io_link_dir) {
+    return errno ? errno : 1;
+  }
 
   auto dentry = readdir(io_link_dir);
   while (dentry != nullptr) {
@@ -454,5 +455,4 @@ IOLinkDirectionType_t DiscoverIOLinkPerNodeDirection(uint32_t src_node_idx, uint
 }
 
 
-}  // namespace smi
-}  // namespace amd
+} // namespace amd::smi

@@ -45,6 +45,7 @@
 #include <functional>
 #include <exception>
 
+#include "config/amd_smi_config.h"
 #include "amd_smi/amdsmi.h"
 #include "amd_smi/impl/fdinfo.h"
 #include "amd_smi/impl/amd_smi_common.h"
@@ -924,11 +925,11 @@ amdsmi_status_t amdsmi_get_gpu_vram_usage(amdsmi_processor_handle processor_hand
     }
 
     amd::smi::AMDSmiLibraryLoader libdrm;
-    amdsmi_status_t status = libdrm.load("libdrm.so.2");
+    amdsmi_status_t status = libdrm.load(LIBDRM_AMDGPU_SONAME);
     if (status != AMDSMI_STATUS_SUCCESS) {
         libdrm.unload();
         ss << __PRETTY_FUNCTION__
-           << " | Failed to load libdrm.so.2: " << strerror(errno)
+           << " | Failed to load " LIBDRM_AMDGPU_SONAME ": " << strerror(errno)
            << "; Returning: " << smi_amdgpu_get_status_string(status, false);
         LOG_ERROR(ss);
         return status;
@@ -1501,6 +1502,15 @@ amdsmi_status_t amdsmi_reset_gpu_fan(amdsmi_processor_handle processor_handle,
 
 amdsmi_status_t amdsmi_set_gpu_fan_speed(amdsmi_processor_handle processor_handle,
                                 uint32_t sensor_ind, uint64_t speed) {
+
+    // Bare Metal and passthrough only feature
+    amdsmi_virtualization_mode_t virt_mode;
+    if (amdsmi_get_gpu_virtualization_mode(processor_handle, &virt_mode) == AMDSMI_STATUS_SUCCESS) {
+        if (virt_mode == AMDSMI_VIRTUALIZATION_MODE_GUEST) {
+        return AMDSMI_STATUS_NOT_SUPPORTED;
+        }
+    }
+                                    
     return rsmi_wrapper(rsmi_dev_fan_speed_set, processor_handle, 0,
                         sensor_ind, speed);
 }
@@ -1681,7 +1691,7 @@ amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_i
     }
 
     // If vendor name is empty and the vendor id is 0x1002, set vendor name to AMD vendor string
-    if ((info->vendor_name != NULL && info->vendor_name[0] == '\0') && info->vendor_id == 0x1002) {
+    if ((info->vendor_name[0] == '\0') && info->vendor_id == 0x1002) {
         std::string amd_name = "Advanced Micro Devices Inc. [AMD/ATI]";
         smi_clear_char_and_reinitialize(info->vendor_name, AMDSMI_MAX_STRING_LENGTH, amd_name);
     }
@@ -1721,11 +1731,11 @@ amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_i
     }
 
     amd::smi::AMDSmiLibraryLoader libdrm;
-    status = libdrm.load("libdrm.so.2");
+    status = libdrm.load(LIBDRM_AMDGPU_SONAME);
     if (status != AMDSMI_STATUS_SUCCESS) {
         libdrm.unload();
         ss << __PRETTY_FUNCTION__
-           << " | Failed to load libdrm.so.2: " << strerror(errno)
+           << " | Failed to load " LIBDRM_AMDGPU_SONAME ": " << strerror(errno)
            << "; Returning: " << smi_amdgpu_get_status_string(status, false);
         LOG_ERROR(ss);
         return status;
@@ -1944,11 +1954,11 @@ amdsmi_status_t amdsmi_get_gpu_vram_info(
     }
 
     amd::smi::AMDSmiLibraryLoader libdrm;
-    amdsmi_status_t status = libdrm.load("libdrm.so.2");
+    amdsmi_status_t status = libdrm.load(LIBDRM_AMDGPU_SONAME);
     if (status != AMDSMI_STATUS_SUCCESS) {
         libdrm.unload();
         ss << __PRETTY_FUNCTION__
-           << " | Failed to load libdrm.so.2: " << strerror(errno)
+           << " | Failed to load " LIBDRM_AMDGPU_SONAME ": " << strerror(errno)
            << "; Returning: " << smi_amdgpu_get_status_string(status, false);
         LOG_ERROR(ss);
         return status;
@@ -3392,18 +3402,27 @@ amdsmi_get_power_cap_info(amdsmi_processor_handle processor_handle,
 }
 
 amdsmi_status_t
- amdsmi_set_power_cap(amdsmi_processor_handle processor_handle,
+amdsmi_set_power_cap(amdsmi_processor_handle processor_handle,
             uint32_t sensor_ind, uint64_t cap) {
+
     return rsmi_wrapper(rsmi_dev_power_cap_set, processor_handle, 0,
             sensor_ind, cap);
 }
 
 amdsmi_status_t
- amdsmi_get_gpu_power_profile_presets(amdsmi_processor_handle processor_handle,
+amdsmi_get_gpu_power_profile_presets(amdsmi_processor_handle processor_handle,
                         uint32_t sensor_ind,
                         amdsmi_power_profile_status_t *status) {
     AMDSMI_CHECK_INIT();
     // nullptr api supported
+
+    // Bare Metal and passthrough only feature
+    amdsmi_virtualization_mode_t virt_mode;
+    if (amdsmi_get_gpu_virtualization_mode(processor_handle, &virt_mode) == AMDSMI_STATUS_SUCCESS) {
+        if (virt_mode == AMDSMI_VIRTUALIZATION_MODE_GUEST) {
+        return AMDSMI_STATUS_NOT_SUPPORTED;
+        }
+    }
 
     return rsmi_wrapper(rsmi_dev_power_profile_presets_get, processor_handle, 0,
                     sensor_ind, reinterpret_cast<rsmi_power_profile_status_t*>(status));
@@ -3416,8 +3435,17 @@ amdsmi_status_t amdsmi_set_gpu_perf_determinism_mode(
 }
 
 amdsmi_status_t
- amdsmi_set_gpu_power_profile(amdsmi_processor_handle processor_handle,
+amdsmi_set_gpu_power_profile(amdsmi_processor_handle processor_handle,
         uint32_t reserved, amdsmi_power_profile_preset_masks_t profile) {
+
+    // Bare Metal and passthrough only feature
+    amdsmi_virtualization_mode_t virt_mode;
+    if (amdsmi_get_gpu_virtualization_mode(processor_handle, &virt_mode) == AMDSMI_STATUS_SUCCESS) {
+        if (virt_mode == AMDSMI_VIRTUALIZATION_MODE_GUEST) {
+        return AMDSMI_STATUS_NOT_SUPPORTED;
+        }
+    }
+
     return rsmi_wrapper(rsmi_dev_power_profile_set, processor_handle, 0,
                 reserved,
                 static_cast<rsmi_power_profile_preset_masks_t>(profile));
@@ -3443,6 +3471,15 @@ amdsmi_status_t
 
 amdsmi_status_t  amdsmi_set_gpu_pci_bandwidth(amdsmi_processor_handle processor_handle,
                 uint64_t bw_bitmask) {
+
+    // Bare Metal and passthrough only feature
+    amdsmi_virtualization_mode_t virt_mode;
+    if (amdsmi_get_gpu_virtualization_mode(processor_handle, &virt_mode) == AMDSMI_STATUS_SUCCESS) {
+        if (virt_mode == AMDSMI_VIRTUALIZATION_MODE_GUEST) {
+        return AMDSMI_STATUS_NOT_SUPPORTED;
+        }
+    }
+                    
     return rsmi_wrapper(rsmi_dev_pci_bandwidth_set, processor_handle, 0,
                         bw_bitmask);
 }
@@ -3539,6 +3576,14 @@ amdsmi_status_t  amdsmi_set_clk_freq(amdsmi_processor_handle processor_handle,
             return AMDSMI_STATUS_NOT_SUPPORTED;
     }
 
+    // Bare Metal and passthrough only feature
+    amdsmi_virtualization_mode_t virt_mode;
+    if (amdsmi_get_gpu_virtualization_mode(processor_handle, &virt_mode) == AMDSMI_STATUS_SUCCESS) {
+        if (virt_mode == AMDSMI_VIRTUALIZATION_MODE_GUEST) {
+        return AMDSMI_STATUS_NOT_SUPPORTED;
+        }
+    }
+
     return rsmi_wrapper(rsmi_dev_gpu_clk_freq_set, processor_handle, 0,
                     static_cast<rsmi_clk_type_t>(clk_type), freq_bitmask);
 }
@@ -3619,6 +3664,15 @@ amdsmi_status_t amdsmi_get_gpu_memory_usage(amdsmi_processor_handle processor_ha
 amdsmi_status_t amdsmi_get_gpu_overdrive_level(
             amdsmi_processor_handle processor_handle,
             uint32_t *od) {
+
+    // Bare Metal and passthrough only feature
+    amdsmi_virtualization_mode_t virt_mode;
+    if (amdsmi_get_gpu_virtualization_mode(processor_handle, &virt_mode) == AMDSMI_STATUS_SUCCESS) {
+        if (virt_mode == AMDSMI_VIRTUALIZATION_MODE_GUEST) {
+        return AMDSMI_STATUS_NOT_SUPPORTED;
+        }
+    }
+
     return rsmi_wrapper(rsmi_dev_overdrive_level_get, processor_handle, 0, od);
 }
 
@@ -3630,6 +3684,15 @@ amdsmi_status_t amdsmi_get_gpu_mem_overdrive_level(
 
 amdsmi_status_t  amdsmi_set_gpu_overdrive_level(
             amdsmi_processor_handle processor_handle, uint32_t od) {
+
+    // Bare Metal and passthrough only feature
+    amdsmi_virtualization_mode_t virt_mode;
+    if (amdsmi_get_gpu_virtualization_mode(processor_handle, &virt_mode) == AMDSMI_STATUS_SUCCESS) {
+        if (virt_mode == AMDSMI_VIRTUALIZATION_MODE_GUEST) {
+        return AMDSMI_STATUS_NOT_SUPPORTED;
+        }
+    }
+
     return rsmi_wrapper(rsmi_dev_overdrive_level_set_v1, processor_handle, 0, od);
 }
 amdsmi_status_t  amdsmi_get_gpu_pci_replay_counter(
@@ -3684,6 +3747,15 @@ amdsmi_status_t amdsmi_set_gpu_clk_range(amdsmi_processor_handle processor_handl
                                     uint64_t minclkvalue,
                                     uint64_t maxclkvalue,
                                     amdsmi_clk_type_t clkType) {
+
+    // Bare Metal and passthrough only feature
+    amdsmi_virtualization_mode_t virt_mode;
+    if (amdsmi_get_gpu_virtualization_mode(processor_handle, &virt_mode) == AMDSMI_STATUS_SUCCESS) {
+        if (virt_mode == AMDSMI_VIRTUALIZATION_MODE_GUEST) {
+        return AMDSMI_STATUS_NOT_SUPPORTED;
+        }
+    }
+                                        
     return rsmi_wrapper(rsmi_dev_clk_range_set, processor_handle, 0,
                 minclkvalue, maxclkvalue,
                 static_cast<rsmi_clk_type_t>(clkType));
@@ -3809,11 +3881,11 @@ amdsmi_get_gpu_vbios_info(amdsmi_processor_handle processor_handle, amdsmi_vbios
     }
 
     amd::smi::AMDSmiLibraryLoader libdrm;
-    status = libdrm.load("libdrm.so.2");
+    status = libdrm.load(LIBDRM_AMDGPU_SONAME);
     if (status != AMDSMI_STATUS_SUCCESS) {
         libdrm.unload();
         ss << __PRETTY_FUNCTION__
-           << " | Failed to load libdrm.so.2: " << strerror(errno)
+           << " | Failed to load " LIBDRM_AMDGPU_SONAME ": " << strerror(errno)
            << "; Returning: " << smi_amdgpu_get_status_string(status, false);
         LOG_ERROR(ss);
         return status;
@@ -3860,28 +3932,42 @@ amdsmi_get_gpu_vbios_info(amdsmi_processor_handle processor_handle, amdsmi_vbios
         info->build_date[AMDSMI_MAX_STRING_LENGTH - 1] = '\0';
         strncpy(info->part_number, reinterpret_cast<char *>(vbios.vbios_pn),
                 AMDSMI_MAX_STRING_LENGTH);
+        // Navi devices still interpret vbios version from drm vbios_ver_str
         strncpy(info->version, reinterpret_cast<char *>(vbios.vbios_ver_str),
                 AMDSMI_MAX_STRING_LENGTH);
     } else {
-        // get vbios version string from rocm_smi
+        // get sysfs vbios_version string which is known as the part number
         char vbios_version[AMDSMI_MAX_STRING_LENGTH];
         status = rsmi_wrapper(rsmi_dev_vbios_version_get, processor_handle, 0,
-                vbios_version,
-                AMDSMI_MAX_STRING_LENGTH);
+                              vbios_version, AMDSMI_MAX_STRING_LENGTH);
 
-        // ignore the errors so that it can populate as many fields as possible.
+        // fail if cannot get vbios version from sysfs
         if (status == AMDSMI_STATUS_SUCCESS) {
-            strncpy(info->version,
-                vbios_version, AMDSMI_MAX_STRING_LENGTH);
+            strncpy(info->part_number, vbios_version, AMDSMI_MAX_STRING_LENGTH);
         }
     }
     libdrm.unload();
+
+    // get vbios build string from rocm_smi which translates to ifwi version
+    char vbios_build_number[AMDSMI_MAX_STRING_LENGTH];
+    amdsmi_status_t build_status;
+    build_status = rsmi_wrapper(rsmi_dev_vbios_build_number_get, processor_handle, 0,
+                                vbios_build_number, AMDSMI_MAX_STRING_LENGTH);
+
+    // Continue if sysfs doesn't exist
+    if (build_status == AMDSMI_STATUS_SUCCESS) {
+        // This device has an ifwi version so swap the version and boot_firmware
+        strncpy(info->boot_firmware, info->version, AMDSMI_MAX_STRING_LENGTH);
+        strncpy(info->version, vbios_build_number, AMDSMI_MAX_STRING_LENGTH);
+    }
+
     ss << __PRETTY_FUNCTION__
        << " | drmCommandWrite returned: " << strerror(errno) << "\n"
        << " | vbios name: " << info->name << "\n"
        << " | vbios build date: " << info->build_date << "\n"
        << " | vbios part number: " << info->part_number << "\n"
        << " | vbios version: " << info->version << "\n"
+       << " | vbios boot_firmware: " << info->boot_firmware<< "\n"
        << " | Returning: " << smi_amdgpu_get_status_string(status, false);
     LOG_INFO(ss);
     return status;
@@ -4371,11 +4457,11 @@ amdsmi_status_t amdsmi_get_gpu_driver_info(amdsmi_processor_handle processor_han
         return AMDSMI_STATUS_FILE_ERROR;
     }
     amd::smi::AMDSmiLibraryLoader libdrm;
-    status = libdrm.load("libdrm.so.2");
+    status = libdrm.load(LIBDRM_AMDGPU_SONAME);
     if (status != AMDSMI_STATUS_SUCCESS) {
         libdrm.unload();
         ss << __PRETTY_FUNCTION__
-           << " | Failed to load libdrm.so.2"
+           << " | Failed to load " LIBDRM_AMDGPU_SONAME ": " << strerror(errno)
            << "; Returning: " << smi_amdgpu_get_status_string(status, false);
         LOG_ERROR(ss);
         return status;
@@ -4736,8 +4822,8 @@ amdsmi_get_link_topology_nearest(amdsmi_processor_handle processor_handle,
     }
 
 
-    uint32_t device_counter(AMDSMI_MAX_DEVICES);
-    amdsmi_processor_handle device_list[AMDSMI_MAX_DEVICES];
+    uint32_t device_counter(AMDSMI_MAX_DEVICES * AMDSMI_MAX_NUM_XCP);
+    amdsmi_processor_handle device_list[AMDSMI_MAX_DEVICES * AMDSMI_MAX_NUM_XCP];
     for (auto socket_idx = uint32_t(0); socket_idx < socket_counter; ++socket_idx) {
         if (auto api_status = amdsmi_get_processor_handles(socket_list[socket_idx], &device_counter, device_list);
             (api_status != amdsmi_status_t::AMDSMI_STATUS_SUCCESS)) {
@@ -4785,14 +4871,14 @@ amdsmi_get_link_topology_nearest(amdsmi_processor_handle processor_handle,
     /*
      *  Note: The link topology table is sorted by the number of hops and link weight.
      */
-    topology_nearest_info->processor_list[AMDSMI_MAX_DEVICES] = {nullptr};
+    topology_nearest_info->processor_list[AMDSMI_MAX_DEVICES * AMDSMI_MAX_NUM_XCP] = {nullptr};
     topology_nearest_info->count = static_cast<uint32_t>(link_topology_order.size());
     auto topology_nearest_counter = uint32_t(0);
     while (!link_topology_order.empty()) {
         auto link_info = link_topology_order.top();
         link_topology_order.pop();
 
-        if (topology_nearest_counter < AMDSMI_MAX_DEVICES) {
+        if (topology_nearest_counter < (AMDSMI_MAX_DEVICES * AMDSMI_MAX_NUM_XCP)) {
             topology_nearest_info->processor_list[topology_nearest_counter++] = link_info.target_processor_handle;
         }
     }
@@ -4801,7 +4887,7 @@ amdsmi_get_link_topology_nearest(amdsmi_processor_handle processor_handle,
 }
 
 static const std::map<amdsmi_virtualization_mode_t, std::string>
-  virtualization_mode_map = {
+virtualization_mode_map = {
   {AMDSMI_VIRTUALIZATION_MODE_UNKNOWN, "UNKNOWN"},
   {AMDSMI_VIRTUALIZATION_MODE_BAREMETAL, "BAREMETAL"},
   { AMDSMI_VIRTUALIZATION_MODE_HOST, "HOST"},
@@ -4848,11 +4934,11 @@ amdsmi_get_gpu_virtualization_mode(amdsmi_processor_handle processor_handle,
     }
 
     amd::smi::AMDSmiLibraryLoader libdrm;
-    status = libdrm.load("libdrm.so.2");
+    status = libdrm.load(LIBDRM_AMDGPU_SONAME);
     if (status != AMDSMI_STATUS_SUCCESS) {
         libdrm.unload();
         ss << __PRETTY_FUNCTION__
-           << " | Failed to load libdrm.so.2"
+           << " | Failed to load " LIBDRM_AMDGPU_SONAME ": " << strerror(errno)
            << "; Returning: " << smi_amdgpu_get_status_string(status, false);
         LOG_ERROR(ss);
         return status;
@@ -6238,6 +6324,8 @@ amdsmi_status_t amdsmi_get_cpu_handles(uint32_t *cpu_count,
                                                       nullptr, &cpu_per_soc);
         if (status != AMDSMI_STATUS_SUCCESS)
             return status;
+        if (cpu_per_soc == 0)
+            continue;
 
         // Allocate the memory for the cpus
         std::vector<amdsmi_processor_handle> plist(cpu_per_soc);

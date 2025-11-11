@@ -24,19 +24,16 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <string.h>
+#include <cstring>
 #include <memory>
 #include <regex>
+#include "config/amd_smi_config.h"
 #include "amd_smi/impl/amd_smi_drm.h"
-#include "amd_smi/impl/amd_smi_common.h"
 #include "impl/scoped_fd.h"
 #include "rocm_smi/rocm_smi.h"
 #include "rocm_smi/rocm_smi_main.h"
-#include "rocm_smi/rocm_smi_utils.h"
-#include "rocm_smi/rocm_smi_logger.h"
 
-namespace amd {
-namespace smi {
+namespace amd::smi {
 
 
 std::string AMDSmiDrm::find_file_in_folder(const std::string& folder,
@@ -59,7 +56,7 @@ std::string AMDSmiDrm::find_file_in_folder(const std::string& folder,
 }
 
 amdsmi_status_t AMDSmiDrm::init() {
-    amdsmi_status_t status = lib_loader_.load("libdrm.so.2");
+    amdsmi_status_t status = lib_loader_.load(LIBDRM_AMDGPU_SONAME);
     if (status != AMDSMI_STATUS_SUCCESS) {
         return status;
     }
@@ -116,7 +113,6 @@ amdsmi_status_t AMDSmiDrm::init() {
     amd::smi::RocmSMI& smi = amd::smi::RocmSMI::getInstance();
     auto devices = smi.devices();
 
-    bool has_valid_fds = false;
     for (uint32_t i=0; i < devices.size(); i++) {
         auto rocm_smi_device = devices[i];
         drmDevicePtr device;
@@ -127,46 +123,37 @@ amdsmi_status_t AMDSmiDrm::init() {
 
         // looking for /sys/class/drm/card0/../renderD*
         std::string render_name = find_file_in_folder(renderD_folder, regex);
+        drm_paths_.push_back(render_name);
+
         std::string name = "/dev/dri/" + render_name;
         ScopedFD fd(name.c_str(), O_RDWR | O_CLOEXEC);
 
         amdsmi_bdf_t bdf;
         if (fd.valid()) {
             auto version = drm_get_version(fd);
-            if (drm_get_device(fd, &device) != 0) {
+            if (drm_get_device(fd, &device) == 0) {
+                vendor_id = device->deviceinfo.pci->vendor_id;
+                drm_free_device(&device);
+            } else {
                 drm_free_device(&device);
             }
             drm_free_version(version);
-            has_valid_fds = true;
-        }
-
-        drm_paths_.push_back(render_name);
-        // even if fail, still add to prevent mismatch the index
-        if (!has_valid_fds) {
-            drm_bdfs_.push_back(bdf);
-            // No need to free device here since it is not valid
-            continue;
         }
 
         uint64_t bdf_rocm = 0;
-        rsmi_dev_pci_id_get(i, &bdf_rocm);
-
-        vendor_id = device->deviceinfo.pci->vendor_id;
-
-        bdf.domain_number = static_cast<uint64_t>(((bdf_rocm >> 32) & 0xFFFFFFFF));
-        bdf.bus_number = static_cast<uint64_t>(((bdf_rocm >> 8) & 0xFF));
-        bdf.device_number = static_cast<uint64_t>(((bdf_rocm >> 3) & 0x1F));
-        bdf.function_number = static_cast<uint64_t>((bdf_rocm & 0x7));
-
+        rsmi_status_t rsmi_ret = rsmi_dev_pci_id_get(i, &bdf_rocm);
+        if (rsmi_ret != RSMI_STATUS_SUCCESS) {
+            // Set empty values on error
+            bdf = {}; // zero-initialize
+        } else {
+            bdf.domain_number = static_cast<uint64_t>(((bdf_rocm >> 32) & 0xFFFFFFFF));
+            bdf.bus_number = static_cast<uint64_t>(((bdf_rocm >> 8) & 0xFF));
+            bdf.device_number = static_cast<uint64_t>(((bdf_rocm >> 3) & 0x1F));
+            bdf.function_number = static_cast<uint64_t>((bdf_rocm & 0x7));
+        }
         drm_bdfs_.push_back(bdf);
-        drm_free_device(&device);
     }
 
-    // cannot find any valid fds.
-    if (!has_valid_fds) {
-        drm_bdfs_.clear();
-        return AMDSMI_STATUS_INIT_ERROR;
-    }
     return AMDSMI_STATUS_SUCCESS;
 }
 
@@ -207,6 +194,4 @@ uint32_t AMDSmiDrm::get_vendor_id() {
     return vendor_id;
 }
 
-}  // namespace smi
-}  // namespace amd
-
+} // namespace amd::smi

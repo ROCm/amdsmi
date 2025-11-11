@@ -24,9 +24,8 @@
 #include <sys/ioctl.h>
 #include <libdrm/amdgpu.h>
 #include <libdrm/drm.h>
-#include <errno.h>
 #include <fcntl.h>
-#include <stdint.h>
+#include <cstdint>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -46,6 +45,7 @@
 #include <regex>
 #include <sstream>
 
+#include "config/amd_smi_config.h"
 #include "amd_smi/impl/amd_smi_utils.h"
 #include "amd_smi/impl/amd_smi_system.h"
 #include "shared_mutex.h"  // NOLINT
@@ -332,7 +332,6 @@ amdsmi_status_t smi_amdgpu_get_ranges(amd::smi::AMDSmiGPUDevice* device, amdsmi_
 
     // if getting sclk or mclk info, read pp_od_clk_voltage for min and max info
     if (sclk || mclk) {
-        unsigned int dpm_level;
         std::ifstream smclk_ranges(smclk_min_max_fullpath.c_str());
         unsigned int smax = 0;
         unsigned int mmax = 0;
@@ -682,7 +681,7 @@ amdsmi_status_t smi_amdgpu_get_market_name_from_dev_id(amd::smi::AMDSmiGPUDevice
     }
 
     amd::smi::AMDSmiLibraryLoader libdrm_amdgpu_;
-    amdsmi_status_t status = libdrm_amdgpu_.load("libdrm_amdgpu.so");
+    amdsmi_status_t status = libdrm_amdgpu_.load(LIBDRM_AMDGPU_SONAME);
     if (status != AMDSMI_STATUS_SUCCESS) {
       libdrm_amdgpu_.unload();
       return status;

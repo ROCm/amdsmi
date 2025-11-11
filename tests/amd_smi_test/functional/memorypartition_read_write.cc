@@ -20,8 +20,7 @@
  * THE SOFTWARE.
  */
 
-#include <stdint.h>
-#include <stddef.h>
+#include <cstdint>
 
 #include <cstdint>
 #include <iostream>
@@ -34,6 +33,7 @@
 #include "../test_common.h"
 #include "amd_smi/amdsmi.h"
 #include "amd_smi/impl/amd_smi_utils.h"
+#include "rocm_smi/rocm_smi_utils.h"
 #include "memorypartition_read_write.h"
 
 const uint32_t MAX_UNSUPPORTED_PARTITIONS = 0;
@@ -84,7 +84,7 @@ void ReloadDriverWithMessages(bool isVerbose,
       }
     }
     // Tests should fail if the driver reload fails
-    // TODO(amdsmi_team): This is a temporary solution until TCT can update
+    // TODO(amdsmi_team): This is a temporary solution until CQE can update
     //                    how their containers are ran.
     //                    This is because the driver reload requires:
     //                    1) Containers must run serially
@@ -258,7 +258,14 @@ void TestMemoryPartitionReadWrite::Run(void) {
           if (ret == AMDSMI_STATUS_SUCCESS) {
             max_xcps = static_cast<uint32_t>(num_xcd);
           }
-          EXPECT_LT(partition_id[i], max_xcps);
+          if (!amd::smi::is_vm_guest()) {
+            // In BM, we can get the number of XCDs (calculated by getting # of gfx_clocks)
+            EXPECT_LT(partition_id[i], max_xcps);
+          } else {
+            // In guest, we may not be able to get the number of XCDs
+            // (calculated by getting # of gfx_clocks)
+            EXPECT_LE(partition_id[i], max_xcps);
+          }
           break;
         }
         case AMDSMI_ACCELERATOR_PARTITION_INVALID:
@@ -395,20 +402,6 @@ void TestMemoryPartitionReadWrite::Run(void) {
   // FYI Need to place after saving current compute partitions, since reloading driver will reset
   // all back to SPX/DPX/etc (whatever is default for that NPS mode; see
   // `sudo amd-smi partition -a`).
-  IF_VERB(STANDARD) {
-    std::cout << "\t**"
-              << "======== TEST AMDSMI_GPU_DRIVER_RELOAD() BEFORE"
-              << " MEMORY PARTITION CHECKS ===============" << std::endl;
-  }
-  amdsmi_status_t driver_reload_status = AMDSMI_STATUS_NOT_SUPPORTED;
-  std::string preload_message =
-    "\t  Reloading the AMD GPU driver before memory partition checks."
-    " This may take some time, please wait...";
-  ReloadDriverWithMessages(isVerbose, preload_message,
-    "amdsmi_gpu_driver_reload() successful.",
-    "amdsmi_gpu_driver_reload() failed",
-    "amdsmi_gpu_driver_reload() failed with AMDGPU_RESTART_ERR",
-    &driver_reload_status);
 
   // Run memory partition tests
   IF_VERB(STANDARD) {
@@ -451,8 +444,7 @@ void TestMemoryPartitionReadWrite::Run(void) {
                 << orig_memory_partition << std::endl;
     }
 
-    if ((orig_memory_partition == nullptr) ||
-       (orig_memory_partition[0] == '\0')) {
+    if (orig_memory_partition[0] == '\0') {
       std::cout << "***System memory partition value is not defined or received"
                   " unexpected data. Skip memory partition test." << std::endl;
       continue;
@@ -773,7 +765,7 @@ void TestMemoryPartitionReadWrite::Run(void) {
         // amdsmi_set_gpu_memory_partition().
         // This is to allow the user to select the appropriate time to reload the driver
         // since there can be errors if any device has a workload/process running on it.
-        driver_reload_status = AMDSMI_STATUS_NOT_SUPPORTED;
+        amdsmi_status_t driver_reload_status = AMDSMI_STATUS_NOT_SUPPORTED;
         std::string reload_message =
           "\t  Reloading the AMD GPU driver after resetting memory partition to "
           + std::string(orig_memory_partition)

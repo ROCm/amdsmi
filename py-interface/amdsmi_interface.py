@@ -2144,7 +2144,7 @@ def amdsmi_get_gpu_pm_metrics_info(
 
     _check_res(
         amdsmi_wrapper.amdsmi_get_gpu_pm_metrics_info(
-            processor_handle, POINTER(pm_metrics), ctypes.byref(num_mets)
+            processor_handle, pm_metrics, ctypes.byref(num_mets)
         )
     )
 
@@ -2173,7 +2173,7 @@ def amdsmi_get_gpu_reg_table_info(
 
     _check_res(
         amdsmi_wrapper.amdsmi_get_gpu_reg_table_info(
-            processor_handle, reg_type, POINTER(reg_metrics), ctypes.byref(num_regs)
+            processor_handle, reg_type, reg_metrics, ctypes.byref(num_regs)
         )
     )
 
@@ -2310,11 +2310,16 @@ def amdsmi_get_gpu_vbios_info(
             processor_handle, ctypes.byref(vbios_info))
     )
 
+    boot_firmware = vbios_info.boot_firmware.decode("utf-8")
+    if boot_firmware == "":
+        boot_firmware = "N/A"
+
     return {
         "name": vbios_info.name.decode("utf-8"),
         "build_date": vbios_info.build_date.decode("utf-8"),
         "part_number": vbios_info.part_number.decode("utf-8"),
         "version": vbios_info.version.decode("utf-8"),
+        "boot_firmware": boot_firmware,
     }
 
 
@@ -5252,3 +5257,32 @@ def amdsmi_get_rocm_version()-> Tuple[bool, str]:
         return False, "Could not find librocm-core.so"
     except Exception as e:
         return False, f"Unable to detect ROCm installation, Unknown Error: {e}"
+
+
+def amdsmi_get_gpu_revision(processor_handle: processor_handle) -> str:
+    """
+    Get the GPU revision for a given processor handle.
+
+    Parameters:
+        processor_handle (amdsmi_processor_handle): The processor handle for the GPU.
+
+    Returns:
+        str: The GPU revision as a string.
+
+    Raises:
+        AmdSmiParameterException: If the processor handle is invalid.
+        AmdSmiLibraryException: If the underlying library call fails.
+    """
+    if not isinstance(processor_handle, amdsmi_wrapper.amdsmi_processor_handle):
+        raise AmdSmiParameterException(
+            processor_handle, amdsmi_wrapper.amdsmi_processor_handle
+        )
+
+    revision = ctypes.c_uint16()
+    _check_res(
+        amdsmi_wrapper.amdsmi_get_gpu_revision(
+            processor_handle, ctypes.byref(revision)
+        )
+    )
+
+    return _pad_hex_value(hex(revision.value), 2)

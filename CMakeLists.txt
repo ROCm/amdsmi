@@ -43,7 +43,11 @@ find_program(GIT NAMES git)
 
 ## Setup the package version based on git tags.
 set(PKG_VERSION_GIT_TAG_PREFIX "amdsmi_pkg_ver")
-get_package_version_number("26.0.2" ${PKG_VERSION_GIT_TAG_PREFIX} GIT)
+get_version_from_file("include/amd_smi/amdsmi.h" "MAJOR")
+get_version_from_file("include/amd_smi/amdsmi.h" "MINOR")
+get_version_from_file("include/amd_smi/amdsmi.h" "RELEASE")
+set(DEFAULT_VERSION "${MAJOR}.${MINOR}.${RELEASE}")
+get_package_version_number(${DEFAULT_VERSION} ${PKG_VERSION_GIT_TAG_PREFIX} GIT)
 message("Package version: ${PKG_VERSION_STR}")
 set(${AMD_SMI_LIBS_TARGET}_VERSION_MAJOR "${CPACK_PACKAGE_VERSION_MAJOR}")
 set(${AMD_SMI_LIBS_TARGET}_VERSION_MINOR "${CPACK_PACKAGE_VERSION_MINOR}")
@@ -53,6 +57,11 @@ set(${AMD_SMI_LIBS_TARGET}_VERSION_HASH "${PKG_VERSION_HASH}")
 set(${AMD_SMI_LIBS_TARGET}_VERSION_STRING
     "${${AMD_SMI_LIBS_TARGET}_VERSION_MAJOR}.${${AMD_SMI_LIBS_TARGET}_VERSION_MINOR}.${${AMD_SMI_LIBS_TARGET}_VERSION_PATCH}+${${AMD_SMI_LIBS_TARGET}_VERSION_HASH}"
 )
+
+set(DEFAULT_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
+update_version_in_file("include/amd_smi/amdsmi.h" ${DEFAULT_VERSION} "#define AMDSMI_LIB_VERSION_" " *" " ")
+update_version_in_file("rust-interface/src/amdsmi_wrapper.rs" ${DEFAULT_VERSION} "AMDSMI_LIB_VERSION_" " *: *u32 *= *"
+                       ": u32 = ")
 
 # Make proper version for appending
 # Default Value is 99999
@@ -88,6 +97,10 @@ option(ENABLE_ASAN_PACKAGING "" OFF)
 option(ENABLE_ESMI_LIB "Build ESMI Library" ON)
 option(BUILD_EXAMPLES "Build examples" OFF)
 
+# If amdsmi is built as a static library, it should support being embedded in other programs. The setting below essentially enables the -fPIC flag.
+set(CMAKE_POSITION_INDEPENDENT_CODE ON CACHE BOOL "Enable position independent code for all targets")
+mark_as_advanced(CMAKE_POSITION_INDEPENDENT_CODE)
+
 include(CMakeDependentOption)
 # these options don't work without BUILD_SHARED_LIBS
 cmake_dependent_option(BUILD_WRAPPER "Rebuild AMDSMI-wrapper" OFF "BUILD_SHARED_LIBS" OFF)
@@ -102,6 +115,50 @@ set(SHARE_INSTALL_PREFIX "${CMAKE_INSTALL_DATAROOTDIR}/${AMD_SMI}" CACHE STRING 
 set(CPACK_PACKAGE_CONTACT "AMD-SMILib Support <amd-smi.support@amd.com>" CACHE STRING "")
 
 generic_package()
+
+# Dependencies
+find_package(Threads REQUIRED)
+pkg_check_modules(DRM REQUIRED IMPORTED_TARGET libdrm)
+pkg_check_modules(DRM_AMDGPU REQUIRED IMPORTED_TARGET libdrm_amdgpu)
+
+# Configuration
+function(get_imported_soname target out_var)
+    get_target_property(link_libs ${target} INTERFACE_LINK_LIBRARIES)
+    set(result)
+    foreach(link_lib ${link_libs})
+        if(result)
+            message(FATAL_ERROR "Target ${target} has multiple link libraries: ${link_libs}")
+        endif()
+        execute_process(
+            COMMAND objdump -p "${link_lib}"
+            OUTPUT_VARIABLE OBJDUMP_OUTPUT
+            RESULT_VARIABLE OBJDUMP_RESULT
+        )
+        if(OBJDUMP_RESULT EQUAL 0)
+            string(REGEX MATCH "SONAME +([^ \n]+)" SONAME_MATCH "${OBJDUMP_OUTPUT}")
+            if(SONAME_MATCH)
+                set(SONAME_OF_MY_PKG "${CMAKE_MATCH_1}")
+                message(STATUS "SONAME of my_package_name: ${SONAME_OF_MY_PKG}")
+            else()
+                message(FATAL_ERROR "Could not find SONAME in objdump output for ${link_lib}")
+            endif()
+            set(result "${SONAME_OF_MY_PKG}")
+        else()
+            message(FATAL_ERROR "objdump failed for ${link_lib}")
+        endif()
+    endforeach()
+    if(NOT result)
+        message(FATAL_ERROR "Could not find SONAME for target ${target} libs: ${link_libs}")
+    endif()
+    set("${out_var}" "${result}" PARENT_SCOPE)
+endfunction()
+
+get_imported_soname(PkgConfig::DRM_AMDGPU LIBDRM_AMDGPU_SONAME)
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/config/amd_smi_config.h.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/include/config/amd_smi_config.h"
+    @ONLY
+)
 
 ## Compiler flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -fno-rtti")
@@ -171,8 +228,13 @@ if(ENABLE_ESMI_LIB)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-write-strings")
 endif()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/third_party/shared_mutex
-                    ${CMAKE_CURRENT_SOURCE_DIR}/include/amd_smi ${ESMI_INC_DIR})
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}/include 
+    ${CMAKE_CURRENT_BINARY_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/shared_mutex                
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/amd_smi 
+    ${ESMI_INC_DIR}
+)
 
 set(CMN_SRC_LIST
     "${ROCM_SRC_DIR}/rocm_smi_device.cc"
@@ -184,6 +246,7 @@ set(CMN_SRC_LIST
     "${ROCM_SRC_DIR}/rocm_smi_kfd.cc"
     "${ROCM_SRC_DIR}/rocm_smi_io_link.cc"
     "${ROCM_SRC_DIR}/rocm_smi_gpu_metrics.cc"
+    "${ROCM_SRC_DIR}/rocm_smi_dyn_gpu_metrics.cc"
     "${ROCM_SRC_DIR}/rocm_smi.cc"
     "${ROCM_SRC_DIR}/rocm_smi_logger.cc"
     "${SHR_MUTEX_DIR}/shared_mutex.cc"
@@ -209,12 +272,12 @@ set(CMN_INC_LIST
     "${ROCM_INC_DIR}/rocm_smi_kfd.h"
     "${ROCM_INC_DIR}/rocm_smi_io_link.h"
     "${ROCM_INC_DIR}/rocm_smi_gpu_metrics.h"
+    "${ROCM_INC_DIR}/rocm_smi_dyn_gpu_metrics.h"
     "${ROCM_INC_DIR}/rocm_smi.h"
     "${ROCM_INC_DIR}/rocm_smi_logger.h"
     "${SHR_MUTEX_DIR}/shared_mutex.h"
     "${ROCM_INC_DIR}/rocm_smi_binary_parser.h"
-    "${ROCM_INC_DIR}/rocm_smi_board_temp.h"
-    )
+    "${ROCM_INC_DIR}/rocm_smi_board_temp.h")
 
 add_subdirectory("rocm_smi")
 add_subdirectory("src")
@@ -264,8 +327,6 @@ export(TARGETS ${AMD_SMI} FILE "${PROJECT_BINARY_DIR}/amd_smi_target.cmake")
 # (this registers the build-tree with a global CMake-registry)
 export(PACKAGE ${AMD_SMI})
 
-# Create the amd_smiConfig.cmake and amd_smiConfigVersion files
-# ... for the build tree
 install(
     EXPORT amd_smiTargets
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${AMD_SMI}
@@ -273,12 +334,12 @@ install(
 
 set(CPACK_RPM_PACKAGE_LICENSE "MIT")
 if(ENABLE_ASAN_PACKAGING)
-# install license file in share/doc/amd_smi-asan folder
-install(
-    FILES ${CPACK_RESOURCE_FILE_LICENSE}
-    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/doc/${CPACK_PACKAGE_NAME}-asan
-    RENAME LICENSE.txt
-    COMPONENT asan)
+    # install license file in share/doc/amd_smi-asan folder
+    install(
+        FILES ${CPACK_RESOURCE_FILE_LICENSE}
+        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/doc/${CPACK_PACKAGE_NAME}-asan
+        RENAME LICENSE.txt
+        COMPONENT asan)
 endif()
 # docs are installed into different share directory from tests and examples
 install(

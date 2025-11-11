@@ -32,8 +32,6 @@
 #include <vector>
 #include <unordered_set>
 #include <map>
-#include <type_traits>
-#include <optional>
 
 #include "rocm_smi/rocm_smi_monitor.h"
 #include "rocm_smi/rocm_smi_power_mon.h"
@@ -44,8 +42,7 @@
 #include "rocm_smi/rocm_smi_gpu_metrics.h"
 #include "shared_mutex.h"   //NOLINT
 
-namespace amd {
-namespace smi {
+namespace amd::smi {
 
 enum DevKFDNodePropTypes {
   kDevKFDNodePropCachesCnt,
@@ -107,6 +104,7 @@ enum DevInfoTypes {
   kDevUsage,
   kDevPowerODVoltage,
   kDevVBiosVer,
+  kDevVBiosBuild,
   kDevPCIEThruPut,
   kDevErrCntSDMA,
   kDevErrCntUMC,
@@ -273,6 +271,8 @@ class Device {
     rsmi_status_t get_smi_device_identifiers(uint32_t device_id,
                   rsmi_device_identifiers_t *device_identifiers);
 
+    auto is_dynamic_gpu_metrics_supported() const -> bool { return m_is_dynamic_gpu_metrics_supported; }
+
  private:
     std::shared_ptr<Monitor> monitor_;
     std::shared_ptr<PowerMon> power_monitor_;
@@ -310,10 +310,12 @@ class Device {
     uint64_t m_gpu_metrics_updated_timestamp;
     uint32_t m_device_id;
     uint32_t m_partition_id;
+
+    // New dynamic GPU metrics support
+    bool m_is_dynamic_gpu_metrics_supported = false;
 };
 
 
-}  // namespace smi
-}  // namespace amd
+} // namespace amd::smi
 
 #endif  // INCLUDE_ROCM_SMI_ROCM_SMI_DEVICE_H_
