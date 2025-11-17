@@ -34,6 +34,7 @@ import errno
 import pwd
 import stat
 from typing import Tuple, Optional, Union
+import tempfile
 
 from enum import Enum
 from pathlib import Path
@@ -1749,15 +1750,14 @@ class AMDSMIHelpers():
             if len(entries) == 0:
                 break
             if args.decode and args.cper_file:
-                if args.folder:
-                    self.dump_cper_entries(args.folder, entries, cper_data, device_handle, args.file_limit)
-                afids = self.cper_dump_afids(args.cper_file)
-                afids_str = ' '.join(map(str, afids))
                 if args.json:
                     self.dump_cper_entries_as_json(entries, cper_data, device_handle)
-                else:
-                    print(' '.join(map(str, afids)))
-            if args.folder:
+                elif args.folder:
+                    self.dump_cper_entries(args.folder, entries, cper_data, device_handle, args.file_limit)
+                else: 
+                    with tempfile.TemporaryDirectory() as tmpdirname: #dump_cper_entries needs a folder in order to print info out
+                        self.dump_cper_entries(tmpdirname, entries, cper_data, device_handle, args.file_limit)
+            elif args.folder:
                 self.dump_cper_entries(args.folder, entries, cper_data, device_handle, args.file_limit)
             else:
                 self.display_cper_files_generated(entries, device_handle, args.folder)
