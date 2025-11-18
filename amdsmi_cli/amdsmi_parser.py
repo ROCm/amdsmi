@@ -1205,7 +1205,7 @@ class AMDSMIParser(argparse.ArgumentParser):
         hops_help = "Displays the number of hops between GPUs"
         link_type_help = "Displays the link type between GPUs"
         numa_bw_help = "Display max and min bandwidth between nodes"
-        coherent_help = "Display cache coherant (or non-coherant) link capability between nodes"
+        coherent_help = "Display cache coherent (or non-coherent) link capability between nodes"
         atomics_help = "Display 32 and 64-bit atomic io link capability between nodes"
         dma_help = "Display P2P direct memory access (DMA) link capability between nodes"
         bi_dir_help = "Display P2P bi-directional link capability between nodes"
