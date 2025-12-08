@@ -44,6 +44,7 @@ AMD SMI is the successor to <https://github.com/ROCm/rocm_smi_lib>.
   * [Data fields](../doxygen/docBin/html/functions_data_fields)
 * [Python API](./reference/amdsmi-py-api.md)
 * [Go API](./reference/amdsmi-go-api.md)
+* [Environment variables](./reference/amdsmi-env-var.md)
 :::
 
 :::{grid-item-card} Conceptual

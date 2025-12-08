@@ -14,23 +14,13 @@ serves as a valuable tool for leveraging the full potential of AMD hardware in
 your projects.
 
 ```{note}
-``hipcc`` and other compilers will not automatically link in the ``libamd_smi``
-dynamic library. To compile code that uses the AMD SMI library API, ensure the
-``libamd_smi.so`` can be located by setting the ``LD_LIBRARY_PATH`` environment
-variable to the directory containing ``librocm_smi64.so`` (usually
-``/opt/rocm/lib``) or by passing the ``-lamd_smi`` flag to the compiler.
-```
-
-```{note}
-The environment variable ``AMDSMI_GPU_METRICS_CACHE_MS`` may be set to
-control the internal GPU metrics cache duration (ms). 
-Default 1, set to 0 to disable.
-```
-
-```{note}
-The environment variable ``AMDSMI_ASIC_INFO_CACHE_MS`` may be set to
-control the internal GPU asic info cache duration (ms). 
-Default 10000 ms, set to 0 to disable.
+- ``hipcc`` and other compilers will not automatically link in the ``libamd_smi``
+  dynamic library. To compile code that uses the AMD SMI library API, ensure the
+  ``libamd_smi.so`` can be located by setting the ``LD_LIBRARY_PATH`` environment
+  variable to the directory containing ``librocm_smi64.so`` (usually
+  ``/opt/rocm/lib``) or by passing the ``-lamd_smi`` flag to the compiler.
+- Some behaviors can be controlled via environment variables. For more information,
+  see [environment variable](../reference/amdsmi-env-var.md) page.
 ```
 
 ```{seealso}

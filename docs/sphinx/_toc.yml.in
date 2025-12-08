@@ -48,6 +48,8 @@ subtrees:
     title: Python API
   - file: reference/amdsmi-go-api.md
     title: Go API
+  - file: reference/amdsmi-env-var.md
+    title: Environment variables
   - file: reference/changelog.md
     title: Changelog
 
