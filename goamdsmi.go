@@ -101,6 +101,27 @@ func GO_gpu_dev_name_get(i int) (*C.char) {
 	return C.goamdsmi_gpu_dev_name_get(C.uint(i))
 }
 
+// ``GO_gpu_dev_uuid_get`` returns the UUID of the GPU device at the specified GPU
+// index.
+//
+// Input parameter: ``int``, GPU index.
+//
+// Output: ``char*``, returns GPU UUID on success or "NA" on fail.
+//
+// Example:
+//
+//   import "github.com/ROCm/amdsmi"
+//
+//   if true == goamdsmi.GO_gpu_init() {
+//       num_gpus := int(goamdsmi.GO_gpu_num_monitor_devices())
+//       for i := 0; i < num_gpus; i++ {
+//           uuid := goamdsmi.GO_gpu_dev_uuid_get(i)
+//       }
+//   }
+func GO_gpu_dev_uuid_get(i int) (*C.char) {
+	return C.goamdsmi_gpu_dev_uuid_get(C.uint(i))
+}
+
 // ``GO_gpu_dev_id_get`` returns the device ID of the GPU device at the specified GPU
 // index.
 //

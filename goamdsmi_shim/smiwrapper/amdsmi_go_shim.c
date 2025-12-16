@@ -411,6 +411,21 @@ char* goamdsmi_gpu_dev_name_get(uint32_t dv_ind)
     return dev_name;
 }
 
+char *goamdsmi_gpu_dev_uuid_get(uint32_t dv_ind)
+{
+    bool readSuccess = false;
+    uint32_t len = AMDSMI_GPU_UUID_SIZE;
+    char* dev_uuid = (char*)malloc(sizeof(char)*len);dev_uuid[0] = '\0';
+    strcpy(dev_uuid, GOAMDSMI_STRING_NA);
+
+    if((dv_ind < num_gpu_devices_inAllSocket) && (AMDSMI_STATUS_SUCCESS == amdsmi_get_gpu_device_uuid(amdsmi_processor_handle_all_gpu_device_across_socket[dv_ind], &len, dev_uuid)))
+    {
+        readSuccess = true;
+        if (enable_debug_level(GOAMDSMI_DEBUG_LEVEL_1)) {printf("AMDSMI, %s for Gpu:%d UUID:%s\n", readSuccess?"Success":"Failed", dv_ind, dev_uuid);}
+    }
+    return dev_uuid;
+}
+
 uint16_t goamdsmi_gpu_dev_id_get(uint32_t dv_ind)
 {
     bool readSuccess         = false;
