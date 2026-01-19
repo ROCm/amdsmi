@@ -63,14 +63,68 @@ pub use crate::amdsmi_wrapper::{
     AMDSMI_NUM_VOLTAGE_CURVE_POINTS,
 };
 
-pub type AmdsmiResult<T> = Result<T, AmdsmiStatusT>;
+/// Error type for AMDSMI operations
+#[derive(Debug)]
+pub enum AmdsmiError {
+    /// Error returned from the C library
+    Status(AmdsmiStatusT),
+    /// Library could not be loaded at runtime
+    LibraryNotLoaded(String),
+    /// Symbol not found in the library
+    SymbolNotFound(String),
+}
+
+impl fmt::Display for AmdsmiError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            AmdsmiError::Status(status) => write!(f, "{}", status),
+            AmdsmiError::LibraryNotLoaded(msg) => write!(f, "Library not loaded: {}", msg),
+            AmdsmiError::SymbolNotFound(msg) => write!(f, "Symbol not found: {}", msg),
+        }
+    }
+}
+
+impl std::error::Error for AmdsmiError {}
+
+impl From<AmdsmiStatusT> for AmdsmiError {
+    fn from(status: AmdsmiStatusT) -> Self {
+        AmdsmiError::Status(status)
+    }
+}
+
+pub type AmdsmiResult<T> = Result<T, AmdsmiError>;
 
 //#[macro_export]
 macro_rules! call_unsafe {
     ($call:expr) => {{
         let status = unsafe { $call };
         if status != AmdsmiStatusT::AmdsmiStatusSuccess {
-            return Err(status);
+            return Err(AmdsmiError::Status(status));
+        }
+    }};
+}
+
+/// Macro for calling dynamically loaded AMDSMI functions
+///
+/// This macro gets the library handle, calls the function pointer,
+/// and handles error checking.
+macro_rules! call_amdsmi {
+    // Handle functions with arguments (with optional trailing comma)
+    ($fn_name:ident($($args:expr),+ $(,)?)) => {{
+        let lib = crate::library::get_library()
+            .map_err(|e| AmdsmiError::LibraryNotLoaded(e.clone()))?;
+        let status = unsafe { (lib.$fn_name)($($args),+) };
+        if status != AmdsmiStatusT::AmdsmiStatusSuccess {
+            return Err(AmdsmiError::Status(status));
+        }
+    }};
+    // Handle functions without arguments
+    ($fn_name:ident()) => {{
+        let lib = crate::library::get_library()
+            .map_err(|e| AmdsmiError::LibraryNotLoaded(e.clone()))?;
+        let status = unsafe { (lib.$fn_name)() };
+        if status != AmdsmiStatusT::AmdsmiStatusSuccess {
+            return Err(AmdsmiError::Status(status));
         }
     }};
 }

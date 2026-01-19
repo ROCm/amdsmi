@@ -170,19 +170,23 @@ fn generate_amdsmi_wrapper(amdsmi_header_file: &str) {
 }
 
 fn main() {
-    // Get the amd_smi library directory
-    let amdsmi_lib_dir = get_amdsmi_lib_dir().expect("Failed to get the amd_smi library path");
-
-    // Tell cargo to tell rustc to link the AMD-SMI library
-    println!("cargo:rustc-link-lib=amd_smi");
-    println!("cargo:rustc-link-search=native={}", amdsmi_lib_dir);
-
     let generate_wrapper = env::var("AMDSMI_GENERATE_RUST_WRAPPER").is_ok();
+
+    // Only require library at build time if generating wrapper
     if generate_wrapper {
+        // Get the amd_smi library directory (required for bindgen)
+        let _amdsmi_lib_dir = get_amdsmi_lib_dir()
+            .expect("Failed to get the amd_smi library path (required for bindgen generation)");
+
         // Get the amdsmi.h header file path
-        let amdsmi_header_file = get_amdsmi_header_file().expect("Failed to get the amd_smi header file");
+        let amdsmi_header_file = get_amdsmi_header_file()
+            .expect("Failed to get the amd_smi header file");
 
         // Generate the amdsmi wrapper
         generate_amdsmi_wrapper(&amdsmi_header_file);
     }
+
+    // NOTE: We no longer link against libamd_smi at compile time.
+    // The library is now loaded dynamically at runtime using libloading.
+    // This allows the crate to be built on systems without AMD hardware or ROCm installed.
 }
