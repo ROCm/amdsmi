@@ -4625,7 +4625,7 @@ pub fn amdsmi_is_p2p_accessible(
     processor_handle_dst: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<bool> {
     let mut accessible: bool = false;
-    call_amdsmi!(amdsmi_is_P2P_accessible(
+    call_amdsmi!(amdsmi_is_p2p_accessible(
         processor_handle_src,
         processor_handle_dst,
         &mut accessible

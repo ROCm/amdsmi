@@ -94,16 +94,6 @@ impl From<AmdsmiStatusT> for AmdsmiError {
 
 pub type AmdsmiResult<T> = Result<T, AmdsmiError>;
 
-//#[macro_export]
-macro_rules! call_unsafe {
-    ($call:expr) => {{
-        let status = unsafe { $call };
-        if status != AmdsmiStatusT::AmdsmiStatusSuccess {
-            return Err(AmdsmiError::Status(status));
-        }
-    }};
-}
-
 /// Macro for calling dynamically loaded AMDSMI functions
 ///
 /// This macro gets the library handle, calls the function pointer,
