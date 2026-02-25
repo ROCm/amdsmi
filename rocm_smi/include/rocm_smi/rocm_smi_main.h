@@ -117,6 +117,7 @@ class RocmSMI {
       uint64_t bdfid = std::numeric_limits<uint64_t>::max();
     } rsmi_device_enumeration_t;
     rsmi_status_t AddToDeviceList2(rsmi_device_enumeration_t device);
+
     void GetEnvVariables(void);
     std::shared_ptr<Monitor> FindMonitor(std::string monitor_path);
 

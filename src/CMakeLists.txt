@@ -99,6 +99,13 @@ target_include_directories(${AMD_SMI} PRIVATE
     ${DRM_AMDGPU_INCLUDE_DIRS}                                          
 )
 
+# Add BRCM SMI support if enabled
+if(ENABLE_BRCM_SMI)
+    target_compile_definitions(${AMD_SMI} PRIVATE ENABLE_BRCM_SMI=1)
+    target_include_directories(${AMD_SMI} PRIVATE ${PROJECT_SOURCE_DIR}/brcm-smi/include)
+    message(STATUS "BRCM SMI compile definition and include directory added to ${AMD_SMI}")
+endif()
+
 # use the target_include_directories() command to specify the include directories for the target
 target_include_directories(${AMD_SMI} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
                                              "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")

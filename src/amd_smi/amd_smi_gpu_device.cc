@@ -113,6 +113,15 @@ pthread_mutex_t* AMDSmiGPUDevice::get_mutex() {
     return amd::smi::GetMutex(gpu_id_);
 }
 
+amdsmi_status_t AMDSmiGPUDevice::amdgpu_query_cpu_affinity(std::string& cpu_affinity) const {
+    char bdf_str[20];
+    sprintf(bdf_str, "%04lx:%02x", bdf_.domain_number, bdf_.bus_number);
+  std::stringstream domain_bus_sstream;
+    domain_bus_sstream << "/sys/class/pci_bus/" << std::string(bdf_str);
+
+  return drm_.amdgpu_query_cpu_affinity(domain_bus_sstream.str(), cpu_affinity);
+}
+
 int32_t AMDSmiGPUDevice::get_compute_process_list_impl(GPUComputeProcessList_t& compute_process_list,
                                                        ComputeProcessListType_t list_type)
 {

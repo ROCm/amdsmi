@@ -656,10 +656,9 @@ amdsmi_get_gpu_device_bdf(amdsmi_processor_handle processor_handle, amdsmi_bdf_t
 
 amdsmi_status_t
 amdsmi_get_gpu_device_uuid(amdsmi_processor_handle processor_handle,
-                           unsigned int *uuid_length,
+                           unsigned int *uuid_length, 
                            char *uuid) {
     AMDSMI_CHECK_INIT();
-
     if (uuid_length == nullptr || uuid == nullptr || *uuid_length < AMDSMI_GPU_UUID_SIZE) {
         return AMDSMI_STATUS_INVAL;
     }
@@ -4001,6 +4000,31 @@ amdsmi_status_t amdsmi_get_gpu_topo_numa_affinity(
             numa_node);
 }
 
+amdsmi_status_t amdsmi_get_gpu_topo_cpu_affinity(amdsmi_processor_handle processor_handle,
+                                           unsigned int *cpu_aff_length, char *cpu_aff_data) {
+    AMDSMI_CHECK_INIT();
+
+    if (cpu_aff_length == nullptr || cpu_aff_data == nullptr || cpu_aff_length == nullptr ||
+        *cpu_aff_length < AMDSMI_MAX_STRING_LENGTH) {
+        return AMDSMI_STATUS_INVAL;
+    }
+
+    amdsmi_status_t status = AMDSMI_STATUS_SUCCESS;
+    amd::smi::AMDSmiGPUDevice* gpu_device = nullptr;
+    status = get_gpu_device_from_handle(processor_handle, &gpu_device);
+    if (status != AMDSMI_STATUS_SUCCESS)
+        return status;
+
+    std::string cpu_affinity;
+    status = gpu_device->amdgpu_query_cpu_affinity(cpu_affinity);
+    if (status != AMDSMI_STATUS_SUCCESS) {
+        printf("Getting cpu_affinity info failed. Return code: %d", status);
+        return status;
+    }
+    sprintf(cpu_aff_data, "%s", cpu_affinity.c_str());
+    return status;
+}
+
 amdsmi_status_t amdsmi_get_lib_version(amdsmi_version_t *version) {
     if (version == nullptr)
         return AMDSMI_STATUS_INVAL;
@@ -6580,3 +6604,274 @@ amdsmi_status_t amdsmi_get_esmi_err_msg(amdsmi_status_t status, const char **sta
 }
 
 #endif
+
+//==============================================================================
+// BRCM SMI Integration Functions
+//==============================================================================
+
+#ifdef ENABLE_BRCM_SMI
+
+// Include BRCM SMI header
+#include "brcm_smi/brcmsmi.h"
+
+//==============================================================================
+// Core System Functions
+//==============================================================================
+
+amdsmi_status_t amdsmi_brcm_init(uint64_t init_flags) {
+    brcmsmi_status_t status = brcmsmi_init(init_flags);
+    
+    // Convert BRCM SMI status to AMD SMI status
+    switch (status) {
+        case BRCMSMI_STATUS_SUCCESS:
+            return AMDSMI_STATUS_SUCCESS;
+        case BRCMSMI_STATUS_INIT_ERROR:
+            return AMDSMI_STATUS_INIT_ERROR;
+        case BRCMSMI_STATUS_INVALID_ARGS:
+            return AMDSMI_STATUS_INVAL;
+        default:
+            return AMDSMI_STATUS_UNKNOWN_ERROR;
+    }
+}
+
+amdsmi_status_t amdsmi_brcm_shutdown() {
+    brcmsmi_status_t status = brcmsmi_shutdown();
+    
+    // Convert BRCM SMI status to AMD SMI status
+    switch (status) {
+        case BRCMSMI_STATUS_SUCCESS:
+            return AMDSMI_STATUS_SUCCESS;
+        default:
+            return AMDSMI_STATUS_UNKNOWN_ERROR;
+    }
+}
+
+amdsmi_status_t amdsmi_brcm_discover_devices(amdsmi_brcm_discovery_result_t* result) {
+    if (result == nullptr) {
+        return AMDSMI_STATUS_INVAL;
+    }
+    
+    // Convert AMD SMI structure to BRCM SMI structure
+    brcmsmi_discovery_result_t brcm_result;
+    brcmsmi_status_t status = brcmsmi_discover_devices(&brcm_result);
+    
+    if (status == BRCMSMI_STATUS_SUCCESS) {
+        result->nic_count = brcm_result.nic_count;
+        result->switch_count = brcm_result.switch_count;
+        result->total_count = brcm_result.total_count;
+        return AMDSMI_STATUS_SUCCESS;
+    }
+    
+    // Convert BRCM SMI status to AMD SMI status
+    switch (status) {
+        case BRCMSMI_STATUS_INVALID_ARGS:
+            return AMDSMI_STATUS_INVAL;
+        case BRCMSMI_STATUS_FILE_ERROR:
+            return AMDSMI_STATUS_FILE_ERROR;
+        default:
+            return AMDSMI_STATUS_UNKNOWN_ERROR;
+    }
+}
+
+//==============================================================================
+// Handle Management Functions
+//==============================================================================
+
+amdsmi_status_t amdsmi_get_brcm_socket_handles(uint32_t *socket_count, 
+                                               amdsmi_brcm_socket_handle *socket_handles) {
+    if (socket_count == nullptr) {
+        return AMDSMI_STATUS_INVAL;
+    }
+    
+    // Cast AMD SMI handles to BRCM SMI handles (they're both void*)
+    brcmsmi_socket_handle *brcm_handles = reinterpret_cast<brcmsmi_socket_handle*>(socket_handles);
+    brcmsmi_status_t status = brcmsmi_get_socket_handles(socket_count, brcm_handles);
+    
+    // Convert BRCM SMI status to AMD SMI status
+    switch (status) {
+        case BRCMSMI_STATUS_SUCCESS:
+            return AMDSMI_STATUS_SUCCESS;
+        case BRCMSMI_STATUS_INVALID_ARGS:
+            return AMDSMI_STATUS_INVAL;
+        case BRCMSMI_STATUS_NOT_INITIALIZED:
+            return AMDSMI_STATUS_NOT_INIT;
+        default:
+            return AMDSMI_STATUS_UNKNOWN_ERROR;
+    }
+}
+
+amdsmi_status_t amdsmi_get_brcm_socket_info(amdsmi_brcm_socket_handle socket_handle,
+                                            size_t len, char *name) {
+    if (socket_handle == nullptr || name == nullptr) {
+        return AMDSMI_STATUS_INVAL;
+    }
+    
+    // This function is not available in BRCM SMI API
+    // Return a placeholder socket name
+    if (len > 0) {
+        snprintf(name, len, "brcm_socket_%p", socket_handle);
+        return AMDSMI_STATUS_SUCCESS;
+    }
+    
+    return AMDSMI_STATUS_INVAL;
+}
+
+amdsmi_status_t amdsmi_get_brcm_nic_processor_handles(amdsmi_brcm_socket_handle socket_handle,
+                                                      uint32_t *processor_count,
+                                                      amdsmi_brcm_processor_handle **processor_handles) {
+    if (socket_handle == nullptr || processor_count == nullptr || processor_handles == nullptr) {
+        return AMDSMI_STATUS_INVAL;
+    }
+    
+    // Cast AMD SMI handles to BRCM SMI handles
+    brcmsmi_socket_handle brcm_socket = reinterpret_cast<brcmsmi_socket_handle>(socket_handle);
+    brcmsmi_processor_handle **brcm_processors = reinterpret_cast<brcmsmi_processor_handle**>(processor_handles);
+    brcmsmi_status_t status = brcmsmi_get_nic_processor_handles(brcm_socket, processor_count, brcm_processors);
+    
+    // Convert BRCM SMI status to AMD SMI status
+    switch (status) {
+        case BRCMSMI_STATUS_SUCCESS:
+            return AMDSMI_STATUS_SUCCESS;
+        case BRCMSMI_STATUS_INVALID_ARGS:
+            return AMDSMI_STATUS_INVAL;
+        case BRCMSMI_STATUS_NOT_INITIALIZED:
+            return AMDSMI_STATUS_NOT_INIT;
+        default:
+            return AMDSMI_STATUS_UNKNOWN_ERROR;
+    }
+}
+
+amdsmi_status_t amdsmi_get_brcm_switch_processor_handles(amdsmi_brcm_socket_handle socket_handle,
+                                                         uint32_t *processor_count,
+                                                         amdsmi_brcm_processor_handle **processor_handles) {
+    if (socket_handle == nullptr || processor_count == nullptr || processor_handles == nullptr) {
+        return AMDSMI_STATUS_INVAL;
+    }
+    
+    // Cast AMD SMI handles to BRCM SMI handles
+    brcmsmi_socket_handle brcm_socket = reinterpret_cast<brcmsmi_socket_handle>(socket_handle);
+    brcmsmi_processor_handle **brcm_processors = reinterpret_cast<brcmsmi_processor_handle**>(processor_handles);
+    brcmsmi_status_t status = brcmsmi_get_switch_processor_handles(brcm_socket, processor_count, brcm_processors);
+    
+    // Convert BRCM SMI status to AMD SMI status
+    switch (status) {
+        case BRCMSMI_STATUS_SUCCESS:
+            return AMDSMI_STATUS_SUCCESS;
+        case BRCMSMI_STATUS_INVALID_ARGS:
+            return AMDSMI_STATUS_INVAL;
+        case BRCMSMI_STATUS_NOT_INITIALIZED:
+            return AMDSMI_STATUS_NOT_INIT;
+        default:
+            return AMDSMI_STATUS_UNKNOWN_ERROR;
+    }
+}
+
+amdsmi_status_t amdsmi_get_brcm_processor_type(amdsmi_brcm_processor_handle processor_handle,
+                                               amdsmi_brcm_processor_type_t *processor_type) {
+    if (processor_handle == nullptr || processor_type == nullptr) {
+        return AMDSMI_STATUS_INVAL;
+    }
+    
+    // This function is not available in BRCM SMI API
+    // We need to determine the type from the processor handle context
+    // For now, return AMDSMI_BRCM_PROCESSOR_TYPE_NIC as default
+    // In a real implementation, this would need to be tracked when handles are created
+    *processor_type = AMDSMI_BRCM_PROCESSOR_TYPE_NIC;
+    return AMDSMI_STATUS_SUCCESS;
+}
+
+//==============================================================================
+// Compatibility Functions
+//==============================================================================
+
+amdsmi_status_t amdsmi_get_brcm_processor_handles(uint32_t socket_index,
+                                                  amdsmi_brcm_processor_type_t device_type,
+                                                  uint32_t *processor_count,
+                                                  amdsmi_brcm_processor_handle *processor_handles) {
+    if (processor_count == nullptr) {
+        return AMDSMI_STATUS_INVAL;
+    }
+    
+    // Cast AMD SMI handles to BRCM SMI handles and types
+    brcmsmi_processor_type_t brcm_type = static_cast<brcmsmi_processor_type_t>(device_type);
+    brcmsmi_processor_handle *brcm_handles = reinterpret_cast<brcmsmi_processor_handle*>(processor_handles);
+    brcmsmi_status_t status = brcmsmi_get_brcm_processor_handles(socket_index, brcm_type, processor_count, brcm_handles);
+    
+    // Convert BRCM SMI status to AMD SMI status
+    switch (status) {
+        case BRCMSMI_STATUS_SUCCESS:
+            return AMDSMI_STATUS_SUCCESS;
+        case BRCMSMI_STATUS_INVALID_ARGS:
+            return AMDSMI_STATUS_INVAL;
+        case BRCMSMI_STATUS_NOT_INITIALIZED:
+            return AMDSMI_STATUS_NOT_INIT;
+        case BRCMSMI_STATUS_NOT_SUPPORTED:
+            return AMDSMI_STATUS_NOT_SUPPORTED;
+        default:
+            return AMDSMI_STATUS_UNKNOWN_ERROR;
+    }
+}
+
+amdsmi_status_t amdsmi_get_brcm_processor_handles_by_type(amdsmi_brcm_socket_handle socket_handle,
+                                                          amdsmi_brcm_processor_type_t device_type,
+                                                          uint32_t *processor_count,
+                                                          amdsmi_brcm_processor_handle *processor_handles) {
+    if (socket_handle == nullptr || processor_count == nullptr) {
+        return AMDSMI_STATUS_INVAL;
+    }
+    
+    // Cast AMD SMI handles to BRCM SMI handles and types
+    brcmsmi_socket_handle brcm_socket = reinterpret_cast<brcmsmi_socket_handle>(socket_handle);
+    brcmsmi_processor_type_t brcm_type = static_cast<brcmsmi_processor_type_t>(device_type);
+    brcmsmi_processor_handle *brcm_handles = reinterpret_cast<brcmsmi_processor_handle*>(processor_handles);
+    brcmsmi_status_t status = brcmsmi_get_brcm_processor_handles_by_type(brcm_socket, brcm_type, processor_count, brcm_handles);
+    
+    // Convert BRCM SMI status to AMD SMI status
+    switch (status) {
+        case BRCMSMI_STATUS_SUCCESS:
+            return AMDSMI_STATUS_SUCCESS;
+        case BRCMSMI_STATUS_INVALID_ARGS:
+            return AMDSMI_STATUS_INVAL;
+        case BRCMSMI_STATUS_NOT_INITIALIZED:
+            return AMDSMI_STATUS_NOT_INIT;
+        case BRCMSMI_STATUS_NOT_SUPPORTED:
+            return AMDSMI_STATUS_NOT_SUPPORTED;
+        default:
+            return AMDSMI_STATUS_UNKNOWN_ERROR;
+    }
+}
+
+//==============================================================================
+// BRCM SMI getString Method
+//==============================================================================
+
+amdsmi_status_t amdsmi_brcm_getString(amdsmi_brcm_processor_handle processor_handle,
+                                      const char* method_name,
+                                      size_t value_length,
+                                      char* value) {
+    if (processor_handle == nullptr || method_name == nullptr || value == nullptr || value_length == 0) {
+        return AMDSMI_STATUS_INVAL;
+    }
+    
+    // Cast AMD SMI handle to BRCM SMI handle
+    brcmsmi_processor_handle brcm_processor = reinterpret_cast<brcmsmi_processor_handle>(processor_handle);
+    brcmsmi_status_t status = brcmsmi_getString(brcm_processor, method_name, value_length, value);
+    
+    // Convert BRCM SMI status to AMD SMI status
+    switch (status) {
+        case BRCMSMI_STATUS_SUCCESS:
+            return AMDSMI_STATUS_SUCCESS;
+        case BRCMSMI_STATUS_INVALID_ARGS:
+            return AMDSMI_STATUS_INVAL;
+        case BRCMSMI_STATUS_NOT_INITIALIZED:
+            return AMDSMI_STATUS_NOT_INIT;
+        case BRCMSMI_STATUS_NOT_SUPPORTED:
+            return AMDSMI_STATUS_NOT_SUPPORTED;
+        case BRCMSMI_STATUS_INSUFFICIENT_SIZE:
+            return AMDSMI_STATUS_INSUFFICIENT_SIZE;
+        default:
+            return AMDSMI_STATUS_UNKNOWN_ERROR;
+    }
+}
+
+#endif // ENABLE_BRCM_SMI

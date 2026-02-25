@@ -14,6 +14,7 @@ add_custom_command(
     OUTPUT ${PY_PACKAGE_DIR}/__init__.py
            ${PY_PACKAGE_DIR}/amdsmi_cli.py
            ${PY_PACKAGE_DIR}/amdsmi_commands.py
+           ${PY_PACKAGE_DIR}/brcmsmi_commands.py
            ${PY_PACKAGE_DIR}/amdsmi_helpers.py
            ${PY_PACKAGE_DIR}/amdsmi_init.py
            ${PY_PACKAGE_DIR}/amdsmi_logger.py
@@ -27,6 +28,7 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py ${PY_PACKAGE_DIR}/
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/amdsmi_cli.py ${PY_PACKAGE_DIR}/
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/amdsmi_commands.py ${PY_PACKAGE_DIR}/
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/brcmsmi_commands.py ${PY_PACKAGE_DIR}/
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/amdsmi_helpers.py ${PY_PACKAGE_DIR}/
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/amdsmi_init.py ${PY_PACKAGE_DIR}/
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/amdsmi_logger.py ${PY_PACKAGE_DIR}/
@@ -44,6 +46,7 @@ add_custom_target(
             ${PY_PACKAGE_DIR}/_version.py
             ${PY_PACKAGE_DIR}/amdsmi_cli.py
             ${PY_PACKAGE_DIR}/amdsmi_commands.py
+            ${PY_PACKAGE_DIR}/brcmsmi_commands.py
             ${PY_PACKAGE_DIR}/amdsmi_helpers.py
             ${PY_PACKAGE_DIR}/amdsmi_init.py
             ${PY_PACKAGE_DIR}/amdsmi_logger.py

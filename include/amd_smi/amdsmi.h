@@ -279,6 +279,8 @@ typedef struct {
  * AMDSMI_PROCESSOR_TYPE_AMD_CPU      - CPU Socket is a physical component that holds the CPU.
  * AMDSMI_PROCESSOR_TYPE_AMD_CPU_CORE - CPU Cores are number of individual processing units within the CPU.
  * AMDSMI_PROCESSOR_TYPE_AMD_APU      - Combination of AMDSMI_PROCESSOR_TYPE_AMD_CPU and integrated GPU on single die
+ * AMDSMI_PROCESSOR_TYPE_BRCM_NIC     - Individual BRCM NIC component
+ * AMDSMI_PROCESSOR_TYPE_BRCM_SWITCH  - Individual BRCM Switch component
  *
  * @cond @tag{gpu_bm_linux} @tag{host} @tag{cpu_bm} @tag{guest_windows} @endcond
  */
@@ -3139,6 +3141,32 @@ amdsmi_status_t amdsmi_get_gpu_bdf_id(amdsmi_processor_handle processor_handle, 
 amdsmi_status_t amdsmi_get_gpu_topo_numa_affinity(amdsmi_processor_handle processor_handle, int32_t *numa_node);
 
 /**
+ *  @brief Get the CPU affinity associated with a gpu device
+ *
+ *  @ingroup tagPCIeQuery
+ *
+ *  @platform{gpu_bm_linux}
+ *
+ *  @details Given a processor handle @p processor_handle and a pointer to a char @p
+ *  cpu_aff_data, this function will retrieve the CPU affinity value associated
+ *  with GPU device @p processor_handle and store the value at location pointed to by
+ *  @p cpu_aff_data.
+ *
+ *  @param[in] processor_handle a processor handle
+ *
+ *  @param[in,out] cpu_aff_length the length of the CPU affinity value.
+ *  @param[in,out] cpu_aff_data pointer to location where CPU affinity value will be written.
+ *  If this parameter is nullptr, this function will return
+ *  ::AMDSMI_STATUS_INVAL if the function is supported with the provided,
+ *  arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not supported with the
+ *  provided arguments.
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_get_gpu_topo_cpu_affinity(amdsmi_processor_handle processor_handle, 
+                                                    unsigned int *cpu_aff_length, char *cpu_aff_data);
+
+/**
  *  @brief Get PCIe traffic information. It is not supported on virtual machine guest
  *
  *  @ingroup tagPCIeQuery
@@ -3758,6 +3786,39 @@ amdsmi_status_t amdsmi_get_gpu_fan_speed(amdsmi_processor_handle processor_handl
  */
 amdsmi_status_t amdsmi_get_gpu_fan_speed_max(amdsmi_processor_handle processor_handle,
                                              uint32_t sensor_ind, uint64_t *max_speed);
+
+/**
+ *  @brief Get the temperature metric value for the specified metric, from the
+ *  specified temperature sensor on the specified device. It is not supported on
+ *  virtual machine guest
+ *
+ *  @ingroup tagPhysicalStateQuery
+ *
+ *  @platform{gpu_bm_linux} @platform{host} @platform{guest_windows}
+ *
+ *  @details Given a processor handle @p processor_handle, a sensor type @p sensor_type, a
+ *  ::amdsmi_temperature_metric_t @p metric and a pointer to an int64_t @p
+ *  temperature, this function will write the value of the metric indicated by
+ *  @p metric and @p sensor_type to the memory location @p temperature.
+ *
+ *  @param[in] processor_handle a processor handle
+ *
+ *  @param[in] sensor_type part of device from which temperature should be
+ *  obtained. This should come from the enum ::amdsmi_temperature_type_t
+ *
+ *  @param[in] metric enum indicated which temperature value should be
+ *  retrieved
+ *
+ *  @param[in,out] temperature a pointer to int64_t to which the temperature is in Celsius.
+ *  If this parameter is nullptr, this function will return ::AMDSMI_STATUS_INVAL if the function
+ *  is supported with the provided, arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not
+ *  supported with the provided arguments.
+ *
+ *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
+ */
+amdsmi_status_t amdsmi_get_temp_metric(amdsmi_processor_handle processor_handle,
+    amdsmi_temperature_type_t sensor_type,
+    amdsmi_temperature_metric_t metric, int64_t *temperature);
 
 /**
  *  @brief Returns gpu cache info.
@@ -6102,7 +6163,8 @@ amdsmi_get_gpu_event_notification(int timeout_ms, uint32_t *num_elem, amdsmi_evt
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
  */
-amdsmi_status_t amdsmi_stop_gpu_event_notification(amdsmi_processor_handle processor_handle);
+amdsmi_status_t 
+amdsmi_stop_gpu_event_notification(amdsmi_processor_handle processor_handle);
 
 /** @} End tagEventNotification */
 
@@ -6157,7 +6219,6 @@ amdsmi_get_gpu_driver_info(amdsmi_processor_handle processor_handle, amdsmi_driv
  */
 amdsmi_status_t
 amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_info_t *info);
-
 
 /**
  *  @brief          Returns the KFD (Kernel Fusion Driver) information for the device
@@ -6339,40 +6400,7 @@ amdsmi_get_gpu_vbios_info(amdsmi_processor_handle processor_handle, amdsmi_vbios
  */
 
 /**
- *  @brief Get the temperature metric value for the specified metric, from the
- *  specified temperature sensor on the specified device. It is not supported on
- *  virtual machine guest
- *
- *  @ingroup tagGPUMonitor
- *
- *  @platform{gpu_bm_linux} @platform{host} @platform{guest_windows}
- *
- *  @details Given a processor handle @p processor_handle, a sensor type @p sensor_type, a
- *  ::amdsmi_temperature_metric_t @p metric and a pointer to an int64_t @p
- *  temperature, this function will write the value of the metric indicated by
- *  @p metric and @p sensor_type to the memory location @p temperature.
- *
- *  @param[in] processor_handle a processor handle
- *
- *  @param[in] sensor_type part of device from which temperature should be
- *  obtained. This should come from the enum ::amdsmi_temperature_type_t
- *
- *  @param[in] metric enum indicated which temperature value should be
- *  retrieved
- *
- *  @param[in,out] temperature a pointer to int64_t to which the temperature is in Celsius.
- *  If this parameter is nullptr, this function will return ::AMDSMI_STATUS_INVAL if the function
- *  is supported with the provided, arguments and ::AMDSMI_STATUS_NOT_SUPPORTED if it is not
- *  supported with the provided arguments.
- *
- *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
- */
-amdsmi_status_t amdsmi_get_temp_metric(amdsmi_processor_handle processor_handle,
-                                       amdsmi_temperature_type_t sensor_type,
-                                       amdsmi_temperature_metric_t metric, int64_t *temperature);
-
-/**
- *  @brief Returns the current usage of the GPU engines (GFX, MM and MEM).
+  *  @brief Returns the current usage of the GPU engines (GFX, MM and MEM).
  *  Each usage is reported as a percentage from 0-100%.
  *
  *  @ingroup tagGPUMonitor
@@ -7358,6 +7386,257 @@ amdsmi_status_t amdsmi_get_cpu_socket_count(uint32_t *sock_count);
 /** @} End tagCPUAuxillary */
 
 #endif
+
+//==============================================================================
+// BRCM SMI Integration Functions
+//==============================================================================
+
+#ifdef ENABLE_BRCM_SMI
+
+/**
+ * @defgroup BRCMSMIQueries BRCM SMI Queries
+ * These functions provide access to BRCM NIC and Switch device information.
+ * @{
+ */
+
+/**
+ * @brief BRCM SMI processor handle type
+ */
+typedef void* amdsmi_brcm_processor_handle;
+
+/**
+ * @brief BRCM SMI socket handle type  
+ */
+typedef void* amdsmi_brcm_socket_handle;
+
+/**
+ * @brief BRCM SMI processor types
+ */
+typedef enum {
+    AMDSMI_BRCM_PROCESSOR_TYPE_NIC = 0,    //!< NIC device
+    AMDSMI_BRCM_PROCESSOR_TYPE_SWITCH = 1  //!< Switch device
+} amdsmi_brcm_processor_type_t;
+
+/**
+ * @brief BRCM SMI device discovery result
+ */
+typedef struct {
+    uint32_t nic_count;      //!< Number of NIC devices found
+    uint32_t switch_count;   //!< Number of Switch devices found  
+    uint32_t total_count;    //!< Total number of devices found
+} amdsmi_brcm_discovery_result_t;
+
+//==============================================================================
+// Core System Functions
+//==============================================================================
+
+/**
+ * @brief Initialize BRCM SMI library
+ *
+ * @platform{linux}
+ *
+ * @param[in] init_flags Initialization flags (reserved, use 0)
+ *
+ * @retval ::AMDSMI_STATUS_SUCCESS on success
+ * @retval ::AMDSMI_STATUS_INIT_ERROR on initialization failure
+ */
+amdsmi_status_t amdsmi_brcm_init(uint64_t init_flags);
+
+/**
+ * @brief Shutdown BRCM SMI library
+ *
+ * @platform{linux}
+ *
+ * @retval ::AMDSMI_STATUS_SUCCESS on success
+ */
+amdsmi_status_t amdsmi_brcm_shutdown();
+
+/**
+ * @brief Discover BRCM devices in the system
+ *
+ * @platform{linux}
+ *
+ * @param[out] result Discovery results containing device counts
+ *
+ * @retval ::AMDSMI_STATUS_SUCCESS on success
+ * @retval ::AMDSMI_STATUS_INVALID_ARGS if result is NULL
+ */
+amdsmi_status_t amdsmi_brcm_discover_devices(amdsmi_brcm_discovery_result_t* result);
+
+//==============================================================================
+// Handle Management Functions
+//==============================================================================
+
+/**
+ * @brief Get BRCM socket handles
+ *
+ * @platform{linux}
+ *
+ * @param[in,out] socket_count Input: maximum sockets, Output: actual count
+ * @param[out] socket_handles Array to store socket handles (can be NULL to get count)
+ *
+ * @retval ::AMDSMI_STATUS_SUCCESS on success
+ * @retval ::AMDSMI_STATUS_INVALID_ARGS if socket_count is NULL
+ */
+amdsmi_status_t amdsmi_get_brcm_socket_handles(uint32_t *socket_count, 
+                                               amdsmi_brcm_socket_handle *socket_handles);
+
+/**
+ * @brief Get socket information
+ *
+ * @platform{linux}
+ *
+ * @param[in] socket_handle Socket handle
+ * @param[in] len Maximum length of name buffer
+ * @param[out] name Socket name string
+ *
+ * @retval ::AMDSMI_STATUS_SUCCESS on success
+ * @retval ::AMDSMI_STATUS_INVALID_ARGS if parameters are invalid
+ */
+amdsmi_status_t amdsmi_get_brcm_socket_info(amdsmi_brcm_socket_handle socket_handle,
+                                            size_t len, char *name);
+
+/**
+ * @brief Get NIC processor handles for a socket
+ *
+ * @platform{linux}
+ *
+ * @param[in] socket_handle Socket handle
+ * @param[in,out] processor_count Input: max processors, Output: actual count
+ * @param[out] processor_handles Array to store processor handles
+ *
+ * @retval ::AMDSMI_STATUS_SUCCESS on success
+ * @retval ::AMDSMI_STATUS_INVALID_ARGS if parameters are invalid
+ */
+amdsmi_status_t amdsmi_get_brcm_nic_processor_handles(amdsmi_brcm_socket_handle socket_handle,
+                                                      uint32_t *processor_count,
+                                                      amdsmi_brcm_processor_handle **processor_handles);
+
+/**
+ * @brief Get Switch processor handles for a socket
+ *
+ * @platform{linux}
+ *
+ * @param[in] socket_handle Socket handle
+ * @param[in,out] processor_count Input: max processors, Output: actual count
+ * @param[out] processor_handles Array to store processor handles
+ *
+ * @retval ::AMDSMI_STATUS_SUCCESS on success
+ * @retval ::AMDSMI_STATUS_INVALID_ARGS if parameters are invalid
+ */
+amdsmi_status_t amdsmi_get_brcm_switch_processor_handles(amdsmi_brcm_socket_handle socket_handle,
+                                                         uint32_t *processor_count,
+                                                         amdsmi_brcm_processor_handle **processor_handles);
+
+/**
+ * @brief Get processor type (NIC or Switch)
+ *
+ * @platform{linux}
+ *
+ * @param[in] processor_handle Processor handle
+ * @param[out] processor_type Processor type
+ *
+ * @retval ::AMDSMI_STATUS_SUCCESS on success
+ * @retval ::AMDSMI_STATUS_INVALID_ARGS if parameters are invalid
+ */
+amdsmi_status_t amdsmi_get_brcm_processor_type(amdsmi_brcm_processor_handle processor_handle,
+                                               amdsmi_brcm_processor_type_t *processor_type);
+
+//==============================================================================
+// Compatibility Functions
+//==============================================================================
+
+/**
+ * @brief Get BRCM processor handles by socket index and device type
+ *
+ * @platform{linux}
+ *
+ * @param[in] socket_index Socket index
+ * @param[in] device_type Device type (NIC or Switch)
+ * @param[in,out] processor_count Input: max processors, Output: actual count
+ * @param[out] processor_handles Array to store processor handles
+ *
+ * @retval ::AMDSMI_STATUS_SUCCESS on success
+ * @retval ::AMDSMI_STATUS_INVALID_ARGS if parameters are invalid
+ */
+amdsmi_status_t amdsmi_get_brcm_processor_handles(uint32_t socket_index,
+                                                  amdsmi_brcm_processor_type_t device_type,
+                                                  uint32_t *processor_count,
+                                                  amdsmi_brcm_processor_handle *processor_handles);
+
+/**
+ * @brief Get BRCM processor handles by socket handle and device type
+ *
+ * @platform{linux}
+ *
+ * @param[in] socket_handle Socket handle
+ * @param[in] device_type Device type (NIC or Switch)
+ * @param[in,out] processor_count Input: max processors, Output: actual count
+ * @param[out] processor_handles Array to store processor handles
+ *
+ * @retval ::AMDSMI_STATUS_SUCCESS on success
+ * @retval ::AMDSMI_STATUS_INVALID_ARGS if parameters are invalid
+ */
+amdsmi_status_t amdsmi_get_brcm_processor_handles_by_type(amdsmi_brcm_socket_handle socket_handle,
+                                                          amdsmi_brcm_processor_type_t device_type,
+                                                          uint32_t *processor_count,
+                                                          amdsmi_brcm_processor_handle *processor_handles);
+
+//==============================================================================
+// BRCM SMI getString Method
+//==============================================================================
+
+/**
+ * @brief Generic string retrieval method for BRCM devices
+ * 
+ * This is a unified interface for retrieving string-based information from BRCM devices.
+ * It supports various methods for both NIC and Switch devices.
+ * 
+ * Supported method names:
+ * 
+ * NIC Methods:
+ * - "get_nic_info": Get NIC basic information (JSON format)
+ * - "get_nic_device_uuid": Get NIC device UUID
+ * - "get_nic_metrics": Get NIC device metrics (JSON format)
+ * - "get_nic_numa_affinity": Get NIC NUMA affinity (node number)
+ * - "get_nic_power_info": Get NIC power information (JSON format)
+ * - "get_nic_temperature": Get NIC temperature information (JSON format)
+ * - "get_nic_firmware_info": Get NIC firmware information (JSON format)
+ * - "get_nic_topology": Get NIC topology information (JSON format)
+ * - "get_nic_cpu_affinity": Get NIC CPU affinity information
+ * 
+ * Switch Methods:
+ * - "get_switch_info": Get Switch basic information (JSON format)
+ * - "get_switch_device_uuid": Get Switch device UUID
+ * - "get_switch_metrics": Get Switch device metrics (JSON format)
+ * - "get_switch_link_info": Get Switch link information (JSON format)
+ * - "get_switch_numa_affinity": Get Switch NUMA affinity (node number)
+ * - "get_switch_power_info": Get Switch power information (JSON format)
+ * - "get_switch_topology": Get Switch topology information (JSON format)
+ * - "get_switch_cpu_affinity": Get Switch CPU affinity information
+ * - "get_root_switch": Get root switch information (JSON format)
+ * 
+ * @platform{linux}
+ * 
+ * @param[in] processor_handle Handle to the processor (NIC or Switch)
+ * @param[in] method_name Name of the method to call
+ * @param[in] value_length Maximum length of the output buffer
+ * @param[out] value Output buffer to store the retrieved string
+ * 
+ * @retval ::AMDSMI_STATUS_SUCCESS on success
+ * @retval ::AMDSMI_STATUS_INVALID_ARGS if parameters are invalid
+ * @retval ::AMDSMI_STATUS_NOT_SUPPORTED if method is not supported
+ * @retval ::AMDSMI_STATUS_NOT_INIT if BRCM SMI is not initialized
+ * @retval ::AMDSMI_STATUS_UNKNOWN_ERROR on other errors
+ */
+amdsmi_status_t amdsmi_brcm_getString(amdsmi_brcm_processor_handle processor_handle,
+                                      const char* method_name,
+                                      size_t value_length,
+                                      char* value);
+
+/** @} End BRCMSMIQueries */
+
+#endif // ENABLE_BRCM_SMI
 
 #ifdef __cplusplus
 }

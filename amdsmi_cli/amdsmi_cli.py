@@ -159,6 +159,7 @@ if __name__ == "__main__":
                                     amd_smi_commands.xgmi,
                                     amd_smi_commands.partition,
                                     amd_smi_commands.ras,
+                                    amd_smi_commands.dump,
                                     amd_smi_commands.node,
                                     amd_smi_commands.default,
                                     sys_argv=sys.argv,

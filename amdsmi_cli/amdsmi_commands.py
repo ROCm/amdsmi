@@ -28,6 +28,7 @@ import signal
 import sys
 import threading
 import time
+import subprocess
 import copy
 
 from _version import __version__
@@ -36,6 +37,20 @@ from amdsmi_helpers import AMDSMIHelpers
 from amdsmi_logger import AMDSMILogger
 from amdsmi import amdsmi_exception, amdsmi_interface
 from pathlib import Path
+
+# Conditional import for BRCM SMI commands
+try:
+    # Check if BRCM SMI support is available
+    if amdsmi_interface.is_brcm_smi_supported():
+        from brcmsmi_commands import BRCMSMICommands
+        BRCM_SMI_AVAILABLE = True
+    else:
+        BRCM_SMI_AVAILABLE = False
+        BRCMSMICommands = None
+except (ImportError, AttributeError):
+    # BRCM SMI not available or interface not accessible
+    BRCM_SMI_AVAILABLE = False
+    BRCMSMICommands = None
 
 class AMDSMICommands():
     """This class contains all the commands corresponding to AMDSMIParser
@@ -56,6 +71,16 @@ class AMDSMICommands():
         self.node_handle = None
         self.stop = ''
         self.group_check_printed = False
+        
+        # Initialize BRCM SMI commands if available
+        if BRCM_SMI_AVAILABLE and BRCMSMICommands:
+            self.brcm_smi_commands = BRCMSMICommands(self.helpers, self.logger)
+            self.device_handles_nics = self.brcm_smi_commands.get_nic_handles()
+            self.device_handles_switchs = self.brcm_smi_commands.get_switch_handles()
+        else:
+            self.brcm_smi_commands = None
+            self.device_handles_nics = []
+            self.device_handles_switchs = []
 
         amdsmi_init_flag = self.helpers.get_amdsmi_init_flag()
         logging.debug(f"AMDSMI Init Flag: {amdsmi_init_flag}")
@@ -64,6 +89,7 @@ class AMDSMICommands():
         if self.helpers.is_amdgpu_initialized():
             try:
                 self.device_handles = amdsmi_interface.amdsmi_get_processor_handles()
+                self.device_handles_devices=amdsmi_interface.amdsmi_get_processor_handles_devices()
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.err_code in (amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NOT_INIT,
                                 amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_DRIVER_NOT_LOADED):
@@ -75,6 +101,18 @@ class AMDSMICommands():
                 # No GPU's found post amdgpu driver initialization
                 logging.error('Unable to detect any GPU devices, check amdgpu version and module status (sudo modprobe amdgpu)')
                 exit_flag = True
+            try:
+                # Use get_gpu_handles() when BRCM SMI is enabled, otherwise use amdsmi_get_processor_handles()
+                if amdsmi_interface.is_brcm_smi_supported():
+                    self.device_handles_gpus = amdsmi_interface.get_gpu_handles()
+                else:
+                    self.device_handles_gpus = amdsmi_interface.amdsmi_get_processor_handles()
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                if e.err_code in (amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NOT_INIT,
+                                amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_DRIVER_NOT_LOADED):
+                    logging.error('Unable to get devices, driver not initialized (amdgpu not found in modules)')
+                else:
+                    raise e
 
             # Resolve the node handle.
             for dev in self.device_handles:
@@ -210,8 +248,7 @@ class AMDSMICommands():
         elif self.logger.is_json_format() or self.logger.is_csv_format():
             self.logger.print_output()
 
-
-    def list(self, args, multiple_devices=False, gpu=None):
+    def list_gpu(self, args, multiple_devices=False, gpu=None):
         """List information for target gpu
 
         Args:
@@ -238,7 +275,7 @@ class AMDSMICommands():
             self.group_check_printed = True
 
         # Handle multiple GPUs
-        handled_multiple_gpus, device_handle = self.helpers.handle_gpus(args, self.logger, self.list)
+        handled_multiple_gpus, device_handle = self.helpers.handle_gpus(args, self.logger, self.list_gpu)
         if handled_multiple_gpus:
             return # This function is recursive
 
@@ -306,12 +343,130 @@ class AMDSMICommands():
             self.logger.store_output(args.gpu, 'hip_id', enumeration_info['hip_id'])
             self.logger.store_output(args.gpu, 'hip_uuid', enumeration_info['hip_uuid'])
 
-
         if multiple_devices:
             self.logger.store_multiple_device_output()
             return # Skip printing when there are multiple devices
 
         self.logger.print_output()
+
+    def list_nic(self, args, multiple_devices=False, nic=None):
+        """List information for target nic - Delegates to BRCM SMI commands if available
+
+        Args:
+            args (Namespace): Namespace containing the parsed CLI args
+            multiple_devices (bool, optional): True if checking for multiple devices. Defaults to False.
+            nic (device_handle, optional): device_handle for target device. Defaults to None.
+
+        Raises:
+            IndexError: Index error if nic list is empty
+
+        Returns:
+            None: Print output via AMDSMILogger to destination
+        """
+        if not self._check_brcm_smi_available("NIC listing"):
+            return
+        
+        if not self.group_check_printed:
+            self.helpers.check_required_groups()
+            self.group_check_printed = True
+            
+        return self.brcm_smi_commands.list_nic(args, multiple_devices, nic)
+
+    def list_switch(self, args, multiple_devices=False, switch=None):
+        """List information for target switch - Delegates to BRCM SMI commands if available
+
+        Args:
+            args (Namespace): Namespace containing the parsed CLI args
+            multiple_devices (bool, optional): True if checking for multiple devices. Defaults to False.
+            switch (device_handle, optional): device_handle for target device. Defaults to None.
+
+        Raises:
+            IndexError: Index error if switch list is empty
+
+        Returns:
+            None: Print output via AMDSMILogger to destination
+        """
+        if not self._check_brcm_smi_available("Switch listing"):
+            return
+        
+        if not self.group_check_printed:
+            self.helpers.check_required_groups()
+            self.group_check_printed = True
+            
+        return self.brcm_smi_commands.list_switch(args, multiple_devices, switch)
+
+    def list(self, args, multiple_devices=False, gpu=None, nic=None, switch=None):
+       
+        if gpu:
+           args.gpu = gpu
+        if nic:
+            args.nic = nic
+        if switch:
+            args.switch = switch 
+
+        gpuCount = 0
+        nicCount = 0
+        switchCount = 0
+
+        # Handle No GPU passed
+        if args.gpu == None:
+            args.gpu = self.device_handles_gpus
+            if isinstance(args.gpu, list):
+                gpuCount = len(args.gpu)
+        else:
+            if isinstance(args.gpu, list):
+                gpuCount = len(args.gpu)
+                self.logger.output = {}
+                self.logger.clear_multiple_devices_output()
+
+                if gpuCount > 0:
+                    self.list_gpu(args, False, gpu=args.gpu)
+                    return
+
+        # Handle No NIC passed
+        if args.nic == None:
+            args.nic = self.device_handles_nics
+            if isinstance(args.nic, list):
+                nicCount = len(args.nic)
+        else:
+            if isinstance(args.nic, list):
+                nicCount = len(args.nic)
+                self.logger.output = {}
+                self.logger.clear_multiple_devices_output()
+
+                if nicCount > 0:
+                    self.list_nic(args, False, nic=args.nic)
+                    return
+                
+        # Handle No Switch passed
+        if args.switch == None:
+            args.switch = self.device_handles_switchs
+            if isinstance(args.switch, list):
+                switchCount = len(args.switch)
+        else:
+            if isinstance(args.switch, list):
+                switchCount = len(args.switch)
+                self.logger.output = {}
+                self.logger.clear_multiple_devices_output()
+
+                if switchCount > 0:
+                    self.list_switch(args, False, switch=args.switch)
+                    return
+                
+        if gpuCount > 0:
+            self.list_gpu(args, False, gpu=args.gpu)
+
+        self.logger.output = {}
+        self.logger.clear_multiple_devices_output()
+
+        if nicCount > 0:
+            self.list_nic(args, False, nic=args.nic)
+
+        self.logger.output = {}
+        self.logger.clear_multiple_devices_output()
+
+        if switchCount > 0:
+            self.list_switch(args, False, switch=args.switch)
 
 
     def static_cpu(self, args, multiple_devices=False, cpu=None, interface_ver=None):
@@ -1311,7 +1466,9 @@ class AMDSMICommands():
             self.logger.combine_arrays_to_json()
 
 
-    def firmware(self, args, multiple_devices=False, gpu=None, fw_list=True):
+    # firmware_nic method moved to brcmsmi_commands.py - see delegation method at end of file
+
+    def firmware(self, args, multiple_devices=False, gpu=None, nic=None, fw_list=True, brcm_nic=None):
         """ Get Firmware information for target gpu
 
         Args:
@@ -1319,6 +1476,7 @@ class AMDSMICommands():
             multiple_devices (bool, optional): True if checking for multiple devices. Defaults to False.
             gpu (device_handle, optional): device_handle for target device. Defaults to None.
             fw_list (bool, optional): True to get list of all firmware information
+            brcm_nic (bool, optional): Value override for args.brcm_nic. Defaults to None.
         Raises:
             IndexError: Index error if gpu list is empty
 
@@ -1334,6 +1492,12 @@ class AMDSMICommands():
         if args.gpu == None:
             args.gpu = self.device_handles
 
+        if args.brcm_nic or brcm_nic:
+            self.logger.output = {}
+            self.logger.clear_multiple_devices_output()
+            if not self._check_brcm_smi_available("NIC firmware"):
+                return
+            return self.brcm_smi_commands.firmware_nic(args, multiple_devices, nic, fw_list)
         # Handle multiple GPUs
         handled_multiple_gpus, device_handle = self.helpers.handle_gpus(args, self.logger, self.firmware)
         if handled_multiple_gpus:
@@ -1706,7 +1870,7 @@ class AMDSMICommands():
                 gpu_metric_version_str = json.dumps(gpu_metric_version_info, indent=4)
                 logging.debug("GPU Metrics table Version for GPU %s | %s", gpu_id, gpu_metric_version_str)
             except amdsmi_exception.AmdSmiLibraryException as e:
-                logging.debug("#1 - Unable to load GPU Metrics table version for %s | %s", gpu_id, e.get_error_info())
+                logging.debug("#1 - Unable to load GPU Metrics table version for %s | %s", gpu_id, e.err_info)
 
             try:
                 # Get GPU Metrics table
@@ -1714,7 +1878,7 @@ class AMDSMICommands():
                 gpu_metric_str = json.dumps(gpu_metric_debug_info, indent=4)
                 logging.debug("GPU Metrics table for GPU %s | %s", gpu_id, str(gpu_metric_str))
             except amdsmi_exception.AmdSmiLibraryException as e:
-                logging.debug("#2 - Unable to load GPU Metrics table for %s | %s", gpu_id, e.get_error_info())
+                logging.debug("#2 - Unable to load GPU Metrics table for %s | %s", gpu_id, e.err_info)
 
         logging.debug(f"Metric Arg information for GPU {gpu_id} on {self.helpers.os_info()}")
         logging.debug(f"Args:   {current_platform_args}")
@@ -1977,7 +2141,11 @@ class AMDSMICommands():
                                    "clk_locked" : "N/A",
                                    "deep_sleep" : "N/A"}
 
-                for clock_index in range(amdsmi_interface.AMDSMI_MAX_NUM_CLKS):
+                kMAX_NUM_VCLKS = 0
+                for clk_type in amdsmi_interface.AmdSmiClkType:
+                    if 'VCLK' in clk_type.name:
+                        kMAX_NUM_VCLKS += 1
+                for clock_index in range(kMAX_NUM_VCLKS):
                     vclk_index = f"vclk_{clock_index}"
                     clocks[vclk_index] = {"clk" : "N/A",
                                           "min_clk" : "N/A",
@@ -1985,7 +2153,11 @@ class AMDSMICommands():
                                           "clk_locked" : "N/A",
                                           "deep_sleep" : "N/A"}
 
-                for clock_index in range(amdsmi_interface.AMDSMI_MAX_NUM_CLKS):
+                kMAX_NUM_DCLKS = 0
+                for clk_type in amdsmi_interface.AmdSmiClkType:
+                    if 'DCLK' in clk_type.name:
+                        kMAX_NUM_DCLKS += 1
+                for clock_index in range(kMAX_NUM_DCLKS):
                     dclk_index = f"dclk_{clock_index}"
                     clocks[dclk_index] = {"clk" : "N/A",
                                           "min_clk" : "N/A",
@@ -2094,7 +2266,6 @@ class AMDSMICommands():
                 except KeyError as e:
                     logging.debug("Failed to get current_socclk for gpu %s | %s", gpu_id, e)
 
-
                 # Populate the max and min clock values from sysfs.
                 # Min and Max values are per clock type, not per clock engine.
                 # Populate the deep sleep value from amdsmi_get_clock_info
@@ -2115,8 +2286,6 @@ class AMDSMICommands():
                         clocks[gfx_index]["max_clk"] = self.helpers.unit_format(self.logger,
                                                                                 gfx_clock_info_dict["max_clk"],
                                                                                 clock_unit)
-                        # Add the clk_deep_sleep
-                        clocks[gfx_index]["deep_sleep"] = gfx_clock_info_dict["clk_deep_sleep"]
                 except (KeyError, amdsmi_exception.AmdSmiLibraryException) as e:
                     logging.debug("Failed to get gfx clock info for gpu %s | %s", gpu_id, e)
 
@@ -2132,8 +2301,6 @@ class AMDSMICommands():
                         clocks["mem_0"]["max_clk"] = self.helpers.unit_format(self.logger,
                                                                                 mem_clock_info_dict["max_clk"],
                                                                                 clock_unit)
-                        # Add the clk_deep_sleep
-                        clocks["mem_0"]["deep_sleep"] = mem_clock_info_dict["clk_deep_sleep"]
                 except (KeyError, amdsmi_exception.AmdSmiLibraryException) as e:
                     logging.debug("Failed to get mem clock info for gpu %s | %s", gpu_id, e)
 
@@ -2148,41 +2315,32 @@ class AMDSMICommands():
 
                         # Check if the current clock value is not "N/A"
                         if clocks[vclk_index]["clk"] != "N/A":
-                            # Format and assign the minimum clock value for the current VCLK
+                            # if the current clock is N/A then we shouldn't populate the max and min values
+                            vclk_type = amdsmi_interface.AmdSmiClkType.__dict__[f'VCLK{index}']
+                            vclk_clock_info_dict = amdsmi_interface.amdsmi_get_clock_info(args.gpu, vclk_type)
                             clocks[vclk_index]["min_clk"] = self.helpers.unit_format(self.logger,
                                                                                     vclk_clock_info_dict["min_clk"],
                                                                                     clock_unit)
-                            # Format and assign the maximum clock value for the current VCLK
                             clocks[vclk_index]["max_clk"] = self.helpers.unit_format(self.logger,
                                                                                     vclk_clock_info_dict["max_clk"],
                                                                                     clock_unit)
-                            # Add the clk_deep_sleep
-                            clocks[vclk_index]["deep_sleep"] = vclk_clock_info_dict["clk_deep_sleep"]
                 except (KeyError, amdsmi_exception.AmdSmiLibraryException) as e:
-                    # Log a debug message if retrieving VCLK clock information fails
                     logging.debug("Failed to get vclk clock info for gpu %s | %s", gpu_id, e)
 
                 # DCLK min and max clocks
                 try:
-                    # Retrieve clock information for DCLK0 (Display Clock 0)
-                    dclk_clock_info_dict = amdsmi_interface.amdsmi_get_clock_info(args.gpu, amdsmi_interface.AmdSmiClkType.DCLK0)
-
-                    # Iterate through the maximum number of DCLK clocks supported
-                    for index in range(amdsmi_interface.AMDSMI_MAX_NUM_CLKS):
-                        dclk_index = f"dclk_{index}" # Construct the index key for the clock
-
-                        # Check if the current clock value is not "N/A"
+                    for index in range(kMAX_NUM_DCLKS):
+                        dclk_index = f"dclk_{index}"
                         if clocks[dclk_index]["clk"] != "N/A":
-                            # Format and assign the minimum clock value for the current DCLK
+                            # if the current clock is N/A then we shouldn't populate the max and min values
+                            dclk_type = amdsmi_interface.AmdSmiClkType.__dict__[f'DCLK{index}']
+                            dclk_clock_info_dict = amdsmi_interface.amdsmi_get_clock_info(args.gpu, dclk_type)
                             clocks[dclk_index]["min_clk"] = self.helpers.unit_format(self.logger,
                                                                                     dclk_clock_info_dict["min_clk"],
                                                                                     clock_unit)
-                            # Format and assign the maximum clock value for the current DCLK
                             clocks[dclk_index]["max_clk"] = self.helpers.unit_format(self.logger,
                                                                                     dclk_clock_info_dict["max_clk"],
                                                                                     clock_unit)
-                            # Add the clk_deep_sleep
-                            clocks[dclk_index]["deep_sleep"] = dclk_clock_info_dict["clk_deep_sleep"]
                 except (KeyError, amdsmi_exception.AmdSmiLibraryException) as e:
                     logging.debug("Failed to get dclk clock info for gpu %s | %s", gpu_id, e)
 
@@ -2198,8 +2356,6 @@ class AMDSMICommands():
                         clocks["fclk_0"]["max_clk"] = self.helpers.unit_format(self.logger,
                                                                                 fclk_clk_info_dict["max_clk"],
                                                                                 clock_unit)
-                        # Add the clk_deep_sleep
-                        clocks["fclk_0"]["deep_sleep"] = fclk_clk_info_dict["clk_deep_sleep"]
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     logging.debug("Failed to get fclk info for gpu %s | %s", gpu_id, e.get_error_info())
 
@@ -2215,8 +2371,6 @@ class AMDSMICommands():
                         clocks["socclk_0"]["max_clk"] = self.helpers.unit_format(self.logger,
                                                                                 socclk_clk_info_dict["max_clk"],
                                                                                 clock_unit)
-                        # Add the clk_deep_sleep
-                        clocks["socclk_0"]["deep_sleep"] = socclk_clk_info_dict["clk_deep_sleep"]
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     logging.debug("Failed to get socclk info for gpu %s | %s", gpu_id, e.get_error_info())
 
@@ -3178,7 +3332,11 @@ class AMDSMICommands():
         if not self.logger.is_json_format():
             self.logger.print_output(multiple_device_enabled=multiple_devices_csv_override)
 
+
+
     def metric(self, args, multiple_devices=False, watching_output=False, gpu=None,
+                nic=None, nic_power=None, nic_temperature=None, nic_errors=None, brcm_nic=None,
+				switch=None, switch_power=None, switch_errors=None, brcm_switch=None,
                 usage=None, watch=None, watch_time=None, iterations=None, power=None,
                 clock=None, temperature=None, ecc=None, ecc_blocks=None, pcie=None,
                 fan=None, voltage_curve=None, overdrive=None, perf_level=None,
@@ -3246,6 +3404,16 @@ class AMDSMICommands():
             core_curr_active_freq_core_limit (bool, optional): Value override for args.core_curr_active_freq_core_limit. Defaults to None
             core_energy (bool, optional): Value override for args.core_energy. Defaults to None
 
+            nic (nic_handle, optional): device_handle for target device. Defaults to None.
+            nic_power (bool, optional): Value override for args.nic_power. Defaults to None.
+            nic_temperature (bool, optional): Value override for args.nic_temperature. Defaults to None.
+            nic_errors (bool, optional): Value override for args.nic_errors. Defaults to None.
+            brcm_nic (bool, optional): Value override for args.brcm_nic. Defaults to None.
+			switch (cpu_handle, optional): device_handle for target device. Defaults to None.
+            switch_power (bool, optional): Value override for args.switch_power. Defaults to None.
+            switch_errors (bool, optional): Value override for args.switch_errors. Defaults to None.
+			brcm_switch (bool, optional): Value override for args.brcm_switch. Defaults to None.
+
         Raises:
             IndexError: Index error if gpu list is empty
 
@@ -3260,6 +3428,26 @@ class AMDSMICommands():
             args.cpu = cpu
         if core:
             args.core = core
+        if args.brcm_nic or brcm_nic:
+            args.nic_power = args.power
+            args.nic_temperature = args.temperature
+            args.nic_errors = args.ecc
+            self.logger.output = {}
+            self.logger.clear_multiple_devices_output()
+            if not self._check_brcm_smi_available("NIC metrics"):
+                return
+            return self.brcm_smi_commands.metric_nic(args, multiple_devices, watching_output, watch, watch_time, iterations,
+                            nic, nic_power, nic_temperature, nic_errors)
+			
+        if args.brcm_switch or brcm_switch:
+            args.switch_power = args.power
+            args.switch_errors = args.ecc
+            self.logger.output = {}
+            self.logger.clear_multiple_devices_output()
+            if not self._check_brcm_smi_available("Switch metrics"):
+                return
+            return self.brcm_smi_commands.metric_switch(args, multiple_devices, watching_output, watch, watch_time, iterations,
+                            switch, switch_power, switch_errors)
 
         # Check if a GPU argument has been set
         gpu_args_enabled = False
@@ -3675,10 +3863,11 @@ class AMDSMICommands():
         self.stop = True
         raise SystemExit(128 + signum)
 
-
     def topology(self, args, multiple_devices=False, gpu=None, access=None,
-                weight=None, hops=None, link_type=None, numa_bw=None,
-                coherent=None, atomics=None, dma=None, bi_dir=None):
+                weight=None, hops=None, link_type=None, numa_bw=None, coherent=None, 
+                atomics=None, dma=None, bi_dir=None, nic=None, nic_topo=None, nic_switch=None,
+                multiple_device_enabled=None, switch=None):
+     
         """ Get topology information for target gpus
             params:
                 args - argparser args to pass to subcommand
@@ -3693,6 +3882,10 @@ class AMDSMICommands():
                 atomics (bool) - Value override for args.atomics
                 dma (bool) - Value override for args.dma
                 bi_dir (bool) - Value override for args.bi_dir
+                nic (device_handle) - device_handle for target device
+                nic_topo (bool) - True if checking for connectivity between nic and gpu devices
+                nic_switch (bool) - True if checking for gpu, nic and switch device's affinity and parent switch
+                switch (device_handle) - device_handle for target device
             return:
                 Nothing
         """
@@ -3717,6 +3910,15 @@ class AMDSMICommands():
             args.dma = dma
         if bi_dir:
             args.bi_dir = bi_dir
+        if nic:
+            args.nic = nic
+        if switch:
+            args.switch = switch
+        if nic_topo or args.nic_topo or nic_switch or args.nic_switch:
+            if not self._check_brcm_smi_available("NIC topology"):
+                return
+            return self.brcm_smi_commands.topology_nic(args, multiple_devices, args.gpu, args.nic, args.nic_topo, args.nic_switch,
+                multiple_device_enabled, args.switch)
 
         # Handle No GPU passed
         if args.gpu == None:
@@ -4308,7 +4510,6 @@ class AMDSMICommands():
 
         if not self.logger.is_human_readable_format():
             self.logger.print_output(multiple_device_enabled=True)
-
 
     def set_core(self, args, multiple_devices=False, core=None, core_boost_limit=None):
         """Issue set commands to target core(s)
@@ -5678,17 +5879,19 @@ class AMDSMICommands():
             self.logger.clear_multiple_devices_output()
             return
 
-    def monitor(self, args, multiple_devices=False, watching_output=False, gpu=None,
-                    watch=None, watch_time=None, iterations=None, power_usage=None,
-                    temperature=None, gfx_util=None, mem_util=None, encoder=None,
-                    decoder=None, ecc=None, vram_usage=None, pcie=None, process=None,
-                    violation=None):
+    def monitor(self, args, multiple_devices=False, watching_output=False, gpu=None,nic=None, switch=None,
+                  watch=None, watch_time=None, iterations=None, power_usage=None,
+                  temperature=None, gfx_util=None, mem_util=None, encoder=None, decoder=None,
+                  ecc=None, vram_usage=None, pcie=None, process=None, violation=None, brcm_nic=None, brcm_switch=None):
+
         """ Populate a table with each GPU as an index to rows of targeted data
 
         Args:
             args (Namespace): Namespace containing the parsed CLI args
             multiple_devices (bool, optional): True if checking for multiple devices. Defaults to False.
             gpu (device_handle, optional): device_handle for target device. Defaults to None.
+            nic (device_handle, optional): device_handle for target nic device. Defaults to None.
+            switch (device_handle, optional): device_handle for target switch device. Defaults to None.
             watch (bool, optional): Value override for args.watch. Defaults to None.
             watch_time (int, optional): Value override for args.watch_time. Defaults to None.
             iterations (int, optional): Value override for args.iterations. Defaults to None.
@@ -5703,6 +5906,8 @@ class AMDSMICommands():
             pcie (bool, optional): Value override for args.pcie. Defaults to None.
             process (bool, optional): Value override for args.process. Defaults to None.
             violation (bool, optional): Value override for args.violation. Defaults to None.
+            brcm_nic (bool, optional): Value override for args.brcm_nic. Defaults to None.
+            brcm_switch (bool, optional): Value override for args.brcm_switch. Defaults to None.
 
         Raises:
             ValueError: Value error if no gpu value is provided
@@ -5720,6 +5925,10 @@ class AMDSMICommands():
             args.watch_time = watch_time
         if iterations:
             args.iterations = iterations
+        if nic:
+            args.nic = nic
+        if switch:
+            args.switch = switch
 
         # monitor args
         if power_usage:
@@ -5748,6 +5957,22 @@ class AMDSMICommands():
         else:
             args.violation = False  # Disable violation for virtual OS
 
+        if brcm_nic or args.brcm_nic:
+            if not self._check_brcm_smi_available("NIC monitoring"):
+                return
+            # Handle case where args.nic might not be set when using -nic flag
+            if not hasattr(args, 'nic') or args.nic is None:
+                args.nic = None  # Let monitor_nic handle the device selection
+            return self.brcm_smi_commands.monitor_nic(args, multiple_devices, watching_output, args.nic, watch, watch_time, iterations,
+                            args.temperature, args.brcm_nic)
+        if brcm_switch or args.brcm_switch:
+            if not self._check_brcm_smi_available("Switch monitoring"):
+                return
+            # Handle case where args.switch might not be set when using -switch flag
+            if not hasattr(args, 'switch') or args.switch is None:
+                args.switch = None  # Let monitor_switch handle the device selection
+            return self.brcm_smi_commands.monitor_switch(args, multiple_devices, watching_output, args.switch, watch, watch_time, iterations,
+                            args.pcie, args.brcm_switch)
         # Handle No GPU passed
         if args.gpu == None:
             args.gpu = self.device_handles
@@ -5828,14 +6053,14 @@ class AMDSMICommands():
                 gpu_metric_version_str = json.dumps(gpu_metric_version_info, indent=4)
                 logging.debug("GPU Metrics table Version for GPU %s | %s", gpu_id, gpu_metric_version_str)
             except amdsmi_exception.AmdSmiLibraryException as e:
-                logging.debug("#4 - Unable to load GPU Metrics table version for %s | %s", gpu_id, e.get_error_info())
+                logging.debug("#4 - Unable to load GPU Metrics table version for %s | %s", gpu_id, e.err_info)
 
             try:
                 # Get GPU Metrics table
                 gpu_metric_debug_info = amdsmi_interface.amdsmi_get_gpu_metrics_info(args.gpu)
 
             except amdsmi_exception.AmdSmiLibraryException as e:
-                logging.debug("#5 - Unable to load GPU Metrics table for %s | %s", gpu_id, e.get_error_info())
+                logging.debug("#5 - Unable to load GPU Metrics table for %s | %s", gpu_id, e.err_info)
 
         is_partition_metrics = False  # True if we get the metrics from xcp_metrics file (amdsmi_get_gpu_partition_metrics_info)
         #get metric info only once per gpu, this will speed up data output
@@ -7286,6 +7511,17 @@ class AMDSMICommands():
                 break
             time.sleep(1)
 
+    def execute_and_save(self, command: str, output_file: str) -> None:
+        """Execute a command and save its output to a file."""
+        try:
+            output = subprocess.check_output(command, shell=True, text=True)
+            with open(output_file, "a") as file:
+                file.write(f"# Command: {command}\n{output}\n\n")
+        except subprocess.CalledProcessError as error:
+            print(f"Failed to execute command: {error}")
+            print(f"Stderr: {error.stderr}")
+
+    
 
     def node(self, args, multiple_devices=False, nodes=None, power_management=None):
         """List node informations
@@ -7596,3 +7832,76 @@ class AMDSMICommands():
                 print(e)
 
         listener.stop()
+
+    # BRCM SMI Delegation Methods
+    def _check_brcm_smi_available(self, operation_name="BRCM SMI operation"):
+        """Check if BRCM SMI is available and log error if not."""
+        if not BRCM_SMI_AVAILABLE or not self.brcm_smi_commands:
+            logging.error(f"{operation_name} requires BRCM SMI support. Please rebuild with -DENABLE_BRCM_SMI=ON")
+            return False
+        return True
+
+    def get_nic_handles(self):
+        """Get NIC device handles."""
+        if self._check_brcm_smi_available("Getting NIC handles"):
+            return self.brcm_smi_commands.get_nic_handles()
+        return []
+    
+    def get_switch_handles(self):
+        """Get Switch device handles."""  
+        if self._check_brcm_smi_available("Getting Switch handles"):
+            return self.brcm_smi_commands.get_switch_handles()
+        return []
+
+    # NIC/Switch Method Delegations - Replace old implementations
+    def firmware_nic(self, args, multiple_devices=False, nic=None, fw_list=True):
+        """Get Firmware information for target nic - Delegates to BRCM SMI commands"""
+        if not self._check_brcm_smi_available("NIC firmware"):
+            return
+        return self.brcm_smi_commands.firmware_nic(args, multiple_devices, nic, fw_list)
+
+    def metric_nic(self, args, multiple_devices=False, watching_output=False, watch=None, watch_time=None,
+                   iterations=None, nic=None, nic_power=None, nic_temperature=None, nic_errors=None):
+        """Get Metric information for target nic - Delegates to BRCM SMI commands"""
+        if not self._check_brcm_smi_available("NIC metrics"):
+            return
+        return self.brcm_smi_commands.metric_nic(args, multiple_devices, watching_output, watch, watch_time,
+                                                 iterations, nic, nic_power, nic_temperature, nic_errors)
+
+    def metric_switch(self, args, multiple_devices=False, watching_output=False, watch=None, watch_time=None,
+                      iterations=None, switch=None, switch_power=None, switch_errors=None):
+        """Get Metric information for target switch - Delegates to BRCM SMI commands"""
+        if not self._check_brcm_smi_available("Switch metrics"):
+            return
+        return self.brcm_smi_commands.metric_switch(args, multiple_devices, watching_output, watch, watch_time,
+                                                   iterations, switch, switch_power, switch_errors)
+
+    def monitor_nic(self, args, multiple_devices=False, watching_output=False, nic=None,
+                    watch=None, watch_time=None, iterations=None, temperature=None, brcm_nic=None):
+        """Monitor NIC devices - Delegates to BRCM SMI commands"""
+        if not self._check_brcm_smi_available("NIC monitoring"):
+            return
+        return self.brcm_smi_commands.monitor_nic(args, multiple_devices, watching_output, nic,
+                                                  watch, watch_time, iterations, temperature, brcm_nic)
+
+    def monitor_switch(self, args, multiple_devices=False, watching_output=False, switch=None,
+                       watch=None, watch_time=None, iterations=None, pcie=None, brcm_switch=None):
+        """Monitor Switch devices - Delegates to BRCM SMI commands"""
+        if not self._check_brcm_smi_available("Switch monitoring"):
+            return
+        return self.brcm_smi_commands.monitor_switch(args, multiple_devices, watching_output, switch,
+                                                    watch, watch_time, iterations, pcie, brcm_switch)
+
+    def topology_nic(self, args, multiple_devices=False, gpu=None, nic=None, 
+                     nic_topo=None, nic_switch=None, multiple_device_enabled=None, switch=None):
+        """Get topology information for NIC devices - Delegates to BRCM SMI commands"""
+        if not self._check_brcm_smi_available("NIC topology"):
+            return
+        return self.brcm_smi_commands.topology_nic(args, multiple_devices, gpu, nic, 
+                                                  nic_topo, nic_switch, multiple_device_enabled, switch)
+
+    def dump(self, args, nic=None, switch=None):
+        """Dump NIC and Switch information to a file - Delegates to BRCM SMI commands"""
+        if not self._check_brcm_smi_available("NIC/Switch dump"):
+            return
+        return self.brcm_smi_commands.dump_nic_switch(args, nic, switch)

@@ -28,7 +28,11 @@ class AmdSmiException(Exception):
 
 class AmdSmiLibraryException(AmdSmiException):
     def __init__(self, err_code):
-        err_code = abs(err_code)
+        # Handle non-numeric error codes gracefully
+        try:
+            err_code = abs(int(err_code))
+        except (ValueError, TypeError):
+            err_code = 0  # Default to 0 for invalid error codes
         super().__init__(err_code)
         self.err_code = err_code
         self.set_err_info()

@@ -602,6 +602,7 @@ amdsmi_status_t smi_amdgpu_get_ecc_error_count(amd::smi::AMDSmiGPUDevice* device
 
     return AMDSMI_STATUS_SUCCESS;
 }
+
 amdsmi_status_t smi_amdgpu_get_driver_version(amd::smi::AMDSmiGPUDevice* device, int *length, char *version) {
     SMIGPUDEVICE_MUTEX(device->get_mutex())
     amdsmi_status_t status = AMDSMI_STATUS_SUCCESS;
@@ -988,6 +989,31 @@ amdsmi_status_t smi_amdgpu_get_processor_handle_by_index(
   return AMDSMI_STATUS_API_FAILED;
 }
 
+std::string smi_brcm_get_value_string(std::string filePath, std::string fileName) {
+  
+    std::stringstream temp;
+    filePath += "/" + fileName;
+    std::ifstream file(filePath.c_str(), std::ifstream::in);
+    if (!file.is_open()) {
+      return "N/A";
+    }
+    else {
+      std::string line;
+      int counter = 0;
+      while (std::getline(file, line)) {
+        if (line.empty()) {
+          break;
+        }
+        counter ++;
+        if (counter >= 2) {
+          temp << "\n";
+        }
+        temp << line;
+      }
+    }
+  
+    return temp.str();
+  }
 int read_env_ms(const char* name, int def) {
     if (const char* s = std::getenv(name)) {
         try {

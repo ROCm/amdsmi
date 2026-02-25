@@ -71,8 +71,13 @@ AMDSMI_ERROR_MESSAGES = {
 }
 
 def _get_error_message(error_code):
-    if abs(error_code) in AMDSMI_ERROR_MESSAGES:
-        return AMDSMI_ERROR_MESSAGES[abs(error_code)]
+    # Handle non-numeric error codes gracefully
+    try:
+        error_code_num = int(error_code)
+        if abs(error_code_num) in AMDSMI_ERROR_MESSAGES:
+            return AMDSMI_ERROR_MESSAGES[abs(error_code_num)]
+    except (ValueError, TypeError):
+        pass
     return "Generic error"
 
 
@@ -297,11 +302,25 @@ class AmdSmiUnknownErrorException(AmdSmiException):
 class AmdSmiLibraryErrorException(AmdSmiException):
     def __init__(self, outputformat: str, error_code):
         super().__init__()
-        self.value = -1000 - abs(error_code)
-        self.smilibcode = error_code
+        
+        # Handle non-numeric error codes gracefully
+        try:
+            error_code_num = int(error_code)
+            self.value = -1000 - abs(error_code_num)
+            self.smilibcode = error_code_num
+            
+            # Get error message safely
+            if abs(error_code_num) in AMDSMI_ERROR_MESSAGES:
+                error_msg = AMDSMI_ERROR_MESSAGES[abs(error_code_num)]
+            else:
+                error_msg = "Unknown error"
+        except (ValueError, TypeError):
+            self.value = -1000
+            self.smilibcode = error_code
+            error_msg = "Invalid error code"
+            
         self.output_format = outputformat
-
-        common_message = f"AMDSMI has returned error '{self.value}' - '{AMDSMI_ERROR_MESSAGES[abs(self.smilibcode)]}'"
+        common_message = f"AMDSMI has returned error '{self.value}' - '{error_msg}'"
 
         self.json_message["error"] = common_message
         self.json_message["code"] = self.value

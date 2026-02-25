@@ -2937,6 +2937,9 @@ amdsmi_get_gpu_event_notification.argtypes = [ctypes.c_int32, ctypes.POINTER(cty
 amdsmi_stop_gpu_event_notification = _libraries['libamd_smi.so'].amdsmi_stop_gpu_event_notification
 amdsmi_stop_gpu_event_notification.restype = amdsmi_status_t
 amdsmi_stop_gpu_event_notification.argtypes = [amdsmi_processor_handle]
+amdsmi_get_gpu_device_bdf = _libraries['libamd_smi.so'].amdsmi_get_gpu_device_bdf
+amdsmi_get_gpu_device_bdf.restype = amdsmi_status_t
+amdsmi_get_gpu_device_bdf.argtypes = [amdsmi_processor_handle, ctypes.POINTER(union_amdsmi_bdf_t)]
 amdsmi_get_gpu_driver_info = _libraries['libamd_smi.so'].amdsmi_get_gpu_driver_info
 amdsmi_get_gpu_driver_info.restype = amdsmi_status_t
 amdsmi_get_gpu_driver_info.argtypes = [amdsmi_processor_handle, ctypes.POINTER(struct_amdsmi_driver_info_t)]
@@ -3489,6 +3492,7 @@ __all__ = \
     'amdsmi_get_gpu_ras_feature_info',
     'amdsmi_get_gpu_reg_table_info', 'amdsmi_get_gpu_revision',
     'amdsmi_get_gpu_subsystem_id', 'amdsmi_get_gpu_subsystem_name',
+    'amdsmi_get_gpu_topo_cpu_affinity',
     'amdsmi_get_gpu_topo_numa_affinity',
     'amdsmi_get_gpu_total_ecc_count', 'amdsmi_get_gpu_vbios_info',
     'amdsmi_get_gpu_vendor_name',
@@ -3625,4 +3629,96 @@ __all__ = \
     'struct_amdsmi_bdf_t', 'struct_valid_bits_', 'uint32_t',
     'uint64_t', 'uint8_t', 'union_amdsmi_bdf_t',
     'union_amdsmi_cper_valid_bits_t', 'union_amdsmi_nps_caps_t']
+
+
+#==============================================================================
+# BRCM SMI Integration Structures and Functions
+#==============================================================================
+
+# BRCM SMI discovery result structure
+class amdsmi_brcm_discovery_result_t(ctypes.Structure):
+    _fields_ = [
+        ('nic_count', ctypes.c_uint32),
+        ('switch_count', ctypes.c_uint32),
+        ('total_count', ctypes.c_uint32),
+    ]
+
+# BRCM SMI processor types
+AMDSMI_BRCM_PROCESSOR_TYPE_NIC = 0
+AMDSMI_BRCM_PROCESSOR_TYPE_SWITCH = 1
+
+# BRCM SMI handle types
+amdsmi_brcm_processor_handle = ctypes.c_void_p
+amdsmi_brcm_socket_handle = ctypes.c_void_p
+amdsmi_brcm_processor_type_t = ctypes.c_int
+
+# Function declarations (only available when ENABLE_BRCM_SMI is set)
+# Check if BRCM SMI support is available
+BRCM_SMI_AVAILABLE = False
+
+try:
+    # Core System Functions
+    amdsmi_brcm_init = _libraries['libamd_smi.so'].amdsmi_brcm_init
+    amdsmi_brcm_init.restype = amdsmi_status_t
+    amdsmi_brcm_init.argtypes = [ctypes.c_uint64]
+
+    amdsmi_brcm_shutdown = _libraries['libamd_smi.so'].amdsmi_brcm_shutdown
+    amdsmi_brcm_shutdown.restype = amdsmi_status_t
+    amdsmi_brcm_shutdown.argtypes = []
+
+    amdsmi_brcm_discover_devices = _libraries['libamd_smi.so'].amdsmi_brcm_discover_devices
+    amdsmi_brcm_discover_devices.restype = amdsmi_status_t
+    amdsmi_brcm_discover_devices.argtypes = [ctypes.POINTER(amdsmi_brcm_discovery_result_t)]
+
+    # Handle Management Functions
+    amdsmi_get_brcm_socket_handles = _libraries['libamd_smi.so'].amdsmi_get_brcm_socket_handles
+    amdsmi_get_brcm_socket_handles.restype = amdsmi_status_t
+    amdsmi_get_brcm_socket_handles.argtypes = [ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(amdsmi_brcm_socket_handle)]
+
+    amdsmi_get_brcm_socket_info = _libraries['libamd_smi.so'].amdsmi_get_brcm_socket_info
+    amdsmi_get_brcm_socket_info.restype = amdsmi_status_t
+    amdsmi_get_brcm_socket_info.argtypes = [amdsmi_brcm_socket_handle, ctypes.c_size_t, ctypes.c_char_p]
+
+    amdsmi_get_brcm_nic_processor_handles = _libraries['libamd_smi.so'].amdsmi_get_brcm_nic_processor_handles
+    amdsmi_get_brcm_nic_processor_handles.restype = amdsmi_status_t
+    amdsmi_get_brcm_nic_processor_handles.argtypes = [amdsmi_brcm_socket_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.POINTER(amdsmi_brcm_processor_handle))]
+
+    amdsmi_get_brcm_switch_processor_handles = _libraries['libamd_smi.so'].amdsmi_get_brcm_switch_processor_handles
+    amdsmi_get_brcm_switch_processor_handles.restype = amdsmi_status_t
+    amdsmi_get_brcm_switch_processor_handles.argtypes = [amdsmi_brcm_socket_handle, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(ctypes.POINTER(amdsmi_brcm_processor_handle))]
+
+    amdsmi_get_brcm_processor_type = _libraries['libamd_smi.so'].amdsmi_get_brcm_processor_type
+    amdsmi_get_brcm_processor_type.restype = amdsmi_status_t
+    amdsmi_get_brcm_processor_type.argtypes = [amdsmi_brcm_processor_handle, ctypes.POINTER(amdsmi_brcm_processor_type_t)]
+
+    # Compatibility Functions
+    amdsmi_get_brcm_processor_handles = _libraries['libamd_smi.so'].amdsmi_get_brcm_processor_handles
+    amdsmi_get_brcm_processor_handles.restype = amdsmi_status_t
+    amdsmi_get_brcm_processor_handles.argtypes = [ctypes.c_uint32, amdsmi_brcm_processor_type_t, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(amdsmi_brcm_processor_handle)]
+
+    amdsmi_get_brcm_processor_handles_by_type = _libraries['libamd_smi.so'].amdsmi_get_brcm_processor_handles_by_type
+    amdsmi_get_brcm_processor_handles_by_type.restype = amdsmi_status_t
+    amdsmi_get_brcm_processor_handles_by_type.argtypes = [amdsmi_brcm_socket_handle, amdsmi_brcm_processor_type_t, ctypes.POINTER(ctypes.c_uint32), ctypes.POINTER(amdsmi_brcm_processor_handle)]
+
+    # BRCM SMI getString Method
+    amdsmi_brcm_getString = _libraries['libamd_smi.so'].amdsmi_brcm_getString
+    amdsmi_brcm_getString.restype = amdsmi_status_t
+    amdsmi_brcm_getString.argtypes = [amdsmi_brcm_processor_handle, ctypes.c_char_p, ctypes.c_size_t, ctypes.c_char_p]
+
+    # If we reach here, all BRCM SMI functions are available
+    BRCM_SMI_AVAILABLE = True
+
+except AttributeError:
+    # BRCM SMI functions are not available (ENABLE_BRCM_SMI not set during build)
+    BRCM_SMI_AVAILABLE = False
+
+
+def is_brcm_smi_supported():
+    """
+    Check if BRCM SMI support is available in the current build.
+    
+    Returns:
+        bool: True if BRCM SMI functions are available, False otherwise
+    """
+    return BRCM_SMI_AVAILABLE
 
