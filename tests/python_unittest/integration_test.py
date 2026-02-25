@@ -19,32 +19,63 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+import json
 import multiprocessing
+import os
 import sys
 import threading
 import unittest
 
-import os
 
-# Default path for AMDSMI_CLI_PATH is "/opt/rocm/libexec/amdsmi_cli/"
-amdsmi_cli_path = os.environ.get("AMDSMI_CLI_PATH", "/opt/rocm/libexec/amdsmi_cli/")
-if not os.path.exists(amdsmi_cli_path):
-    raise FileNotFoundError(f"AMDSMI_CLI_PATH '{amdsmi_cli_path}' does not exist. Please set the correct path in your environment.")
-sys.path.append(amdsmi_cli_path)
+amdsmi_path = os.environ.get("AMDSMI_PATH", "/opt/rocm/share/amd_smi")
+if not os.path.exists(amdsmi_path):
+    raise FileNotFoundError(f"AMDSMI_PATH '{amdsmi_path}' does not exist. Please set the correct path in your environment.")
+sys.path.append(amdsmi_path)
+
 try:
-    import amdsmi, amdsmi.amdsmi_wrapper
-except ImportError:
-    raise ImportError(f"Could not import the 'amdsmi' module from '{amdsmi_cli_path}'")
+    import amdsmi
+except ImportError as exc:
+    raise ImportError(f'Could not import {amdsmi_path}') from exc
 
 class TestAmdSmiInit(unittest.TestCase):
-    
     def test_init(self):
         amdsmi.amdsmi_init()
         amdsmi.amdsmi_shut_down()
 
 class TestAmdSmiPythonInterface(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-    max_num_physical_devices = amdsmi.amdsmi_interface.AMDSMI_MAX_NUM_XCP * amdsmi.amdsmi_interface.AMDSMI_MAX_DEVICES
+        self.verbose = verbose
+        self.max_num_physical_devices = amdsmi.amdsmi_interface.AMDSMI_MAX_NUM_XCP * amdsmi.amdsmi_interface.AMDSMI_MAX_DEVICES
+        global has_info_printed
+        if self.verbose and has_info_printed is False:
+            # Execute the following to print the asic and board info once per test run
+            has_info_printed = True
+            self.setUp()
+            processors = amdsmi.amdsmi_get_processor_handles()
+            self.assertGreaterEqual(len(processors), 1)
+            self.assertLessEqual(len(processors), self.max_num_physical_devices)
+            for i in range(0, len(processors)):
+                try:
+                    # Print asic info
+                    msg = f'asic info(gpu={i})'
+                    ret = amdsmi.amdsmi_get_gpu_asic_info(processors[i])
+                    print(msg)
+                    print(json.dumps(ret, sort_keys=False, indent=4), flush=True)
+                except amdsmi.AmdSmiLibraryException as e:
+                    raise e
+            for i in range(0, len(processors)):
+                try:
+                    # Print board info
+                    msg = f'board info(gpu={i})'
+                    ret = amdsmi.amdsmi_get_gpu_board_info(processors[i])
+                    print(msg)
+                    print(json.dumps(ret, sort_keys=False, indent=4), flush=True)
+                except amdsmi.AmdSmiLibraryException as e:
+                    raise e
+            self.tearDown()
+        return
 
     def _check_exception(self, e):
         error_code = e.get_error_code()
@@ -735,7 +766,7 @@ class TestAmdSmiPythonInterface(unittest.TestCase):
                 power_info['power_limit']))
             try:
                 print("\n###Test amdsmi_get_power_cap_info \n")
-                power_cap_info = amdsmi.amdsmi_get_power_cap_info(processors[i])
+                power_cap_info = amdsmi.amdsmi_get_power_cap_info(processors[i], 0)
             except amdsmi.AmdSmiLibraryException as e:
                 self._check_exception(e)
                 continue
@@ -1368,6 +1399,7 @@ if __name__ == '__main__':
         verbose=0
     elif '-v' in sys.argv or '--verbose' in sys.argv:
         verbose=2
+    has_info_printed = False
     
     # If no -k or --keyword argument is given, print all available tests
     if not ('-k' in sys.argv or '--keyword' in sys.argv):

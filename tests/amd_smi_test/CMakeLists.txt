@@ -1,15 +1,26 @@
-# Required Defines first:
-option(INSTALL_GTEST "Install GTest (only useful if GTest is not already installed)" OFF)
+option(INSTALL_GTEST "Install GTest" OFF)
 
 # Help tests find libraries at runtime
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--enable-new-dtags")
 set(CMAKE_INSTALL_RPATH "\$ORIGIN:\$ORIGIN/../../../lib"
     CACHE STRING "RUNPATH for tests. Helps find libgtest.so and libamd_smi.so")
 
-# Download and compile googletest
-include(FetchContent)
-FetchContent_Declare(googletest GIT_REPOSITORY https://github.com/google/googletest.git GIT_TAG v1.14.0)
-FetchContent_MakeAvailable(googletest)
+if(POLICY CMP0135)
+    cmake_policy(SET CMP0135 NEW)
+endif()
+
+# Use system GTest if available, otherwise fetch and build
+find_package(GTest)
+if(NOT GTest_FOUND)
+    include(FetchContent)
+    FetchContent_Declare(
+        googletest
+        # Originally mirrored from: https://github.com/google/googletest/releases/download/v1.16.0/googletest-1.16.0.tar.gz
+        URL https://rocm-third-party-deps.s3.us-east-2.amazonaws.com/googletest-1.16.0.tar.gz
+        URL_HASH SHA256=78c676fc63881529bf97bf9d45948d905a66833fbfa5318ea2cd7478cb98f399
+    )
+    FetchContent_MakeAvailable(googletest)
+endif()
 
 enable_testing()
 
@@ -50,7 +61,7 @@ include_directories(${TEST} ${CMAKE_CURRENT_SOURCE_DIR}/.. ${ROCM_INC_DIR}/..)
 
 # Build rules
 add_executable(${TEST} ${tstSources} ${functionalSources})
-target_link_libraries(${TEST} ${AMD_SMI} GTest::gtest_main c stdc++ pthread)
+target_link_libraries(${TEST} ${AMD_SMI} GTest::gtest c stdc++ pthread ${FILESYSTEM_LIB})
 
 # Add BRCM SMI support if enabled
 if(ENABLE_BRCM_SMI)
@@ -67,11 +78,5 @@ install(
 
 install(
     FILES amdsmitst.exclude
-    DESTINATION ${SHARE_INSTALL_PREFIX}/tests
-    COMPONENT ${TESTS_COMPONENT})
-
-# Install googletest libraries with tests
-install(
-    TARGETS gtest gtest_main
     DESTINATION ${SHARE_INSTALL_PREFIX}/tests
     COMPONENT ${TESTS_COMPONENT})

@@ -55,6 +55,7 @@
 #include "rocm_smi/rocm_smi64Config.h"
 #include "rocm_smi/rocm_smi_logger.h"
 #include "rocm_smi/rocm_smi_board_temp.h"
+#include "rocm_smi/rocm_smi_npm.h"
 
 using amd::smi::monitorTypesToString;
 using amd::smi::getRSMIStatusString;
@@ -3259,6 +3260,67 @@ rsmi_dev_pci_throughput_get(uint32_t dv_ind, uint64_t *sent,
 }
 
 rsmi_status_t
+rsmi_dev_npm_info_get(uint32_t dv_ind, uintptr_t node_handle,
+                              rsmi_npm_info_t *npm_info) {
+  TRY
+  std::ostringstream ss;
+  ss << __PRETTY_FUNCTION__ << "| ======= start =======, dv_ind=" << dv_ind;
+  LOG_TRACE(ss);
+
+  if (npm_info == nullptr) {
+    return RSMI_STATUS_INVALID_ARGS;
+  }
+
+  CHK_SUPPORT_NAME_ONLY(npm_info)
+
+  DEVICE_MUTEX
+
+  if (node_handle == 0) {
+    ss << __PRETTY_FUNCTION__ << " | node_handle == 0 -> returning "
+       << getRSMIStatusString(RSMI_STATUS_INVALID_ARGS);
+    LOG_ERROR(ss);
+    return RSMI_STATUS_INVALID_ARGS;
+  }
+
+  std::string *board_path_str = reinterpret_cast<std::string*>(node_handle);
+  if (board_path_str == nullptr || board_path_str->empty()) {
+    ss << __PRETTY_FUNCTION__ << " | invalid/empty board path in node_handle";
+    LOG_ERROR(ss);
+    return RSMI_STATUS_INVALID_ARGS;
+  }
+
+  bool npm_status = false;
+  uint64_t npm_limit = UINT64_MAX;
+
+  rsmi_status_t ret = amd::smi::get_npm_board_status(*board_path_str, &npm_status);
+  if (ret != RSMI_STATUS_SUCCESS) {
+    ss << __PRETTY_FUNCTION__ << " | get_npm_board_status failed: "
+       << getRSMIStatusString(ret);
+    LOG_INFO(ss);
+    return ret;
+  }
+
+  ret = amd::smi::get_npm_board_limit(*board_path_str, &npm_limit);
+  if (ret != RSMI_STATUS_SUCCESS) {
+    ss << __PRETTY_FUNCTION__ << " | get_npm_board_limit returned "
+       << getRSMIStatusString(ret) << " ; using sentinel limit";
+    LOG_DEBUG(ss);
+    npm_limit = UINT64_MAX;
+  }
+
+  // fill output
+  std::memset(npm_info, 0, sizeof(*npm_info));
+  npm_info->status = npm_status ? RSMI_NPM_STATUS_ENABLED : RSMI_NPM_STATUS_DISABLED;
+  npm_info->limit = npm_limit;
+
+  ss << __PRETTY_FUNCTION__ << " | ======= end ======= | returning "
+     << getRSMIStatusString(RSMI_STATUS_SUCCESS);
+  LOG_TRACE(ss);
+  return RSMI_STATUS_SUCCESS;
+  CATCH
+}
+
+rsmi_status_t
 rsmi_dev_temp_metric_get(uint32_t dv_ind, uint32_t sensor_type,
                        rsmi_temperature_metric_t metric, int64_t *temperature) {
   TRY
@@ -3970,19 +4032,19 @@ rsmi_dev_energy_count_get(uint32_t dv_ind, uint64_t *power,
 }
 
 rsmi_status_t
-rsmi_dev_power_cap_default_get(uint32_t dv_ind, uint64_t *default_cap) {
+rsmi_dev_power_cap_default_get(uint32_t dv_ind, uint32_t sensor_ind, uint64_t *default_cap) {
   TRY
   std::ostringstream ss;
   ss << __PRETTY_FUNCTION__ << "| ======= start =======";
   LOG_TRACE(ss);
 
-  uint32_t sensor_ind = 1; // power sysfs files have 1-based indices
-  CHK_SUPPORT_SUBVAR_ONLY(default_cap, sensor_ind)
+  uint32_t sensor_ind_adjust = sensor_ind + 1; // power sysfs files have 1-based indices
+  CHK_SUPPORT_SUBVAR_ONLY(default_cap, sensor_ind_adjust)
 
   rsmi_status_t ret;
 
   DEVICE_MUTEX
-  ret = get_dev_mon_value(amd::smi::kMonPowerCapDefault, dv_ind, sensor_ind, default_cap);
+  ret = get_dev_mon_value(amd::smi::kMonPowerCapDefault, dv_ind, sensor_ind_adjust, default_cap);
 
   return ret;
   CATCH
@@ -4102,6 +4164,58 @@ rsmi_dev_power_profile_set(uint32_t dv_ind, uint32_t dummy,
   rsmi_status_t ret = set_power_profile(dv_ind, profile);
 
   return ret;
+  CATCH
+}
+
+rsmi_status_t
+rsmi_dev_supported_power_cap_get(uint32_t dv_ind, uint32_t *sensor_count,
+                                 uint32_t *sensor_inds, rsmi_power_cap_type_t *sensor_types) {
+  TRY
+  std::ostringstream ss;
+  ss << __PRETTY_FUNCTION__ << "| ======= start =======";
+  LOG_TRACE(ss);
+
+  if (!sensor_count || !sensor_inds || !sensor_types) {
+    return RSMI_STATUS_INVALID_ARGS;
+  }
+  GET_DEV_FROM_INDX
+  DEVICE_MUTEX
+
+  const uint8_t RSMI_MAX_POWER_CAP_SENSORS = 2;
+  uint32_t sensor_count_local = 0;
+  // try to read the power*_label file. If the read succeeds, that indicates that exists and update the sensor count and sensor indices accordingly
+  for (uint32_t i = 0; i < RSMI_MAX_POWER_CAP_SENSORS; ++i) {
+    // skip if monitor doesn't exist (e.g., in virtualized/partitioned environments)
+    if (dev->monitor() == nullptr) {
+      continue;
+    }
+
+    std::string val;
+    // sensor_ind for power starts at 1
+    uint32_t adjusted_index = i + 1;
+    rsmi_status_t ret = amd::smi::ErrnoToRsmiStatus(dev->monitor()->readMonitor(amd::smi::kMonPowerLabel, adjusted_index, &val));
+    if (ret != RSMI_STATUS_SUCCESS) {
+      // if the read fails, then the sensor does not exist or is otherwise inaccessible for some reason
+      continue;
+    }
+    // if val is PPT, then sensor_type is PPT0. If val is PPT1 then sensor_type is PPT1
+    if (val == "PPT") {
+      sensor_types[sensor_count_local] = RSMI_POWER_CAP_TYPE_PPT0;
+    }
+    else if (val == "PPT1") {
+      sensor_types[sensor_count_local] = RSMI_POWER_CAP_TYPE_PPT1;
+    }
+    sensor_inds[sensor_count_local] = i;
+    sensor_count_local++;
+  }
+
+  // If no sensors were found, return not supported
+  if (sensor_count_local == 0) {
+    return RSMI_STATUS_NOT_SUPPORTED;
+  }
+
+  *sensor_count = sensor_count_local;
+  return RSMI_STATUS_SUCCESS;
   CATCH
 }
 
@@ -7252,6 +7366,11 @@ rsmi_event_notification_init(uint32_t dv_ind) {
   DEVICE_MUTEX
 
   std::lock_guard<std::mutex> guard(*smi.kfd_notif_evt_fh_mutex());
+
+  if (dev->evt_notif_anon_fd() > 0 && dev->evt_notif_anon_file_ptr() != nullptr) {
+    return RSMI_STATUS_SUCCESS;
+  }
+
   if (smi.kfd_notif_evt_fh() == -1) {
     assert(smi.kfd_notif_evt_fh_refcnt() == 0);
     int kfd_fd = open(kPathKFDIoctl, O_RDWR | O_CLOEXEC);
@@ -7357,8 +7476,23 @@ rsmi_event_notification_get(int timeout_ms,
         return;
       }
 
-      FILE *anon_fp =
-         smi.devices()[fd_indx_to_dev_id[i]]->evt_notif_anon_file_ptr();
+      const uint32_t dv_ind = fd_indx_to_dev_id[i];
+      auto& dev = *smi.devices()[dv_ind];
+
+      // Ensure protected access of anon_fp
+      amd::smi::pthread_wrap pw(*amd::smi::GetMutex(dv_ind));
+      amd::smi::ScopedPthread lock(pw);
+
+      FILE *anon_fp = dev.evt_notif_anon_file_ptr();
+      if (!anon_fp) {
+        std::ostringstream ss;
+        ss << "Null evt_notif_anon_file_ptr() for dv_ind=" << dv_ind;
+        LOG_ERROR(ss);
+        continue;
+      }
+      
+      flockfile(anon_fp); // serialize stdio on this stream
+
       data_item =
            reinterpret_cast<rsmi_evt_notification_data_t *>(&data[*num_elem]);
 
@@ -7614,6 +7748,7 @@ rsmi_event_notification_get(int timeout_ms,
         data_item =
              reinterpret_cast<rsmi_evt_notification_data_t *>(&data[*num_elem]);
       }
+      funlockfile(anon_fp); // // paired with flockfile; RAII unlock of device mutex on scope exit
     }
   };
 
@@ -7650,15 +7785,27 @@ rsmi_status_t rsmi_event_notification_stop(uint32_t dv_ind) {
 
   std::lock_guard<std::mutex> guard(*smi.kfd_notif_evt_fh_mutex());
 
-  if (dev->evt_notif_anon_fd() == -1) {
-    return RSMI_STATUS_INVALID_ARGS;
-  }
-//  close(dev->evt_notif_anon_fd());
   FILE *anon_fp = smi.devices()[dv_ind]->evt_notif_anon_file_ptr();
-  fclose(anon_fp);
-  assert(errno == 0 || errno == EAGAIN);
-  dev->set_evt_notif_anon_file_ptr(nullptr);
-  dev->set_evt_notif_anon_fd(-1);
+  int   anon_fd = smi.devices()[dv_ind]->evt_notif_anon_fd();
+
+  // If nothing to close, success
+  if (!anon_fp && anon_fd <= 0) {
+    return RSMI_STATUS_SUCCESS;
+  }
+
+  // Clear state first so nobody else can race a second close
+  smi.devices()[dv_ind]->set_evt_notif_anon_file_ptr(nullptr);
+  smi.devices()[dv_ind]->set_evt_notif_anon_fd(-1);
+
+  if (anon_fp) {
+    if (fclose(anon_fp) != 0) {
+      return amd::smi::ErrnoToRsmiStatus(errno);
+    }
+  } else { // no FILE*, but fd was valid
+    if (close(anon_fd) != 0) {
+      return amd::smi::ErrnoToRsmiStatus(errno);
+    }
+  }
 
   if (smi.kfd_notif_evt_fh_refcnt_dec() == 0) {
     int ret = close(smi.kfd_notif_evt_fh());
@@ -7813,4 +7960,5 @@ rsmi_test_refcount(uint64_t refcnt_type) {
 
   return static_cast<int32_t>(smi.ref_count());
 }
+
 

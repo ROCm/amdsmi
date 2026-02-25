@@ -29,10 +29,16 @@ import platform
 import re
 import sys
 import time
+import glob
+import errno
+import pwd
+import stat
+from typing import Tuple, Optional, Union
 
 from enum import Enum
 from pathlib import Path
 from typing import List, Set, Union
+from functools import lru_cache
 
 # Import amdsmi library
 from amdsmi_init import *
@@ -123,7 +129,7 @@ class AMDSMIHelpers():
         This is used to determine if the last set was successful or not.
         """
         self._previous_set_success_check = status
-    
+
     def get_previous_set_success_check(self):
         """Returns the previous set success check.
         This is used to determine if the last set was successful or not.
@@ -241,11 +247,11 @@ class AMDSMIHelpers():
         except amdsmi_interface.AmdSmiLibraryException as e:
             if e.err_code in (amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NOT_INIT,
                               amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_DRIVER_NOT_LOADED):
-                logging.info('Unable to get device choices, driver not initialized (amd_hsmp not found in modules)')
+                logging.info('Unable to get device choices, driver not initialized (amd_hsmp  or hsmp_acpi not found in modules)')
             else:
                 raise e
         if len(cpu_handles) == 0:
-            logging.info('Unable to find any devices, check if driver is initialized (amd_hsmp not found in modules)')
+            logging.info('Unable to find any devices, check if driver is initialized (amd_hsmp or hsmp_acpi not found in modules)')
         else:
             # Handle spacing for the gpu_choices_str
             max_padding = int(math.log10(len(cpu_handles))) + 1
@@ -287,11 +293,11 @@ class AMDSMIHelpers():
         except amdsmi_interface.AmdSmiLibraryException as e:
             if e.err_code in (amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NOT_INIT,
                               amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_DRIVER_NOT_LOADED):
-                logging.info('Unable to get device choices, driver not initialized (amd_hsmp not found in modules)')
+                logging.info('Unable to get device choices, driver not initialized (amd_hsmp  or hsmp_acpi not found in modules)')
             else:
                 raise e
         if len(core_handles) == 0:
-            logging.info('Unable to find any devices, check if driver is initialized (amd_hsmp not found in modules)')
+            logging.info('Unable to find any devices, check if driver is initialized (amd_hsmp or hsmp_acpi  not found in modules)')
         else:
             # Handle spacing for the gpu_choices_str
             max_padding = int(math.log10(len(core_handles))) + 1
@@ -971,6 +977,41 @@ class AMDSMIHelpers():
             return False, args.core
 
 
+    # The below handle_nodes function is currently unused as only node 0 is supported.
+    # Marked as a private function until it is needed in the future.
+    def _handle_nodes(self, args, logger, subcommand):
+        """This function will run execute the subcommands based on the number
+            of nodes passed in via args.
+        params:
+            args - argparser args to pass to subcommand
+            current_platform_args (list) - GPU supported platform arguments
+            current_platform_values (list) - GPU supported values for the arguments
+            logger (AMDSMILogger) - Logger to print out output
+            subcommand (AMDSMICommands) - Function that can handle multiple gpus
+
+        return:
+            tuple(bool, device_handle) :
+                bool - True if executed subcommand for multiple devices
+                device_handle - Return the device_handle if the list of devices is a length of 1
+            (handled_multiple_nodes, device_handle)
+
+        """
+        if isinstance(args.node, list):
+            if len(args.node) > 1:
+                for node_handle in args.node:
+                    # Handle multiple_devices to print all output at once
+                    subcommand(args, multiple_devices=True, node=node_handle)
+                logger.print_output(multiple_device_enabled=True)
+                return True, args.node
+            elif len(args.node) == 1:
+                args.node = args.node[0]
+                return False, args.node
+            else:
+                logging.debug("args.node has an empty list")
+        else:
+            return False, args.node
+
+
     def handle_watch(self, args, subcommand, logger):
         """This function will run the subcommand multiple times based
             on the passed watch, watch_time, and iterations passed in.
@@ -1204,9 +1245,8 @@ class AMDSMIHelpers():
             logging.debug("AMDSMIHelpers.get_accelerator_choices_types_indices - Root, getting accelerator partition profiles")
         accelerator_partition_profiles = self.get_accelerator_partition_profile_config()
         if len(accelerator_partition_profiles['profile_types']) != 0:
-            compute_partitions_str = accelerator_partition_profiles['profile_types'] + accelerator_partition_profiles['profile_indices']
-            accelerator_choices = ", ".join(compute_partitions_str)
-            return_val = (accelerator_choices, accelerator_partition_profiles)
+            compute_partitions_list = accelerator_partition_profiles['profile_types'] + accelerator_partition_profiles['profile_indices']
+            return_val = (compute_partitions_list, accelerator_partition_profiles)
         return return_val
 
 
@@ -1239,26 +1279,50 @@ class AMDSMIHelpers():
 
     def get_power_caps(self):
         device_handles = amdsmi_interface.amdsmi_get_processor_handles()
-        power_cap_min = amdsmi_interface.MaxUIntegerTypes.UINT64_T # start out at max and min and then find real min and max
-        power_cap_max = 0
+        power_limit_types = {
+            'ppt0': {
+                'power_cap_min': amdsmi_interface.MaxUIntegerTypes.UINT64_T,
+                'power_cap_max': 0
+            },
+            'ppt1': {
+                'power_cap_min': amdsmi_interface.MaxUIntegerTypes.UINT64_T,
+                'power_cap_max': 0
+            }
+        }
+
         for dev in device_handles:
             try:
-                power_cap_info = amdsmi_interface.amdsmi_get_power_cap_info(dev)
-                if power_cap_info['max_power_cap'] > power_cap_max:
-                    power_cap_max = power_cap_info['max_power_cap']
-                if power_cap_info['min_power_cap'] < power_cap_max:
-                    power_cap_min = power_cap_info['min_power_cap']
-            except amdsmi_interface.AmdSmiLibraryException as e:
+                power_cap_types = amdsmi_interface.amdsmi_get_supported_power_cap(dev)
+                for sensor in power_cap_types['sensor_inds']:
+                    power_cap_info = amdsmi_interface.amdsmi_get_power_cap_info(dev, sensor)
+                    if power_cap_info['max_power_cap'] > power_limit_types[f'ppt{sensor}']['power_cap_max']:
+                        power_limit_types[f'ppt{sensor}']['power_cap_max'] = power_cap_info['max_power_cap']
+                    if power_cap_info['min_power_cap'] < power_limit_types[f'ppt{sensor}']['power_cap_min']:
+                        power_limit_types[f'ppt{sensor}']['power_cap_min'] = power_cap_info['min_power_cap']
+            except (amdsmi_interface.AmdSmiLibraryException, KeyError) as e:
                 logging.debug(f"AMDSMIHelpers.get_power_caps - Unable to get power cap info for device {dev}: {str(e)}")
                 continue
-        
-        # If we never found a real min or max, set them to N/A
-        if power_cap_min == amdsmi_interface.MaxUIntegerTypes.UINT64_T:
-            power_cap_min = "N/A"
-        if power_cap_max == 0:
-            power_cap_max = "N/A"
 
-        return (power_cap_min, power_cap_max)
+        # If we never found a real min or max, set them to N/A
+        for ppt_key in ['ppt0', 'ppt1']:
+            if power_limit_types[ppt_key]['power_cap_min'] == amdsmi_interface.MaxUIntegerTypes.UINT64_T:
+                power_limit_types[ppt_key]['power_cap_min'] = "N/A"
+            if power_limit_types[ppt_key]['power_cap_max'] == 0:
+                power_limit_types[ppt_key]['power_cap_max'] = "N/A"
+
+        ppt0_power_cap_max = self.format_power_cap(power_limit_types['ppt0']['power_cap_max'])
+        ppt0_power_cap_min = self.format_power_cap(power_limit_types['ppt0']['power_cap_min'])
+        ppt1_power_cap_max = self.format_power_cap(power_limit_types['ppt1']['power_cap_max'])
+        ppt1_power_cap_min = self.format_power_cap(power_limit_types['ppt1']['power_cap_min'])
+
+        return (ppt0_power_cap_min, ppt0_power_cap_max, ppt1_power_cap_min, ppt1_power_cap_max)
+
+
+    def format_power_cap(self, value):
+        if value != "N/A":
+            converted = self.convert_SI_unit(value, AMDSMIHelpers.SI_Unit.MICRO)
+            return f"{converted} W"
+        return value
 
 
     def get_soc_pstates(self):
@@ -1267,12 +1331,17 @@ class AMDSMIHelpers():
         for dev in device_handles:
             try:
                 soc_pstate_info = amdsmi_interface.amdsmi_get_soc_pstate(dev)
+                # Check if 'policies' key exists before accessing it
+                if 'policies' in soc_pstate_info and soc_pstate_info['policies']:
+                    for policy in soc_pstate_info['policies']:
+                        policy_string = f"{policy['policy_id']}: {policy['policy_description']}"
+                        if not policy_string in soc_pstate_profile_list:
+                            soc_pstate_profile_list.append(policy_string)
             except amdsmi_interface.AmdSmiLibraryException as e:
                 continue
-            for policy in soc_pstate_info['policies']:
-                policy_string = f"{policy['policy_id']}: {policy['policy_description']}"
-                if not policy_string in soc_pstate_profile_list:
-                    soc_pstate_profile_list.append(policy_string)
+            except KeyError as e:
+                logging.debug(f"AMDSMIHelpers.get_soc_pstates - Missing key in soc_pstate_info: {e}")
+                continue
         if len(soc_pstate_profile_list) == 0:
             soc_pstate_profile_list.append("N/A")
         return soc_pstate_profile_list
@@ -1284,12 +1353,17 @@ class AMDSMIHelpers():
         for dev in device_handles:
             try:
                 xgmi_plpd_info = amdsmi_interface.amdsmi_get_xgmi_plpd(dev)
+                # Check if 'policies' key exists before accessing it
+                if 'policies' in xgmi_plpd_info and xgmi_plpd_info['policies']:
+                    for policy in xgmi_plpd_info['policies']:
+                        policy_string = f"{policy['policy_id']}: {policy['policy_description']}"
+                        if not policy_string in xgmi_plpd_profile_list:
+                            xgmi_plpd_profile_list.append(policy_string)
             except amdsmi_interface.AmdSmiLibraryException as e:
                 continue
-            for policy in xgmi_plpd_info['plpds']:
-                policy_string = f"{policy['policy_id']}: {policy['policy_description']}"
-                if not policy_string in xgmi_plpd_profile_list:
-                    xgmi_plpd_profile_list.append(policy_string)
+            except KeyError as e:
+                logging.debug(f"AMDSMIHelpers.get_xgmi_plpd_policies - Missing key in xgmi_plpd_info: {e}")
+                continue
         if len(xgmi_plpd_profile_list) == 0:
             xgmi_plpd_profile_list.append("N/A")
         return xgmi_plpd_profile_list
@@ -1360,7 +1434,7 @@ class AMDSMIHelpers():
             memory (NPS) partition mode.
 
             Please use `sudo amd-smi reset -r` AFTER successfully
-            changing the memory (NPS) partition mode. A successful driver reload 
+            changing the memory (NPS) partition mode. A successful driver reload
             is REQUIRED in order to complete updating ALL GPUs in the hive to
             the requested partition mode.
 
@@ -1453,7 +1527,6 @@ class AMDSMIHelpers():
         """This function will format output with unit based on the logger output format
 
         params:
-            args - argparser args to pass to subcommand
             logger (AMDSMILogger) - Logger to print out output
             value - the value to be formatted
             unit - the unit to be formatted with the value
@@ -1476,6 +1549,9 @@ class AMDSMIHelpers():
                     return {"value": value, "unit": unit}
                 else:
                     return value
+            if logger.is_csv_format():
+                # For CSV, return the raw value (number or "N/A"), not a string
+                return value
             if logger.is_human_readable_format():
                 if unit:
                     return f"{value} {unit}".rstrip()
@@ -1572,34 +1648,231 @@ class AMDSMIHelpers():
         for i in self.progressbar(range(timeInSeconds), title, 40, add_newline=add_newline):
             time.sleep(1)
 
+    @lru_cache(maxsize=128)
+    def _cached_group_name(self, gid: int) -> str:
+        try: 
+            return grp.getgrgid(gid).gr_name
+        except Exception: 
+            # In containers, the UID may not resolve to a name
+            return str(gid)
 
-    def check_required_groups(self):
+    @lru_cache(maxsize=128)
+    def _cached_user_name(self, uid: int) -> str:
+        try: 
+            return pwd.getpwuid(uid).pw_name
+        except Exception: 
+            # In containers, the GID may not resolve to a name
+            return str(uid)
+
+    # Attempt to grab file info
+    def _stat_info(self, path: str) -> dict:
+        try:
+            st = os.stat(path)
+            return {
+                "uid": st.st_uid,
+                "gid": st.st_gid,
+                "user": self._cached_user_name(st.st_uid),
+                "group": self._cached_group_name(st.st_gid),
+            }
+        except Exception as e:
+            return {"error": str(e)}
+
+    def _has_read_access(self, path: str) -> Tuple[bool, Optional[int], Optional[str]]:
         """
-        Check if the current user is a member of the required groups.
-        If not, log a warning.
+        Check whether the current (real/effective) user can read the given path
+        without opening it. Returns (ok:bool, errno_or_None, message_or_None)
+        """
+        try:
+            st = os.stat(path)
+        except OSError as e:
+            return False, e.errno, e.strerror
+
+        # root can always read
+        if os.geteuid() == 0:
+            return True, None, None
+
+        mode = st.st_mode
+        uid = st.st_uid
+        gid = st.st_gid
+
+        euid = os.geteuid()
+        egid = os.getegid()
+        groups = os.getgroups()
+
+        # owner
+        if euid == uid:
+            if mode & stat.S_IRUSR:
+                return True, None, None
+            return False, errno.EACCES, "Permission denied (owner)"
+
+        # group
+        if gid == egid or gid in groups:
+            if mode & stat.S_IRGRP:
+                return True, None, None
+            return False, errno.EACCES, "Permission denied (group)"
+
+        # other
+        if mode & stat.S_IROTH:
+            return True, None, None
+
+        return False, errno.EACCES, "Permission denied (other)"
+
+    def check_required_groups(self, check_render=True, check_video=True):
+        """
+        Check if the current user can access kfd and dri
+        Specifically, only care for EACCES/EPERM
+        
+        Args:
+            check_render (bool): Whether to check  /dev/kfd &  /dev/dri/renderD* devices. Defaults to True.
+            check_video (bool): Whether to check /dev/dri/card* devices. Defaults to True.
+        
+        Returns:
+            bool: True if all checked devices are accessible, False if any permission errors found
         """
 
         # Skip check if running as root.
         if os.geteuid() == 0:
-            return
+            return True
 
-        required_groups = {'video', 'render'}
+        paths_to_check = []
+        
+        # Only add paths for device types that are flagged for checking
+        if check_render and os.path.exists("/dev/kfd"):
+            paths_to_check.append("/dev/kfd")
+            paths_to_check += [p for p in sorted(glob.glob("/dev/dri/renderD*"))]
 
-        user_groups = set()
-        for gid in set(os.getgroups()) | {os.getgid()}:
-            try:
-                user_groups.add(grp.getgrgid(gid).gr_name)
-            except Exception as e:
-                # Expected in containers when the name for this GID isn't defined
-                pass
+        # Video group corresponds to /dev/dri/card*
+        if check_video:
+            paths_to_check += [p for p in sorted(glob.glob("/dev/dri/card*"))]
 
-        missing_groups = required_groups - user_groups
-        if missing_groups:
-            msg = (
-                "WARNING: User is missing the following required groups: %s. "
-                "Please add user to these groups."
-            ) % ", ".join(sorted(missing_groups))
-            raise RuntimeError(msg)
+        if not paths_to_check:
+            return True
+
+        denied = []
+
+        for path in paths_to_check:
+            # Do not try to open all paths, may cause driver issues.
+            # Read access is sufficient to check permissions.
+            #
+            # Reason: GPUs which support partitioning (memory/compute), 
+            # logical devices will not be valid until configured.
+            # See `sudo amd-smi set -h` or applicable APIs
+            # to configure on supported hardware.
+            #
+            # Example error dmesg output:
+            # [965358.883112] amdgpu 0000:15:00.0: amdgpu: renderD153 partition 1 not valid!
+            # [965358.883283] amdgpu 0000:15:00.0: amdgpu: renderD154 partition 2 not valid!
+            # [965358.883438] amdgpu 0000:15:00.0: amdgpu: renderD155 partition 3 not valid!
+            # [965358.883594] amdgpu 0000:15:00.0: amdgpu: renderD156 partition 4 not valid!
+            # [965358.883749] amdgpu 0000:15:00.0: amdgpu: renderD157 partition 5 not valid!
+            # [965358.883904] amdgpu 0000:15:00.0: amdgpu: renderD158 partition 6 not valid!
+            # [965358.884060] amdgpu 0000:15:00.0: amdgpu: renderD159 partition 7 not valid!
+            ok, err, msg = self._has_read_access(path)
+            if ok:
+                continue
+            # if permission denied or operation not permitted
+            if err in (errno.EACCES, errno.EPERM):
+                denied.append((path, err, msg, self._stat_info(path)))
+
+        if denied:
+            # Collect unique group info from denied devices
+            required_groups = {"kfd": [], "renderD": [], "card": []}
+            device_types = {"kfd": [], "renderD": [], "card": []}
+
+            for path, err, msg, si in denied:
+                if "error" not in si:
+                    # Categorize devices and collect unique group info
+                    if "/dev/kfd" in path:
+                        device_types["kfd"].append(path)
+                        required_groups["kfd"].append(si)
+                    elif "/dev/dri/renderD" in path:
+                        device_types["renderD"].append(path)
+                        required_groups["renderD"].append(si)
+                    elif "/dev/dri/card" in path:
+                        device_types["card"].append(path)
+                        required_groups["card"].append(si)
+
+            # Deduplicate group info by converting to tuple for hashing
+            for device_type in required_groups:
+                unique_groups = list(dict.fromkeys(
+                    tuple(sorted(d.items())) for d in required_groups[device_type]
+                ))
+                required_groups[device_type] = [dict(item) for item in unique_groups]
+
+            lines = []
+            lines.append("Permission needed to access required GPU device node(s):")
+
+            # Collect all unique groups for usermod command
+            all_groups = set()
+
+            # Show summary of denied devices by type with ownership info
+            if device_types["kfd"]:
+                lines.append("  • /dev/kfd: Permission denied")
+                if len(required_groups["kfd"]) > 1:
+                    lines.append("    - Required group(s):")
+                else:
+                    lines.append("    - Required group:")
+                for group_info in required_groups["kfd"]:
+                    lines.append(
+                        "      - User: {user} (UID={uid}) | Group: {group} (GID={gid})".format(
+                            user=group_info["user"],
+                            uid=group_info["uid"],
+                            group=group_info["group"],
+                            gid=group_info["gid"],
+                        )
+                    )
+                    all_groups.add(group_info["group"])
+
+            if device_types["renderD"]:
+                lines.append(f"  • /dev/dri/renderD*: {len(device_types['renderD'])} device(s) denied")
+                if len(required_groups["renderD"]) > 1:
+                    lines.append("    - Required group(s):")
+                else:
+                    lines.append("    - Required group:")
+                for group_info in required_groups["renderD"]:
+                    lines.append(
+                        "      - User: {user} (UID={uid}) | Group: {group} (GID={gid})".format(
+                            user=group_info["user"],
+                            uid=group_info["uid"],
+                            group=group_info["group"],
+                            gid=group_info["gid"],
+                        )
+                    )
+                    all_groups.add(group_info["group"])
+
+            if device_types["card"]:
+                lines.append(f"  • /dev/dri/card*: {len(device_types['card'])} device(s) denied")
+                if len(required_groups["card"]) > 1:
+                    lines.append("    - Required group(s):")
+                else:
+                    lines.append("    - Required group:")
+                for group_info in required_groups["card"]:
+                    lines.append(
+                        "      - User: {user} (UID={uid}) | Group: {group} (GID={gid})".format(
+                            user=group_info["user"],
+                            uid=group_info["uid"],
+                            group=group_info["group"],
+                            gid=group_info["gid"],
+                        )
+                    )
+                    all_groups.add(group_info["group"])
+
+            # Generate usermod command with all unique groups
+            groups_for_usermod = ",".join(sorted(all_groups))
+
+            lines.extend([
+                "",
+                "To resolve this issue, try the following:",
+                "  • Add your user to the required group(s):",
+            f"      sudo usermod -aG {groups_for_usermod} \"$USER\"",
+                "  • Log out and log back in for the group changes to take effect",
+                "  • Alternatively, run this command with sudo/admin privileges",
+                ""
+            ])
+            print("\n".join(lines))
+            return False
+
+        return True
 
     def _severity_as_string(self, error_severity, notify_type, for_filename):
         if error_severity == "non_fatal_uncorrected":
@@ -1683,31 +1956,18 @@ class AMDSMIHelpers():
             output_rows = {}
 
             for entry_index, entry in enumerate(entries.values()):
-                # Batch deletion if file limit is exceeded
-                if file_limit:
-                    folder_files = list(sorted(folder.glob("*.cper"), key=lambda p: p.stat().st_mtime))
-                    if file_limit < len(folder_files):
-                        for old_file in folder_files[:len(folder_files) - file_limit]:
-                            try:
-                                old_file.unlink()
-                                json_file = old_file.with_suffix('.json')
-                                if json_file.exists():
-                                    json_file.unlink()
-                            except OSError as e:
-                                logging.debug(f"Failed to delete file {old_file}: {e}")
-
                 # Determine prefix/severity
                 error_severity = entry.get("error_severity", "").lower()
                 notify_type = entry.get("notify_type", "")
                 prefix = self._severity_as_string(error_severity, notify_type, True)
-
+            
                 # Generate filenames
                 count = self.get_cper_count() + 1
                 cper_name = f"{prefix}-{count}.cper"
                 json_name = f"{prefix}-{count}.json"
                 cper_path = folder / cper_name
                 json_path = folder / json_name
-
+            
                 # Write CPER binary file
                 try:
                     self.write_binary(
@@ -1717,7 +1977,7 @@ class AMDSMIHelpers():
                     )
                 except Exception as e:
                     logging.debug(f"Failed to write CPER file {cper_path}: {e}")
-
+            
                 # Write JSON metadata file
                 try:
                     with json_path.open("w") as cper_json_file:
@@ -1729,13 +1989,27 @@ class AMDSMIHelpers():
                         )
                 except Exception as e:
                     logging.debug(f"Failed to write JSON file {json_path}: {e}")
-
+            
                 # Collect data for printing
                 timestamp = entry.get("timestamp", "unknown")
                 gpu_id = self.get_gpu_id_from_device_handle(device_handle)
                 severity = self._severity_as_string(error_severity, notify_type, False)
                 output_rows[cper_path] = [timestamp, gpu_id, severity, cper_name]
                 self.increment_cper_count()
+
+            # Batch deletion if file limit is exceeded (AFTER writing ALL new files)
+            if file_limit:
+                folder_files = list(sorted(folder.glob("*.cper"), key=lambda p: p.stat().st_mtime))
+                if len(folder_files) > file_limit:
+                    files_to_delete = len(folder_files) - file_limit
+                    for old_file in folder_files[:files_to_delete]:
+                        try:
+                            old_file.unlink()
+                            json_file = old_file.with_suffix('.json')
+                            if json_file.exists():
+                                json_file.unlink()
+                        except OSError as e:
+                            logging.debug(f"Failed to delete file {old_file}: {e}")
 
             # Print collected rows
             for cper_path, row in output_rows.items():
@@ -1987,6 +2261,31 @@ class AMDSMIHelpers():
 
         return ranges
 
+    def build_xcp_dict(self, key, violation_status, num_partition):
+        if not isinstance(violation_status[key], list):
+            if "active_" in key:
+               if violation_status[key] != "N/A":
+                   if violation_status[key] is True:
+                       violation_status[key] = "ACTIVE"
+                   elif violation_status[key] is False:
+                       violation_status[key] = "NOT ACTIVE"
+            ret = violation_status[key]
+        elif isinstance(violation_status[key], list):
+            for row in violation_status[key]:
+                for element in row:
+                    if element != "N/A":
+                        if "active_" in key:
+                            if element is True:
+                                row[row.index(element)] = "ACTIVE"
+                            elif element is False:
+                                row[row.index(element)] = "NOT ACTIVE"
+                        elif ("per_" in key) or ("acc_" in key):
+                            row[row.index(element)] = element
+                    else:
+                        continue
+            ret = {f"xcp_{i}": violation_status[key][i] for i in range(num_partition)}
+        return ret
+
     @staticmethod
     def average_flattened_ints(data, context="data"):
         """Calculate the average of flattened integers from a list or tuple
@@ -2001,7 +2300,74 @@ class AMDSMIHelpers():
         if not isinstance(data, (list, tuple)):
             logging.debug(f"Invalid data type for {context}: expected list/tuple, got {type(data)}")
             return "N/A"
-    
+
         # Flatten nested lists and filter integers
         flat = [v for value in data for v in (value if isinstance(value, list) else [value]) if isinstance(v, int)]
         return round(sum(flat) / len(flat)) if flat else "N/A"
+
+    def _get_metric_version_and_partition_info(self, gpu_metrics_info, is_partition_metrics, gpu_id, gpu_handle):
+        """
+        Helper method to compute metric version, partition ID, and num_partition for dynamic metrics.
+        Handles logging updates internally for reusability.
+        
+        Args:
+            gpu_metrics_info (dict): GPU metrics info from amdsmi_get_gpu_metrics_info.
+            is_partition_metrics (bool): Whether this is for partition metrics.
+            gpu_id (int): GPU ID for logging.
+            gpu_handle: GPU device handle for KFD info retrieval.
+        
+        Returns:
+            dict: {
+                'metric_version': float or "N/A",
+                'partition_id': int or "N/A",
+                'num_partition': int or "N/A",
+                'num_xcp': int or "N/A"  # Alias for num_partition
+            }
+        """
+        # Compute metric version from header revisions
+        metric_version = "N/A"
+        format_rev = gpu_metrics_info.get('common_header.format_revision', "N/A")
+        content_rev = gpu_metrics_info.get('common_header.content_revision', "N/A")
+        if format_rev != "N/A" and content_rev != "N/A":
+            try:
+                metric_version = float(f"{format_rev}.{content_rev}")
+            except ValueError:
+                metric_version = "N/A"  # Fallback if conversion fails
+        
+        # Retrieve partition ID from KFD info
+        partition_id = "N/A"
+        try:
+            kfd_info = amdsmi_interface.amdsmi_get_gpu_kfd_info(gpu_handle)
+            partition_id = kfd_info.get('current_partition_id', "N/A")
+        except amdsmi_exception.AmdSmiLibraryException as e:
+            logging.debug("Failed to get current partition ID for GPU %s | %s", gpu_id, e.get_error_info())
+        
+        # Determine num_partition with fallback logic for dynamic metrics
+        num_partition = gpu_metrics_info.get('num_partition', "N/A")
+        if metric_version != "N/A" and num_partition == "N/A":
+            # Workaround: Default to 1 for newer metric versions if num_partition is missing
+            # (Confirmed with driver team; applies to GPU and partition metrics)
+            if not is_partition_metrics and metric_version >= 1.9:
+                num_partition = 1
+            elif is_partition_metrics and metric_version >= 1.1:
+                num_partition = 1
+            elif partition_id != "N/A" and partition_id > 0:
+                # Fallback to partition_id if partitions exist but num_partition is unavailable
+                num_partition = partition_id
+            # Else: Remains "N/A" if no conditions match
+        
+        # Alias num_xcp for XCP metrics usage
+        num_xcp = num_partition
+        
+        # Debug logging
+        logging.debug(
+            "GPU %s | Metric version: %s, num_partition: %s, partition_id: %s, num_xcp: %s",
+            gpu_id, metric_version, num_partition, partition_id, num_xcp
+        )
+        
+        return {
+            'metric_version': metric_version,
+            'partition_id': partition_id,
+            'num_partition': num_partition,
+            'num_xcp': num_xcp
+        }    

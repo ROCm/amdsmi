@@ -24,6 +24,7 @@ import json
 import logging
 import multiprocessing
 import os
+import signal
 import sys
 import threading
 import time
@@ -67,6 +68,7 @@ class AMDSMICommands():
         self.device_handles = []
         self.cpu_handles = []
         self.core_handles = []
+        self.node_handle = None
         self.stop = ''
         self.group_check_printed = False
         
@@ -112,13 +114,27 @@ class AMDSMICommands():
                 else:
                     raise e
 
+            # Resolve the node handle.
+            for dev in self.device_handles:
+                try:
+                    nh = amdsmi_interface.amdsmi_get_node_handle(dev)
+                    if nh is not None:
+                        self.node_handle = nh
+                        continue
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    if e.err_code in (amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NOT_SUPPORTED,
+                                      amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_INVAL):
+                        logging.debug("Unable to get node handle: %s", e.get_error_info())
+                    else:
+                        raise e
+
         if self.helpers.is_amd_hsmp_initialized():
             try:
                 self.cpu_handles = amdsmi_interface.amdsmi_get_cpusocket_handles()
             except amdsmi_exception.AmdSmiLibraryException as e:
                 if e.err_code in (amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NOT_INIT,
                                 amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_DRV):
-                    logging.info('Unable to detect any CPU devices, check amd_hsmp version and module status (sudo modprobe amd_hsmp)')
+                    logging.info('Unable to detect any CPU devices, check amd_hsmp (or) hsmp_acpi version and module status (sudo modprobe amd_hsmp (or) sudo modprobe hsmp_acpi)')
                 else:
                     raise e
 
@@ -134,8 +150,21 @@ class AMDSMICommands():
 
             if len(self.cpu_handles) == 0 and len(self.core_handles) == 0:
                 # No CPU's found post amd_hsmp driver initialization
-                logging.error('Unable to detect any CPU devices, check amd_hsmp version and module status (sudo modprobe amd_hsmp)')
+                logging.error('Unable to detect any CPU devices, check amd_hsmp (or) hsmp_acpi version and module status (sudo modprobe amd_hsmp (or) sudo modprobe hsmp_acpi)')
                 exit_flag = True
+
+        self.convert_clock_type = {
+            "sys": amdsmi_interface.AmdSmiClkType.SYS,
+            "mem": amdsmi_interface.AmdSmiClkType.MEM,
+            "df": amdsmi_interface.AmdSmiClkType.DF,
+            "soc": amdsmi_interface.AmdSmiClkType.SOC,
+            "dcef": amdsmi_interface.AmdSmiClkType.DCEF,
+            # vclk and dclk currently do not support levels so average clk is given for frequency levels
+            "vclk0": amdsmi_interface.AmdSmiClkType.VCLK0,
+            "vclk1": amdsmi_interface.AmdSmiClkType.VCLK1,
+            "dclk0": amdsmi_interface.AmdSmiClkType.DCLK0,
+            "dclk1": amdsmi_interface.AmdSmiClkType.DCLK1
+        }
 
         if exit_flag:
             version_args = argparse.Namespace()
@@ -209,7 +238,7 @@ class AMDSMICommands():
             if args.gpu_version:
                 human_readable_output = human_readable_output + f" | amdgpu version: {gpu_version_str}"
             if args.cpu_version:
-                human_readable_output = human_readable_output + f" | amd_hsmp version: {cpu_version_str}"
+                human_readable_output = human_readable_output + f" | hsmp version: {cpu_version_str}"
             # Custom human readable handling for version
             if self.logger.destination == 'stdout':
                 print(human_readable_output)
@@ -241,19 +270,9 @@ class AMDSMICommands():
         if args.gpu == None:
             args.gpu = self.device_handles
 
-        # Perform one-time group check. If it fails, record that fact
-        # but do NOT abort—just mark that UUID should be "N/A" later.
-        _group_check_done = False
-        _group_in_groups = False
-        if not _group_check_done:
-           try:
-               self.helpers.check_required_groups()
-               _group_in_groups = True
-           except Exception as e:
-               _group_in_groups = False
-               # print the helper's error message exactly once:
-               print(f"{e}")
-           _group_check_done = True
+        if not self.group_check_printed:
+            self.helpers.check_required_groups(check_render=True, check_video=False)
+            self.group_check_printed = True
 
         # Handle multiple GPUs
         handled_multiple_gpus, device_handle = self.helpers.handle_gpus(args, self.logger, self.list_gpu)
@@ -265,19 +284,15 @@ class AMDSMICommands():
         # Get gpu_id for logging
         gpu_id = self.helpers.get_gpu_id_from_device_handle(args.gpu)
 
-        # Only fetch data if group check passed; otherwise force "N/A"
-        if  _group_in_groups:
-            try:
-                bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(args.gpu)
-            except amdsmi_exception.AmdSmiLibraryException as e:
-                bdf = "N/A"
-            try:
-                uuid = amdsmi_interface.amdsmi_get_gpu_device_uuid(args.gpu)
-            except amdsmi_exception.AmdSmiLibraryException:
-                uuid = "N/A"
-        else:
-            # user not in render/video → everything is N/A
+        # Always try to get BDF regardless of group check
+        try:
+            bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(args.gpu)
+        except amdsmi_exception.AmdSmiLibraryException as e:
             bdf = "N/A"
+        
+        try:
+            uuid = amdsmi_interface.amdsmi_get_gpu_device_uuid(args.gpu)
+        except amdsmi_exception.AmdSmiLibraryException:
             uuid = "N/A"
 
         try:
@@ -286,7 +301,7 @@ class AMDSMICommands():
             node_id = kfd_info['node_id']
             partition_id = kfd_info['current_partition_id']
         except amdsmi_exception.AmdSmiLibraryException as e:
-            kfd_id = node_id = "N/A"
+            kfd_id = node_id = partition_id = "N/A"
             logging.debug("Failed to get kfd info for gpu %s | %s", gpu_id, e.get_error_info())
 
         # CSV format is intentionally aligned with Host
@@ -313,9 +328,6 @@ class AMDSMICommands():
                     "hip_uuid":   "N/A",
                 }
 
-            # __Override__ hip_uuid if the group check failed
-            if not _group_in_groups:
-               enumeration_info["hip_uuid"] = "N/A"
             # now store all the fields exactly once:
             if enumeration_info['drm_render'] == "N/A":
                 self.logger.store_output(args.gpu, 'render', enumeration_info['drm_render'])
@@ -586,6 +598,7 @@ class AMDSMICommands():
             args.partition = partition
         if clock:
             args.clock = clock
+
         # args.clock defaults to False so if it was overwritten to empty list, that indicates that it was given as an arguments but with an empty list
         if args.clock == []:
             args.clock = True
@@ -613,7 +626,7 @@ class AMDSMICommands():
             current_platform_values += [args.partition]
 
         if not self.group_check_printed:
-            self.helpers.check_required_groups()
+            self.helpers.check_required_groups(check_render=True, check_video=False)
             self.group_check_printed = True
 
         if self.helpers.is_linux() and self.helpers.is_baremetal():
@@ -692,6 +705,7 @@ class AMDSMICommands():
                 'bdf': "N/A",
                 'max_pcie_width': "N/A",
                 'max_pcie_speed': "N/A",
+                'pcie_levels': "N/A",
                 'pcie_interface_version': "N/A",
                 'slot_type': "N/A"
             }
@@ -730,6 +744,21 @@ class AMDSMICommands():
             except amdsmi_exception.AmdSmiLibraryException as e:
                 logging.debug("Failed to get bus info for gpu %s | %s", gpu_id, e.get_error_info())
 
+            try:
+                pcie_info = amdsmi_interface.amdsmi_get_gpu_pci_bandwidth(args.gpu)
+                num_supported = pcie_info['transfer_rate']['num_supported']
+                if num_supported != 0:
+                    bus_info['pcie_levels'] = {}
+                    for level in range(0, num_supported):
+                        speed = str(self.helpers.convert_SI_unit(float(pcie_info['transfer_rate']['frequency'][level]), AMDSMIHelpers.SI_Unit.NANO)) + " GT/s"
+                        width = str(pcie_info['lanes'][level])
+                        level_values = (speed, width)
+                        bus_info['pcie_levels'].update({str(level): level_values})
+                else:
+                    bus_info['pcie_levels'] = "N/A"
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                logging.debug("Failed to get pci bandwidth info for gpu %s | %s", gpu_id, e.get_error_info())
+
             static_dict['bus'] = bus_info
         if args.vbios:
             try:
@@ -747,20 +776,38 @@ class AMDSMICommands():
         if 'limit' in current_platform_args:
             if args.limit:
                 # Power limits
+
+                power_limit_types = {}
+                for power_type in amdsmi_interface.AmdSmiPowerCapType:
+                    # Strip 'AMDSMI_POWER_CAP_TYPE_' prefix and convert to lowercase
+                    key = power_type.name.replace('AMDSMI_POWER_CAP_TYPE_', '').lower()
+                    power_limit_types[key] = {
+                        "max_power_limit" : "N/A",
+                        "min_power_limit" : "N/A",
+                        "socket_power_limit" : "N/A"
+                    }
+
                 try:
-                    power_limit_error = False
-                    power_cap_info = amdsmi_interface.amdsmi_get_power_cap_info(args.gpu)
-                    max_power_limit = power_cap_info['max_power_cap']
-                    max_power_limit = self.helpers.convert_SI_unit(max_power_limit, AMDSMIHelpers.SI_Unit.MICRO)
-                    min_power_limit = power_cap_info['min_power_cap']
-                    min_power_limit = self.helpers.convert_SI_unit(min_power_limit, AMDSMIHelpers.SI_Unit.MICRO)
-                    socket_power_limit = power_cap_info['power_cap']
-                    socket_power_limit = self.helpers.convert_SI_unit(socket_power_limit, AMDSMIHelpers.SI_Unit.MICRO)
+                    power_cap_types = amdsmi_interface.amdsmi_get_supported_power_cap(args.gpu)
+                    for sensor in power_cap_types['sensor_inds']:
+                        power_cap_info = amdsmi_interface.amdsmi_get_power_cap_info(args.gpu, sensor)
+                        max_power_limit = power_cap_info['max_power_cap']
+                        max_power_limit = self.helpers.convert_SI_unit(max_power_limit, AMDSMIHelpers.SI_Unit.MICRO)
+                        min_power_limit = power_cap_info['min_power_cap']
+                        min_power_limit = self.helpers.convert_SI_unit(min_power_limit, AMDSMIHelpers.SI_Unit.MICRO)
+                        socket_power_limit = power_cap_info['power_cap']
+                        socket_power_limit = self.helpers.convert_SI_unit(socket_power_limit, AMDSMIHelpers.SI_Unit.MICRO)
+                        ppt = {
+                            "max_power_limit" : self.helpers.unit_format(self.logger, max_power_limit, 'W'),
+                            "min_power_limit" : self.helpers.unit_format(self.logger, min_power_limit, 'W'),
+                            "socket_power_limit" : self.helpers.unit_format(self.logger, socket_power_limit, 'W')
+                        }
+
+                        sensor_name = power_cap_types['sensor_types'][sensor]
+                        # Strip 'AMDSMI_POWER_CAP_TYPE_' prefix and convert to lowercase
+                        sensor_key = sensor_name.name.replace('AMDSMI_POWER_CAP_TYPE_', '').lower()
+                        power_limit_types[sensor_key] = ppt
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    power_limit_error = True
-                    max_power_limit = "N/A"
-                    min_power_limit = "N/A"
-                    socket_power_limit = "N/A"
                     logging.debug("Failed to get power cap info for gpu %s | %s", gpu_id, e.get_error_info())
 
                 # Edge temperature limits
@@ -834,16 +881,6 @@ class AMDSMICommands():
                 power_unit = 'W'
                 temp_unit_human_readable = '\N{DEGREE SIGN}C'
                 temp_unit_json = 'C'
-                if not power_limit_error:
-                    max_power_limit = self.helpers.unit_format(self.logger,
-                                                               max_power_limit,
-                                                               power_unit)
-                    min_power_limit = self.helpers.unit_format(self.logger,
-                                                               min_power_limit,
-                                                               power_unit)
-                    socket_power_limit = self.helpers.unit_format(self.logger,
-                                                                  socket_power_limit,
-                                                                  power_unit)
 
                 if self.logger.is_human_readable_format():
                     if not slowdown_temp_edge_limit_error:
@@ -881,9 +918,8 @@ class AMDSMICommands():
 
                 limit_info = {}
                 # Power limits
-                limit_info['max_power'] = max_power_limit
-                limit_info['min_power'] = min_power_limit
-                limit_info['socket_power'] = socket_power_limit
+                limit_info['ppt0'] = power_limit_types['ppt0']
+                limit_info['ppt1'] = power_limit_types['ppt1']
 
                 # Shutdown limits
                 limit_info['slowdown_edge_temperature'] = slowdown_temp_edge_limit
@@ -1063,16 +1099,24 @@ class AMDSMICommands():
                     logging.debug("Failed to get cpu affinity for gpu %s | %s", gpu_id, e.get_error_info())
 
                 try:
-                    cpusockets = amdsmi_interface.amdsmi_get_cpu_affinity_with_scope(args.gpu, amdsmi_interface.AmdSmiAffinityScope.SOCKET_SCOPE)
-                    cpusockets = {f'socket_{i}': socket for i, socket in enumerate(set(cpusockets))}
+                    socket_set = amdsmi_interface.amdsmi_get_cpu_affinity_with_scope(args.gpu, amdsmi_interface.AmdSmiAffinityScope.SOCKET_SCOPE)
+                    socket_set = [f"{cpus:016X}" for cpus in socket_set]
+                    socket_set = {f'cpu_list_{i}': f"{cpus}" for i, cpus in enumerate(socket_set)}
+                    socket_bitmask_ranges = self.helpers.get_bitmask_ranges(socket_set)
+                    socket_affinity = {}
+                    for key in socket_set:
+                        socket_affinity[key] = {
+                            "bitmask": socket_set[key],
+                            "cpu_cores_affinity": socket_bitmask_ranges.get(key, "N/A")
+                        }
                 except amdsmi_exception.AmdSmiLibraryException as e:
-                    cpusockets = {}
+                    socket_affinity = "N/A"
                     logging.debug("Failed to get socket affinity for gpu %s | %s", gpu_id, e.get_error_info())
 
                 static_dict['numa'] = { 'node' : numa_node_number,
                                         'affinity' : numa_affinity,
                                         'cpu_affinity' : cpu_affinity,
-                                        'socket_affinity' : cpusockets if cpusockets else "N/A"}
+                                        'socket_affinity' : socket_affinity}
         if args.vram:
             vram_info_dict = {"type" : "N/A",
                               "vendor" : "N/A",
@@ -1168,7 +1212,6 @@ class AMDSMICommands():
                 logging.debug("Failed to get cache info for gpu %s | %s", gpu_id, e.get_error_info())
 
             static_dict['cache_info'] = cache_info_list
-
         # default to printing all clocks, if in current_platform_args; otherwise print specific clocks
         if 'clock' in current_platform_args and (args.clock == True or isinstance(args.clock, list)):
             original_clock_args = args.clock  #save original args.clock value, so we can reset for multiple devices
@@ -1196,28 +1239,9 @@ class AMDSMICommands():
                 for clk in list(clk_dict.keys()):
                     if clk not in args.clock:
                         del clk_dict[clk]
-
                 for clk in args.clock:
-                    clk_type = clk.lower()
-                    if clk_type == "sys":
-                        clk_type_conversion = amdsmi_interface.AmdSmiClkType.SYS
-                    elif clk_type == "mem":
-                        clk_type_conversion = amdsmi_interface.AmdSmiClkType.MEM
-                    elif clk_type == "df":
-                        clk_type_conversion = amdsmi_interface.AmdSmiClkType.DF
-                    elif clk_type == "soc":
-                        clk_type_conversion = amdsmi_interface.AmdSmiClkType.SOC
-                    elif clk_type == "dcef":
-                        clk_type_conversion = amdsmi_interface.AmdSmiClkType.DCEF
-                    # vclk and dclk currently do not support levels so average clk is given for frequency levels
-                    elif clk_type == "vclk0":
-                        clk_type_conversion = amdsmi_interface.AmdSmiClkType.VCLK0
-                    elif clk_type == "vclk1":
-                        clk_type_conversion = amdsmi_interface.AmdSmiClkType.VCLK1
-                    elif clk_type == "dclk0":
-                        clk_type_conversion = amdsmi_interface.AmdSmiClkType.DCLK0
-                    elif clk_type == "dclk1":
-                        clk_type_conversion = amdsmi_interface.AmdSmiClkType.DCLK1
+                    if clk in self.convert_clock_type:
+                        clk_type_conversion = self.convert_clock_type[clk]
                     else:
                         clk_type_conversion = "N/A"
                         output_format = self.helpers.get_output_format()
@@ -1225,8 +1249,15 @@ class AMDSMICommands():
 
                     try:
                         frequencies = amdsmi_interface.amdsmi_get_clk_freq(args.gpu, clk_type_conversion)
+                        # some clocks may have a sysfs file but no frequencies for whatever reason.
+                        if len(frequencies['frequency']) == 0:
+                            freq_dict = "N/A"
+                            continue
                         freq_dict = {}
-                        freq_dict.update({'current level':frequencies['current']})
+                        current_level = frequencies['current']
+                        freq_dict.update({'current_level':current_level})
+                        current_frequency = str(self.helpers.convert_SI_unit(frequencies['frequency'][current_level], AMDSMIHelpers.SI_Unit.MICRO)) + "MHz"
+                        freq_dict.update({'current_frequency':current_frequency})
                         freq_dict.update({'frequency_levels':{}})
                         if frequencies["num_supported"] != 0:
                             for level in range(len(frequencies['frequency'])):
@@ -1239,6 +1270,7 @@ class AMDSMICommands():
                             freq_dict = "N/A"
                     except amdsmi_exception.AmdSmiLibraryException as e:
                         freq_dict = "N/A"
+                        logging.debug("Failed to get clock info for gpu %s | %s", gpu_id, e.get_error_info())
                     clk_dict[clk] = freq_dict
 
                 static_dict['clock'] = clk_dict
@@ -1251,8 +1283,49 @@ class AMDSMICommands():
         # Convert and store output by pid for csv format
         multiple_devices_csv_override = False
         if self.logger.is_csv_format():
+            # For NUMA data - flatten CPU affinity lists
+            if 'numa' in static_dict and isinstance(static_dict['numa'], dict):
+                numa_data = static_dict.pop('numa')
+                multiple_devices_csv_override = True
+
+                # Get data
+                node = numa_data.get('node', 'N/A')
+                affinity = numa_data.get('affinity', 'N/A')
+                cpu_affinity = numa_data.get('cpu_affinity', {})
+                socket_affinity = numa_data.get('socket_affinity', {})
+                # Create a flattened row for list entry
+                row_dict = static_dict.copy()
+
+                if cpu_affinity and isinstance(cpu_affinity, dict):
+                    for cpu_list_key in cpu_affinity.keys():
+                        cpu_entry = cpu_affinity[cpu_list_key]
+                        socket_entry = socket_affinity.get(cpu_list_key, {"bitmask": "N/A", "cpu_cores_affinity": "N/A"})
+                        row_dict.update({
+                            'node': node,
+                            'affinity': affinity,
+                            'cpu_list': cpu_list_key,
+                            'bitmask': cpu_entry.get('bitmask'),
+                            'cpu_cores_affinity': cpu_entry.get('cpu_cores_affinity'),
+                            'socket_bitmask': socket_entry.get('bitmask'),
+                            'socket_cpu_cores_affinity': socket_entry.get('cpu_cores_affinity')
+                        })
+                        self.logger.store_output(args.gpu, 'values', row_dict)
+                        self.logger.store_gpu_json_output.append(row_dict)
+                        self.logger.store_multiple_device_output()
+                else:
+                    row_dict.update({
+                        'node': node,
+                        'affinity': affinity,
+                        'cpu_list': 'N/A',
+                        'bitmask': 'N/A',
+                        'cpu_cores_affinity': 'N/A',
+                        'socket_bitmask': 'N/A',
+                        'socket_cpu_cores_affinity': 'N/A'
+                    })
+                    self.logger.store_output(args.gpu, 'values', row_dict)
+                    self.logger.store_gpu_json_output.append(row_dict)
             # expand if ras blocks are populated
-            if self.helpers.is_linux() and self.helpers.is_baremetal() and args.ras:
+            elif self.helpers.is_linux() and self.helpers.is_baremetal() and args.ras:
                 if isinstance(static_dict['ras']['ecc_block_state'], list):
                     ecc_block_dicts = static_dict['ras'].pop('ecc_block_state')
                     multiple_devices_csv_override = True
@@ -1614,31 +1687,6 @@ class AMDSMICommands():
         self.logger.print_output()
 
 
-    def build_xcp_dict(self, key, violation_status, num_partition):
-        if not isinstance(violation_status[key], list):
-            if "active_" in key:
-               if violation_status[key] != "N/A":
-                   if violation_status[key] is True:
-                       violation_status[key] = "ACTIVE"
-                   elif violation_status[key] is False:
-                       violation_status[key] = "NOT ACTIVE"
-            ret = violation_status[key]
-        elif isinstance(violation_status[key], list):
-            for row in violation_status[key]:
-                for element in row:
-                    if element != "N/A":
-                        if "active_" in key:
-                            if element is True:
-                                row[row.index(element)] = "ACTIVE"
-                            elif element is False:
-                                row[row.index(element)] = "NOT ACTIVE"
-                        elif ("per_" or "acc_") in key:
-                            row[row.index(element)] = element
-                    else:
-                        continue
-            ret = {f"xcp_{i}": violation_status[key][i] for i in range(num_partition)}
-        return ret
-
     def metric_gpu(self, args, multiple_devices=False, watching_output=False, gpu=None,
                 usage=None, watch=None, watch_time=None, iterations=None, power=None,
                 clock=None, temperature=None, ecc=None, ecc_blocks=None, pcie=None,
@@ -1772,7 +1820,7 @@ class AMDSMICommands():
             args.gpu = self.device_handles
 
         if not self.group_check_printed:
-            self.helpers.check_required_groups()
+            self.helpers.check_required_groups(check_render=True, check_video=False)
             self.group_check_printed = True
 
         # Handle watch logic, will only enter this block once
@@ -1844,6 +1892,7 @@ class AMDSMICommands():
         # Add timestamp and store values for specified arguments
         values_dict = {}
 
+        is_partition_metrics = False  # True if we get the metrics from xcp_metrics file (amdsmi_get_gpu_partition_metrics_info)
         #get metric info only once per gpu, this will speed up data output
         try:
             # Get GPU Metrics table
@@ -1852,19 +1901,10 @@ class AMDSMICommands():
             logging.debug("#3 - Unable to load GPU Metrics table for %s | %s", gpu_id, e.get_error_info())
             gpu_metric = amdsmi_interface._NA_amdsmi_get_gpu_metrics_info()
 
-        # Workaround for XCP (partition) metrics not providing num_partition in v1.0
-        # Confirmed with driver team that we can default to 1 if num_partition is not defined.
-        # Pending partitions exist, ie. partition_id > 0. See logic below.
-        try:
-            partition_id = amdsmi_interface.amdsmi_get_gpu_kfd_info(args.gpu)['current_partition_id']
-        except amdsmi_exception.AmdSmiLibraryException as e:
-            logging.debug("Failed to get current partition id for gpu %s | %s", gpu_id, e.get_error_info())
-            partition_id = "N/A"
-
-        num_partition = gpu_metric['num_partition']
-        if num_partition == "N/A" and isinstance(partition_id, int) and partition_id > 0:
-            num_partition = 1  # Workaround for XCP metrics not providing num_partition in v1.0
-            logging.debug(f"num_partition is N/A and partition_id: {partition_id} (greater > 0).\nModified num_partition: {num_partition} to adjust for XCP metrics.")
+        # Workaround for XCP (partition) metrics not providing num_partition in v1.9+/v1.1+
+        # Provides original formatting for earlier metric versions
+        partition_metric_info = self.helpers._get_metric_version_and_partition_info(gpu_metric, is_partition_metrics, gpu_id, args.gpu)
+        num_partition = partition_metric_info['num_partition']
 
         if self.logger.is_json_format():
             values_dict['gpu'] = int(gpu_id)
@@ -2625,10 +2665,10 @@ class AMDSMICommands():
                 # Populate voltage point values
                 for point in range(amdsmi_interface.AMDSMI_NUM_VOLTAGE_CURVE_POINTS):
                     if isinstance(od_volt, dict):
-                        logging.debug(f"point_{point} frequency: {od_volt['curve.vc_points'][point].frequency}")
-                        logging.debug(f"point_{point} voltage:   {od_volt['curve.vc_points'][point].voltage}")
-                        frequency = int(od_volt["curve.vc_points"][point].frequency / 1000000)
-                        voltage = int(od_volt["curve.vc_points"][point].voltage)
+                        logging.debug(f"point_{point} frequency: {od_volt['curve.vc_points'][point]['frequency']}")
+                        logging.debug(f"point_{point} voltage:   {od_volt['curve.vc_points'][point]['voltage']}")
+                        frequency = int(od_volt["curve.vc_points"][point]['frequency'] / 1000000)
+                        voltage = int(od_volt["curve.vc_points"][point]['voltage'])
                     else:
                         frequency = "N/A"
                         voltage = "N/A"
@@ -2839,30 +2879,30 @@ class AMDSMICommands():
                     throttle_status['vr_thermal_accumulated'] = violation_status['acc_vr_thrm']
                     throttle_status['hbm_thermal_accumulated'] = violation_status['acc_hbm_thrm']
                     throttle_status['gfx_clk_below_host_limit_accumulated'] = violation_status['acc_gfx_clk_below_host_limit'] #deprecated
-                    throttle_status['gfx_clk_below_host_limit_power_accumulated'] = self.build_xcp_dict('acc_gfx_clk_below_host_limit_pwr', violation_status, num_partition)
-                    throttle_status['gfx_clk_below_host_limit_thermal_accumulated'] = self.build_xcp_dict('acc_gfx_clk_below_host_limit_thm', violation_status, num_partition)
-                    throttle_status['total_gfx_clk_below_host_limit_accumulated'] = self.build_xcp_dict('acc_gfx_clk_below_host_limit_total', violation_status, num_partition)
-                    throttle_status['low_utilization_accumulated'] = self.build_xcp_dict('acc_low_utilization', violation_status, num_partition)
-                    throttle_status['prochot_violation_status'] = self.build_xcp_dict('active_prochot_thrm', violation_status, num_partition)
-                    throttle_status['ppt_violation_status'] = self.build_xcp_dict('active_ppt_pwr', violation_status, num_partition)
-                    throttle_status['socket_thermal_violation_status'] = self.build_xcp_dict('active_socket_thrm', violation_status, num_partition)
-                    throttle_status['vr_thermal_violation_status'] = self.build_xcp_dict('active_vr_thrm', violation_status, num_partition)
-                    throttle_status['hbm_thermal_violation_status'] = self.build_xcp_dict('active_hbm_thrm', violation_status, num_partition)
-                    throttle_status['gfx_clk_below_host_limit_violation_status'] = self.build_xcp_dict('active_gfx_clk_below_host_limit', violation_status, num_partition) # deprecated
-                    throttle_status['gfx_clk_below_host_limit_power_violation_status'] = self.build_xcp_dict('active_gfx_clk_below_host_limit_pwr', violation_status, num_partition)
-                    throttle_status['gfx_clk_below_host_limit_thermal_violation_status'] = self.build_xcp_dict('active_gfx_clk_below_host_limit_thm', violation_status, num_partition)
-                    throttle_status['total_gfx_clk_below_host_limit_violation_status'] = self.build_xcp_dict('active_gfx_clk_below_host_limit_total', violation_status, num_partition)
-                    throttle_status['low_utilization_violation_status'] = self.build_xcp_dict('active_low_utilization', violation_status, num_partition)
+                    throttle_status['gfx_clk_below_host_limit_power_accumulated'] = self.helpers.build_xcp_dict('acc_gfx_clk_below_host_limit_pwr', violation_status, num_partition)
+                    throttle_status['gfx_clk_below_host_limit_thermal_accumulated'] = self.helpers.build_xcp_dict('acc_gfx_clk_below_host_limit_thm', violation_status, num_partition)
+                    throttle_status['total_gfx_clk_below_host_limit_accumulated'] = self.helpers.build_xcp_dict('acc_gfx_clk_below_host_limit_total', violation_status, num_partition)
+                    throttle_status['low_utilization_accumulated'] = self.helpers.build_xcp_dict('acc_low_utilization', violation_status, num_partition)
+                    throttle_status['prochot_violation_status'] = self.helpers.build_xcp_dict('active_prochot_thrm', violation_status, num_partition)
+                    throttle_status['ppt_violation_status'] = self.helpers.build_xcp_dict('active_ppt_pwr', violation_status, num_partition)
+                    throttle_status['socket_thermal_violation_status'] = self.helpers.build_xcp_dict('active_socket_thrm', violation_status, num_partition)
+                    throttle_status['vr_thermal_violation_status'] = self.helpers.build_xcp_dict('active_vr_thrm', violation_status, num_partition)
+                    throttle_status['hbm_thermal_violation_status'] = self.helpers.build_xcp_dict('active_hbm_thrm', violation_status, num_partition)
+                    throttle_status['gfx_clk_below_host_limit_violation_status'] = self.helpers.build_xcp_dict('active_gfx_clk_below_host_limit', violation_status, num_partition) # deprecated
+                    throttle_status['gfx_clk_below_host_limit_power_violation_status'] = self.helpers.build_xcp_dict('active_gfx_clk_below_host_limit_pwr', violation_status, num_partition)
+                    throttle_status['gfx_clk_below_host_limit_thermal_violation_status'] = self.helpers.build_xcp_dict('active_gfx_clk_below_host_limit_thm', violation_status, num_partition)
+                    throttle_status['total_gfx_clk_below_host_limit_violation_status'] = self.helpers.build_xcp_dict('active_gfx_clk_below_host_limit_total', violation_status, num_partition)
+                    throttle_status['low_utilization_violation_status'] = self.helpers.build_xcp_dict('active_low_utilization', violation_status, num_partition)
                     throttle_status['prochot_violation_activity'] = violation_status['per_prochot_thrm']
                     throttle_status['ppt_violation_activity'] = violation_status['per_ppt_pwr']
                     throttle_status['socket_thermal_violation_activity'] = violation_status['per_socket_thrm']
                     throttle_status['vr_thermal_violation_activity'] = violation_status['per_vr_thrm']
                     throttle_status['hbm_thermal_violation_activity'] = violation_status['per_hbm_thrm']
                     throttle_status['gfx_clk_below_host_limit_violation_activity'] = violation_status['per_gfx_clk_below_host_limit'] # deprecated
-                    throttle_status['gfx_clk_below_host_limit_power_violation_activity'] = self.build_xcp_dict('per_gfx_clk_below_host_limit_pwr', violation_status, num_partition)
-                    throttle_status['gfx_clk_below_host_limit_thermal_violation_activity'] = self.build_xcp_dict('per_gfx_clk_below_host_limit_thm', violation_status, num_partition)
-                    throttle_status['total_gfx_clk_below_host_limit_violation_activity'] = self.build_xcp_dict('per_gfx_clk_below_host_limit_total', violation_status, num_partition)
-                    throttle_status['low_utilization_violation_activity'] = self.build_xcp_dict('per_low_utilization', violation_status, num_partition)
+                    throttle_status['gfx_clk_below_host_limit_power_violation_activity'] = self.helpers.build_xcp_dict('per_gfx_clk_below_host_limit_pwr', violation_status, num_partition)
+                    throttle_status['gfx_clk_below_host_limit_thermal_violation_activity'] = self.helpers.build_xcp_dict('per_gfx_clk_below_host_limit_thm', violation_status, num_partition)
+                    throttle_status['total_gfx_clk_below_host_limit_violation_activity'] = self.helpers.build_xcp_dict('per_gfx_clk_below_host_limit_total', violation_status, num_partition)
+                    throttle_status['low_utilization_violation_activity'] = self.helpers.build_xcp_dict('per_low_utilization', violation_status, num_partition)
 
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     values_dict['throttle'] = throttle_status
@@ -2881,7 +2921,7 @@ class AMDSMICommands():
                                     value[k][index] = self.helpers.unit_format(self.logger, activity, activity_unit)
                                 value[k] = '[' + ", ".join(value[k]) + ']'
                         elif value != "N/A":
-                            value = self.helpers.unit_format(self.logger, value, activity_unit)
+                            throttle_status[key] = self.helpers.unit_format(self.logger, value, activity_unit)
                     if self.logger.is_json_format():
                         if isinstance(value, (list, dict)):
                             for k, v in value.items():
@@ -3102,7 +3142,7 @@ class AMDSMICommands():
             try:
                 bandwidth = amdsmi_interface.amdsmi_get_cpu_current_io_bandwidth(args.cpu,
                                                                                     int(args.cpu_io_bandwidth[0][0]),
-                                                                                    args.cpu_io_bandwidth[0][1])
+                                                                                    args.cpu_io_bandwidth[0][1].upper())
                 static_dict["io_bandwidth"]["band_width"] = bandwidth
             except amdsmi_exception.AmdSmiLibraryException as e:
                 static_dict["io_bandwidth"]["band_width"] = "N/A"
@@ -3112,7 +3152,7 @@ class AMDSMICommands():
             try:
                 bandwidth = amdsmi_interface.amdsmi_get_cpu_current_xgmi_bw(args.cpu,
                                                                             int(args.cpu_xgmi_bandwidth[0][0]),
-                                                                            args.cpu_xgmi_bandwidth[0][1])
+                                                                            args.cpu_xgmi_bandwidth[0][1].upper())
                 static_dict["xgmi_bandwidth"]["band_width"] = bandwidth
             except amdsmi_exception.AmdSmiLibraryException as e:
                 static_dict["xgmi_bandwidth"]["band_width"] = "N/A"
@@ -3635,11 +3675,13 @@ class AMDSMICommands():
                     "gfx": process_info["engine_usage"]["gfx"],
                     "enc": process_info["engine_usage"]["enc"],
                 },
-                "cu_occupancy": process_info["cu_occupancy"]
+                "cu_occupancy": process_info["cu_occupancy"],
+                "evicted_time": process_info["evicted_time"]
             }
 
             engine_usage_unit = "ns"
             memory_usage_unit = "B"
+            evicted_time_unit = "ms"
 
             if self.logger.is_human_readable_format():
                 process_info['mem_usage'] = self.helpers.convert_bytes_to_readable(process_info['mem_usage'])
@@ -3650,6 +3692,10 @@ class AMDSMICommands():
             process_info['mem_usage'] = self.helpers.unit_format(self.logger,
                                                                  process_info['mem_usage'],
                                                                  memory_usage_unit)
+            
+            process_info['evicted_time'] = self.helpers.unit_format(self.logger,
+                                                                 process_info['evicted_time'],
+                                                                 evicted_time_unit)
 
             for usage_metric in process_info['usage']:
                 process_info['usage'][usage_metric] = self.helpers.unit_format(self.logger,
@@ -3780,15 +3826,42 @@ class AMDSMICommands():
             threads.append(x)
             x.start()
 
-        while True:
-            user_input = input()
-            if user_input == 'q':
-                print("Escape Sequence Detected; Exiting")
-                self.stop = True
-                break
+        previous_sigterm_handler = signal.getsignal(signal.SIGTERM)
+        system_exit_exc = None
+        signal.signal(signal.SIGTERM, self._event_sigterm_handler)
+        try:
+            while True:
+                try:
+                    user_input = input()
+                except EOFError:
+                    self.stop = True
+                    break
+                except KeyboardInterrupt:
+                    self.stop = True
+                    break
 
-        for thread in threads:
-            thread.join()
+                if self.stop:
+                    break
+
+                if user_input == 'q':
+                    print("Escape Sequence Detected; Exiting")
+                    self.stop = True
+                    break
+        except SystemExit as exc:
+            system_exit_exc = exc
+        finally:
+            self.stop = True
+            for thread in threads:
+                thread.join()
+            signal.signal(signal.SIGTERM, previous_sigterm_handler)
+
+        if system_exit_exc is not None:
+            raise system_exit_exc
+
+
+    def _event_sigterm_handler(self, signum, frame):
+        self.stop = True
+        raise SystemExit(128 + signum)
 
     def topology(self, args, multiple_devices=False, gpu=None, access=None,
                 weight=None, hops=None, link_type=None, numa_bw=None, coherent=None, 
@@ -3864,7 +3937,7 @@ class AMDSMICommands():
         self.logger.table_header = ''.rjust(12)
 
         if not self.group_check_printed:
-            self.helpers.check_required_groups()
+            self.helpers.check_required_groups(check_render=True, check_video=False)
             self.group_check_printed = True
 
         p2p_status_cache = {}
@@ -4756,6 +4829,10 @@ class AMDSMICommands():
         if args.gpu == None:
             args.gpu = self.device_handles
 
+        if not self.group_check_printed:
+            self.helpers.check_required_groups(check_render=True, check_video=False)
+            self.group_check_printed = True
+
         # Handle multiple GPUs
         handled_multiple_gpus, device_handle = self.helpers.handle_gpus(args, self.logger, self.set_gpu)
         if handled_multiple_gpus:
@@ -5075,6 +5152,11 @@ class AMDSMICommands():
                         return
                 else:
                     # For non-pcie clocks
+                    if clk_type in self.convert_clock_type:
+                        clk_type_conversion = self.convert_clock_type[clk_type]
+                    else:
+                        clk_type_conversion = "N/A"
+
                     try:
                         amdsmi_interface.amdsmi_set_clk_freq(args.gpu, clk_type, freq_bitmask)
                         results_clk_lvl['set_clock'] = f"Successfully set {clk_type} perf level(s) to {perf_levels_str}"
@@ -5091,9 +5173,13 @@ class AMDSMICommands():
                 self.logger.clear_multiple_devices_output()
                 return
         # Universal args
-        if isinstance(args.power_cap, int):
+        if isinstance(args.power_cap, tuple):
+            pwr_type = args.power_cap.pwr_type
+            pwr_type_as_int = (0 if pwr_type == "ppt0" else 1 if pwr_type == "ppt1" else None)
+            pwr_type = pwr_type.upper()
+            requested_power_cap = args.power_cap.watts
             try:
-                power_cap_info = amdsmi_interface.amdsmi_get_power_cap_info(args.gpu)
+                power_cap_info = amdsmi_interface.amdsmi_get_power_cap_info(args.gpu, pwr_type_as_int)
                 logging.debug(f"Power cap info for gpu {gpu_id} | {power_cap_info}")
                 min_power_cap = power_cap_info["min_power_cap"]
                 min_power_cap = self.helpers.convert_SI_unit(min_power_cap, AMDSMIHelpers.SI_Unit.MICRO)
@@ -5105,29 +5191,29 @@ class AMDSMICommands():
                 min_power_cap = "N/A"
                 max_power_cap = "N/A"
                 current_power_cap = "N/A"
-                self.logger.store_output(args.gpu, 'powercap', f"[{e.get_error_info(detailed=False)}] Unable to set power cap to {args.power_cap}W")
+                self.logger.store_output(args.gpu, 'powercap', f"[{e.get_error_info(detailed=False)}] Unable to set {pwr_type} power cap to {requested_power_cap}W")
                 self.logger.print_output()
                 self.logger.clear_multiple_devices_output()
                 return
 
-            if args.power_cap == current_power_cap:
-                self.logger.store_output(args.gpu, 'powercap', f"Power cap is already set to {args.power_cap}W")
+            if requested_power_cap == current_power_cap:
+                self.logger.store_output(args.gpu, 'powercap', f"{pwr_type} power cap is already set to {requested_power_cap}W")
             elif current_power_cap == 0:
-                self.logger.store_output(args.gpu, 'powercap', f"Unable to set power cap to {args.power_cap}W, current value is {current_power_cap}W")
-            elif args.power_cap >= min_power_cap and args.power_cap <= max_power_cap:
+                self.logger.store_output(args.gpu, 'powercap', f"Unable to set {pwr_type} power cap to {requested_power_cap}W, current value is {current_power_cap}W")
+            elif requested_power_cap >= min_power_cap and requested_power_cap <= max_power_cap and requested_power_cap > 0:
                 try:
-                    new_power_cap = self.helpers.convert_SI_unit(args.power_cap, AMDSMIHelpers.SI_Unit.BASE,
+                    new_power_cap = self.helpers.convert_SI_unit(requested_power_cap, AMDSMIHelpers.SI_Unit.BASE,
                                                                     AMDSMIHelpers.SI_Unit.MICRO)
-                    amdsmi_interface.amdsmi_set_power_cap(args.gpu, 0, new_power_cap)
+                    amdsmi_interface.amdsmi_set_power_cap(args.gpu, pwr_type_as_int, new_power_cap)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
                         raise PermissionError('Command requires elevation') from e
-                    self.logger.store_output(args.gpu, 'powercap', f"[{e.get_error_info(detailed=False)}] Unable to set power cap to {args.power_cap}W")
+                    self.logger.store_output(args.gpu, 'powercap', f"[{e.get_error_info(detailed=False)}] Unable to set {pwr_type} power cap to {requested_power_cap}W")
                     self.logger.print_output()
                     self.logger.clear_multiple_devices_output()
                     return
 
-                self.logger.store_output(args.gpu, 'powercap', f"Successfully set power cap to {args.power_cap}W")
+                self.logger.store_output(args.gpu, 'powercap', f"Successfully set {pwr_type} power cap to {requested_power_cap}W")
             else:
                 # setting power cap to 0 will return the current power cap so the technical minimum value is 1
                 if min_power_cap == 0:
@@ -5159,6 +5245,7 @@ class AMDSMICommands():
                 clk_tuple = amdsmi_interface.amdsmi_get_clock_info(args.gpu, amdsmi_clk_type)
 
                 if lim_type == "min":
+                    amdsmi_lim_type =  amdsmi_interface.AmdSmiClkLimitType.MIN
                     if val > clk_tuple['max_clk']:
                         self.logger.store_output(args.gpu, 'clk_limit', f"Cannot set {args.clk_limit.clk_type} min value greater than max ({clk_tuple['max_clk']}MHz)")
                         self.logger.print_output()
@@ -5167,8 +5254,8 @@ class AMDSMICommands():
 
                     if val == clk_tuple['min_clk']:
                         val_changed = False # Clock limit value did not changed
-
-                if lim_type == "max":
+                elif lim_type == "max":
+                    amdsmi_lim_type =  amdsmi_interface.AmdSmiClkLimitType.MAX
                     if val < clk_tuple['min_clk']:
                         self.logger.store_output(args.gpu, 'clk_limit', f"Cannot set {args.clk_limit.clk_type} max value less than min ({clk_tuple['min_clk']}MHz)")
                         self.logger.print_output()
@@ -5287,10 +5374,6 @@ class AMDSMICommands():
             args.cpu = cpu
         if core:
             args.core = core
-
-        if not self.group_check_printed:
-            self.helpers.check_required_groups()
-            self.group_check_printed = True
 
         # Check if a GPU argument has been set
         gpu_args_enabled = False
@@ -5498,7 +5581,7 @@ class AMDSMICommands():
             args.gpu = self.device_handles
 
         if not self.group_check_printed:
-            self.helpers.check_required_groups()
+            self.helpers.check_required_groups(check_render=True, check_video=False)
             self.group_check_printed = True
 
         # Handle multiple GPUs
@@ -5654,32 +5737,35 @@ class AMDSMICommands():
                 self.logger.clear_multiple_devices_output()
                 return
             if args.power_cap:
-                try:
-                    power_cap_info = amdsmi_interface.amdsmi_get_power_cap_info(args.gpu)
-                    logging.debug(f"Power cap info for gpu {gpu_id} | {power_cap_info}")
-                    default_power_cap_in_w = power_cap_info["default_power_cap"]
-                    default_power_cap_in_w = self.helpers.convert_SI_unit(default_power_cap_in_w, AMDSMIHelpers.SI_Unit.MICRO)
-                    current_power_cap_in_w = power_cap_info["power_cap"]
-                    current_power_cap_in_w = self.helpers.convert_SI_unit(current_power_cap_in_w, AMDSMIHelpers.SI_Unit.MICRO)
-                except amdsmi_exception.AmdSmiLibraryException as e:
-                    self.logger.store_output(args.gpu, 'powercap', f"[{e.get_error_info(detailed=False)}] Unable to reset power cap to default")
-                    self.logger.print_output()
-                    self.logger.clear_multiple_devices_output()
-                    return
+                final_output = {"ppt0": "[AMDSMI_STATUS_NOT_SUPPORTED] Unable to reset to default power cap", "ppt1": "[AMDSMI_STATUS_NOT_SUPPORTED] Unable to reset to default power cap"}
+                power_limit_types = {}
+                for power_type in amdsmi_interface.AmdSmiPowerCapType:
+                    # Strip 'AMDSMI_POWER_CAP_TYPE_' prefix and convert to lowercase
+                    key = power_type.name.replace('AMDSMI_POWER_CAP_TYPE_', '').lower()
+                    power_limit_types[key] = "N/A"
+                current_sensor_num = 0
 
-                if current_power_cap_in_w == default_power_cap_in_w:
-                    self.logger.store_output(args.gpu, 'powercap', f"Power cap is already set to {default_power_cap_in_w}W")
-                else:
-                    try:
-                        default_power_cap_in_uw = self.helpers.convert_SI_unit(default_power_cap_in_w,
-                                                                               AMDSMIHelpers.SI_Unit.BASE,
-                                                                               AMDSMIHelpers.SI_Unit.MICRO)
-                        amdsmi_interface.amdsmi_set_power_cap(args.gpu, 0, default_power_cap_in_uw)
-                    except amdsmi_exception.AmdSmiLibraryException as e:
-                        if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
-                            raise PermissionError('Command requires elevation') from e
-                        raise ValueError(f"Unable to reset power cap to {default_power_cap_in_w} on GPU {gpu_id}") from e
-                    self.logger.store_output(args.gpu, 'powercap', f"Successfully set power cap to {default_power_cap_in_w}W")
+                try:
+                    power_cap_types = amdsmi_interface.amdsmi_get_supported_power_cap(args.gpu)
+                    for sensor in power_cap_types['sensor_inds']:
+                        current_sensor_num = sensor
+                        power_cap_info = amdsmi_interface.amdsmi_get_power_cap_info(args.gpu, sensor)
+                        logging.debug(f"Power cap info for gpu {gpu_id} ppt{sensor} | {power_cap_info}")
+                        default_power_cap_in_mw = power_cap_info["default_power_cap"]
+                        default_power_cap_in_w = self.helpers.convert_SI_unit(default_power_cap_in_mw, AMDSMIHelpers.SI_Unit.MICRO)
+                        current_power_cap_in_mw = power_cap_info["power_cap"]
+                        current_power_cap_in_w = self.helpers.convert_SI_unit(current_power_cap_in_mw, AMDSMIHelpers.SI_Unit.MICRO)
+                        sensor_name = power_cap_types['sensor_types'][sensor]
+                        # Strip 'AMDSMI_POWER_CAP_TYPE_' prefix and convert to lowercase
+                        sensor_key = sensor_name.name.replace('AMDSMI_POWER_CAP_TYPE_', '').lower()
+                        power_limit_types[sensor_key] = (default_power_cap_in_w, current_power_cap_in_w)
+                        amdsmi_interface.amdsmi_set_power_cap(args.gpu, sensor, default_power_cap_in_mw)
+                        final_output[f"ppt{current_sensor_num}"] = f"Successfully reset power cap to {default_power_cap_in_w}W"
+                except amdsmi_exception.AmdSmiLibraryException as e:
+                    if e.get_error_code() == amdsmi_interface.amdsmi_wrapper.AMDSMI_STATUS_NO_PERM:
+                        raise PermissionError('Command requires elevation') from e
+                    final_output[f"ppt{current_sensor_num}"] = f"[{e.get_error_info(detailed=False)}] Unable to reset cap to default power cap"
+                self.logger.store_output(args.gpu, 'powercap', final_output)
                 self.logger.print_output()
                 self.logger.clear_multiple_devices_output()
                 return
@@ -5892,7 +5978,7 @@ class AMDSMICommands():
             args.gpu = self.device_handles
 
         if not self.group_check_printed:
-            self.helpers.check_required_groups()
+            self.helpers.check_required_groups(check_render=True, check_video=False)
             self.group_check_printed = True
 
         # If all arguments are False, the print all values
@@ -5976,6 +6062,7 @@ class AMDSMICommands():
             except amdsmi_exception.AmdSmiLibraryException as e:
                 logging.debug("#5 - Unable to load GPU Metrics table for %s | %s", gpu_id, e.err_info)
 
+        is_partition_metrics = False  # True if we get the metrics from xcp_metrics file (amdsmi_get_gpu_partition_metrics_info)
         #get metric info only once per gpu, this will speed up data output
         try:
             # Get GPU Metrics table
@@ -5987,25 +6074,15 @@ class AMDSMICommands():
             gpu_metrics_info = amdsmi_interface._NA_amdsmi_get_gpu_metrics_info()
             logging.debug("Unable to load GPU Metrics table for %s | %s", gpu_id, e.get_error_info())
 
-        # Workaround for XCP (partition) metrics not providing num_partition in v1.0
-        # Confirmed with driver team that we can default to 1 if num_partition is not defined.
-        # Pending partitions exist, ie. partition_id > 0. See logic below.
-        try:
-            partition_id = amdsmi_interface.amdsmi_get_gpu_kfd_info(args.gpu)['current_partition_id']
-        except amdsmi_exception.AmdSmiLibraryException as e:
-            logging.debug("Failed to get current partition id for gpu %s | %s", gpu_id, e.get_error_info())
-            partition_id = "N/A"
+        # Workaround for XCP (partition) metrics not providing num_partition in v1.9+/v1.1+
+        # Provides original formatting for earlier metric versions
+        partition_metric_info = self.helpers._get_metric_version_and_partition_info(gpu_metrics_info, is_partition_metrics, gpu_id, args.gpu)
+        partition_id = partition_metric_info['partition_id']
+        num_partition = partition_metric_info['num_partition']
 
-        num_partition = gpu_metrics_info['num_partition']
-        if num_partition == "N/A":
-            num_partition = partition_id
-
-        num_xcp = num_partition  # used later for XCP metrics
+        # Update logger for XCP display (only if applicable)
         self.logger.table_header += 'XCP'.rjust(5, ' ')
-        self.logger.store_output(args.gpu, 'xcp', partition_id)  # Starting with partition_id.
-                                                                 # Outputs which have xcp details
-                                                                 # will update this value via num_xcp.
-                                                                 # This value will help map to primary device.
+        self.logger.store_output(args.gpu, 'xcp', partition_id)  # Store partition_id initially; can be updated via num_xcp
 
         # Store the pcie_bw values due to possible increase in bandwidth due to repeated gpu_metrics calls
         if args.pcie:
@@ -6040,7 +6117,8 @@ class AMDSMICommands():
         if args.power_usage and not args.default_output:
             # Get Current Power Cap
             try:
-                power_cap_info = amdsmi_interface.amdsmi_get_power_cap_info(args.gpu)
+                # assume that we're always asking for ppt0 for quick checks like this
+                power_cap_info = amdsmi_interface.amdsmi_get_power_cap_info(args.gpu, 0)
                 monitor_values['max_power'] = power_cap_info['power_cap']  # Get current power cap (`power_cap`) socket is set to
                                                                            # `max_power_cap`, is the maximum value it can be set to
                 monitor_values['max_power'] = self.helpers.convert_SI_unit(monitor_values['max_power'], AMDSMIHelpers.SI_Unit.MICRO)
@@ -6245,7 +6323,7 @@ class AMDSMICommands():
                                                            "unit" : freq_unit}
             except (KeyError, amdsmi_exception.AmdSmiLibraryException) as e:
                 monitor_values['dclock'] = "N/A"
-                logging.debug("Failed to get vclock on gpu %s | %s", gpu_id, e)
+                logging.debug("Failed to get dclock on gpu %s | %s", gpu_id, e)
 
             self.logger.table_header += 'DCLOCK'.rjust(10)
 
@@ -6378,8 +6456,10 @@ class AMDSMICommands():
                 process_info.pop('engine_usage')  # Remove 'engine_usage' value
                 process_info['mem_usage'] = process_info.pop('mem')
                 process_info['cu_occupancy'] = process_info.pop('cu_occupancy')
+                process_info['evicted_time'] = process_info.pop('evicted_time')
 
                 memory_usage_unit = "B"
+                evicted_time_unit = "ms"
 
                 if self.logger.is_human_readable_format():
                     process_info['mem_usage'] = self.helpers.convert_bytes_to_readable(process_info['mem_usage'])
@@ -6390,6 +6470,10 @@ class AMDSMICommands():
                 process_info['mem_usage'] = self.helpers.unit_format(self.logger,
                                                                      process_info['mem_usage'],
                                                                      memory_usage_unit)
+
+                process_info['evicted_time'] = self.helpers.unit_format(self.logger,
+                                                                     process_info['evicted_time'],
+                                                                     evicted_time_unit)
 
                 for usage_metric in process_info['memory_usage']:
                     process_info['memory_usage'][usage_metric] = self.helpers.unit_format(self.logger,
@@ -6424,7 +6508,7 @@ class AMDSMICommands():
             # Build the process table's title and header
             self.logger.secondary_table_title = "PROCESS INFO"
             self.logger.secondary_table_header = 'GPU'.rjust(3) + "NAME".rjust(19) + "PID".rjust(9) + "GTT_MEM".rjust(10) + \
-                                                "CPU_MEM".rjust(10) + "VRAM_MEM".rjust(10) + "MEM_USG".rjust(10) + "CU%".rjust(9)
+                                                "CPU_MEM".rjust(10) + "VRAM_MEM".rjust(10) + "MEM_USG".rjust(10) + "CU%".rjust(9) + "EVICT".rjust(10)
 
             if watching_output:
                 self.logger.secondary_table_header = 'TIMESTAMP'.rjust(10) + '  ' + self.logger.secondary_table_header
@@ -6588,7 +6672,7 @@ class AMDSMICommands():
                     self.logger.store_multiple_device_output()
                     current_xcp += 1
             else:
-                self.logger.store_output(args.gpu, 'xcp', num_xcp)
+                self.logger.store_output(args.gpu, 'xcp', partition_id)
                 self.logger.store_output(args.gpu, 'values', monitor_values)
 
         # Store typical output for all commands (XCP data will be handled separately, eg. violation status)
@@ -6612,13 +6696,14 @@ class AMDSMICommands():
             self.logger.print_output(multiple_device_enabled=False, watching_output=watching_output, tabular=True, dual_csv_output=dual_csv_output)
 
 
-    def xgmi(self, args, multiple_devices=False, gpu=None, metric=None, xgmi_link_status=None):
+    def xgmi(self, args, multiple_devices=False, gpu=None, metric=None, xgmi_source_status=None, xgmi_link_status=None):
         """ Get topology information for target gpus
             params:
                 args - argparser args to pass to subcommand
                 multiple_devices (bool) - True if checking for multiple devices
                 gpu (device_handle) - device_handle for target device
                 metric (bool) - Value override for args.metric
+                xgmi_source_status (bool) - Value override for args.xgmi_source_status
                 xgmi_link_status (bool) - Value override for args.xgmi_link_status
 
             return:
@@ -6633,6 +6718,8 @@ class AMDSMICommands():
             args.metric = metric
         if xgmi_link_status:
             args.link_status = xgmi_link_status
+        if xgmi_source_status:
+            args.source_status = xgmi_source_status
 
         # Handle No GPU passed
         if args.gpu == None:
@@ -6642,15 +6729,16 @@ class AMDSMICommands():
             args.gpu = [args.gpu]
 
         # Handle all args being false
-        if not any([args.metric, args.link_status]):
+        if not any([args.metric, args.link_status, args.source_status]):
             args.metric = True
             args.link_status = True
+            args.source_status = True
 
         # Clear the table header
         self.logger.table_header = ''.rjust(7)
 
         if not self.group_check_printed:
-            self.helpers.check_required_groups()
+            self.helpers.check_required_groups(check_render=True, check_video=False)
             self.group_check_printed = True
 
         # Populate the possible gpus and their bdfs
@@ -6666,9 +6754,17 @@ class AMDSMICommands():
             gpu_bdf = amdsmi_interface.amdsmi_get_gpu_device_bdf(gpu)
             xgmi_values.append({"gpu" : gpu_id,
                                 "bdf" : gpu_bdf})
-            # Populate header with just bdfs
-            self.logger.table_header += gpu_bdf.rjust(13)
+            # Populate header with just it's gpu_id
+            self.logger.table_header += f"GPU{gpu_id}".rjust(13)
 
+        # Cache processor handles for each BDF
+        src_gpu_handles = {}
+        for dict in xgmi_values:
+            try:
+                src_gpu_handles[dict['bdf']] = amdsmi_interface.amdsmi_get_processor_handle_from_bdf(dict['bdf'])
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                logging.debug("Failed to get processor handle for %s | %s", dict['bdf'], e.get_error_info())
+                src_gpu_handles[dict['bdf']] = None
         if args.metric:
             # prepend link metrics header to the table header
             link_metrics_header = "       " + "bdf".ljust(14) + \
@@ -6680,7 +6776,7 @@ class AMDSMICommands():
             for xgmi_dict in xgmi_values:
                 src_gpu_id = xgmi_dict['gpu']
                 src_gpu_bdf = xgmi_dict['bdf']
-                src_gpu = amdsmi_interface.amdsmi_get_processor_handle_from_bdf(src_gpu_bdf)
+                src_gpu = src_gpu_handles.get(src_gpu_bdf)
                 logging.debug("check2 device_handle: %s", src_gpu)
                 # This should be the same order as the check1
 
@@ -6810,37 +6906,36 @@ class AMDSMICommands():
                 self.logger.table_title = "\nLINK METRIC TABLE"
                 self.logger.print_output(multiple_device_enabled=True, tabular=True)
 
-        self.logger.multiple_device_output = xgmi_values
+            self.logger.multiple_device_output = xgmi_values
 
-        if self.logger.is_csv_format():
-            new_output = []
-            for elem in self.logger.multiple_device_output:
-                new_output.append(self.logger.flatten_dict(elem, topology_override=True))
-            self.logger.multiple_device_output = new_output
+            if self.logger.is_csv_format():
+                new_output = []
+                for elem in self.logger.multiple_device_output:
+                    new_output.append(self.logger.flatten_dict(elem, topology_override=True))
+                self.logger.multiple_device_output = new_output
 
-        if self.logger.is_json_format():
-            self.logger.store_xgmi_metric_json_output.append(xgmi_values)
-            if not args.link_status:
-                self.logger.combine_arrays_to_json()
-        elif not self.logger.is_human_readable_format():
-            self.logger.print_output(multiple_device_enabled=True)
+            if self.logger.is_json_format():
+                self.logger.store_xgmi_metric_json_output.append(xgmi_values)
+                if not any([args.link_status, args.source_status]):
+                    self.logger.combine_arrays_to_json()
+            elif not self.logger.is_human_readable_format():
+                self.logger.print_output(multiple_device_enabled=True)
 
-        if args.link_status:
+        if args.source_status:
             # Header modification
             self.logger.table_header = ''.rjust(7)
             current_header = "     ".ljust(7) + \
                              "bdf".ljust(14) + \
-                             "link_status".ljust(20)
+                             "port_num".ljust(20)
             self.logger.table_header = current_header + self.logger.table_header.strip()
             # Process each GPU
             tabular_output = []
             for xgmi_dict in xgmi_values:
                 src_gpu_id = xgmi_dict['gpu']
                 src_gpu_bdf = xgmi_dict['bdf']
-                src_gpu = amdsmi_interface.amdsmi_get_processor_handle_from_bdf(src_gpu_bdf)
+                src_gpu = src_gpu_handles.get(src_gpu_bdf)
 
                 # Populate link statuses
-                status_row = []
                 tabular_output_dict = {"gpu#": f"GPU{src_gpu_id}",
                                        "gpu": src_gpu_id,
                                        "bdf": src_gpu_bdf,
@@ -6854,7 +6949,7 @@ class AMDSMICommands():
                         del tabular_output_dict['gpu#']
                     tabular_output.append(tabular_output_dict)
                     if self.logger.is_json_format():
-                        self.logger.store_xgmi_link_status_json_output.append(tabular_output_dict)
+                        self.logger.store_xgmi_source_status_json_output.append(tabular_output_dict)
                 except amdsmi_exception.AmdSmiLibraryException as e:
                     xgmi_dict['link_metrics']['link_status']={"status": "failed"}
                     logging.debug("Failed to get XGMI link status for GPU %s | %s", src_gpu_id, e.get_error_info())
@@ -6863,28 +6958,115 @@ class AMDSMICommands():
                 if self.logger.is_human_readable_format():
                     xgmi_dict['link_status'] = tabular_output
             self.logger.multiple_device_output= tabular_output
-            self.logger.table_title = "\nXGMI LINK STATUS"
+            self.logger.table_title = "\nGPU LINK PORT STATUS"
             if not self.logger.is_json_format():
                 self.logger.print_output(multiple_device_enabled=True, tabular=True)
             self.logger.clear_multiple_devices_output()
             if self.logger.is_json_format():
-                self.logger.combine_arrays_to_json()
-            if self.logger.is_human_readable_format():
-            # Populate the legend output
-                legend_parts = [
-                    "\n\nLegend:",
-                    "  SELF = Current GPU",
-                    "  N/A = Not supported",
-                    "  U / D / X = Link is Up / Down / Disabled",
-                    "  Read / Write = GPU Metric Accumulated Read / Write"
-                ]
-                legend_output = "\n".join(legend_parts)
+                if not args.link_status:
+                    self.logger.combine_arrays_to_json()
 
-                if self.logger.destination == 'stdout':
-                    print(legend_output)
+        if args.link_status:
+            # XGMI LINK STATUS for src_gpu to dest_gpu
+            header = ["       ".ljust(8), "bdf".ljust(15)] + [f"GPU{d['gpu']}".ljust(14) for d in xgmi_values]
+            self.logger.table_header = "".join(header)
+            self.logger.table_title = "\nXGMI LINK STATUS"
+
+            src_link_status_map = {}
+            for gpu_dict in xgmi_values:
+                src_gpu_id = gpu_dict['gpu']
+                src_gpu_bdf = gpu_dict['bdf']
+                src_gpu = src_gpu_handles.get(src_gpu_bdf)
+                try:
+                    link_status = amdsmi_interface.amdsmi_get_gpu_xgmi_link_status(src_gpu)
+                    src_link_status_map[src_gpu_bdf] = link_status['status']
+                except amdsmi_exception.AmdSmiLibraryException:
+                    src_link_status_map[src_gpu_bdf] = ["N/A"] * amdsmi_interface.AMDSMI_MAX_NUM_XGMI_LINKS
+
+            tabular_output = []
+            for src_xgmi_dict in xgmi_values:
+                src_gpu_id = src_xgmi_dict['gpu']
+                src_gpu_bdf = src_xgmi_dict['bdf']
+                src_gpu = src_gpu_handles.get(src_gpu_bdf)
+                try:
+                    xgmi_metrics_info = amdsmi_interface.amdsmi_get_link_metrics(src_gpu)
+                except amdsmi_exception.AmdSmiLibraryException:
+                    xgmi_metrics_info = {"links": []}
+                # First column: GPU# + tab + bdf, then status for each dest bdf
+                if self.logger.is_human_readable_format():
+                    row_dict = {"": f"GPU{src_gpu_id}\t{src_gpu_bdf}".ljust(20)}
                 else:
-                    with self.logger.destination.open('a', encoding="utf-8") as output_file:
-                        output_file.write(legend_output + '\n')
+                    row_dict = {"gpu": f"GPU{src_gpu_id}", "bdf": src_gpu_bdf}
+                json_status = []
+                # Cache GPU handles for destination GPUs
+                dest_gpu_handles = {dest_xgmi_dict['bdf']:
+                                    amdsmi_interface.amdsmi_get_processor_handle_from_bdf(dest_xgmi_dict['bdf'])
+                                    for dest_xgmi_dict in xgmi_values}
+                for dest_xgmi_dict in xgmi_values:
+                    dest_gpu_bdf = dest_xgmi_dict['bdf']
+                    dest_gpu = dest_gpu_handles[dest_gpu_bdf]
+
+                    # Find all link indexes in xgmi_metrics_info for this destination
+                    link_indexes = []
+                    for idx, link in enumerate(xgmi_metrics_info['links']):
+                        if link['bdf'] == dest_gpu_bdf:
+                            link_indexes.append(idx)
+
+                    # Use the found link index to get the status if valid
+                    if link_indexes and len(link_indexes) <= len(src_link_status_map.get(src_gpu_bdf, [])):
+                        statuses = []
+                        for link_idx in link_indexes:
+                            if link_idx < len(src_link_status_map[src_gpu_bdf]):
+                                statuses.append(str(src_link_status_map[src_gpu_bdf][link_idx]))
+
+                        # Join multiple statuses with "/"
+                        if statuses:
+                            status = "/".join(statuses)
+                        else:
+                            status = "N/A"
+                    elif dest_gpu_bdf == src_gpu_bdf:
+                        status = "SELF"
+                    else:
+                        status = "N/A"
+
+                    if self.logger.is_human_readable_format():
+                        row_dict[dest_gpu_bdf.ljust(14)] = str(status).ljust(14)
+                    else:
+                        row_dict[dest_gpu_bdf] = status
+                    json_status.append(status)
+                tabular_output.append(row_dict)
+                if self.logger.is_json_format():
+                    self.logger.store_xgmi_link_status_json_output.append({
+                        "gpu": src_gpu_id,
+                        "bdf": src_gpu_bdf,
+                        "link_status": json_status
+                    })
+
+            if not self.logger.is_json_format():
+                self.logger.multiple_device_output = tabular_output
+                self.logger.print_output(multiple_device_enabled=True, tabular=True)
+
+            self.logger.clear_multiple_devices_output()
+
+            if self.logger.is_json_format():
+                self.logger.combine_arrays_to_json()
+
+        if self.logger.is_human_readable_format():
+            # Populate the legend output
+            legend_parts = [
+                "\n\nLegend:",
+                "  SELF = Current GPU",
+                "  N/A = Not supported",
+                "  U / D / X = Link is Up / Down / Disabled",
+                "  Read / Write = GPU Metric Accumulated Read / Write"
+            ]
+            legend_output = "\n".join(legend_parts)
+
+            if self.logger.destination == 'stdout':
+                print(legend_output)
+            else:
+                with self.logger.destination.open('a', encoding="utf-8") as output_file:
+                    output_file.write(legend_output + '\n')
 
 
     def partition(self, args, multiple_devices=False, gpu=None, current=None, memory=None, accelerator=None):
@@ -6914,7 +7096,7 @@ class AMDSMICommands():
             args.accelerator = accelerator
 
         if not self.group_check_printed:
-            self.helpers.check_required_groups()
+            self.helpers.check_required_groups(check_render=True, check_video=False)
             self.group_check_printed = True
 
         ###########################################
@@ -7279,7 +7461,7 @@ class AMDSMICommands():
                                                     message)
 
         if not self.group_check_printed:
-            self.helpers.check_required_groups()
+            self.helpers.check_required_groups(check_render=True, check_video=True)
             self.group_check_printed = True
 
         if not args.cper:
@@ -7340,12 +7522,78 @@ class AMDSMICommands():
             print(f"Stderr: {error.stderr}")
 
     
+
+    def node(self, args, multiple_devices=False, nodes=None, power_management=None):
+        """List node informations
+
+        Args:
+            args (Namespace): Namespace containing the parsed CLI args
+            multiple_devices (bool, optional): True if checking for multiple devices.
+                Defaults to False.
+
+        Returns:
+            None: Print output via AMDSMILogger to destination
+        """
+        # Set args.* to passed in arguments
+        if nodes:
+            args.nodes = nodes
+        if power_management:
+            args.power_management = power_management
+        if getattr(args, 'nodes', None) is None:
+            args.nodes = self.node_handle
+
+        if not self.group_check_printed:
+            self.helpers.check_required_groups(check_render=True, check_video=False)
+            self.group_check_printed = True
+
+        # Get NPM info
+        if args.nodes is not None:
+            try:
+                npm_info = amdsmi_interface.amdsmi_get_npm_info(args.nodes)
+            except amdsmi_exception.AmdSmiLibraryException as e:
+                logging.debug("amdsmi_get_npm_info failed: %s", e.get_error_info())
+                npm_info = "N/A"
+        else:
+            logging.debug('No node handle available to query NPM info')
+            npm_info = "N/A"
+
+        # Log outputs
+        npm_dict = {"limit": "N/A", "status": "N/A"}
+        power_unit ="W"
+
+        limit = "N/A"
+        if isinstance(npm_info, dict):
+            limit = npm_info.get('limit', "N/A")
+            status = npm_info.get('status', npm_info.get('current', "N/A"))
+
+            if limit !="N/A":
+                npm_dict['limit'] = limit
+            status = "DISABLED" if status == amdsmi_interface.amdsmi_wrapper.AMDSMI_NPM_STATUS_DISABLED else "ENABLED"
+            npm_dict.update({"status": status})
+        if self.logger.is_human_readable_format() and self.logger.destination == 'stdout':
+            print(f"NODE:\n    POWER_MANAGEMENT:\n        LIMIT: {npm_dict.get('limit', 'N/A')} {power_unit}\n        STATUS: {npm_dict.get('status', 'N/A')}")
+        else:
+            if self.logger.is_csv_format():
+                csv_dict = {}
+                csv_dict['limit'] = npm_dict.get('limit', "N/A")
+                csv_dict['status'] = npm_dict.get('status', "N/A")
+                self.logger.output = csv_dict
+            else:
+                # For JSON and human readable format with file output
+                npm_dict["limit"] = self.helpers.unit_format(self.logger, limit, power_unit)
+                self.logger.output = {'node': {'power_management': npm_dict}}
+                if multiple_devices:
+                    self.logger.store_multiple_device_output()
+                    return
+            self.logger.print_output()
+
+
     def default(self, args):
         """Display the default amdsmi view when no args are given."""
 
         # check groups first
         if not self.group_check_printed:
-            self.helpers.check_required_groups()
+            self.helpers.check_required_groups(check_render=True, check_video=False)
             self.group_check_printed = True
 
         processors = amdsmi_interface.amdsmi_get_processor_handles()
@@ -7384,7 +7632,6 @@ class AMDSMICommands():
         default_table_info_dict.update({"version_info": version_info})
 
         gpu_info_list = []
-        all_process_list = []
         all_process_list = []
 
         # get info for each processor to display in default output
@@ -7465,9 +7712,9 @@ class AMDSMICommands():
             gpu_info_dict.update({"temp": temperature})
 
 
-            # rest of power usage info
+            # rest of power usage info; Will assume we're always trying to get PPT0 for now
             try:
-                power_cap_info = amdsmi_interface.amdsmi_get_power_cap_info(processor)
+                power_cap_info = amdsmi_interface.amdsmi_get_power_cap_info(processor, 0)
                 socket_power_limit = self.helpers.convert_SI_unit(power_cap_info['power_cap'], AMDSMIHelpers.SI_Unit.MICRO)
                 power_usage = {"current_power": current_power, "power_limit": socket_power_limit}
             except amdsmi_exception.AmdSmiLibraryException as e:
@@ -7552,6 +7799,11 @@ class AMDSMICommands():
         if len(devices) == 0:
             print("No GPUs on machine")
             return
+
+        # Check that KFD permissions are available
+        if not self.group_check_printed:
+            self.helpers.check_required_groups(check_render=True, check_video=False)
+            self.group_check_printed = True
 
         device = devices[i]
         listener = amdsmi_interface.AmdSmiEventReader(device,

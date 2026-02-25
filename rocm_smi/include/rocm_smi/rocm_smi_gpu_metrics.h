@@ -25,6 +25,8 @@
 
 #include "rocm_smi/rocm_smi_common.h"
 #include "rocm_smi/rocm_smi.h"
+#include "rocm_smi/rocm_smi_dyn_gpu_metrics.h"
+#include "rocm_smi/rocm_smi_logger.h"
 
 #include <array>
 #include <algorithm>
@@ -41,7 +43,6 @@
 #include <tuple>
 #include <variant>
 #include <vector>
-
 
 /**
  *  All 1.4 and newer GPU metrics are now defined in this header.
@@ -89,12 +90,12 @@ constexpr uint32_t kRSMI_MAX_NUM_XCC = 8;
 //  Note: This *must* match MAX_XCP
 constexpr uint32_t kRSMI_MAX_NUM_XCP = 8;
 
-
 struct AMDGpuMetricsHeader_v1_t {
   uint16_t m_structure_size;
   uint8_t  m_format_revision;
   uint8_t  m_content_revision;
 };
+
 struct amdgpu_xcp_metrics {
   /* Utilization Instantaneous (%) */
   uint32_t gfx_busy_inst[kRSMI_MAX_NUM_XCC];
@@ -689,6 +690,33 @@ struct AMDGpuMetrics_v17_t {
   uint32_t m_pcie_lc_perf_other_end_recovery;
 };
 
+struct AMDGpuMetrics_v18_Partition_v1_0_t {
+  ~AMDGpuMetrics_v18_Partition_v1_0_t() = default;
+  struct AMDGpuMetricsHeader_v1_t m_common_header;
+
+  /* Current clocks (Mhz) */
+  uint16_t m_current_gfxclk[kRSMI_MAX_NUM_XCC];
+  uint16_t m_current_socclk[kRSMI_MAX_NUM_CLKS];
+  uint16_t m_current_vclk0[kRSMI_MAX_NUM_CLKS];
+  uint16_t m_current_dclk0[kRSMI_MAX_NUM_CLKS];
+  uint16_t m_current_uclk;
+  uint16_t m_padding;
+
+  /* Utilization Instantaneous (%) */
+  uint32_t m_gfx_busy_inst[kRSMI_MAX_NUM_XCC];
+  uint16_t m_jpeg_busy[kRSMI_MAX_NUM_JPEG_ENG_V1];
+  uint16_t m_vcn_busy[kRSMI_MAX_NUM_VCNS];
+
+  /* Utilization Accumulated (%) */
+  uint64_t m_gfx_busy_acc[kRSMI_MAX_NUM_XCC];
+
+  /* Total App Clock Counter Accumulated */
+  uint64_t m_gfx_below_host_limit_ppt_acc[kRSMI_MAX_NUM_XCC];
+  uint64_t m_gfx_below_host_limit_thm_acc[kRSMI_MAX_NUM_XCC];
+  uint64_t m_gfx_low_utilization_acc[kRSMI_MAX_NUM_XCC];
+  uint64_t m_gfx_below_host_limit_total_acc[kRSMI_MAX_NUM_XCC];
+};
+
 struct AMDGpuMetrics_v18_t {
   ~AMDGpuMetrics_v18_t() = default;
   struct AMDGpuMetricsHeader_v1_t m_common_header;
@@ -788,7 +816,7 @@ struct AMDGpuMetrics_v18_t {
   /* PCIE other end recovery counter */
   uint32_t m_pcie_lc_perf_other_end_recovery;
 };
-using AMGpuMetricsLatest_t = AMDGpuMetrics_v18_t;
+using AMGpuMetricsLatest_t = AMDGpuDynamicMetrics_t;
 
 /**
  *  This is GPU Metrics version that gets to public access.
@@ -1053,7 +1081,10 @@ enum class AMDGpuMetricVersionFlags_t : AMDGpuMetricVersionFlagId_t
   kGpuMetricV15 = (0x1 << 5),
   kGpuMetricV16 = (0x1 << 6),
   kGpuMetricV17 = (0x1 << 7),
-  kGpuMetricV18 = (0x1 << 8),  // Added new version flag
+  kGpuMetricV18 = (0x1 << 8),
+  kGpuXcpMetricV10 = (0x1 << 0),         // Added in v1.8 for partition metrics v1.0
+  kGpuMetricDynV19Plus = (0x1 << 9),     // Dyn. GPU Metrics v1.9+
+  kGpuXcpMetricDynV11Plus = (0x1 << 1),  // Added in v1.9 for Dyn. partition metrics v1.1+
 };
 using AMDGpuMetricVersionTranslationTbl_t = std::map<uint16_t, AMDGpuMetricVersionFlags_t>;
 using GpuMetricTypePtr_t = std::shared_ptr<void>;
@@ -1068,6 +1099,7 @@ class GpuMetricsBase_t {
     virtual AMGpuMetricsPublicLatestTupl_t copy_internal_to_external_metrics() = 0;
     virtual void set_device_id(uint32_t device_id) { m_device_id = device_id; }
     virtual void set_partition_id(uint32_t partition_id) { m_partition_id = partition_id; }
+    virtual void set_is_partition_metrics(bool is_partition_req) { m_is_partition_metrics = is_partition_req; }
     static std::mutex s_base_tbl_mu;
     virtual AMDGpuDynamicMetricsTbl_t get_metrics_dynamic_tbl() {
       std::lock_guard<std::mutex> lk(s_base_tbl_mu);
@@ -1079,6 +1111,7 @@ class GpuMetricsBase_t {
     uint64_t m_metrics_timestamp;
     uint32_t m_device_id;
     uint32_t m_partition_id;
+    bool m_is_partition_metrics {false};
 };
 using GpuMetricsBasePtr = std::shared_ptr<GpuMetricsBase_t>;
 using AMDGpuMetricFactories_t = const std::map<AMDGpuMetricVersionFlags_t, GpuMetricsBasePtr>;
@@ -1292,11 +1325,31 @@ class GpuMetricsBase_v18_t final : public GpuMetricsBase_t {
   }
 
   GpuMetricTypePtr_t get_metrics_table() override {
-    if (!m_gpu_metric_ptr) {
-      m_gpu_metric_ptr.reset(&m_gpu_metrics_tbl, [](AMDGpuMetrics_v18_t*){});
+    std::ostringstream ss;
+    ss << __PRETTY_FUNCTION__
+       << " ==== START ==== "
+       << " Initializing metrics table request: "
+       << " | Partition ID: " << m_partition_id
+       << " | Device ID: " << m_device_id
+       << " | Is Partition Metrics: " << std::boolalpha << m_is_partition_metrics
+       << " | m_gpu_metric_ptr: " << (!m_gpu_metric_ptr ? "nullptr" : "valid")
+       << " | m_gpu_metric_partition_ptr: "
+       << (!m_gpu_metric_partition_ptr ? "nullptr" : "valid");
+    LOG_DEBUG(ss);
+    // If m_is_partition_metrics is false, we use the main GPU metrics table.
+    // Otherwise, we use the partition metrics table.
+    // This is to avoid having two pointers to the same table.
+    if (m_is_partition_metrics && !m_gpu_metric_partition_ptr) {
+      return std::shared_ptr<AMDGpuMetrics_v18_Partition_v1_0_t>(
+                &m_gpu_metrics_partition_tbl, [](AMDGpuMetrics_v18_Partition_v1_0_t*){/* no-op */});
+    } else if (!m_is_partition_metrics && !m_gpu_metric_ptr) {
+      return std::shared_ptr<AMDGpuMetrics_v18_t>(
+                &m_gpu_metrics_tbl, [](AMDGpuMetrics_v18_t*){/* no-op */});
     }
-    assert(m_gpu_metric_ptr != nullptr);
-    return m_gpu_metric_ptr;
+    return std::shared_ptr<AMDGpuMetrics_v18_t>(
+                nullptr, [](AMDGpuMetrics_v18_t*){/* no-op */});  // Return nullptr if we couldn't
+                                                                  // validate which metric table
+                                                                  // user is requesting
   }
 
   AMDGpuMetricVersionFlags_t get_gpu_metrics_version_used() override {
@@ -1309,6 +1362,43 @@ class GpuMetricsBase_v18_t final : public GpuMetricsBase_t {
  private:
   AMDGpuMetrics_v18_t m_gpu_metrics_tbl;
   std::shared_ptr<AMDGpuMetrics_v18_t> m_gpu_metric_ptr;
+  AMDGpuMetrics_v18_Partition_v1_0_t m_gpu_metrics_partition_tbl;
+  std::shared_ptr<AMDGpuMetrics_v18_Partition_v1_0_t> m_gpu_metric_partition_ptr;
+};
+
+class GpuMetricsBaseDynamic_t final : public GpuMetricsBase_t {
+ public:
+    ~GpuMetricsBaseDynamic_t() = default;
+
+  // Unused
+  size_t sizeof_metric_table() override { return 0; }
+
+  // Unused
+  GpuMetricTypePtr_t get_metrics_table() override { return nullptr; }
+
+  AMDGpuMetricVersionFlags_t get_gpu_metrics_version_used() override {
+    if (m_header.m_format_revision != 1) {
+        return AMDGpuMetricVersionFlags_t::kGpuMetricNone;
+    }
+
+    return static_cast<AMDGpuMetricVersionFlags_t>(1u << m_header.m_content_revision);
+  }
+
+  // Store header and metrics table
+  inline rsmi_status_t set_parsed_dynamic(AMDGpuDynamicMetrics_t&& parsed) noexcept {
+    m_dyn = std::move(parsed);
+    m_header = m_dyn.get_header();
+    return rsmi_status_t::RSMI_STATUS_SUCCESS;
+  }
+
+  rsmi_status_t populate_metrics_dynamic_tbl() override;
+
+  AMGpuMetricsPublicLatestTupl_t copy_internal_to_external_metrics() override;
+
+ private:
+    AMDGpuDynamicMetrics_t m_dyn;
+    details::AMDGpuDynamicMetricsHeader_v1_t m_header{};
+
 };
 
 template<typename T>

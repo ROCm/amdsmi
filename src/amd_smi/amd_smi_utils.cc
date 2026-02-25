@@ -243,7 +243,7 @@ amdsmi_status_t smi_amdgpu_get_board_info(amd::smi::AMDSmiGPUDevice* device, amd
     return AMDSMI_STATUS_SUCCESS;
 }
 
-amdsmi_status_t smi_amdgpu_get_power_cap(amd::smi::AMDSmiGPUDevice* device, int *cap)
+amdsmi_status_t smi_amdgpu_get_power_cap(amd::smi::AMDSmiGPUDevice* device, uint32_t sensor_ind, int *cap)
 {
     constexpr int DATA_SIZE = 16;
     char val[DATA_SIZE];
@@ -257,7 +257,7 @@ amdsmi_status_t smi_amdgpu_get_power_cap(amd::smi::AMDSmiGPUDevice* device, int 
     if (ret)
         return ret;
 
-    fullpath += "/power1_cap";
+    fullpath += "/power" + std::to_string(sensor_ind + 1) + "_cap";
     std::ifstream file(fullpath.c_str(), std::ifstream::in);
     if (!file.is_open()) {
         return AMDSMI_STATUS_API_FAILED;
@@ -1014,9 +1014,57 @@ std::string smi_brcm_get_value_string(std::string filePath, std::string fileName
   
     return temp.str();
   }
+int read_env_ms(const char* name, int def) {
+    if (const char* s = std::getenv(name)) {
+        try {
+            return std::max(0, std::stoi(s));
+        } catch (...) {
+            // Ignore error, fallback to passed in def
+        }
+    }
+    return def;
+}
 
 struct CperFileCtx {
     amdsmi_status_t status = AMDSMI_STATUS_FILE_ERROR;
     std::unique_ptr<char[]> buffer;
     long file_size = 0;
 };
+
+
+uint64_t get_product_serial_number(amdsmi_processor_handle processor_handle) {
+    uint64_t serial_number = 0;
+    amdsmi_board_info_t board_info = {};
+    amdsmi_status_t status = amdsmi_get_gpu_board_info(processor_handle, &board_info);
+    if (status != AMDSMI_STATUS_SUCCESS) {
+        std::ostringstream ss;
+        ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ << 
+            "Failed to retrieve product serial number! error: " << 
+            static_cast<int>(status);
+        LOG_DEBUG(ss);
+        return serial_number;
+    }
+    if (!board_info.product_serial || !*board_info.product_serial) {
+        std::ostringstream ss;
+        ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ <<
+            " Product serial string is empty.";
+        LOG_DEBUG(ss);
+        return serial_number;
+    }
+    try {
+        serial_number = std::stoull(board_info.product_serial, nullptr, 10);
+    } catch (const std::invalid_argument& e) {
+        std::ostringstream ss;
+        ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ <<
+            " Invalid product serial string. Exception: " << e.what();
+        LOG_DEBUG(ss);
+        serial_number = 0;
+    } catch (const std::out_of_range& e) {
+        std::ostringstream ss;
+        ss << __PRETTY_FUNCTION__ << "\n:" << __LINE__ <<
+            " Product serial out of range, Exception: " << e.what();
+        LOG_DEBUG(ss);
+        serial_number = 0;
+    }
+    return serial_number;
+}

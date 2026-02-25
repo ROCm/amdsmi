@@ -145,7 +145,7 @@ static amdsmi_status_t get_gpu_device_from_handle(amdsmi_processor_handle proces
 
 template <typename F, typename ...Args>
 amdsmi_status_t rsmi_wrapper(F && f,
-    amdsmi_processor_handle processor_handle, uint32_t increment_gpu_id = 0, Args &&... args) {
+    amdsmi_processor_handle processor_handle, uint32_t increment_gpu_id, Args &&... args) {
 
     AMDSMI_CHECK_INIT();
 
@@ -477,6 +477,78 @@ amdsmi_status_t amdsmi_get_processor_handles(amdsmi_socket_handle socket_handle,
     return AMDSMI_STATUS_SUCCESS;
 }
 
+amdsmi_status_t amdsmi_get_node_handle(amdsmi_processor_handle processor_handle,
+                                    amdsmi_node_handle *node_handle) {
+
+    AMDSMI_CHECK_INIT();
+
+    if (node_handle == nullptr) {
+        return AMDSMI_STATUS_INVAL;
+    }
+
+    // Check if OAM ID is 0
+    amdsmi_asic_info_t asic_info;
+    amdsmi_status_t r = amdsmi_get_gpu_asic_info(processor_handle, &asic_info);
+    if (r != AMDSMI_STATUS_SUCCESS) {
+        return r;
+    }
+    
+    if (asic_info.oam_id != 0) {
+        return AMDSMI_STATUS_NOT_SUPPORTED;
+    }
+
+    // Get renderPath
+    amdsmi_enumeration_info_t enumeration_info;
+    r = amdsmi_get_gpu_enumeration_info(processor_handle, &enumeration_info);
+    if (r != AMDSMI_STATUS_SUCCESS) {
+        return r;
+    }
+
+    namespace fs = std::filesystem;
+
+    // Construct the path from /sys/class/drm/renderD* device
+    fs::path drm_device_path = fs::path("/sys/class/drm") / ("renderD" + std::to_string(enumeration_info.drm_render)) / "device";
+    fs::path found_board;
+
+    try {
+        // Navigate to the board directory from the DRM device path
+        fs::path board_dir = drm_device_path / "board";
+        fs::path npm_status = board_dir / "npm_status";
+        
+        // Check if board directory and npm_status exist
+        if (fs::exists(board_dir) && fs::is_directory(board_dir) && fs::exists(npm_status)) {
+            found_board = board_dir;
+        }
+    } catch (...) {
+        return AMDSMI_STATUS_NOT_SUPPORTED;
+    }
+
+    if (found_board.empty()) {
+        return AMDSMI_STATUS_NOT_SUPPORTED;
+    }
+
+    // Store board path so node handle remains valid for library lifetime.
+    static std::mutex g_node_mu;
+    static std::map<std::string, std::unique_ptr<std::string>> g_node_registry;
+
+    std::string board_path = found_board.string();
+    {
+        std::lock_guard<std::mutex> lk(g_node_mu);
+        auto it = g_node_registry.find(board_path);
+        if (it == g_node_registry.end()) {
+            auto ptr = std::make_unique<std::string>(board_path);
+            amdsmi_node_handle h = reinterpret_cast<amdsmi_node_handle>(ptr.get());
+            g_node_registry.emplace(board_path, std::move(ptr));
+            *node_handle = h;
+        } else {
+            *node_handle = reinterpret_cast<amdsmi_node_handle>(it->second.get());
+        }
+    }
+
+    return AMDSMI_STATUS_SUCCESS;
+
+}
+
 #ifdef ENABLE_ESMI_LIB
 amdsmi_status_t amdsmi_get_processor_count_from_handles(amdsmi_processor_handle* processor_handles,
                                                         uint32_t* processor_count, uint32_t* nr_cpusockets,
@@ -494,8 +566,7 @@ amdsmi_status_t amdsmi_get_processor_count_from_handles(amdsmi_processor_handle*
     }
 
     for (uint32_t i = 0; i < *processor_count; i++) {
-        amdsmi_status_t r = amdsmi_get_processor_type(processor_handles[i],
-                                                      &processor_type);
+        amdsmi_status_t r = amdsmi_get_processor_type(processor_handles[i], &processor_type);
         if (r != AMDSMI_STATUS_SUCCESS) return r;
 
         if(processor_type == AMDSMI_PROCESSOR_TYPE_AMD_CPU) {
@@ -545,7 +616,7 @@ amdsmi_status_t amdsmi_get_processor_handles_by_type(amdsmi_socket_handle socket
 
 #endif
 
-amdsmi_status_t amdsmi_get_processor_type(amdsmi_processor_handle processor_handle ,
+amdsmi_status_t amdsmi_get_processor_type(amdsmi_processor_handle processor_handle,
               processor_type_t* processor_type) {
 
     AMDSMI_CHECK_INIT();
@@ -877,6 +948,36 @@ amdsmi_status_t  amdsmi_get_temp_metric(amdsmi_processor_handle processor_handle
             static_cast<rsmi_temperature_metric_t>(metric), temperature);
     *temperature /= 1000;
     return amdsmi_status;
+}
+
+amdsmi_status_t amdsmi_get_npm_info(amdsmi_node_handle node_handle,
+                            amdsmi_npm_info_t *npm_info) {
+    AMDSMI_CHECK_INIT();
+
+    if (node_handle == nullptr || npm_info == nullptr) {
+        return AMDSMI_STATUS_INVAL;
+    }
+
+    // Verify board path from node_handle
+    auto board_path_str = reinterpret_cast<std::string*>(node_handle);
+    if (board_path_str == nullptr || board_path_str->empty()) {
+        return AMDSMI_STATUS_INVAL;
+    }
+
+    rsmi_npm_info_t rsmi_npm_info;
+    rsmi_status_t rstatus = rsmi_dev_npm_info_get(0, reinterpret_cast<uintptr_t>(node_handle), &rsmi_npm_info);
+    amdsmi_status_t amdsmi_status = amd::smi::rsmi_to_amdsmi_status(rstatus);
+    if (amdsmi_status != AMDSMI_STATUS_SUCCESS) {
+        return amdsmi_status;
+    }
+
+    if (sizeof(amdsmi_npm_info_t) != sizeof(rsmi_npm_info_t)) {
+        return AMDSMI_STATUS_UNEXPECTED_SIZE;
+    }
+    std::memcpy(npm_info, &rsmi_npm_info, sizeof(amdsmi_npm_info_t));
+
+    return AMDSMI_STATUS_SUCCESS;
+
 }
 
 amdsmi_status_t amdsmi_get_gpu_vram_usage(amdsmi_processor_handle processor_handle,
@@ -1572,6 +1673,22 @@ amdsmi_status_t amdsmi_get_fw_info(amdsmi_processor_handle processor_handle,
     return AMDSMI_STATUS_SUCCESS;
 }
 
+// If similar caches are implemented in the future, make this generic and move it
+namespace {
+    struct AsicInfoCache {
+        amdsmi_asic_info_t info{};
+        std::chrono::steady_clock::time_point last_read;
+        bool valid = false;
+        std::mutex mtx;
+    };
+
+    std::unordered_map<std::string, AsicInfoCache> g_asic_info_cache_map;
+    std::mutex g_asic_info_cache_map_mu;
+    static const std::chrono::milliseconds kAsicInfoCacheDuration(
+        read_env_ms("AMDSMI_ASIC_INFO_CACHE_MS", 10000)
+    );
+}
+
 amdsmi_status_t
 amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_info_t *info) {
     AMDSMI_CHECK_INIT();
@@ -1606,6 +1723,33 @@ amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_i
         return r;
     }
     SMIGPUDEVICE_MUTEX(gpu_device->get_mutex())
+
+    // ---- ASIC info cache ----
+    const std::string key = gpu_device->get_gpu_path();
+
+    AsicInfoCache* cache_ptr = nullptr;
+    {
+        std::lock_guard<std::mutex> map_lk(g_asic_info_cache_map_mu);
+        cache_ptr = &g_asic_info_cache_map[key];
+    }
+    {
+        std::lock_guard<std::mutex> lk(cache_ptr->mtx);
+        auto now = std::chrono::steady_clock::now();
+        auto last_read_delta = std::chrono::duration_cast<std::chrono::milliseconds>(now - cache_ptr->last_read);
+
+        if (cache_ptr->valid &&
+            kAsicInfoCacheDuration > std::chrono::milliseconds::zero() &&
+            last_read_delta < kAsicInfoCacheDuration) {
+
+            *info = cache_ptr->info;
+
+            ss << "Returned cached ASIC info for key=" << key
+                << " (age=" << last_read_delta.count() << "ms)";
+            LOG_INFO(ss);
+
+            return AMDSMI_STATUS_SUCCESS;
+        }
+    }
 
     /**
      * For other sysfs related information, get from rocm-smi
@@ -1803,6 +1947,20 @@ amdsmi_get_gpu_asic_info(amdsmi_processor_handle processor_handle, amdsmi_asic_i
        << std::hex << info->target_graphics_version << "\n"
        << " | Returning: " << smi_amdgpu_get_status_string(AMDSMI_STATUS_SUCCESS, true);
     LOG_INFO(ss);
+
+    // ---- Store cache success ----
+    if (status == AMDSMI_STATUS_SUCCESS &&
+        kAsicInfoCacheDuration > std::chrono::milliseconds::zero()) {
+        
+        auto now = std::chrono::steady_clock::now();
+        std::lock_guard<std::mutex> lk(cache_ptr->mtx);
+        cache_ptr->info  = *info;
+        cache_ptr->last_read = now;
+        cache_ptr->valid = true;
+
+        ss << "Successfully Cached ASIC info for key=" << key;
+        LOG_INFO(ss);
+    }
     return AMDSMI_STATUS_SUCCESS;
 }
 
@@ -3000,8 +3158,8 @@ amdsmi_get_gpu_accelerator_partition_profile(amdsmi_processor_handle processor_h
               std::end(tokens),
               amd::smi::make_ostream_joiner(&ss_1, ", "));
 
-    constexpr uint32_t kCurrentPartitionSize = 5;
-    char current_partition[kCurrentPartitionSize];
+    constexpr uint32_t kCurrentPartitionSize = 16;
+    char current_partition[kCurrentPartitionSize] = {0};
     std::string current_partition_str = "N/A";
     amdsmi_status_t compute_status = amdsmi_get_gpu_compute_partition(processor_handle,
                                         current_partition, kCurrentPartitionSize);
@@ -3295,13 +3453,27 @@ amdsmi_get_gpu_metrics_header_info(amdsmi_processor_handle processor_handle,
                     reinterpret_cast<metrics_table_header_t*>(header_value));
 }
 
+amdsmi_status_t  amdsmi_get_gpu_partition_metrics_info(
+        amdsmi_processor_handle processor_handle,
+        amdsmi_gpu_metrics_t *pgpu_metrics) {
+    AMDSMI_CHECK_INIT();
+    if (pgpu_metrics != nullptr) {
+        *pgpu_metrics = amdsmi_gpu_metrics_t{};  // Use a default initializer for the struct
+    } else {
+        return AMDSMI_STATUS_INVAL;  // Return error if pgpu_metrics is null
+    }
+    return rsmi_wrapper(rsmi_dev_gpu_partition_metrics_info_get, processor_handle, 0,
+                       reinterpret_cast<rsmi_gpu_metrics_t*>(pgpu_metrics));
+}
+
 amdsmi_status_t  amdsmi_get_gpu_metrics_info(
         amdsmi_processor_handle processor_handle,
         amdsmi_gpu_metrics_t *pgpu_metrics) {
     AMDSMI_CHECK_INIT();
-    // nullptr api supported
     if (pgpu_metrics != nullptr) {
         *pgpu_metrics = amdsmi_gpu_metrics_t{};  // Use a default initializer for the struct
+    } else {
+        return AMDSMI_STATUS_INVAL;  // Return error if pgpu_metrics is null
     }
     return rsmi_wrapper(rsmi_dev_gpu_metrics_info_get, processor_handle, 0,
                        reinterpret_cast<rsmi_gpu_metrics_t*>(pgpu_metrics));
@@ -3364,39 +3536,21 @@ amdsmi_get_power_cap_info(amdsmi_processor_handle processor_handle,
 
     int power_cap = 0;
     int dpm = 0;
-    auto smi_power_cap_status = smi_amdgpu_get_power_cap(gpudevice, &power_cap);
-    if ((smi_power_cap_status == AMDSMI_STATUS_SUCCESS) && !set_ret_success)
-        set_ret_success = true;
-    info->power_cap = power_cap;
+    auto smi_power_cap_status = rsmi_wrapper(rsmi_dev_power_cap_get, processor_handle, 0,
+                sensor_ind, &(info->power_cap));
+
     status = smi_amdgpu_get_ranges(gpudevice, AMDSMI_CLK_TYPE_GFX,
             NULL, NULL, &dpm, NULL);
-    if ((status == AMDSMI_STATUS_SUCCESS) && !set_ret_success)
-        set_ret_success = true;
     info->dpm_cap = dpm;
-
-    if (smi_power_cap_status != AMDSMI_STATUS_SUCCESS) {
-        status = rsmi_wrapper(rsmi_dev_power_cap_get, processor_handle, 0,
-                sensor_ind, &(info->power_cap));
-        if ((status == AMDSMI_STATUS_SUCCESS) && !set_ret_success)
-            set_ret_success = true;
-    }
 
     // Get other information from rocm-smi
     status = rsmi_wrapper(rsmi_dev_power_cap_default_get, processor_handle, 0,
-                        &(info->default_power_cap));
-
-    if ((status == AMDSMI_STATUS_SUCCESS) && !set_ret_success)
-        set_ret_success = true;
-
+                          sensor_ind, &(info->default_power_cap));
 
     status = rsmi_wrapper(rsmi_dev_power_cap_range_get, processor_handle, 0,
                           sensor_ind, &(info->max_power_cap), &(info->min_power_cap));
 
-
-    if ((status == AMDSMI_STATUS_SUCCESS) && !set_ret_success)
-        set_ret_success = true;
-
-    return set_ret_success ? AMDSMI_STATUS_SUCCESS : AMDSMI_STATUS_NOT_SUPPORTED;
+    return smi_power_cap_status;
 }
 
 amdsmi_status_t
@@ -3405,6 +3559,19 @@ amdsmi_set_power_cap(amdsmi_processor_handle processor_handle,
 
     return rsmi_wrapper(rsmi_dev_power_cap_set, processor_handle, 0,
             sensor_ind, cap);
+}
+
+amdsmi_status_t
+amdsmi_get_supported_power_cap(amdsmi_processor_handle processor_handle, uint32_t *sensor_count,
+                                 uint32_t *sensor_inds, amdsmi_power_cap_type_t *sensor_types) {
+    AMDSMI_CHECK_INIT();
+    if (!sensor_count || !sensor_inds || !sensor_types) {
+        return AMDSMI_STATUS_INVAL;
+    }
+
+    return rsmi_wrapper(rsmi_dev_supported_power_cap_get, processor_handle, 0,
+                    sensor_count, sensor_inds,
+                    reinterpret_cast<rsmi_power_cap_type_t*>(sensor_types));
 }
 
 amdsmi_status_t
@@ -4271,10 +4438,10 @@ amdsmi_get_gpu_cper_entries(
     if (status != AMDSMI_STATUS_SUCCESS) {
         return status;
     }
+
     std::string path = std::string("/sys/kernel/debug/dri/") +
         std::to_string(gpu_device->get_card_id()) +
         "/amdgpu_ring_cper";
-
 
     return amdsmi_get_gpu_cper_entries_by_path(
         path.c_str(),
@@ -4283,7 +4450,9 @@ amdsmi_get_gpu_cper_entries(
         buf_size,
         cper_hdrs,
         entry_count,
-        cursor);
+        cursor,
+        get_product_serial_number(processor_handle)
+    );
 }
 
 amdsmi_status_t amdsmi_get_afids_from_cper(
@@ -4436,11 +4605,15 @@ amdsmi_get_power_info(amdsmi_processor_handle processor_handle, amdsmi_power_inf
     }
 
     int power_limit = 0;
-    status = smi_amdgpu_get_power_cap(gpu_device, &power_limit);
-    if (status == AMDSMI_STATUS_SUCCESS) {
+    // default the sensor_ind here to 0
+    amdsmi_status_t status2 = smi_amdgpu_get_power_cap(gpu_device, 0, &power_limit);
+    if (status2 == AMDSMI_STATUS_SUCCESS) {
         info->power_limit = power_limit;
     }
 
+    // Returning status from amdsmi_get_gpu_metrics_info() which should return SUCCESS
+    // Getting power cap values may not be supported on all virtualized systems and should
+    // not return a failure when the metrics values are ascertainable.
     return status;
 }
 
@@ -5150,27 +5323,12 @@ amdsmi_status_t amdsmi_get_cpu_affinity_with_scope(amdsmi_processor_handle proce
 
         case AMDSMI_AFFINITY_SCOPE_SOCKET:
         {
-            std::vector<uint32_t> sockets = amd::smi::AMDSmiSystem::getInstance().get_cpu_sockets_from_numa_node(node_id);
-
-            if(sockets[0] == std::numeric_limits<int32_t>::max()){
+            uint32_t drm_card = gpu_device->get_card_id();
+            std::vector<uint64_t> bitmask = gpu_device->get_bitmask_from_local_cpulist(drm_card, cpu_set_size);
+            if(bitmask[0] == std::numeric_limits<int32_t>::max()){
                 return AMDSMI_STATUS_REFCOUNT_OVERFLOW;
             } else {
-            for (uint32_t idx : sockets) {
-                cpu_set[idx] = idx;
-            }
-
-            std::sort(cpu_set, cpu_set + cpu_set_size);
-
-            // Discard duplicates
-            uint32_t temp_size = 0;
-            for (uint32_t i = 0; i < cpu_set_size; ++i) {
-                if (i == 0 || cpu_set[i] != cpu_set[i - 1]) {
-                    cpu_set[temp_size++] = cpu_set[i];
-                }
-            }
-
-            // Update the size to the temp size after discarding duplicates
-            cpu_set_size = temp_size;
+                std::memcpy(cpu_set, bitmask.data(), cpu_set_size * sizeof(uint64_t));
             }
             break;
         }

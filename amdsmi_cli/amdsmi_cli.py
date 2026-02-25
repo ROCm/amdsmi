@@ -42,8 +42,12 @@ except ImportError as e:
 #     from amdsmi import amdsmi_exception
 
 # Set the environment variable for GPU metrics cache duration
-cache_ms = os.environ.setdefault("AMDSMI_GPU_METRICS_CACHE_MS", "100")
-logging.debug("AMDSMI_GPU_METRICS_CACHE_MS = %sms", cache_ms)
+gpu_metrics_cache_ms = os.environ.setdefault("AMDSMI_GPU_METRICS_CACHE_MS", "100")
+logging.debug("AMDSMI_GPU_METRICS_CACHE_MS = %sms", gpu_metrics_cache_ms)
+
+# Set the environment variable for ASIC cache duration
+asic_info_cache_ms = os.environ.setdefault("AMDSMI_ASIC_INFO_CACHE_MS", "10000") # 10 seconds
+logging.debug("AMDSMI_ASIC_INFO_CACHE_MS = %sms", asic_info_cache_ms)
 
 try:
     from amdsmi_init import *
@@ -156,6 +160,7 @@ if __name__ == "__main__":
                                     amd_smi_commands.partition,
                                     amd_smi_commands.ras,
                                     amd_smi_commands.dump,
+                                    amd_smi_commands.node,
                                     amd_smi_commands.default,
                                     sys_argv=sys.argv,
                                     helpers=amd_smi_helpers)

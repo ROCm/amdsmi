@@ -4,9 +4,189 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
 
 ***All information listed below is for reference and subject to change.***
 
+## amd_smi_lib for ROCm 7.2.0
+
+### Added
+
+- **Added the following C API's to amdsmi_interface.py**.  
+  - amdsmi_get_cpu_handle()
+  - amdsmi_get_esmi_err_msg()
+  - amdsmi_get_gpu_event_notification()
+  - amdsmi_get_processor_count_from_handles()
+  - amdsmi_get_processor_handles_by_type()
+  - amdsmi_gpu_validate_ras_eeprom()
+  - amdsmi_init_gpu_event_notification()
+  - amdsmi_set_gpu_event_notification_mask()
+  - amdsmi_stop_gpu_event_notification()
+  - amdsmi_get_gpu_busy_percent()
+
+- **Added additional return value to API amdsmi_get_xgmi_plpd()**.  
+  - The entry `policies` is added to the end of the dictionary to match API definition.
+  - The entry `plpds` is marked for deprecation as it has the same information as `policies`.
+
+- **Added pcie levels to `amd-smi static --bus` command**.  
+  - The static --bus option has been updated to include the range of pcie levels that one may set a device to.
+  - Levels are a 2-tuple composed of the PCIE speed and bandwidth.
+
+  ```console
+  $ amd-smi static --bus
+  GPU: 0
+  BUS:
+  BDF: 0000:43:00.0
+  MAX_PCIE_WIDTH: 16
+  MAX_PCIE_SPEED: 16 GT/s
+  PCIE_LEVELS:
+    0: (2.5 GT/s, 1)
+    1: (5.0 GT/s, 4)
+    2: (16.0 GT/s, 16)
+  PCIE_INTERFACE_VERSION: Gen 4
+  SLOT_TYPE: CEM
+  ```
+
+- **Added evicted_time metric for kfd processes**.  
+  - Time that queues are evicted on a GPU in milliseconds
+  - Added to CLI in `amd-smi monitor -q` and `amd-smi process`
+  - Added to C API and Python API:
+    - amdsmi_get_gpu_process_list()
+    - amdsmi_get_gpu_compute_process_info()
+    - amdsmi_get_gpu_compute_process_info_by_pid()
+
+- **Added new VRAM types to  `amdsmi_vram_type_t`**.
+  - `amd-smi static --vram` & `amdsmi_get_gpu_vram_info()` now support the following types:
+  - DDR5, LPDDR4, LPDDR5, and HBM3E
+
+- **Added support for PPT1 power limit information**.  
+  - Support has been added for querying and setting the PPT (Package Power Tracking) limits
+    - There are two PPT limits, PPT0 has lower limit and tracks a filtered version of the input power and PPT1 has higher limit but tracks the raw input power. This is to catch spikes in the raw data.  
+  - New API added:
+    - amdsmi_get_supported_power_cap(): Returns which power cap types are supported on the device (PPT0, PPT1). This will allow users to know which power cap types they can get/set.
+    - Original APIs remain the same but now can get/set both PPT0 and PPT1 limits (on supported hardware):
+      - amdsmi_get_power_cap_info() 
+      - amdsmi_set_power_cap()
+  - See the Changed section for changes made to the `set` and `static` commands regarding support for PPT1.  
+
+### Changed
+
+- **The `amd-smi` command now shows hsmp rather than amd_hsmp**.  
+  - The hsmp driver version can be shown without the amdgpu version using `amd-smi version -c`
+
+  ```console
+   $ amd-smi version
+   AMDSMI Tool: 24.7.1+b446d6c-dirty | AMDSMI Library version: 24.7.2.0 | ROCm version: N/A | amdgpu version: 6.10.10 | hsmp version: 2.2
+
+   $ amd-smi version -c
+   AMDSMI Tool: 24.7.1+b446d6c-dirty | AMDSMI Library version: 24.7.2.0 | ROCm version: N/A | hsmp version: 2.2
+   ...
+  ```
+
+- **`amd-smi set --power-cap` now requires sepcification of the power cap type**.  
+  - Command now takes the form: `amd-smi set --power-cap <power-cap-type> <new-cap>`
+  - Acceptable power cap types are "ppt0" and "ppt1"
+
+  ```console
+  $ sudo amd-smi set --power-cap ppt1 1150
+  GPU: 0
+    POWERCAP: Successfully set ppt1 power cap to 1150W
+    ...
+  ```
+
+- **`amd-smi reset --power-cap` will attempt to reset both power caps**.  
+  - When using the reset command, both PPT0 and PPT1 power caps will be reset to their default values. If a device only has PPT0, then only PPT0 will be reset.  
+    Ex.
+    ```console
+    $ sudo amd-smi reset --power-cap ppt1 1150
+    GPU: 0
+      POWERCAP:
+          PPT0: Successfully reset power cap to 203W
+          PPT1: [AMDSMI_STATUS_NOT_SUPPORTED] Unable to reset to default power cap
+      ...
+    ```
+
+- **`amd-smi static --limit` now has a PPT1 section when PPT1 is available**.  
+  - The static --limit command has been updated to include PPT1 power limit information when available on the device.
+    ```console
+    $ amd-smi static --limit
+    GPU: 0
+      LIMIT:
+          PPT0:
+              MAX_POWER_LIMIT: 1000
+              MIN_POWER_LIMIT: 0
+              SOCKET_POWER_LIMIT: 1000
+          PPT1:
+              MAX_POWER_LIMIT: 1300
+              MIN_POWER_LIMIT: 1100
+              SOCKET_POWER_LIMIT: 1250
+          SLOWDOWN_EDGE_TEMPERATURE: N/A
+          ...
+    ```
+    - JSON and CSV formats are updated to reflect this change as well.  
+      Ex.
+      ```console
+      $ amd-smi static --limit --json
+      {
+        "gpu_data": [
+            {
+                "gpu": 0,
+                "limit": {
+                    "ppt0": {
+                        "max_power_limit": {
+                            "value": 203,
+                            "unit": "W"
+                        },
+                        "min_power_limit": {
+                            "value": 0,
+                            "unit": "W"
+                        },
+                        "socket_power_limit": {
+                            "value": 100,
+                            "unit": "W"
+                        }
+                    },
+                    "ppt1": {
+                        "max_power_limit": "N/A",
+                        "min_power_limit": "N/A",
+                        "socket_power_limit": "N/A"
+                    },
+                    ...
+                }
+            },
+            ...
+      ```
+    
+      ```console
+      $ amd-smi static --limit --csv
+      gpu,ppt0_max_power_limit,ppt0_min_power_limit,ppt0_socket_power_limit,ppt1_max_power_limit,ppt1_min_power_limit,ppt1_socket_power_limit,slowdown_edge_temperature,slowdown_hotspot_temperature,slowdown_vram_temperature,shutdown_edge_temperature,shutdown_hotspot_temperature,shutdown_vram_temperature
+      0,203,0,100,N/A,N/A,N/A,100,110,100,105,115,105
+      1,213,0,100,N/A,N/A,N/A,109,110,100,114,115,105
+      ```
+
+### Removed
+
+- N/A
+
+### Optimized
+
+- N/A
+
+### Resolved Issues
+
+- **Fixed an issue where amdsmi_get_gpu_od_volt_info() returned a reference to a python object**.  
+  - The returned dictionary was changed to return values in all fields
+
+### Upcoming Changes
+
+- N/A
+
+### Known Issues
+
+- N/A
+
 ## amd_smi_lib for ROCm 7.1.0
 
 ### Added
+
+- **Added `GPU LINK PORT STATUS` table to `amd-smi xgmi` command**.  
+  - The `amd-smi xgmi -s` or `amd-smi xgmi --source-status` will show `GPU LINK PORT STATUS` table.  
 
 - **Added `amdsmi_get_gpu_revision()` to Python API**  
   - This function retrieves the GPU revision ID. Available in `amdsmi_interface.py` as `amdsmi_get_gpu_revision()`.
@@ -16,126 +196,126 @@ Full documentation for amd_smi_lib is available at [https://rocm.docs.amd.com/pr
   values through the `-G/--gpuboard` or `-b/--baseboard` options or obtain all of them as normal using the `amd-smi metric` command without
   any options. If the hardware does not support gpuboard or baseboard temperatures, then the values will be hidden from the default `metric` view.
 
-```console
-$ amd-smi metric -b
-GPU: 0
-    BASEBOARD:
-        TEMPERATURE:
-            FIRST: 78
-            UBB_FRONT: 55
-            UBB_BACK: 49
-            UBB_OAM7: 86
-            UBB_IBC: 94
-            UBB_UFPGA: 49
-            UBB_OAM1: 78
-            OAM_0_1_HSC: 54
-            OAM_2_3_HSC: 32
-            OAM_4_5_HSC: 14
-            OAM_6_7_HSC: 85
-            UBB_FPGA_0V72_VR: 43
-            UBB_FPGA_3V3_VR: 41
-            RETIMER_0_1_2_3_1V2_VR: 64
-            RETIMER_4_5_6_7_1V2_VR: 56
-            RETIMER_0_1_0V9_VR: 74
-            RETIMER_4_5_0V9_VR: 34
-            RETIMER_2_3_0V9_VR: 85
-            RETIMER_6_7_0V9_VR: 92
-            OAM_0_1_2_3_3V3_VR: 29
-            OAM_4_5_6_7_3V3_VR: 13
-            IBC_HSC: 41
-            IBC: 43
+  ```console
+  $ amd-smi metric -b
+  GPU: 0
+      BASEBOARD:
+          TEMPERATURE:
+              FIRST: 78
+              UBB_FRONT: 55
+              UBB_BACK: 49
+              UBB_OAM7: 86
+              UBB_IBC: 94
+              UBB_UFPGA: 49
+              UBB_OAM1: 78
+              OAM_0_1_HSC: 54
+              OAM_2_3_HSC: 32
+              OAM_4_5_HSC: 14
+              OAM_6_7_HSC: 85
+              UBB_FPGA_0V72_VR: 43
+              UBB_FPGA_3V3_VR: 41
+              RETIMER_0_1_2_3_1V2_VR: 64
+              RETIMER_4_5_6_7_1V2_VR: 56
+              RETIMER_0_1_0V9_VR: 74
+              RETIMER_4_5_0V9_VR: 34
+              RETIMER_2_3_0V9_VR: 85
+              RETIMER_6_7_0V9_VR: 92
+              OAM_0_1_2_3_3V3_VR: 29
+              OAM_4_5_6_7_3V3_VR: 13
+              IBC_HSC: 41
+              IBC: 43
 
-$ amd-smi metric -G
-GPU: 0
-    GPUBOARD:
-        TEMPERATURE:
-            NODE_RETIMER_X: 43
-            NODE_OAM_X_IBC: 24
-            NODE_OAM_X_IBC_2: 56
-            NODE_OAM_X_VDD18_VR: 34
-            NODE_OAM_X_04_HBM_B_VR: 53
-            NODE_OAM_X_04_HBM_D_VR: 47
-            VR_FIRST: 58
-            VDDCR_VDD1: 78
-            VDDCR_VDD2: 35
-            VDDCR_VDD3: 73
-            VDDCR_SOC_A: 12
-            VDDCR_SOC_C: 57
-            VDDCR_SOCIO_A: 39
-            VDDCR_SOCIO_C: 75
-            VDD_085_HBM: 64
-            VDDCR_11_HBM_B: 92
-            VDDCR_11_HBM_D: 87
-            VDD_USR: 46
-            VDDIO_11_E32: 98
+  $ amd-smi metric -G
+  GPU: 0
+      GPUBOARD:
+          TEMPERATURE:
+              NODE_RETIMER_X: 43
+              NODE_OAM_X_IBC: 24
+              NODE_OAM_X_IBC_2: 56
+              NODE_OAM_X_VDD18_VR: 34
+              NODE_OAM_X_04_HBM_B_VR: 53
+              NODE_OAM_X_04_HBM_D_VR: 47
+              VR_FIRST: 58
+              VDDCR_VDD1: 78
+              VDDCR_VDD2: 35
+              VDDCR_VDD3: 73
+              VDDCR_SOC_A: 12
+              VDDCR_SOC_C: 57
+              VDDCR_SOCIO_A: 39
+              VDDCR_SOCIO_C: 75
+              VDD_085_HBM: 64
+              VDDCR_11_HBM_B: 92
+              VDDCR_11_HBM_D: 87
+              VDD_USR: 46
+              VDDIO_11_E32: 98
 
-$ amd-smi metric
-GPU: 0
-    USAGE:
-        GFX_ACTIVITY: 0 %
-        UMC_ACTIVITY: 0 %
-        ...
-    POWER:
-        SOCKET_POWER: 140 W
-        GFX_VOLTAGE: N/A
-        ...
-    CLOCK:
-        GFX_0:
-            CLK: 132 MHz
-            MIN_CLK: 500 MHz
-        ...
-    TEMPERATURE:
-        EDGE: N/A
-        HOTSPOT: 37 °C
-        ...
-    PCIE:
-        WIDTH: 16
-        SPEED: 32 GT/s
-        ...
-    GPUBOARD:
-        TEMPERATURE:
-            NODE_RETIMER_X: 43
-            NODE_OAM_X_IBC: 24
-            ...
-    BASEBOARD:
-        TEMPERATURE:
-            UBB_FPGA: 78
-            UBB_FRONT: 55
-            ...
-    ECC:
-        TOTAL_CORRECTABLE_COUNT: 0
-        TOTAL_UNCORRECTABLE_COUNT: 0
-        ...
-    ECC_BLOCKS:
-        UMC:
-            CORRECTABLE_COUNT: 0
-            UNCORRECTABLE_COUNT: 0
-        ...
-    FAN:
-        SPEED: N/A
-        MAX: N/A
-        ...
-    VOLTAGE_CURVE:
-        POINT_0_FREQUENCY: N/A
-        POINT_0_VOLTAGE: N/A
-        ...
-    OVERDRIVE: N/A
-    MEM_OVERDRIVE: N/A
-    PERF_LEVEL: AMDSMI_DEV_PERF_LEVEL_AUTO
-    XGMI_ERR: N/A
-    VOLTAGE:
-        VDDBOARD: N/A
-    ENERGY:
-        TOTAL_ENERGY_CONSUMPTION: 14292727.274 J
-    MEM_USAGE:
-        TOTAL_VRAM: 196592 MB
-        USED_VRAM: 283 MB
-        ...
-    THROTTLE:
-        ACCUMULATION_COUNTER: 100936627
-        PROCHOT_ACCUMULATED: 0
-        ...
-```
+  $ amd-smi metric
+  GPU: 0
+      USAGE:
+          GFX_ACTIVITY: 0 %
+          UMC_ACTIVITY: 0 %
+          ...
+      POWER:
+          SOCKET_POWER: 140 W
+          GFX_VOLTAGE: N/A
+          ...
+      CLOCK:
+          GFX_0:
+              CLK: 132 MHz
+              MIN_CLK: 500 MHz
+          ...
+      TEMPERATURE:
+          EDGE: N/A
+          HOTSPOT: 37 °C
+          ...
+      PCIE:
+          WIDTH: 16
+          SPEED: 32 GT/s
+          ...
+      GPUBOARD:
+          TEMPERATURE:
+              NODE_RETIMER_X: 43
+              NODE_OAM_X_IBC: 24
+              ...
+      BASEBOARD:
+          TEMPERATURE:
+              UBB_FPGA: 78
+              UBB_FRONT: 55
+              ...
+      ECC:
+          TOTAL_CORRECTABLE_COUNT: 0
+          TOTAL_UNCORRECTABLE_COUNT: 0
+          ...
+      ECC_BLOCKS:
+          UMC:
+              CORRECTABLE_COUNT: 0
+              UNCORRECTABLE_COUNT: 0
+          ...
+      FAN:
+          SPEED: N/A
+          MAX: N/A
+          ...
+      VOLTAGE_CURVE:
+          POINT_0_FREQUENCY: N/A
+          POINT_0_VOLTAGE: N/A
+          ...
+      OVERDRIVE: N/A
+      MEM_OVERDRIVE: N/A
+      PERF_LEVEL: AMDSMI_DEV_PERF_LEVEL_AUTO
+      XGMI_ERR: N/A
+      VOLTAGE:
+          VDDBOARD: N/A
+      ENERGY:
+          TOTAL_ENERGY_CONSUMPTION: 14292727.274 J
+      MEM_USAGE:
+          TOTAL_VRAM: 196592 MB
+          USED_VRAM: 283 MB
+          ...
+      THROTTLE:
+          ACCUMULATION_COUNTER: 100936627
+          PROCHOT_ACCUMULATED: 0
+          ...
+  ```
 
 ### Changed
 
@@ -186,9 +366,18 @@ GPU: 0
 
 ### Optimized
 
-- N/A
+- **Optimized the way `amd-smi process` validates which proccesses are running on a GPU**.  
+
+- **Changed sourcing of BDF to from drm to kfd**.  
+  - Non sudo privliged users were unable to see the BDF due to logical errors.
 
 ### Resolved Issues
+
+- **Fixed a CPER record count mismatch issue when using the `amd-smi ras --cper --file-limit`**.  
+  - Fixed deletion calculation to use files_to_delete = len(folder_files) - file_limit for exact file count management
+
+- **Fixed event monitoring segfaults causing RDC to crash**.  
+  - Adds mutex locking around access to device event notification file pointer
 
 - **Fixed an issue where using `amd-smi ras --folder <folder_name>` was forcing the created folder's name to be lowercase**.  
   - This fix also allows all string input options to be case insensitive.
@@ -1154,9 +1343,9 @@ Updated `amdsmi_get_gpu_metrics_info()` and structure `amdsmi_gpu_metrics_t` to 
     GPU: 0
         CLK_LEVEL: Successfully changed sclk perf level(s) to 5, 6
 
-    GPU: 1
-        CLK_LEVEL: level(s) 5, 6 is/are greater than performance levels supported for device
-    ```
+GPU: 1
+    CLK_LEVEL: clock level(s) 5, 6 is/are greater than sclk frequency levels supported for device GPU ID: 1 BDF:0000:46:00.0
+```
 
 - **Added new command `amd-smi static -C/--clock`**.  
   - This new command displays the clock frequency performance levels for the selected GPUs and clocks.
@@ -1226,7 +1415,7 @@ Functions affected by struct change are:
 - **Corrected CLI CPU argument name**.  
   - `--cpu-pwr-svi-telemtry-rails` to `--cpu-pwr-svi-telemetry-rails`
 
-- **Added amdgpu driver version and amd_hsmp driver version to `amd-smi version` command**.  
+- **Added amdgpu driver version and amd_hsmp driver version to `amd-smi version` command**.
   - The `amd-smi version` command can now also display the amdgpu driver version using the `-g` flag.
   - The amd_hsmp driver version can also be displayed using the `-c` flag.
   - The new default for the `version` command is to display all the version information, including both amdgpu and amd_hsmp driver versions.

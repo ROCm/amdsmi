@@ -45,7 +45,7 @@ extern "C" {
 
 amdsmi_status_t smi_amdgpu_find_hwmon_dir(amd::smi::AMDSmiGPUDevice* device, std::string* full_path);
 amdsmi_status_t smi_amdgpu_get_board_info(amd::smi::AMDSmiGPUDevice* device, amdsmi_board_info_t *info);
-amdsmi_status_t smi_amdgpu_get_power_cap(amd::smi::AMDSmiGPUDevice* device, int *cap);
+amdsmi_status_t smi_amdgpu_get_power_cap(amd::smi::AMDSmiGPUDevice* device, uint32_t sensor_ind, int *cap);
 amdsmi_status_t smi_amdgpu_get_ranges(amd::smi::AMDSmiGPUDevice* device, amdsmi_clk_type_t domain, int *max_freq, int *min_freq, int *num_dpm, int *sleep_state_freq);
 amdsmi_status_t smi_amdgpu_get_enabled_blocks(amd::smi::AMDSmiGPUDevice* device, uint64_t *enabled_blocks);
 amdsmi_status_t smi_amdgpu_get_bad_page_info(amd::smi::AMDSmiGPUDevice* device, uint32_t *num_pages, amdsmi_retired_page_record_t *info);
@@ -120,6 +120,20 @@ amdsmi_status_t smi_amdgpu_get_processor_handle_by_index(
                                         uint32_t device_index,
                                         amdsmi_processor_handle *processor_handle);
 
+/**
+ *  @brief Get an int environment var or return default if does not exist
+ *
+ *  @details Given a const char* @p name and a default int @p def
+ *  and call getenv with name. On any error, return default int
+ *
+ *  @param[in] name a const char* containing ENV var name
+ *
+ *  @param[in] def default int in case of error
+ *
+ *  @retval int of environment variable
+ */
+int read_env_ms(const char* name, int def);
+
 template<typename>
 constexpr bool is_dependent_false_v = false;
 
@@ -174,5 +188,16 @@ void fill_2d_array(A& arr, T value) {
         std::fill(std::begin(row), std::end(row), value);
     }
 }
+
+/**
+ *  @brief Get the product serial number given the processor handle.
+ *
+ *  @param[in] processor_handle a pointer to amdsmi_processor_handle
+ *  which the corresponding processor_handle will be stored
+ *
+ *  @retval ::The serial number
+ *          ::0 if it cannot be determined
+ */
+uint64_t get_product_serial_number(amdsmi_processor_handle processor_handle);
 
 #endif  // AMD_SMI_INCLUDE_AMD_SMI_UTILS_H_

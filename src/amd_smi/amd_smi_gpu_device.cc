@@ -187,8 +187,9 @@ int32_t AMDSmiGPUDevice::get_compute_process_list_impl(GPUComputeProcessList_t& 
             amdsmi_proc_info.memory_usage.vram_mem = rsmi_proc_info.vram_usage;
         }
 
-        // Copy the cu occupancy from rsmi_process_info_t to amdsmi_proc_info_t
+        // Copy the kfd stats from rsmi_process_info_t to amdsmi_proc_info_t
         amdsmi_proc_info.cu_occupancy = rsmi_proc_info.cu_occupancy;
+        amdsmi_proc_info.evicted_time = rsmi_proc_info.evicted_time;
 
         // Safely handle KFD processes to get total memory_usage of the process
         uint64_t kfd_gpu_id = get_kfd_gpu_id();
@@ -294,6 +295,40 @@ std::vector<uint64_t> AMDSmiGPUDevice::get_bitmask_from_numa_node(int32_t node_i
     }
 
     std::string path = "/sys/devices/system/node/node" + std::to_string(node_id) + "/cpulist";
+    std::ifstream file(path);
+
+    if (file.is_open()) {
+        std::string info;
+        while (std::getline(file, info)) {
+            std::istringstream sstr(info);
+            std::string node_cpus;
+            while (std::getline(sstr, node_cpus, ',')) {
+                size_t hyphen = node_cpus.find('-');
+                if (hyphen != std::string::npos) {
+                    int start = std::stoi(node_cpus.substr(0, hyphen));
+                    int end = std::stoi(node_cpus.substr(hyphen + 1));
+                    for (int i = start; i <= end; ++i) {
+                        bitmask[i / 64] |= (1ULL << (i % 64));
+                    }
+                } else {
+                    int core = std::stoi(node_cpus);
+                    bitmask[core / 64] |= (1ULL << (core % 64));
+                }
+            }
+        }
+    }
+    return bitmask;
+}
+
+std::vector<uint64_t> AMDSmiGPUDevice::get_bitmask_from_local_cpulist(uint32_t drm_card, uint32_t size) const {
+    std::vector<uint64_t> bitmask(size, 0);
+
+    if (drm_card < 0) {
+        bitmask[0] = std::numeric_limits<int32_t>::max();
+        return bitmask;
+    }
+
+    std::string path = "/sys/class/drm/card" + std::to_string(drm_card) + "/device/local_cpulist";
     std::ifstream file(path);
 
     if (file.is_open()) {

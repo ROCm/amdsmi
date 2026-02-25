@@ -312,6 +312,42 @@ int GetProcessInfo(rsmi_process_info_t *procs, uint32_t num_allocated,
   return 0;
 }
 
+int GetKfdGpuIdsForPid(long pid, std::unordered_set<uint64_t>* out){
+
+  if (!out) return EINVAL;
+  out->clear();
+
+  std::string pdir = std::string(kKFDProcPathRoot) + "/" + std::to_string(pid);
+  DIR* d = opendir(pdir.c_str());
+
+  if (!d) {
+    perror(("Unable to open KFD process directory for process " + std::to_string(pid)).c_str());
+    return errno ? errno : ESRCH;
+  }
+
+  struct dirent* e;
+
+  while ((e = readdir(d))) {
+
+    if (e->d_name[0] == '.') continue; // skip "."/".." and hidden entries
+
+    // Grab KFD GPU id from one of these fields
+    if (!strncmp(e->d_name, "stats_", 6)) {
+      out->insert(strtoull(e->d_name + 6, nullptr, 10));
+    } else if (!strncmp(e->d_name, "vram_", 5)) {
+      out->insert(strtoull(e->d_name + 5, nullptr, 10));
+    } else if (!strncmp(e->d_name, "counters_", 9)) {
+      out->insert(strtoull(e->d_name + 9, nullptr, 10));
+    } else if (!strncmp(e->d_name, "sdma_", 5)) {
+      out->insert(strtoull(e->d_name + 5, nullptr, 10));
+    }
+  }
+
+  closedir(d);
+  return 0;
+
+}
+
 // Read the gpuid files found in all the <queue id> dirs and put them in
 // gpus_found.
 // Directory structure:
@@ -329,8 +365,6 @@ int GetProcessGPUs(uint32_t pid, std::unordered_set<uint64_t> *gpu_set) {
   if (pid == static_cast<uint32_t>(getpid())) {
     return 0;
   }
-
-  errno = 0;
 
   std::string queues_dir = kKFDProcPathRoot;
   queues_dir += "/";
@@ -387,35 +421,9 @@ int GetProcessGPUs(uint32_t pid, std::unordered_set<uint64_t> *gpu_set) {
   }
 
   // if no queues were present, fallback to grab KFD GPU IDs from parent dir names
-  if (gpu_set->empty()) {
-
-    std::string pdir = std::string(kKFDProcPathRoot) + "/" + std::to_string(pid);
-    auto queues_dir_kfd = opendir(pdir.c_str());
-
-    if (queues_dir_kfd == nullptr) {
-      std::string err_str = "Unable to open KFD process directory for process ";
-      err_str += std::to_string(pid);
-      perror(err_str.c_str());
-      return ESRCH;
-    }
-
-    struct dirent* e;
-
-    while ((e = readdir(queues_dir_kfd))) {
-
-      // These files encode the KFD GPU ID when process is running
-      if (!strncmp(e->d_name, "stats_", 6)) {
-        gpu_set->insert(strtoull(e->d_name + 6, nullptr, 10));
-      } else if (!strncmp(e->d_name, "vram_", 5)) {
-        gpu_set->insert(strtoull(e->d_name + 5, nullptr, 10));
-      } else if (!strncmp(e->d_name, "counters_", 9)) {
-        gpu_set->insert(strtoull(e->d_name + 9, nullptr, 10));
-      } else if (!strncmp(e->d_name, "sdma_", 5)) {
-        gpu_set->insert(strtoull(e->d_name + 5, nullptr, 10));
-      }
-    }
-  
-    closedir(queues_dir_kfd);
+  int kfd_ret = GetKfdGpuIdsForPid(pid, gpu_set);
+  if (kfd_ret != 0) {
+    return kfd_ret;
   }
 
   errno = 0;
@@ -432,6 +440,28 @@ static int CheckValidProcessInfoData(const std::string& s, int sysfs_ret){
   return sysfs_ret;
 }
 
+static int GetProcessKFDStats(std::string path, uint32_t& val){
+
+    std::string tmp;
+    int err = ReadSysfsStr(path, &tmp);
+    auto sysfs_data_errcode = CheckValidProcessInfoData(tmp, err);
+
+    if (!(sysfs_data_errcode == 0 || sysfs_data_errcode == ENOENT)){
+      return sysfs_data_errcode;
+    }
+    else if(sysfs_data_errcode==0){
+      // Update KFD stat by the process
+      val = static_cast<uint32_t>(std::stoul(tmp));
+    }
+    else {
+      // Some GFX revisions do not provide KFD stats debugfs method
+      // which may cause ENOENT
+      val = KFD_STATS_INVALID;
+    }
+
+    return 0;
+}
+
 int GetProcessInfoForPID(uint32_t pid, rsmi_process_info_t *proc,
                          std::unordered_set<uint64_t> *gpu_set) {
   assert(proc != nullptr);
@@ -439,6 +469,7 @@ int GetProcessInfoForPID(uint32_t pid, rsmi_process_info_t *proc,
   int err;
   std::string tmp;
   std::unordered_set<uint64_t>::iterator itr;
+  uint32_t kfd_stat;
 
   std::string proc_str_path = kKFDProcPathRoot;
   proc_str_path += "/";
@@ -452,6 +483,7 @@ int GetProcessInfoForPID(uint32_t pid, rsmi_process_info_t *proc,
   proc->vram_usage = 0;
   proc->sdma_usage = 0;
   proc->cu_occupancy = 0;
+  proc->evicted_time = 0;
 
   for (itr = gpu_set->begin(); itr != gpu_set->end(); itr++) {
     uint64_t gpu_id = (*itr);
@@ -494,21 +526,23 @@ int GetProcessInfoForPID(uint32_t pid, rsmi_process_info_t *proc,
     cu_occupancy_path += std::to_string(gpu_id);
     cu_occupancy_path += "/cu_occupancy";
 
-    err = ReadSysfsStr(cu_occupancy_path, &tmp);
-    sysfs_data_errcode = CheckValidProcessInfoData(tmp, err);
+    err = GetProcessKFDStats(cu_occupancy_path, kfd_stat);
+    if (err != 0){
+      return err;
+    }
+    proc->cu_occupancy = kfd_stat;
 
-    if (!(sysfs_data_errcode == 0 || sysfs_data_errcode == ENOENT)){
-      return sysfs_data_errcode;
+    std::string evicted_time_path = proc_str_path;
+    evicted_time_path += "/stats_";
+    evicted_time_path += std::to_string(gpu_id);
+    evicted_time_path += "/evicted_ms";
+
+    err = GetProcessKFDStats(evicted_time_path, kfd_stat);
+    if (err != 0){
+      return err;
     }
-    else if(sysfs_data_errcode==0){
-      // Update CU usage by the process
-      proc->cu_occupancy = std::stoi(tmp);
-    }
-    else {
-      // Some GFX revisions do not provide cu_occupancy debugfs method
-      // which may cause ENOENT
-      proc->cu_occupancy = CU_OCCUPANCY_INVALID;
-    }
+    proc->evicted_time = kfd_stat;
+
   }
 
   return 0;
@@ -675,7 +709,7 @@ KFDNode::Initialize(void) {
     node_to = it->first;
     link = it->second;
     ret = ReadKFDGpuId(node_to, &node_to_gpu_id);
-    if (ret) {return ret;}
+    if (ret) {continue;}
     if (node_to_gpu_id == 0) {  //  CPU node
       if (numa_node_found) {
         if (numa_node_weight_ > link->weight()) {

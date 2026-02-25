@@ -434,6 +434,7 @@ on the given GPU. It is not supported on virtual machine guest
 Input parameters:
 
 * `processor_handle` device which to query
+* `sensor_ind` The Package Power Tracking (PPT) type to query
 
 Output: Dictionary with fields
 
@@ -460,12 +461,49 @@ try:
         print("No GPUs on machine")
     else:
         for device in devices:
-            power_cap_info = amdsmi_get_power_cap_info(device)
+            power_cap_info = amdsmi_get_power_cap_info(device, 0)
             print(power_cap_info['power_cap'])
             print(power_cap_info['dpm_cap'])
             print(power_cap_info['default_power_cap'])
             print(power_cap_info['min_power_cap'])
             print(power_cap_info['max_power_cap'])
+except AmdSmiException as e:
+    print(e)
+```
+
+### amdsmi_get_supported_power_cap
+
+Description: Returns dictionary of Package Power Tracking (PPT) types as currently 
+configured on the given GPU. It is not supported on virtual machine guest
+
+Input parameters:
+
+* `processor_handle` device which to query
+
+Output: Dictionary with fields
+
+Field | Description | Units
+---|---
+`sensor_inds` | List of integer indices of the supported ppt types. 0 indicates PPT0 and 1 indicates PPT1. Should be used as input for `amdsmi_get_power_cap_info` and `amdsmi_set_power_cap_info`.
+`sensor_types` | Enum `AmdSmiPowerCapType` that corresponds to the ppt types that are supported on the device.
+
+Exceptions that can be thrown by `amdsmi_get_supported_power_cap` function:
+
+* `AmdSmiLibraryException`
+* `AmdSmiParameterException`
+
+Example:
+
+```python
+try:
+    devices = amdsmi_get_processor_handles()
+    if len(devices) == 0:
+        print("No GPUs on machine")
+    else:
+        for device in devices:
+            power_cap_types = amdsmi_get_supported_power_cap(device)
+            print(power_cap_types['sensor_inds'])
+            print(power_cap_types['sensor_types'])
 except AmdSmiException as e:
     print(e)
 ```
@@ -1186,6 +1224,7 @@ Field | Description
 `engine_usage` | <table><thead><tr> <th> Subfield </th> <th> Description</th> </tr></thead><tbody><tr><td>`gfx`</td><td>GFX engine usage in ns</td></tr><tr><td>`enc`</td><td>Encode engine usage in ns</td></tr></tbody></table>
 `memory_usage` | <table><thead><tr> <th> Subfield </th> <th> Description</th> </tr></thead><tbody><tr><td>`gtt_mem`</td><td>GTT memory usage in Bytes</td></tr><tr><td>`cpu_mem`</td><td>CPU memory usage in Bytes</td></tr><tr><td>`vram_mem`</td><td>Process VRAM memory usage in Bytes</td></tr> </tbody></table>
 `cu_occupancy` | Number of Compute Units utilized
+`evicted_time` | Time that queues are evicted on a GPU in milliseconds
 
 Exceptions that can be thrown by `amdsmi_get_gpu_process_list` function:
 
@@ -1271,12 +1310,8 @@ Input parameters:
 * `cursor`           the zero based index at which to start retrieving cper entries; default value is 0; for example, if there are 10 cper entries available, then with a cursor value of 8, it will retrieve the last two cper entries only
 
 Output: Dictionary with fields, updated cursor, and a dictionary of the cper_data, status_code
-    status_code: 
-        AMDSMI_STATUS_SUCCESS: If all entries were retrieved successfully
-        AMDSMI_STATUS_MORE_DATA: If some of the entries were retrieved and: 
-            * A subsequent call to the API with the updated cursor will result in the fetching the next batch of entries, or
-            * Increasing the input buffer_size will allow more entries to be fetched with the same cursor
 
+Output1: Dictionary with fields
 Field | Description
 ---|---
 `error_severity`   | The severity of the CPER error ex: `non_fatal_uncorrected`, `fatal`, `non_fatal_corrected`. |
@@ -1287,11 +1322,24 @@ Field | Description
 `signature_end`    | A marker value (typically `0xFFFFFFFF`) confirming the integrity of the signature. |
 `sec_cnt`          | The count of sections included in the CPER entry. |
 `record_length`    | The total length in bytes of the CPER entry. |
+`serial_number`    | The product serial number. Exists in raw entries in C++ API |
 `platform_id`      | A character array identifying the GPU or platform. |
 `creator_id`       | A character array indicating the creator of the CPER entry. |
 `record_id`        | A unique identifier for the CPER entry. |
 `flags`            | Reserved flags related to the CPER entry. |
 `persistence_info` | Reserved information related to persistence. |
+
+Output2: Updated cursor (int type)
+* Cursor is the index of the next cper entry in the GPU ring buffer. For example, if 10 entries were fetched successfully, the value of cursor will be 11 upon return from the API. Subsequent call to the API with cursor value of 11 should fetch the next entry
+
+Output3: A list of dictionaries, each dictionary containing the CPER record and its size:
+* {"bytes": <raw bytes>, "size": <number of bytes>}
+
+Output4: status_code
+    AMDSMI_STATUS_SUCCESS: If all entries were retrieved successfully
+    AMDSMI_STATUS_MORE_DATA: If some of the entries were retrieved and: 
+        * A subsequent call to the API with the updated cursor will result in the fetching the next batch of entries, or
+        * Increasing the input buffer_size will allow more entries to be fetched with the same cursor
 
 Exceptions that can be thrown by `amdsmi_get_gpu_cper_entries` function:
 
@@ -1316,9 +1364,7 @@ Description: Get the AFIDs from CPER buffer
 
 Input parameters:
 
-* `cper_afid_data`: Either
-          - raw bytes or bytearray of a single CPER record, or
-          - a list of dicts each with keys "bytes" (List[int]) and "size" (int).
+* `cper_afid_data`: raw bytes of a single CPER record.
 
 Output: Tuple[List[int], int]: A tuple containing:
           - A list of extracted AFIDs.
@@ -3325,7 +3371,7 @@ Field | Description
 ---|---
 `num_supported` | The number of supported policies
 `current_id` | The current policy index
-`plpds` | List of policies.
+`policies` | List of policies. (`plpds` marked for deprecation in next major release)
 
 Exceptions that can be thrown by `amdsmi_get_xgmi_plpd` function:
 
@@ -3536,6 +3582,7 @@ Field | Description
 `vram_usage` | VRAM usage
 `sdma_usage` | SDMA usage in microseconds
 `cu_occupancy` | Compute Unit usage in percents
+`evicted_time` | Time that queues are evicted on a GPU in milliseconds
 
 Exceptions that can be thrown by `amdsmi_get_gpu_compute_process_info` function:
 
@@ -3570,6 +3617,7 @@ Field | Description
 `vram_usage` | VRAM usage
 `sdma_usage` | SDMA usage in microseconds
 `cu_occupancy` | Compute Unit usage in percents
+`evicted_time` | Time that queues are evicted on a GPU in milliseconds
 
 Exceptions that can be thrown by `amdsmi_get_gpu_compute_process_info_by_pid` function:
 

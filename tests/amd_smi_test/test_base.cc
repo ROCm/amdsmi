@@ -20,10 +20,11 @@
  * THE SOFTWARE.
  */
 
-#include <gtest/gtest.h>
-
 #include <cassert>
 
+#include <iomanip>
+
+#include <gtest/gtest.h>
 #include "amd_smi/amdsmi.h"
 #include "amd_smi/impl/amd_smi_utils.h"
 #include "rocm_smi/rocm_smi_utils.h"
@@ -97,12 +98,13 @@ void TestBase::SetUp(uint64_t init_flags) {
       }
     }
 
-    // Returns true if amd_hsmp is found in the list of initialized modules
-    bool found_amd_hsmp = CheckModule("/sys/module/amd_hsmp/initstate", "live");
+    // Returns true if amd_hsmp or hsmp_acpi is found in the list of initialized modules
+    struct stat buffer;
+    bool found_amd_hsmp = (stat("/dev/hsmp", &buffer)==0);
     if (!found_amd_hsmp) {
       IF_VERB(STANDARD) {
         std::cerr << "ERROR: Unable to get devices, driver not initialized (amd_hsmp not found in modules)" << std::endl;
-        std::cerr << "ERROR: Unable to detect any CPU devices, check amd_hsmp version and module status (sudo modprobe amd_hsmp)" << std::endl;
+        std::cerr << "ERROR: Unable to detect any CPU devices, check amd_hsmp (or) hsmp_acpi version and module status (sudo modprobe amd_hsmp (or) sudo modprobe hsmp_acpi)" << std::endl;
       }
     }
 
@@ -282,7 +284,23 @@ void TestBase::PrintDeviceHeader(amdsmi_processor_handle dv_ind) {
     }
   }
 
-  std::cout << std::setbase(10);
+  amdsmi_kfd_info_t kfd_info;
+  err = amdsmi_get_gpu_kfd_info(dv_ind, &kfd_info);
+  if (err == AMDSMI_STATUS_NOT_SUPPORTED) {
+    IF_VERB(STANDARD) {
+      std::cout << "\t**KFD info: " << smi_amdgpu_get_status_string(err, false) << std::endl;
+    }
+    ASSERT_EQ(err, AMDSMI_STATUS_NOT_SUPPORTED);
+  } else {
+    CHK_ERR_ASRT(err)
+    IF_VERB(STANDARD) {
+      std::cout << "\t**KFD info: " << std::endl;
+      std::cout << "\t\t**GPU ID: " << std::dec << kfd_info.kfd_id << std::endl;
+      std::cout << "\t\t**Node ID: " << std::dec << kfd_info.node_id << std::endl;
+      std::cout << "\t\t**Partition ID: "
+                << std::dec << kfd_info.current_partition_id << std::endl;
+    }
+  }
 }
 void TestBase::Run(void) {
   std::string label;
