@@ -60,7 +60,7 @@ use std::ptr::null_mut;
 ///
 /// This function will return the error in [`AmdsmiStatusT`] if the underlying `amdsmi_wrapper::amdsmi_init` call fails.
 pub fn amdsmi_init(init_flags: AmdsmiInitFlagsT) -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_init(init_flags as u64));
+    call_amdsmi!(amdsmi_init(init_flags as u64));
     Ok(())
 }
 
@@ -97,7 +97,7 @@ pub fn amdsmi_init(init_flags: AmdsmiInitFlagsT) -> AmdsmiResult<()> {
 ///
 /// This function will return the error in [`AmdsmiStatusT`] if the underlying `amdsmi_wrapper::amdsmi_shut_down` call fails.
 pub fn amdsmi_shut_down() -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_shut_down());
+    call_amdsmi!(amdsmi_shut_down());
     Ok(())
 }
 
@@ -140,13 +140,13 @@ pub fn amdsmi_shut_down() -> AmdsmiResult<()> {
 /// This function will return the error in [`AmdsmiStatusT`] if the underlying `amdsmi_wrapper::amdsmi_get_socket_handles` call fails.
 pub fn amdsmi_get_socket_handles() -> AmdsmiResult<Vec<AmdsmiSocketHandle>> {
     let mut socket_count: u32 = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_socket_handles(
+    call_amdsmi!(amdsmi_get_socket_handles(
         &mut socket_count,
         std::ptr::null_mut()
     ));
 
     let mut socket_handles = Vec::with_capacity(socket_count as usize);
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_socket_handles(
+    call_amdsmi!(amdsmi_get_socket_handles(
         &mut socket_count,
         socket_handles.as_mut_ptr()
     ));
@@ -195,7 +195,7 @@ pub fn amdsmi_get_socket_handles() -> AmdsmiResult<Vec<AmdsmiSocketHandle>> {
 /// This function will return the error in [`AmdsmiStatusT`] if the underlying `amdsmi_wrapper::amdsmi_get_socket_info` call fails.
 pub fn amdsmi_get_socket_info(socket_handle: AmdsmiSocketHandle) -> AmdsmiResult<String> {
     let (mut info, len) = define_cstr!(amdsmi_wrapper::AMDSMI_MAX_STRING_LENGTH);
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_socket_info(
+    call_amdsmi!(amdsmi_get_socket_info(
         socket_handle,
         len,
         info.as_mut_ptr(),
@@ -251,14 +251,14 @@ pub fn amdsmi_get_processor_handles(
     socket_handle: AmdsmiSocketHandle,
 ) -> AmdsmiResult<Vec<AmdsmiProcessorHandle>> {
     let mut processor_count: u32 = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_processor_handles(
+    call_amdsmi!(amdsmi_get_processor_handles(
         socket_handle,
         &mut processor_count,
         std::ptr::null_mut()
     ));
 
     let mut processor_handles = Vec::with_capacity(processor_count as usize);
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_processor_handles(
+    call_amdsmi!(amdsmi_get_processor_handles(
         socket_handle,
         &mut processor_count,
         processor_handles.as_mut_ptr()
@@ -312,7 +312,7 @@ pub fn amdsmi_get_processor_type(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<ProcessorTypeT> {
     let mut processor_type = ProcessorTypeT::AmdsmiProcessorTypeUnknown;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_processor_type(
+    call_amdsmi!(amdsmi_get_processor_type(
         processor_handle,
         &mut processor_type
     ));
@@ -363,7 +363,7 @@ pub fn amdsmi_get_processor_handle_from_bdf(
     bdf: AmdsmiBdfT,
 ) -> AmdsmiResult<AmdsmiProcessorHandle> {
     let mut processor_handle = MaybeUninit::<AmdsmiProcessorHandle>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_processor_handle_from_bdf(
+    call_amdsmi!(amdsmi_get_processor_handle_from_bdf(
         bdf,
         processor_handle.as_mut_ptr()
     ));
@@ -411,7 +411,7 @@ pub fn amdsmi_get_processor_handle_from_bdf(
 /// This function will return the error in [`AmdsmiStatusT`] if the underlying `amdsmi_wrapper::amdsmi_get_gpu_id` call fails.
 pub fn amdsmi_get_gpu_id(processor_handle: AmdsmiProcessorHandle) -> AmdsmiResult<u16> {
     let mut id: u16 = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_id(processor_handle, &mut id));
+    call_amdsmi!(amdsmi_get_gpu_id(processor_handle, &mut id));
     Ok(id)
 }
 
@@ -455,7 +455,7 @@ pub fn amdsmi_get_gpu_id(processor_handle: AmdsmiProcessorHandle) -> AmdsmiResul
 /// This function will return the error in [`AmdsmiStatusT`] if the underlying `amdsmi_wrapper::amdsmi_get_gpu_revision` call fails.
 pub fn amdsmi_get_gpu_revision(processor_handle: AmdsmiProcessorHandle) -> AmdsmiResult<u16> {
     let mut revision: u16 = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_revision(
+    call_amdsmi!(amdsmi_get_gpu_revision(
         processor_handle,
         &mut revision
     ));
@@ -503,7 +503,7 @@ pub fn amdsmi_get_gpu_revision(processor_handle: AmdsmiProcessorHandle) -> Amdsm
 /// This function will return the error in [`AmdsmiStatusT`] if the underlying `amdsmi_wrapper::amdsmi_get_gpu_vendor_name` call fails.
 pub fn amdsmi_get_gpu_vendor_name(processor_handle: AmdsmiProcessorHandle) -> AmdsmiResult<String> {
     let (mut name, len) = define_cstr!(amdsmi_wrapper::AMDSMI_MAX_STRING_LENGTH);
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_vendor_name(
+    call_amdsmi!(amdsmi_get_gpu_vendor_name(
         processor_handle,
         name.as_mut_ptr(),
         len
@@ -552,7 +552,7 @@ pub fn amdsmi_get_gpu_vendor_name(processor_handle: AmdsmiProcessorHandle) -> Am
 /// This function will return the error in [`AmdsmiStatusT`] if the underlying `amdsmi_wrapper::amdsmi_get_gpu_vram_vendor` call fails.
 pub fn amdsmi_get_gpu_vram_vendor(processor_handle: AmdsmiProcessorHandle) -> AmdsmiResult<String> {
     let (mut brand, len) = define_cstr!(amdsmi_wrapper::AMDSMI_MAX_STRING_LENGTH);
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_vram_vendor(
+    call_amdsmi!(amdsmi_get_gpu_vram_vendor(
         processor_handle,
         brand.as_mut_ptr(),
         len as u32,
@@ -601,7 +601,7 @@ pub fn amdsmi_get_gpu_vram_vendor(processor_handle: AmdsmiProcessorHandle) -> Am
 /// This function will return the error in [`AmdsmiStatusT`] if the underlying `amdsmi_wrapper::amdsmi_get_gpu_subsystem_id` call fails.
 pub fn amdsmi_get_gpu_subsystem_id(processor_handle: AmdsmiProcessorHandle) -> AmdsmiResult<u16> {
     let mut id: u16 = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_subsystem_id(
+    call_amdsmi!(amdsmi_get_gpu_subsystem_id(
         processor_handle,
         &mut id
     ));
@@ -651,7 +651,7 @@ pub fn amdsmi_get_gpu_subsystem_name(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<String> {
     let (mut name, len) = define_cstr!(amdsmi_wrapper::AMDSMI_MAX_STRING_LENGTH);
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_subsystem_name(
+    call_amdsmi!(amdsmi_get_gpu_subsystem_name(
         processor_handle,
         name.as_mut_ptr(),
         len
@@ -702,7 +702,7 @@ pub fn amdsmi_get_gpu_pci_bandwidth(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<AmdsmiPcieBandwidthT> {
     let mut bandwidth = MaybeUninit::<AmdsmiPcieBandwidthT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_pci_bandwidth(
+    call_amdsmi!(amdsmi_get_gpu_pci_bandwidth(
         processor_handle,
         bandwidth.as_mut_ptr()
     ));
@@ -751,7 +751,7 @@ pub fn amdsmi_get_gpu_pci_bandwidth(
 /// This function will return the error in [`AmdsmiStatusT`] if the underlying `amdsmi_wrapper::amdsmi_get_gpu_bdf_id` call fails.
 pub fn amdsmi_get_gpu_bdf_id(processor_handle: AmdsmiProcessorHandle) -> AmdsmiResult<u64> {
     let mut bdfid: u64 = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_bdf_id(
+    call_amdsmi!(amdsmi_get_gpu_bdf_id(
         processor_handle,
         &mut bdfid
     ));
@@ -800,7 +800,7 @@ pub fn amdsmi_get_gpu_topo_numa_affinity(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<i32> {
     let mut numa_node: i32 = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_topo_numa_affinity(
+    call_amdsmi!(amdsmi_get_gpu_topo_numa_affinity(
         processor_handle,
         &mut numa_node
     ));
@@ -859,7 +859,7 @@ pub fn amdsmi_get_gpu_pci_throughput(
     let mut sent: u64 = 0;
     let mut received: u64 = 0;
     let mut max_pkt_sz: u64 = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_pci_throughput(
+    call_amdsmi!(amdsmi_get_gpu_pci_throughput(
         processor_handle,
         &mut sent,
         &mut received,
@@ -911,7 +911,7 @@ pub fn amdsmi_get_gpu_pci_replay_counter(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<u64> {
     let mut counter: u64 = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_pci_replay_counter(
+    call_amdsmi!(amdsmi_get_gpu_pci_replay_counter(
         processor_handle,
         &mut counter
     ));
@@ -962,7 +962,7 @@ pub fn amdsmi_set_gpu_pci_bandwidth(
     processor_handle: AmdsmiProcessorHandle,
     bw_bitmask: u64,
 ) -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_set_gpu_pci_bandwidth(
+    call_amdsmi!(amdsmi_set_gpu_pci_bandwidth(
         processor_handle,
         bw_bitmask
     ));
@@ -1019,7 +1019,7 @@ pub fn amdsmi_get_energy_count(
     let mut energy_accumulator: u64 = 0;
     let mut counter_resolution: f32 = 0.0;
     let mut timestamp: u64 = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_energy_count(
+    call_amdsmi!(amdsmi_get_energy_count(
         processor_handle,
         &mut energy_accumulator,
         &mut counter_resolution,
@@ -1080,7 +1080,7 @@ pub fn amdsmi_set_power_cap(
     sensor_ind: u32,
     cap: u64,
 ) -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_set_power_cap(
+    call_amdsmi!(amdsmi_set_power_cap(
         processor_handle,
         sensor_ind,
         cap
@@ -1134,7 +1134,7 @@ pub fn amdsmi_set_gpu_power_profile(
     profile: AmdsmiPowerProfilePresetMasksT,
 ) -> AmdsmiResult<()> {
     let reserved: u32 = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_set_gpu_power_profile(
+    call_amdsmi!(amdsmi_set_gpu_power_profile(
         processor_handle,
         reserved,
         profile
@@ -1186,7 +1186,7 @@ pub fn amdsmi_get_gpu_memory_total(
     memory_type: AmdsmiMemoryTypeT,
 ) -> AmdsmiResult<u64> {
     let mut memory_total: u64 = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_memory_total(
+    call_amdsmi!(amdsmi_get_gpu_memory_total(
         processor_handle,
         memory_type,
         &mut memory_total
@@ -1238,7 +1238,7 @@ pub fn amdsmi_get_gpu_memory_usage(
     memory_type: AmdsmiMemoryTypeT,
 ) -> AmdsmiResult<u64> {
     let mut memory_used: u64 = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_memory_usage(
+    call_amdsmi!(amdsmi_get_gpu_memory_usage(
         processor_handle,
         memory_type,
         &mut memory_used
@@ -1293,7 +1293,7 @@ pub fn amdsmi_get_gpu_bad_page_info(
 ) -> AmdsmiResult<Vec<AmdsmiRetiredPageRecordT>> {
     // First call to get the number of bad pages
     let mut num_pages: u32 = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_bad_page_info(
+    call_amdsmi!(amdsmi_get_gpu_bad_page_info(
         processor_handle,
         &mut num_pages,
         std::ptr::null_mut()
@@ -1303,7 +1303,7 @@ pub fn amdsmi_get_gpu_bad_page_info(
     let mut bad_pages: Vec<AmdsmiRetiredPageRecordT> = Vec::with_capacity(num_pages as usize);
 
     // Second call to get the bad page information
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_bad_page_info(
+    call_amdsmi!(amdsmi_get_gpu_bad_page_info(
         processor_handle,
         &mut num_pages,
         bad_pages.as_mut_ptr()
@@ -1358,7 +1358,7 @@ pub fn amdsmi_get_gpu_ras_feature_info(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<AmdsmiRasFeatureT> {
     let mut ras_info = MaybeUninit::<AmdsmiRasFeatureT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_ras_feature_info(
+    call_amdsmi!(amdsmi_get_gpu_ras_feature_info(
         processor_handle,
         ras_info.as_mut_ptr()
     ));
@@ -1413,7 +1413,7 @@ pub fn amdsmi_get_gpu_ras_block_features_enabled(
     block: AmdsmiGpuBlockT,
 ) -> AmdsmiResult<AmdsmiRasErrStateT> {
     let mut ras_features = MaybeUninit::<AmdsmiRasErrStateT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_ras_block_features_enabled(
+    call_amdsmi!(amdsmi_get_gpu_ras_block_features_enabled(
         processor_handle,
         block,
         ras_features.as_mut_ptr()
@@ -1465,14 +1465,14 @@ pub fn amdsmi_get_gpu_memory_reserved_pages(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<Vec<AmdsmiRetiredPageRecordT>> {
     let mut num_pages = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_memory_reserved_pages(
+    call_amdsmi!(amdsmi_get_gpu_memory_reserved_pages(
         processor_handle,
         &mut num_pages,
         std::ptr::null_mut()
     ));
 
     let mut pages = Vec::with_capacity(num_pages as usize);
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_memory_reserved_pages(
+    call_amdsmi!(amdsmi_get_gpu_memory_reserved_pages(
         processor_handle,
         &mut num_pages,
         pages.as_mut_ptr()
@@ -1534,7 +1534,7 @@ pub fn amdsmi_get_gpu_fan_speed(
     sensor_index: u32,
 ) -> AmdsmiResult<i64> {
     let mut speed = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_fan_speed(
+    call_amdsmi!(amdsmi_get_gpu_fan_speed(
         processor_handle,
         sensor_index,
         &mut speed
@@ -1591,7 +1591,7 @@ pub fn amdsmi_get_gpu_fan_speed_max(
     sensor_ind: u32,
 ) -> AmdsmiResult<u64> {
     let mut speed = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_fan_speed_max(
+    call_amdsmi!(amdsmi_get_gpu_fan_speed_max(
         processor_handle,
         sensor_ind,
         &mut speed
@@ -1650,7 +1650,7 @@ pub fn amdsmi_get_temp_metric(
     metric: AmdsmiTemperatureMetricT,
 ) -> AmdsmiResult<i64> {
     let mut temperature = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_temp_metric(
+    call_amdsmi!(amdsmi_get_temp_metric(
         processor_handle,
         sensor_type,
         metric,
@@ -1702,7 +1702,7 @@ pub fn amdsmi_get_gpu_cache_info(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<AmdsmiGpuCacheInfoT> {
     let mut info = MaybeUninit::<AmdsmiGpuCacheInfoT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_cache_info(
+    call_amdsmi!(amdsmi_get_gpu_cache_info(
         processor_handle,
         info.as_mut_ptr()
     ));
@@ -1761,7 +1761,7 @@ pub fn amdsmi_get_gpu_volt_metric(
     metric: AmdsmiVoltageMetricT,
 ) -> AmdsmiResult<i64> {
     let mut voltage = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_volt_metric(
+    call_amdsmi!(amdsmi_get_gpu_volt_metric(
         processor_handle,
         sensor_type,
         metric,
@@ -1818,7 +1818,7 @@ pub fn amdsmi_reset_gpu_fan(
     processor_handle: AmdsmiProcessorHandle,
     sensor_ind: u32,
 ) -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_reset_gpu_fan(
+    call_amdsmi!(amdsmi_reset_gpu_fan(
         processor_handle,
         sensor_ind
     ));
@@ -1874,7 +1874,7 @@ pub fn amdsmi_get_gpu_fan_rpms(
     sensor_ind: u32,
 ) -> AmdsmiResult<i64> {
     let mut speed: i64 = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_fan_rpms(
+    call_amdsmi!(amdsmi_get_gpu_fan_rpms(
         processor_handle,
         sensor_ind,
         &mut speed as *mut i64
@@ -1933,7 +1933,7 @@ pub fn amdsmi_set_gpu_fan_speed(
     sensor_ind: u32,
     speed: u64,
 ) -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_set_gpu_fan_speed(
+    call_amdsmi!(amdsmi_set_gpu_fan_speed(
         processor_handle,
         sensor_ind,
         speed
@@ -1985,7 +1985,7 @@ pub fn amdsmi_get_gpu_busy_percent(
     processor_handle: AmdsmiProcessorHandle
 ) -> AmdsmiResult<u32> {
     let mut gpu_busy_percent = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_busy_percent(
+    call_amdsmi!(amdsmi_get_gpu_busy_percent(
         processor_handle,
         &mut gpu_busy_percent
     ));
@@ -2064,7 +2064,7 @@ pub fn amdsmi_get_utilization_count(
         utilization_counters.push(utilization_counter);
     }
 
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_utilization_count(
+    call_amdsmi!(amdsmi_get_utilization_count(
         processor_handle,
         utilization_counters.as_mut_ptr(),
         count,
@@ -2116,7 +2116,7 @@ pub fn amdsmi_get_gpu_perf_level(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<AmdsmiDevPerfLevelT> {
     let mut perf = MaybeUninit::<AmdsmiDevPerfLevelT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_perf_level(
+    call_amdsmi!(amdsmi_get_gpu_perf_level(
         processor_handle,
         perf.as_mut_ptr()
     ));
@@ -2172,7 +2172,7 @@ pub fn amdsmi_set_gpu_perf_determinism_mode(
     processor_handle: AmdsmiProcessorHandle,
     clkvalue: u64,
 ) -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_set_gpu_perf_determinism_mode(
+    call_amdsmi!(amdsmi_set_gpu_perf_determinism_mode(
         processor_handle,
         clkvalue
     ));
@@ -2223,7 +2223,7 @@ pub fn amdsmi_get_gpu_overdrive_level(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<u32> {
     let mut od = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_overdrive_level(
+    call_amdsmi!(amdsmi_get_gpu_overdrive_level(
         processor_handle,
         &mut od
     ));
@@ -2274,7 +2274,7 @@ pub fn amdsmi_get_gpu_mem_overdrive_level(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<u32> {
     let mut od: u32 = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_mem_overdrive_level(
+    call_amdsmi!(amdsmi_get_gpu_mem_overdrive_level(
         processor_handle,
         &mut od as *mut u32
     ));
@@ -2329,7 +2329,7 @@ pub fn amdsmi_get_clk_freq(
     clk_type: AmdsmiClkTypeT,
 ) -> AmdsmiResult<AmdsmiFrequenciesT> {
     let mut frequencies = MaybeUninit::<AmdsmiFrequenciesT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_clk_freq(
+    call_amdsmi!(amdsmi_get_clk_freq(
         processor_handle,
         clk_type,
         frequencies.as_mut_ptr()
@@ -2380,7 +2380,7 @@ pub fn amdsmi_get_clk_freq(
 ///
 /// This function will return the error in [`AmdsmiStatusT`] if the underlying `amdsmi_wrapper::amdsmi_reset_gpu` call fails.
 pub fn amdsmi_reset_gpu(processor_handle: AmdsmiProcessorHandle) -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_reset_gpu(processor_handle));
+    call_amdsmi!(amdsmi_reset_gpu(processor_handle));
     Ok(())
 }
 
@@ -2428,7 +2428,7 @@ pub fn amdsmi_get_gpu_od_volt_info(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<AmdsmiOdVoltFreqDataT> {
     let mut odv = MaybeUninit::<AmdsmiOdVoltFreqDataT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_od_volt_info(
+    call_amdsmi!(amdsmi_get_gpu_od_volt_info(
         processor_handle,
         odv.as_mut_ptr()
     ));
@@ -2479,7 +2479,7 @@ pub fn amdsmi_get_gpu_metrics_header_info(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<AmdMetricsTableHeaderT> {
     let mut header_value = MaybeUninit::<AmdMetricsTableHeaderT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_metrics_header_info(
+    call_amdsmi!(amdsmi_get_gpu_metrics_header_info(
         processor_handle,
         header_value.as_mut_ptr()
     ));
@@ -2530,7 +2530,7 @@ pub fn amdsmi_get_gpu_metrics_info(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<AmdsmiGpuMetricsT> {
     let mut pgpu_metrics = MaybeUninit::<AmdsmiGpuMetricsT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_metrics_info(
+    call_amdsmi!(amdsmi_get_gpu_metrics_info(
         processor_handle,
         pgpu_metrics.as_mut_ptr()
     ));
@@ -2588,7 +2588,7 @@ pub fn amdsmi_get_gpu_pm_metrics_info(
 ) -> AmdsmiResult<Vec<AmdsmiNameValueT>> {
     let mut pm_metrics_ptr: *mut AmdsmiNameValueT = null_mut();
     let mut num_of_metrics = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_pm_metrics_info(
+    call_amdsmi!(amdsmi_get_gpu_pm_metrics_info(
         processor_handle,
         &mut pm_metrics_ptr,
         &mut num_of_metrics
@@ -2660,7 +2660,7 @@ pub fn amdsmi_get_gpu_reg_table_info(
 ) -> AmdsmiResult<Vec<AmdsmiNameValueT>> {
     let mut reg_metrics_ptr: *mut AmdsmiNameValueT = null_mut();
     let mut num_of_metrics = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_reg_table_info(
+    call_amdsmi!(amdsmi_get_gpu_reg_table_info(
         processor_handle,
         reg_type,
         &mut reg_metrics_ptr,
@@ -2732,7 +2732,7 @@ pub fn amdsmi_set_gpu_clk_range(
     maxclkvalue: u64,
     clk_type: AmdsmiClkTypeT,
 ) -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_set_gpu_clk_range(
+    call_amdsmi!(amdsmi_set_gpu_clk_range(
         processor_handle,
         minclkvalue,
         maxclkvalue,
@@ -2795,7 +2795,7 @@ pub fn amdsmi_set_gpu_clk_limit(
     limit_type: AmdsmiClkLimitTypeT,
     clk_value: u64,
 ) -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_set_gpu_clk_limit(
+    call_amdsmi!(amdsmi_set_gpu_clk_limit(
         processor_handle,
         clk_type,
         limit_type,
@@ -2858,7 +2858,7 @@ pub fn amdsmi_set_gpu_od_clk_info(
     clkvalue: u64,
     clk_type: AmdsmiClkTypeT,
 ) -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_set_gpu_od_clk_info(
+    call_amdsmi!(amdsmi_set_gpu_od_clk_info(
         processor_handle,
         level,
         clkvalue,
@@ -2921,7 +2921,7 @@ pub fn amdsmi_set_gpu_od_volt_info(
     clkvalue: u64,
     voltvalue: u64,
 ) -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_set_gpu_od_volt_info(
+    call_amdsmi!(amdsmi_set_gpu_od_volt_info(
         processor_handle,
         vpoint,
         clkvalue,
@@ -2982,7 +2982,7 @@ pub fn amdsmi_get_gpu_od_volt_curve_regions(
     let mut num_regions = MaybeUninit::<u32>::uninit();
 
     // First call to get the number of regions
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_od_volt_curve_regions(
+    call_amdsmi!(amdsmi_get_gpu_od_volt_curve_regions(
         processor_handle,
         num_regions.as_mut_ptr(),
         std::ptr::null_mut()
@@ -2994,7 +2994,7 @@ pub fn amdsmi_get_gpu_od_volt_curve_regions(
     let mut buffer: Vec<AmdsmiFreqVoltRegionT> = Vec::with_capacity(num_regions as usize);
 
     // Second call to get the actual data
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_od_volt_curve_regions(
+    call_amdsmi!(amdsmi_get_gpu_od_volt_curve_regions(
         processor_handle,
         &mut (num_regions as u32),
         buffer.as_mut_ptr()
@@ -3054,7 +3054,7 @@ pub fn amdsmi_get_gpu_power_profile_presets(
     sensor_ind: u32,
 ) -> AmdsmiResult<AmdsmiPowerProfileStatusT> {
     let mut status = MaybeUninit::<AmdsmiPowerProfileStatusT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_power_profile_presets(
+    call_amdsmi!(amdsmi_get_gpu_power_profile_presets(
         processor_handle,
         sensor_ind,
         status.as_mut_ptr()
@@ -3111,7 +3111,7 @@ pub fn amdsmi_set_gpu_perf_level(
     processor_handle: AmdsmiProcessorHandle,
     perf_lvl: AmdsmiDevPerfLevelT,
 ) -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_set_gpu_perf_level(
+    call_amdsmi!(amdsmi_set_gpu_perf_level(
         processor_handle,
         perf_lvl
     ));
@@ -3166,7 +3166,7 @@ pub fn amdsmi_set_gpu_overdrive_level(
     processor_handle: AmdsmiProcessorHandle,
     od: u32,
 ) -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_set_gpu_overdrive_level(
+    call_amdsmi!(amdsmi_set_gpu_overdrive_level(
         processor_handle,
         od
     ));
@@ -3225,7 +3225,7 @@ pub fn amdsmi_set_clk_freq(
     clk_type: AmdsmiClkTypeT,
     freq_bitmask: u64,
 ) -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_set_clk_freq(
+    call_amdsmi!(amdsmi_set_clk_freq(
         processor_handle,
         clk_type,
         freq_bitmask
@@ -3277,7 +3277,7 @@ pub fn amdsmi_get_soc_pstate(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<AmdsmiDpmPolicyT> {
     let mut policy = MaybeUninit::<AmdsmiDpmPolicyT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_soc_pstate(
+    call_amdsmi!(amdsmi_get_soc_pstate(
         processor_handle,
         policy.as_mut_ptr()
     ));
@@ -3333,7 +3333,7 @@ pub fn amdsmi_set_soc_pstate(
     processor_handle: AmdsmiProcessorHandle,
     policy_id: u32,
 ) -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_set_soc_pstate(
+    call_amdsmi!(amdsmi_set_soc_pstate(
         processor_handle,
         policy_id
     ));
@@ -3384,7 +3384,7 @@ pub fn amdsmi_get_xgmi_plpd(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<AmdsmiDpmPolicyT> {
     let mut xgmi_plpd = MaybeUninit::<AmdsmiDpmPolicyT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_xgmi_plpd(
+    call_amdsmi!(amdsmi_get_xgmi_plpd(
         processor_handle,
         xgmi_plpd.as_mut_ptr()
     ));
@@ -3440,7 +3440,7 @@ pub fn amdsmi_set_xgmi_plpd(
     processor_handle: AmdsmiProcessorHandle,
     plpd_id: u32,
 ) -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_set_xgmi_plpd(
+    call_amdsmi!(amdsmi_set_xgmi_plpd(
         processor_handle,
         plpd_id
     ));
@@ -3491,7 +3491,7 @@ pub fn amdsmi_get_gpu_process_isolation(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<u32> {
     let mut pisolate = MaybeUninit::<u32>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_process_isolation(
+    call_amdsmi!(amdsmi_get_gpu_process_isolation(
         processor_handle,
         pisolate.as_mut_ptr()
     ));
@@ -3547,7 +3547,7 @@ pub fn amdsmi_set_gpu_process_isolation(
     processor_handle: AmdsmiProcessorHandle,
     pisolate: u32,
 ) -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_set_gpu_process_isolation(
+    call_amdsmi!(amdsmi_set_gpu_process_isolation(
         processor_handle,
         pisolate
     ));
@@ -3595,7 +3595,7 @@ pub fn amdsmi_set_gpu_process_isolation(
 ///
 /// This function will return the error in [`AmdsmiStatusT`] if the underlying `amdsmi_wrapper::amdsmi_clean_gpu_local_data` call fails.
 pub fn amdsmi_clean_gpu_local_data(processor_handle: AmdsmiProcessorHandle) -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_clean_gpu_local_data(
+    call_amdsmi!(amdsmi_clean_gpu_local_data(
         processor_handle
     ));
     Ok(())
@@ -3650,7 +3650,7 @@ pub fn amdsmi_get_gpu_ecc_count(
     block: AmdsmiGpuBlockT,
 ) -> AmdsmiResult<AmdsmiErrorCountT> {
     let mut ec = MaybeUninit::<AmdsmiErrorCountT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_ecc_count(
+    call_amdsmi!(amdsmi_get_gpu_ecc_count(
         processor_handle,
         block,
         ec.as_mut_ptr()
@@ -3700,7 +3700,7 @@ pub fn amdsmi_get_gpu_ecc_count(
 /// This function will return the error in [`AmdsmiStatusT`] if the underlying `amdsmi_wrapper::amdsmi_get_gpu_ecc_enabled` call fails.
 pub fn amdsmi_get_gpu_ecc_enabled(processor_handle: AmdsmiProcessorHandle) -> AmdsmiResult<u64> {
     let mut enabled_mask = MaybeUninit::<u64>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_ecc_enabled(
+    call_amdsmi!(amdsmi_get_gpu_ecc_enabled(
         processor_handle,
         enabled_mask.as_mut_ptr()
     ));
@@ -3756,7 +3756,7 @@ pub fn amdsmi_get_gpu_ecc_status(
     block: AmdsmiGpuBlockT,
 ) -> AmdsmiResult<AmdsmiRasErrStateT> {
     let mut state = MaybeUninit::<AmdsmiRasErrStateT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_ecc_status(
+    call_amdsmi!(amdsmi_get_gpu_ecc_status(
         processor_handle,
         block,
         state.as_mut_ptr()
@@ -3799,7 +3799,7 @@ pub fn amdsmi_get_gpu_ecc_status(
 /// This function will return the error in [`AmdsmiStatusT`] if the underlying `amdsmi_wrapper::amdsmi_status_code_to_string` call fails.
 pub fn amdsmi_status_code_to_string(status: AmdsmiStatusT) -> AmdsmiResult<String> {
     let mut status_string: *const ::std::os::raw::c_char = null_mut();
-    call_unsafe!(amdsmi_wrapper::amdsmi_status_code_to_string(
+    call_amdsmi!(amdsmi_status_code_to_string(
         status,
         &mut status_string
     ));
@@ -3858,7 +3858,7 @@ pub fn amdsmi_gpu_counter_group_supported(
     processor_handle: AmdsmiProcessorHandle,
     group: AmdsmiEventGroupT,
 ) -> AmdsmiResult<bool> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_gpu_counter_group_supported(
+    call_amdsmi!(amdsmi_gpu_counter_group_supported(
         processor_handle,
         group
     ));
@@ -3958,7 +3958,7 @@ pub fn amdsmi_gpu_create_counter(
     event_type: AmdsmiEventTypeT,
 ) -> AmdsmiResult<AmdsmiEventHandleT> {
     let mut evnt_handle = MaybeUninit::<AmdsmiEventHandleT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_gpu_create_counter(
+    call_amdsmi!(amdsmi_gpu_create_counter(
         processor_handle,
         event_type,
         evnt_handle.as_mut_ptr()
@@ -3987,7 +3987,7 @@ pub fn amdsmi_gpu_create_counter(
 ///
 /// This function will return the error in [`AmdsmiStatusT`] if the underlying `amdsmi_wrapper::amdsmi_gpu_destroy_counter` call fails.
 pub fn amdsmi_gpu_destroy_counter(evnt_handle: AmdsmiEventHandleT) -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_gpu_destroy_counter(evnt_handle));
+    call_amdsmi!(amdsmi_gpu_destroy_counter(evnt_handle));
     Ok(())
 }
 
@@ -4015,7 +4015,7 @@ pub fn amdsmi_gpu_control_counter(
     evt_handle: AmdsmiEventHandleT,
     cmd: AmdsmiCounterCommandT,
 ) -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_gpu_control_counter(
+    call_amdsmi!(amdsmi_gpu_control_counter(
         evt_handle,
         cmd,
         std::ptr::null_mut()
@@ -4046,7 +4046,7 @@ pub fn amdsmi_gpu_read_counter(
     evt_handle: AmdsmiEventHandleT,
 ) -> AmdsmiResult<AmdsmiCounterValueT> {
     let mut value = MaybeUninit::<AmdsmiCounterValueT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_gpu_read_counter(
+    call_amdsmi!(amdsmi_gpu_read_counter(
         evt_handle,
         value.as_mut_ptr()
     ));
@@ -4080,7 +4080,7 @@ pub fn amdsmi_get_gpu_available_counters(
     grp: AmdsmiEventGroupT,
 ) -> AmdsmiResult<u32> {
     let mut available: u32 = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_available_counters(
+    call_amdsmi!(amdsmi_get_gpu_available_counters(
         processor_handle,
         grp,
         &mut available as *mut u32
@@ -4134,7 +4134,7 @@ pub fn amdsmi_get_gpu_compute_process_info() -> AmdsmiResult<(Vec<AmdsmiProcessI
     let mut num_items = MaybeUninit::<u32>::uninit();
 
     // First call to get the number of items
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_compute_process_info(
+    call_amdsmi!(amdsmi_get_gpu_compute_process_info(
         std::ptr::null_mut(),
         num_items.as_mut_ptr()
     ));
@@ -4143,7 +4143,7 @@ pub fn amdsmi_get_gpu_compute_process_info() -> AmdsmiResult<(Vec<AmdsmiProcessI
     let mut procs: Vec<AmdsmiProcessInfoT> = Vec::with_capacity(num_items as usize);
 
     // Second call to get the actual process information
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_compute_process_info(
+    call_amdsmi!(amdsmi_get_gpu_compute_process_info(
         procs.as_mut_ptr(),
         &mut (num_items as u32)
     ));
@@ -4194,7 +4194,7 @@ pub fn amdsmi_get_gpu_compute_process_info() -> AmdsmiResult<(Vec<AmdsmiProcessI
 /// This function will return the error in [`AmdsmiStatusT`] if the underlying `amdsmi_wrapper::amdsmi_get_gpu_compute_process_info_by_pid` call fails.
 pub fn amdsmi_get_gpu_compute_process_info_by_pid(pid: u32) -> AmdsmiResult<AmdsmiProcessInfoT> {
     let mut proc_info = MaybeUninit::<AmdsmiProcessInfoT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_compute_process_info_by_pid(
+    call_amdsmi!(amdsmi_get_gpu_compute_process_info_by_pid(
         pid,
         proc_info.as_mut_ptr()
     ));
@@ -4246,14 +4246,14 @@ pub fn amdsmi_get_gpu_compute_process_info_by_pid(pid: u32) -> AmdsmiResult<Amds
 /// This function will return the error in [`AmdsmiStatusT`] if the underlying `amdsmi_wrapper::amdsmi_get_gpu_compute_process_gpus` call fails.
 pub fn amdsmi_get_gpu_compute_process_gpus(pid: u32) -> AmdsmiResult<Vec<u32>> {
     let mut num_devices: u32 = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_compute_process_gpus(
+    call_amdsmi!(amdsmi_get_gpu_compute_process_gpus(
         pid,
         std::ptr::null_mut(),
         &mut num_devices
     ));
 
     let mut devices: Vec<u32> = Vec::with_capacity(num_devices as usize);
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_compute_process_gpus(
+    call_amdsmi!(amdsmi_get_gpu_compute_process_gpus(
         pid,
         devices.as_mut_ptr(),
         &mut num_devices
@@ -4307,7 +4307,7 @@ pub fn amdsmi_gpu_xgmi_error_status(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<AmdsmiXgmiStatusT> {
     let mut status = MaybeUninit::<AmdsmiXgmiStatusT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_gpu_xgmi_error_status(
+    call_amdsmi!(amdsmi_gpu_xgmi_error_status(
         processor_handle,
         status.as_mut_ptr()
     ));
@@ -4356,7 +4356,7 @@ pub fn amdsmi_gpu_xgmi_error_status(
 ///
 /// This function will return the error in [`AmdsmiStatusT`] if the underlying `amdsmi_wrapper::amdsmi_reset_gpu_xgmi_error` call fails.
 pub fn amdsmi_reset_gpu_xgmi_error(processor_handle: AmdsmiProcessorHandle) -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_reset_gpu_xgmi_error(
+    call_amdsmi!(amdsmi_reset_gpu_xgmi_error(
         processor_handle
     ));
     Ok(())
@@ -4405,7 +4405,7 @@ pub fn amdsmi_get_link_metrics(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<AmdsmiLinkMetricsT> {
     let mut link_metrics = MaybeUninit::<AmdsmiLinkMetricsT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_link_metrics(
+    call_amdsmi!(amdsmi_get_link_metrics(
         processor_handle,
         link_metrics.as_mut_ptr()
     ));
@@ -4456,7 +4456,7 @@ pub fn amdsmi_topo_get_numa_node_number(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<u32> {
     let mut numa_node: u32 = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_topo_get_numa_node_number(
+    call_amdsmi!(amdsmi_topo_get_numa_node_number(
         processor_handle,
         &mut numa_node
     ));
@@ -4509,7 +4509,7 @@ pub fn amdsmi_topo_get_link_weight(
     processor_handle_dst: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<u64> {
     let mut weight: u64 = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_topo_get_link_weight(
+    call_amdsmi!(amdsmi_topo_get_link_weight(
         processor_handle_src,
         processor_handle_dst,
         &mut weight
@@ -4568,8 +4568,8 @@ pub fn amdsmi_get_minmax_bandwidth_between_processors(
 ) -> AmdsmiResult<(u64, u64)> {
     let mut min_bandwidth: u64 = 0;
     let mut max_bandwidth: u64 = 0;
-    call_unsafe!(
-        amdsmi_wrapper::amdsmi_get_minmax_bandwidth_between_processors(
+    call_amdsmi!(
+        amdsmi_get_minmax_bandwidth_between_processors(
             processor_handle_src,
             processor_handle_dst,
             &mut min_bandwidth,
@@ -4625,7 +4625,7 @@ pub fn amdsmi_is_p2p_accessible(
     processor_handle_dst: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<bool> {
     let mut accessible: bool = false;
-    call_unsafe!(amdsmi_wrapper::amdsmi_is_P2P_accessible(
+    call_amdsmi!(amdsmi_is_p2p_accessible(
         processor_handle_src,
         processor_handle_dst,
         &mut accessible
@@ -4681,7 +4681,7 @@ pub fn amdsmi_topo_get_link_type(
     let mut hops: u64 = 0;
     let mut link_type: AmdsmiLinkTypeT = AmdsmiLinkTypeT::AmdsmiLinkTypeUnknown;
 
-    call_unsafe!(amdsmi_wrapper::amdsmi_topo_get_link_type(
+    call_amdsmi!(amdsmi_topo_get_link_type(
         processor_handle_src,
         processor_handle_dst,
         &mut hops,
@@ -4738,7 +4738,7 @@ pub fn amdsmi_topo_get_p2p_status(
     let mut link_type: AmdsmiLinkTypeT = AmdsmiLinkTypeT::AmdsmiLinkTypeUnknown;
     let mut p2p_capability = MaybeUninit::<AmdsmiP2pCapabilityT>::uninit();
 
-    call_unsafe!(amdsmi_wrapper::amdsmi_topo_get_p2p_status(
+    call_amdsmi!(amdsmi_topo_get_p2p_status(
         processor_handle_src,
         processor_handle_dst,
         &mut link_type,
@@ -4794,7 +4794,7 @@ pub fn amdsmi_get_gpu_compute_partition(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<String> {
     let (mut compute_partition, len) = define_cstr!(amdsmi_wrapper::AMDSMI_MAX_STRING_LENGTH);
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_compute_partition(
+    call_amdsmi!(amdsmi_get_gpu_compute_partition(
         processor_handle,
         compute_partition.as_mut_ptr(),
         len as u32
@@ -4851,7 +4851,7 @@ pub fn amdsmi_set_gpu_compute_partition(
     processor_handle: AmdsmiProcessorHandle,
     compute_partition: AmdsmiComputePartitionTypeT,
 ) -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_set_gpu_compute_partition(
+    call_amdsmi!(amdsmi_set_gpu_compute_partition(
         processor_handle,
         compute_partition
     ));
@@ -4902,7 +4902,7 @@ pub fn amdsmi_get_gpu_memory_partition(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<String> {
     let (mut memory_partition, len) = define_cstr!(amdsmi_wrapper::AMDSMI_MAX_STRING_LENGTH);
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_memory_partition(
+    call_amdsmi!(amdsmi_get_gpu_memory_partition(
         processor_handle,
         memory_partition.as_mut_ptr(),
         len as u32
@@ -4959,7 +4959,7 @@ pub fn amdsmi_set_gpu_memory_partition(
     processor_handle: AmdsmiProcessorHandle,
     memory_partition: AmdsmiMemoryPartitionTypeT,
 ) -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_set_gpu_memory_partition(
+    call_amdsmi!(amdsmi_set_gpu_memory_partition(
         processor_handle,
         memory_partition
     ));
@@ -5041,7 +5041,7 @@ pub fn amdsmi_set_gpu_memory_partition(
 pub fn amdsmi_init_gpu_event_notification(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_init_gpu_event_notification(
+    call_amdsmi!(amdsmi_init_gpu_event_notification(
         processor_handle
     ));
     Ok(())
@@ -5073,7 +5073,7 @@ pub fn amdsmi_set_gpu_event_notification_mask(
     processor_handle: AmdsmiProcessorHandle,
     mask: u64,
 ) -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_set_gpu_event_notification_mask(
+    call_amdsmi!(amdsmi_set_gpu_event_notification_mask(
         processor_handle,
         mask
     ));
@@ -5107,7 +5107,7 @@ pub fn amdsmi_get_gpu_event_notification(
     let mut data: Vec<AmdsmiEvtNotificationDataT> = Vec::with_capacity(num_elem as usize);
 
     // Call to get the actual event notification data
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_event_notification(
+    call_amdsmi!(amdsmi_get_gpu_event_notification(
         timeout_ms,
         &mut num_elem,
         data.as_mut_ptr()
@@ -5141,7 +5141,7 @@ pub fn amdsmi_get_gpu_event_notification(
 pub fn amdsmi_stop_gpu_event_notification(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<()> {
-    call_unsafe!(amdsmi_wrapper::amdsmi_stop_gpu_event_notification(
+    call_amdsmi!(amdsmi_stop_gpu_event_notification(
         processor_handle
     ));
     Ok(())
@@ -5190,7 +5190,7 @@ pub fn amdsmi_get_gpu_device_bdf(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<AmdsmiBdfT> {
     let mut bdf = MaybeUninit::<AmdsmiBdfT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_device_bdf(
+    call_amdsmi!(amdsmi_get_gpu_device_bdf(
         processor_handle,
         bdf.as_mut_ptr()
     ));
@@ -5240,7 +5240,7 @@ pub fn amdsmi_get_gpu_device_uuid(processor_handle: AmdsmiProcessorHandle) -> Am
     let (mut uuid, uuid_len) = define_cstr!(amdsmi_wrapper::AMDSMI_GPU_UUID_SIZE);
     let mut uuid_len = uuid_len as std::os::raw::c_uint;
 
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_device_uuid(
+    call_amdsmi!(amdsmi_get_gpu_device_uuid(
         processor_handle,
         &mut uuid_len,
         uuid.as_mut_ptr()
@@ -5292,7 +5292,7 @@ pub fn amdsmi_get_gpu_driver_info(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<AmdsmiDriverInfoT> {
     let mut info = MaybeUninit::<AmdsmiDriverInfoT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_driver_info(
+    call_amdsmi!(amdsmi_get_gpu_driver_info(
         processor_handle,
         info.as_mut_ptr()
     ));
@@ -5343,7 +5343,7 @@ pub fn amdsmi_get_gpu_asic_info(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<AmdsmiAsicInfoT> {
     let mut info = MaybeUninit::<AmdsmiAsicInfoT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_asic_info(
+    call_amdsmi!(amdsmi_get_gpu_asic_info(
         processor_handle,
         info.as_mut_ptr()
     ));
@@ -5394,7 +5394,7 @@ pub fn amdsmi_get_gpu_vram_info(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<AmdsmiVramInfoT> {
     let mut info = MaybeUninit::<AmdsmiVramInfoT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_vram_info(
+    call_amdsmi!(amdsmi_get_gpu_vram_info(
         processor_handle,
         info.as_mut_ptr()
     ));
@@ -5445,7 +5445,7 @@ pub fn amdsmi_get_gpu_board_info(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<AmdsmiBoardInfoT> {
     let mut info = MaybeUninit::<AmdsmiBoardInfoT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_board_info(
+    call_amdsmi!(amdsmi_get_gpu_board_info(
         processor_handle,
         info.as_mut_ptr()
     ));
@@ -5501,7 +5501,7 @@ pub fn amdsmi_get_power_cap_info(
     sensor_ind: u32,
 ) -> AmdsmiResult<AmdsmiPowerCapInfoT> {
     let mut info = MaybeUninit::<AmdsmiPowerCapInfoT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_power_cap_info(
+    call_amdsmi!(amdsmi_get_power_cap_info(
         processor_handle,
         sensor_ind,
         info.as_mut_ptr()
@@ -5553,7 +5553,7 @@ pub fn amdsmi_get_pcie_info(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<AmdsmiPcieInfoT> {
     let mut info = MaybeUninit::<AmdsmiPcieInfoT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_pcie_info(
+    call_amdsmi!(amdsmi_get_pcie_info(
         processor_handle,
         info.as_mut_ptr()
     ));
@@ -5604,7 +5604,7 @@ pub fn amdsmi_get_xgmi_info(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<AmdsmiXgmiInfoT> {
     let mut info = MaybeUninit::<AmdsmiXgmiInfoT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_xgmi_info(
+    call_amdsmi!(amdsmi_get_xgmi_info(
         processor_handle,
         info.as_mut_ptr()
     ));
@@ -5654,7 +5654,7 @@ pub fn amdsmi_get_xgmi_info(
 /// This function will return the error in [`AmdsmiStatusT`] if the underlying `amdsmi_wrapper::amdsmi_get_fw_info` call fails.
 pub fn amdsmi_get_fw_info(processor_handle: AmdsmiProcessorHandle) -> AmdsmiResult<AmdsmiFwInfoT> {
     let mut info = MaybeUninit::<AmdsmiFwInfoT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_fw_info(
+    call_amdsmi!(amdsmi_get_fw_info(
         processor_handle,
         info.as_mut_ptr()
     ));
@@ -5705,7 +5705,7 @@ pub fn amdsmi_get_gpu_vbios_info(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<AmdsmiVbiosInfoT> {
     let mut info = MaybeUninit::<AmdsmiVbiosInfoT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_vbios_info(
+    call_amdsmi!(amdsmi_get_gpu_vbios_info(
         processor_handle,
         info.as_mut_ptr()
     ));
@@ -5756,7 +5756,7 @@ pub fn amdsmi_get_gpu_activity(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<AmdsmiEngineUsageT> {
     let mut info = MaybeUninit::<AmdsmiEngineUsageT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_activity(
+    call_amdsmi!(amdsmi_get_gpu_activity(
         processor_handle,
         info.as_mut_ptr()
     ));
@@ -5807,7 +5807,7 @@ pub fn amdsmi_get_power_info(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<AmdsmiPowerInfoT> {
     let mut info = MaybeUninit::<AmdsmiPowerInfoT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_power_info(
+    call_amdsmi!(amdsmi_get_power_info(
         processor_handle,
         info.as_mut_ptr()
     ));
@@ -5858,7 +5858,7 @@ pub fn amdsmi_is_gpu_power_management_enabled(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<bool> {
     let mut enabled: bool = false;
-    call_unsafe!(amdsmi_wrapper::amdsmi_is_gpu_power_management_enabled(
+    call_amdsmi!(amdsmi_is_gpu_power_management_enabled(
         processor_handle,
         &mut enabled as *mut bool
     ));
@@ -5913,7 +5913,7 @@ pub fn amdsmi_get_clock_info(
     clk_type: AmdsmiClkTypeT,
 ) -> AmdsmiResult<AmdsmiClkInfoT> {
     let mut info = MaybeUninit::<AmdsmiClkInfoT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_clock_info(
+    call_amdsmi!(amdsmi_get_clock_info(
         processor_handle,
         clk_type,
         info.as_mut_ptr()
@@ -5965,7 +5965,7 @@ pub fn amdsmi_get_gpu_vram_usage(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<AmdsmiVramUsageT> {
     let mut info = MaybeUninit::<AmdsmiVramUsageT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_vram_usage(
+    call_amdsmi!(amdsmi_get_gpu_vram_usage(
         processor_handle,
         info.as_mut_ptr()
     ));
@@ -6016,7 +6016,7 @@ pub fn amdsmi_get_gpu_total_ecc_count(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<AmdsmiErrorCountT> {
     let mut ec = MaybeUninit::<AmdsmiErrorCountT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_total_ecc_count(
+    call_amdsmi!(amdsmi_get_gpu_total_ecc_count(
         processor_handle,
         ec.as_mut_ptr()
     ));
@@ -6071,14 +6071,14 @@ pub fn amdsmi_get_gpu_process_list(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<Vec<AmdsmiProcInfoT>> {
     let mut num_processes: u32 = 0;
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_process_list(
+    call_amdsmi!(amdsmi_get_gpu_process_list(
         processor_handle,
         &mut num_processes,
         std::ptr::null_mut()
     ));
 
     let mut processes: Vec<AmdsmiProcInfoT> = Vec::with_capacity(num_processes as usize);
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_process_list(
+    call_amdsmi!(amdsmi_get_gpu_process_list(
         processor_handle,
         &mut num_processes,
         processes.as_mut_ptr()
@@ -6125,7 +6125,7 @@ pub fn amdsmi_get_gpu_process_list(
 /// This function will return the error in [`AmdsmiStatusT`] if the underlying `amdsmi_wrapper::amdsmi_get_lib_version` call fails.
 pub fn amdsmi_get_lib_version() -> AmdsmiResult<AmdsmiVersionT> {
     let mut version = MaybeUninit::<AmdsmiVersionT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_lib_version(version.as_mut_ptr()));
+    call_amdsmi!(amdsmi_get_lib_version(version.as_mut_ptr()));
     let version = unsafe { version.assume_init() };
     Ok(version)
 }
@@ -6175,8 +6175,8 @@ pub fn amdsmi_get_gpu_accelerator_partition_profile(
 ) -> AmdsmiResult<(AmdsmiAcceleratorPartitionProfileT, u32)> {
     let mut profile = MaybeUninit::<AmdsmiAcceleratorPartitionProfileT>::uninit();
     let mut partition_id = MaybeUninit::<u32>::uninit();
-    call_unsafe!(
-        amdsmi_wrapper::amdsmi_get_gpu_accelerator_partition_profile(
+    call_amdsmi!(
+        amdsmi_get_gpu_accelerator_partition_profile(
             processor_handle,
             profile.as_mut_ptr(),
             partition_id.as_mut_ptr()
@@ -6230,7 +6230,7 @@ pub fn amdsmi_get_gpu_kfd_info(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<AmdsmiKfdInfoT> {
     let mut info = MaybeUninit::<AmdsmiKfdInfoT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_gpu_kfd_info(
+    call_amdsmi!(amdsmi_get_gpu_kfd_info(
         processor_handle,
         info.as_mut_ptr()
     ));
@@ -6282,7 +6282,7 @@ pub fn amdsmi_get_violation_status(
     processor_handle: AmdsmiProcessorHandle,
 ) -> AmdsmiResult<AmdsmiViolationStatusT> {
     let mut info = MaybeUninit::<AmdsmiViolationStatusT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_violation_status(
+    call_amdsmi!(amdsmi_get_violation_status(
         processor_handle,
         info.as_mut_ptr()
     ));
@@ -6336,7 +6336,7 @@ pub fn amdsmi_get_link_topology_nearest(
     link_type: AmdsmiLinkTypeT,
 ) -> AmdsmiResult<AmdsmiTopologyNearestT> {
     let mut topology_nearest_info = MaybeUninit::<AmdsmiTopologyNearestT>::uninit();
-    call_unsafe!(amdsmi_wrapper::amdsmi_get_link_topology_nearest(
+    call_amdsmi!(amdsmi_get_link_topology_nearest(
         processor_handle,
         link_type,
         topology_nearest_info.as_mut_ptr()
