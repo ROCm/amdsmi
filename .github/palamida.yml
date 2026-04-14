@@ -1,4 +1,4 @@
-disabled: false
+disabled: true
 scmId: gh-emu-rocm
 branchesToScan:
   - amd-staging
