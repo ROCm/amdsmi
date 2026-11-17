@@ -534,8 +534,6 @@ class AMDSMIHelpers():
             of gpus passed in via args.
         params:
             args - argparser args to pass to subcommand
-            current_platform_args (list) - GPU supported platform arguments
-            current_platform_values (list) - GPU supported values for the arguments
             logger (AMDSMILogger) - Logger to print out output
             subcommand (AMDSMICommands) - Function that can handle multiple gpus
 
@@ -631,8 +629,6 @@ class AMDSMIHelpers():
             of nodes passed in via args.
         params:
             args - argparser args to pass to subcommand
-            current_platform_args (list) - GPU supported platform arguments
-            current_platform_values (list) - GPU supported values for the arguments
             logger (AMDSMILogger) - Logger to print out output
             subcommand (AMDSMICommands) - Function that can handle multiple gpus
 

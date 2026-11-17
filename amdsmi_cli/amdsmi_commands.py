@@ -394,8 +394,6 @@ class AMDSMICommands():
 
         Args:
             args (Namespace): Namespace containing the parsed CLI args
-            current_platform_args (list): gpu supported platform arguments
-            current_platform_values (list): gpu supported platform values for each argument
             multiple_devices (bool, optional): True if checking for multiple devices. Defaults to False.
             gpu (device_handle, optional): device_handle for target device. Defaults to None.
             asic (bool, optional): Value override for args.asic. Defaults to None.
@@ -3687,7 +3685,7 @@ class AMDSMICommands():
                 access (bool) - Value override for args.access
                 weight (bool) - Value override for args.weight
                 hops (bool) - Value override for args.hops
-                type (bool) - Value override for args.type
+                link_type (bool) - Value override for args.link_type
                 numa_bw (bool) - Value override for args.numa_bw
                 coherent (bool) - Value override for args.coherent
                 atomics (bool) - Value override for args.atomics
@@ -5694,7 +5692,7 @@ class AMDSMICommands():
             iterations (int, optional): Value override for args.iterations. Defaults to None.
             power_usage (bool, optional): Value override for args.power_usage. Defaults to None.
             temperature (bool, optional): Value override for args.temperature. Defaults to None.
-            gfx (bool, optional): Value override for args.gfx. Defaults to None.
+            gfx_util (bool, optional): Value override for args.gfx. Defaults to None.
             mem_util (bool, optional): Value override for args.mem. Defaults to None.
             encoder (bool, optional): Value override for args.encoder. Defaults to None.
             decoder (bool, optional): Value override for args.decoder. Defaults to None.
