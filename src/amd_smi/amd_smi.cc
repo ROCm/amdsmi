@@ -4371,6 +4371,10 @@ amdsmi_get_gpu_total_ecc_count(amdsmi_processor_handle processor_handle, amdsmi_
     if (status != AMDSMI_STATUS_SUCCESS)
         return status;
 
+    // The totals are computed here, so a caller that reuses the struct must not have the old
+    // counts added on top of the new ones.
+    *ec = {};
+
     amdsmi_ras_err_state_t state = {};
     // Iterate through the ecc blocks
     for (auto block = AMDSMI_GPU_BLOCK_FIRST; block <= AMDSMI_GPU_BLOCK_LAST;
