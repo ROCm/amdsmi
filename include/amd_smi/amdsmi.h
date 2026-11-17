@@ -2668,7 +2668,7 @@ amdsmi_status_t amdsmi_get_processor_handles(amdsmi_socket_handle socket_handle,
  *  is required to be OAM ID 0 otherwise the API will fail. OAM ID is sourced
  *  from amdsmi_get_gpu_asic_info API.
  *
- *  @param[out] amdsmi_node_handle* A pointer to a block of memory where amdsmi_node_handle
+ *  @param[out] node_handle A pointer to a block of memory where amdsmi_node_handle
  *  will be written.
  *
  *  @return ::amdsmi_status_t | ::AMDSMI_STATUS_SUCCESS on success, non-zero on fail
