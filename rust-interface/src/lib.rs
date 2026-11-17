@@ -23,6 +23,7 @@ mod amdsmi_wrapper;
 
 #[macro_use]
 mod utils;
+mod library;
 mod amdsmi;
 
 pub use utils::*;
